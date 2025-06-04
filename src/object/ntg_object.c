@@ -1,10 +1,10 @@
-#include "ntg_object/ntg_object.h"
-#include "ntg_base/ntg_cell.h"
+#include "object/ntg_object.h"
+#include "base/ntg_cell.h"
 #include <assert.h>
 #include <stdlib.h>
 
 #define __NTG_ALLOW_NTG_OBJECT_DEF__
-#include "ntg_object/def/ntg_object_def.h"
+#include "object/def/ntg_object_def.h"
 #undef __NTG_ALLOW_NTG_OBJECT_DEF__
 
 /* -------------------------------------------------------------------------- */

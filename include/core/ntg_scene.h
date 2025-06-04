@@ -1,10 +1,10 @@
 #ifndef _NTG_SCENE_H_
 #define _NTG_SCENE_H_
 
-#include "ntg_core/fwd/ntg_scene_fwd.h"
+#include "core/fwd/ntg_scene_fwd.h"
 
-#include "ntg_object/fwd/ntg_object_fwd.h"
-#include "ntg_shared/ntg_xy.h"
+#include "object/fwd/ntg_object_fwd.h"
+#include "shared/ntg_xy.h"
 
 ntg_scene_t* ntg_scene_new();
 void ntg_scene_destroy(ntg_scene_t* scene);

@@ -1,7 +1,7 @@
 #ifndef _NTG_EVENT_H_
 #define _NTG_EVENT_H_
 
-#include "ntg_shared/ntg_status.h"
+#include "shared/ntg_status.h"
 #include <stdbool.h>
 #include <stddef.h>
 

@@ -1,9 +1,9 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
-#include "ntg_base/fwd/ntg_cell_fwd.h"
-#include "ntg_object/fwd/ntg_object_fwd.h"
-#include "ntg_object/ntg_object_vec.h"
+#include "base/fwd/ntg_cell_fwd.h"
+#include "object/fwd/ntg_object_fwd.h"
+#include "object/ntg_object_vec.h"
 #include <stddef.h>
 
 /* -------------------------------------------------------------------------- */

@@ -1,8 +1,8 @@
-#include "ntg_core/ntg_scene.h"
-#include "ntg_base/fwd/ntg_cell_fwd.h"
-#include "ntg_base/ntg_cell.h"
-#include "ntg_core/ntg_scene_engine.h"
-#include "ntg_shared/ntg_xy.h"
+#include "core/ntg_scene.h"
+#include "base/fwd/ntg_cell_fwd.h"
+#include "base/ntg_cell.h"
+#include "core/ntg_scene_engine.h"
+#include "shared/ntg_xy.h"
 #include <assert.h>
 #include <stdlib.h>
 

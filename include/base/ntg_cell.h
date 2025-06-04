@@ -2,8 +2,8 @@
 #define _NTG_CELL_H_
 
 #include <stdint.h>
-#include "ntg_shared/ntg_xy.h"
-#include "ntg_base/fwd/ntg_cell_fwd.h"
+#include "shared/ntg_xy.h"
+#include "base/fwd/ntg_cell_fwd.h"
 
 #define NTG_CELL_EMPTY ' '
 

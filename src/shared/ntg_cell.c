@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "ntg_base/ntg_cell.h"
+#include "base/ntg_cell.h"
 
 typedef enum ntg_cell_type 
 { 

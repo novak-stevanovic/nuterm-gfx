@@ -1,8 +1,8 @@
 #include <assert.h>
 
 #include "ntg.h"
-#include "ntg_core/ntg_stage.h"
-#include "ntg_shared/_ntg_shared.h"
+#include "core/ntg_stage.h"
+#include "shared/_ntg_shared.h"
 #include "pthread.h"
 #include "nt.h"
 

@@ -1,5 +1,5 @@
-#include "ntg_object/ntg_object_vec.h"
-#include "ntg_object/def/ntg_object_def.h"
+#include "object/ntg_object_vec.h"
+#include "object/def/ntg_object_def.h"
 #include <stdlib.h>
 #include <string.h>
 

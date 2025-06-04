@@ -1,5 +1,5 @@
 #include "ntg.h"
-#include "ntg_core/ntg_scene.h"
+#include "core/ntg_scene.h"
 #include <unistd.h>
 
 void init_gui_func(void* data)

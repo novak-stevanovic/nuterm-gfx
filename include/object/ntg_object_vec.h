@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "ntg_object/fwd/ntg_object_fwd.h"
+#include "object/fwd/ntg_object_fwd.h"
 
 typedef struct ntg_object_vec ntg_object_vec_t;
 

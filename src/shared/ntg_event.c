@@ -1,4 +1,4 @@
-#include "ntg_shared/ntg_event.h"
+#include "shared/ntg_event.h"
 #include <assert.h>
 #include <stdlib.h>
 

@@ -1,7 +1,7 @@
 #ifndef _NTG_H_
 #define _NTG_H_
 
-#include "ntg_shared/ntg_status.h"
+#include "shared/ntg_status.h"
 #include "nt_shared.h"
 #include "nt_gfx.h"
 

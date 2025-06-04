@@ -1,7 +1,7 @@
-#include "ntg_core/ntg_stage.h"
-#include "ntg_base/fwd/ntg_cell_fwd.h"
-#include "ntg_core/ntg_scene.h"
-#include "ntg_shared/ntg_xy.h"
+#include "core/ntg_stage.h"
+#include "base/fwd/ntg_cell_fwd.h"
+#include "core/ntg_scene.h"
+#include "shared/ntg_xy.h"
 #include "nt.h"
 #include <assert.h>
 

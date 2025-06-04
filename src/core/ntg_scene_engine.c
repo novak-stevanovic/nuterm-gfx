@@ -1,11 +1,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "ntg_core/ntg_scene_engine.h"
-#include "ntg_base/ntg_cell.h"
-#include "ntg_core/_ntg_scene.h"
-#include "ntg_core/ntg_scene.h"
-#include "ntg_object/ntg_object.h"
+#include "core/ntg_scene_engine.h"
+#include "base/ntg_cell.h"
+#include "core/_ntg_scene.h"
+#include "core/ntg_scene.h"
+#include "object/ntg_object.h"
 
 struct ntg_scene_engine
 {
