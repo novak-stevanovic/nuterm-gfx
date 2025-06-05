@@ -31,13 +31,9 @@ struct ntg_object
 /* ntg_object protected */
 
 void __ntg_object_init__(ntg_object_t* object, ntg_constrain_fn constrain_fn,
-        ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn,
-        ntg_object_vec_t* children, ntg_object_drawing_t* drawing);
+        ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn);
 
 void __ntg_object_deinit__(ntg_object_t* object);
-
-void ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr);
-void ntg_object_set_size(ntg_object_t* object, struct ntg_xy size);
 
 /* -------------------------------------------------------------------------- */
 

@@ -4,11 +4,6 @@
 
 void init_gui_func(void* data)
 {
-    ntg_scene_t* scene1 = ntg_scene_new();
-    ntg_scene_t* scene2 = ntg_scene_new();
-
-    ntg_scene_destroy(scene1);
-    ntg_scene_destroy(scene2);
     return;
 }
 

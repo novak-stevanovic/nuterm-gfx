@@ -5,6 +5,7 @@
 
 #include "base/fwd/ntg_cell_fwd.h"
 #include "object/util/ntg_object_vec.h"
+#include "shared/ntg_xy.h"
 #include <stddef.h>
 
 /* -------------------------------------------------------------------------- */
@@ -16,6 +17,10 @@ const ntg_object_vec_t* ntg_object_get_children(const ntg_object_t* object);
 void ntg_object_constrain(ntg_object_t* object);
 void ntg_object_measure(ntg_object_t* object);
 void ntg_object_arrange(ntg_object_t* object);
+
+void ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr);
+void ntg_object_set_size(ntg_object_t* object, struct ntg_xy size);
+void ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos);
 
 struct ntg_xy ntg_object_get_position_abs(const ntg_object_t* object);
 struct ntg_xy ntg_object_get_position_rel(const ntg_object_t* object);

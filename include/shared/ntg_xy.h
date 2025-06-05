@@ -19,17 +19,22 @@ struct ntg_dxy
 };
 
 #define NTG_XY(xv, yv) ((struct ntg_xy) { .x = (xv), .y = (yv) })
-#define NTG_XY_ADD(a, b) ((struct ntg_xy) { .x = (a).x + (b).x, .y = (a).y + (b).y })
+
+#define NTG_XY_ADD(a, b) ((struct ntg_xy) {                                    \
+        .x = (a).x + (b).x,                                                    \
+        .y = (a).y + (b).y })
+
 #define NTG_XY_SUB(a, b) ((struct ntg_dxy) {                                   \
         .x = ((ssize_t)(a).x - (b).x),                                         \
         .y = ((ssize_t)(a).y - (b).y) })
 
 #define NTG_XY_DXY(xy) ((struct ntg_dxy) { .x = (xy).x, .y = (xy).y })
+
 #define NTG_DXY_XY(xy) ((struct ntg_xy) { .x = (xy).x, .y = (xy).y })
 
-#define NTG_XY_SIZE_UNSET ((struct ntg_xy) {0})
-#define NTG_XY_POS_UNSET ((struct ntg_xy) { .x = SIZE_MAX, .y = SIZE_MAX })
-#define NTG_XY_POS_IN_BOUNDS(pos,bounds) ( (((pos).x < (bounds).x) && ((pos).y < (bounds).y)) )
+#define NTG_XY_UNSET ((struct ntg_xy) {0})
+#define NTG_XY_POS_IN_BOUNDS(pos,bounds)                                       \
+    ( (((pos).x < (bounds).x) && ((pos).y < (bounds).y)) )
 
 struct ntg_constr
 {

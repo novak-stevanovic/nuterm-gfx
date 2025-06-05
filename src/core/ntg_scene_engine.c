@@ -14,6 +14,8 @@ struct ntg_scene_engine
 
 static void _constrain_all(ntg_object_t* curr_obj)
 {
+    if(curr_obj == NULL) return;
+
     ntg_object_constrain(curr_obj);
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
     size_t count = ntg_object_vec_size(children);
@@ -23,12 +25,14 @@ static void _constrain_all(ntg_object_t* curr_obj)
     for(i = 0; i < count; i++)
     {
         it_obj = ntg_object_vec_at(children, i);
-        ntg_object_constrain(it_obj);
+        _constrain_all(it_obj);
     }
 }
 
 static void _measure_all(ntg_object_t* curr_obj)
 {
+    if(curr_obj == NULL) return;
+
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
     size_t count = ntg_object_vec_size(children);
 
@@ -37,13 +41,15 @@ static void _measure_all(ntg_object_t* curr_obj)
     for(i = 0; i < count; i++)
     {
         it_obj = ntg_object_vec_at(children, i);
-        ntg_object_measure(it_obj);
+        _measure_all(it_obj);
     }
     ntg_object_measure(curr_obj);
 }
 
 static void _arrange_all(ntg_object_t* curr_obj)
 {
+    if(curr_obj == NULL) return;
+
     ntg_object_arrange(curr_obj);
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
     size_t count = ntg_object_vec_size(children);
@@ -53,12 +59,14 @@ static void _arrange_all(ntg_object_t* curr_obj)
     for(i = 0; i < count; i++)
     {
         it_obj = ntg_object_vec_at(children, i);
-        ntg_object_arrange(it_obj);
+        _arrange_all(curr_obj);
     }
 }
 
 static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing)
 {
+    if(curr_obj == NULL) return;
+
     const ntg_object_drawing_t* obj_drawing = ntg_object_get_drawing(curr_obj);
 
     struct ntg_xy obj_drawing_size = ntg_object_drawing_get_size(obj_drawing);
@@ -91,7 +99,7 @@ static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing
     for(i = 0; i < count; i++)
     {
         it_obj = ntg_object_vec_at(children, i);
-        ntg_object_arrange(it_obj);
+        _draw_all(it_obj, scene_drawing);
     }
 }
 
@@ -103,6 +111,8 @@ ntg_scene_engine_t* ntg_scene_engine_new(ntg_scene_t* scene)
         (sizeof(struct ntg_scene_engine));
 
     if(new == NULL) return NULL;
+
+    new->scene = scene;
 
     return new;
 }
@@ -119,8 +129,16 @@ void ntg_scene_engine_layout(ntg_scene_engine_t* engine)
     ntg_object_t* root = ntg_scene_get_root(engine->scene);
     if(root == NULL) return;
 
+    const ntg_scene_drawing_t* drawing = ntg_scene_get_drawing(engine->scene);
+    struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
+
+    ntg_object_set_constr(root, NTG_CONSTR(size, size));
     _constrain_all(root);
+
     _measure_all(root);
+
+    ntg_object_set_pos(root, NTG_XY(0, 0));
     _arrange_all(root);
+
     _draw_all(root, ntg_scene_get_drawing_(engine->scene));
 }

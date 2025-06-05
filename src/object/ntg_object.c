@@ -21,8 +21,7 @@ static void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,
 /* -------------------------------------------------------------------------- */
 
 void __ntg_object_init__(ntg_object_t* object, ntg_constrain_fn constrain_fn,
-        ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn,
-        ntg_object_vec_t* children, ntg_object_drawing_t* drawing)
+        ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn)
 {
     if(object == NULL) return;
 
@@ -30,13 +29,13 @@ void __ntg_object_init__(ntg_object_t* object, ntg_constrain_fn constrain_fn,
     object->__measure_fn = measure_fn;
     object->__arrange_fn = arrange_fn;
 
-    object->_children = children;
-    object->_drawing = drawing;
+    object->_children = ntg_object_vec_new();;
+    object->_drawing = ntg_object_drawing_new();
     object->_parent = NULL;
     object->_constr = NTG_CONSTR_UNSET;
     object->_adj_constr = NTG_CONSTR_UNSET;
-    object->_pos = NTG_XY_POS_UNSET;
-    object->_size = NTG_XY_SIZE_UNSET;
+    object->_pos = NTG_XY_UNSET;
+    object->_size = NTG_XY_UNSET;
 }
 
 void __ntg_object_deinit__(ntg_object_t* object)
@@ -51,8 +50,8 @@ void __ntg_object_deinit__(ntg_object_t* object)
 
     object->_parent = NULL;
     object->_constr = NTG_CONSTR_UNSET;
-    object->_pos = NTG_XY_POS_UNSET;
-    object->_size = NTG_XY_SIZE_UNSET;
+    object->_pos = NTG_XY_UNSET;
+    object->_size = NTG_XY_UNSET;
     object->__arrange_fn = NULL;
     object->__measure_fn = NULL;
     object->__constrain_fn = NULL;
@@ -97,6 +96,8 @@ void ntg_object_set_size(ntg_object_t* object, struct ntg_xy size)
     if(object == NULL) return;
 
     object->_size = size;
+
+    ntg_object_drawing_set_size(object->_drawing, size);
 }
 
 void ntg_object_arrange(ntg_object_t* object)
@@ -105,6 +106,13 @@ void ntg_object_arrange(ntg_object_t* object)
 
     if(object->__arrange_fn != NULL)
         object->__arrange_fn(object);
+}
+
+void ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos)
+{
+    if(object == NULL) return;
+
+    object->_pos = pos;
 }
 
 struct ntg_xy ntg_object_get_position_abs(const ntg_object_t* object)
@@ -134,22 +142,22 @@ struct ntg_constr ntg_object_get_adj_constr(const ntg_object_t* object)
 
 struct ntg_xy ntg_object_get_size(const ntg_object_t* object)
 {
-    return (object != NULL) ? object->_size : NTG_XY_SIZE_UNSET;
+    return (object != NULL) ? object->_size : NTG_XY_UNSET;
 }
 
 struct ntg_xy ntg_object_get_content_size(const ntg_object_t* object)
 {
-    return (object != NULL) ? object->_size : NTG_XY_SIZE_UNSET;
+    return (object != NULL) ? object->_size : NTG_XY_UNSET;
 }
 
 struct ntg_xy ntg_object_get_pos(const ntg_object_t* object)
 {
-    return (object != NULL) ? object->_pos : NTG_XY_POS_UNSET;
+    return (object != NULL) ? object->_pos : NTG_XY_UNSET;
 }
 
 struct ntg_xy ntg_object_get_content_pos(const ntg_object_t* object)
 {
-    return (object != NULL) ? object->_pos : NTG_XY_POS_UNSET;
+    return (object != NULL) ? object->_pos : NTG_XY_UNSET;
 }
 
 const ntg_object_drawing_t* ntg_object_get_drawing(const ntg_object_t* object)
@@ -171,7 +179,7 @@ ntg_object_drawing_t* ntg_object_drawing_new()
         return NULL;
     }
 
-    new->_size = NTG_XY_SIZE_UNSET;
+    new->_size = NTG_XY_UNSET;
 
     return new;
 }
@@ -190,7 +198,7 @@ ntg_cell_t* ntg_object_drawing_at_(ntg_object_drawing_t* drawing,
 {
     if(drawing == NULL) return NULL;
 
-    if(!NTG_XY_POS_IN_BOUNDS(pos, drawing->_size))
+    if(!(NTG_XY_POS_IN_BOUNDS(pos, drawing->_size)))
         return NULL;
 
     return ntg_cell_grid_at_(drawing->_data, pos);
@@ -209,7 +217,7 @@ const ntg_cell_t* ntg_object_drawing_at(const ntg_object_drawing_t* drawing,
 
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing_t* drawing)
 {
-    return (drawing != NULL) ? drawing->_size : NTG_XY_SIZE_UNSET;
+    return (drawing != NULL) ? drawing->_size : NTG_XY_UNSET;
 }
 
 static void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,

@@ -2,6 +2,7 @@
 #include "base/fwd/ntg_cell_fwd.h"
 #include "base/ntg_cell.h"
 #include "core/ntg_scene_engine.h"
+#include "nt.h"
 #include "shared/ntg_xy.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -33,6 +34,7 @@ struct ntg_scene
 
 void ntg_scene_layout(ntg_scene_t* scene, struct ntg_xy size)
 {
+    ntg_scene_drawing_set_size(&(scene->drawing), size);
     ntg_scene_engine_layout(scene->engine);
 }
 
@@ -106,7 +108,7 @@ void __ntg_scene_drawing_init__(ntg_scene_drawing_t* drawing)
 
     assert(drawing->_drawing != NULL);
 
-    drawing->_size = NTG_XY_SIZE_UNSET;
+    drawing->_size = NTG_XY_UNSET;
 }
 
 void __ntg_scene_drawing_deinit__(ntg_scene_drawing_t* drawing)
@@ -114,7 +116,7 @@ void __ntg_scene_drawing_deinit__(ntg_scene_drawing_t* drawing)
     if(drawing == NULL) return;
 
     ntg_cell_base_grid_destroy(drawing->_drawing);
-    drawing->_size = NTG_XY_SIZE_UNSET;
+    drawing->_size = NTG_XY_UNSET;
 }
 
 const struct ntg_cell_base* ntg_scene_drawing_at(const ntg_scene_drawing_t* drawing,
@@ -141,7 +143,7 @@ struct ntg_cell_base* ntg_scene_drawing_at_(ntg_scene_drawing_t* drawing,
 
 struct ntg_xy ntg_scene_drawing_get_size(const ntg_scene_drawing_t* drawing)
 {
-    return (drawing != NULL) ? drawing->_size : NTG_XY_SIZE_UNSET;
+    return (drawing != NULL) ? drawing->_size : NTG_XY_UNSET;
 }
 
 void ntg_scene_drawing_set_size(ntg_scene_drawing_t* drawing,

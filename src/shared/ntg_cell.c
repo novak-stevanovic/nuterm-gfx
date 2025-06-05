@@ -32,7 +32,9 @@ struct ntg_cell_grid
 
 ntg_cell_base_grid_t* ntg_cell_base_grid_new(struct ntg_xy size)
 {
-    ntg_cell_base_grid_t* new = (ntg_cell_base_grid_t*)malloc(sizeof(struct ntg_cell_base_grid));
+    ntg_cell_base_grid_t* new = (ntg_cell_base_grid_t*)malloc(
+            sizeof(struct ntg_cell_base_grid));
+
     if(new == NULL) return NULL;
 
     new->data = (struct ntg_cell_base*)malloc
@@ -97,7 +99,7 @@ void ntg_cell_base_grid_realloc(ntg_cell_base_grid_t* grid, struct ntg_xy size)
 
 struct ntg_xy ntg_cell_base_grid_get_size(const ntg_cell_base_grid_t* grid)
 {
-    return (grid != NULL) ? grid->size : NTG_XY_SIZE_UNSET;
+    return (grid != NULL) ? grid->size : NTG_XY_UNSET;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -250,5 +252,5 @@ void ntg_cell_grid_realloc(ntg_cell_grid_t* grid, struct ntg_xy size)
 
 struct ntg_xy ntg_cell_grid_get_size(const ntg_cell_grid_t* grid)
 {
-    return (grid != NULL) ? grid->size : NTG_XY_SIZE_UNSET;
+    return (grid != NULL) ? grid->size : NTG_XY_UNSET;
 }

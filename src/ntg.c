@@ -1,7 +1,10 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "ntg.h"
+#include "core/ntg_scene.h"
 #include "core/ntg_stage.h"
+#include "object/ntg_color_block.h"
 #include "shared/_ntg_shared.h"
 #include "pthread.h"
 #include "nt.h"
@@ -16,17 +19,37 @@ static void* _ntg_thread_func(void* data)
 {
     _init_gui_func(_init_gui_func_data);
 
-    nt_status_t _status;
-    struct nt_event event;
-    while(true)
+    ntg_color_block_t* cb = ntg_color_block_new(nt_color_new(255, 0, 255));
+
+    ntg_scene_t* s = ntg_scene_new();
+    ntg_scene_set_root(s, (ntg_object_t*)cb);
+
+    ntg_stage_set_scene(s);
+
+    ntg_stage_render();
+
+    char c;
+    while(1)
     {
-        event = nt_wait_for_event(NTG_TIMEOUT, &_status);
-
-        if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_F5)
+        c = getchar();
+        if(c == 'q')
             break;
-
-        assert(_status == NT_SUCCESS);
     }
+
+    // nt_status_t _status;
+    // struct nt_event event;
+    // while(true)
+    // {
+    //     event = nt_wait_for_event(NTG_TIMEOUT, &_status);
+    //
+    //     if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_F5)
+    //         break;
+    //
+    //     assert(_status == NT_SUCCESS);
+    // }
+
+    ntg_color_block_destroy(cb);
+    ntg_scene_destroy(s);
 
     return NULL;
 }
