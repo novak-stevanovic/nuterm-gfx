@@ -57,28 +57,28 @@ static void _arrange_all(ntg_object_t* curr_obj)
     }
 }
 
-static void _draw_all(ntg_object_t* curr_obj, ntg_scene_content_t* scene_content)
+static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing)
 {
-    const ntg_object_content_t* obj_content = ntg_object_get_content(curr_obj);
+    const ntg_object_drawing_t* obj_drawing = ntg_object_get_drawing(curr_obj);
 
-    struct ntg_xy obj_content_size = ntg_object_content_get_size(obj_content);
-    struct ntg_xy scene_content_size = ntg_scene_content_get_size(scene_content);
+    struct ntg_xy obj_drawing_size = ntg_object_drawing_get_size(obj_drawing);
+    struct ntg_xy scene_drawing_size = ntg_scene_drawing_get_size(scene_drawing);
 
     struct ntg_xy obj_pos = ntg_object_get_position_abs(curr_obj);
     size_t i, j;
     const ntg_cell_t* it_obj_cell;
     struct ntg_cell_base* it_scene_cell;
     struct ntg_xy it_obj_pos, it_scene_pos;
-    for(i = 0; i < obj_content_size.y; i++)
+    for(i = 0; i < obj_drawing_size.y; i++)
     {
-        for(j = 0; j < obj_content_size.x; j++)
+        for(j = 0; j < obj_drawing_size.x; j++)
         {
             it_obj_pos = NTG_XY(j, i);
             it_scene_pos = NTG_XY_ADD(it_obj_pos, obj_pos);
 
             //assert(it_scene_pos.isInBounds());
-            it_obj_cell = ntg_object_content_at(obj_content, it_obj_pos);
-            it_scene_cell = ntg_scene_content_at_(scene_content, it_scene_pos);
+            it_obj_cell = ntg_object_drawing_at(obj_drawing, it_obj_pos);
+            it_scene_cell = ntg_scene_drawing_at_(scene_drawing, it_scene_pos);
 
             ntg_cell_overwrite(it_obj_cell, it_scene_cell);
         }
@@ -122,5 +122,5 @@ void ntg_scene_engine_layout(ntg_scene_engine_t* engine)
     _constrain_all(root);
     _measure_all(root);
     _arrange_all(root);
-    _draw_all(root, ntg_scene_get_content_(engine->scene));
+    _draw_all(root, ntg_scene_get_drawing_(engine->scene));
 }

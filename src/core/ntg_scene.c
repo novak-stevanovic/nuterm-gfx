@@ -6,19 +6,19 @@
 #include <assert.h>
 #include <stdlib.h>
 
-struct ntg_scene_content
+struct ntg_scene_drawing
 {
-    ntg_cell_base_grid_t* _content;
+    ntg_cell_base_grid_t* _drawing;
     struct ntg_xy _size;
 };
 
-void __ntg_scene_content_init__(ntg_scene_content_t* content);
-void __ntg_scene_content_deinit__(ntg_scene_content_t* content);
+void __ntg_scene_drawing_init__(ntg_scene_drawing_t* drawing);
+void __ntg_scene_drawing_deinit__(ntg_scene_drawing_t* drawing);
 
-struct ntg_cell_base* ntg_scene_content_at_(ntg_scene_content_t* content,
+struct ntg_cell_base* ntg_scene_drawing_at_(ntg_scene_drawing_t* drawing,
         struct ntg_xy pos);
 
-void ntg_scene_content_set_size(ntg_scene_content_t* content,
+void ntg_scene_drawing_set_size(ntg_scene_drawing_t* drawing,
         struct ntg_xy size);
 
 /* -------------------------------------------------------------------------- */
@@ -26,7 +26,7 @@ void ntg_scene_content_set_size(ntg_scene_content_t* content,
 struct ntg_scene
 {
     ntg_object_t* root;
-    ntg_scene_content_t content;
+    ntg_scene_drawing_t drawing;
 
     ntg_scene_engine_t* engine;
 };
@@ -42,8 +42,8 @@ ntg_scene_t* ntg_scene_new()
 
     if(new == NULL) return NULL;
 
-    __ntg_scene_content_init__(&new->content);
-    // if(new->content == NULL)
+    __ntg_scene_drawing_init__(&new->drawing);
+    // if(new->drawing == NULL)
     // {
     //     free(new);
     //     return NULL;
@@ -52,7 +52,7 @@ ntg_scene_t* ntg_scene_new()
     new->engine = ntg_scene_engine_new(new);
     if(new->engine == NULL)
     {
-        __ntg_scene_content_deinit__(&new->content);
+        __ntg_scene_drawing_deinit__(&new->drawing);
         free(new);
         return NULL;
     }
@@ -66,7 +66,7 @@ void ntg_scene_destroy(ntg_scene_t* scene)
 {
     if(scene == NULL) return;
 
-    __ntg_scene_content_deinit__(&scene->content);
+    __ntg_scene_drawing_deinit__(&scene->drawing);
     ntg_scene_engine_destroy(scene->engine);
     
     free(scene);
@@ -85,69 +85,69 @@ void ntg_scene_set_root(ntg_scene_t* scene, ntg_object_t* new_root)
     // TODO
 }
 
-const ntg_scene_content_t* ntg_scene_get_content(const ntg_scene_t* scene)
+const ntg_scene_drawing_t* ntg_scene_get_drawing(const ntg_scene_t* scene)
 {
-    return (scene != NULL) ? &scene->content : NULL;
+    return (scene != NULL) ? &scene->drawing : NULL;
 }
 
-ntg_scene_content_t* ntg_scene_get_content_(ntg_scene_t* scene)
+ntg_scene_drawing_t* ntg_scene_get_drawing_(ntg_scene_t* scene)
 {
-    return (scene != NULL) ? &scene->content : NULL;
+    return (scene != NULL) ? &scene->drawing : NULL;
 }
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_scene_content_init__(ntg_scene_content_t* content)
+void __ntg_scene_drawing_init__(ntg_scene_drawing_t* drawing)
 {
-    if(content == NULL) return;
+    if(drawing == NULL) return;
 
-    content->_content = ntg_cell_base_grid_new(
+    drawing->_drawing = ntg_cell_base_grid_new(
             NTG_XY(NTG_TERM_MAX_WIDTH, NTG_TERM_MAX_HEIGHT));
 
-    assert(content->_content != NULL);
+    assert(drawing->_drawing != NULL);
 
-    content->_size = NTG_XY_SIZE_UNSET;
+    drawing->_size = NTG_XY_SIZE_UNSET;
 }
 
-void __ntg_scene_content_deinit__(ntg_scene_content_t* content)
+void __ntg_scene_drawing_deinit__(ntg_scene_drawing_t* drawing)
 {
-    if(content == NULL) return;
+    if(drawing == NULL) return;
 
-    ntg_cell_base_grid_destroy(content->_content);
-    content->_size = NTG_XY_SIZE_UNSET;
+    ntg_cell_base_grid_destroy(drawing->_drawing);
+    drawing->_size = NTG_XY_SIZE_UNSET;
 }
 
-const struct ntg_cell_base* ntg_scene_content_at(const ntg_scene_content_t* content,
+const struct ntg_cell_base* ntg_scene_drawing_at(const ntg_scene_drawing_t* drawing,
         struct ntg_xy pos)
 {
-    if(content == NULL) return NULL;
+    if(drawing == NULL) return NULL;
 
-    if(!NTG_XY_POS_IN_BOUNDS(pos, content->_size))
+    if(!NTG_XY_POS_IN_BOUNDS(pos, drawing->_size))
         return NULL;
 
-    return ntg_cell_base_grid_at(content->_content, pos);
+    return ntg_cell_base_grid_at(drawing->_drawing, pos);
 }
 
-struct ntg_cell_base* ntg_scene_content_at_(ntg_scene_content_t* content,
+struct ntg_cell_base* ntg_scene_drawing_at_(ntg_scene_drawing_t* drawing,
         struct ntg_xy pos)
 {
-    if(content == NULL) return NULL;
+    if(drawing == NULL) return NULL;
 
-    if(!NTG_XY_POS_IN_BOUNDS(pos, content->_size))
+    if(!NTG_XY_POS_IN_BOUNDS(pos, drawing->_size))
         return NULL;
 
-    return ntg_cell_base_grid_at_(content->_content, pos);
+    return ntg_cell_base_grid_at_(drawing->_drawing, pos);
 }
 
-struct ntg_xy ntg_scene_content_get_size(const ntg_scene_content_t* content)
+struct ntg_xy ntg_scene_drawing_get_size(const ntg_scene_drawing_t* drawing)
 {
-    return (content != NULL) ? content->_size : NTG_XY_SIZE_UNSET;
+    return (drawing != NULL) ? drawing->_size : NTG_XY_SIZE_UNSET;
 }
 
-void ntg_scene_content_set_size(ntg_scene_content_t* content,
+void ntg_scene_drawing_set_size(ntg_scene_drawing_t* drawing,
         struct ntg_xy size)
 {
-    if(content == NULL) return;
+    if(drawing == NULL) return;
 
-    content->_size = size;
+    drawing->_size = size;
 }

@@ -1,9 +1,10 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
+#include "object/ntg_object_fwd.h"
+
 #include "base/fwd/ntg_cell_fwd.h"
-#include "object/fwd/ntg_object_fwd.h"
-#include "object/ntg_object_vec.h"
+#include "object/util/ntg_object_vec.h"
 #include <stddef.h>
 
 /* -------------------------------------------------------------------------- */
@@ -19,13 +20,22 @@ void ntg_object_arrange(ntg_object_t* object);
 struct ntg_xy ntg_object_get_position_abs(const ntg_object_t* object);
 struct ntg_xy ntg_object_get_position_rel(const ntg_object_t* object);
 
-const ntg_object_content_t* ntg_object_get_content(const ntg_object_t* object);
+struct ntg_constr ntg_object_get_constr(const ntg_object_t* object);
+struct ntg_constr ntg_object_get_adj_constr(const ntg_object_t* object);
+
+struct ntg_xy ntg_object_get_size(const ntg_object_t* object);
+struct ntg_xy ntg_object_get_content_size(const ntg_object_t* object);
+
+struct ntg_xy ntg_object_get_pos(const ntg_object_t* object);
+struct ntg_xy ntg_object_get_content_pos(const ntg_object_t* object);
+
+const ntg_object_drawing_t* ntg_object_get_drawing(const ntg_object_t* object);
 
 /* -------------------------------------------------------------------------- */
 
-const ntg_cell_t* ntg_object_content_at(const ntg_object_content_t* content,
+const ntg_cell_t* ntg_object_drawing_at(const ntg_object_drawing_t* drawing,
         struct ntg_xy pos);
 
-struct ntg_xy ntg_object_content_get_size(const ntg_object_content_t* content);
+struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing_t* drawing);
 
 #endif // _NTG_OBJECT_H_

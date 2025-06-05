@@ -24,15 +24,15 @@ void ntg_stage_render()
 {
     if(_active_scene == NULL) return;
 
-    const ntg_scene_content_t* content = ntg_scene_get_content(_active_scene);
-    struct ntg_xy size = ntg_scene_content_get_size(content);
+    const ntg_scene_drawing_t* drawing = ntg_scene_get_drawing(_active_scene);
+    struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
     size_t i, j;
     struct ntg_cell_base it_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = *ntg_scene_content_at(content, NTG_XY(j, i));
+            it_cell = *ntg_scene_drawing_at(drawing, NTG_XY(j, i));
             nt_write_char_at(it_cell.codepoint, it_cell.gfx, j, i, NULL, NULL);
         }
     }

@@ -1,0 +1,199 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/shared/ntg_cell.o",
+      "src/shared/ntg_cell.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/shared/ntg_cell.c",
+    "output": "/home/novak/code/nuterm-gfx/build/shared/ntg_cell.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/shared/ntg_event.o",
+      "src/shared/ntg_event.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/shared/ntg_event.c",
+    "output": "/home/novak/code/nuterm-gfx/build/shared/ntg_event.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/object/ntg_color_block.o",
+      "src/object/ntg_color_block.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/object/ntg_color_block.c",
+    "output": "/home/novak/code/nuterm-gfx/build/object/ntg_color_block.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/object/util/ntg_object_vec.o",
+      "src/object/util/ntg_object_vec.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/object/util/ntg_object_vec.c",
+    "output": "/home/novak/code/nuterm-gfx/build/object/util/ntg_object_vec.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/object/ntg_pane.o",
+      "src/object/ntg_pane.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/object/ntg_pane.c",
+    "output": "/home/novak/code/nuterm-gfx/build/object/ntg_pane.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/object/ntg_object.o",
+      "src/object/ntg_object.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/object/ntg_object.c",
+    "output": "/home/novak/code/nuterm-gfx/build/object/ntg_object.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/core/ntg_scene.o",
+      "src/core/ntg_scene.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/core/ntg_scene.c",
+    "output": "/home/novak/code/nuterm-gfx/build/core/ntg_scene.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/core/ntg_scene_engine.o",
+      "src/core/ntg_scene_engine.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/core/ntg_scene_engine.c",
+    "output": "/home/novak/code/nuterm-gfx/build/core/ntg_scene_engine.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/core/ntg_stage.o",
+      "src/core/ntg_stage.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/core/ntg_stage.c",
+    "output": "/home/novak/code/nuterm-gfx/build/core/ntg_stage.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/ntg.o",
+      "src/ntg.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/ntg.c",
+    "output": "/home/novak/code/nuterm-gfx/build/ntg.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/tests.o",
+      "tests.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/tests.c",
+    "output": "/home/novak/code/nuterm-gfx/build/tests.o"
+  }
+]
