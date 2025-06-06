@@ -1,9 +1,24 @@
+#include "core/ntg_stage.h"
 #include "ntg.h"
 #include "core/ntg_scene.h"
+#include "object/ntg_color_block.h"
+#include <stdio.h>
 #include <unistd.h>
 
 void init_gui_func(void* data)
 {
+    ntg_color_block_t* cb = ntg_color_block_new(nt_color_new(255, 0, 90));
+
+    ntg_scene_t* s = ntg_scene_new();
+    ntg_scene_set_root(s, (ntg_object_t*)cb);
+
+    ntg_stage_set_scene(s);
+
+    ntg_stage_render();
+
+    ntg_color_block_destroy(cb);
+    ntg_scene_destroy(s);
+
     return;
 }
 
