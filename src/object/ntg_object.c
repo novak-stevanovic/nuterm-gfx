@@ -39,6 +39,7 @@ void __ntg_object_init__(ntg_object_t* object, ntg_nsize_fn nsize_fn,
     object->_pos = NTG_XY_UNSET;
     object->_size = NTG_XY_UNSET;
     object->_nsize = NTG_XY_UNSET;
+    object->_nsize = NTG_XY_UNSET;
 }
 
 void __ntg_object_deinit__(ntg_object_t* object)
@@ -71,9 +72,30 @@ const ntg_object_vec_t* ntg_object_get_children(const ntg_object_t* object)
     return (object != NULL) ? object->_children : NULL;
 }
 
-void ntg_object_constrain(ntg_object_t* object)
+ntg_object_vec_t* ntg_object_get_children_(ntg_object_t* object)
+{
+    return (object != NULL) ? object->_children : NULL;
+}
+
+struct ntg_xy ntg_object_get_pref_size(const ntg_object_t* object)
+{
+    return (object != NULL) ? object->_pref_size : NTG_XY_UNSET;
+}
+
+void ntg_object_calculate_nsize(ntg_object_t* object)
 {
     if(object == NULL) return;
+
+    if(object->__nsize_fn != NULL)
+        object->__nsize_fn(object);
+}
+
+void ntg_object_constrain(ntg_object_t* object, struct ntg_constr root_constr)
+{
+    if(object == NULL) return;
+
+    if(object->_parent == NULL)
+        ntg_object_set_constr(object, root_constr);
 
     if(object->__constrain_fn != NULL)
         object->__constrain_fn(object);
@@ -95,6 +117,13 @@ void ntg_object_measure(ntg_object_t* object)
         object->__measure_fn(object);
 }
 
+void ntg_object_set_nsize(ntg_object_t* object, struct ntg_xy size)
+{
+    if(object == NULL) return;
+
+    object->_nsize = size;
+}
+
 void ntg_object_set_size(ntg_object_t* object, struct ntg_xy size)
 {
     if(object == NULL) return;
@@ -107,6 +136,9 @@ void ntg_object_set_size(ntg_object_t* object, struct ntg_xy size)
 void ntg_object_arrange(ntg_object_t* object)
 {
     if(object == NULL) return;
+
+    if(object->_parent == NULL)
+        ntg_object_set_pos(object, NTG_XY(0, 0));
 
     if(object->__arrange_fn != NULL)
         object->__arrange_fn(object);
@@ -170,6 +202,11 @@ struct ntg_xy ntg_object_get_content_pos(const ntg_object_t* object)
 }
 
 const ntg_object_drawing_t* ntg_object_get_drawing(const ntg_object_t* object)
+{
+    return object->_drawing;
+}
+
+ntg_object_drawing_t* ntg_object_get_drawing_(ntg_object_t* object)
 {
     return object->_drawing;
 }

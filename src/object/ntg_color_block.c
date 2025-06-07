@@ -1,14 +1,14 @@
+#include <stdlib.h>
 #include "base/ntg_cell.h"
 #include "object/def/ntg_color_block_def.h"
 #include "object/ntg_object.h"
-#include <stdlib.h>
 #include "object/ntg_color_block.h"
 
 static void __measure_fn(ntg_object_t* _block)
 {
     if(_block == NULL) return;
 
-    struct ntg_xy size = _block->_adj_constr.min_size;
+    struct ntg_xy size = ntg_object_get_adj_constr(_block).min_size;
 
     ntg_object_set_size(_block, size);
 }
@@ -18,15 +18,17 @@ static void __arrange_fn(ntg_object_t* _block)
     if(_block == NULL) return;
     ntg_color_block_t* block = (ntg_color_block_t*)_block;
 
-    struct ntg_xy size = ntg_object_get_content_size(_block);
+    ntg_object_drawing_t* drawing = ntg_object_get_drawing_(_block);
+    struct ntg_xy size = ntg_object_drawing_get_size(drawing);
     size_t i, j;
 
     struct ntg_cell* it_cell;
+
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_object_drawing_at_(_block->_drawing, NTG_XY(j, i));
+            it_cell = ntg_object_drawing_at_(drawing, NTG_XY(j, i));
 
             ntg_cell_init(it_cell, NTG_CELL_EMPTY, NT_COLOR_DEFAULT,
                     block->color, NT_STYLE_DEFAULT);
@@ -36,7 +38,7 @@ static void __arrange_fn(ntg_object_t* _block)
 
 static void __nsize_fn(ntg_object_t* _block)
 {
-    _block->_nsize = NTG_XY(0, 0);
+    ntg_object_set_nsize(_block, ntg_object_get_pref_size(_block));
 }
 
 void __ntg_color_block_init__(ntg_color_block_t* block)

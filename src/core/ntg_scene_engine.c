@@ -12,11 +12,10 @@ struct ntg_scene_engine
     ntg_scene_t* scene;
 };
 
-static void _constrain_all(ntg_object_t* curr_obj)
+static void _nsize_all(ntg_object_t* curr_obj)
 {
     if(curr_obj == NULL) return;
 
-    ntg_object_constrain(curr_obj);
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
     size_t count = ntg_object_vec_size(children);
 
@@ -25,7 +24,26 @@ static void _constrain_all(ntg_object_t* curr_obj)
     for(i = 0; i < count; i++)
     {
         it_obj = ntg_object_vec_at(children, i);
-        _constrain_all(it_obj);
+        _nsize_all(it_obj);
+    }
+
+    ntg_object_calculate_nsize(curr_obj);
+}
+
+static void _constrain_all(ntg_object_t* curr_obj, struct ntg_constr root_constr)
+{
+    if(curr_obj == NULL) return;
+
+    ntg_object_constrain(curr_obj, root_constr);
+    const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
+    size_t count = ntg_object_vec_size(children);
+
+    ntg_object_t* it_obj;
+    size_t i;
+    for(i = 0; i < count; i++)
+    {
+        it_obj = ntg_object_vec_at(children, i);
+        _constrain_all(it_obj, root_constr);
     }
 }
 
@@ -132,13 +150,11 @@ void ntg_scene_engine_layout(ntg_scene_engine_t* engine)
     const ntg_scene_drawing_t* drawing = ntg_scene_get_drawing(engine->scene);
     struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
 
-    ntg_object_set_constr(root, NTG_CONSTR(size, size));
-    _constrain_all(root);
+    struct ntg_constr root_constr = NTG_CONSTR(size, size);
 
+    _nsize_all(root);
+    _constrain_all(root, root_constr);
     _measure_all(root);
-
-    ntg_object_set_pos(root, NTG_XY(0, 0));
     _arrange_all(root);
-
     _draw_all(root, ntg_scene_get_drawing_(engine->scene));
 }
