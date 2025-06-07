@@ -14,8 +14,8 @@ struct ntg_pane
     ntg_object_t _base;
 };
 
-void __ntg_pane_init__(ntg_pane_t* pane, ntg_measure_fn measure_fn,
-        ntg_arrange_fn arrange_fn);
+void __ntg_pane_init__(ntg_pane_t* pane, ntg_nsize_fn nsize_fn,
+        ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn);
 
 void __ntg_pane_deinit__(ntg_pane_t* pane);
 

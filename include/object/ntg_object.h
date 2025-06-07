@@ -25,6 +25,8 @@ void ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos);
 struct ntg_xy ntg_object_get_position_abs(const ntg_object_t* object);
 struct ntg_xy ntg_object_get_position_rel(const ntg_object_t* object);
 
+struct ntg_xy ntg_object_get_nsize(const ntg_object_t* object);
+
 struct ntg_constr ntg_object_get_constr(const ntg_object_t* object);
 struct ntg_constr ntg_object_get_adj_constr(const ntg_object_t* object);
 

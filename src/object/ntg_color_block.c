@@ -34,9 +34,14 @@ static void __arrange_fn(ntg_object_t* _block)
     }
 }
 
+static void __nsize_fn(ntg_object_t* _block)
+{
+    _block->_nsize = NTG_XY(0, 0);
+}
+
 void __ntg_color_block_init__(ntg_color_block_t* block)
 {
-    __ntg_pane_init__((ntg_pane_t*)block, __measure_fn, __arrange_fn);
+    __ntg_pane_init__((ntg_pane_t*)block, __nsize_fn, __measure_fn, __arrange_fn);
 
     block->color = NT_COLOR_DEFAULT;
 }

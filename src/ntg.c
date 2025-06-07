@@ -12,17 +12,14 @@ static pthread_t _ntg_thread;
 static void (*_gui_fn)(void* data) = NULL; 
 static void* _init_gui_func_data = NULL;
 
-#define FPS 30
-#define TIMEOUT (1000000.0 / FPS)
+#define FRAMERATE 30
+#define TIMEOUT (1000.0 / FRAMERATE)
 
 static void* _ntg_thread_func(void* data);
 
-static bool _use_ntg_loop = true;
-static void _ntg_loop();
-
 /* -------------------------------------------------------------------------- */
 
-static void _launch(void (*gui_fn)(void* data), void* data,
+void ntg_launch(void (*gui_fn)(void* data), void* data,
         ntg_status_t* out_status)
 {
     if(gui_fn == NULL)
@@ -30,6 +27,9 @@ static void _launch(void (*gui_fn)(void* data), void* data,
 
     nt_status_t _status;
     __nt_init__(&_status);
+    nt_alt_screen_enable(&_status);
+    nt_cursor_hide(NULL);
+
     __ntg_stage_init__();
     switch(_status)
     {
@@ -52,25 +52,13 @@ static void _launch(void (*gui_fn)(void* data), void* data,
     _vreturn(out_status, NTG_SUCCESS);
 }
 
-void ntg_launch(void (*init_gui_fn)(void* data), void* data,
-        ntg_status_t* out_status)
-{
-    _use_ntg_loop = true;
-    _launch(init_gui_fn, data, out_status);
-}
-
-void ntg_launch_(ntg_gui_run_fn gui_fn, void* data,
-        ntg_status_t* out_status)
-{
-    _use_ntg_loop = false;
-    _launch(gui_fn, data, out_status);
-}
-
 void* ntg_destroy()
 {
     void* _data;
     pthread_join(_ntg_thread, &_data);
 
+    nt_alt_screen_disable(NULL);
+    nt_cursor_show(NULL);
     __nt_deinit__();
 
     __ntg_stage_deinit__();
@@ -80,7 +68,7 @@ void* ntg_destroy()
 
 /* -------------------------------------------------------------------------- */
 
-static void _ntg_loop()
+void ntg_loop()
 {
     nt_status_t _status;
     struct nt_event event;
@@ -90,7 +78,10 @@ static void _ntg_loop()
         event = nt_wait_for_event(timeout, &_status);
         timeout = TIMEOUT - event.elapsed;
 
-        if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_F5)
+        ntg_stage_render();
+
+        if((event.type == NT_EVENT_TYPE_KEY) &&
+                (event.key_data.esc_key_data.esc_key == NT_ESC_KEY_F5))
             break;
 
         assert(_status == NT_SUCCESS);
@@ -101,8 +92,6 @@ static void _ntg_loop()
 static void* _ntg_thread_func(void* data)
 {
     _gui_fn(_init_gui_func_data);
-
-    if(_use_ntg_loop) _ntg_loop();
 
     return NULL;
 }

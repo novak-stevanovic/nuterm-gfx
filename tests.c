@@ -14,7 +14,7 @@ void init_gui_func(void* data)
 
     ntg_stage_set_scene(s);
 
-    ntg_stage_render();
+    ntg_loop();
 
     ntg_color_block_destroy(cb);
     ntg_scene_destroy(s);

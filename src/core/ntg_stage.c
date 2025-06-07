@@ -34,6 +34,7 @@ void ntg_stage_render()
     size_t i, j;
     struct ntg_cell_base it_cell;
     nt_status_t _status;
+    nt_buffer_enable();
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
@@ -43,4 +44,5 @@ void ntg_stage_render()
             // nt_write_char_at(66, NT_GFX_DEFAULT, j, i, NULL, &_status);
         }
     }
+    nt_buffer_disable();
 }

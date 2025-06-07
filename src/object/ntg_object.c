@@ -20,14 +20,16 @@ static void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_object_init__(ntg_object_t* object, ntg_constrain_fn constrain_fn,
-        ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn)
+void __ntg_object_init__(ntg_object_t* object, ntg_nsize_fn nsize_fn,
+        ntg_constrain_fn constrain_fn, ntg_measure_fn measure_fn,
+        ntg_arrange_fn arrange_fn)
 {
     if(object == NULL) return;
 
     object->__constrain_fn = constrain_fn;
     object->__measure_fn = measure_fn;
     object->__arrange_fn = arrange_fn;
+    object->__nsize_fn = nsize_fn;
 
     object->_children = ntg_object_vec_new();;
     object->_drawing = ntg_object_drawing_new();
@@ -36,6 +38,7 @@ void __ntg_object_init__(ntg_object_t* object, ntg_constrain_fn constrain_fn,
     object->_adj_constr = NTG_CONSTR_UNSET;
     object->_pos = NTG_XY_UNSET;
     object->_size = NTG_XY_UNSET;
+    object->_nsize = NTG_XY_UNSET;
 }
 
 void __ntg_object_deinit__(ntg_object_t* object)
@@ -55,6 +58,7 @@ void __ntg_object_deinit__(ntg_object_t* object)
     object->__arrange_fn = NULL;
     object->__measure_fn = NULL;
     object->__constrain_fn = NULL;
+    object->__nsize_fn = NULL;
 }
 
 ntg_object_t* ntg_object_get_parent(const ntg_object_t* object)
@@ -128,6 +132,11 @@ struct ntg_xy ntg_object_get_position_rel(const ntg_object_t* object)
         return NTG_DXY_XY(NTG_XY_SUB(object->_pos, object->_parent->_pos));
     else
         return object->_pos;
+}
+
+struct ntg_xy ntg_object_get_nsize(const ntg_object_t* object)
+{
+    return (object != NULL) ? object->_nsize : NTG_XY_UNSET;
 }
 
 struct ntg_constr ntg_object_get_constr(const ntg_object_t* object)
