@@ -16,7 +16,7 @@ struct ntg_scene_drawing
 void __ntg_scene_drawing_init__(ntg_scene_drawing_t* drawing);
 void __ntg_scene_drawing_deinit__(ntg_scene_drawing_t* drawing);
 
-struct ntg_cell_base* ntg_scene_drawing_at_(ntg_scene_drawing_t* drawing,
+struct ntg_cell_base* _ntg_scene_drawing_at(ntg_scene_drawing_t* drawing,
         struct ntg_xy pos);
 
 void ntg_scene_drawing_set_size(ntg_scene_drawing_t* drawing,
@@ -92,7 +92,7 @@ const ntg_scene_drawing_t* ntg_scene_get_drawing(const ntg_scene_t* scene)
     return (scene != NULL) ? &scene->drawing : NULL;
 }
 
-ntg_scene_drawing_t* ntg_scene_get_drawing_(ntg_scene_t* scene)
+ntg_scene_drawing_t* _ntg_scene_get_drawing(ntg_scene_t* scene)
 {
     return (scene != NULL) ? &scene->drawing : NULL;
 }
@@ -130,7 +130,7 @@ const struct ntg_cell_base* ntg_scene_drawing_at(const ntg_scene_drawing_t* draw
     return ntg_cell_base_grid_at(drawing->_drawing, pos);
 }
 
-struct ntg_cell_base* ntg_scene_drawing_at_(ntg_scene_drawing_t* drawing,
+struct ntg_cell_base* _ntg_scene_drawing_at(ntg_scene_drawing_t* drawing,
         struct ntg_xy pos)
 {
     if(drawing == NULL) return NULL;

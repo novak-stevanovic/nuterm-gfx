@@ -1,10 +1,11 @@
 #ifndef _NTG_SCENE_H_
 #define _NTG_SCENE_H_
 
-#include "core/fwd/ntg_scene_fwd.h"
-
 #include "object/ntg_object_fwd.h"
 #include "shared/ntg_xy.h"
+
+typedef struct ntg_scene ntg_scene_t;
+typedef struct ntg_scene_drawing ntg_scene_drawing_t;
 
 ntg_scene_t* ntg_scene_new();
 void ntg_scene_destroy(ntg_scene_t* scene);
@@ -20,7 +21,11 @@ const ntg_scene_drawing_t* ntg_scene_get_drawing(const ntg_scene_t* scene);
 
 const struct ntg_cell_base* ntg_scene_drawing_at(const ntg_scene_drawing_t* drawing,
         struct ntg_xy pos);
-
 struct ntg_xy ntg_scene_drawing_get_size(const ntg_scene_drawing_t* drawing);
+
+ntg_scene_drawing_t* _ntg_scene_get_drawing(ntg_scene_t* scene);
+
+struct ntg_cell_base* _ntg_scene_drawing_at(ntg_scene_drawing_t* drawing,
+        struct ntg_xy pos);
 
 #endif // _NTG_SCENE_H_

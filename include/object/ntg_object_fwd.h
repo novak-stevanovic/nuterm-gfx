@@ -11,17 +11,28 @@ typedef struct ntg_box ntg_box_t;
 
 typedef struct ntg_object_drawing ntg_object_drawing_t;
 
-/* Set object's natural size. An object's natural size represents the
- * size it wants to be in an unconstrained environment. */
+#define NTG_NSIZE_X_FREE SIZE_MAX
+#define NTG_NSIZE_Y_FREE SIZE_MAX
+
+/* Calculate and set the object's natural size. An object's natural size
+ * represents the size it gravitates towards naturally. This calculation
+ * must take into account the "XY fixations". */
 typedef void (*ntg_nsize_fn)(ntg_object_t* object);
 
-/* Set constraints of object's children based on its adjusted constraints. */
+/* Calculate and set constraints of object's children. This calculation
+ * should be performed based on their natural sizes.
+ *
+ * Object's constraints are assumed to be set. */
 typedef void (*ntg_constrain_fn)(ntg_object_t* object);
 
-/* Set object's size based on its adjusted constraints and children sizes. */
+/* Calculate the final size of an object.
+ *
+ * Object's constraints and its children's sizes are assumed to be set. */
 typedef void (*ntg_measure_fn)(ntg_object_t* object);
 
-/* Arrange object's content based on content size and object's internal state. */
+/* Arrange object's inner content(children, drawing).
+ *
+ * The object's final size is assumed to be set. */
 typedef void (*ntg_arrange_fn)(ntg_object_t* object);
 
 #endif // _NTG_OBJECT_FWD_H_

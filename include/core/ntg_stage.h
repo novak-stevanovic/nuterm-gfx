@@ -1,7 +1,7 @@
 #ifndef _NTG_STAGE_H_
 #define _NTG_STAGE_H_
 
-#include "core/fwd/ntg_scene_fwd.h"
+#include "core/ntg_scene.h"
 
 void __ntg_stage_init__();
 void __ntg_stage_deinit__();

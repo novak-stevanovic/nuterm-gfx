@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "ntg.h"
 #include "core/ntg_stage.h"
@@ -12,7 +13,7 @@ static pthread_t _ntg_thread;
 static void (*_gui_fn)(void* data) = NULL; 
 static void* _init_gui_func_data = NULL;
 
-#define FRAMERATE 30
+#define FRAMERATE 60
 #define TIMEOUT (1000.0 / FRAMERATE)
 
 static void* _ntg_thread_func(void* data);

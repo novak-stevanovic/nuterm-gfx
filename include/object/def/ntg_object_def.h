@@ -23,7 +23,6 @@ struct ntg_object
     struct ntg_xy _nsize;
 
     struct ntg_constr _constr;
-    struct ntg_constr _adj_constr;
 
     struct ntg_xy _size;
 
@@ -43,23 +42,22 @@ void __ntg_object_init__(ntg_object_t* object, ntg_nsize_fn nsize_fn,
 
 void __ntg_object_deinit__(ntg_object_t* object);
 
-ntg_object_vec_t* ntg_object_get_children_(ntg_object_t* object);
+ntg_object_vec_t* _ntg_object_get_children(ntg_object_t* object);
+ntg_object_drawing_t* _ntg_object_get_drawing(ntg_object_t* object);
 
-ntg_object_drawing_t* ntg_object_get_drawing_(ntg_object_t* object);
-
-void ntg_object_set_nsize(ntg_object_t* object, struct ntg_xy size);
-void ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr);
-void ntg_object_set_size(ntg_object_t* object, struct ntg_xy size);
-void ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos);
+void _ntg_object_set_nsize(ntg_object_t* object, struct ntg_xy size);
+void _ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr);
+void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size);
+void _ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos);
 
 /* -------------------------------------------------------------------------- */
 
 /* ntg_object protected */
 
-ntg_object_drawing_t* ntg_object_drawing_new();
-void ntg_object_drawing_destroy(ntg_object_drawing_t* drawing);
+ntg_object_drawing_t* _ntg_object_drawing_new();
+void _ntg_object_drawing_destroy(ntg_object_drawing_t* drawing);
 
-ntg_cell_t* ntg_object_drawing_at_(ntg_object_drawing_t* drawing,
+ntg_cell_t* _ntg_object_drawing_at(ntg_object_drawing_t* drawing,
         struct ntg_xy pos);
 
 #endif // _NTG_OBJECT_DEF_H_
