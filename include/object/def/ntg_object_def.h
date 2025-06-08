@@ -19,7 +19,6 @@ struct ntg_object
     ntg_object_drawing_t* _drawing;
 
     struct ntg_xy _pref_size;
-
     struct ntg_xy _nsize;
 
     struct ntg_constr _constr;
@@ -41,9 +40,6 @@ void __ntg_object_init__(ntg_object_t* object, ntg_nsize_fn nsize_fn,
         ntg_arrange_fn arrange_fn);
 
 void __ntg_object_deinit__(ntg_object_t* object);
-
-ntg_object_vec_t* _ntg_object_get_children(ntg_object_t* object);
-ntg_object_drawing_t* _ntg_object_get_drawing(ntg_object_t* object);
 
 void _ntg_object_set_nsize(ntg_object_t* object, struct ntg_xy size);
 void _ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr);

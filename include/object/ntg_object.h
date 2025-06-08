@@ -8,6 +8,8 @@
 #include "shared/ntg_xy.h"
 #include <stddef.h>
 
+#define NTG_PREF_SIZE_UNSET 0
+
 /* -------------------------------------------------------------------------- */
 
 ntg_object_t* ntg_object_get_parent(const ntg_object_t* object);

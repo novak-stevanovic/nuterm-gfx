@@ -18,7 +18,7 @@ static void __arrange_fn(ntg_object_t* _block)
     if(_block == NULL) return;
     ntg_color_block_t* block = (ntg_color_block_t*)_block;
 
-    ntg_object_drawing_t* drawing = _ntg_object_get_drawing(_block);
+    ntg_object_drawing_t* drawing = _block->_drawing;
     struct ntg_xy size = ntg_object_drawing_get_size(drawing);
     size_t i, j;
 

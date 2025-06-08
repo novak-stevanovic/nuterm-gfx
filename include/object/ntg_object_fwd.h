@@ -11,12 +11,9 @@ typedef struct ntg_box ntg_box_t;
 
 typedef struct ntg_object_drawing ntg_object_drawing_t;
 
-#define NTG_NSIZE_X_FREE SIZE_MAX
-#define NTG_NSIZE_Y_FREE SIZE_MAX
-
 /* Calculate and set the object's natural size. An object's natural size
  * represents the size it gravitates towards naturally. This calculation
- * must take into account the "XY fixations". */
+ * must take into account preferred size. */
 typedef void (*ntg_nsize_fn)(ntg_object_t* object);
 
 /* Calculate and set constraints of object's children. This calculation
