@@ -47,4 +47,10 @@ struct ntg_constr
 })
 #define NTG_CONSTR_UNSET NTG_CONSTR(NTG_XY(0, 0), NTG_XY(SIZE_MAX, SIZE_MAX))
 
+#define NTG_SIZE_IN_CONSTR(size, constr)                                       \
+    (((size).x >= (constr).min_size.x) &&                                      \
+     ((size).x <= (constr).max_size.x) &&                                      \
+     ((size).y >= (constr).min_size.y) &&                                      \
+     ((size).y <= (constr).max_size.y))                                        \
+
 #endif // _NTG_XY_H_

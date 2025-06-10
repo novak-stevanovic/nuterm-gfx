@@ -24,15 +24,16 @@ struct ntg_xy ntg_cell_base_grid_get_size(const ntg_cell_base_grid_t* grid);
 
 /* -------------------------------------------------------------------------- */
 
-void ntg_cell_init(ntg_cell_t* cell, uint32_t codepoint,
+void ntg_cell(ntg_cell_t* cell, uint32_t codepoint,
         nt_color_t fg, nt_color_t bg, nt_style_t style);
 
-void ntg_cell_init_overlay(ntg_cell_t* cell, uint32_t codepoint,
+/* Regular cell with no content, default fg, bg and style. */
+void ntg_cell_default(ntg_cell_t* cell);
+
+void ntg_cell_overlay(ntg_cell_t* cell, uint32_t codepoint,
         nt_color_t fg, nt_style_t style);
 
-void ntg_cell_init_transparent(ntg_cell_t* cell);
-/* Regular cell with no content, default fg, bg and style. */
-void ntg_cell_init_default(ntg_cell_t* cell);
+void ntg_cell_transparent(ntg_cell_t* cell);
 
 void ntg_cell_overwrite(const struct ntg_cell* overwriting,
         struct ntg_cell_base* overwritten);

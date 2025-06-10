@@ -4,7 +4,6 @@
 #include "base/fwd/ntg_cell_fwd.h"
 #include "shared/ntg_xy.h"
 #include "object/ntg_object_fwd.h"
-#include "object/util/ntg_object_vec.h"
 
 #ifndef __NTG_ALLOW_NTG_OBJECT_DEF__
 // #error "Only include this file when requiring the definition."
@@ -15,10 +14,11 @@
 struct ntg_object
 {
     ntg_object_t* _parent;
-    ntg_object_vec_t* _children;
+    ntg_object_vec_t _children;
     ntg_object_drawing_t* _drawing;
 
     struct ntg_xy _pref_size;
+
     struct ntg_xy _nsize;
 
     struct ntg_constr _constr;
@@ -46,12 +46,15 @@ void _ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr);
 void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size);
 void _ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos);
 
+ntg_object_drawing_t* _ntg_object_get_drawing(ntg_object_t* object);
+
 /* -------------------------------------------------------------------------- */
 
 /* ntg_object protected */
 
 ntg_object_drawing_t* _ntg_object_drawing_new();
 void _ntg_object_drawing_destroy(ntg_object_drawing_t* drawing);
+
 
 ntg_cell_t* _ntg_object_drawing_at(ntg_object_drawing_t* drawing,
         struct ntg_xy pos);

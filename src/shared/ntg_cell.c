@@ -104,7 +104,7 @@ struct ntg_xy ntg_cell_base_grid_get_size(const ntg_cell_base_grid_t* grid)
 
 /* -------------------------------------------------------------------------- */
 
-void ntg_cell_init(ntg_cell_t* cell, uint32_t codepoint,
+void ntg_cell(ntg_cell_t* cell, uint32_t codepoint,
         nt_color_t fg, nt_color_t bg, nt_style_t style)
 {
     if(cell == NULL) return;
@@ -118,7 +118,7 @@ void ntg_cell_init(ntg_cell_t* cell, uint32_t codepoint,
     };
 }
 
-void ntg_cell_init_overlay(ntg_cell_t* cell, uint32_t codepoint,
+void ntg_cell_overlay(ntg_cell_t* cell, uint32_t codepoint,
         nt_color_t fg, nt_style_t style)
 {
     if(cell == NULL) return;
@@ -132,7 +132,7 @@ void ntg_cell_init_overlay(ntg_cell_t* cell, uint32_t codepoint,
     };
 }
 
-void ntg_cell_init_transparent(ntg_cell_t* cell)
+void ntg_cell_transparent(ntg_cell_t* cell)
 {
     if(cell == NULL) return;
 
@@ -145,7 +145,7 @@ void ntg_cell_init_transparent(ntg_cell_t* cell)
     };
 }
 
-void ntg_cell_init_default(ntg_cell_t* cell)
+void ntg_cell_default(ntg_cell_t* cell)
 {
     if(cell == NULL) return;
 

@@ -35,7 +35,10 @@ void __ntg_object_init__(ntg_object_t* object, ntg_nsize_fn nsize_fn,
     object->__arrange_fn = arrange_fn;
     object->__nsize_fn = nsize_fn;
 
-    object->_children = ntg_object_vec_new();;
+    void ntg_object_set_pref_size(ntg_object_t* object, struct ntg_xy pref_size);
+
+    __ntg_object_vec_init__(&object->_children);
+
     object->_drawing = _ntg_object_drawing_new();
     object->_parent = NULL;
     object->_constr = NTG_CONSTR_UNSET;
@@ -49,8 +52,7 @@ void __ntg_object_deinit__(ntg_object_t* object)
 {
     if(object == NULL) return;
 
-    if(object->_children != NULL)
-        ntg_object_vec_destroy(object->_children);
+    __ntg_object_vec_deinit__(&object->_children);
 
     if(object->_drawing != NULL)
         _ntg_object_drawing_destroy(object->_drawing);
@@ -180,12 +182,12 @@ ntg_object_t* ntg_object_get_parent(const ntg_object_t* object)
 
 const ntg_object_vec_t* ntg_object_get_children(const ntg_object_t* object)
 {
-    return (object != NULL) ? object->_children : NULL;
+    return (object != NULL) ? &object->_children : NULL;
 }
 
 void ntg_object_layout_root(ntg_object_t* root, struct ntg_xy root_size)
 {
-    root->_nsize = root_size;
+    // root->_nsize = root_size;
     root->_constr = NTG_CONSTR(root_size, root_size);
     root->_pos = NTG_XY(0, 0);
 }
@@ -195,10 +197,17 @@ struct ntg_xy ntg_object_get_pref_size(const ntg_object_t* object)
     return (object != NULL) ? object->_pref_size : NTG_XY_UNSET;
 }
 
+void ntg_object_set_pref_size(ntg_object_t* object, struct ntg_xy pref_size)
+{
+    if(object == NULL) return;
+
+    object->_pref_size = pref_size;
+}
+
 void ntg_object_calculate_nsize(ntg_object_t* object)
 {
     if(object == NULL) return;
-    if(object->_parent == NULL) return;
+    // if(object->_parent == NULL) return;
 
     if(object->__nsize_fn != NULL)
         object->__nsize_fn(object);
@@ -278,6 +287,11 @@ const ntg_object_drawing_t* ntg_object_get_drawing(const ntg_object_t* object)
     return object->_drawing;
 }
 
+ntg_object_drawing_t* _ntg_object_get_drawing(ntg_object_t* object)
+{
+    return object->_drawing;
+}
+
 /* -------------------------------------------------------------------------- */
 
 const ntg_cell_t* ntg_object_drawing_at(const ntg_object_drawing_t* drawing,
@@ -302,4 +316,33 @@ static void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,
     if(drawing == NULL) return;
 
     drawing->_size = size;
+}
+
+/* -------------------------------------------------------------------------- */
+
+void __ntg_object_vec_init__(ntg_object_vec_t* vec)
+{
+    struct ntg_vector* _vec = (struct ntg_vector*)vec;
+
+    __ntg_vector_init__(_vec, 5, sizeof(ntg_object_t*));
+}
+void __ntg_object_vec_deinit__(ntg_object_vec_t* vec)
+{
+    struct ntg_vector* _vec = (struct ntg_vector*)vec;
+
+    __ntg_vector_deinit__(_vec);
+}
+
+void ntg_object_vec_append(ntg_object_vec_t* vec, ntg_object_t* object)
+{
+    struct ntg_vector* _vec = (struct ntg_vector*)vec;
+
+    ntg_vector_append(_vec, &object, sizeof(ntg_object_t*));
+}
+
+void ntg_object_vec_remove(ntg_object_vec_t* vec, ntg_object_t* object)
+{
+    struct ntg_vector* _vec = (struct ntg_vector*)vec;
+
+    ntg_vector_remove(_vec, &object, sizeof(ntg_object_t*));
 }

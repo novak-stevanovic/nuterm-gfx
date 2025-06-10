@@ -11,6 +11,15 @@ typedef struct ntg_box ntg_box_t;
 
 typedef struct ntg_object_drawing ntg_object_drawing_t;
 
+typedef struct ntg_object_vec ntg_object_vec_t;
+
+typedef struct ntg_object_vec
+{
+    size_t count;
+    size_t _capacity;
+    ntg_object_t** data;
+} ntg_object_vec_t;
+
 /* Calculate and set the object's natural size. An object's natural size
  * represents the size it gravitates towards naturally. This calculation
  * must take into account preferred size. */

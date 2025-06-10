@@ -18,7 +18,7 @@ static void __arrange_fn(ntg_object_t* _block)
     if(_block == NULL) return;
     ntg_color_block_t* block = (ntg_color_block_t*)_block;
 
-    ntg_object_drawing_t* drawing = _block->_drawing;
+    ntg_object_drawing_t* drawing = _ntg_object_get_drawing(_block);
     struct ntg_xy size = ntg_object_drawing_get_size(drawing);
     size_t i, j;
 
@@ -30,7 +30,7 @@ static void __arrange_fn(ntg_object_t* _block)
         {
             it_cell = _ntg_object_drawing_at(drawing, NTG_XY(j, i));
 
-            ntg_cell_init(it_cell, NTG_CELL_EMPTY, NT_COLOR_DEFAULT,
+            ntg_cell(it_cell, NTG_CELL_EMPTY, NT_COLOR_DEFAULT,
                     block->color, NT_STYLE_DEFAULT);
         }
     }

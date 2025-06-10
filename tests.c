@@ -4,21 +4,35 @@
 #include "object/ntg_color_block.h"
 #include <stdio.h>
 #include <unistd.h>
+#include "object/ntg_object.h"
+#include "object/ntg_box.h"
+#include "shared/ntg_vector.h"
 
 void init_gui_func(void* data)
 {
-    ntg_color_block_t* cb = ntg_color_block_new(nt_color_new(255, 0, 90));
+    ntg_color_block_t* cb1 = ntg_color_block_new(nt_color_new(255, 0, 90));
+    ntg_object_t* _cb1 = (ntg_object_t*)cb1;
+    ntg_object_set_pref_size(_cb1, NTG_XY(100, 20));
+
+    ntg_color_block_t* cb2 = ntg_color_block_new(nt_color_new(0, 200, 0));
+    ntg_object_t* _cb2 = (ntg_object_t*)cb2;
+    ntg_object_set_pref_size(_cb2, NTG_XY(500, 40));
+
+    ntg_box_t* box = ntg_box_new();
+    ntg_object_t* _box = (ntg_object_t*)box;
+    ntg_box_add_child(box, _cb1);
+    ntg_box_add_child(box, _cb2);
 
     ntg_scene_t* s = ntg_scene_new();
-    ntg_scene_set_root(s, (ntg_object_t*)cb);
-
+    ntg_scene_set_root(s, _box);
     ntg_stage_set_scene(s);
 
     ntg_loop();
 
-    ntg_color_block_destroy(cb);
+    ntg_color_block_destroy(cb1);
+    ntg_color_block_destroy(cb2);
+    ntg_box_destroy(box);
     ntg_scene_destroy(s);
-
     return;
 }
 

@@ -16,13 +16,12 @@ static void _nsize_all(ntg_object_t* curr_obj)
     if(curr_obj == NULL) return;
 
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
-    size_t count = ntg_object_vec_size(children);
 
     ntg_object_t* it_obj;
     size_t i;
-    for(i = 0; i < count; i++)
+    for(i = 0; i < children->count; i++)
     {
-        it_obj = ntg_object_vec_at(children, i);
+        it_obj = children->data[i];
         _nsize_all(it_obj);
     }
 
@@ -35,13 +34,12 @@ static void _constrain_all(ntg_object_t* curr_obj)
 
     ntg_object_constrain(curr_obj);
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
-    size_t count = ntg_object_vec_size(children);
 
     ntg_object_t* it_obj;
     size_t i;
-    for(i = 0; i < count; i++)
+    for(i = 0; i < children->count; i++)
     {
-        it_obj = ntg_object_vec_at(children, i);
+        it_obj = children->data[i];
         _constrain_all(it_obj);
     }
 }
@@ -51,13 +49,12 @@ static void _measure_all(ntg_object_t* curr_obj)
     if(curr_obj == NULL) return;
 
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
-    size_t count = ntg_object_vec_size(children);
 
     ntg_object_t* it_obj;
     size_t i;
-    for(i = 0; i < count; i++)
+    for(i = 0; i < children->count; i++)
     {
-        it_obj = ntg_object_vec_at(children, i);
+        it_obj = children->data[i];
         _measure_all(it_obj);
     }
     ntg_object_measure(curr_obj);
@@ -69,14 +66,13 @@ static void _arrange_all(ntg_object_t* curr_obj)
 
     ntg_object_arrange(curr_obj);
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
-    size_t count = ntg_object_vec_size(children);
 
     ntg_object_t* it_obj;
     size_t i;
-    for(i = 0; i < count; i++)
+    for(i = 0; i < children->count; i++)
     {
-        it_obj = ntg_object_vec_at(children, i);
-        _arrange_all(curr_obj);
+        it_obj = children->data[i];
+        _arrange_all(it_obj);
     }
 }
 
@@ -110,12 +106,11 @@ static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing
     }
 
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
-    size_t count = ntg_object_vec_size(children);
 
     ntg_object_t* it_obj;
-    for(i = 0; i < count; i++)
+    for(i = 0; i < children->count; i++)
     {
-        it_obj = ntg_object_vec_at(children, i);
+        it_obj = children->data[i];
         _draw_all(it_obj, scene_drawing);
     }
 }

@@ -20,4 +20,7 @@ void __ntg_container_init__(ntg_container_t* container,
 
 void __ntg_container_deinit__(ntg_container_t* container);
 
+void _ntg_container_add_child(ntg_container_t* container, ntg_object_t* object);
+void _ntg_container_remove_child(ntg_container_t* container, ntg_object_t* object);
+
 #endif // _NTG_CONTAINER_DEF_H_

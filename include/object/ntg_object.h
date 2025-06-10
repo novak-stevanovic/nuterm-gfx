@@ -4,8 +4,8 @@
 #include "object/ntg_object_fwd.h"
 
 #include "base/fwd/ntg_cell_fwd.h"
-#include "object/util/ntg_object_vec.h"
 #include "shared/ntg_xy.h"
+#include "shared/ntg_vector.h"
 #include <stddef.h>
 
 #define NTG_PREF_SIZE_UNSET 0
@@ -16,7 +16,7 @@ ntg_object_t* ntg_object_get_parent(const ntg_object_t* object);
 
 const ntg_object_vec_t* ntg_object_get_children(const ntg_object_t* object);
 
-/* Sets root's natural size, constraints, position and. */
+/* Sets root's constraints, position and. */
 void ntg_object_layout_root(ntg_object_t* root, struct ntg_xy root_size);
 
 /* Calculates and sets the natural size of `object`. 
@@ -34,6 +34,7 @@ void ntg_object_measure(ntg_object_t* object);
 void ntg_object_arrange(ntg_object_t* object);
 
 struct ntg_xy ntg_object_get_pref_size(const ntg_object_t* object);
+void ntg_object_set_pref_size(ntg_object_t* object, struct ntg_xy pref_size);
 
 struct ntg_xy ntg_object_get_position_abs(const ntg_object_t* object);
 struct ntg_xy ntg_object_get_position_rel(const ntg_object_t* object);
@@ -56,5 +57,13 @@ const ntg_cell_t* ntg_object_drawing_at(const ntg_object_drawing_t* drawing,
         struct ntg_xy pos);
 
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing_t* drawing);
+
+/* -------------------------------------------------------------------------- */
+
+void __ntg_object_vec_init__(ntg_object_vec_t* vec);
+void __ntg_object_vec_deinit__(ntg_object_vec_t* vec);
+
+void ntg_object_vec_append(ntg_object_vec_t* vec, ntg_object_t* object);
+void ntg_object_vec_remove(ntg_object_vec_t* vec, ntg_object_t* object);
 
 #endif // _NTG_OBJECT_H_

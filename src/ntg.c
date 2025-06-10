@@ -82,7 +82,7 @@ void ntg_loop()
         ntg_stage_render();
 
         if((event.type == NT_EVENT_TYPE_KEY) &&
-                (event.key_data.esc_key_data.esc_key == NT_ESC_KEY_F5))
+                (event.key_data.utf32_data.codepoint == 'q'))
             break;
 
         assert(_status == NT_SUCCESS);
