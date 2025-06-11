@@ -12,9 +12,9 @@ static void __nsize_fn(ntg_object_t* _box)
     struct ntg_xy it_size;
     size_t i;
 
-    for(i = 0; i < children->count; i++)
+    for(i = 0; i < children->_count; i++)
     {
-        it_size = ntg_object_get_nsize(children->data[i]);
+        it_size = ntg_object_get_nsize(children->_data[i]);
 
         w += it_size.x;
         h = (it_size.y > h) ? it_size.y : h;
@@ -34,11 +34,11 @@ static void __constrain_fn(ntg_object_t* _box)
     struct ntg_constr it_constr;
     struct ntg_xy it_size;
     size_t i;
-    if(NTG_SIZE_IN_CONSTR(nsize, constr))
+    if((nsize.x < constr.max_size.x) && (nsize.y < constr.max_size.y))
     {
-        for(i = 0; i < children->count; i++)
+        for(i = 0; i < children->_count; i++)
         {
-            it_child = children->data[i];
+            it_child = children->_data[i];
             it_size = ntg_object_get_nsize(it_child);
 
             it_constr = NTG_CONSTR(it_size, it_size);
@@ -47,13 +47,13 @@ static void __constrain_fn(ntg_object_t* _box)
     }
     else
     {
-        size_t w = constr.max_size.x / children->count;
+        size_t w = constr.max_size.x / children->_count;
         struct ntg_xy size = NTG_XY(w, constr.max_size.y);
         struct ntg_constr child_constr = NTG_CONSTR(size, size);
-        for(i = 0; i < children->count; i++)
+        for(i = 0; i < children->_count; i++)
         {
-            it_child = children->data[i];
-            _ntg_object_set_constr(children->data[i], child_constr);
+            it_child = children->_data[i];
+            _ntg_object_set_constr(children->_data[i], child_constr);
         }
     }
 }
@@ -66,9 +66,9 @@ static void __measure_fn(ntg_object_t* _box)
     struct ntg_xy it_size;
     size_t i;
 
-    for(i = 0; i < children->count; i++)
+    for(i = 0; i < children->_count; i++)
     {
-        it_size = ntg_object_get_size(children->data[i]);
+        it_size = ntg_object_get_size(children->_data[i]);
 
         w += it_size.x;
         h = (it_size.y > h) ? it_size.y : h;
@@ -85,11 +85,11 @@ static void __arrange_fn(ntg_object_t* _box)
     struct ntg_xy it_size;
     size_t i;
 
-    for(i = 0; i < children->count; i++)
+    for(i = 0; i < children->_count; i++)
     {
-        _ntg_object_set_pos(children->data[i], NTG_XY(w, 0));
+        _ntg_object_set_pos(children->_data[i], NTG_XY(w, 0));
 
-        it_size = ntg_object_get_size(children->data[i]);
+        it_size = ntg_object_get_size(children->_data[i]);
         w += it_size.x;
         h = (it_size.y > h) ? it_size.y : h;
     }

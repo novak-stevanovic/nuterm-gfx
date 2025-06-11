@@ -15,9 +15,9 @@ typedef struct ntg_object_vec ntg_object_vec_t;
 
 typedef struct ntg_object_vec
 {
-    size_t count;
-    size_t _capacity;
-    ntg_object_t** data;
+    size_t _count;
+    size_t __capacity;
+    ntg_object_t** _data;
 } ntg_object_vec_t;
 
 /* Calculate and set the object's natural size. An object's natural size

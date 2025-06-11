@@ -19,13 +19,13 @@ const ntg_scene_drawing_t* ntg_scene_get_drawing(const ntg_scene_t* scene);
 
 /* -------------------------------------------------------------------------- */
 
-const struct ntg_cell_base* ntg_scene_drawing_at(const ntg_scene_drawing_t* drawing,
+const struct ntg_rcell* ntg_scene_drawing_at(const ntg_scene_drawing_t* drawing,
         struct ntg_xy pos);
 struct ntg_xy ntg_scene_drawing_get_size(const ntg_scene_drawing_t* drawing);
 
 ntg_scene_drawing_t* _ntg_scene_get_drawing(ntg_scene_t* scene);
 
-struct ntg_cell_base* _ntg_scene_drawing_at(ntg_scene_drawing_t* drawing,
+struct ntg_rcell* _ntg_scene_drawing_at(ntg_scene_drawing_t* drawing,
         struct ntg_xy pos);
 
 #endif // _NTG_SCENE_H_

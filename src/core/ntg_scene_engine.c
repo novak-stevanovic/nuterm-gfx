@@ -19,9 +19,9 @@ static void _nsize_all(ntg_object_t* curr_obj)
 
     ntg_object_t* it_obj;
     size_t i;
-    for(i = 0; i < children->count; i++)
+    for(i = 0; i < children->_count; i++)
     {
-        it_obj = children->data[i];
+        it_obj = children->_data[i];
         _nsize_all(it_obj);
     }
 
@@ -37,9 +37,9 @@ static void _constrain_all(ntg_object_t* curr_obj)
 
     ntg_object_t* it_obj;
     size_t i;
-    for(i = 0; i < children->count; i++)
+    for(i = 0; i < children->_count; i++)
     {
-        it_obj = children->data[i];
+        it_obj = children->_data[i];
         _constrain_all(it_obj);
     }
 }
@@ -52,9 +52,9 @@ static void _measure_all(ntg_object_t* curr_obj)
 
     ntg_object_t* it_obj;
     size_t i;
-    for(i = 0; i < children->count; i++)
+    for(i = 0; i < children->_count; i++)
     {
-        it_obj = children->data[i];
+        it_obj = children->_data[i];
         _measure_all(it_obj);
     }
     ntg_object_measure(curr_obj);
@@ -69,9 +69,9 @@ static void _arrange_all(ntg_object_t* curr_obj)
 
     ntg_object_t* it_obj;
     size_t i;
-    for(i = 0; i < children->count; i++)
+    for(i = 0; i < children->_count; i++)
     {
-        it_obj = children->data[i];
+        it_obj = children->_data[i];
         _arrange_all(it_obj);
     }
 }
@@ -81,39 +81,66 @@ static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing
     if(curr_obj == NULL) return;
 
     const ntg_object_drawing_t* obj_drawing = ntg_object_get_drawing(curr_obj);
-
-    struct ntg_xy obj_drawing_size = ntg_object_drawing_get_size(obj_drawing);
-    struct ntg_xy scene_drawing_size = ntg_scene_drawing_get_size(scene_drawing);
-
-    struct ntg_xy obj_pos = ntg_object_get_position_abs(curr_obj);
     size_t i, j;
-    const ntg_cell_t* it_obj_cell;
-    struct ntg_cell_base* it_scene_cell;
-    struct ntg_xy it_obj_pos, it_scene_pos;
-    for(i = 0; i < obj_drawing_size.y; i++)
+    if(obj_drawing != NULL)
     {
-        for(j = 0; j < obj_drawing_size.x; j++)
+        struct ntg_xy obj_drawing_size = ntg_object_drawing_get_size(obj_drawing);
+        struct ntg_xy scene_drawing_size = ntg_scene_drawing_get_size(scene_drawing);
+
+        struct ntg_xy obj_pos = ntg_object_get_position_abs(curr_obj);
+        const ntg_cell_t* it_obj_cell;
+        struct ntg_rcell* it_scene_cell;
+        struct ntg_xy it_obj_pos, it_scene_pos;
+        for(i = 0; i < obj_drawing_size.y; i++)
         {
-            it_obj_pos = NTG_XY(j, i);
-            it_scene_pos = NTG_XY_ADD(it_obj_pos, obj_pos);
+            for(j = 0; j < obj_drawing_size.x; j++)
+            {
+                it_obj_pos = NTG_XY(j, i);
+                it_scene_pos = NTG_XY_ADD(it_obj_pos, obj_pos);
 
-            //assert(it_scene_pos.isInBounds());
-            it_obj_cell = ntg_object_drawing_at(obj_drawing, it_obj_pos);
-            it_scene_cell = _ntg_scene_drawing_at(scene_drawing, it_scene_pos);
+                //assert(it_scene_pos.isInBounds());
+                it_obj_cell = ntg_object_drawing_at(obj_drawing, it_obj_pos);
+                it_scene_cell = _ntg_scene_drawing_at(scene_drawing, it_scene_pos);
 
-            ntg_cell_overwrite(it_obj_cell, it_scene_cell);
+                ntg_cell_overwrite(it_obj_cell, it_scene_cell);
+            }
         }
     }
 
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
 
     ntg_object_t* it_obj;
-    for(i = 0; i < children->count; i++)
+    for(i = 0; i < children->_count; i++)
     {
-        it_obj = children->data[i];
+        it_obj = children->_data[i];
         _draw_all(it_obj, scene_drawing);
     }
 }
+
+static void _reset_scene_content(ntg_scene_engine_t* engine)
+{
+    size_t i, j;
+    ntg_scene_drawing_t* content = _ntg_scene_get_drawing(engine->scene);
+
+    struct ntg_xy size = ntg_scene_drawing_get_size(content);
+
+    struct ntg_rcell* it_cell;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_cell = _ntg_scene_drawing_at(content, NTG_XY(j, i));
+            *it_cell = (struct ntg_rcell) {
+                .codepoint = NTG_CELL_EMPTY,
+                .gfx = (struct nt_gfx) {
+                    .bg = NT_COLOR_DEFAULT,
+                    .fg = NT_COLOR_DEFAULT,
+                    .style = NT_STYLE_DEFAULT
+                }
+            };
+        }
+    }
+} 
 
 ntg_scene_engine_t* ntg_scene_engine_new(ntg_scene_t* scene)
 {
@@ -150,5 +177,6 @@ void ntg_scene_engine_layout(ntg_scene_engine_t* engine)
     _constrain_all(root);
     _measure_all(root);
     _arrange_all(root);
+    _reset_scene_content(engine);
     _draw_all(root, _ntg_scene_get_drawing(engine->scene));
 }

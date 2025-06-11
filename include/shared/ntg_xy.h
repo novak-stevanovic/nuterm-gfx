@@ -33,6 +33,7 @@ struct ntg_dxy
 #define NTG_DXY_XY(xy) ((struct ntg_xy) { .x = (xy).x, .y = (xy).y })
 
 #define NTG_XY_UNSET ((struct ntg_xy) {0})
+
 #define NTG_XY_POS_IN_BOUNDS(pos,bounds)                                       \
     ( (((pos).x < (bounds).x) && ((pos).y < (bounds).y)) )
 

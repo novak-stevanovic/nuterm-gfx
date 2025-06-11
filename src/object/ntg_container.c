@@ -7,8 +7,13 @@ void __ntg_container_init__(ntg_container_t* container,
         ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn)
         
 {
+    ntg_object_t* _container = (ntg_object_t*)container;
+
     __ntg_object_init__((ntg_object_t*)container, nsize_fn,
             constrain_fn, measure_fn, arrange_fn);
+
+    _ntg_object_drawing_destroy(_container->_drawing);
+    _container->_drawing = NULL;
 }
 
 void __ntg_container_deinit__(ntg_container_t* container)

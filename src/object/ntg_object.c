@@ -122,14 +122,19 @@ void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size)
     _adjust_size(&(size.y), object->_constr.min_size.y, object->_constr.max_size.y);
 
     object->_size = size;
-    ntg_object_drawing_set_size(object->_drawing, size);
+    if(object->_drawing != NULL)
+        ntg_object_drawing_set_size(object->_drawing, size);
 }
 
 void _ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos)
 {
     if(object == NULL) return;
 
-    object->_pos = pos;
+    struct ntg_xy parent_pos = (object->_parent != NULL) ?
+        object->_parent->_pos :
+        NTG_XY_UNSET;
+
+    object->_pos = NTG_XY_ADD(pos, parent_pos);
 }
 
 /* -------------------------------------------------------------------------- */

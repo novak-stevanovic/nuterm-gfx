@@ -37,7 +37,7 @@ void ntg_stage_render()
     const ntg_scene_drawing_t* drawing = ntg_scene_get_drawing(_active_scene);
     struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
     size_t i, j;
-    struct ntg_cell_base it_cell;
+    struct ntg_rcell it_cell;
     nt_status_t _status;
     nt_buffer_enable(_nt_buff);
     for(i = 0; i < size.y; i++)
