@@ -1,6 +1,8 @@
 #ifndef _NTG_CONTAINER_DEF_H_
 #define _NTG_CONTAINER_DEF_H_
 
+#include "object/ntg_container.h"
+
 #ifndef __NTG_ALLOW_NTG_CONTAINER_DEF__
 // #error "Only include this file when requiring the definition."
 #endif // __NTG_ALLOW_NTG_CONTAINER_DEF__

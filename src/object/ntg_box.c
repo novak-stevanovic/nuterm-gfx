@@ -1,8 +1,8 @@
 #include <stdlib.h>
 
 #include "object/ntg_object.h"
-#include "object/ntg_object_fwd.h"
 #include "object/def/ntg_box_def.h"
+#include "object/shared/ntg_object_vec.h"
 
 static void __nsize_fn(ntg_object_t* _box)
 {
@@ -20,7 +20,7 @@ static void __nsize_fn(ntg_object_t* _box)
         h = (it_size.y > h) ? it_size.y : h;
     }
 
-    _ntg_object_set_nsize(_box, NTG_XY(w, h));
+    _ntg_object_set_nsize(_box, ntg_xy(w, h));
 }
 
 static void __constrain_fn(ntg_object_t* _box)
@@ -41,15 +41,15 @@ static void __constrain_fn(ntg_object_t* _box)
             it_child = children->_data[i];
             it_size = ntg_object_get_nsize(it_child);
 
-            it_constr = NTG_CONSTR(it_size, it_size);
+            it_constr = ntg_constr(it_size, it_size);
             _ntg_object_set_constr(it_child, it_constr);
         }
     }
-    else
+    else // TODO
     {
         size_t w = constr.max_size.x / children->_count;
-        struct ntg_xy size = NTG_XY(w, constr.max_size.y);
-        struct ntg_constr child_constr = NTG_CONSTR(size, size);
+        struct ntg_xy size = ntg_xy(w, constr.max_size.y);
+        struct ntg_constr child_constr = ntg_constr(size, size);
         for(i = 0; i < children->_count; i++)
         {
             it_child = children->_data[i];
@@ -74,7 +74,7 @@ static void __measure_fn(ntg_object_t* _box)
         h = (it_size.y > h) ? it_size.y : h;
     }
 
-    _ntg_object_set_size(_box, NTG_XY(w, h));
+    _ntg_object_set_size(_box, ntg_xy(w, h));
 }
 
 static void __arrange_fn(ntg_object_t* _box)
@@ -87,7 +87,7 @@ static void __arrange_fn(ntg_object_t* _box)
 
     for(i = 0; i < children->_count; i++)
     {
-        _ntg_object_set_pos(children->_data[i], NTG_XY(w, 0));
+        _ntg_object_set_pos(children->_data[i], ntg_xy(w, 0));
 
         it_size = ntg_object_get_size(children->_data[i]);
         w += it_size.x;

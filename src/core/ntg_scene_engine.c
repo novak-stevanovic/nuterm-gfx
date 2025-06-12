@@ -5,6 +5,9 @@
 #include "base/ntg_cell.h"
 #include "core/ntg_scene.h"
 #include "object/ntg_object.h"
+#include "object/shared/ntg_object_drawing.h"
+#include "object/shared/ntg_object_vec.h"
+#include "core/ntg_scene_drawing.h"
 
 struct ntg_scene_engine
 {
@@ -95,14 +98,14 @@ static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing
         {
             for(j = 0; j < obj_drawing_size.x; j++)
             {
-                it_obj_pos = NTG_XY(j, i);
-                it_scene_pos = NTG_XY_ADD(it_obj_pos, obj_pos);
+                it_obj_pos = ntg_xy(j, i);
+                it_scene_pos = ntg_xy_add(it_obj_pos, obj_pos);
 
                 //assert(it_scene_pos.isInBounds());
                 it_obj_cell = ntg_object_drawing_at(obj_drawing, it_obj_pos);
-                it_scene_cell = _ntg_scene_drawing_at(scene_drawing, it_scene_pos);
+                it_scene_cell = ntg_scene_drawing_at_(scene_drawing, it_scene_pos);
 
-                ntg_cell_overwrite(it_obj_cell, it_scene_cell);
+                (*it_scene_cell) = ntg_cell_overwrite(*it_obj_cell, *it_scene_cell);
             }
         }
     }
@@ -129,7 +132,7 @@ static void _reset_scene_content(ntg_scene_engine_t* engine)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = _ntg_scene_drawing_at(content, NTG_XY(j, i));
+            it_cell = ntg_scene_drawing_at_(content, ntg_xy(j, i));
             *it_cell = (struct ntg_rcell) {
                 .codepoint = NTG_CELL_EMPTY,
                 .gfx = (struct nt_gfx) {

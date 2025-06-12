@@ -1,6 +1,7 @@
 #ifndef _NTG_XY_H_
 #define _NTG_XY_H_
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -18,40 +19,70 @@ struct ntg_dxy
     ssize_t x, y;
 };
 
-#define NTG_XY(xv, yv) ((struct ntg_xy) { .x = (xv), .y = (yv) })
-
-#define NTG_XY_ADD(a, b) ((struct ntg_xy) {                                    \
-        .x = (a).x + (b).x,                                                    \
-        .y = (a).y + (b).y })
-
-#define NTG_XY_SUB(a, b) ((struct ntg_dxy) {                                   \
-        .x = ((ssize_t)(a).x - (b).x),                                         \
-        .y = ((ssize_t)(a).y - (b).y) })
-
-#define NTG_XY_DXY(xy) ((struct ntg_dxy) { .x = (xy).x, .y = (xy).y })
-
-#define NTG_DXY_XY(xy) ((struct ntg_xy) { .x = (xy).x, .y = (xy).y })
-
-#define NTG_XY_UNSET ((struct ntg_xy) {0})
-
-#define NTG_XY_POS_IN_BOUNDS(pos,bounds)                                       \
-    ( (((pos).x < (bounds).x) && ((pos).y < (bounds).y)) )
-
 struct ntg_constr
 {
     struct ntg_xy min_size, max_size;
 };
 
-#define NTG_CONSTR(minsz, maxsz) ((struct ntg_constr) {                        \
-    .min_size = (minsz),                                                       \
-    .max_size = (maxsz)                                                        \
-})
-#define NTG_CONSTR_UNSET NTG_CONSTR(NTG_XY(0, 0), NTG_XY(SIZE_MAX, SIZE_MAX))
+static const struct ntg_xy NTG_XY_UNSET = {0};
 
-#define NTG_SIZE_IN_CONSTR(size, constr)                                       \
-    (((size).x >= (constr).min_size.x) &&                                      \
-     ((size).x <= (constr).max_size.x) &&                                      \
-     ((size).y >= (constr).min_size.y) &&                                      \
-     ((size).y <= (constr).max_size.y))                                        \
+static const struct ntg_dxy NTG_DXY_UNSET = {0};
+
+static const struct ntg_constr NTG_CONSTR_UNSET = {
+    .min_size = { 0, 0 },
+    .max_size = { SIZE_MAX, SIZE_MAX }
+};
+
+/* -------------------------------------------------------------------------- */
+
+static inline struct ntg_xy ntg_xy(size_t x, size_t y)
+{
+    return (struct ntg_xy) { .x = x, .y = y };
+}
+
+static inline struct ntg_xy ntg_xy_add(struct ntg_xy a, struct ntg_xy b)
+{
+    return (struct ntg_xy) { .x = a.x + b.x, .y = a.y + b.y };
+}
+
+static inline struct ntg_dxy ntg_xy_sub(struct ntg_xy a, struct ntg_xy b)
+{
+    return (struct ntg_dxy) { .x = a.x + b.x, .y = a.y + b.y };
+}
+
+static inline struct ntg_xy ntg_xy_from_dxy(struct ntg_dxy xy)
+{
+    return (struct ntg_xy) { .x = xy.x, .y = xy.y };
+}
+
+static inline bool ntg_xy_is_greater(struct ntg_xy a, struct ntg_xy b)
+{
+    return ((a.x > b.x) && (a.y > b.y));
+}
+
+static inline bool ntg_xy_are_equal(struct ntg_xy a, struct ntg_xy b)
+{
+    return ((a.x == b.x) && (a.y == b.y));
+}
+
+/* -------------------------------------------------------------------------- */
+
+static inline struct ntg_xy ntg_dxy(ssize_t x, ssize_t y)
+{
+    return (struct ntg_xy) { .x = x, .y = y };
+}
+
+static inline struct ntg_dxy ntg_dxy_from_xy(struct ntg_xy xy)
+{
+    return (struct ntg_dxy) { .x = xy.x, .y = xy.y };
+}
+
+/* -------------------------------------------------------------------------- */
+
+static inline struct ntg_constr ntg_constr(struct ntg_xy min_size,
+        struct ntg_xy max_size)
+{
+    return (struct ntg_constr) { .min_size = min_size, .max_size = max_size };
+}
 
 #endif // _NTG_XY_H_

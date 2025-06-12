@@ -1,9 +1,10 @@
+#include <assert.h>
 #include "core/ntg_stage.h"
-#include "base/fwd/ntg_cell_fwd.h"
+#include "base/ntg_cell.h"
 #include "core/ntg_scene.h"
 #include "shared/ntg_xy.h"
 #include "nt.h"
-#include <assert.h>
+#include "core/ntg_scene_drawing.h"
 
 static ntg_scene_t* _active_scene = NULL;
 
@@ -32,7 +33,7 @@ void ntg_stage_render()
     size_t _width, _height;
     nt_get_term_size(&_width, &_height);
 
-    ntg_scene_layout(_active_scene, NTG_XY(_width, _height));
+    ntg_scene_layout(_active_scene, ntg_xy(_width, _height));
 
     const ntg_scene_drawing_t* drawing = ntg_scene_get_drawing(_active_scene);
     struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
@@ -44,7 +45,7 @@ void ntg_stage_render()
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = *ntg_scene_drawing_at(drawing, NTG_XY(j, i));
+            it_cell = *ntg_scene_drawing_at(drawing, ntg_xy(j, i));
             nt_write_char_at(it_cell.codepoint, it_cell.gfx, j, i, NULL, NULL);
             // nt_write_char_at(66, NT_GFX_DEFAULT, j, i, NULL, &_status);
         }

@@ -1,6 +1,8 @@
 #ifndef _NTG_PANE_DEF_H_
 #define _NTG_PANE_DEF_H_
 
+#include "object/ntg_pane.h"
+
 #ifndef __NTG_ALLOW_NTG_PANE_DEF__
 // #error "Only include this file when requiring the definition."
 #endif // __NTG_ALLOW_NTG_PANE_DEF__

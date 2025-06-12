@@ -2,7 +2,8 @@
 #define _NTG_COLOR_BLOCK_H_
 
 #include "nt_gfx.h"
-#include "object/ntg_object_fwd.h"
+
+typedef struct ntg_color_block ntg_color_block_t;
 
 ntg_color_block_t* ntg_color_block_new(nt_color_t color);
 void ntg_color_block_destroy(ntg_color_block_t* block);

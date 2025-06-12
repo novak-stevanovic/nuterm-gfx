@@ -1,7 +1,7 @@
 #ifndef _NTG_BOX_DEF_H_
 #define _NTG_BOX_DEF_H_
 
-#include "object/ntg_object_fwd.h"
+#include "object/ntg_box.h"
 
 #define __NTG_ALLOW_CONTAINER_DEF__
 #include "object/def/ntg_container_def.h"
@@ -9,7 +9,7 @@
 
 struct ntg_box
 {
-    struct ntg_container _base;
+    ntg_container_t _base;
 };
 
 void __ntg_box_init__(ntg_box_t* box);

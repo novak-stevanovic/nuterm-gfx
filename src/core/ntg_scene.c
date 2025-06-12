@@ -1,28 +1,9 @@
 #include "core/ntg_scene.h"
-#include "base/fwd/ntg_cell_fwd.h"
-#include "base/ntg_cell.h"
+#include "core/ntg_scene_drawing.h"
 #include "core/ntg_scene_engine.h"
-#include "nt.h"
 #include "shared/ntg_xy.h"
 #include <assert.h>
 #include <stdlib.h>
-
-struct ntg_scene_drawing
-{
-    ntg_cell_base_grid_t* _drawing;
-    struct ntg_xy _size;
-};
-
-void __ntg_scene_drawing_init__(ntg_scene_drawing_t* drawing);
-void __ntg_scene_drawing_deinit__(ntg_scene_drawing_t* drawing);
-
-struct ntg_rcell* _ntg_scene_drawing_at(ntg_scene_drawing_t* drawing,
-        struct ntg_xy pos);
-
-void ntg_scene_drawing_set_size(ntg_scene_drawing_t* drawing,
-        struct ntg_xy size);
-
-/* -------------------------------------------------------------------------- */
 
 struct ntg_scene
 {
@@ -31,6 +12,8 @@ struct ntg_scene
 
     ntg_scene_engine_t* engine;
 };
+
+/* -------------------------------------------------------------------------- */
 
 void ntg_scene_layout(ntg_scene_t* scene, struct ntg_xy size)
 {
@@ -95,61 +78,4 @@ const ntg_scene_drawing_t* ntg_scene_get_drawing(const ntg_scene_t* scene)
 ntg_scene_drawing_t* _ntg_scene_get_drawing(ntg_scene_t* scene)
 {
     return (scene != NULL) ? &scene->drawing : NULL;
-}
-
-/* -------------------------------------------------------------------------- */
-
-void __ntg_scene_drawing_init__(ntg_scene_drawing_t* drawing)
-{
-    if(drawing == NULL) return;
-
-    drawing->_drawing = ntg_cell_base_grid_new(
-            NTG_XY(NTG_TERM_MAX_WIDTH, NTG_TERM_MAX_HEIGHT));
-
-    assert(drawing->_drawing != NULL);
-
-    drawing->_size = NTG_XY_UNSET;
-}
-
-void __ntg_scene_drawing_deinit__(ntg_scene_drawing_t* drawing)
-{
-    if(drawing == NULL) return;
-
-    ntg_cell_base_grid_destroy(drawing->_drawing);
-    drawing->_size = NTG_XY_UNSET;
-}
-
-const struct ntg_rcell* ntg_scene_drawing_at(const ntg_scene_drawing_t* drawing,
-        struct ntg_xy pos)
-{
-    if(drawing == NULL) return NULL;
-
-    if(!NTG_XY_POS_IN_BOUNDS(pos, drawing->_size))
-        return NULL;
-
-    return ntg_cell_base_grid_at(drawing->_drawing, pos);
-}
-
-struct ntg_rcell* _ntg_scene_drawing_at(ntg_scene_drawing_t* drawing,
-        struct ntg_xy pos)
-{
-    if(drawing == NULL) return NULL;
-
-    if(!NTG_XY_POS_IN_BOUNDS(pos, drawing->_size))
-        return NULL;
-
-    return ntg_cell_base_grid_at_(drawing->_drawing, pos);
-}
-
-struct ntg_xy ntg_scene_drawing_get_size(const ntg_scene_drawing_t* drawing)
-{
-    return (drawing != NULL) ? drawing->_size : NTG_XY_UNSET;
-}
-
-void ntg_scene_drawing_set_size(ntg_scene_drawing_t* drawing,
-        struct ntg_xy size)
-{
-    if(drawing == NULL) return;
-
-    drawing->_size = size;
 }

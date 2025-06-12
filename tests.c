@@ -12,11 +12,11 @@ void init_gui_func(void* data)
 {
     ntg_color_block_t* cb1 = ntg_color_block_new(nt_color_new(255, 0, 90));
     ntg_object_t* _cb1 = (ntg_object_t*)cb1;
-    ntg_object_set_pref_size(_cb1, NTG_XY(100, 20));
+    ntg_object_set_pref_size(_cb1, ntg_xy(100, 20));
 
     ntg_color_block_t* cb2 = ntg_color_block_new(nt_color_new(0, 200, 0));
     ntg_object_t* _cb2 = (ntg_object_t*)cb2;
-    ntg_object_set_pref_size(_cb2, NTG_XY(50, 40));
+    ntg_object_set_pref_size(_cb2, ntg_xy(50, 40));
 
     ntg_box_t* box = ntg_box_new();
     ntg_object_t* _box = (ntg_object_t*)box;

@@ -13,6 +13,11 @@ struct ntg_vector
     void* data;
 };
 
+#ifdef _NTG_VECTOR_IMPLEMENTATION_
+
+#include <stdlib.h>
+#include <string.h>
+
 /* Functions below return:
  * 0 on success,
  * 1 if one or more of the provided arguments is invalid,
@@ -20,35 +25,8 @@ struct ntg_vector
  * 
  * Additionally, ntg_vector_remove() returns 3 if `data` is not found in vector. */
 
-int __ntg_vector_init__(struct ntg_vector* vec, size_t init_cap, size_t el_size);
-int __ntg_vector_deinit__(struct ntg_vector* vec);
-
-int ntg_vector_append(struct ntg_vector* vec, const void* data,
-        size_t el_size);
-
-int ntg_vector_insert(struct ntg_vector* vec, const void* data,
-        size_t pos, size_t el_size);
-
-int ntg_vector_remove_at(struct ntg_vector* vec, size_t pos,
-        size_t el_size);
-
-int ntg_vector_remove(struct ntg_vector* vec, const void* data,
-        size_t el_size);
-
-/* Returns -1 if the search returns no results and -2 if one of the
- * arguments is invalid. */
-
-ssize_t ntg_vector_find(const struct ntg_vector* vec, const void* data,
-        size_t el_size);
-
-/* -------------------------------------------------------------------------- */
-
-#ifdef _NTG_VECTOR_IMPLEMENTATION_
-
-#include <stdlib.h>
-#include <string.h>
-
-int __ntg_vector_init__(struct ntg_vector* vec, size_t init_cap, size_t el_size)
+static int __ntg_vector_init__(struct ntg_vector* vec,
+        size_t init_cap, size_t el_size)
 {
     if((vec == NULL) || (el_size == 0)) return 1;
 
@@ -64,7 +42,7 @@ int __ntg_vector_init__(struct ntg_vector* vec, size_t init_cap, size_t el_size)
     return 0;
 }
 
-int __ntg_vector_deinit__(struct ntg_vector* vec)
+static int __ntg_vector_deinit__(struct ntg_vector* vec)
 {
     if(vec == NULL) return 1;
 
@@ -77,14 +55,7 @@ int __ntg_vector_deinit__(struct ntg_vector* vec)
     return 0;
 }
 
-int ntg_vector_append(struct ntg_vector* vec, const void* data,
-        size_t el_size)
-
-{
-    return ntg_vector_insert(vec, data, vec->count, el_size);
-}
-
-int ntg_vector_insert(struct ntg_vector* vec, const void* data,
+static int ntg_vector_insert(struct ntg_vector* vec, const void* data,
         size_t pos, size_t el_size)
 {
     if((vec == NULL) || (el_size == 0) || (data == NULL))
@@ -113,7 +84,14 @@ int ntg_vector_insert(struct ntg_vector* vec, const void* data,
     return 0;
 }
 
-int ntg_vector_remove_at(struct ntg_vector* vec, size_t pos,
+static int ntg_vector_append(struct ntg_vector* vec, const void* data,
+        size_t el_size)
+
+{
+    return ntg_vector_insert(vec, data, vec->count, el_size);
+}
+
+static int ntg_vector_remove_at(struct ntg_vector* vec, size_t pos,
         size_t el_size)
 {
     if((vec == NULL) || (el_size == 0) || (pos >= vec->count))
@@ -130,22 +108,7 @@ int ntg_vector_remove_at(struct ntg_vector* vec, size_t pos,
     return 0;
 }
 
-int ntg_vector_remove(struct ntg_vector* vec, const void* data,
-        size_t el_size)
-{
-    if((vec == NULL) || (data == NULL) || (el_size == 0))
-        return 1;
-
-    ssize_t find_res = ntg_vector_find(vec, data, el_size);
-
-    if(find_res == -1) return 3;
-
-    ntg_vector_remove_at(vec, find_res, el_size);
-
-    return 0;
-}
-
-ssize_t ntg_vector_find(const struct ntg_vector* vec, const void* data,
+static ssize_t ntg_vector_find(const struct ntg_vector* vec, const void* data,
         size_t el_size)
 {
     if((vec == NULL) || (data == NULL) || (el_size == 0))
@@ -167,6 +130,22 @@ ssize_t ntg_vector_find(const struct ntg_vector* vec, const void* data,
 
     return -1;
 }
+
+static int ntg_vector_remove(struct ntg_vector* vec, const void* data,
+        size_t el_size)
+{
+    if((vec == NULL) || (data == NULL) || (el_size == 0))
+        return 1;
+
+    ssize_t find_res = ntg_vector_find(vec, data, el_size);
+
+    if(find_res == -1) return 3;
+
+    ntg_vector_remove_at(vec, find_res, el_size);
+
+    return 0;
+}
+
 
 #endif // _NTG_VECTOR_IMPLEMENTATION_
 
