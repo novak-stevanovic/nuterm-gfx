@@ -47,7 +47,7 @@ void ntg_rcell_grid_set_size(ntg_rcell_grid_t* grid, struct ntg_xy size,
     if(grid == NULL)
         _vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    if(ntg_xy_are_equal(size, ntg_xy(0, 0)))
+    if((size.x == 0) || (size.y == 0))
     {
         grid->_size = size;
         if(grid->__data != NULL)
@@ -151,7 +151,7 @@ void ntg_cell_grid_set_size(ntg_cell_grid_t* grid, struct ntg_xy size,
     if(grid == NULL)
         _vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    if(ntg_xy_are_equal(size, ntg_xy(0, 0)))
+    if((size.x == 0) || (size.y == 0))
     {
         grid->_size = size;
         if(grid->__data != NULL)

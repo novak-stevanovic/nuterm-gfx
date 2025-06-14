@@ -5,32 +5,44 @@
 #include "object/def/ntg_box_def.h"
 #include "object/shared/ntg_object_vec.h"
 
-static inline size_t _get_psize(ntg_box_orientation_t orientation,
-        struct ntg_xy size)
+static inline size_t _psize(const ntg_box_t* box, struct ntg_xy size)
 {
-    return (orientation == NTG_BOX_ORIENTATION_HORIZONTAL) ? size.x : size.y;
+    return (box->_orientation == NTG_BOX_ORIENTATION_HORIZONTAL) ? size.x : size.y;
 }
 
-static inline size_t _get_ssize(ntg_box_orientation_t orientation,
-        struct ntg_xy size)
+static inline size_t _ssize(const ntg_box_t* box, struct ntg_xy size)
 {
-    return (orientation == NTG_BOX_ORIENTATION_HORIZONTAL) ? size.y : size.x;
+    return (box->_orientation == NTG_BOX_ORIENTATION_HORIZONTAL) ? size.y : size.x;
 }
 
-static inline struct ntg_xy _new_size(ntg_box_orientation_t orientation,
+static inline struct ntg_xy _size_new(const ntg_box_t* box,
         size_t psize, size_t ssize)
 {
     return ntg_xy(
-        (orientation == NTG_BOX_ORIENTATION_HORIZONTAL) ? psize : ssize,
-        (orientation == NTG_BOX_ORIENTATION_HORIZONTAL) ? ssize : psize
+        (box->_orientation == NTG_BOX_ORIENTATION_HORIZONTAL) ? psize : ssize,
+        (box->_orientation == NTG_BOX_ORIENTATION_HORIZONTAL) ? ssize : psize
     );
+}
+
+static inline struct ntg_xy _size_add_psize(const ntg_box_t* box, struct ntg_xy size,
+        size_t psize)
+{
+    struct ntg_xy to_add = NTG_XY_UNSET;
+    
+    if(box->_orientation == NTG_BOX_ORIENTATION_HORIZONTAL)
+        to_add.x += psize;
+    else
+        to_add.y += psize;
+
+    return ntg_xy_add(size, to_add);
 }
 
 static void __nsize_fn(ntg_object_t* _box)
 {
+    ntg_box_t* box = (ntg_box_t*)_box;
     const ntg_object_vec_t* children = ntg_object_get_children(_box);
 
-    size_t w = 0, h = 0;
+    size_t psize = 0, ssize= 0;
     struct ntg_xy it_size;
     size_t i;
 
@@ -38,15 +50,16 @@ static void __nsize_fn(ntg_object_t* _box)
     {
         it_size = ntg_object_get_nsize(children->_data[i]);
 
-        w += it_size.x;
-        h = (it_size.y > h) ? it_size.y : h;
+        psize += _psize(box, it_size);
+        ssize = (_ssize(box, it_size) > ssize) ? _ssize(box, it_size) : ssize;
     }
 
-    _ntg_object_set_nsize(_box, ntg_xy(w, h));
+    _ntg_object_set_nsize(_box, _size_new(box, psize, ssize));
 }
 
 static void __constrain_fn(ntg_object_t* _box)
 {
+    ntg_box_t* box = (ntg_box_t*)_box;
     const ntg_object_vec_t* children = ntg_object_get_children(_box);
 
     struct ntg_xy nsize = ntg_object_get_nsize(_box);
@@ -55,7 +68,8 @@ static void __constrain_fn(ntg_object_t* _box)
     ntg_object_t* it_child;
     struct ntg_xy it_nsize;
     size_t i;
-    if((nsize.x <= constr.max_size.x) && (nsize.y <= constr.max_size.y))
+    if((_psize(box, nsize) <= _psize(box, constr.max_size)) &&
+            _ssize(box, nsize) <= _ssize(box, constr.max_size))
     {
         for(i = 0; i < children->_count; i++) {
             it_child = children->_data[i];
@@ -64,32 +78,38 @@ static void __constrain_fn(ntg_object_t* _box)
             _ntg_object_set_constr(it_child, ntg_constr(it_nsize, it_nsize));
         }
     }
-    else if((nsize.x <= constr.max_size.x) && (nsize.y > constr.max_size.y))
+    else if((_psize(box, nsize) <= _psize(box, constr.max_size)) &&
+            _ssize(box, nsize) > _ssize(box, constr.max_size))
     {
         struct ntg_constr base_constr[NTG_BOX_MAX_CHILDREN];
-
         size_t nsizes[NTG_BOX_MAX_CHILDREN];
         size_t _sizes[NTG_BOX_MAX_CHILDREN];
 
+        struct ntg_xy it_min_size, it_max_size;
         for(i = 0; i < children->_count; i++)
         {
             it_child = children->_data[i];
             it_nsize = ntg_object_get_nsize(it_child);
-            nsizes[i] = it_nsize.x;
+            nsizes[i] = _psize(box, it_nsize);
 
-            base_constr[i] = ntg_constr(
-                    ntg_xy(it_nsize.x, 0),
-                    ntg_xy(it_nsize.x, constr.max_size.y));
+            it_min_size = _size_new(box, _psize(box, it_nsize), 0),
+
+            it_max_size = _size_new(box, _psize(box, it_nsize),
+                    _ssize(box, constr.max_size));
+
+            base_constr[i] = ntg_constr(it_min_size, it_max_size);
         }
 
-        size_t extra = constr.max_size.x - nsize.x;
+        size_t extra = _psize(box, constr.max_size) - _psize(box, nsize);
         ntg_sap_nsize_round_robin(nsizes, _sizes, extra, children->_count);
 
         for(i = 0; i < children->_count; i++)
         {
             it_child = children->_data[i];
 
-            base_constr[i].max_size.x += _sizes[i];
+            base_constr[i].max_size = _size_add_psize(box, 
+                    base_constr[i].max_size, _sizes[i]);
+
             _ntg_object_set_constr(it_child, base_constr[i]);
         }
     }
@@ -104,21 +124,25 @@ static void __constrain_fn(ntg_object_t* _box)
             it_child = children->_data[i];
 
             it_nsize = ntg_object_get_nsize(it_child);
-            nsizes[i] = it_nsize.x;
+            nsizes[i] = _psize(box, it_nsize);
 
             base_constr[i] = ntg_constr(
                     ntg_xy(0, 0),
-                    ntg_xy(0, constr.max_size.y));
+                    _size_new(box, 0, _ssize(box, constr.max_size)));
         }
 
-        ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.x, children->_count);
+        ntg_sap_nsize_round_robin(nsizes, _sizes, _psize(box, constr.max_size),
+                children->_count);
 
         for(i = 0; i < children->_count; i++)
         {
             it_child = children->_data[i];
 
-            base_constr[i].min_size.x += _sizes[i];
-            base_constr[i].max_size.x += _sizes[i];
+            base_constr[i].min_size = _size_add_psize(box, base_constr[i].min_size,
+                    _sizes[i]);
+
+            base_constr[i].max_size = _size_add_psize(box, base_constr[i].max_size,
+                    _sizes[i]);
 
             _ntg_object_set_constr(it_child, base_constr[i]);
         }
@@ -127,9 +151,10 @@ static void __constrain_fn(ntg_object_t* _box)
 
 static void __measure_fn(ntg_object_t* _box)
 {
+    ntg_box_t* box = (ntg_box_t*)_box;
     const ntg_object_vec_t* children = ntg_object_get_children(_box);
 
-    size_t w = 0, h = 0;
+    size_t psize = 0, ssize = 0;
     struct ntg_xy it_size;
     size_t i;
 
@@ -137,30 +162,30 @@ static void __measure_fn(ntg_object_t* _box)
     {
         it_size = ntg_object_get_size(children->_data[i]);
 
-        w += it_size.x;
-        h = (it_size.y > h) ? it_size.y : h;
+        psize += _psize(box, it_size);
+        ssize = (_ssize(box, it_size) > ssize) ? _ssize(box, it_size) : ssize;
     }
 
-    _ntg_object_set_size(_box, ntg_xy(w, h));
+    _ntg_object_set_size(_box, _size_new(box, psize, ssize));
 }
 
-static void __arrange_fn(ntg_container_t* box)
+static void __arrange_fn(ntg_container_t* _box)
 {
-    ntg_object_t* _box = (ntg_object_t*)box;
+    ntg_box_t* box = (ntg_box_t*)_box;
+    const ntg_object_vec_t* children = ntg_object_get_children((ntg_object_t*)_box);
 
-    const ntg_object_vec_t* children = ntg_object_get_children(_box);
-
-    size_t w = 0, h = 0;
+    size_t psize = 0, ssize = 0;
     struct ntg_xy it_size;
     size_t i;
 
     for(i = 0; i < children->_count; i++)
     {
-        _ntg_object_set_pos(children->_data[i], ntg_xy(w, 0));
+        _ntg_object_set_pos(children->_data[i], _size_new(box, psize, 0));
 
         it_size = ntg_object_get_size(children->_data[i]);
-        w += it_size.x;
-        h = (it_size.y > h) ? it_size.y : h;
+
+        psize += _psize(box, it_size);
+        ssize = (_ssize(box, it_size) > ssize) ? _ssize(box, it_size) : ssize;
     }
 }
 
