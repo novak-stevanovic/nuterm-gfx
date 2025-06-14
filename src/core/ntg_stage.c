@@ -45,7 +45,7 @@ void ntg_stage_render()
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = *ntg_scene_drawing_at(drawing, ntg_xy(j, i));
+            it_cell = *(ntg_scene_drawing_at(drawing, ntg_xy(j, i)));
             nt_write_char_at(it_cell.codepoint, it_cell.gfx, j, i, NULL, NULL);
             // nt_write_char_at(66, NT_GFX_DEFAULT, j, i, NULL, &_status);
         }

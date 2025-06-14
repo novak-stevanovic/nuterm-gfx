@@ -13,10 +13,12 @@ struct ntg_vector
     void* data;
 };
 
+// #define _NTG_VECTOR_IMPLEMENTATION_
 #ifdef _NTG_VECTOR_IMPLEMENTATION_
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 /* Functions below return:
  * 0 on success,
@@ -30,11 +32,13 @@ static int __ntg_vector_init__(struct ntg_vector* vec,
 {
     if((vec == NULL) || (el_size == 0)) return 1;
 
-    init_cap = (init_cap > 0) ? init_cap : 1;
-
-    vec->data = malloc(init_cap * el_size);
-
-    if(vec->data == NULL) return 2;
+    if(init_cap != 0)
+    {
+        vec->data = malloc(init_cap * el_size);
+        if(vec->data == NULL) return 2;
+    }
+    else
+        vec->data = NULL;
 
     vec->capacity = init_cap;
     vec->count = 0;
@@ -58,12 +62,12 @@ static int __ntg_vector_deinit__(struct ntg_vector* vec)
 static int ntg_vector_insert(struct ntg_vector* vec, const void* data,
         size_t pos, size_t el_size)
 {
-    if((vec == NULL) || (el_size == 0) || (data == NULL))
+    if((vec == NULL) || (el_size == 0) || (data == NULL) || (pos > vec->count))
         return 1;
 
     if(vec->count >= vec->capacity)
     {
-        size_t new_cap = vec->count * 2;
+        size_t new_cap = (vec->count > 0) ? (vec->count * 2) : 1;
         void* new_data = realloc(vec->data, el_size * new_cap);
         if(new_data == NULL) return 2;
 
@@ -109,7 +113,7 @@ static int ntg_vector_remove_at(struct ntg_vector* vec, size_t pos,
 }
 
 static ssize_t ntg_vector_find(const struct ntg_vector* vec, const void* data,
-        size_t el_size)
+        size_t el_size, bool (*cmp_func)(const void*, const void*))
 {
     if((vec == NULL) || (data == NULL) || (el_size == 0))
         return -2;
@@ -119,25 +123,39 @@ static ssize_t ntg_vector_find(const struct ntg_vector* vec, const void* data,
     size_t i;
     void* it;
     int it_res;
-    for(i = 0; i < vec->count; i++)
+    if(cmp_func != NULL)
     {
-        it = _vec_data + (i * el_size);
+        for(i = 0; i < vec->count; i++)
+        {
+            it = _vec_data + (i * el_size);
 
-        it_res = memcmp(it, data, el_size);
-        if(it_res == 0)
-            return i;
+            it_res = cmp_func(it, data);
+            if(it_res == 1)
+                return i;
+        }
+    }
+    else
+    {
+        for(i = 0; i < vec->count; i++)
+        {
+            it = _vec_data + (i * el_size);
+
+            it_res = memcmp(it, data, el_size);
+            if(it_res == 0)
+                return i;
+        }
     }
 
     return -1;
 }
 
 static int ntg_vector_remove(struct ntg_vector* vec, const void* data,
-        size_t el_size)
+        size_t el_size, bool (*cmp_func)(const void*, const void*))
 {
     if((vec == NULL) || (data == NULL) || (el_size == 0))
         return 1;
 
-    ssize_t find_res = ntg_vector_find(vec, data, el_size);
+    ssize_t find_res = ntg_vector_find(vec, data, el_size, cmp_func);
 
     if(find_res == -1) return 3;
 

@@ -31,7 +31,7 @@ static void __arrange_fn(ntg_object_t* _block)
         {
             it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i));
 
-            ntg_cell_full(NTG_CELL_EMPTY, NT_COLOR_DEFAULT,
+            *it_cell = ntg_cell_full(NTG_CELL_EMPTY, NT_COLOR_DEFAULT,
                     block->__color, NT_STYLE_DEFAULT);
         }
     }

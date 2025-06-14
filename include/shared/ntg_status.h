@@ -3,7 +3,7 @@
 
 typedef int ntg_status_t;
 
-#define NTG_STATUS_BASE 1999
+#define NTG_STATUS_BASE 2000
 #define NTG_SUCCESS (NTG_STATUS_BASE + 0)
 #define NTG_ERR_UNEXPECTED (NTG_STATUS_BASE + 1)
 #define NTG_ERR_INVALID_ARG (NTG_STATUS_BASE + 2)

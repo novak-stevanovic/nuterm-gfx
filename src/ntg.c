@@ -77,6 +77,7 @@ void ntg_loop()
     while(true)
     {
         event = nt_wait_for_event(timeout, &_status);
+
         timeout = TIMEOUT - event.elapsed;
 
         ntg_stage_render();

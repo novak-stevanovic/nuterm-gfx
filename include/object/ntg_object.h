@@ -1,11 +1,12 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
-#include "base/ntg_cell.h"
 #include "shared/ntg_xy.h"
 #include <stddef.h>
 
 #define NTG_PREF_SIZE_UNSET 0
+
+/* -------------------------------------------------------------------------- */
 
 typedef struct ntg_object ntg_object_t;
 typedef struct ntg_object_vec ntg_object_vec_t;

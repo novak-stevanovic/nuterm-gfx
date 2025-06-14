@@ -1,8 +1,8 @@
-#include <assert.h>
-#include "shared/_ntg_shared.h"
 #include <stdlib.h>
+#include <assert.h>
 
 #include "base/ntg_cell.h"
+#include "shared/_ntg_shared.h"
 
 void __ntg_rcell_grid_init__(ntg_rcell_grid_t* grid)
 {
