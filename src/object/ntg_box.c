@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "base/ntg_sap.h"
@@ -211,11 +212,17 @@ void __ntg_box_init__(ntg_box_t* box, ntg_box_orientation_t orientation)
             __constrain_fn, __measure_fn, __arrange_fn);
 
     box->_orientation = orientation;
+
+    box->_padding = (struct ntg_box_padding) {0};
+    box->_spacing = 0;
 }
 
 void __ntg_box_deinit__(ntg_box_t* box)
 {
     __ntg_container_deinit__((ntg_container_t*)box);
+
+    box->_padding = (struct ntg_box_padding) {0};
+    box->_spacing = 0;
 }
 
 ntg_box_t* ntg_box_new(ntg_box_orientation_t orientation)
@@ -240,3 +247,32 @@ void ntg_box_add_child(ntg_box_t* box, ntg_object_t* object)
     // TODO: NTG_BOX_MAX_CHILDREN
     _ntg_object_child_add((ntg_object_t*)box, object);
 }
+
+void ntg_box_set_padding(ntg_box_t* box, struct ntg_box_padding padding)
+{
+    assert(box != NULL);
+
+    box->_padding = padding;
+}
+
+struct ntg_box_padding ntg_box_get_padding(const ntg_box_t* box)
+{
+    assert(box != NULL);
+
+    return box->_padding;
+}
+
+void ntg_box_set_spacing(ntg_box_t* box, size_t spacing)
+{
+    assert(box != NULL);
+
+    box->_spacing = spacing;
+}
+
+size_t ntg_box_get_spacing(const ntg_box_t* box)
+{
+    assert(box != NULL);
+
+    return box->_spacing;
+}
+
