@@ -238,5 +238,5 @@ void ntg_box_destroy(ntg_box_t* box)
 void ntg_box_add_child(ntg_box_t* box, ntg_object_t* object)
 {
     // TODO: NTG_BOX_MAX_CHILDREN
-    _ntg_container_add_child((ntg_container_t*)box, object);
+    _ntg_object_child_add((ntg_object_t*)box, object);
 }

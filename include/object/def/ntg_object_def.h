@@ -47,8 +47,17 @@ void _ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr);
 void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size);
 void _ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos);
 
+void _ntg_object_child_add(ntg_object_t* parent, ntg_object_t* child);
+void _ntg_object_child_remove(ntg_object_t* parent, ntg_object_t* child);
+
 ntg_object_drawing_t* _ntg_object_get_drawing_(ntg_object_t* object);
 
-void _ntg_object_set_vsize(ntg_object_t* object, struct ntg_xy vsize);
+void _ntg_object_scroll_enable(ntg_object_t* object);
+void _ntg_object_scroll_disable(ntg_object_t* object);
+struct ntg_xy _ntg_object_get_pref_scroll_offset(const ntg_object_t* object);
+void _ntg_object_set_pref_scroll_offset(ntg_object_t* object,
+        struct ntg_xy offset);
+void _ntg_object_scroll(ntg_object_t* object, struct ntg_dxy offset_diff);
+struct ntg_xy _ntg_object_get_scroll_offset(const ntg_object_t* object);
 
 #endif // _NTG_OBJECT_DEF_H_

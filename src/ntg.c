@@ -10,10 +10,11 @@
 #include "object/ntg_color_block.h"
 #include "shared/ntg_log.h"
 
+// TODO: remove
+#include "object/def/ntg_object_def.h"
+
 extern ntg_color_block_t* cb1;
 extern ntg_object_t* _cb1;
-
-void __ntg_object_scroll(ntg_object_t* object, struct ntg_dxy scroll);
 
 /* -------------------------------------------------------------------------- */
 
@@ -103,19 +104,19 @@ void ntg_loop()
             {
                 if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_UP)
                 {
-                    __ntg_object_scroll(_cb1, ntg_dxy(0, -1));
+                    _ntg_object_scroll(_cb1, ntg_dxy(0, -1));
                 }
                 if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_RIGHT)
                 {
-                    __ntg_object_scroll(_cb1, ntg_dxy(1, 0));
+                    _ntg_object_scroll(_cb1, ntg_dxy(1, 0));
                 }
                 if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_DOWN)
                 {
-                    __ntg_object_scroll(_cb1, ntg_dxy(0, 1));
+                    _ntg_object_scroll(_cb1, ntg_dxy(0, 1));
                 }
                 if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_LEFT)
                 {
-                    __ntg_object_scroll(_cb1, ntg_dxy(-1, 0));
+                    _ntg_object_scroll(_cb1, ntg_dxy(-1, 0));
                 }
             }
         }

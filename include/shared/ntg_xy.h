@@ -27,12 +27,10 @@ struct ntg_constr
 
 static const struct ntg_xy NTG_XY_MAX = { SIZE_MAX, SIZE_MAX };
 static const struct ntg_xy NTG_XY_MIN = { 0, 0 };
-
 static const struct ntg_xy NTG_XY_UNSET = { 0, 0 };
 
-static const struct ntg_xy NTG_DXY_MAX = { SSIZE_MAX, SSIZE_MAX };
-static const struct ntg_xy NTG_DXY_MIN = { -SSIZE_MAX - 1, -SSIZE_MAX - 1 };
-
+static const struct ntg_dxy NTG_DXY_MAX = { SSIZE_MAX, SSIZE_MAX };
+static const struct ntg_dxy NTG_DXY_MIN = { -SSIZE_MAX - 1, -SSIZE_MAX - 1 };
 static const struct ntg_dxy NTG_DXY_UNSET = { 0, 0 };
 
 static const struct ntg_constr NTG_CONSTR_UNSET = {

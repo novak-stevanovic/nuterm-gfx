@@ -10,24 +10,9 @@
 #include "shared/ntg_log.h"
 #include "shared/ntg_vector.h"
 
-/*
-event thread:
-{
-    event e = wait_for_user_input();
-    add_to_event_queue(e);
-}
-
-main thread:
-{
-    event e = wait_for_event_queue();
-    if(e.key_pressed = 'q') quit;
-    else if ...
-}
-
- */
-
-void __ntg_object_set_scroll(ntg_object_t* object, bool scroll);
-void __ntg_object_scroll(ntg_object_t* object, struct ntg_dxy scroll);
+// TODO: remove
+#include "object/def/ntg_object_def.h"
+#include "object/def/ntg_container_def.h"
 
 ntg_color_block_t* cb1;
 ntg_object_t* _cb1;
@@ -44,7 +29,7 @@ void init_gui_func(void* data)
     ntg_object_set_pref_size(_cb2, ntg_xy(100, 10));
     ntg_log_log("%p", cb2);
 
-    __ntg_object_set_scroll(_cb1, true);
+    _ntg_object_scroll_enable(_cb1);
     // __ntg_object_scroll(_cb2, ntg_dxy(0, 1));
 
     ntg_color_block_t* cb3 = ntg_color_block_new(nt_color_new(0, 100, 0));

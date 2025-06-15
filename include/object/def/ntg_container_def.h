@@ -29,9 +29,6 @@ void __ntg_container_deinit__(ntg_container_t* container);
 
 void _ntg_container_arrange_children(ntg_container_t* container);
 
-void _ntg_container_add_child(ntg_container_t* container, ntg_object_t* object);
-void _ntg_container_remove_child(ntg_container_t* container, ntg_object_t* object);
-
 void _ntg_container_set_bg(ntg_container_t* container, nt_color_t bg);
 
 #endif // _NTG_CONTAINER_DEF_H_

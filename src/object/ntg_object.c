@@ -292,31 +292,64 @@ ntg_object_drawing_t* _ntg_object_get_drawing_(ntg_object_t* object)
     return object->_drawing;
 }
 
-void _ntg_object_set_vsize(ntg_object_t* object, struct ntg_xy vsize)
+void _ntg_object_scroll_enable(ntg_object_t* object)
 {
-    ntg_object_drawing_set_size(object->_drawing, vsize);
+    object->_scroll = true;
 }
 
-struct ntg_xy ntg_object_get_vsize(const ntg_object_t* object)
+void _ntg_object_scroll_disable(ntg_object_t* object)
 {
-    return ntg_object_drawing_get_size(object->_drawing);
+    object->_scroll = false;
 }
 
-void __ntg_object_set_scroll(ntg_object_t* object, bool scroll)
+struct ntg_xy _ntg_object_get_pref_scroll_offset(const ntg_object_t* object)
 {
-    object->_scroll = scroll;
+    return object->_pref_scroll_offset;
 }
 
-void __ntg_object_scroll(ntg_object_t* object, struct ntg_dxy scroll)
+void _ntg_object_set_pref_scroll_offset(ntg_object_t* object,
+        struct ntg_xy offset)
 {
-    struct ntg_dxy total_pref_scroll = ntg_dxy_add(
+    object->_pref_scroll_offset = offset;
+}
+
+void _ntg_object_scroll(ntg_object_t* object, struct ntg_dxy offset_diff)
+{
+    struct ntg_dxy new_offset = ntg_dxy_add(
             ntg_dxy_from_xy(object->_pref_scroll_offset),
-            scroll);
+            offset_diff);
 
-    if(total_pref_scroll.x < 0)
-        total_pref_scroll.x = 0;
-    if(total_pref_scroll.y < 0)
-        total_pref_scroll.y = 0;
+    new_offset = ntg_dxy_clamp(ntg_dxy(0, 0), new_offset, NTG_DXY_MAX);
 
-    object->_pref_scroll_offset = ntg_xy_from_dxy(total_pref_scroll);
+    object->_pref_scroll_offset = ntg_xy_from_dxy(new_offset);
+}
+
+struct ntg_xy _ntg_object_get_scroll_offset(const ntg_object_t* object)
+{
+    return ntg_object_drawing_get_vp_offset(object->_drawing);
+}
+
+void _ntg_object_child_add(ntg_object_t* parent, ntg_object_t* child)
+{
+    assert((parent != NULL) && (child != NULL));
+
+    ntg_object_t* curr_parent = child->_parent;
+
+    if(curr_parent != NULL)
+    {
+        ntg_object_vec_remove(curr_parent->_children, child);
+    }
+
+    ntg_object_vec_append(parent->_children, child);
+
+    child->_parent = parent;
+}
+
+void _ntg_object_child_remove(ntg_object_t* parent, ntg_object_t* child)
+{
+    assert((parent != NULL) && (child != NULL));
+
+    ntg_object_vec_remove(parent->_children, child);
+
+    child->_parent = NULL;
 }

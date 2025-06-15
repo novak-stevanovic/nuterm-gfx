@@ -59,28 +59,6 @@ void _ntg_container_arrange_children(ntg_container_t* container)
     }
 }
 
-void _ntg_container_add_child(ntg_container_t* container, ntg_object_t* object)
-{
-    if(container == NULL) return;
-
-    ntg_object_t* _container = (ntg_object_t*)container;
-
-    ntg_object_vec_append(_container->_children, object);
-
-    object->_parent = _container;
-}
-
-void _ntg_container_remove_child(ntg_container_t* container, ntg_object_t* object)
-{
-    if(container == NULL) return;
-
-    ntg_object_t* _container = (ntg_object_t*)container;
-
-    ntg_object_vec_remove(_container->_children, object);
-
-    object->_parent = NULL;
-}
-
 void _ntg_container_set_bg(ntg_container_t* container, nt_color_t bg)
 {
     if(container == NULL) return;

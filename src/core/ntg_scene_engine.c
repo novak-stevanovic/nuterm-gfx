@@ -123,31 +123,6 @@ static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing
     }
 }
 
-static void _reset_scene_content(ntg_scene_engine_t* engine)
-{
-    size_t i, j;
-    ntg_scene_drawing_t* content = _ntg_scene_get_drawing(engine->scene);
-
-    struct ntg_xy size = ntg_scene_drawing_get_size(content);
-
-    struct ntg_rcell* it_cell;
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            it_cell = ntg_scene_drawing_at_(content, ntg_xy(j, i));
-            *it_cell = (struct ntg_rcell) {
-                .codepoint = NTG_CELL_EMPTY,
-                .gfx = (struct nt_gfx) {
-                    .bg = NT_COLOR_DEFAULT,
-                    .fg = NT_COLOR_DEFAULT,
-                    .style = NT_STYLE_DEFAULT
-                }
-            };
-        }
-    }
-} 
-
 ntg_scene_engine_t* ntg_scene_engine_new(ntg_scene_t* scene)
 {
     if(scene == NULL) return NULL;
@@ -190,7 +165,6 @@ void ntg_scene_engine_layout(ntg_scene_engine_t* engine)
     _measure_all(root);
     ntg_log_log("PHASE: arrange");
     _arrange_all(root);
-    // _reset_scene_content(engine);
     ntg_log_log("PHASE: draw");
     _draw_all(root, _ntg_scene_get_drawing(engine->scene));
 }

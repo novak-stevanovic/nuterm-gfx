@@ -76,8 +76,6 @@ struct ntg_xy ntg_object_get_content_pos(const ntg_object_t* object);
 
 const ntg_object_drawing_t* ntg_object_get_drawing(const ntg_object_t* object);
 
-struct ntg_xy ntg_object_get_vsize(const ntg_object_t* object);
-
 /* -------------------------------------------------------------------------- */
 
 #endif // _NTG_OBJECT_H_
