@@ -4,6 +4,7 @@
 #include "object/ntg_object.h"
 #include "object/def/ntg_box_def.h"
 #include "object/shared/ntg_object_vec.h"
+#include "shared/_ntg_shared.h"
 
 static inline size_t _psize(const ntg_box_t* box, struct ntg_xy size)
 {
@@ -50,8 +51,11 @@ static void __nsize_fn(ntg_object_t* _box)
     {
         it_size = ntg_object_get_nsize(children->_data[i]);
 
+        ntg_xy_size(&it_size);
+
         psize += _psize(box, it_size);
         ssize = (_ssize(box, it_size) > ssize) ? _ssize(box, it_size) : ssize;
+        ssize = _max2_size(_ssize(box, it_size), ssize);
     }
 
     _ntg_object_set_nsize(_box, _size_new(box, psize, ssize));
@@ -64,6 +68,8 @@ static void __constrain_fn(ntg_object_t* _box)
 
     struct ntg_xy nsize = ntg_object_get_nsize(_box);
     struct ntg_constr constr = ntg_object_get_constr(_box);
+
+    ntg_xy_size(&nsize);
 
     ntg_object_t* it_child;
     struct ntg_xy it_nsize;
@@ -100,7 +106,10 @@ static void __constrain_fn(ntg_object_t* _box)
             base_constr[i] = ntg_constr(it_min_size, it_max_size);
         }
 
-        size_t extra = _psize(box, constr.max_size) - _psize(box, nsize);
+        size_t extra = (_psize(box, constr.max_size) > _psize(box, nsize)) ?
+            _psize(box, constr.max_size) - _psize(box, nsize) :
+            0;
+
         ntg_sap_nsize_round_robin(nsizes, _sizes, extra, children->_count);
 
         for(i = 0; i < children->_count; i++)
@@ -162,11 +171,16 @@ static void __measure_fn(ntg_object_t* _box)
     {
         it_size = ntg_object_get_size(children->_data[i]);
 
+        ntg_xy_size(&it_size);
+
         psize += _psize(box, it_size);
         ssize = (_ssize(box, it_size) > ssize) ? _ssize(box, it_size) : ssize;
     }
 
-    _ntg_object_set_size(_box, _size_new(box, psize, ssize));
+    struct ntg_xy new_size = _size_new(box, psize, ssize);
+    ntg_xy_size(&new_size);
+
+    _ntg_object_set_size(_box, new_size);
 }
 
 static void __arrange_fn(ntg_container_t* _box)
@@ -183,6 +197,8 @@ static void __arrange_fn(ntg_container_t* _box)
         _ntg_object_set_pos(children->_data[i], _size_new(box, psize, 0));
 
         it_size = ntg_object_get_size(children->_data[i]);
+
+        ntg_xy_size(&it_size);
 
         psize += _psize(box, it_size);
         ssize = (_ssize(box, it_size) > ssize) ? _ssize(box, it_size) : ssize;

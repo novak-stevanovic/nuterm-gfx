@@ -7,6 +7,14 @@
 #include "pthread.h"
 #include "nt.h"
 
+#include "object/ntg_color_block.h"
+#include "shared/ntg_log.h"
+
+extern ntg_color_block_t* cb1;
+extern ntg_object_t* _cb1;
+
+void __ntg_object_scroll(ntg_object_t* object, struct ntg_dxy scroll);
+
 /* -------------------------------------------------------------------------- */
 
 static pthread_t _ntg_thread;
@@ -25,6 +33,8 @@ void ntg_launch(void (*gui_fn)(void* data), void* data,
 {
     if(gui_fn == NULL)
         _vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+   // __ntg_log_init__(NULL);
 
     nt_status_t _status;
     __nt_init__(&_status);
@@ -64,6 +74,8 @@ void* ntg_destroy()
 
     __ntg_stage_deinit__();
 
+   // __ntg_log_deinit__();
+
     return _data;
 }
 
@@ -80,11 +92,40 @@ void ntg_loop()
 
         timeout = TIMEOUT - event.elapsed;
 
-        ntg_stage_render();
-
-        if((event.type == NT_EVENT_TYPE_KEY) &&
-                (event.key_data.utf32_data.codepoint == 'q'))
-            break;
+        if(event.type == NT_EVENT_TYPE_KEY)
+        {
+            if(event.key_data.type == NT_KEY_EVENT_UTF32)
+            {
+                if(event.key_data.utf32_data.codepoint == 'q')
+                    break;
+            }
+            else // ESCAPE
+            {
+                if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_UP)
+                {
+                    __ntg_object_scroll(_cb1, ntg_dxy(0, -1));
+                }
+                if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_RIGHT)
+                {
+                    __ntg_object_scroll(_cb1, ntg_dxy(1, 0));
+                }
+                if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_DOWN)
+                {
+                    __ntg_object_scroll(_cb1, ntg_dxy(0, 1));
+                }
+                if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_LEFT)
+                {
+                    __ntg_object_scroll(_cb1, ntg_dxy(-1, 0));
+                }
+            }
+        }
+        else if(event.type == NT_EVENT_TYPE_RESIZE)
+        {
+        }
+        else // TIMEOUT
+        {
+            ntg_stage_render();
+        }
 
         assert(_status == NT_SUCCESS);
     }

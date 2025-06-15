@@ -14,7 +14,13 @@ struct ntg_object
 {
     ntg_object_t* _parent;
     ntg_object_vec_t* _children;
-    ntg_object_drawing_t* _drawing;
+
+    struct
+    {
+        bool _scroll;
+        struct ntg_xy _pref_scroll_offset;
+        ntg_object_drawing_t* _drawing;
+    };
 
     struct ntg_xy _pref_size;
     struct ntg_xy _nsize;
@@ -42,5 +48,7 @@ void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size);
 void _ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos);
 
 ntg_object_drawing_t* _ntg_object_get_drawing_(ntg_object_t* object);
+
+void _ntg_object_set_vsize(ntg_object_t* object, struct ntg_xy vsize);
 
 #endif // _NTG_OBJECT_DEF_H_

@@ -1,6 +1,7 @@
 #include "object/ntg_object.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
+#include "shared/ntg_log.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -31,7 +32,8 @@ void __ntg_object_init__(ntg_object_t* object, ntg_nsize_fn nsize_fn,
     object->_pos = NTG_XY_UNSET;
     object->_size = NTG_XY_UNSET;
     object->_nsize = NTG_XY_UNSET;
-    object->_nsize = NTG_XY_UNSET;
+    object->_pref_scroll_offset = NTG_XY_UNSET;
+    object->_scroll = false;
 }
 
 void __ntg_object_deinit__(ntg_object_t* object)
@@ -44,19 +46,24 @@ void __ntg_object_deinit__(ntg_object_t* object)
     if(object->_children != NULL)
         ntg_object_vec_destroy(object->_children);
 
-    object->_parent = NULL;
-    object->_constr = NTG_CONSTR_UNSET;
-    object->_pos = NTG_XY_UNSET;
-    object->_size = NTG_XY_UNSET;
     object->__arrange_fn = NULL;
     object->__measure_fn = NULL;
     object->__constrain_fn = NULL;
     object->__nsize_fn = NULL;
+
+    object->_parent = NULL;
+    object->_constr = NTG_CONSTR_UNSET;
+    object->_pos = NTG_XY_UNSET;
+    object->_size = NTG_XY_UNSET;
+    object->_pref_scroll_offset = NTG_XY_UNSET;
+    object->_scroll = false;
 }
 
 void _ntg_object_set_nsize(ntg_object_t* object, struct ntg_xy size)
 {
     if(object == NULL) return;
+
+    ntg_xy_size(&size);
 
     if(object->_pref_size.x != NTG_PREF_SIZE_UNSET)
         size.x = object->_pref_size.x;
@@ -93,7 +100,7 @@ void _ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr)
 
 }
 
-static void _adjust_size(size_t* size, size_t min_size, size_t max_size)
+static void _fit_size_to_constr(size_t* size, size_t min_size, size_t max_size)
 {
     if((*size) > max_size)
         (*size) = max_size;
@@ -106,13 +113,49 @@ void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size)
 {
     if(object == NULL) return;
 
-    _adjust_size(&(size.x), object->_constr.min_size.x, object->_constr.max_size.x);
-    _adjust_size(&(size.y), object->_constr.min_size.y, object->_constr.max_size.y);
+    _fit_size_to_constr(&(size.x), object->_constr.min_size.x, object->_constr.max_size.x);
+    _fit_size_to_constr(&(size.y), object->_constr.min_size.y, object->_constr.max_size.y);
+
+    ntg_xy_size(&size);
 
     object->_size = size;
-    if(object->_drawing != NULL)
+
+    ntg_log_log("A");
+
+    if(object->_scroll)
+    {
+        struct ntg_xy drawing_size = ntg_xy(
+                ((object->_nsize.x >= size.x) ? object->_nsize.x : size.x),
+                ((object->_nsize.y >= size.y) ? object->_nsize.y : size.y));
+
+        ntg_object_drawing_set_size(object->_drawing, drawing_size);
+
+        ntg_log_log("B");
+
+        ntg_object_drawing_set_vp_offset(object->_drawing,
+                object->_pref_scroll_offset);
+
+        ntg_log_log("C");
+
+        ntg_object_drawing_set_vp_size(object->_drawing, size);
+
+        ntg_log_log("D");
+    }
+    else
+    {
+        ntg_object_drawing_set_vp_offset(object->_drawing,
+                ntg_xy(0, 0));
+
+        ntg_log_log("E");
+
         ntg_object_drawing_set_size(object->_drawing, size);
 
+        ntg_log_log("F");
+
+        ntg_object_drawing_set_vp_size(object->_drawing, size);
+
+        ntg_log_log("G");
+    }
 }
 
 void _ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos)
@@ -125,7 +168,6 @@ void _ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos)
 
     struct ntg_xy abs_pos = ntg_xy_add(pos, parent_pos);
     object->_pos = abs_pos;
-
 }
 
 /* -------------------------------------------------------------------------- */
@@ -205,7 +247,7 @@ struct ntg_xy ntg_object_get_position_rel(const ntg_object_t* object)
     if(object == NULL) return ntg_xy(SIZE_MAX, SIZE_MAX);
 
     if(object->_parent != NULL)
-        return ntg_xy_from_dxy(ntg_xy_sub(object->_pos, object->_parent->_pos));
+        return ntg_xy_sub(object->_pos, object->_parent->_pos);
     else
         return object->_pos;
 }
@@ -248,4 +290,33 @@ const ntg_object_drawing_t* ntg_object_get_drawing(const ntg_object_t* object)
 ntg_object_drawing_t* _ntg_object_get_drawing_(ntg_object_t* object)
 {
     return object->_drawing;
+}
+
+void _ntg_object_set_vsize(ntg_object_t* object, struct ntg_xy vsize)
+{
+    ntg_object_drawing_set_size(object->_drawing, vsize);
+}
+
+struct ntg_xy ntg_object_get_vsize(const ntg_object_t* object)
+{
+    return ntg_object_drawing_get_size(object->_drawing);
+}
+
+void __ntg_object_set_scroll(ntg_object_t* object, bool scroll)
+{
+    object->_scroll = scroll;
+}
+
+void __ntg_object_scroll(ntg_object_t* object, struct ntg_dxy scroll)
+{
+    struct ntg_dxy total_pref_scroll = ntg_dxy_add(
+            ntg_dxy_from_xy(object->_pref_scroll_offset),
+            scroll);
+
+    if(total_pref_scroll.x < 0)
+        total_pref_scroll.x = 0;
+    if(total_pref_scroll.y < 0)
+        total_pref_scroll.y = 0;
+
+    object->_pref_scroll_offset = ntg_xy_from_dxy(total_pref_scroll);
 }

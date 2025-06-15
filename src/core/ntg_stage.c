@@ -2,6 +2,7 @@
 #include "core/ntg_stage.h"
 #include "base/ntg_cell.h"
 #include "core/ntg_scene.h"
+#include "shared/ntg_log.h"
 #include "shared/ntg_xy.h"
 #include "nt.h"
 #include "core/ntg_scene_drawing.h"
@@ -29,6 +30,8 @@ void ntg_stage_set_scene(ntg_scene_t* scene)
 void ntg_stage_render()
 {
     if(_active_scene == NULL) return;
+
+    ntg_log_log("Render begin.");
 
     size_t _width, _height;
     nt_get_term_size(&_width, &_height);

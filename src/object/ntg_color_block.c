@@ -3,6 +3,7 @@
 #include "object/def/ntg_color_block_def.h"
 #include "object/ntg_object.h"
 #include "object/shared/ntg_object_drawing.h"
+#include "shared/ntg_log.h"
 #include "object/ntg_color_block.h"
 
 static void __measure_fn(ntg_object_t* _block)
@@ -10,6 +11,10 @@ static void __measure_fn(ntg_object_t* _block)
     if(_block == NULL) return;
 
     struct ntg_xy size = ntg_object_get_constr(_block).min_size;
+
+    ntg_log_log("%p %d %d", _block, size.x, size.y);
+
+    ntg_xy_size(&size);
 
     _ntg_object_set_size(_block, size);
 }
@@ -21,17 +26,22 @@ static void __arrange_fn(ntg_object_t* _block)
 
     ntg_object_drawing_t* drawing = _ntg_object_get_drawing_(_block);
     struct ntg_xy size = ntg_object_drawing_get_size(drawing);
+    ntg_xy_size(&size);
     size_t i, j;
 
     struct ntg_cell* it_cell;
 
+    nt_color_t it_color;
+    int it_letter;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
+            it_letter = ((i + j) % 26) + 'a';
+
             it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i));
 
-            *it_cell = ntg_cell_full(NTG_CELL_EMPTY, NT_COLOR_DEFAULT,
+            *it_cell = ntg_cell_full(it_letter, nt_color_new(0, 0, 0),
                     block->__color, NT_STYLE_DEFAULT);
         }
     }
@@ -39,7 +49,9 @@ static void __arrange_fn(ntg_object_t* _block)
 
 static void __nsize_fn(ntg_object_t* _block)
 {
-    _ntg_object_set_nsize(_block, ntg_object_get_pref_size(_block));
+    struct ntg_xy size = ntg_object_get_pref_size(_block);
+    ntg_xy_size(&size);
+    _ntg_object_set_nsize(_block, size);
 }
 
 void __ntg_color_block_init__(ntg_color_block_t* block)

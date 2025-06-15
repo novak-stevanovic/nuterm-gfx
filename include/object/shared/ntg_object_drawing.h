@@ -8,8 +8,9 @@ typedef struct ntg_object_drawing ntg_object_drawing_t;
 
 typedef struct ntg_object_drawing
 {
-    ntg_cell_grid_t __data;
-    struct ntg_xy __size;
+    ntg_cell_vgrid_t __data; // __data->__size = current object drawing size
+    struct ntg_xy __vp_offset;
+    struct ntg_xy __vp_size;
 } ntg_object_drawing_t;
 
 void __ntg_object_drawing_init__(ntg_object_drawing_t* drawing);
@@ -22,11 +23,19 @@ struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing_t* drawing);
 void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,
         struct ntg_xy size);
 
+struct ntg_xy ntg_object_drawing_get_vp_offset(const ntg_object_drawing_t* drawing);
+void ntg_object_drawing_set_vp_offset(ntg_object_drawing_t* drawing,
+        struct ntg_xy vp_offset);
+
+struct ntg_xy ntg_object_drawing_get_vp_size(const ntg_object_drawing_t* drawing);
+void ntg_object_drawing_set_vp_size(ntg_object_drawing_t* drawing,
+        struct ntg_xy size);
+
 static inline const ntg_cell_t* ntg_object_drawing_at(
         const ntg_object_drawing_t* drawing, struct ntg_xy pos)
 {
     return (drawing != NULL) ?
-        ntg_cell_grid_at(&drawing->__data, pos) :
+        ntg_cell_vgrid_at(&drawing->__data, pos) :
         NULL;
 }
 
@@ -34,7 +43,27 @@ static inline ntg_cell_t* ntg_object_drawing_at_(
         ntg_object_drawing_t* drawing, struct ntg_xy pos)
 {
     return (drawing != NULL) ?
-        ntg_cell_grid_at_(&drawing->__data, pos) :
+        ntg_cell_vgrid_at_(&drawing->__data, pos) :
+        NULL;
+}
+
+static inline const ntg_cell_t* ntg_object_drawing_vp_at(
+        const ntg_object_drawing_t* drawing, struct ntg_xy pos)
+{
+    struct ntg_xy vp_pos = ntg_xy_add(pos, drawing->__vp_offset);
+
+    return (drawing != NULL) ?
+        ntg_cell_vgrid_at(&drawing->__data, vp_pos) :
+        NULL;
+}
+
+static inline ntg_cell_t* ntg_object_drawing_vp_at_(
+        ntg_object_drawing_t* drawing, struct ntg_xy pos)
+{
+    struct ntg_xy vp_pos = ntg_xy_add(pos, drawing->__vp_offset);
+
+    return (drawing != NULL) ?
+        ntg_cell_vgrid_at_(&drawing->__data, vp_pos) :
         NULL;
 }
 

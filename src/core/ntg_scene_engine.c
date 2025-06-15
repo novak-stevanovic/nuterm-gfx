@@ -8,6 +8,7 @@
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "core/ntg_scene_drawing.h"
+#include "shared/ntg_log.h"
 
 struct ntg_scene_engine
 {
@@ -51,6 +52,8 @@ static void _measure_all(ntg_object_t* curr_obj)
 {
     if(curr_obj == NULL) return;
 
+    ntg_log_log("Measuring: %p", curr_obj);
+
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
 
     ntg_object_t* it_obj;
@@ -87,7 +90,7 @@ static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing
     size_t i, j;
     if(obj_drawing != NULL)
     {
-        struct ntg_xy obj_drawing_size = ntg_object_drawing_get_size(obj_drawing);
+        struct ntg_xy obj_drawing_size = ntg_object_drawing_get_vp_size(obj_drawing);
         struct ntg_xy scene_drawing_size = ntg_scene_drawing_get_size(scene_drawing);
 
         struct ntg_xy obj_pos = ntg_object_get_position_abs(curr_obj);
@@ -102,7 +105,7 @@ static void _draw_all(ntg_object_t* curr_obj, ntg_scene_drawing_t* scene_drawing
                 it_scene_pos = ntg_xy_add(it_obj_pos, obj_pos);
 
                 //assert(it_scene_pos.isInBounds());
-                it_obj_cell = ntg_object_drawing_at(obj_drawing, it_obj_pos);
+                it_obj_cell = ntg_object_drawing_vp_at(obj_drawing, it_obj_pos);
                 it_scene_cell = ntg_scene_drawing_at_(scene_drawing, it_scene_pos);
 
                 (*it_scene_cell) = ntg_cell_overwrite(*it_obj_cell, *it_scene_cell);
@@ -168,18 +171,26 @@ void ntg_scene_engine_destroy(ntg_scene_engine_t* engine)
 
 void ntg_scene_engine_layout(ntg_scene_engine_t* engine)
 {
+    ntg_log_log("Scene engine layout begin.");
+
     ntg_object_t* root = ntg_scene_get_root(engine->scene);
     if(root == NULL) return;
 
     const ntg_scene_drawing_t* drawing = ntg_scene_get_drawing(engine->scene);
     struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
 
+    ntg_log_log("Placing root.");
     ntg_object_layout_root(root, size);
 
+    ntg_log_log("PHASE: nsize");
     _nsize_all(root);
+    ntg_log_log("PHASE: constrain");
     _constrain_all(root);
+    ntg_log_log("PHASE: measure");
     _measure_all(root);
+    ntg_log_log("PHASE: arrange");
     _arrange_all(root);
-    _reset_scene_content(engine);
+    // _reset_scene_content(engine);
+    ntg_log_log("PHASE: draw");
     _draw_all(root, _ntg_scene_get_drawing(engine->scene));
 }

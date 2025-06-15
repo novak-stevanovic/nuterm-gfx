@@ -1,6 +1,7 @@
 #include "core/ntg_scene.h"
 #include "core/ntg_scene_drawing.h"
 #include "core/ntg_scene_engine.h"
+#include "shared/ntg_log.h"
 #include "shared/ntg_xy.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -17,6 +18,7 @@ struct ntg_scene
 
 void ntg_scene_layout(ntg_scene_t* scene, struct ntg_xy size)
 {
+    ntg_log_log("Scene layout begin.");
     ntg_scene_drawing_set_size(&(scene->drawing), size);
     ntg_scene_engine_layout(scene->engine);
 }

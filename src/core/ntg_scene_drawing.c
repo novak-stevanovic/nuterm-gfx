@@ -7,16 +7,14 @@ void __ntg_scene_drawing_init__(ntg_scene_drawing_t* drawing)
 {
     if(drawing == NULL) return;
 
-    __ntg_rcell_grid_init__(&drawing->__data);
-    drawing->__size = NTG_XY_UNSET;
+    __ntg_rcell_vgrid_init__(&drawing->__data);
 }
 
 void __ntg_scene_drawing_deinit__(ntg_scene_drawing_t* drawing)
 {
     if(drawing == NULL) return;
 
-    __ntg_rcell_grid_deinit__(&drawing->__data);
-    drawing->__size = NTG_XY_UNSET;
+    __ntg_rcell_vgrid_deinit__(&drawing->__data);
 }
 
 ntg_scene_drawing_t* ntg_scene_drawing_new()
@@ -42,7 +40,7 @@ void ntg_scene_drawing_destroy(ntg_scene_drawing_t* drawing)
 
 struct ntg_xy ntg_scene_drawing_get_size(const ntg_scene_drawing_t* drawing)
 {
-    return (drawing != NULL) ? drawing->__size : NTG_XY_UNSET;
+    return (drawing != NULL) ? ntg_rcell_vgrid_get_size(&drawing->__data) : NTG_XY_UNSET;
 }
 
 void ntg_scene_drawing_set_size(ntg_scene_drawing_t* drawing,
@@ -50,9 +48,7 @@ void ntg_scene_drawing_set_size(ntg_scene_drawing_t* drawing,
 {
     if(drawing == NULL) return;
 
-    drawing->__size = size;
-
     ntg_status_t _status;
-    ntg_rcell_grid_set_size(&drawing->__data, size, &_status);
+    ntg_rcell_vgrid_set_size(&drawing->__data, size, &_status);
     assert(_status == NTG_SUCCESS);
 }
