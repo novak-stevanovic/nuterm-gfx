@@ -25,7 +25,7 @@ void ntg_box_remove_child(ntg_box_t* box, ntg_object_t* object);
 struct ntg_box_padding ntg_box_get_padding(const ntg_box_t* box);
 void ntg_box_set_padding(ntg_box_t* box, struct ntg_box_padding padding);
 
-size_t ntg_box_get_spacing(const ntg_box_t* box);
-void ntg_box_set_spacing(ntg_box_t* box, size_t spacing);
+// size_t ntg_box_get_spacing(const ntg_box_t* box);
+// void ntg_box_set_spacing(ntg_box_t* box, size_t spacing);
 
 #endif // _NTG_BOX_H

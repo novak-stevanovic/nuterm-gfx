@@ -13,18 +13,30 @@ struct ntg_box
 {
     ntg_container_t _base;
 
-    ntg_box_orientation_t _orientation;
+    ntg_box_orientation_t _ort;
+
+    struct ntg_box_padding _pref_padding;
+    size_t _spacing;
+
+    /* Cached - initialized in nsize phase -------------- */
+
+    /* Children natural size */
+    struct ntg_xy _cnsize;
+
+    /* Cached - initialized in constrain phase ---------- */
 
     struct ntg_box_padding _padding;
-    size_t _spacing;
+
+    /* Content constraints */
+    struct ntg_constr _cconstr;
+
+    /* Cached - initialized in measure phase ------------ */
 };
 
 void __ntg_box_init__(ntg_box_t* box, ntg_box_orientation_t orientation);
 void __ntg_box_deinit__(ntg_box_t* box);
 
-void _ntg_box_compute(const ntg_box_t* box,
-        struct ntg_box_padding* out_padding_size,
-        struct ntg_xy* out_content_offset,
-        struct ntg_xy* out_content_size);
+void _ntgbox_on_nsize(ntg_box_t* box);
+void _ntg_box_on_constrain(ntg_box_t* box);
 
 #endif // _NTG_BOX_DEF_H_

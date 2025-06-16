@@ -45,10 +45,18 @@ void init_gui_func(void* data)
     ntg_box_t* box1 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL);
     ntg_object_t* _box1 = (ntg_object_t*)box1;
     ntg_log_log("%p", box1);
+    struct ntg_box_padding box1_padding = (struct ntg_box_padding) {
+        .north = 2, .west = 5, .east = 0, .south = 0
+    };
+    ntg_box_set_padding(box1, box1_padding);
 
     ntg_box_t* box2 = ntg_box_new(NTG_BOX_ORIENTATION_VERTICAL);
     ntg_object_t* _box2 = (ntg_object_t*)box2;
     ntg_log_log("%p", box2);
+    struct ntg_box_padding box2_padding = (struct ntg_box_padding) {
+        .north = 6, .west = 10, .east = 5, .south = 3 
+    };
+    ntg_box_set_padding(box2, box2_padding);
 
     ntg_box_add_child(box1, _cb1);
     ntg_box_add_child(box1, _box2);
