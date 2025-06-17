@@ -120,8 +120,6 @@ void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size)
 
     object->_size = size;
 
-    ntg_log_log("A");
-
     if(object->_scroll)
     {
         struct ntg_xy drawing_size = ntg_xy(
@@ -130,31 +128,19 @@ void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size)
 
         ntg_object_drawing_set_size(object->_drawing, drawing_size);
 
-        ntg_log_log("B");
-
         ntg_object_drawing_set_vp_offset(object->_drawing,
                 object->_pref_scroll_offset);
 
-        ntg_log_log("C");
-
         ntg_object_drawing_set_vp_size(object->_drawing, size);
-
-        ntg_log_log("D");
     }
     else
     {
         ntg_object_drawing_set_vp_offset(object->_drawing,
                 ntg_xy(0, 0));
 
-        ntg_log_log("E");
-
         ntg_object_drawing_set_size(object->_drawing, size);
 
-        ntg_log_log("F");
-
         ntg_object_drawing_set_vp_size(object->_drawing, size);
-
-        ntg_log_log("G");
     }
 }
 

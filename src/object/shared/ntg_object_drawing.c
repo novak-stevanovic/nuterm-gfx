@@ -55,17 +55,11 @@ void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,
 {
     assert(drawing != NULL);
 
-    ntg_log_log("1");
-
     ntg_xy_size(&size);
 
     ntg_cell_vgrid_set_size(&drawing->__data, size, NULL);
 
-    ntg_log_log("2");
-
     struct ntg_xy total_size = ntg_cell_vgrid_get_size(&drawing->__data);
-
-    ntg_log_log("3");
 
     struct ntg_xy _vp_size = ntg_xy(
             (drawing->__vp_size.x <= total_size.x) ?
@@ -77,8 +71,6 @@ void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,
             total_size.y);
 
     ntg_object_drawing_set_vp_size(drawing, _vp_size);
-
-    ntg_log_log("4");
 }
 
 struct ntg_xy ntg_object_drawing_get_vp_offset(const ntg_object_drawing_t* drawing)

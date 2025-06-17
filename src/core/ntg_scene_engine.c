@@ -52,8 +52,6 @@ static void _measure_all(ntg_object_t* curr_obj)
 {
     if(curr_obj == NULL) return;
 
-    ntg_log_log("Measuring: %p", curr_obj);
-
     const ntg_object_vec_t* children = ntg_object_get_children(curr_obj);
 
     ntg_object_t* it_obj;
@@ -146,25 +144,17 @@ void ntg_scene_engine_destroy(ntg_scene_engine_t* engine)
 
 void ntg_scene_engine_layout(ntg_scene_engine_t* engine)
 {
-    ntg_log_log("Scene engine layout begin.");
-
     ntg_object_t* root = ntg_scene_get_root(engine->scene);
     if(root == NULL) return;
 
     const ntg_scene_drawing_t* drawing = ntg_scene_get_drawing(engine->scene);
     struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
 
-    ntg_log_log("Placing root.");
     ntg_object_layout_root(root, size);
 
-    ntg_log_log("PHASE: nsize");
     _nsize_all(root);
-    ntg_log_log("PHASE: constrain");
     _constrain_all(root);
-    ntg_log_log("PHASE: measure");
     _measure_all(root);
-    ntg_log_log("PHASE: arrange");
     _arrange_all(root);
-    ntg_log_log("PHASE: draw");
     _draw_all(root, _ntg_scene_get_drawing(engine->scene));
 }

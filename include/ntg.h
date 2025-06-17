@@ -4,10 +4,14 @@
 #include "shared/ntg_status.h"
 #include "nt_shared.h"
 #include "nt_gfx.h"
+#include <sys/types.h>
 
 typedef void (*ntg_gui_fn)(void*);
 
-void ntg_launch(ntg_gui_fn gui_fn, void* data, ntg_status_t* out_status);
+void ntg_initialize(ntg_gui_fn gui_fn, void* data);
+void ntg_launch();
+
+void ntg_set_framerate(uint framerate);
 
 void ntg_loop();
 

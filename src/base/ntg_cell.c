@@ -157,15 +157,10 @@ void ntg_cell_grid_set_size(ntg_cell_grid_t* grid, struct ntg_xy size,
     if(grid == NULL)
         _vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    ntg_log_log("a1");
-
     ntg_xy_size(&size);
-
-    ntg_log_log("a2");
 
     if((size.x == 0) && (size.y == 0))
     {
-        ntg_log_log("a3");
         grid->_size = size;
         if(grid->__data != NULL)
         {
@@ -175,20 +170,15 @@ void ntg_cell_grid_set_size(ntg_cell_grid_t* grid, struct ntg_xy size,
     }
     else
     {
-        ntg_log_log("a4");
         void* new_data = realloc(grid->__data,
                 size.x * size.y * sizeof(struct ntg_cell));
 
         if(new_data == NULL)
             _vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
-        ntg_log_log("a5");
-
         grid->__data = new_data;
         grid->_size = size;
     }
-
-    ntg_log_log("a6");
 
     _vreturn(out_status, NTG_SUCCESS);
 }
@@ -303,15 +293,9 @@ void ntg_cell_vgrid_set_size(ntg_cell_vgrid_t* vgrid, struct ntg_xy size,
         ntg_status_t* out_status)
 {
     // TODO
-    ntg_log_log("a");
-
     ntg_xy_size(&size);
 
-    ntg_log_log("b");
-
     ntg_cell_grid_set_size(&vgrid->__data, size, NULL);
-
-    ntg_log_log("c");
 
     vgrid->__size = size;
 

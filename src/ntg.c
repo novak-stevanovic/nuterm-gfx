@@ -19,49 +19,51 @@ extern ntg_object_t* _cb1;
 /* -------------------------------------------------------------------------- */
 
 static pthread_t _ntg_thread;
+static bool _launched = false;
 static void (*_gui_fn)(void* data) = NULL; 
-static void* _init_gui_func_data = NULL;
+static void* _gui_fn_data = NULL;
 
-#define FRAMERATE 30
-#define TIMEOUT (1000.0 / FRAMERATE)
+#define FRAMERATE_DEFAULT 60
+static uint _framerate;
+
+#define TIMEOUT(fps) (1000.0 / fps)
 
 static void* _ntg_thread_func(void* data);
 
 /* -------------------------------------------------------------------------- */
 
-void ntg_launch(void (*gui_fn)(void* data), void* data,
-        ntg_status_t* out_status)
+void ntg_initialize(ntg_gui_fn gui_fn, void* data)
 {
-    if(gui_fn == NULL)
-        _vreturn(out_status, NTG_ERR_INVALID_ARG);
+    assert(gui_fn != NULL);
 
-   // __ntg_log_init__(NULL);
+    // __ntg_log_init__("ntg_log.txt");
+
+    _gui_fn = gui_fn;
+    _gui_fn_data = data;
+    _framerate = FRAMERATE_DEFAULT;
 
     nt_status_t _status;
     __nt_init__(&_status);
-    nt_alt_screen_enable(&_status);
-    nt_cursor_hide(NULL);
 
-    __ntg_stage_init__();
     switch(_status)
     {
         // TODO handle other cases
         case NT_SUCCESS:
             break;
-        case NT_ERR_ALLOC_FAIL:
-            _vreturn(out_status, NTG_ERR_UNEXPECTED);
         default:
-            _vreturn(out_status, NTG_ERR_UNEXPECTED);
+            assert(0);
     }
 
-    _gui_fn = gui_fn;
-    _init_gui_func_data = data;
+    __ntg_stage_init__();
+}
 
-    int status = pthread_create(&_ntg_thread, NULL, _ntg_thread_func, data);
-    if(status != 0)
-        _vreturn(out_status, NTG_ERR_UNEXPECTED);
+void ntg_launch()
+{
+    nt_alt_screen_enable(NULL);
+    nt_cursor_hide(NULL);
 
-    _vreturn(out_status, NTG_SUCCESS);
+    int status = pthread_create(&_ntg_thread, NULL, _ntg_thread_func, _gui_fn_data);
+    if(status != 0) assert(0);
 }
 
 void* ntg_destroy()
@@ -80,18 +82,25 @@ void* ntg_destroy()
     return _data;
 }
 
+void ntg_set_framerate(uint framerate)
+{
+    if(!_launched)
+        _framerate = framerate;
+    else assert(0);
+}
+
 /* -------------------------------------------------------------------------- */
 
 void ntg_loop()
 {
     nt_status_t _status;
     struct nt_event event;
-    uint timeout = TIMEOUT;
+    uint timeout = TIMEOUT(_framerate);
     while(true)
     {
         event = nt_wait_for_event(timeout, &_status);
 
-        timeout = TIMEOUT - event.elapsed;
+        timeout = TIMEOUT(_framerate) - event.elapsed;
 
         if(event.type == NT_EVENT_TYPE_KEY)
         {
@@ -135,7 +144,9 @@ void ntg_loop()
 
 static void* _ntg_thread_func(void* data)
 {
-    _gui_fn(_init_gui_func_data);
+    _launched = true;
+
+    _gui_fn(_gui_fn_data);
 
     return NULL;
 }

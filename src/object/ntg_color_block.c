@@ -85,7 +85,8 @@ void ntg_color_block_destroy(ntg_color_block_t* block)
 {
     __ntg_color_block_deinit__(block);
 
-    free(block);
+    if(block != NULL)
+        free(block);
 }
 
 void ntg_color_block_set_color(ntg_color_block_t* block, nt_color_t color)
