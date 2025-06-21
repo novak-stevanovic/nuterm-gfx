@@ -1,5 +1,5 @@
-#include "shared/ntg_event_sub_vec.h"
-#include "shared/ntg_event.h"
+#include "base/ntg_event_sub_vec.h"
+#include "base/ntg_event.h"
 #include <assert.h>
 
 #define _NTG_VECTOR_IMPLEMENTATION_

@@ -1,6 +1,7 @@
-#include "nt_keymap.h"
-#include "_uthash.h"
-#include "_nt_shared.h"
+#include "base/ntg_keymap.h"
+#include "shared/_uthash.h"
+#include "shared/_ntg_shared.h"
+#include "shared/ntg_status.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -21,7 +22,7 @@ nt_keymap_t* nt_keymap_new(nt_status_t* out_status)
     nt_keymap_t* new = (nt_keymap_t*)malloc(sizeof(nt_keymap_t));
     if(new == NULL)
     {
-        _return(NULL, out_status, NT_ERR_ALLOC_FAIL);
+        _return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
     }
 
     new->_map = NULL;

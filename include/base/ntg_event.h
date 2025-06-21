@@ -16,6 +16,7 @@ typedef void (*ntg_event_handler_t)(void* subscriber, ntg_event_t* event,
 
 typedef uint ntg_event_type_t;
 
+/* Event subscriber */
 struct ntg_event_sub
 {
     ntg_event_handler_t handler;

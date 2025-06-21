@@ -33,8 +33,9 @@ struct ntg_box
 
     /* Cached - initialized in measure phase ------------ */
 
+    /* Size of rectangle containing children */
     struct ntg_xy _content_size;
-
+    /* Size - padding_size */
     struct ntg_xy _content_box_size;
 };
 

@@ -1,12 +1,7 @@
-#ifndef _NT_KEYMAP_H_
-#define _NT_KEYMAP_H_
+#ifndef _NTG_KEYMAP_H_
+#define _NTG_KEYMAP_H_
 
 #include "nt_event.h"
-#include "nt_shared.h"
-
-/* Nu-term allows you to bind key event handlers to key events. This may be
- * useful when creating a TGUI application, for example. A single key event
- * can have only one entry in the keymap. */
 
 typedef struct nt_keymap nt_keymap_t;
 
@@ -53,4 +48,4 @@ void nt_keymap_unbind(nt_keymap_t* map, struct nt_key_event key_event,
 nt_key_handler_fn nt_keymap_get(nt_keymap_t* map, struct nt_key_event key_event,
         nt_status_t* out_status);
 
-#endif // _NT_KEYMAP_H_
+#endif // _NTG_KEYMAP_H_

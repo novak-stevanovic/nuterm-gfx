@@ -1,5 +1,5 @@
-#include "shared/ntg_event.h"
-#include "shared/ntg_event_sub_vec.h"
+#include "base/ntg_event.h"
+#include "base/ntg_event_sub_vec.h"
 #include <assert.h>
 #include <stdlib.h>
 

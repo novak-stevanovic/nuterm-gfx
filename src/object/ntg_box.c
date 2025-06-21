@@ -263,6 +263,16 @@ void _ntg_box_on_measure(ntg_box_t* box)
     ntg_xy_size(&content_size);
 
     box->_content_size = content_size;
+
+    struct ntg_xy padding_size = ntg_xy(
+            _padding_x(box->_padding),
+            _padding_y(box->_padding));
+
+    struct ntg_xy box_size = ntg_xy_add(content_size, padding_size);
+    ntg_xy_size(&box_size);
+
+    box->_content_box_size = ntg_xy_sub(box_size, padding_size);
+    ntg_xy_size(&box->_content_box_size);
 }
 
 static void __measure_fn(ntg_object_t* _box)
@@ -280,10 +290,6 @@ static void __measure_fn(ntg_object_t* _box)
 
     _ntg_object_set_size(_box, size);
 
-    box->_content_box_size = ntg_xy_sub(_box->_size, 
-            ntg_xy(_padding_x(box->_padding), _padding_y(box->_padding)));
-
-    ntg_xy_size(&box->_content_box_size);
 }
 
 static inline struct ntg_xy _determine_total_offset(const ntg_box_t* box,
