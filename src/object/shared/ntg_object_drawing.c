@@ -4,7 +4,7 @@
 #include "object/shared/ntg_object_drawing.h"
 #include "shared/ntg_log.h"
 
-void __ntg_object_drawing_init__(ntg_object_drawing_t* drawing)
+void __ntg_object_drawing_init__(ntg_object_drawing* drawing)
 {
     assert(drawing != NULL);
 
@@ -14,7 +14,7 @@ void __ntg_object_drawing_init__(ntg_object_drawing_t* drawing)
     drawing->__vp_offset = NTG_XY_UNSET;
 }
 
-void __ntg_object_drawing_deinit__(ntg_object_drawing_t* drawing)
+void __ntg_object_drawing_deinit__(ntg_object_drawing* drawing)
 {
     assert(drawing != NULL);
 
@@ -22,9 +22,9 @@ void __ntg_object_drawing_deinit__(ntg_object_drawing_t* drawing)
     drawing->__vp_offset = NTG_XY_UNSET;
 }
 
-ntg_object_drawing_t* ntg_object_drawing_new()
+ntg_object_drawing* ntg_object_drawing_new()
 {
-    ntg_object_drawing_t* new = (ntg_object_drawing_t*)malloc(
+    ntg_object_drawing* new = (ntg_object_drawing*)malloc(
             sizeof(struct ntg_object_drawing));
 
     if(new == NULL) return NULL;
@@ -34,7 +34,7 @@ ntg_object_drawing_t* ntg_object_drawing_new()
     return new;
 }
 
-void ntg_object_drawing_destroy(ntg_object_drawing_t* drawing)
+void ntg_object_drawing_destroy(ntg_object_drawing* drawing)
 {
     assert(drawing != NULL);
 
@@ -43,14 +43,14 @@ void ntg_object_drawing_destroy(ntg_object_drawing_t* drawing)
     free(drawing);
 }
 
-struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing_t* drawing)
+struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 {
     assert(drawing != NULL);
 
     return ntg_cell_vgrid_get_size(&drawing->__data);
 }
 
-void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,
+void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
         struct ntg_xy size)
 {
     assert(drawing != NULL);
@@ -73,14 +73,14 @@ void ntg_object_drawing_set_size(ntg_object_drawing_t* drawing,
     ntg_object_drawing_set_vp_size(drawing, _vp_size);
 }
 
-struct ntg_xy ntg_object_drawing_get_vp_offset(const ntg_object_drawing_t* drawing)
+struct ntg_xy ntg_object_drawing_get_vp_offset(const ntg_object_drawing* drawing)
 {
     assert(drawing != NULL);
 
     return drawing->__vp_offset;
 }
 
-void ntg_object_drawing_set_vp_offset(ntg_object_drawing_t* drawing,
+void ntg_object_drawing_set_vp_offset(ntg_object_drawing* drawing,
         struct ntg_xy vp_offset)
 {
     assert(drawing != NULL);
@@ -95,14 +95,14 @@ void ntg_object_drawing_set_vp_offset(ntg_object_drawing_t* drawing,
     drawing->__vp_offset = vp_offset;
 }
 
-struct ntg_xy ntg_object_drawing_get_vp_size(const ntg_object_drawing_t* drawing)
+struct ntg_xy ntg_object_drawing_get_vp_size(const ntg_object_drawing* drawing)
 {
     assert(drawing != NULL);
 
     return drawing->__vp_size;
 }
 
-void ntg_object_drawing_set_vp_size(ntg_object_drawing_t* drawing,
+void ntg_object_drawing_set_vp_size(ntg_object_drawing* drawing,
         struct ntg_xy size)
 {
     assert(drawing != NULL);

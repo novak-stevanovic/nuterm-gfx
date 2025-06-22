@@ -4,8 +4,6 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-typedef int ntg_status_t;
-
 struct ntg_vector
 {
     size_t count;

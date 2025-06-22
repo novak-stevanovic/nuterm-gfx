@@ -13,8 +13,8 @@
 // TODO: remove
 #include "object/def/ntg_object_def.h"
 
-extern ntg_color_block_t* cb1;
-extern ntg_object_t* _cb1;
+extern ntg_color_block* cb1;
+extern ntg_object* _cb1;
 
 /* -------------------------------------------------------------------------- */
 
@@ -42,7 +42,7 @@ void ntg_initialize(ntg_gui_fn gui_fn, void* data)
     _gui_fn_data = data;
     _framerate = FRAMERATE_DEFAULT;
 
-    nt_status_t _status;
+    nt_status _status;
     __nt_init__(&_status);
 
     switch(_status)
@@ -93,7 +93,7 @@ void ntg_set_framerate(uint framerate)
 
 void ntg_loop()
 {
-    nt_status_t _status;
+    nt_status _status;
     struct nt_event event;
     uint timeout = TIMEOUT(_framerate);
     while(true)

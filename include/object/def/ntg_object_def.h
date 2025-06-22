@@ -12,14 +12,14 @@
 
 struct ntg_object
 {
-    ntg_object_t* _parent;
-    ntg_object_vec_t* _children;
+    ntg_object* _parent;
+    ntg_object_vec* _children;
 
     struct
     {
         bool _scroll;
         struct ntg_xy _pref_scroll_offset;
-        ntg_object_drawing_t* _drawing;
+        ntg_object_drawing* _drawing;
     };
 
     struct ntg_xy _pref_size;
@@ -36,28 +36,28 @@ struct ntg_object
 
 /* ntg_object protected */
 
-void __ntg_object_init__(ntg_object_t* object, ntg_nsize_fn nsize_fn,
+void __ntg_object_init__(ntg_object* object, ntg_nsize_fn nsize_fn,
         ntg_constrain_fn constrain_fn, ntg_measure_fn measure_fn,
         ntg_arrange_fn arrange_fn);
 
-void __ntg_object_deinit__(ntg_object_t* object);
+void __ntg_object_deinit__(ntg_object* object);
 
-void _ntg_object_set_nsize(ntg_object_t* object, struct ntg_xy size);
-void _ntg_object_set_constr(ntg_object_t* object, struct ntg_constr constr);
-void _ntg_object_set_size(ntg_object_t* object, struct ntg_xy size);
-void _ntg_object_set_pos(ntg_object_t* object, struct ntg_xy pos);
+void _ntg_object_set_nsize(ntg_object* object, struct ntg_xy size);
+void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr);
+void _ntg_object_set_size(ntg_object* object, struct ntg_xy size);
+void _ntg_object_set_pos(ntg_object* object, struct ntg_xy pos);
 
-void _ntg_object_child_add(ntg_object_t* parent, ntg_object_t* child);
-void _ntg_object_child_remove(ntg_object_t* parent, ntg_object_t* child);
+void _ntg_object_child_add(ntg_object* parent, ntg_object* child);
+void _ntg_object_child_remove(ntg_object* parent, ntg_object* child);
 
-ntg_object_drawing_t* _ntg_object_get_drawing_(ntg_object_t* object);
+ntg_object_drawing* _ntg_object_get_drawing_(ntg_object* object);
 
-void _ntg_object_scroll_enable(ntg_object_t* object);
-void _ntg_object_scroll_disable(ntg_object_t* object);
-struct ntg_xy _ntg_object_get_pref_scroll_offset(const ntg_object_t* object);
-void _ntg_object_set_pref_scroll_offset(ntg_object_t* object,
+void _ntg_object_scroll_enable(ntg_object* object);
+void _ntg_object_scroll_disable(ntg_object* object);
+struct ntg_xy _ntg_object_get_pref_scroll_offset(const ntg_object* object);
+void _ntg_object_set_pref_scroll_offset(ntg_object* object,
         struct ntg_xy offset);
-void _ntg_object_scroll(ntg_object_t* object, struct ntg_dxy offset_diff);
-struct ntg_xy _ntg_object_get_scroll_offset(const ntg_object_t* object);
+void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff);
+struct ntg_xy _ntg_object_get_scroll_offset(const ntg_object* object);
 
 #endif // _NTG_OBJECT_DEF_H_

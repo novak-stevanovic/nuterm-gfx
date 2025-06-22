@@ -5,7 +5,7 @@
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_log.h"
 
-void __ntg_rcell_grid_init__(ntg_rcell_grid_t* grid)
+void __ntg_rcell_grid_init__(ntg_rcell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -13,7 +13,7 @@ void __ntg_rcell_grid_init__(ntg_rcell_grid_t* grid)
     grid->__data = NULL;
 }
 
-void __ntg_rcell_grid_deinit__(ntg_rcell_grid_t* grid)
+void __ntg_rcell_grid_deinit__(ntg_rcell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -21,9 +21,9 @@ void __ntg_rcell_grid_deinit__(ntg_rcell_grid_t* grid)
     grid->__data = NULL;
 }
 
-ntg_rcell_grid_t* ntg_rcell_grid_new()
+ntg_rcell_grid* ntg_rcell_grid_new()
 {
-    ntg_rcell_grid_t* new = (ntg_rcell_grid_t*)malloc(
+    ntg_rcell_grid* new = (ntg_rcell_grid*)malloc(
             sizeof(struct ntg_rcell_grid));
 
     if(new == NULL) return NULL;
@@ -33,7 +33,7 @@ ntg_rcell_grid_t* ntg_rcell_grid_new()
     return new;
 }
 
-void ntg_rcell_grid_destroy(ntg_rcell_grid_t* grid)
+void ntg_rcell_grid_destroy(ntg_rcell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -42,8 +42,8 @@ void ntg_rcell_grid_destroy(ntg_rcell_grid_t* grid)
     free(grid);
 }
 
-void ntg_rcell_grid_set_size(ntg_rcell_grid_t* grid, struct ntg_xy size,
-        ntg_status_t* out_status)
+void ntg_rcell_grid_set_size(ntg_rcell_grid* grid, struct ntg_xy size,
+        ntg_status* out_status)
 {
     if(grid == NULL)
         _vreturn(out_status, NTG_ERR_INVALID_ARG);
@@ -76,7 +76,7 @@ void ntg_rcell_grid_set_size(ntg_rcell_grid_t* grid, struct ntg_xy size,
 
 /* ------------------------------------------------------ */
 
-struct ntg_rcell ntg_cell_overwrite(ntg_cell_t overwriting,
+struct ntg_rcell ntg_cell_overwrite(ntg_cell overwriting,
         struct ntg_rcell overwritten)
 {
     switch(overwriting._type)
@@ -114,7 +114,7 @@ struct ntg_rcell ntg_cell_overwrite(ntg_cell_t overwriting,
 
 /* ------------------------------------------------------ */
 
-void __ntg_cell_grid_init__(ntg_cell_grid_t* grid)
+void __ntg_cell_grid_init__(ntg_cell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -122,7 +122,7 @@ void __ntg_cell_grid_init__(ntg_cell_grid_t* grid)
     grid->__data = NULL;
 }
 
-void __ntg_cell_grid_deinit__(ntg_cell_grid_t* grid)
+void __ntg_cell_grid_deinit__(ntg_cell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -130,9 +130,9 @@ void __ntg_cell_grid_deinit__(ntg_cell_grid_t* grid)
     grid->__data = NULL;
 }
 
-ntg_cell_grid_t* ntg_cell_grid_new()
+ntg_cell_grid* ntg_cell_grid_new()
 {
-    ntg_cell_grid_t* new = (ntg_cell_grid_t*)malloc(
+    ntg_cell_grid* new = (ntg_cell_grid*)malloc(
             sizeof(struct ntg_cell_grid));
 
     if(new == NULL) return NULL;
@@ -142,7 +142,7 @@ ntg_cell_grid_t* ntg_cell_grid_new()
     return new;
 }
 
-void ntg_cell_grid_destroy(ntg_cell_grid_t* grid)
+void ntg_cell_grid_destroy(ntg_cell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -151,8 +151,8 @@ void ntg_cell_grid_destroy(ntg_cell_grid_t* grid)
     free(grid);
 }
 
-void ntg_cell_grid_set_size(ntg_cell_grid_t* grid, struct ntg_xy size,
-        ntg_status_t* out_status)
+void ntg_cell_grid_set_size(ntg_cell_grid* grid, struct ntg_xy size,
+        ntg_status* out_status)
 {
     if(grid == NULL)
         _vreturn(out_status, NTG_ERR_INVALID_ARG);
@@ -187,7 +187,7 @@ void ntg_cell_grid_set_size(ntg_cell_grid_t* grid, struct ntg_xy size,
 /* NTG_RCELL_VGRID */
 /* -------------------------------------------------------------------------- */
 
-void __ntg_rcell_vgrid_init__(ntg_rcell_vgrid_t* vgrid)
+void __ntg_rcell_vgrid_init__(ntg_rcell_vgrid* vgrid)
 {
     assert(vgrid != NULL);
 
@@ -196,7 +196,7 @@ void __ntg_rcell_vgrid_init__(ntg_rcell_vgrid_t* vgrid)
     vgrid->__size = NTG_XY_UNSET;
 }
 
-void __ntg_rcell_vgrid_deinit__(ntg_rcell_vgrid_t* vgrid)
+void __ntg_rcell_vgrid_deinit__(ntg_rcell_vgrid* vgrid)
 {
     assert(vgrid != NULL);
 
@@ -205,9 +205,9 @@ void __ntg_rcell_vgrid_deinit__(ntg_rcell_vgrid_t* vgrid)
     vgrid->__size = NTG_XY_UNSET;
 }
 
-ntg_rcell_vgrid_t* ntg_rcell_vgrid_new()
+ntg_rcell_vgrid* ntg_rcell_vgrid_new()
 {
-    ntg_rcell_vgrid_t* new = (ntg_rcell_vgrid_t*)malloc(
+    ntg_rcell_vgrid* new = (ntg_rcell_vgrid*)malloc(
             sizeof(struct ntg_rcell_vgrid));
 
     if(new == NULL) return NULL;
@@ -217,20 +217,20 @@ ntg_rcell_vgrid_t* ntg_rcell_vgrid_new()
     return new;
 }
 
-void ntg_rcell_vgrid_destroy(ntg_rcell_vgrid_t* vgrid)
+void ntg_rcell_vgrid_destroy(ntg_rcell_vgrid* vgrid)
 {
     assert(vgrid != NULL);
 
     __ntg_rcell_grid_deinit__(&vgrid->__data);
 }
 
-struct ntg_xy ntg_rcell_vgrid_get_size(const ntg_rcell_vgrid_t* vgrid)
+struct ntg_xy ntg_rcell_vgrid_get_size(const ntg_rcell_vgrid* vgrid)
 {
     return vgrid->__size;
 }
 
-void ntg_rcell_vgrid_set_size(ntg_rcell_vgrid_t* vgrid, struct ntg_xy size,
-        ntg_status_t* out_status)
+void ntg_rcell_vgrid_set_size(ntg_rcell_vgrid* vgrid, struct ntg_xy size,
+        ntg_status* out_status)
 {
     // TODO
 
@@ -247,7 +247,7 @@ void ntg_rcell_vgrid_set_size(ntg_rcell_vgrid_t* vgrid, struct ntg_xy size,
 /* NTG_CELL_VGRID */
 /* -------------------------------------------------------------------------- */
 
-void __ntg_cell_vgrid_init__(ntg_cell_vgrid_t* vgrid)
+void __ntg_cell_vgrid_init__(ntg_cell_vgrid* vgrid)
 {
     assert(vgrid != NULL);
 
@@ -256,7 +256,7 @@ void __ntg_cell_vgrid_init__(ntg_cell_vgrid_t* vgrid)
     vgrid->__size = NTG_XY_UNSET;
 }
 
-void __ntg_cell_vgrid_deinit__(ntg_cell_vgrid_t* vgrid)
+void __ntg_cell_vgrid_deinit__(ntg_cell_vgrid* vgrid)
 {
     assert(vgrid != NULL);
 
@@ -265,9 +265,9 @@ void __ntg_cell_vgrid_deinit__(ntg_cell_vgrid_t* vgrid)
     vgrid->__size = NTG_XY_UNSET;
 }
 
-ntg_cell_vgrid_t* ntg_cell_vgrid_new()
+ntg_cell_vgrid* ntg_cell_vgrid_new()
 {
-    ntg_cell_vgrid_t* new = (ntg_cell_vgrid_t*)malloc(
+    ntg_cell_vgrid* new = (ntg_cell_vgrid*)malloc(
             sizeof(struct ntg_cell_vgrid));
 
     if(new == NULL) return NULL;
@@ -277,20 +277,20 @@ ntg_cell_vgrid_t* ntg_cell_vgrid_new()
     return new;
 }
 
-void ntg_cell_vgrid_destroy(ntg_cell_vgrid_t* vgrid)
+void ntg_cell_vgrid_destroy(ntg_cell_vgrid* vgrid)
 {
     assert(vgrid != NULL);
 
     __ntg_cell_grid_deinit__(&vgrid->__data);
 }
 
-struct ntg_xy ntg_cell_vgrid_get_size(const ntg_cell_vgrid_t* vgrid)
+struct ntg_xy ntg_cell_vgrid_get_size(const ntg_cell_vgrid* vgrid)
 {
     return vgrid->__size;
 }
 
-void ntg_cell_vgrid_set_size(ntg_cell_vgrid_t* vgrid, struct ntg_xy size,
-        ntg_status_t* out_status)
+void ntg_cell_vgrid_set_size(ntg_cell_vgrid* vgrid, struct ntg_xy size,
+        ntg_status* out_status)
 {
     // TODO
     ntg_xy_size(&size);

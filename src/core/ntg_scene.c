@@ -8,24 +8,24 @@
 
 struct ntg_scene
 {
-    ntg_object_t* root;
-    ntg_scene_drawing_t drawing;
+    ntg_object* root;
+    ntg_scene_drawing drawing;
 
-    ntg_scene_engine_t* engine;
+    ntg_scene_engine* engine;
 };
 
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_layout(ntg_scene_t* scene, struct ntg_xy size)
+void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
     ntg_log_log("Scene layout begin.");
     ntg_scene_drawing_set_size(&(scene->drawing), size);
     ntg_scene_engine_layout(scene->engine);
 }
 
-ntg_scene_t* ntg_scene_new()
+ntg_scene* ntg_scene_new()
 {
-    ntg_scene_t* new = (ntg_scene_t*)malloc(sizeof(struct ntg_scene));
+    ntg_scene* new = (ntg_scene*)malloc(sizeof(struct ntg_scene));
 
     if(new == NULL) return NULL;
 
@@ -49,7 +49,7 @@ ntg_scene_t* ntg_scene_new()
     return new;
 }
 
-void ntg_scene_destroy(ntg_scene_t* scene)
+void ntg_scene_destroy(ntg_scene* scene)
 {
     if(scene == NULL) return;
 
@@ -59,12 +59,12 @@ void ntg_scene_destroy(ntg_scene_t* scene)
     free(scene);
 }
 
-ntg_object_t* ntg_scene_get_root(const ntg_scene_t* scene)
+ntg_object* ntg_scene_get_root(const ntg_scene* scene)
 {
     return (scene != NULL) ? scene->root : NULL;
 }
 
-void ntg_scene_set_root(ntg_scene_t* scene, ntg_object_t* new_root)
+void ntg_scene_set_root(ntg_scene* scene, ntg_object* new_root)
 {
     if(scene == NULL) return;
     
@@ -72,12 +72,12 @@ void ntg_scene_set_root(ntg_scene_t* scene, ntg_object_t* new_root)
     // TODO
 }
 
-const ntg_scene_drawing_t* ntg_scene_get_drawing(const ntg_scene_t* scene)
+const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene)
 {
     return (scene != NULL) ? &scene->drawing : NULL;
 }
 
-ntg_scene_drawing_t* _ntg_scene_get_drawing(ntg_scene_t* scene)
+ntg_scene_drawing* _ntg_scene_get_drawing(ntg_scene* scene)
 {
     return (scene != NULL) ? &scene->drawing : NULL;
 }

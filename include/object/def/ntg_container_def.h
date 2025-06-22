@@ -14,21 +14,21 @@
 
 struct ntg_container
 {
-    ntg_object_t _base;
+    ntg_object _base;
 
-    nt_color_t _bg;
+    nt_color _bg;
 
     ntg_arrange_children_fn __arrange_children_fn;
 };
 
-void __ntg_container_init__(ntg_container_t* container,
+void __ntg_container_init__(ntg_container* container,
         ntg_nsize_fn nsize_fn, ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn, ntg_arrange_children_fn arrange_fn);
 
-void __ntg_container_deinit__(ntg_container_t* container);
+void __ntg_container_deinit__(ntg_container* container);
 
-void _ntg_container_arrange_children(ntg_container_t* container);
+void _ntg_container_arrange_children(ntg_container* container);
 
-void _ntg_container_set_bg(ntg_container_t* container, nt_color_t bg);
+void _ntg_container_set_bg(ntg_container* container, nt_color bg);
 
 #endif // _NTG_CONTAINER_DEF_H_

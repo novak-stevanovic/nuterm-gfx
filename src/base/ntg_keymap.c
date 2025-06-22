@@ -17,9 +17,9 @@ struct nt_keymap
     struct _nt_keymap_entry* _map;
 };
 
-nt_keymap_t* nt_keymap_new(nt_status_t* out_status)
+nt_keymap* nt_keymap_new(nt_status* out_status)
 {
-    nt_keymap_t* new = (nt_keymap_t*)malloc(sizeof(nt_keymap_t));
+    nt_keymap* new = (nt_keymap*)malloc(sizeof(nt_keymap));
     if(new == NULL)
     {
         _return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
@@ -30,7 +30,7 @@ nt_keymap_t* nt_keymap_new(nt_status_t* out_status)
     _return(new, out_status, NT_SUCCESS);
 }
 
-void nt_keymap_destroy(nt_keymap_t* map)
+void nt_keymap_destroy(nt_keymap* map)
 {
     if(map == NULL) return;
 
@@ -44,8 +44,8 @@ void nt_keymap_destroy(nt_keymap_t* map)
     free(map);
 }
 
-void nt_keymap_bind(nt_keymap_t* map, struct nt_key_event key_event,
-        nt_key_handler_fn event_handler, nt_status_t* out_status)
+void nt_keymap_bind(nt_keymap* map, struct nt_key_event key_event,
+        nt_key_handler_fn event_handler, nt_status* out_status)
 {
     if((map == NULL) || (event_handler == NULL))
         _vreturn(out_status, NT_ERR_INVALID_ARG);
@@ -71,8 +71,8 @@ void nt_keymap_bind(nt_keymap_t* map, struct nt_key_event key_event,
     _vreturn(out_status, NT_SUCCESS);
 }
 
-void nt_keymap_unbind(nt_keymap_t* map, struct nt_key_event key_event,
-        nt_status_t* out_status)
+void nt_keymap_unbind(nt_keymap* map, struct nt_key_event key_event,
+        nt_status* out_status)
 {
     if(map == NULL)
         _vreturn(out_status, NT_ERR_INVALID_ARG);
@@ -88,8 +88,8 @@ void nt_keymap_unbind(nt_keymap_t* map, struct nt_key_event key_event,
     _vreturn(out_status, NT_SUCCESS);
 }
 
-nt_key_handler_fn nt_keymap_get(nt_keymap_t* map, struct nt_key_event key_event,
-        nt_status_t* out_status)
+nt_key_handler_fn nt_keymap_get(nt_keymap* map, struct nt_key_event key_event,
+        nt_status* out_status)
 {
     if(map == NULL)
     {

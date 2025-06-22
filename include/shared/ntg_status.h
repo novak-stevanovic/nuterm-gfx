@@ -1,7 +1,7 @@
 #ifndef _NTG_STATUS_H_
 #define _NTG_STATUS_H_
 
-typedef int ntg_status_t;
+typedef int ntg_status;
 
 #define NTG_STATUS_BASE 2000
 #define NTG_SUCCESS (NTG_STATUS_BASE + 0)

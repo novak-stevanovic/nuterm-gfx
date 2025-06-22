@@ -13,12 +13,12 @@
 
 struct ntg_color_block
 {
-    ntg_pane_t _base;
+    ntg_pane _base;
 
-    nt_color_t __color;
+    nt_color __color;
 };
 
-void __ntg_color_block_init__(ntg_color_block_t* block);
-void __ntg_color_block_deinit__(ntg_color_block_t* block);
+void __ntg_color_block_init__(ntg_color_block* block);
+void __ntg_color_block_deinit__(ntg_color_block* block);
 
 #endif // _NTG_COLOR_BLOCK_DEF_H_

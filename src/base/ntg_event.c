@@ -5,14 +5,14 @@
 
 struct ntg_event
 {
-    ntg_event_type_t type;
+    ntg_event_type type;
     void* source;
-    ntg_event_sub_vec_t subs;
+    ntg_event_sub_vec subs;
 };
 
-ntg_event_t* ntg_event_create(ntg_event_type_t type, void* source)
+ntg_event* ntg_event_create(ntg_event_type type, void* source)
 {
-    ntg_event_t* new = (ntg_event_t*)malloc(sizeof(ntg_event_t));
+    ntg_event* new = (ntg_event*)malloc(sizeof(ntg_event));
     if(new == NULL) return NULL;
 
     new->type = type;
@@ -22,7 +22,7 @@ ntg_event_t* ntg_event_create(ntg_event_type_t type, void* source)
     return new;
 }
 
-void ntg_event_destroy(ntg_event_t* event)
+void ntg_event_destroy(ntg_event* event)
 {
     if(event == NULL) return;
 
@@ -33,7 +33,7 @@ void ntg_event_destroy(ntg_event_t* event)
     free(event);
 }
 
-void ntg_event_raise(ntg_event_t* event, void* data)
+void ntg_event_raise(ntg_event* event, void* data)
 {
     if(event == NULL) return;
 
@@ -45,31 +45,31 @@ void ntg_event_raise(ntg_event_t* event, void* data)
     }
 }
 
-void ntg_event_subscribe(ntg_event_t* event, struct ntg_event_sub subscription,
-        ntg_status_t* out_status)
+void ntg_event_subscribe(ntg_event* event, struct ntg_event_sub subscription,
+        ntg_status* out_status)
 {
     ntg_event_sub_vec_append(&event->subs, subscription);
 }
 
-void ntg_event_unsubscribe(ntg_event_t* event, const void* subscriber,
-        ntg_status_t* out_status)
+void ntg_event_unsubscribe(ntg_event* event, const void* subscriber,
+        ntg_status* out_status)
 {
     ntg_event_sub_vec_remove_sub(&event->subs, subscriber);
 }
 
-bool ntg_event_is_subscribed(const ntg_event_t* event, const void* subscriber)
+bool ntg_event_is_subscribed(const ntg_event* event, const void* subscriber)
 {
     if(subscriber == NULL) return false;
 
     return (ntg_event_sub_vec_find_sub(&event->subs, subscriber) != -1);
 }
 
-ntg_event_type_t ntg_event_get_type(const ntg_event_t* event)
+ntg_event_type ntg_event_get_type(const ntg_event* event)
 {
     return (event != NULL) ? event->type : 0;
 }
 
-void* ntg_event_get_source(const ntg_event_t* event)
+void* ntg_event_get_source(const ntg_event* event)
 {
     return (event != NULL) ? event->source : 0;
 }

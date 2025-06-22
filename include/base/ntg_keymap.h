@@ -2,8 +2,9 @@
 #define _NTG_KEYMAP_H_
 
 #include "nt_event.h"
+#include "nt_shared.h"
 
-typedef struct nt_keymap nt_keymap_t;
+typedef struct nt_keymap nt_keymap;
 
 /* Creates the nt_keymap, initializes internal hashmap.
  *
@@ -11,10 +12,10 @@ typedef struct nt_keymap nt_keymap_t;
  * 1. NT_SUCCESS,
  * 2. NT_ERR_ALLOC_FAIL - dynamic allocation for the internal struct nt_keymap
  * failed. */
-nt_keymap_t* nt_keymap_new(nt_status_t* out_status);
+nt_keymap* nt_keymap_new(nt_status* out_status);
 
 /* Destroys the nt_keymap. Frees the dynamially allocated memory. */
-void nt_keymap_destroy(nt_keymap_t* map);
+void nt_keymap_destroy(nt_keymap* map);
 
 typedef void (*nt_key_handler_fn)(struct nt_key_event key_event, void* data);
 
@@ -27,8 +28,8 @@ typedef void (*nt_key_handler_fn)(struct nt_key_event key_event, void* data);
  * 3. NT_ERR_BIND_ALREADY_EXISTS - `key_event` is already a key inside the
  * hashmap,
  * 4. NT_ERR_ALLOC_FAIL - dynamic allocation failed. */
-void nt_keymap_bind(nt_keymap_t* map, struct nt_key_event key_event,
-        nt_key_handler_fn event_handler, nt_status_t* out_status);
+void nt_keymap_bind(nt_keymap* map, struct nt_key_event key_event,
+        nt_key_handler_fn event_handler, nt_status* out_status);
 
 /* Unbinds a specific `event_handler` from the given `key_event`. This will
  * remove the entry inside the internal hashmap. If `key_event` is not a key
@@ -37,15 +38,15 @@ void nt_keymap_bind(nt_keymap_t* map, struct nt_key_event key_event,
  * STATUS CODES:
  * 1. NT_SUCCESS, 
  * 2. NT_ERR_INVALID_ARG - `map` is NULL. */
-void nt_keymap_unbind(nt_keymap_t* map, struct nt_key_event key_event,
-        nt_status_t* out_status);
+void nt_keymap_unbind(nt_keymap* map, struct nt_key_event key_event,
+        nt_status* out_status);
 
 /* Retrieves nt_key_handler_t tied to given `key_event`. If `key_event` is not
  * an entry inside the `map`, NULL is returned.
  *
  * 1. NT_SUCCESS, 
  * 2. NT_ERR_INVALID_ARG - `map` is NULL. */
-nt_key_handler_fn nt_keymap_get(nt_keymap_t* map, struct nt_key_event key_event,
-        nt_status_t* out_status);
+nt_key_handler_fn nt_keymap_get(nt_keymap* map, struct nt_key_event key_event,
+        nt_status* out_status);
 
 #endif // _NTG_KEYMAP_H_

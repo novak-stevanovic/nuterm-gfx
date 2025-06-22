@@ -7,10 +7,10 @@
 #include "nt.h"
 #include "core/ntg_scene_drawing.h"
 
-static ntg_scene_t* _active_scene = NULL;
+static ntg_scene* _active_scene = NULL;
 
 #define NT_BUFF_CAP 50000
-static nt_charbuff_t* _nt_buff;
+static nt_charbuff* _nt_buff;
 
 void __ntg_stage_init__()
 {
@@ -22,7 +22,7 @@ void __ntg_stage_deinit__()
     nt_charbuff_destroy(_nt_buff);
 }
 
-void ntg_stage_set_scene(ntg_scene_t* scene)
+void ntg_stage_set_scene(ntg_scene* scene)
 {
     _active_scene = scene;
 }
@@ -36,11 +36,11 @@ void ntg_stage_render()
 
     ntg_scene_layout(_active_scene, ntg_xy(_width, _height));
 
-    const ntg_scene_drawing_t* drawing = ntg_scene_get_drawing(_active_scene);
+    const ntg_scene_drawing* drawing = ntg_scene_get_drawing(_active_scene);
     struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
     size_t i, j;
     struct ntg_rcell it_cell;
-    nt_status_t _status;
+    nt_status _status;
     nt_buffer_enable(_nt_buff);
     for(i = 0; i < size.y; i++)
     {

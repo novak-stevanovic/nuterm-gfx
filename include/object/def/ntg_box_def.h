@@ -11,10 +11,10 @@
 
 struct ntg_box
 {
-    ntg_container_t _base;
+    ntg_container _base;
 
-    ntg_box_orientation_t _orientation;
-    ntg_box_alignment_t _primary_alignment, _secondary_alignment;
+    ntg_box_orientation _orientation;
+    ntg_box_alignment _primary_alignment, _secondary_alignment;
 
     struct ntg_box_padding _pref_padding;
     size_t _spacing;
@@ -39,13 +39,13 @@ struct ntg_box
     struct ntg_xy _content_box_size;
 };
 
-void __ntg_box_init__(ntg_box_t* box,
-        ntg_box_orientation_t orientation,
-        ntg_box_alignment_t primary_alignment,
-        ntg_box_alignment_t secondary_alignment);
-void __ntg_box_deinit__(ntg_box_t* box);
+void __ntg_box_init__(ntg_box* box,
+        ntg_box_orientation orientation,
+        ntg_box_alignment primary_alignment,
+        ntg_box_alignment secondary_alignment);
+void __ntg_box_deinit__(ntg_box* box);
 
-void _ntg_box_on_nsize(ntg_box_t* box);
-void _ntg_box_on_constrain(ntg_box_t* box);
+void _ntg_box_on_nsize(ntg_box* box);
+void _ntg_box_on_constrain(ntg_box* box);
 
 #endif // _NTG_BOX_DEF_H_

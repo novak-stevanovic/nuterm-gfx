@@ -14,45 +14,45 @@
 #include "object/def/ntg_object_def.h"
 #include "object/def/ntg_container_def.h"
 
-ntg_color_block_t* cb1;
-ntg_object_t* _cb1;
+ntg_color_block* cb1;
+ntg_object* _cb1;
 
 void init_gui_func(void* data)
 {
     cb1 = ntg_color_block_new(nt_color_new(255, 0, 90));
-    _cb1 = (ntg_object_t*)cb1;
+    _cb1 = (ntg_object*)cb1;
     ntg_object_set_pref_size(_cb1, ntg_xy(50, 20));
 
-    ntg_color_block_t* cb2 = ntg_color_block_new(nt_color_new(0, 200, 0));
-    ntg_object_t* _cb2 = (ntg_object_t*)cb2;
+    ntg_color_block* cb2 = ntg_color_block_new(nt_color_new(0, 200, 0));
+    ntg_object* _cb2 = (ntg_object*)cb2;
     ntg_object_set_pref_size(_cb2, ntg_xy(100, 10));
 
     _ntg_object_scroll_enable(_cb1);
     // __ntg_object_scroll(_cb2, ntg_dxy(0, 1));
 
-    ntg_color_block_t* cb3 = ntg_color_block_new(nt_color_new(0, 100, 0));
-    ntg_object_t* _cb3 = (ntg_object_t*)cb3;
+    ntg_color_block* cb3 = ntg_color_block_new(nt_color_new(0, 100, 0));
+    ntg_object* _cb3 = (ntg_object*)cb3;
     ntg_object_set_pref_size(_cb3, ntg_xy(60, 5));
 
-    ntg_color_block_t* cb4 = ntg_color_block_new(nt_color_new(0, 100, 200));
-    ntg_object_t* _cb4 = (ntg_object_t*)cb4;
+    ntg_color_block* cb4 = ntg_color_block_new(nt_color_new(0, 100, 200));
+    ntg_object* _cb4 = (ntg_object*)cb4;
     ntg_object_set_pref_size(_cb4, ntg_xy(30, 10));
 
-    ntg_box_t* box1 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL,
+    ntg_box* box1 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL,
             NTG_BOX_ALIGNMENT_0,
             NTG_BOX_ALIGNMENT_1);
 
-    ntg_object_t* _box1 = (ntg_object_t*)box1;
+    ntg_object* _box1 = (ntg_object*)box1;
     struct ntg_box_padding box1_padding = (struct ntg_box_padding) {
         .north = 2, .west = 5, .east = 0, .south = 0
     };
     // ntg_box_set_padding(box1, box1_padding);
 
-    ntg_box_t* box2 = ntg_box_new(NTG_BOX_ORIENTATION_VERTICAL,
+    ntg_box* box2 = ntg_box_new(NTG_BOX_ORIENTATION_VERTICAL,
             NTG_BOX_ALIGNMENT_0,
             NTG_BOX_ALIGNMENT_1);
 
-    ntg_object_t* _box2 = (ntg_object_t*)box2;
+    ntg_object* _box2 = (ntg_object*)box2;
     struct ntg_box_padding box2_padding = (struct ntg_box_padding) {
         .north = 6, .west = 10, .east = 5, .south = 3 
     };
@@ -65,10 +65,10 @@ void init_gui_func(void* data)
     ntg_box_add_child(box2, _cb3);
     ntg_box_add_child(box2, _cb4);
 
-    _ntg_container_set_bg((ntg_container_t*)box1, nt_color_new(122, 122, 122));
-    _ntg_container_set_bg((ntg_container_t*)box2, nt_color_new(255, 255, 255));
+    _ntg_container_set_bg((ntg_container*)box1, nt_color_new(122, 122, 122));
+    _ntg_container_set_bg((ntg_container*)box2, nt_color_new(255, 255, 255));
 
-    ntg_scene_t* s = ntg_scene_new();
+    ntg_scene* s = ntg_scene_new();
     ntg_scene_set_root(s, _box1);
     ntg_stage_set_scene(s);
 

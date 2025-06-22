@@ -5,17 +5,17 @@
 #include "object/ntg_object.h"
 #include "object/ntg_container.h"
 
-static void __arrange_fn(ntg_object_t* object)
+static void __arrange_fn(ntg_object* object)
 {
-    _ntg_container_arrange_children((ntg_container_t*)object);
+    _ntg_container_arrange_children((ntg_container*)object);
 
-    ntg_container_t* container = (ntg_container_t*)object;
+    ntg_container* container = (ntg_container*)object;
 
-    ntg_object_drawing_t* drawing = _ntg_object_get_drawing_(object);
+    ntg_object_drawing* drawing = _ntg_object_get_drawing_(object);
     struct ntg_xy size = ntg_object_drawing_get_size(drawing);
 
     size_t i, j;
-    ntg_cell_t* it_cell;
+    ntg_cell* it_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
@@ -28,12 +28,12 @@ static void __arrange_fn(ntg_object_t* object)
     }
 }
 
-void __ntg_container_init__(ntg_container_t* container,
+void __ntg_container_init__(ntg_container* container,
         ntg_nsize_fn nsize_fn, ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn, ntg_arrange_children_fn arrange_fn)
         
 {
-    ntg_object_t* _container = (ntg_object_t*)container;
+    ntg_object* _container = (ntg_object*)container;
 
     container->_bg = NT_COLOR_DEFAULT;
     container->__arrange_children_fn = arrange_fn;
@@ -42,14 +42,14 @@ void __ntg_container_init__(ntg_container_t* container,
             __arrange_fn);
 }
 
-void __ntg_container_deinit__(ntg_container_t* container)
+void __ntg_container_deinit__(ntg_container* container)
 {
     container->_bg = NT_COLOR_DEFAULT;
 
-    __ntg_object_deinit__((ntg_object_t*)container);
+    __ntg_object_deinit__((ntg_object*)container);
 }
 
-void _ntg_container_arrange_children(ntg_container_t* container)
+void _ntg_container_arrange_children(ntg_container* container)
 {
     if(container == NULL) return;
 
@@ -59,7 +59,7 @@ void _ntg_container_arrange_children(ntg_container_t* container)
     }
 }
 
-void _ntg_container_set_bg(ntg_container_t* container, nt_color_t bg)
+void _ntg_container_set_bg(ntg_container* container, nt_color bg)
 {
     if(container == NULL) return;
 
