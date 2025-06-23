@@ -32,6 +32,11 @@ struct ntg_object
     ntg_constrain_fn __constrain_fn;
     ntg_measure_fn __measure_fn;
     ntg_arrange_fn __arrange_fn;
+
+    ntg_process_key_fn __process_key_fn;
+
+    bool _focusable;
+    ntg_scene* _scene;
 };
 
 /* ntg_object protected */
@@ -59,5 +64,15 @@ void _ntg_object_set_pref_scroll_offset(ntg_object* object,
         struct ntg_xy offset);
 void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff);
 struct ntg_xy _ntg_object_get_scroll_offset(const ntg_object* object);
+
+void _ntg_object_set_process_key_fn(ntg_object* object,
+        ntg_process_key_fn process_key_fn);
+
+void _ntg_object_set_focusable(ntg_object* object,
+        bool focusable);
+
+void _ntg_object_perform_tree(ntg_object* root,
+        void (*perform_fn)(ntg_object* curr_obj, void* data),
+        void* data);
 
 #endif // _NTG_OBJECT_DEF_H_

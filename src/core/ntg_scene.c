@@ -1,10 +1,12 @@
 #include "core/ntg_scene.h"
-#include "core/ntg_scene_drawing.h"
-#include "core/ntg_scene_engine.h"
-#include "shared/ntg_log.h"
-#include "shared/ntg_xy.h"
 #include <assert.h>
 #include <stdlib.h>
+
+#include "core/ntg_scene_drawing.h"
+#include "core/ntg_scene_engine.h"
+#include "object/ntg_object.h"
+#include "shared/ntg_log.h"
+#include "shared/ntg_xy.h"
 
 struct ntg_scene
 {
@@ -12,6 +14,8 @@ struct ntg_scene
     ntg_scene_drawing drawing;
 
     ntg_scene_engine* engine;
+
+    ntg_object* focused;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -30,11 +34,6 @@ ntg_scene* ntg_scene_new()
     if(new == NULL) return NULL;
 
     __ntg_scene_drawing_init__(&new->drawing);
-    // if(new->drawing == NULL)
-    // {
-    //     free(new);
-    //     return NULL;
-    // }
 
     new->engine = ntg_scene_engine_new(new);
     if(new->engine == NULL)
@@ -45,6 +44,7 @@ ntg_scene* ntg_scene_new()
     }
 
     new->root = NULL;
+    new->focused = NULL;
 
     return new;
 }
@@ -67,8 +67,12 @@ ntg_object* ntg_scene_get_root(const ntg_scene* scene)
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* new_root)
 {
     if(scene == NULL) return;
+
+    if(scene->root != NULL)
+        _ntg_object_set_scene(scene->root, NULL);
     
     scene->root = new_root;
+    _ntg_object_set_scene(new_root, scene);
     // TODO
 }
 
@@ -80,4 +84,18 @@ const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene)
 ntg_scene_drawing* _ntg_scene_get_drawing(ntg_scene* scene)
 {
     return (scene != NULL) ? &scene->drawing : NULL;
+}
+
+ntg_object* ntg_scene_get_focused(const ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return scene->focused;
+}
+
+void ntg_scene_set_focused(ntg_scene* scene, ntg_object* object)
+{
+    assert(scene != NULL);
+
+    scene->focused = object;
 }

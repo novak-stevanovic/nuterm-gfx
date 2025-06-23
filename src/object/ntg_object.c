@@ -1,4 +1,5 @@
 #include "object/ntg_object.h"
+#include "core/ntg_scene.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "shared/ntg_log.h"
@@ -13,11 +14,38 @@
 /* def/ntg_object_def.h */
 /* -------------------------------------------------------------------------- */
 
+static inline void _ntg_object_init_default(ntg_object* object)
+{
+    object->_parent = NULL;
+    object->_children = NULL;
+
+    object->_scroll = false;
+    object->_pref_scroll_offset = NTG_XY_UNSET;
+    object->_drawing = NULL;
+
+    object->_pref_size = NTG_XY_UNSET;
+    object->_nsize = NTG_XY_UNSET;
+    object->_constr = NTG_CONSTR_UNSET;
+    object->_size = NTG_XY_UNSET;
+    object->_pos = NTG_XY_UNSET;
+
+    object->__arrange_fn = NULL;
+    object->__measure_fn = NULL;
+    object->__constrain_fn = NULL;
+    object->__nsize_fn = NULL;
+    object->__process_key_fn = NULL;
+
+    object->_focusable = false;
+    object->_scene = NULL;
+}
+
 void __ntg_object_init__(ntg_object* object, ntg_nsize_fn nsize_fn,
         ntg_constrain_fn constrain_fn, ntg_measure_fn measure_fn,
         ntg_arrange_fn arrange_fn)
 {
-    if(object == NULL) return;
+    assert(object != NULL); 
+
+    _ntg_object_init_default(object);
 
     object->__constrain_fn = constrain_fn;
     object->__measure_fn = measure_fn;
@@ -26,19 +54,11 @@ void __ntg_object_init__(ntg_object* object, ntg_nsize_fn nsize_fn,
 
     object->_drawing = ntg_object_drawing_new();
     object->_children = ntg_object_vec_new();
-
-    object->_parent = NULL;
-    object->_constr = NTG_CONSTR_UNSET;
-    object->_pos = NTG_XY_UNSET;
-    object->_size = NTG_XY_UNSET;
-    object->_nsize = NTG_XY_UNSET;
-    object->_pref_scroll_offset = NTG_XY_UNSET;
-    object->_scroll = false;
 }
 
 void __ntg_object_deinit__(ntg_object* object)
 {
-    if(object == NULL) return;
+    assert(object != NULL); 
 
     if(object->_drawing != NULL)
         ntg_object_drawing_destroy(object->_drawing);
@@ -46,17 +66,7 @@ void __ntg_object_deinit__(ntg_object* object)
     if(object->_children != NULL)
         ntg_object_vec_destroy(object->_children);
 
-    object->__arrange_fn = NULL;
-    object->__measure_fn = NULL;
-    object->__constrain_fn = NULL;
-    object->__nsize_fn = NULL;
-
-    object->_parent = NULL;
-    object->_constr = NTG_CONSTR_UNSET;
-    object->_pos = NTG_XY_UNSET;
-    object->_size = NTG_XY_UNSET;
-    object->_pref_scroll_offset = NTG_XY_UNSET;
-    object->_scroll = false;
+    _ntg_object_init_default(object);
 }
 
 void _ntg_object_set_nsize(ntg_object* object, struct ntg_xy size)
@@ -156,11 +166,119 @@ void _ntg_object_set_pos(ntg_object* object, struct ntg_xy pos)
     object->_pos = abs_pos;
 }
 
+ntg_object_drawing* _ntg_object_get_drawing_(ntg_object* object)
+{
+    return object->_drawing;
+}
+
+void _ntg_object_scroll_enable(ntg_object* object)
+{
+    object->_scroll = true;
+}
+
+void _ntg_object_scroll_disable(ntg_object* object)
+{
+    object->_scroll = false;
+}
+
+struct ntg_xy _ntg_object_get_pref_scroll_offset(const ntg_object* object)
+{
+    return object->_pref_scroll_offset;
+}
+
+void _ntg_object_set_pref_scroll_offset(ntg_object* object,
+        struct ntg_xy offset)
+{
+    object->_pref_scroll_offset = offset;
+}
+
+void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff)
+{
+    struct ntg_dxy new_offset = ntg_dxy_add(
+            ntg_dxy_from_xy(object->_pref_scroll_offset),
+            offset_diff);
+
+    new_offset = ntg_dxy_clamp(ntg_dxy(0, 0), new_offset, NTG_DXY_MAX);
+
+    object->_pref_scroll_offset = ntg_xy_from_dxy(new_offset);
+}
+
+struct ntg_xy _ntg_object_get_scroll_offset(const ntg_object* object)
+{
+    return ntg_object_drawing_get_vp_offset(object->_drawing);
+}
+
+static void __adjust_scene_fn(ntg_object* object, void* scene)
+{
+    object->_scene = (ntg_scene*)scene;
+}
+
+void _ntg_object_child_add(ntg_object* parent, ntg_object* child)
+{
+    assert((parent != NULL) && (child != NULL));
+
+    ntg_object* curr_parent = child->_parent;
+
+    if(curr_parent != NULL)
+    {
+        ntg_object_vec_remove(curr_parent->_children, child);
+    }
+
+    ntg_object_vec_append(parent->_children, child);
+
+    child->_parent = parent;
+
+    _ntg_object_perform_tree(child, __adjust_scene_fn, parent->_scene);
+}
+
+void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
+{
+    assert((parent != NULL) && (child != NULL));
+
+    ntg_object_vec_remove(parent->_children, child);
+
+    child->_parent = NULL;
+
+    _ntg_object_perform_tree(child, __adjust_scene_fn, NULL);
+}
+
+
+void _ntg_object_set_process_key_fn(ntg_object* object,
+        ntg_process_key_fn process_key_fn)
+{
+    assert(object != NULL);
+
+    object->__process_key_fn = process_key_fn;
+}
+
+void _ntg_object_set_focusable(ntg_object* object,
+        bool focusable)
+{
+    assert(object != NULL);
+
+    object->_focusable = focusable;
+}
+
+void _ntg_object_perform_tree(ntg_object* root,
+        void (*perform_fn)(ntg_object* curr_obj, void* data),
+        void* data)
+{
+    if(root == NULL) return;
+
+    perform_fn(root, data);
+
+    size_t i;
+    for(i = 0; i < root->_children->_count; i++)
+    {
+        _ntg_object_perform_tree(root->_children->_data[i], perform_fn, data);
+    }
+}
+
 /* -------------------------------------------------------------------------- */
 /* ntg_object.h */
 /* -------------------------------------------------------------------------- */
 
-ntg_object* ntg_object_get_parent(const ntg_object* object)
+ntg_object* ntg_object_get_parent(ntg_object* object)
 {
     return (object != NULL) ? object->_parent : NULL;
 }
@@ -273,69 +391,27 @@ const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object)
     return object->_drawing;
 }
 
-ntg_object_drawing* _ntg_object_get_drawing_(ntg_object* object)
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
 {
-    return object->_drawing;
+    assert(object != NULL);
+
+    if(object->__process_key_fn != NULL)
+        return object->__process_key_fn(object, key_event);
+    else
+        return false;
 }
 
-void _ntg_object_scroll_enable(ntg_object* object)
+bool ntg_object_is_focusable(const ntg_object* object)
 {
-    object->_scroll = true;
+    assert(object != NULL);
+
+    return object->_focusable;
 }
 
-void _ntg_object_scroll_disable(ntg_object* object)
+void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene)
 {
-    object->_scroll = false;
-}
+    assert(root != NULL);
+    root->_scene = scene;
 
-struct ntg_xy _ntg_object_get_pref_scroll_offset(const ntg_object* object)
-{
-    return object->_pref_scroll_offset;
-}
-
-void _ntg_object_set_pref_scroll_offset(ntg_object* object,
-        struct ntg_xy offset)
-{
-    object->_pref_scroll_offset = offset;
-}
-
-void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff)
-{
-    struct ntg_dxy new_offset = ntg_dxy_add(
-            ntg_dxy_from_xy(object->_pref_scroll_offset),
-            offset_diff);
-
-    new_offset = ntg_dxy_clamp(ntg_dxy(0, 0), new_offset, NTG_DXY_MAX);
-
-    object->_pref_scroll_offset = ntg_xy_from_dxy(new_offset);
-}
-
-struct ntg_xy _ntg_object_get_scroll_offset(const ntg_object* object)
-{
-    return ntg_object_drawing_get_vp_offset(object->_drawing);
-}
-
-void _ntg_object_child_add(ntg_object* parent, ntg_object* child)
-{
-    assert((parent != NULL) && (child != NULL));
-
-    ntg_object* curr_parent = child->_parent;
-
-    if(curr_parent != NULL)
-    {
-        ntg_object_vec_remove(curr_parent->_children, child);
-    }
-
-    ntg_object_vec_append(parent->_children, child);
-
-    child->_parent = parent;
-}
-
-void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
-{
-    assert((parent != NULL) && (child != NULL));
-
-    ntg_object_vec_remove(parent->_children, child);
-
-    child->_parent = NULL;
+    _ntg_object_perform_tree(root, __adjust_scene_fn, root->_scene);
 }

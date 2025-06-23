@@ -21,4 +21,7 @@ const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene);
 
 ntg_scene_drawing* _ntg_scene_get_drawing(ntg_scene* scene);
 
+ntg_object* ntg_scene_get_focused(const ntg_scene* scene);
+void ntg_scene_set_focused(ntg_scene* scene, ntg_object* object);
+
 #endif // _NTG_SCENE_H_

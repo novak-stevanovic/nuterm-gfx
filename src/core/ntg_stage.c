@@ -2,6 +2,7 @@
 #include "core/ntg_stage.h"
 #include "base/ntg_cell.h"
 #include "core/ntg_scene.h"
+#include "object/ntg_object.h"
 #include "shared/ntg_log.h"
 #include "shared/ntg_xy.h"
 #include "nt.h"
@@ -52,4 +53,25 @@ void ntg_stage_render()
         }
     }
     nt_buffer_disable(NT_BUFF_FLUSH);
+}
+
+void ntg_stage_feed_event(struct nt_event event)
+{
+    if(event.type == NT_EVENT_TYPE_KEY)
+    {
+        bool processed = false;
+        if(_active_scene != NULL)
+        {
+            ntg_object* focused = ntg_scene_get_focused(_active_scene);
+            processed = ntg_object_feed_key(focused, event.key_data);
+        }
+
+        if(processed) return;
+
+        // binding for scene/stage?
+    }
+    else // RESIZE
+    {
+        assert(0);
+    }
 }

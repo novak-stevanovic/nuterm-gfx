@@ -102,35 +102,9 @@ void ntg_loop()
 
         timeout = TIMEOUT(_framerate) - event.elapsed;
 
-        if(event.type == NT_EVENT_TYPE_KEY)
+        if(event.type != NT_EVENT_TYPE_TIMEOUT)
         {
-            if(event.key_data.type == NT_KEY_EVENT_UTF32)
-            {
-                if(event.key_data.utf32_data.codepoint == 'q')
-                    break;
-            }
-            else // ESCAPE
-            {
-                if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_UP)
-                {
-                    _ntg_object_scroll(_cb1, ntg_dxy(0, -1));
-                }
-                if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_RIGHT)
-                {
-                    _ntg_object_scroll(_cb1, ntg_dxy(1, 0));
-                }
-                if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_DOWN)
-                {
-                    _ntg_object_scroll(_cb1, ntg_dxy(0, 1));
-                }
-                if(event.key_data.esc_key_data.esc_key == NT_ESC_KEY_ARR_LEFT)
-                {
-                    _ntg_object_scroll(_cb1, ntg_dxy(-1, 0));
-                }
-            }
-        }
-        else if(event.type == NT_EVENT_TYPE_RESIZE)
-        {
+            ntg_stage_feed_event(event);
         }
         else // TIMEOUT
         {

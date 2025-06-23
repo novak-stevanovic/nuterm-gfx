@@ -30,7 +30,15 @@ struct ntg_box_padding
 };
 
 static inline struct ntg_box_padding ntg_box_padding(size_t north, size_t east,
-        size_t south, size_t west);
+        size_t south, size_t west)
+{
+    return (struct ntg_box_padding) {
+        .north = north,
+        .east = east,
+        .south = south,
+        .west = west
+    };
+}
 
 static const struct ntg_box_padding NTG_BOX_PADDING_UNSET = {0};
 
