@@ -10,6 +10,7 @@ void __ntg_stage_deinit__();
 void ntg_stage_set_scene(ntg_scene* scene);
 void ntg_stage_render();
 
+/* Used internally in ntg_loop(). May be used in a custom loop. */
 void ntg_stage_feed_event(struct nt_event event);
 
 #endif // _NTG_STAGE_H_

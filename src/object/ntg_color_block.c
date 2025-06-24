@@ -12,8 +12,6 @@ static void __measure_fn(ntg_object* _block)
 
     struct ntg_xy size = ntg_object_get_constr(_block).min_size;
 
-    ntg_log_log("%p %d %d", _block, size.x, size.y);
-
     ntg_xy_size(&size);
 
     _ntg_object_set_size(_block, size);

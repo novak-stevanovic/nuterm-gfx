@@ -81,7 +81,7 @@ struct ntg_xy ntg_object_get_content_pos(const ntg_object* object);
 
 const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object);
 
-bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
+bool ntg_object_feed_key_event(ntg_object* object, struct nt_key_event key_event);
 
 bool ntg_object_is_focusable(const ntg_object* object);
 

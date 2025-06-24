@@ -62,16 +62,11 @@ void ntg_stage_feed_event(struct nt_event event)
         bool processed = false;
         if(_active_scene != NULL)
         {
-            ntg_object* focused = ntg_scene_get_focused(_active_scene);
-            processed = ntg_object_feed_key(focused, event.key_data);
+            processed = ntg_scene_feed_key_event(_active_scene, event.key_data
         }
-
-        if(processed) return;
-
-        // binding for scene/stage?
     }
-    else // RESIZE
+    else if(event.type == NT_EVENT_TYPE_RESIZE)
     {
-        assert(0);
     }
 }
+

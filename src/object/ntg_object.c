@@ -10,6 +10,11 @@
 #include "object/def/ntg_object_def.h"
 #undef __NTG_ALLOW_NTG_OBJECT_DEF__
 
+static void __process_key_fn(ntg_object* object, struct nt_key_event key_event)
+{
+    ntg_log_log("KEY EVENT FOR OBJECT: %p", object);
+}
+
 /* -------------------------------------------------------------------------- */
 /* def/ntg_object_def.h */
 /* -------------------------------------------------------------------------- */
@@ -391,7 +396,7 @@ const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object)
     return object->_drawing;
 }
 
-bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
+bool ntg_object_feed_key_event(ntg_object* object, struct nt_key_event key_event)
 {
     assert(object != NULL);
 

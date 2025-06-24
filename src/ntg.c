@@ -36,7 +36,7 @@ void ntg_initialize(ntg_gui_fn gui_fn, void* data)
 {
     assert(gui_fn != NULL);
 
-    // __ntg_log_init__("ntg_log.txt");
+    __ntg_log_init__("ntg_log.txt");
 
     _gui_fn = gui_fn;
     _gui_fn_data = data;
@@ -96,15 +96,33 @@ void ntg_loop()
     nt_status _status;
     struct nt_event event;
     uint timeout = TIMEOUT(_framerate);
-    while(true)
+    bool loop = true;
+    while(loop)
     {
         event = nt_wait_for_event(timeout, &_status);
 
         timeout = TIMEOUT(_framerate) - event.elapsed;
 
-        if(event.type != NT_EVENT_TYPE_TIMEOUT)
+        if(event.type == NT_EVENT_TYPE_KEY)
         {
-            ntg_stage_feed_event(event);
+            bool processed = _ntg_stage_process_key_evnet(event.key_data);
+
+            if(!processed)
+            {
+                if(event.key_data.type == NT_KEY_EVENT_UTF32)
+                {
+                    switch(event.key_data.utf32_data.codepoint)
+                    {
+                        case 'q':
+                            loop = false;
+                            break;
+                    }
+                }
+            }
+        }
+        else if(event.type == NT_EVENT_TYPE_RESIZE)
+        {
+            ntg_stage_feed_resize_event(event.resize_data);
         }
         else // TIMEOUT
         {

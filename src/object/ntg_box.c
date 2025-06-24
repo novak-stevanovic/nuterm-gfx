@@ -10,6 +10,35 @@
 /* pa - primary axis
  * sa - secondary axis */
 
+static bool __process_key_fn(ntg_object* _box, struct nt_key_event key_event)
+{
+    ntg_box* box = (ntg_box*)_box;
+
+    if(key_event.type == NT_KEY_EVENT_UTF32)
+    {
+        switch(key_event.utf32_data.codepoint)
+        {
+            case 'h':
+                ntg_box_set_orientation(box, NTG_BOX_ORIENTATION_HORIZONTAL);
+                return true;
+            case 'v':
+                ntg_box_set_orientation(box, NTG_BOX_ORIENTATION_VERTICAL);
+                return true;
+            case 'a':
+                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_0);
+                return true;
+            case 'b':
+                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_1);
+                return true;
+            case 'c':
+                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_2);
+                return true;
+        }
+    }
+
+    return false;
+}
+
 static inline size_t _padding_x(struct ntg_box_padding padding)
 {
     return padding.west + padding.east;
@@ -379,6 +408,10 @@ static inline void _set_default_values(ntg_box* box)
     box->_orientation = NTG_BOX_ORIENTATION_HORIZONTAL;
     box->_primary_alignment = NTG_BOX_ALIGNMENT_0;
     box->_secondary_alignment = NTG_BOX_ALIGNMENT_0;
+
+    // TODO: remove?
+    _ntg_object_set_process_key_fn((ntg_object*)box, __process_key_fn);
+    _ntg_object_set_focusable((ntg_object*)box, true);
 }
 
 void __ntg_box_init__(ntg_box* box,
@@ -453,4 +486,34 @@ size_t ntg_box_get_spacing(const ntg_box* box)
     assert(box != NULL);
 
     return box->_spacing;
+}
+
+ntg_box_orientation ntg_box_get_orientation(ntg_box* box)
+{
+    return box->_orientation;
+}
+
+void ntg_box_set_orientation(ntg_box* box, ntg_box_orientation orientation)
+{
+    box->_orientation = orientation;
+}
+
+ntg_box_alignment ntg_box_get_primary_alignment(ntg_box* box)
+{
+    return box->_primary_alignment;
+}
+
+void ntg_box_set_primary_alignment(ntg_box* box, ntg_box_alignment alignment)
+{
+    box->_primary_alignment = alignment;
+}
+
+ntg_box_alignment ntg_box_get_secondary_alignment(ntg_box* box)
+{
+    return box->_secondary_alignment;
+}
+
+void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment)
+{
+    box->_secondary_alignment = alignment;
 }

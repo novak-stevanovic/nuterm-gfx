@@ -22,7 +22,6 @@ struct ntg_scene
 
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
-    ntg_log_log("Scene layout begin.");
     ntg_scene_drawing_set_size(&(scene->drawing), size);
     ntg_scene_engine_layout(scene->engine);
 }
@@ -93,9 +92,21 @@ ntg_object* ntg_scene_get_focused(const ntg_scene* scene)
     return scene->focused;
 }
 
-void ntg_scene_set_focused(ntg_scene* scene, ntg_object* object)
+void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
 {
     assert(scene != NULL);
 
-    scene->focused = object;
+    if(ntg_object_is_focusable(object))
+        scene->focused = object;
+}
+
+bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
+{
+    bool processed = false;
+    if(scene->root != NULL)
+    {
+        processed = ntg_object_feed_key_event(scene->root, key_event);
+    }
+
+    return processed;
 }

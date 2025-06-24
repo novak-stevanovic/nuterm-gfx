@@ -33,10 +33,8 @@ static inline struct ntg_box_padding ntg_box_padding(size_t north, size_t east,
         size_t south, size_t west)
 {
     return (struct ntg_box_padding) {
-        .north = north,
-        .east = east,
-        .south = south,
-        .west = west
+        .north = north, .east = east,
+        .south = south, .west = west
     };
 }
 
@@ -55,6 +53,15 @@ void ntg_box_remove_child(ntg_box* box, ntg_object* object);
 
 struct ntg_box_padding ntg_box_get_padding(const ntg_box* box);
 void ntg_box_set_padding(ntg_box* box, struct ntg_box_padding padding);
+
+ntg_box_orientation ntg_box_get_orientation(ntg_box* box);
+void ntg_box_set_orientation(ntg_box* box, ntg_box_orientation orientation);
+
+ntg_box_alignment ntg_box_get_primary_alignment(ntg_box* box);
+void ntg_box_set_primary_alignment(ntg_box* box, ntg_box_alignment alignment);
+
+ntg_box_alignment ntg_box_get_secondary_alignment(ntg_box* box);
+void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment);
 
 // size_t ntg_box_get_spacing(const ntg_box_t* box);
 // void ntg_box_set_spacing(ntg_box_t* box, size_t spacing);

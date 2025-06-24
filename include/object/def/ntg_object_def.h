@@ -67,7 +67,6 @@ struct ntg_xy _ntg_object_get_scroll_offset(const ntg_object* object);
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_process_key_fn process_key_fn);
-
 void _ntg_object_set_focusable(ntg_object* object,
         bool focusable);
 
