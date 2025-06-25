@@ -8,6 +8,10 @@
 #include "nt.h"
 #include "core/ntg_scene_drawing.h"
 
+static ntg_stage_process_key_event_fn _on_key_event_fn;
+static ntg_stage_process_resize_event_fn _on_resize_event_fn;
+static ntg_stage_perform_render_fn _on_render_fn;
+
 static ntg_scene* _active_scene = NULL;
 
 #define NT_BUFF_CAP 50000
@@ -49,24 +53,15 @@ void ntg_stage_render()
         {
             it_cell = *(ntg_scene_drawing_at(drawing, ntg_xy(j, i)));
             nt_write_char_at(it_cell.codepoint, it_cell.gfx, j, i, NULL, NULL);
-            // nt_write_char_at(66, NT_GFX_DEFAULT, j, i, NULL, &_status);
         }
     }
     nt_buffer_disable(NT_BUFF_FLUSH);
 }
 
-void ntg_stage_feed_event(struct nt_event event)
+bool ntg_stage_feed_key_event(struct nt_key_event key_event)
 {
-    if(event.type == NT_EVENT_TYPE_KEY)
-    {
-        bool processed = false;
-        if(_active_scene != NULL)
-        {
-            processed = ntg_scene_feed_key_event(_active_scene, event.key_data
-        }
-    }
-    else if(event.type == NT_EVENT_TYPE_RESIZE)
-    {
-    }
 }
 
+void ntg_stage_feed_resize_event(struct nt_resize_event resize_event)
+{
+}

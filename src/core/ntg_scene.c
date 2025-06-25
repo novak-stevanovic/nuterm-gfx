@@ -8,22 +8,12 @@
 #include "shared/ntg_log.h"
 #include "shared/ntg_xy.h"
 
-struct ntg_scene
-{
-    ntg_object* root;
-    ntg_scene_drawing drawing;
-
-    ntg_scene_engine* engine;
-
-    ntg_object* focused;
-};
-
 /* -------------------------------------------------------------------------- */
 
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
-    ntg_scene_drawing_set_size(&(scene->drawing), size);
-    ntg_scene_engine_layout(scene->engine);
+    ntg_scene_drawing_set_size(&(scene->_drawing), size);
+    ntg_scene_engine_layout(scene->_engine);
 }
 
 ntg_scene* ntg_scene_new()
@@ -32,18 +22,18 @@ ntg_scene* ntg_scene_new()
 
     if(new == NULL) return NULL;
 
-    __ntg_scene_drawing_init__(&new->drawing);
+    __ntg_scene_drawing_init__(&new->_drawing);
 
-    new->engine = ntg_scene_engine_new(new);
-    if(new->engine == NULL)
+    new->_engine = ntg_scene_engine_new(new);
+    if(new->_engine == NULL)
     {
-        __ntg_scene_drawing_deinit__(&new->drawing);
+        __ntg_scene_drawing_deinit__(&new->_drawing);
         free(new);
         return NULL;
     }
 
-    new->root = NULL;
-    new->focused = NULL;
+    new->_root = NULL;
+    new->_focused = NULL;
 
     return new;
 }
@@ -52,44 +42,44 @@ void ntg_scene_destroy(ntg_scene* scene)
 {
     if(scene == NULL) return;
 
-    __ntg_scene_drawing_deinit__(&scene->drawing);
-    ntg_scene_engine_destroy(scene->engine);
+    __ntg_scene_drawing_deinit__(&scene->_drawing);
+    ntg_scene_engine_destroy(scene->_engine);
     
     free(scene);
 }
 
 ntg_object* ntg_scene_get_root(const ntg_scene* scene)
 {
-    return (scene != NULL) ? scene->root : NULL;
+    return (scene != NULL) ? scene->_root : NULL;
 }
 
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* new_root)
 {
     if(scene == NULL) return;
 
-    if(scene->root != NULL)
-        _ntg_object_set_scene(scene->root, NULL);
+    if(scene->_root != NULL)
+        _ntg_object_set_scene(scene->_root, NULL);
     
-    scene->root = new_root;
+    scene->_root = new_root;
     _ntg_object_set_scene(new_root, scene);
     // TODO
 }
 
 const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene)
 {
-    return (scene != NULL) ? &scene->drawing : NULL;
+    return (scene != NULL) ? &scene->_drawing : NULL;
 }
 
 ntg_scene_drawing* _ntg_scene_get_drawing(ntg_scene* scene)
 {
-    return (scene != NULL) ? &scene->drawing : NULL;
+    return (scene != NULL) ? &scene->_drawing : NULL;
 }
 
 ntg_object* ntg_scene_get_focused(const ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    return scene->focused;
+    return scene->_focused;
 }
 
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
@@ -97,15 +87,15 @@ void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
     assert(scene != NULL);
 
     if(ntg_object_is_focusable(object))
-        scene->focused = object;
+        scene->_focused = object;
 }
 
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
 {
     bool processed = false;
-    if(scene->root != NULL)
+    if(scene->_root != NULL)
     {
-        processed = ntg_object_feed_key_event(scene->root, key_event);
+        processed = ntg_object_feed_key_event(scene->_root, key_event);
     }
 
     return processed;

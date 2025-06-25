@@ -247,23 +247,6 @@ void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
     _ntg_object_perform_tree(child, __adjust_scene_fn, NULL);
 }
 
-
-void _ntg_object_set_process_key_fn(ntg_object* object,
-        ntg_process_key_fn process_key_fn)
-{
-    assert(object != NULL);
-
-    object->__process_key_fn = process_key_fn;
-}
-
-void _ntg_object_set_focusable(ntg_object* object,
-        bool focusable)
-{
-    assert(object != NULL);
-
-    object->_focusable = focusable;
-}
-
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),
         void* data)

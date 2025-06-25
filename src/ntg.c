@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "ntg.h"
+#include "base/ntg_event.h"
 #include "core/ntg_stage.h"
 #include "shared/_ntg_shared.h"
 #include "pthread.h"
@@ -9,9 +10,6 @@
 
 #include "object/ntg_color_block.h"
 #include "shared/ntg_log.h"
-
-// TODO: remove
-#include "object/def/ntg_object_def.h"
 
 extern ntg_color_block* cb1;
 extern ntg_object* _cb1;
@@ -23,12 +21,12 @@ static bool _launched = false;
 static void (*_gui_fn)(void* data) = NULL; 
 static void* _gui_fn_data = NULL;
 
-#define FRAMERATE_DEFAULT 60
-static uint _framerate;
-
-#define TIMEOUT(fps) (1000.0 / fps)
+static bool _loop = false;
 
 static void* _ntg_thread_func(void* data);
+
+static ntg_event* _key_event = NULL;
+static ntg_event* _resize_event = NULL;
 
 /* -------------------------------------------------------------------------- */
 
@@ -40,7 +38,6 @@ void ntg_initialize(ntg_gui_fn gui_fn, void* data)
 
     _gui_fn = gui_fn;
     _gui_fn_data = data;
-    _framerate = FRAMERATE_DEFAULT;
 
     nt_status _status;
     __nt_init__(&_status);
@@ -82,51 +79,31 @@ void* ntg_destroy()
     return _data;
 }
 
-void ntg_set_framerate(uint framerate)
-{
-    if(!_launched)
-        _framerate = framerate;
-    else assert(0);
-}
-
 /* -------------------------------------------------------------------------- */
 
-void ntg_loop()
+void ntg_loop(uint framerate)
 {
     nt_status _status;
     struct nt_event event;
-    uint timeout = TIMEOUT(_framerate);
-    bool loop = true;
-    while(loop)
+    uint timeout = NTG_WAIT_TIMEOUT(framerate); 
+    _loop = true;
+    while(_loop)
     {
         event = nt_wait_for_event(timeout, &_status);
 
-        timeout = TIMEOUT(_framerate) - event.elapsed;
+        timeout = NTG_WAIT_TIMEOUT(framerate) - event.elapsed;
 
-        if(event.type == NT_EVENT_TYPE_KEY)
+        switch(event.type)
         {
-            bool processed = _ntg_stage_process_key_evnet(event.key_data);
-
-            if(!processed)
-            {
-                if(event.key_data.type == NT_KEY_EVENT_UTF32)
-                {
-                    switch(event.key_data.utf32_data.codepoint)
-                    {
-                        case 'q':
-                            loop = false;
-                            break;
-                    }
-                }
-            }
-        }
-        else if(event.type == NT_EVENT_TYPE_RESIZE)
-        {
-            ntg_stage_feed_resize_event(event.resize_data);
-        }
-        else // TIMEOUT
-        {
-            ntg_stage_render();
+            case NT_EVENT_TYPE_KEY:
+                ntg_stage_feed_key_event(event.key_data);
+                break;
+            case NT_EVENT_TYPE_RESIZE:
+                ntg_stage_feed_resize_event(event.resize_data);
+                break;
+            case NT_EVENT_TYPE_TIMEOUT:
+                ntg_stage_render();
+                break;
         }
 
         assert(_status == NT_SUCCESS);

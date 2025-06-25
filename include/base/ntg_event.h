@@ -3,18 +3,28 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <sys/types.h>
 
-#include "shared/ntg_status.h"
+#include "base/ntg_event_sub_vec.h"
 
-#define NTG_EVENT_TYPE_DEFAULT 0
+typedef struct ntg_event
+{
+    uint _id;
+    uint _type;
+    void* _source;
+    void* _data;
+} ntg_event;
 
-typedef struct ntg_event ntg_event;
+typedef struct ntg_event_sub_delegate
+{
+    ntg_event_sub_vec __subs;
+} ntg_event_sub_delegate;
 
-typedef void (*ntg_event_handler_fn)(void* subscriber, ntg_event* event,
-        void* data);
+typedef struct ntg_event_delegate
+{
+    ntg_event_sub_delegate _sub_delegate;
+} ntg_event_delegate;
 
-typedef uint ntg_event_type;
+typedef void (*ntg_event_handler_fn)(void* subscriber, const ntg_event* event);
 
 /* Event subscriber */
 struct ntg_event_sub
@@ -23,19 +33,26 @@ struct ntg_event_sub
     void* subscriber;
 };
 
-ntg_event* ntg_event_create(ntg_event_type type, void* source);
-void ntg_event_destroy(ntg_event* event);
+void __ntg_event_init__(ntg_event* event, uint type, void* source, void* data);
+void __ntg_event_deinit__(ntg_event* event);
 
-void ntg_event_raise(ntg_event* event, void* data);
+/* -------------------------------------------------------------------------- */
 
-void ntg_event_subscribe(ntg_event* event, struct ntg_event_sub subscription,
-        ntg_status* out_status);
+void __ntg_event_sub_delegate_init__(ntg_event_sub_delegate* sub_delegate);
+void __ntg_event_sub_delegate_deinit__(ntg_event_sub_delegate* sub_delegate);
 
-void ntg_event_unsubscribe(ntg_event* event, const void* subscriber,
-        ntg_status* out_status);
+void ntg_event_sub_delegate_sub(ntg_event_sub_delegate* sub_delegate,
+        struct ntg_event_sub subscription);
+void ntg_event_sub_delegate_unsub(ntg_event_sub_delegate* sub_delegate,
+        void* subscriber);
+bool ntg_event_sub_delegate_is_sub(ntg_event_sub_delegate* sub_delegate,
+        void* subscriber);
 
-bool ntg_event_is_subscribed(const ntg_event* event, const void* subscriber);
-ntg_event_type ntg_event_get_type(const ntg_event* event);
-void* ntg_event_get_source(const ntg_event* event);
+/* -------------------------------------------------------------------------- */
+
+void __ntg_event_delegate_init__(ntg_event_delegate* delegate);
+void __ntg_event_delegate_deinit__(ntg_event_delegate* delegate);
+
+void ntg_event_delegate_raise(ntg_event_delegate* delegate, ntg_event* event);
 
 #endif // _NTG_EVENT_H_

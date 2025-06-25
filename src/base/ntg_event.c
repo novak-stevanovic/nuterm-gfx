@@ -3,73 +3,99 @@
 #include <assert.h>
 #include <stdlib.h>
 
-struct ntg_event
+static uint _id = 1;
+
+static void _ntg_event_sub_delegate_raise(ntg_event_sub_delegate* sub_delegate,
+        ntg_event* event);
+
+void __ntg_event_init__(ntg_event* event, uint type, void* source, void* data)
 {
-    ntg_event_type type;
-    void* source;
-    ntg_event_sub_vec subs;
-};
+    assert(event != NULL);
 
-ntg_event* ntg_event_create(ntg_event_type type, void* source)
+    event->_id = _id;
+    _id++;
+
+    event->_type = type;
+    event->_source = source;
+    assert(source != NULL); // TODO: ?
+    event->_data = data;
+}
+void __ntg_event_deinit__(ntg_event* event)
 {
-    ntg_event* new = (ntg_event*)malloc(sizeof(ntg_event));
-    if(new == NULL) return NULL;
-
-    new->type = type;
-    new->source = source;
-    __ntg_event_sub_vec_init__(&new->subs);
-
-    return new;
+    (*event) = (ntg_event) {0};
 }
 
-void ntg_event_destroy(ntg_event* event)
+/* -------------------------------------------------------------------------- */
+
+void __ntg_event_sub_delegate_init__(ntg_event_sub_delegate* sub_delegate)
 {
-    if(event == NULL) return;
+    assert(sub_delegate != NULL);
 
-    event->type = 0;
-    event->source = NULL;
-    __ntg_event_sub_vec_deinit__(&event->subs);
-
-    free(event);
+    __ntg_event_sub_vec_init__(&sub_delegate->__subs);
 }
 
-void ntg_event_raise(ntg_event* event, void* data)
+void __ntg_event_sub_delegate_deinit__(ntg_event_sub_delegate* sub_delegate)
 {
-    if(event == NULL) return;
+    assert(sub_delegate != NULL);
+
+    __ntg_event_sub_vec_deinit__(&sub_delegate->__subs);
+}
+
+void ntg_event_sub_delegate_sub(ntg_event_sub_delegate* sub_delegate,
+        struct ntg_event_sub subscription)
+
+{
+    assert(sub_delegate != NULL);
+
+    ntg_event_sub_vec_append(&sub_delegate->__subs, subscription);
+}
+
+void ntg_event_sub_delegate_unsub(ntg_event_sub_delegate* sub_delegate,
+        void* subscriber)
+{
+    ntg_event_sub_vec_remove_sub(&sub_delegate->__subs, subscriber);
+}
+
+bool ntg_event_sub_delegate_is_sub(ntg_event_sub_delegate* sub_delegate,
+        void* subscriber)
+{
+    ssize_t status = ntg_event_sub_vec_find_sub(&sub_delegate->__subs, subscriber);
+
+    return (status != -1);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void __ntg_event_delegate_init__(ntg_event_delegate* delegate)
+{
+    assert(delegate != NULL);
+
+    __ntg_event_sub_delegate_init__(&delegate->_sub_delegate);
+}
+
+void __ntg_event_delegate_deinit__(ntg_event_delegate* delegate)
+{
+    assert(delegate != NULL);
+
+    __ntg_event_sub_delegate_deinit__(&delegate->_sub_delegate);
+}
+
+void ntg_event_delegate_raise(ntg_event_delegate* delegate, ntg_event* event)
+{
+    _ntg_event_sub_delegate_raise(&delegate->_sub_delegate, event);
+}
+
+static void _ntg_event_sub_delegate_raise(ntg_event_sub_delegate* sub_delegate,
+        ntg_event* event)
+{
+    assert(sub_delegate != NULL);
 
     size_t i;
-    for(i = 0; i < event->subs._count; i++)
+    struct ntg_event_sub* it_sub;
+    for(i = 0; i < sub_delegate->__subs._count; i++)
     {
-        event->subs._data[i].handler(event->subs._data[i].subscriber,
-                event, data);
+        it_sub = &(sub_delegate->__subs._data[i]);
+
+        it_sub->handler(it_sub->subscriber, event);
     }
-}
-
-void ntg_event_subscribe(ntg_event* event, struct ntg_event_sub subscription,
-        ntg_status* out_status)
-{
-    ntg_event_sub_vec_append(&event->subs, subscription);
-}
-
-void ntg_event_unsubscribe(ntg_event* event, const void* subscriber,
-        ntg_status* out_status)
-{
-    ntg_event_sub_vec_remove_sub(&event->subs, subscriber);
-}
-
-bool ntg_event_is_subscribed(const ntg_event* event, const void* subscriber)
-{
-    if(subscriber == NULL) return false;
-
-    return (ntg_event_sub_vec_find_sub(&event->subs, subscriber) != -1);
-}
-
-ntg_event_type ntg_event_get_type(const ntg_event* event)
-{
-    return (event != NULL) ? event->type : 0;
-}
-
-void* ntg_event_get_source(const ntg_event* event)
-{
-    return (event != NULL) ? event->source : 0;
 }

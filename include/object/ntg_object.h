@@ -37,7 +37,7 @@ typedef void (*ntg_measure_fn)(ntg_object* object);
  * The object's final size is assumed to be set. */
 typedef void (*ntg_arrange_fn)(ntg_object* object);
 
-typedef bool (*ntg_process_key_fn)(ntg_object* object,
+typedef bool (*ntg_object_on_key_event_fn)(ntg_object* object,
         struct nt_key_event key_event);
 
 /* -------------------------------------------------------------------------- */

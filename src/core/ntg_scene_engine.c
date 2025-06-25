@@ -12,7 +12,7 @@
 
 struct ntg_scene_engine
 {
-    ntg_scene* scene;
+    ntg_scene* _scene;
 };
 
 static void _nsize_all(ntg_object* curr_obj)
@@ -130,7 +130,7 @@ ntg_scene_engine* ntg_scene_engine_new(ntg_scene* scene)
 
     if(new == NULL) return NULL;
 
-    new->scene = scene;
+    new->_scene = scene;
 
     return new;
 }
@@ -144,10 +144,10 @@ void ntg_scene_engine_destroy(ntg_scene_engine* engine)
 
 void ntg_scene_engine_layout(ntg_scene_engine* engine)
 {
-    ntg_object* root = ntg_scene_get_root(engine->scene);
+    ntg_object* root = ntg_scene_get_root(engine->_scene);
     if(root == NULL) return;
 
-    const ntg_scene_drawing* drawing = ntg_scene_get_drawing(engine->scene);
+    const ntg_scene_drawing* drawing = ntg_scene_get_drawing(engine->_scene);
     struct ntg_xy size = ntg_scene_drawing_get_size(drawing);
 
     ntg_object_layout_root(root, size);
@@ -156,5 +156,5 @@ void ntg_scene_engine_layout(ntg_scene_engine* engine)
     _constrain_all(root);
     _measure_all(root);
     _arrange_all(root);
-    _draw_all(root, _ntg_scene_get_drawing(engine->scene));
+    _draw_all(root, _ntg_scene_get_drawing(engine->_scene));
 }

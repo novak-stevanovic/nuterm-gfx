@@ -1,14 +1,29 @@
 #ifndef _NTG_SCENE_H_
 #define _NTG_SCENE_H_
 
+#include "core/ntg_scene_drawing.h"
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
 
+typedef struct ntg_object ntg_object;
+typedef struct ntg_scene_engine ntg_scene_engine;
 typedef struct ntg_scene ntg_scene;
 
-/* Forward declarations */
-typedef struct ntg_scene_drawing ntg_scene_drawing;
-typedef struct ntg_object ntg_object;
+typedef bool (*ntg_scene_on_key_event_fn)(ntg_scene* scene,
+        struct nt_key_event key_event);
+
+struct ntg_scene
+{
+    ntg_object* _root;
+    ntg_scene_drawing _drawing;
+
+    ntg_scene_engine* _engine;
+
+    ntg_object* _focused;
+};
+
+void __ntg_scene_init__();
+void __ntg_scene_deinit__();
 
 ntg_scene* ntg_scene_new();
 void ntg_scene_destroy(ntg_scene* scene);
