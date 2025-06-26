@@ -11,9 +11,6 @@
 #include "object/ntg_color_block.h"
 #include "shared/ntg_log.h"
 
-extern ntg_color_block* cb1;
-extern ntg_object* _cb1;
-
 /* -------------------------------------------------------------------------- */
 
 static pthread_t _ntg_thread;
@@ -28,10 +25,13 @@ static void* _ntg_thread_func(void* data);
 static ntg_event* _key_event = NULL;
 static ntg_event* _resize_event = NULL;
 
+static ntg_stage* _stage = NULL;
+
 /* -------------------------------------------------------------------------- */
 
-void ntg_initialize(ntg_gui_fn gui_fn, void* data)
+void ntg_initialize(ntg_stage* stage, ntg_gui_fn gui_fn, void* data)
 {
+    assert(stage != NULL);
     assert(gui_fn != NULL);
 
     __ntg_log_init__("ntg_log.txt");
@@ -50,8 +50,6 @@ void ntg_initialize(ntg_gui_fn gui_fn, void* data)
         default:
             assert(0);
     }
-
-    __ntg_stage_init__();
 }
 
 void ntg_launch()
@@ -71,8 +69,6 @@ void* ntg_destroy()
     nt_alt_screen_disable(NULL);
     nt_cursor_show(NULL);
     __nt_deinit__();
-
-    __ntg_stage_deinit__();
 
    // __ntg_log_deinit__();
 
@@ -96,13 +92,13 @@ void ntg_loop(uint framerate)
         switch(event.type)
         {
             case NT_EVENT_TYPE_KEY:
-                ntg_stage_feed_key_event(event.key_data);
+                ntg_stage_feed_key_event(_stage, event.key_data);
                 break;
             case NT_EVENT_TYPE_RESIZE:
-                ntg_stage_feed_resize_event(event.resize_data);
+                ntg_stage_feed_resize_event(_stage, event.resize_data);
                 break;
             case NT_EVENT_TYPE_TIMEOUT:
-                ntg_stage_render();
+                ntg_stage_render(_stage);
                 break;
         }
 

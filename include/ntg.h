@@ -6,9 +6,11 @@
 #include "nt_gfx.h"
 #include <sys/types.h>
 
+typedef struct ntg_stage ntg_stage;
+
 typedef void (*ntg_gui_fn)(void*);
 
-void ntg_initialize(ntg_gui_fn gui_fn, void* data);
+void ntg_initialize(ntg_stage* stage, ntg_gui_fn gui_fn, void* data);
 
 void ntg_launch();
 

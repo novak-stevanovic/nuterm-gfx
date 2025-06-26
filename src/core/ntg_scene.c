@@ -100,3 +100,7 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
 
     return processed;
 }
+
+void ntg_scene_feed_resize_event(ntg_scene* scene, struct nt_resize_event resize_event)
+{
+}
