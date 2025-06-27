@@ -1,7 +1,6 @@
 #ifndef _NTG_H_
 #define _NTG_H_
 
-#include "shared/ntg_status.h"
 #include "nt_shared.h"
 #include "nt_gfx.h"
 #include <sys/types.h>
@@ -20,8 +19,11 @@ void ntg_launch();
 void ntg_loop(uint framerate);
 void ntg_loop_break();
 
-/* This function returns the return value of `gui_fn` passed in
+/* TODO: (?) This function returns the return value of `gui_fn` passed in
  * nui_launch(). */
 void* ntg_destroy();
+
+struct ntg_xy ntg_get_size();
+ntg_stage* ntg_get_stage();
 
 #endif // _NTG_H_

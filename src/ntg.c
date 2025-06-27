@@ -2,16 +2,15 @@
 #include <stdio.h>
 
 #include "ntg.h"
-#include "base/ntg_event.h"
 #include "core/ntg_stage.h"
-#include "shared/_ntg_shared.h"
 #include "pthread.h"
 #include "nt.h"
 
-#include "object/ntg_color_block.h"
 #include "shared/ntg_log.h"
 
 /* -------------------------------------------------------------------------- */
+
+static struct ntg_xy _app_size = NTG_XY_UNSET;
 
 static pthread_t _ntg_thread;
 static bool _launched = false;
@@ -21,9 +20,6 @@ static void* _gui_fn_data = NULL;
 static bool _loop = false;
 
 static void* _ntg_thread_func(void* data);
-
-static ntg_event* _key_event = NULL;
-static ntg_event* _resize_event = NULL;
 
 static ntg_stage* _stage = NULL;
 
@@ -38,6 +34,7 @@ void ntg_initialize(ntg_stage* stage, ntg_gui_fn gui_fn, void* data)
 
     _gui_fn = gui_fn;
     _gui_fn_data = data;
+    _stage = stage;
 
     nt_status _status;
     __nt_init__(&_status);
@@ -50,6 +47,10 @@ void ntg_initialize(ntg_stage* stage, ntg_gui_fn gui_fn, void* data)
         default:
             assert(0);
     }
+
+    size_t _width, _height;
+    nt_get_term_size(&_width, &_height);
+    _app_size = ntg_xy(_width, _height);
 }
 
 void ntg_launch()
@@ -75,6 +76,11 @@ void* ntg_destroy()
     return _data;
 }
 
+struct ntg_xy ntg_get_size()
+{
+    return _app_size;
+}
+
 /* -------------------------------------------------------------------------- */
 
 void ntg_loop(uint framerate)
@@ -89,16 +95,21 @@ void ntg_loop(uint framerate)
 
         timeout = NTG_WAIT_TIMEOUT(framerate) - event.elapsed;
 
+        size_t _width, _height;
+        ntg_stage_status status;
         switch(event.type)
         {
             case NT_EVENT_TYPE_KEY:
-                ntg_stage_feed_key_event(_stage, event.key_data);
+                status = ntg_stage_feed_key_event(_stage, event.key_data);
+                if(status == NTG_STAGE_QUIT)
+                    _loop = false;
                 break;
             case NT_EVENT_TYPE_RESIZE:
-                ntg_stage_feed_resize_event(_stage, event.resize_data);
+                nt_get_term_size(&_width, &_height);
+                _app_size = ntg_xy(_width, _height);
                 break;
             case NT_EVENT_TYPE_TIMEOUT:
-                ntg_stage_render(_stage);
+                ntg_stage_render(_stage, _app_size);
                 break;
         }
 
@@ -114,4 +125,9 @@ static void* _ntg_thread_func(void* data)
     _gui_fn(_gui_fn_data);
 
     return NULL;
+}
+
+ntg_stage* ntg_get_stage()
+{
+    return _stage;
 }

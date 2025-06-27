@@ -37,16 +37,19 @@ typedef void (*ntg_measure_fn)(ntg_object* object);
  * The object's final size is assumed to be set. */
 typedef void (*ntg_arrange_fn)(ntg_object* object);
 
-typedef bool (*ntg_object_on_key_event_fn)(ntg_object* object,
+/* Returns whether the key has been processed(true) or ignored(false). */
+typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event);
 
 /* -------------------------------------------------------------------------- */
+
+#define NTG_OBJECT(obj_ptr) ((ntg_object*)(obj_ptr))
 
 ntg_object* ntg_object_get_parent(ntg_object* object);
 
 const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 
-/* Sets root's constraints, position and. */
+/* Sets root's constraints and position. */
 void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size);
 
 /* Calculates and sets the natural size of `object`. 
@@ -87,7 +90,7 @@ bool ntg_object_is_focusable(const ntg_object* object);
 
 ntg_scene* ntg_object_get_scene(const ntg_object* object);
 
-/* Called internally by ntg_scene */
+/* Called internally by ntg_scene when root changes. */
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */

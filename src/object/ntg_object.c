@@ -10,16 +10,18 @@
 #include "object/def/ntg_object_def.h"
 #undef __NTG_ALLOW_NTG_OBJECT_DEF__
 
-static void __process_key_fn(ntg_object* object, struct nt_key_event key_event)
+static bool __process_key_fn(ntg_object* object, struct nt_key_event key_event)
 {
     ntg_log_log("KEY EVENT FOR OBJECT: %p", object);
+
+    return true;
 }
 
 /* -------------------------------------------------------------------------- */
 /* def/ntg_object_def.h */
 /* -------------------------------------------------------------------------- */
 
-static inline void _ntg_object_init_default(ntg_object* object)
+static void _ntg_object_init_default(ntg_object* object)
 {
     object->_parent = NULL;
     object->_children = NULL;
@@ -38,7 +40,9 @@ static inline void _ntg_object_init_default(ntg_object* object)
     object->__measure_fn = NULL;
     object->__constrain_fn = NULL;
     object->__nsize_fn = NULL;
-    object->__process_key_fn = NULL;
+
+    // TODO
+    object->__process_key_fn = __process_key_fn;
 
     object->_focusable = false;
     object->_scene = NULL;
@@ -247,6 +251,21 @@ void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
     _ntg_object_perform_tree(child, __adjust_scene_fn, NULL);
 }
 
+void _ntg_object_set_focusable(ntg_object* object, bool focusable)
+{
+    assert(object != NULL);
+
+    object->_focusable = focusable;
+}
+
+void _ntg_object_set_process_key_fn(ntg_object* object,
+        ntg_object_process_key_fn process_key_fn)
+{
+    assert(object != NULL);
+
+    object->__process_key_fn = process_key_fn;
+}
+
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),
         void* data)
@@ -394,6 +413,13 @@ bool ntg_object_is_focusable(const ntg_object* object)
     assert(object != NULL);
 
     return object->_focusable;
+}
+
+ntg_scene* ntg_object_get_scene(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return (object->_scene);
 }
 
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene)

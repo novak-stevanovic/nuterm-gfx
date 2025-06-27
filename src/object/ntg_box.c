@@ -10,7 +10,8 @@
 /* pa - primary axis
  * sa - secondary axis */
 
-static bool __process_key_fn(ntg_object* _box, struct nt_key_event key_event)
+static bool __process_key_fn(ntg_object* _box,
+        struct nt_key_event key_event)
 {
     ntg_box* box = (ntg_box*)_box;
 
@@ -25,13 +26,13 @@ static bool __process_key_fn(ntg_object* _box, struct nt_key_event key_event)
                 ntg_box_set_orientation(box, NTG_BOX_ORIENTATION_VERTICAL);
                 return true;
             case 'a':
-                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_0);
+                ntg_box_set_secondary_alignment(box, NTG_BOX_ALIGNMENT_0);
                 return true;
             case 'b':
-                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_1);
+                ntg_box_set_secondary_alignment(box, NTG_BOX_ALIGNMENT_1);
                 return true;
             case 'c':
-                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_2);
+                ntg_box_set_secondary_alignment(box, NTG_BOX_ALIGNMENT_2);
                 return true;
         }
     }
