@@ -1,5 +1,4 @@
 #include "base/ntg_cell.h"
-#include "object/def/ntg_container_def.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "object/ntg_object.h"
@@ -11,7 +10,7 @@ static void __arrange_fn(ntg_object* object)
 
     ntg_container* container = (ntg_container*)object;
 
-    ntg_object_drawing* drawing = _ntg_object_get_drawing_(object);
+    ntg_object_drawing* drawing = object->_drawing;
     struct ntg_xy size = ntg_object_drawing_get_size(drawing);
 
     size_t i, j;
@@ -23,7 +22,7 @@ static void __arrange_fn(ntg_object* object)
             it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i));
 
             (*it_cell) = ntg_cell_full(NTG_CELL_EMPTY,
-                    NT_COLOR_DEFAULT, container->_bg, NT_STYLE_DEFAULT);
+                    NT_COLOR_DEFAULT, container->__bg, NT_STYLE_DEFAULT);
         }
     }
 }
@@ -35,7 +34,7 @@ void __ntg_container_init__(ntg_container* container,
 {
     ntg_object* _container = (ntg_object*)container;
 
-    container->_bg = NT_COLOR_DEFAULT;
+    container->__bg = NT_COLOR_DEFAULT;
     container->__arrange_children_fn = arrange_fn;
 
     __ntg_object_init__(_container, nsize_fn, constrain_fn, measure_fn,
@@ -44,7 +43,7 @@ void __ntg_container_init__(ntg_container* container,
 
 void __ntg_container_deinit__(ntg_container* container)
 {
-    container->_bg = NT_COLOR_DEFAULT;
+    container->__bg = NT_COLOR_DEFAULT;
 
     __ntg_object_deinit__((ntg_object*)container);
 }
@@ -63,5 +62,5 @@ void _ntg_container_set_bg(ntg_container* container, nt_color bg)
 {
     if(container == NULL) return;
 
-    container->_bg = bg;
+    container->__bg = bg;
 }

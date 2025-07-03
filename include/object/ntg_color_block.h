@@ -2,8 +2,19 @@
 #define _NTG_COLOR_BLOCK_H_
 
 #include "nt_gfx.h"
+#include "object/ntg_pane.h"
 
 typedef struct ntg_color_block ntg_color_block;
+
+struct ntg_color_block
+{
+    ntg_pane _base;
+
+    nt_color __color;
+};
+
+void __ntg_color_block_init__(ntg_color_block* block);
+void __ntg_color_block_deinit__(ntg_color_block* block);
 
 ntg_color_block* ntg_color_block_new(nt_color color);
 void ntg_color_block_destroy(ntg_color_block* block);

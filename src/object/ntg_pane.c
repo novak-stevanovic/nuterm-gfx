@@ -1,5 +1,4 @@
-#include "object/def/ntg_pane_def.h"
-#include "object/shared/ntg_object_drawing.h"
+#include "object/ntg_pane.h"
 
 void __ntg_pane_init__(ntg_pane* pane, ntg_nsize_fn nsize_fn,
         ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn)

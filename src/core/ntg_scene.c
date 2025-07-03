@@ -62,7 +62,7 @@ void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
     assert(scene != NULL);
     
     if(object != NULL)
-        assert(scene == ntg_object_get_scene(object));
+        assert(scene == object->_scene);
 
     scene->_focused = object;
 }

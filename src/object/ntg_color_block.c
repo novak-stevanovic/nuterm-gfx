@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "base/ntg_cell.h"
-#include "object/def/ntg_color_block_def.h"
 #include "object/ntg_object.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "shared/ntg_log.h"
@@ -10,7 +9,7 @@ static void __measure_fn(ntg_object* _block)
 {
     if(_block == NULL) return;
 
-    struct ntg_xy size = ntg_object_get_constr(_block).min_size;
+    struct ntg_xy size = _block->_constr.min_size;
 
     ntg_xy_size(&size);
 
@@ -22,7 +21,7 @@ static void __arrange_fn(ntg_object* _block)
     if(_block == NULL) return;
     ntg_color_block* block = (ntg_color_block*)_block;
 
-    ntg_object_drawing* drawing = _ntg_object_get_drawing_(_block);
+    ntg_object_drawing* drawing = _block->_drawing;
     struct ntg_xy size = ntg_object_drawing_get_size(drawing);
     ntg_xy_size(&size);
     size_t i, j;
@@ -47,7 +46,7 @@ static void __arrange_fn(ntg_object* _block)
 
 static void __nsize_fn(ntg_object* _block)
 {
-    struct ntg_xy size = ntg_object_get_pref_size(_block);
+    struct ntg_xy size = _block->_pref_size;
     ntg_xy_size(&size);
     _ntg_object_set_nsize(_block, size);
 }

@@ -1,7 +1,11 @@
 #ifndef _NTG_BOX_H_
 #define _NTG_BOX_H_
 
-#include "object/ntg_object.h"
+#include "object/ntg_container.h"
+
+/* -------------------------------------------------------------------------- */
+/* PUBLIC */
+/* -------------------------------------------------------------------------- */
 
 typedef enum ntg_box_orientation
 { 
@@ -29,18 +33,16 @@ struct ntg_box_padding
     size_t north, east, south, west;
 };
 
-static inline struct ntg_box_padding ntg_box_padding(size_t north, size_t east,
-        size_t south, size_t west)
-{
-    return (struct ntg_box_padding) {
-        .north = north, .east = east,
-        .south = south, .west = west
-    };
-}
-
 static const struct ntg_box_padding NTG_BOX_PADDING_UNSET = {0};
 
 typedef struct ntg_box ntg_box;
+
+void __ntg_box_init__(ntg_box* box,
+        ntg_box_orientation orientation,
+        ntg_box_alignment primary_alignment,
+        ntg_box_alignment secondary_alignment);
+
+void __ntg_box_deinit__(ntg_box* box);
 
 ntg_box* ntg_box_new(ntg_box_orientation orientation,
         ntg_box_alignment primary_alignment,
@@ -51,19 +53,40 @@ void ntg_box_destroy(ntg_box* box);
 void ntg_box_add_child(ntg_box* box, ntg_object* object);
 void ntg_box_remove_child(ntg_box* box, ntg_object* object);
 
-struct ntg_box_padding ntg_box_get_padding(const ntg_box* box);
 void ntg_box_set_padding(ntg_box* box, struct ntg_box_padding padding);
-
-ntg_box_orientation ntg_box_get_orientation(ntg_box* box);
 void ntg_box_set_orientation(ntg_box* box, ntg_box_orientation orientation);
-
-ntg_box_alignment ntg_box_get_primary_alignment(ntg_box* box);
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_box_alignment alignment);
-
-ntg_box_alignment ntg_box_get_secondary_alignment(ntg_box* box);
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment);
 
-// size_t ntg_box_get_spacing(const ntg_box_t* box);
-// void ntg_box_set_spacing(ntg_box_t* box, size_t spacing);
+/* -------------------------------------------------------------------------- */
+/* INTERNAL */
+/* -------------------------------------------------------------------------- */
+
+// TODO
+#define NTG_BOX_MAX_CHILDREN 50
+
+struct ntg_box
+{
+    ntg_container __base;
+
+    ntg_box_orientation _orientation;
+    ntg_box_alignment _primary_alignment, _secondary_alignment;
+
+    struct ntg_box_padding _pref_padding;
+
+    /* Cached - initialized in nsize phase -------------- */
+
+    struct ntg_xy __children_nsize; // children natural size
+
+    /* Cached - initialized in constrain phase ---------- */
+
+    struct ntg_box_padding __padding; // applied padding
+    struct ntg_constr __content_constr; // content constraints
+
+    /* Cached - initialized in measure phase ------------ */
+
+    struct ntg_xy __content_size; // size of rectangle containing children
+    struct ntg_xy  __content_box_size; // size - padding_size
+};
 
 #endif // _NTG_BOX_H
