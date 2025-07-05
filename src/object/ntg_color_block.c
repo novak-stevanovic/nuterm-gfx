@@ -5,6 +5,44 @@
 #include "shared/ntg_log.h"
 #include "object/ntg_color_block.h"
 
+bool __process_key_fn(ntg_object* _cb, struct nt_key_event key_event)
+{
+    if(key_event.type != NT_KEY_EVENT_UTF32) return false;
+
+    ntg_color_block* cb = (ntg_color_block*)_cb;
+
+    switch(key_event.utf32_data.codepoint)
+    {
+        case 'b':
+            cb->__color = nt_color_new(0, 0, 255);
+            return true;
+        case 'g':
+            cb->__color = nt_color_new(0, 255, 0);
+            return true;
+        case 'r':
+            cb->__color = nt_color_new(255, 0, 0);
+            return true;
+        case 'w':
+            _ntg_object_scroll_enable(_cb);
+            _ntg_object_scroll(_cb, ntg_dxy(0, -1));
+            return true;
+        case 'a':
+            _ntg_object_scroll_enable(_cb);
+            _ntg_object_scroll(_cb, ntg_dxy(-1, 0));
+            return true;
+        case 's':
+            _ntg_object_scroll_enable(_cb);
+            _ntg_object_scroll(_cb, ntg_dxy(0, 1));
+            return true;
+        case 'd':
+            _ntg_object_scroll_enable(_cb);
+            _ntg_object_scroll(_cb, ntg_dxy(1, 0));
+            return true;
+        default:
+            return false;
+    }
+}
+
 static void __measure_fn(ntg_object* _block)
 {
     if(_block == NULL) return;
@@ -56,6 +94,8 @@ void __ntg_color_block_init__(ntg_color_block* block)
     __ntg_pane_init__((ntg_pane*)block, __nsize_fn, __measure_fn, __arrange_fn);
 
     block->__color = NT_COLOR_DEFAULT;
+
+    _ntg_object_set_process_key_fn((ntg_object*)block, __process_key_fn);
 }
 
 void __ntg_color_block_deinit__(ntg_color_block* block)

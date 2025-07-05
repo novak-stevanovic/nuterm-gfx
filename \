@@ -51,10 +51,7 @@ void ntg_object_drawing_scroll(ntg_object_drawing* drawing,
             vp_offset_diff,
             ntg_dxy_from_xy(drawing->__vp_offset));
 
-    struct ntg_xy total_xy = ntg_xy_from_dxy(
-            ntg_dxy_clamp(ntg_dxy(0, 0), total, NTG_DXY_MAX));
-
-    ntg_object_drawing_set_vp_offset(drawing, total_xy);
+    struct ntg_dxy total_fixed = ntg_dxy_clamp(NTG_DXY_MIN, total, NTG_DXY_MAX);
 }
 
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)

@@ -76,7 +76,7 @@ void init_gui_func(void* data)
     ntg_scene_set_root(_scene1, _box1);
     ntg_stage_set_scene(_main_stage, _scene1);
 
-    ntg_scene_focus(_scene1, _box2);
+    ntg_scene_focus(_scene1, _cb1);
     ntg_loop(NTG_FRAMERATE_DEFAULT);
 
     ntg_color_block_destroy(cb1);

@@ -85,12 +85,9 @@ struct ntg_object
     ntg_object* _parent;
     ntg_object_vec* _children;
 
-    struct
-    {
-        bool __scroll;
-        struct ntg_xy __pref_scroll_offset;
-        ntg_object_drawing* _drawing;
-    };
+    bool __scroll;
+    struct ntg_dxy __buffered_scroll; // buffered until object is remeasured
+    ntg_object_drawing* _drawing;
 
     struct ntg_xy _pref_size;
     struct ntg_xy _nsize;
@@ -126,9 +123,8 @@ void _ntg_object_child_remove(ntg_object* parent, ntg_object* child);
 
 void _ntg_object_scroll_enable(ntg_object* object);
 void _ntg_object_scroll_disable(ntg_object* object);
-void _ntg_object_set_pref_scroll_offset(ntg_object* object,
-        struct ntg_xy offset);
 void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff);
+struct ntg_xy _ntg_object_get_scroll(const ntg_object* object);
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn);

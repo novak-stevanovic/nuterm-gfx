@@ -17,15 +17,29 @@ void __ntg_object_drawing_deinit__(ntg_object_drawing* drawing);
 ntg_object_drawing* ntg_object_drawing_new();
 void ntg_object_drawing_destroy(ntg_object_drawing* drawing);
 
+/* Adds vp_offset_diff to vp_offset and calls
+ * ntg_object_drawing_set_vp_offset() */
+void ntg_object_drawing_scroll(ntg_object_drawing* drawing,
+        struct ntg_dxy vp_offset_diff);
+
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing);
+
+/* Sets size of drawing. Calculate new max vp_size and if different than current
+ * vp_size, call ntg_object_drawing ntg_object_drawing_set_vp_size(). */
 void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
         struct ntg_xy size);
 
 struct ntg_xy ntg_object_drawing_get_vp_offset(const ntg_object_drawing* drawing);
+
+/* Sets vp_offset. New vp_offset + vp_size must not be greater than the drawing's
+ * size. */
 void ntg_object_drawing_set_vp_offset(ntg_object_drawing* drawing,
         struct ntg_xy vp_offset);
 
 struct ntg_xy ntg_object_drawing_get_vp_size(const ntg_object_drawing* drawing);
+
+/* Sets vp_size. Asserts that new vp_size < drawing's size.
+ * If vp_offset + new vp_size > size, shrink the offset */
 void ntg_object_drawing_set_vp_size(ntg_object_drawing* drawing,
         struct ntg_xy size);
 
