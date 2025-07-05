@@ -28,7 +28,7 @@ bool ntg_scene_process_key_fn_def(ntg_scene* scene,
     assert(scene != NULL);
 
     if(scene->_focused != NULL)
-        return ntg_object_feed_key_event(scene->_focused, key_event);
+        return ntg_object_feed_key(scene->_focused, key_event);
     else
         return false;
 }

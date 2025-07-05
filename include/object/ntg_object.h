@@ -71,7 +71,7 @@ struct ntg_xy ntg_object_get_content_pos(const ntg_object* object);
 
 struct ntg_xy ntg_object_get_content_size(const ntg_object* object);
 
-bool ntg_object_feed_key_event(ntg_object* object, struct nt_key_event key_event);
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
 
 /* Called internally by ntg_scene when root changes. */
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene);

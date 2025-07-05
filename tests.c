@@ -1,5 +1,5 @@
-#include "core/ntg_br_stage.h"
-#include "core/ntg_sl_scene.h"
+#include "core/ntg_simple_stage.h"
+#include "core/ntg_simple_scene.h"
 #include "core/ntg_stage.h"
 #include "ntg.h"
 #include "core/ntg_scene.h"
@@ -71,7 +71,7 @@ void init_gui_func(void* data)
     _ntg_container_set_bg((ntg_container*)box1, nt_color_new(122, 122, 122));
     _ntg_container_set_bg((ntg_container*)box2, nt_color_new(255, 255, 255));
 
-    ntg_sl_scene* scene1 = ntg_sl_scene_new(ntg_scene_process_key_fn_def);
+    ntg_simple_scene* scene1 = ntg_simple_scene_new(ntg_scene_process_key_fn_def);
     ntg_scene* _scene1 = (ntg_scene*)scene1;
     ntg_scene_set_root(_scene1, _box1);
     ntg_stage_set_scene(_main_stage, _scene1);
@@ -85,13 +85,13 @@ void init_gui_func(void* data)
     ntg_color_block_destroy(cb4);
     ntg_box_destroy(box1);
     ntg_box_destroy(box2);
-    ntg_sl_scene_destroy(scene1);
+    ntg_simple_scene_destroy(scene1);
     return;
 }
 
 int main(int argc, char *argv[])
 {
-    ntg_br_stage* main_stage = ntg_br_stage_new(ntg_stage_process_key_fn_def);
+    ntg_simple_stage* main_stage = ntg_simple_stage_new(ntg_stage_process_key_fn_def);
     ntg_initialize((ntg_stage*)main_stage, init_gui_func, NULL);
     
     ntg_launch();

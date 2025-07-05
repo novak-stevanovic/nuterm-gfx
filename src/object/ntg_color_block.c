@@ -91,11 +91,11 @@ static void __nsize_fn(ntg_object* _block)
 
 void __ntg_color_block_init__(ntg_color_block* block)
 {
-    __ntg_pane_init__((ntg_pane*)block, __nsize_fn, __measure_fn, __arrange_fn);
+    __ntg_pane_init__(NTG_PANE(block), __nsize_fn, __measure_fn, __arrange_fn);
+
+    _ntg_object_set_process_key_fn(NTG_OBJECT(block), __process_key_fn);
 
     block->__color = NT_COLOR_DEFAULT;
-
-    _ntg_object_set_process_key_fn((ntg_object*)block, __process_key_fn);
 }
 
 void __ntg_color_block_deinit__(ntg_color_block* block)

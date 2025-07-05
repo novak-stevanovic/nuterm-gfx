@@ -1,4 +1,4 @@
-#include "core/ntg_sl_scene.h"
+#include "core/ntg_simple_scene.h"
 #include "object/ntg_object.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
@@ -7,7 +7,7 @@
 
 static void __layout_fn(ntg_scene* _scene, struct ntg_xy size);
 
-void __ntg_sl_scene_init__(ntg_sl_scene* scene,
+void __ntg_simple_scene_init__(ntg_simple_scene* scene,
         ntg_scene_process_key_fn process_key_fn)
 {
     assert(scene != NULL);
@@ -16,36 +16,38 @@ void __ntg_sl_scene_init__(ntg_sl_scene* scene,
     __ntg_scene_init__((ntg_scene*)scene, process_key_fn, __layout_fn);
 }
 
-void __ntg_sl_scene_deinit__(ntg_sl_scene* scene)
+void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
 {
     assert(scene != NULL);
 
     __ntg_scene_deinit__((ntg_scene*)scene);
 }
 
-ntg_sl_scene* ntg_sl_scene_new(ntg_scene_process_key_fn process_key_fn)
+ntg_simple_scene* ntg_simple_scene_new(ntg_scene_process_key_fn process_key_fn)
 {
     assert(process_key_fn != NULL);
 
-    ntg_sl_scene* new = (ntg_sl_scene*)malloc(sizeof(struct ntg_sl_scene));
+    ntg_simple_scene* new = (ntg_simple_scene*)malloc(
+            sizeof(struct ntg_simple_scene));
+
     assert(new != NULL);
 
-    __ntg_sl_scene_init__(new, process_key_fn);
+    __ntg_simple_scene_init__(new, process_key_fn);
 
     return new;
 }
 
-void ntg_sl_scene_destroy(ntg_sl_scene* scene)
+void ntg_simple_scene_destroy(ntg_simple_scene* scene)
 {
     assert(scene != NULL);
 
-    __ntg_sl_scene_deinit__(scene);
+    __ntg_simple_scene_deinit__(scene);
     free(scene);
 }
 
 /* -------------------------------------------------------------------------- */
 
-static void _nsize_all(ntg_object* curr_obj, ntg_sl_scene* scene)
+static void _nsize_all(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -62,7 +64,7 @@ static void _nsize_all(ntg_object* curr_obj, ntg_sl_scene* scene)
     ntg_object_calculate_nsize(curr_obj);
 }
 
-static void _constrain_all(ntg_object* curr_obj, ntg_sl_scene* scene)
+static void _constrain_all(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -78,7 +80,7 @@ static void _constrain_all(ntg_object* curr_obj, ntg_sl_scene* scene)
     }
 }
 
-static void _measure_all(ntg_object* curr_obj, ntg_sl_scene* scene)
+static void _measure_all(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -94,7 +96,7 @@ static void _measure_all(ntg_object* curr_obj, ntg_sl_scene* scene)
     ntg_object_measure(curr_obj);
 }
 
-static void _arrange_all(ntg_object* curr_obj, ntg_sl_scene* scene)
+static void _arrange_all(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -110,7 +112,7 @@ static void _arrange_all(ntg_object* curr_obj, ntg_sl_scene* scene)
     }
 }
 
-static void _draw_all(ntg_object* curr_obj, ntg_sl_scene* scene)
+static void _draw_all(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -155,7 +157,7 @@ static void _draw_all(ntg_object* curr_obj, ntg_sl_scene* scene)
 
 static void __layout_fn(ntg_scene* _scene, struct ntg_xy size)
 {
-    ntg_sl_scene* scene = (ntg_sl_scene*)_scene;
+    ntg_simple_scene* scene = (ntg_simple_scene*)_scene;
     ntg_object* root = _scene->_root;
     if(root == NULL) return;
 

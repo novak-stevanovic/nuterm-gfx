@@ -413,9 +413,6 @@ static inline void _set_default_values(ntg_box* box)
     box->_orientation = NTG_BOX_ORIENTATION_HORIZONTAL;
     box->_primary_alignment = NTG_BOX_ALIGNMENT_0;
     box->_secondary_alignment = NTG_BOX_ALIGNMENT_0;
-
-    // TODO: remove?
-    _ntg_object_set_process_key_fn((ntg_object*)box, __process_key_fn);
 }
 
 void __ntg_box_init__(ntg_box* box,
@@ -423,8 +420,10 @@ void __ntg_box_init__(ntg_box* box,
         ntg_box_alignment primary_alignment,
         ntg_box_alignment secondary_alignment)
 {
-    __ntg_container_init__((ntg_container*)box, __nsize_fn,
+    __ntg_container_init__(NTG_CONTAINER(box), __nsize_fn,
             __constrain_fn, __measure_fn, __arrange_fn);
+
+    _ntg_object_set_process_key_fn(NTG_OBJECT(box), __process_key_fn);
 
     _set_default_values(box);
 

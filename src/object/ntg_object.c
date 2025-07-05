@@ -7,13 +7,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static bool __process_key_fn(ntg_object* object, struct nt_key_event key_event)
-{
-    ntg_log_log("KEY EVENT FOR OBJECT: %p", object);
-
-    return true;
-}
-
 /* -------------------------------------------------------------------------- */
 /* def/ntg_object_def.h */
 /* -------------------------------------------------------------------------- */
@@ -37,9 +30,7 @@ static void _ntg_object_init_default(ntg_object* object)
     object->__measure_fn = NULL;
     object->__constrain_fn = NULL;
     object->__nsize_fn = NULL;
-
-    // TODO
-    object->__process_key_fn = __process_key_fn;
+    object->__process_key_fn = NULL;
 
     object->_scene = NULL;
 }
@@ -238,14 +229,6 @@ void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
     _ntg_object_perform_tree(child, __adjust_scene_fn, NULL);
 }
 
-void _ntg_object_set_process_key_fn(ntg_object* object,
-        ntg_object_process_key_fn process_key_fn)
-{
-    assert(object != NULL);
-
-    object->__process_key_fn = process_key_fn;
-}
-
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),
         void* data)
@@ -348,7 +331,7 @@ const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object)
     return object->_drawing;
 }
 
-bool ntg_object_feed_key_event(ntg_object* object, struct nt_key_event key_event)
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
 {
     assert(object != NULL);
 
@@ -364,4 +347,12 @@ void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene)
     root->_scene = scene;
 
     _ntg_object_perform_tree(root, __adjust_scene_fn, root->_scene);
+}
+
+void _ntg_object_set_process_key_fn(ntg_object* object,
+        ntg_object_process_key_fn process_key_fn)
+{
+    assert(object != NULL);
+
+    object->__process_key_fn = process_key_fn;
 }

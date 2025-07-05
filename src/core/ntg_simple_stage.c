@@ -1,4 +1,4 @@
-#include "core/ntg_br_stage.h"
+#include "core/ntg_simple_stage.h"
 #include "nt.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -7,7 +7,7 @@
 
 static void __render_fn(ntg_stage* _stage, struct ntg_xy size);
 
-void __ntg_br_stage_init__(ntg_br_stage* stage,
+void __ntg_simple_stage_init__(ntg_simple_stage* stage,
         ntg_stage_process_key_fn process_key_fn)
 {
     assert(stage != NULL);
@@ -19,7 +19,7 @@ void __ntg_br_stage_init__(ntg_br_stage* stage,
     assert(stage->__buff != NULL);
 }
 
-void __ntg_br_stage_deinit__(ntg_br_stage* stage)
+void __ntg_simple_stage_deinit__(ntg_simple_stage* stage)
 {
     assert(stage != NULL);
 
@@ -28,23 +28,23 @@ void __ntg_br_stage_deinit__(ntg_br_stage* stage)
     nt_charbuff_destroy(stage->__buff);
 }
 
-ntg_br_stage* ntg_br_stage_new(ntg_stage_process_key_fn process_key_fn)
+ntg_simple_stage* ntg_simple_stage_new(ntg_stage_process_key_fn process_key_fn)
 {
     assert(process_key_fn != NULL);
 
-    ntg_br_stage* new = (ntg_br_stage*)malloc(sizeof(struct ntg_br_stage));
+    ntg_simple_stage* new = (ntg_simple_stage*)malloc(sizeof(struct ntg_simple_stage));
     assert(new != NULL);
 
-    __ntg_br_stage_init__(new, process_key_fn);
+    __ntg_simple_stage_init__(new, process_key_fn);
 
     return new;
 }
 
-void ntg_br_stage_destroy(ntg_br_stage* stage)
+void ntg_simple_stage_destroy(ntg_simple_stage* stage)
 {
     assert(stage != NULL);
 
-    __ntg_br_stage_deinit__(stage);
+    __ntg_simple_stage_deinit__(stage);
 
     free(stage);
 }
@@ -53,7 +53,7 @@ static void __render_fn(ntg_stage* _stage, struct ntg_xy size)
 {
     assert(_stage->_active_scene != NULL);
 
-    ntg_br_stage* stage = (ntg_br_stage*)_stage;
+    ntg_simple_stage* stage = (ntg_simple_stage*)_stage;
 
     ntg_scene_layout(_stage->_active_scene, size);
 

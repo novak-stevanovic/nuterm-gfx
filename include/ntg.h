@@ -17,7 +17,6 @@ void ntg_launch();
 #define NTG_WAIT_TIMEOUT(fps) (1000.0 / (fps)) /* Can be used for custom loop */
 
 void ntg_loop(uint framerate);
-void ntg_loop_break();
 
 /* TODO: (?) This function returns the return value of `gui_fn` passed in
  * nui_launch(). */

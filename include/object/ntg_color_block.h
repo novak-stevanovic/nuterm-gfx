@@ -4,14 +4,14 @@
 #include "nt_gfx.h"
 #include "object/ntg_pane.h"
 
-typedef struct ntg_color_block ntg_color_block;
+#define NTG_COLOR_BLOCK(cb_ptr) ((ntg_color_block*)(cb_ptr))
 
-struct ntg_color_block
+typedef struct ntg_color_block
 {
     ntg_pane _base;
 
     nt_color __color;
-};
+} ntg_color_block;
 
 void __ntg_color_block_init__(ntg_color_block* block);
 void __ntg_color_block_deinit__(ntg_color_block* block);

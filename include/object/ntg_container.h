@@ -4,6 +4,8 @@
 #include "nt_gfx.h"
 #include "object/ntg_object.h"
 
+#define NTG_CONTAINER(cnt_ptr) ((ntg_container*)(cnt_ptr))
+
 typedef struct ntg_container ntg_container;
 
 typedef void (*ntg_arrange_children_fn)(ntg_container* container);

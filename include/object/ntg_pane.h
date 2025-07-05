@@ -3,6 +3,8 @@
 
 #include "object/ntg_object.h"
 
+#define NTG_PANE(pane_ptr) ((ntg_pane*)(pane_ptr))
+
 typedef struct ntg_pane ntg_pane;
 
 struct ntg_pane
