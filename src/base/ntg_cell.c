@@ -48,7 +48,7 @@ void ntg_rcell_grid_set_size(ntg_rcell_grid* grid, struct ntg_xy size,
     if(grid == NULL)
         _vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     if((size.x == 0) && (size.y == 0))
     {
@@ -157,7 +157,7 @@ void ntg_cell_grid_set_size(ntg_cell_grid* grid, struct ntg_xy size,
     if(grid == NULL)
         _vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     if((size.x == 0) && (size.y == 0))
     {
@@ -234,7 +234,7 @@ void ntg_rcell_vgrid_set_size(ntg_rcell_vgrid* vgrid, struct ntg_xy size,
 {
     // TODO
 
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     ntg_rcell_grid_set_size(&vgrid->__data, size, NULL);
 
@@ -293,7 +293,7 @@ void ntg_cell_vgrid_set_size(ntg_cell_vgrid* vgrid, struct ntg_xy size,
         ntg_status* out_status)
 {
     // TODO
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     ntg_cell_grid_set_size(&vgrid->__data, size, NULL);
 

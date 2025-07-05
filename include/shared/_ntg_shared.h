@@ -14,6 +14,20 @@ static inline size_t _min2_size(size_t x, size_t y)
     return (x > y) ? y : x;
 }
 
+static inline size_t _max3_size(size_t x, size_t y, size_t z)
+{
+    size_t tmp = _max2_size(x, y);
+
+    return _max2_size(tmp, z);
+}
+
+static inline size_t _min3_size(size_t x, size_t y, size_t z)
+{
+    size_t tmp = _min2_size(x, y);
+
+    return _min2_size(tmp, z);
+}
+
 static inline ssize_t _max2_ssize(ssize_t x, ssize_t y)
 {
     return (x > y) ? x : y;

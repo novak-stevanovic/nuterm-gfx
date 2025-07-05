@@ -69,7 +69,7 @@ void _ntg_object_set_nsize(ntg_object* object, struct ntg_xy size)
 {
     if(object == NULL) return;
 
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     if(object->_pref_size.x != NTG_PREF_SIZE_UNSET)
         size.x = object->_pref_size.x;
@@ -124,7 +124,7 @@ void _ntg_object_set_size(ntg_object* object, struct ntg_xy size)
     _fit_size_to_constr(&(size.y), object->_constr.min_size.y,
             object->_constr.max_size.y);
 
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     object->_size = size;
 

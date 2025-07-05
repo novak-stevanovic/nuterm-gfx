@@ -1,6 +1,147 @@
 #include "object/ntg_border_container.h"
+#include "shared/_ntg_shared.h"
 #include <assert.h>
 #include <stdlib.h>
+
+static void __nsize_fn(ntg_object* _container)
+{
+    ntg_border_container* container = NTG_BORDER_CONTAINER(_container);
+
+    struct ntg_xy nsize_north = (container->_north != NULL) ?
+        container->_north->_nsize :
+        ntg_xy(0, 0);
+    struct ntg_xy nsize_east = (container->_east != NULL) ?
+        container->_east->_nsize :
+        ntg_xy(0, 0);
+    struct ntg_xy nsize_south = (container->_south != NULL) ?
+        container->_south->_nsize :
+        ntg_xy(0, 0);
+    struct ntg_xy nsize_west = (container->_west != NULL) ?
+        container->_west->_nsize :
+        ntg_xy(0, 0);
+    struct ntg_xy nsize_center = (container->_center != NULL) ?
+        container->_center->_nsize :
+        ntg_xy(0, 0);
+
+    size_t width = _max3_size(
+                nsize_west.x + nsize_center.x + nsize_east.x,
+                nsize_north.x,
+                nsize_south.x);
+
+    size_t height = _max3_size(
+                nsize_north.y + nsize_center.y + nsize_south.y,
+                nsize_west.y,
+                nsize_east.y);
+
+    _ntg_object_set_nsize(_container, ntg_xy_size(ntg_xy(width, height)));
+}
+
+static void __constrain_fn(ntg_object* _container)
+{
+    // TODO
+    ntg_border_container* container = NTG_BORDER_CONTAINER(_container);
+
+    struct ntg_constr constr = _container->_constr;
+    struct ntg_xy nsize = _container->_nsize;
+
+    if((nsize.x < constr.max_size.x) && (nsize.y < constr.max_size.y))
+    {
+        // extra width needed
+        ssize_t padd_width = ((ssize_t)constr.min_size.x) - ((ssize_t)nsize.x);
+        padd_width = _max2_ssize(0, padd_width);
+
+        // extra width needed
+        ssize_t padd_height = ((ssize_t)constr.min_size.y) - ((ssize_t)nsize.y);
+        padd_height = _max2_ssize(0, padd_height);
+
+        if(container->_center)
+        {
+
+        }
+        else assert(0);
+    }
+    else assert(0);
+}
+
+static void __measure_fn(ntg_object* _container)
+{
+    ntg_border_container* container = NTG_BORDER_CONTAINER(_container);
+
+    struct ntg_xy size_north = (container->_north != NULL) ?
+        container->_north->_size :
+        ntg_xy(0, 0);
+    struct ntg_xy size_east = (container->_east != NULL) ?
+        container->_east->_size :
+        ntg_xy(0, 0);
+    struct ntg_xy size_south = (container->_south != NULL) ?
+        container->_south->_size :
+        ntg_xy(0, 0);
+    struct ntg_xy size_west = (container->_west != NULL) ?
+        container->_west->_size :
+        ntg_xy(0, 0);
+    struct ntg_xy size_center = (container->_center != NULL) ?
+        container->_center->_size :
+        ntg_xy(0, 0);
+
+    size_t width = _max3_size(
+                size_west.x + size_center.x + size_east.x,
+                size_north.x,
+                size_south.x);
+
+    size_t height = _max3_size(
+                size_north.y + size_center.y + size_south.y,
+                size_west.y,
+                size_east.y);
+
+    _ntg_object_set_size(_container, ntg_xy_size(ntg_xy(width, height)));
+}
+
+static void __arrange_fn(ntg_container* _container)
+{
+    ntg_border_container* container = NTG_BORDER_CONTAINER(_container);
+
+    struct ntg_xy size_north = (container->_north != NULL) ?
+        container->_north->_size :
+        ntg_xy(0, 0);
+    // struct ntg_xy size_east = (container->_east != NULL) ?
+    //     container->_east->_size :
+    //     ntg_xy(0, 0);
+    // struct ntg_xy size_south = (container->_south != NULL) ?
+    //     container->_south->_size :
+    //     ntg_xy(0, 0);
+    struct ntg_xy size_west = (container->_west != NULL) ?
+        container->_west->_size :
+        ntg_xy(0, 0);
+    struct ntg_xy size_center = (container->_center != NULL) ?
+        container->_center->_size :
+        ntg_xy(0, 0);
+
+    if(container->_north)
+    {
+        struct ntg_xy pos_north = ntg_xy(0, 0);
+        _ntg_object_set_pos(container->_north, pos_north);
+    }
+    if(container->_west)
+    {
+        struct ntg_xy pos_west = ntg_xy(0, size_north.y);
+        _ntg_object_set_pos(container->_west, pos_west);
+    }
+    if(container->_center)
+    {
+        struct ntg_xy pos_center = ntg_xy(size_west.x, size_north.y);
+        _ntg_object_set_pos(container->_center, pos_center);
+    }
+    if(container->_east)
+    {
+        struct ntg_xy pos_east = ntg_xy(size_west.x + size_center.x, size_north.y);
+        _ntg_object_set_pos(container->_east, pos_east);
+    }
+    if(container->_south)
+    {
+        struct ntg_xy pos_south = ntg_xy(0, size_north.y + size_center.y);
+        _ntg_object_set_pos(container->_south, pos_south);
+    }
+}
 
 static void __set_default_values(ntg_border_container* container)
 {
@@ -14,6 +155,9 @@ static void __set_default_values(ntg_border_container* container)
 void __ntg_border_container_init__(ntg_border_container* container)
 {
     assert(container != NULL);
+
+    __ntg_container_init__(NTG_CONTAINER(container),
+            __nsize_fn, __constrain_fn, __measure_fn, __arrange_fn);
 
     __set_default_values(container);
 }
@@ -48,7 +192,15 @@ void ntg_border_container_set_north(ntg_border_container* container,
 {
     assert(container != NULL);
 
+    ntg_object* _container = NTG_OBJECT(container);
+
+    if(container->_north)
+        _ntg_object_child_remove(_container, container->_north);
+
     container->_north = north;
+
+    if(north)
+        _ntg_object_child_add(_container, north);
 }
 
 void ntg_border_container_set_east(ntg_border_container* container,
@@ -56,7 +208,15 @@ void ntg_border_container_set_east(ntg_border_container* container,
 {
     assert(container != NULL);
 
+    ntg_object* _container = NTG_OBJECT(container);
+
+    if(container->_east)
+        _ntg_object_child_remove(_container, container->_east);
+
     container->_east = east;
+
+    if(east)
+        _ntg_object_child_add(_container, east);
 }
 
 void ntg_border_container_set_south(ntg_border_container* container,
@@ -64,7 +224,15 @@ void ntg_border_container_set_south(ntg_border_container* container,
 {
     assert(container != NULL);
 
+    ntg_object* _container = NTG_OBJECT(container);
+
+    if(container->_south)
+        _ntg_object_child_remove(_container, container->_south);
+
     container->_south = south;
+
+    if(south)
+        _ntg_object_child_add(_container, south);
 }
 
 void ntg_border_container_set_west(ntg_border_container* container,
@@ -72,7 +240,15 @@ void ntg_border_container_set_west(ntg_border_container* container,
 {
     assert(container != NULL);
 
+    ntg_object* _container = NTG_OBJECT(container);
+
+    if(container->_west)
+        _ntg_object_child_remove(_container, container->_west);
+
     container->_west = west;
+
+    if(west)
+        _ntg_object_child_add(_container, west);
 }
 
 void ntg_border_container_set_center(ntg_border_container* container,
@@ -80,5 +256,13 @@ void ntg_border_container_set_center(ntg_border_container* container,
 {
     assert(container != NULL);
 
+    ntg_object* _container = NTG_OBJECT(container);
+
+    if(container->_center)
+        _ntg_object_child_remove(_container, container->_center);
+
     container->_center = center;
+
+    if(center)
+        _ntg_object_child_add(_container, center);
 }

@@ -49,7 +49,7 @@ static void __measure_fn(ntg_object* _block)
 
     struct ntg_xy size = _block->_constr.min_size;
 
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     _ntg_object_set_size(_block, size);
 }
@@ -61,7 +61,7 @@ static void __arrange_fn(ntg_object* _block)
 
     ntg_object_drawing* drawing = _block->_drawing;
     struct ntg_xy size = ntg_object_drawing_get_size(drawing);
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
     size_t i, j;
 
     struct ntg_cell* it_cell;
@@ -85,7 +85,7 @@ static void __arrange_fn(ntg_object* _block)
 static void __nsize_fn(ntg_object* _block)
 {
     struct ntg_xy size = _block->_pref_size;
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
     _ntg_object_set_nsize(_block, size);
 }
 

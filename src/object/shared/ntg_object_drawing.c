@@ -69,7 +69,7 @@ void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
 {
     assert(drawing != NULL);
 
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     ntg_cell_vgrid_set_size(&drawing->__data, size, NULL);
 
@@ -119,7 +119,7 @@ void ntg_object_drawing_set_vp_size(ntg_object_drawing* drawing,
 
     struct ntg_xy total_size = ntg_cell_vgrid_get_size(&drawing->__data);
 
-    ntg_xy_size(&size);
+    ntg_xy_size_(&size);
 
     /* vp_size must not be greater than size */
 

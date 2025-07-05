@@ -45,7 +45,7 @@ static inline struct ntg_xy ntg_xy(size_t x, size_t y)
     return (struct ntg_xy) { .x = x, .y = y };
 }
 
-static inline void ntg_xy_size(struct ntg_xy* xy)
+static inline void ntg_xy_size_(struct ntg_xy* xy)
 {
     if(xy == NULL) return;
 
@@ -54,6 +54,12 @@ static inline void ntg_xy_size(struct ntg_xy* xy)
         xy->x = 0;
         xy->y = 0;
     }
+}
+
+static inline struct ntg_xy ntg_xy_size(struct ntg_xy xy)
+{
+    ntg_xy_size_(&xy);
+    return xy;
 }
 
 static inline struct ntg_xy ntg_xy_add(struct ntg_xy a, struct ntg_xy b)
