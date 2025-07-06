@@ -250,6 +250,7 @@ void _ntg_object_perform_tree(ntg_object* root,
 
 void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size)
 {
+    assert(root != NULL);
     // root->_nsize = root_size;
     root->_constr = ntg_constr(root_size, root_size);
     root->_pos = ntg_xy(0, 0);

@@ -6,7 +6,7 @@
 
 typedef struct ntg_simple_stage
 {
-    ntg_stage _base;
+    ntg_stage __base;
 
     nt_charbuff* __buff;
 } ntg_simple_stage;

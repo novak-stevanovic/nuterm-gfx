@@ -5,6 +5,8 @@
 
 #define NTG_BORDER_CONTAINER(cnt_ptr) ((ntg_border_container*)(cnt_ptr))
 
+typedef struct ntg_color_block ntg_color_block;
+
 typedef struct ntg_border_container
 {
     ntg_container __base;
