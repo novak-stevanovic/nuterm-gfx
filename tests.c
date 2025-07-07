@@ -26,19 +26,27 @@ void init_gui_func(void* data)
     ntg_color_block* cb1 = ntg_color_block_new(nt_color_new(255, 0, 0));
     ntg_object* _cb1 = NTG_OBJECT(cb1);
 
-    ntg_object_set_pref_size(_cb1, ntg_xy(5, 10));
+    ntg_object_set_pref_size(_cb1, ntg_xy(0, 20));
 
     ntg_color_block* cb2 = ntg_color_block_new(nt_color_new(0, 255, 0));
     ntg_object* _cb2 = NTG_OBJECT(cb2);
 
+    ntg_object_set_pref_size(_cb2, ntg_xy(100, 0));
+
     ntg_color_block* cb3 = ntg_color_block_new(nt_color_new(0, 0, 255));
     ntg_object* _cb3 = NTG_OBJECT(cb3);
+
+    ntg_object_set_pref_size(_cb3, ntg_xy(0, 5));
 
     ntg_color_block* cb4 = ntg_color_block_new(nt_color_new(122, 122, 122));
     ntg_object* _cb4 = NTG_OBJECT(cb4);
 
+    ntg_object_set_pref_size(_cb4, ntg_xy(20, 0));
+
     ntg_color_block* cb5 = ntg_color_block_new(nt_color_new(222, 222, 222));
     ntg_object* _cb5 = NTG_OBJECT(cb5);
+
+    ntg_object_set_pref_size(_cb5, ntg_xy(34, 3));
 
     ntg_border_container* bc = ntg_border_container_new();
     ntg_object* _bc = NTG_OBJECT(bc);

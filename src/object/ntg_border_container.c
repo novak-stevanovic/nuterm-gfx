@@ -1,4 +1,5 @@
 #include "object/ntg_border_container.h"
+#include "base/ntg_sap.h"
 #include "object/ntg_color_block.h"
 #include "shared/_ntg_shared.h"
 #include <assert.h>
@@ -69,47 +70,78 @@ static void __constrain_fn(ntg_object* _container)
         size_south.x = constr.min_size.x;
         size_east.x = nsize_east.x;
         size_west.x = nsize_west.x;
-        size_center.x = nsize_center.x;
-
-        if(container->_center != NULL)
-            size_center.x += constr.min_size.x - nsize.x;
+        size_center.x = constr.min_size.x - size_west.x - size_east.x;
     }
     else if((nsize.x >= constr.min_size.x) && (nsize.x <= constr.max_size.x))
     {
-        size_north.x = nsize_north.x;
+        size_t ns_size = _max3_size(
+                nsize_west.x + nsize_east.x + nsize_center.x,
+                nsize_north.x,
+                nsize_south.x);
+
+        size_north.x = ns_size;
+        size_south.x = ns_size;
+
         size_east.x = nsize_east.x;
-        size_south.x = nsize_south.x;
         size_west.x = nsize_west.x;
-        size_center.x = nsize_center.x;
+        size_center.x = ns_size - (size_east.x + size_west.x);
     }
     else
     {
-        assert(0);
+        size_t nsizes[3] = { nsize_west.x, nsize_center.x, nsize_east.x };
+        size_t _sizes[3] = {0};
+        ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.x, 3);
+
+        size_north.x = constr.max_size.x;
+        size_south.x = constr.max_size.x;
+
+        size_west.x = _sizes[0];
+        size_center.x = _sizes[1];
+        size_east.x = _sizes[2];
     }
 
     if(nsize.y < constr.min_size.y)
     {
         size_north.y = nsize_north.y;
         size_south.y = nsize_south.y;
-        size_east.y = constr.min_size.y - size_north.y - size_south.y;
-        size_west.y = constr.min_size.y - size_north.y - size_south.y;
-        size_center.y = nsize_center.x;
 
-        if(container->_center != NULL)
-            size_center.y += constr.min_size.y - nsize.y;
+        size_t wec_size = constr.min_size.y - size_north.y - size_south.y;
+        size_east.y = wec_size;
+        size_west.y = wec_size;
+        size_center.y = wec_size;
     }
-    else if((nsize.x >= constr.min_size.x) && (nsize.x <= constr.max_size.x))
+    else if((nsize.y >= constr.min_size.y) && (nsize.y <= constr.max_size.y))
     {
-        size_north.x = nsize_north.x;
-        size_east.x = nsize_east.x;
-        size_south.x = nsize_south.x;
-        size_west.x = nsize_west.x;
-        size_center.x = nsize_center.x;
+        size_t wec_size = _max3_size(
+                nsize_center.y,
+                nsize_east.y,
+                nsize_west.y);
+
+        size_north.y = nsize_north.y;
+        size_south.y = nsize_south.y;
+        size_east.y = wec_size;
+        size_west.y = wec_size;
+        size_center.y = wec_size;
     }
     else
     {
-        assert(0);
+        size_t nsizes[3] = { nsize_north.y, nsize_center.y, nsize_south.y };
+        size_t _sizes[3] = {0};
+        ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.y, 3);
+
+        size_north.y = _sizes[0];
+        size_center.y = _sizes[1];
+        size_south.y = _sizes[2];
+
+        size_west.y = constr.max_size.y - (size_north.y + size_south.y);
+        size_east.y = constr.max_size.y - (size_north.y + size_south.y);
     }
+
+    ntg_xy_size_(&size_north);
+    ntg_xy_size_(&size_east);
+    ntg_xy_size_(&size_south);
+    ntg_xy_size_(&size_west);
+    ntg_xy_size_(&size_center);
 
     if(container->_north != NULL)
     {
@@ -127,8 +159,7 @@ static void __constrain_fn(ntg_object* _container)
     {
         _ntg_object_set_constr(
                 container->_south,
-                ntg_constr(size_south, size_south)
-                );
+                ntg_constr(size_south, size_south));
     }
     if(container->_west != NULL)
     {
