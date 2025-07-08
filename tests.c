@@ -19,10 +19,8 @@
 ntg_color_block* cb1;
 ntg_object* _cb1;
 
-void init_gui_func(void* data)
+void init_gui_fn(ntg_stage* _main_stage, void* data)
 {
-    ntg_stage* _main_stage = ntg_get_stage();
-
     ntg_color_block* cb1 = ntg_color_block_new(nt_color_new(255, 0, 0));
     ntg_object* _cb1 = NTG_OBJECT(cb1);
 
@@ -53,16 +51,16 @@ void init_gui_func(void* data)
 
     ntg_border_container_set_north(bc, _cb1);
     ntg_border_container_set_east(bc, _cb2);
-    ntg_border_container_set_south(bc, _cb3);
-    ntg_border_container_set_west(bc, _cb4);
-    ntg_border_container_set_center(bc, _cb5);
+    // ntg_border_container_set_south(bc, _cb3);
+    // ntg_border_container_set_west(bc, _cb4);
+    // ntg_border_container_set_center(bc, _cb5);
 
     ntg_simple_scene* s1 = ntg_simple_scene_new(ntg_scene_process_key_fn_def);
     ntg_scene* _s1 = NTG_SCENE(s1);
     ntg_scene_set_root(_s1, _bc);
     ntg_stage_set_scene(_main_stage, _s1);
 
-    ntg_loop(NTG_FRAMERATE_DEFAULT);
+    ntg_loop(_main_stage, NTG_FRAMERATE_DEFAULT);
 
     ntg_color_block_destroy(cb1);
     ntg_color_block_destroy(cb2);
@@ -78,19 +76,21 @@ void init_gui_func(void* data)
 
 int main(int argc, char *argv[])
 {
+    __ntg_init__();
+
     ntg_simple_stage* main_stage = ntg_simple_stage_new(
             ntg_stage_process_key_fn_def);
 
-    ntg_initialize(NTG_STAGE(main_stage), init_gui_func, NULL);
-
-    ntg_launch();
+    ntg_launch(NTG_STAGE(main_stage), init_gui_fn, NULL);
     // printf("\rMT: Launched NTG thread - STATUS: %d\n", _status);
 
     // printf("\rMT: Waiting for NTG thread.\n");
-    ntg_destroy();
+    ntg_wait();
 
     // TODO: shouldnt be after ntg_destroy()
     ntg_simple_stage_destroy(main_stage);
+
+    ntg_destroy();
 
     // printf("\rMT: Done. Exiting.\n");
 
