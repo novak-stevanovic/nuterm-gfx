@@ -68,6 +68,20 @@ static inline ntg_cell ntg_cell_default()
     };
 }
 
+static inline ntg_cell ntg_cell_bg(nt_color bg_color)
+{
+    struct nt_gfx gfx = {
+        .fg = NT_COLOR_DEFAULT,
+        .bg = bg_color,
+        .style = NT_STYLE_DEFAULT
+    };
+
+    return (ntg_cell) {
+        .__base = ntg_rcell(NTG_CELL_EMPTY, gfx),
+        ._type = NTG_CELL_TYPE_FULL
+    };
+}
+
 static inline ntg_cell ntg_cell_overlay(uint32_t codepoint, nt_color fg,
         nt_style style)
 {

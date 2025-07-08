@@ -85,6 +85,8 @@ struct ntg_object
     ntg_object* _parent;
     ntg_object_vec* _children;
 
+    // ntg_object_vec* _spec_children;
+
     bool __scroll;
     struct ntg_dxy __buffered_scroll; // buffered until object is remeasured
     ntg_object_drawing* _drawing;
