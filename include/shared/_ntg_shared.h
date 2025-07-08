@@ -38,6 +38,11 @@ static inline ssize_t _min2_ssize(ssize_t x, ssize_t y)
     return (x > y) ? y : x;
 }
 
+static inline ssize_t _max2_double(double x, double y)
+{
+    return (x > y) ? y : x;
+}
+
 static inline size_t _ssub_size(size_t x, size_t y)
 {
     return (x > y) ? x - y : 0;

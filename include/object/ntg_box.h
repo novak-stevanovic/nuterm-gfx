@@ -58,6 +58,8 @@ void ntg_box_set_orientation(ntg_box* box, ntg_box_orientation orientation);
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_box_alignment alignment);
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment);
 
+void ntg_box_set_bg_color(ntg_box* box, nt_color color);
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
@@ -76,12 +78,12 @@ struct ntg_box
 
     /* Cached - initialized in nsize phase -------------- */
 
-    struct ntg_xy __children_nsize; // children natural size
+    struct ntg_xy __content_nsize; // children combined natural size
 
     /* Cached - initialized in constrain phase ---------- */
 
     struct ntg_box_padding __padding; // applied padding
-    struct ntg_constr __content_constr; // content constraints
+    struct ntg_constr __content_constr; // content constraints(children)
 
     /* Cached - initialized in measure phase ------------ */
 

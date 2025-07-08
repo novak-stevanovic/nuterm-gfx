@@ -72,7 +72,8 @@ static void __arrange_fn(ntg_object* _block)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_letter = ((i + j) % 26) + 'a';
+            // it_letter = ((i + j) % 26) + 'a';
+            it_letter = ' ';
 
             it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i));
 

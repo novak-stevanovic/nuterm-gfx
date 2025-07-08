@@ -88,7 +88,7 @@ static void __constrain_fn(ntg_object* _container)
     }
     else
     {
-        size_t nsizes[3] = { nsize_west.x, nsize_center.x, nsize_east.x };
+        size_t nsizes[3] = { nsize_west.x, NTG_TERM_MAX_WIDTH, nsize_east.x };
         size_t _sizes[3] = {0};
         ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.x, 3);
 
@@ -125,7 +125,7 @@ static void __constrain_fn(ntg_object* _container)
     }
     else
     {
-        size_t nsizes[3] = { nsize_north.y, nsize_center.y, nsize_south.y };
+        size_t nsizes[3] = { nsize_north.y, NTG_TERM_MAX_HEIGHT, nsize_south.y };
         size_t _sizes[3] = {0};
         ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.y, 3);
 

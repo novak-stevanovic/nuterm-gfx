@@ -21,7 +21,6 @@ void __ntg_scene_init__(ntg_scene* scene,
     __ntg_scene_drawing_init__(&scene->_drawing);
 }
 
-/* Default: Dispatches the key event to focused object. */
 bool ntg_scene_process_key_fn_def(ntg_scene* scene,
         struct nt_key_event key_event)
 {

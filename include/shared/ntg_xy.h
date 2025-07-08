@@ -69,7 +69,10 @@ static inline struct ntg_xy ntg_xy_add(struct ntg_xy a, struct ntg_xy b)
 
 static inline struct ntg_xy ntg_xy_sub(struct ntg_xy a, struct ntg_xy b)
 {
-    return (struct ntg_xy) { .x = a.x - b.x, .y = a.y - b.y };
+    return (struct ntg_xy) { 
+        .x = (a.x > b.x) ? (a.x - b.x) : 0,
+        .y = (a.y > b.y) ? (a.y - b.y) : 0,
+    };
 }
 
 static inline struct ntg_xy ntg_xy_from_dxy(struct ntg_dxy xy)
