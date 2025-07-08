@@ -58,7 +58,7 @@ void ntg_box_set_orientation(ntg_box* box, ntg_box_orientation orientation);
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_box_alignment alignment);
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment);
 
-void ntg_box_set_bg_color(ntg_box* box, nt_color color);
+void ntg_box_set_bg(ntg_box* box, ntg_object* bg);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */

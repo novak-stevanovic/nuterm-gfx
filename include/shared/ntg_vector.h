@@ -111,7 +111,7 @@ static int ntg_vector_remove_at(struct ntg_vector* vec, size_t pos,
 }
 
 static ssize_t ntg_vector_find(const struct ntg_vector* vec, const void* data,
-        size_t el_size, bool (*cmp_func)(const void*, const void*))
+        size_t el_size, bool (*cmp_func)(const void* el_ptr, const void* data))
 {
     if((vec == NULL) || (data == NULL) || (el_size == 0))
         return -2;
@@ -148,7 +148,7 @@ static ssize_t ntg_vector_find(const struct ntg_vector* vec, const void* data,
 }
 
 static int ntg_vector_remove(struct ntg_vector* vec, const void* data,
-        size_t el_size, bool (*cmp_func)(const void*, const void*))
+        size_t el_size, bool (*cmp_func)(const void* el_ptr, const void* data))
 {
     if((vec == NULL) || (data == NULL) || (el_size == 0))
         return 1;

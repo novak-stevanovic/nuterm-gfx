@@ -396,9 +396,10 @@ static inline struct ntg_xy _determine_total_offset(const ntg_box* box,
     return ntg_xy_add(base_offset, padding_align_offset);
 }
 
-static void __arrange_fn(ntg_container* _box)
+static void __arrange_fn(ntg_object* __box)
 {
-    ntg_box* box = (ntg_box*)_box;
+    ntg_box* box = (ntg_box*)__box;
+    ntg_container* _box = (ntg_container*)__box;
     const ntg_object_vec* children = ((ntg_object*)_box)->_children;
 
     size_t i;
@@ -487,7 +488,7 @@ void ntg_box_destroy(ntg_box* box)
 void ntg_box_add_child(ntg_box* box, ntg_object* object)
 {
     // TODO: NTG_BOX_MAX_CHILDREN
-    _ntg_object_child_add((ntg_object*)box, object);
+    _ntg_object_children_add((ntg_object*)box, object);
 }
 
 void ntg_box_set_padding(ntg_box* box, struct ntg_box_padding padding)
@@ -518,9 +519,7 @@ void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment)
     box->_secondary_alignment = alignment;
 }
 
-void ntg_box_set_bg_color(ntg_box* box, nt_color color)
+void ntg_box_set_bg(ntg_box* box, ntg_object* bg)
 {
-    assert(box != NULL);
-
-    _ntg_container_set_bg(NTG_CONTAINER(box), color);
+    _ntg_container_set_bg(NTG_CONTAINER(box), bg);
 }

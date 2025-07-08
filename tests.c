@@ -16,13 +16,13 @@
 // // TODO: remove
 // #include "object/def/ntg_object_def.h"
 
-void init_gui_fn(ntg_stage* _main_stage, void* data)
+void gui_fn1(ntg_stage* _main_stage, void* data)
 {
     ntg_color_block* cb1 = ntg_color_block_new(nt_color_new(255, 0, 0));
     ntg_object_set_pref_size(NTG_OBJECT(cb1), ntg_xy(20, 10));
 
     ntg_color_block* cb2 = ntg_color_block_new(nt_color_new(0, 255, 0));
-    ntg_object_set_pref_size(NTG_OBJECT(cb2), ntg_xy(700, 10));
+    ntg_object_set_pref_size(NTG_OBJECT(cb2), ntg_xy(70, 10));
 
     ntg_color_block* cb3 = ntg_color_block_new(nt_color_new(0, 0, 255));
     ntg_object_set_pref_size(NTG_OBJECT(cb3), ntg_xy(15, 10));
@@ -49,15 +49,21 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
             NTG_BOX_ALIGNMENT_0,
             NTG_BOX_ALIGNMENT_0);
 
-    // struct ntg_box_padding box1_padding = {
-    //     .north = 2,
-    //     .south = 1,
-    //     .east = 0,
-    //     .west = 0
-    // };
-    // ntg_box_set_padding(box1, box1_padding);
+    ntg_solid_block* sb1 = ntg_solid_block_new(
+            ntg_cell_full('a',
+                nt_color_new(255, 255, 255),
+                NT_COLOR_DEFAULT,
+                NT_STYLE_DEFAULT));
 
-    ntg_box_set_bg_color(box1, nt_color_new(255, 255, 255));
+    ntg_box_set_bg(box1, NTG_OBJECT(sb1));
+
+    struct ntg_box_padding box1_padding = {
+        .north = 2,
+        .south = 1,
+        .east = 0,
+        .west = 0
+    };
+    ntg_box_set_padding(box1, box1_padding);
 
     ntg_box_add_child(box1, NTG_OBJECT(cb1));
     ntg_box_add_child(box1, NTG_OBJECT(cb2));
@@ -68,11 +74,10 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
             NTG_BOX_ALIGNMENT_0,
             NTG_BOX_ALIGNMENT_0);
 
-    ntg_box_set_bg_color(box2, nt_color_new(255, 255, 255));
+    // ntg_box_set_bg_color(box2, nt_color_new(255, 255, 255));
 
     ntg_box_add_child(box2, NTG_OBJECT(cb5));
     ntg_box_add_child(box2, NTG_OBJECT(cb6));
-
 
     ntg_border_container* bc = ntg_border_container_new();
 
@@ -107,6 +112,65 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
     return;
 }
 
+void gui_fn2(ntg_stage* _main_stage, void* data)
+{
+    ntg_color_block* cb1 = ntg_color_block_new(nt_color_new(255, 0, 0));
+    ntg_object_set_pref_size(NTG_OBJECT(cb1), ntg_xy(20, 10));
+
+    ntg_color_block* cb2 = ntg_color_block_new(nt_color_new(0, 255, 0));
+    ntg_object_set_pref_size(NTG_OBJECT(cb2), ntg_xy(700, 10));
+
+    ntg_color_block* cb3 = ntg_color_block_new(nt_color_new(50, 50, 50));
+    ntg_object_set_pref_size(NTG_OBJECT(cb3), ntg_xy(50, 100));
+
+    ntg_color_block* cb4 = ntg_color_block_new(nt_color_new(100, 100, 100));
+    ntg_object_set_pref_size(NTG_OBJECT(cb4), ntg_xy(50, 100));
+
+    ntg_color_block* cb5 = ntg_color_block_new(nt_color_new(200, 200, 200));
+    ntg_object_set_pref_size(NTG_OBJECT(cb5), ntg_xy(50, 100));
+
+    ntg_box* box2 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL,
+            NTG_BOX_ALIGNMENT_0,
+            NTG_BOX_ALIGNMENT_0);
+
+    ntg_box_add_child(box2, NTG_OBJECT(cb3));
+    ntg_box_add_child(box2, NTG_OBJECT(cb4));
+    ntg_box_add_child(box2, NTG_OBJECT(cb5));
+
+    ntg_solid_block* sb1 = ntg_solid_block_new(
+            ntg_cell_full('a',
+                nt_color_new(255, 255, 255),
+                nt_color_new(0, 0, 255),
+                NT_STYLE_DEFAULT));
+    ntg_object_set_pref_size(NTG_OBJECT(sb1), ntg_xy(50, 20));
+
+    ntg_box* box1 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL,
+            NTG_BOX_ALIGNMENT_0,
+            NTG_BOX_ALIGNMENT_1);
+
+    ntg_box_set_bg(box1, NTG_OBJECT(box2));
+    
+    ntg_box_add_child(box1, NTG_OBJECT(cb1));
+    ntg_box_add_child(box1, NTG_OBJECT(cb2));
+    ntg_box_add_child(box1, NTG_OBJECT(sb1));
+
+    ntg_simple_scene* s1 = ntg_simple_scene_new(ntg_scene_process_key_fn_def);
+    ntg_scene_set_root(NTG_SCENE(s1), NTG_OBJECT(box1));
+    ntg_stage_set_scene(_main_stage, NTG_SCENE(s1));
+    ntg_scene_focus(NTG_SCENE(s1), NTG_OBJECT(box1));
+
+    ntg_loop(_main_stage, NTG_FRAMERATE_DEFAULT);
+
+    ntg_color_block_destroy(cb1);
+    ntg_color_block_destroy(cb2);
+    ntg_box_destroy(box1);
+    ntg_box_destroy(box2);
+    ntg_solid_block_destroy(sb1);
+    ntg_simple_scene_destroy(s1);
+
+    return;
+}
+
 int main(int argc, char *argv[])
 {
     __ntg_init__();
@@ -114,7 +178,7 @@ int main(int argc, char *argv[])
     ntg_simple_stage* main_stage = ntg_simple_stage_new(
             ntg_stage_process_key_fn_def);
 
-    ntg_launch(NTG_STAGE(main_stage), init_gui_fn, NULL);
+    ntg_launch(NTG_STAGE(main_stage), gui_fn2, NULL);
     // printf("\rMT: Launched NTG thread - STATUS: %d\n", _status);
 
     // printf("\rMT: Waiting for NTG thread.\n");

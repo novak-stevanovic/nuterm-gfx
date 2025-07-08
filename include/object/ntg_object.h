@@ -1,6 +1,7 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
+#include "object/shared/ntg_aux_object_vec.h"
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
 #include <stddef.h>
@@ -60,9 +61,11 @@ void ntg_object_constrain(ntg_object* object);
 /* Calculates and sets the final size of an object.
  * If `object` is root, function returns immediately. */
 void ntg_object_measure(ntg_object* object);
+void ntg_object_measure_aux(ntg_object* object);
 
 /* Arranges the content inside `object`. */
 void ntg_object_arrange(ntg_object* object);
+void ntg_object_arrange_aux(ntg_object* object);
 
 void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size);
 
@@ -83,9 +86,10 @@ void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene);
 struct ntg_object
 {
     ntg_object* _parent;
-    ntg_object_vec* _children;
 
-    // ntg_object_vec* _spec_children;
+    bool _aux;
+    ntg_object_vec* _children;
+    ntg_aux_object_vec* _aux_children;
 
     bool __scroll;
     struct ntg_dxy __buffered_scroll; // buffered until object is remeasured
@@ -120,8 +124,10 @@ void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr);
 void _ntg_object_set_size(ntg_object* object, struct ntg_xy size);
 void _ntg_object_set_pos(ntg_object* object, struct ntg_xy pos);
 
-void _ntg_object_child_add(ntg_object* parent, ntg_object* child);
-void _ntg_object_child_remove(ntg_object* parent, ntg_object* child);
+void _ntg_object_children_add(ntg_object* parent, ntg_object* child);
+void _ntg_object_children_add_aux(ntg_object* parent,
+        struct ntg_aux_object aux_child);
+void _ntg_object_children_remove(ntg_object* parent, ntg_object* child);
 
 void _ntg_object_scroll_enable(ntg_object* object);
 void _ntg_object_scroll_disable(ntg_object* object);

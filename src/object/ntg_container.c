@@ -2,65 +2,49 @@
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "object/ntg_object.h"
+#include <assert.h>
 #include "object/ntg_container.h"
-
-static void __arrange_fn(ntg_object* object)
-{
-    _ntg_container_arrange_children((ntg_container*)object);
-
-    ntg_container* container = (ntg_container*)object;
-
-    ntg_object_drawing* drawing = object->_drawing;
-    struct ntg_xy size = ntg_object_drawing_get_size(drawing);
-
-    size_t i, j;
-    ntg_cell* it_cell;
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i));
-
-            (*it_cell) = ntg_cell_full(NTG_CELL_EMPTY,
-                    NT_COLOR_DEFAULT, container->__bg, NT_STYLE_DEFAULT);
-        }
-    }
-}
 
 void __ntg_container_init__(ntg_container* container,
         ntg_nsize_fn nsize_fn, ntg_constrain_fn constrain_fn,
-        ntg_measure_fn measure_fn, ntg_arrange_children_fn arrange_fn)
+        ntg_measure_fn measure_fn, ntg_arrange_fn arrange_fn)
         
 {
     ntg_object* _container = (ntg_object*)container;
 
-    container->__bg = NT_COLOR_DEFAULT;
-    container->__arrange_children_fn = arrange_fn;
-
     __ntg_object_init__(_container, nsize_fn, constrain_fn, measure_fn,
-            __arrange_fn);
+            arrange_fn);
+
+    container->_bg = NULL;
+    _container->_children = ntg_object_vec_new();
 }
 
 void __ntg_container_deinit__(ntg_container* container)
 {
-    container->__bg = NT_COLOR_DEFAULT;
-
     __ntg_object_deinit__((ntg_object*)container);
 }
 
 void _ntg_container_arrange_children(ntg_container* container)
 {
     if(container == NULL) return;
-
-    if(container->__arrange_children_fn != NULL)
-    {
-        container->__arrange_children_fn(container);
-    }
 }
 
-void _ntg_container_set_bg(ntg_container* container, nt_color bg)
+void _ntg_container_set_bg(ntg_container* container, ntg_object* bg)
 {
-    if(container == NULL) return;
+    assert(container != NULL);
 
-    container->__bg = bg;
+    if(container->_bg != NULL)
+        _ntg_object_children_remove(NTG_OBJECT(container), bg);
+
+    if(bg != NULL)
+    {
+        struct ntg_aux_object aux_bg = {
+            .object = bg,
+            .z_index = 0
+        };
+
+        _ntg_object_children_add_aux(NTG_OBJECT(container), aux_bg);
+    }
+
+    container->_bg = bg;
 }
