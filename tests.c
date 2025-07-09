@@ -13,6 +13,31 @@
 #include "shared/ntg_log.h"
 #include "shared/ntg_vector.h"
 
+
+struct ntg_object_border __create_border1()
+{
+    ntg_cell outline = ntg_cell_full('#',
+            nt_color_new(255, 255, 255),
+            NT_COLOR_DEFAULT,
+            NT_STYLE_DEFAULT);
+
+    ntg_cell inside = ntg_cell_default();
+
+    return (struct ntg_object_border) {
+        .north_line = outline,
+        .east_line = outline,
+        .south_line = outline,
+        .west_line = outline,
+
+        .north_west_corner = outline,
+        .north_east_corner = outline,
+        .south_west_corner = outline,
+        .south_east_corner = outline,
+
+        .border_inside = inside
+    };
+}
+
 // // TODO: remove
 // #include "object/def/ntg_object_def.h"
 
@@ -37,7 +62,15 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
     ntg_object_set_pref_size(NTG_OBJECT(cb6), ntg_xy(12, 50));
 
     ntg_color_block* cb7 = ntg_color_block_new(nt_color_new(200, 200, 200));
-    ntg_object_set_pref_size(NTG_OBJECT(cb7), ntg_xy(0, 5));
+
+    (NTG_OBJECT(cb7))->_border = __create_border1();
+
+    (NTG_OBJECT(cb7))->_border_pref_size.north = 2;
+    (NTG_OBJECT(cb7))->_border_pref_size.south = 2;
+    (NTG_OBJECT(cb7))->_border_pref_size.west = 2;
+    (NTG_OBJECT(cb7))->_border_pref_size.east = 2;
+
+    ntg_object_set_pref_size(NTG_OBJECT(cb7), ntg_xy(0 + 4, 5 + 4));
 
     ntg_color_block* cb8 = ntg_color_block_new(nt_color_new(255, 255, 0));
     ntg_object_set_pref_size(NTG_OBJECT(cb8), ntg_xy(10, 0));
@@ -48,6 +81,13 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
     ntg_box* box1 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL,
             NTG_BOX_ALIGNMENT_0,
             NTG_BOX_ALIGNMENT_0);
+
+    (NTG_OBJECT(box1))->_border = __create_border1();
+
+    (NTG_OBJECT(box1))->_border_pref_size.north = 1;
+    (NTG_OBJECT(box1))->_border_pref_size.south = 1;
+    (NTG_OBJECT(box1))->_border_pref_size.west = 1;
+    (NTG_OBJECT(box1))->_border_pref_size.east = 1;
 
     // struct ntg_box_padding box1_padding = {
     //     .north = 2,

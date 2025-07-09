@@ -22,22 +22,21 @@ static void __arrange_fn(ntg_object* object)
             it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i));
 
             (*it_cell) = ntg_cell_full(NTG_CELL_EMPTY,
-                    NT_COLOR_DEFAULT, container->__bg, NT_STYLE_DEFAULT);
+                    nt_color_new(255, 255, 255), container->__bg, NT_STYLE_DEFAULT);
         }
     }
 }
 
 void __ntg_container_init__(ntg_container* container,
-        ntg_nsize_fn nsize_fn, ntg_constrain_fn constrain_fn,
+        ntg_calculate_nsize_fn calculate_nsize_fn, ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn, ntg_arrange_children_fn arrange_fn)
-        
 {
     ntg_object* _container = (ntg_object*)container;
 
     container->__bg = NT_COLOR_DEFAULT;
     container->__arrange_children_fn = arrange_fn;
 
-    __ntg_object_init__(_container, nsize_fn, constrain_fn, measure_fn,
+    __ntg_object_init__(_container, calculate_nsize_fn, constrain_fn, measure_fn,
             __arrange_fn);
 }
 

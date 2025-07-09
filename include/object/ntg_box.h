@@ -76,19 +76,23 @@ struct ntg_box
 
     struct ntg_box_padding _pref_padding;
 
+    /* Content - object's content without the object borders
+     * Box content - children
+     * Box content extra - children + "extra" padding */
+
     /* Cached - initialized in nsize phase -------------- */
 
-    struct ntg_xy __content_nsize; // children combined natural size
+    struct ntg_xy __box_content_nsize;
 
     /* Cached - initialized in constrain phase ---------- */
 
     struct ntg_box_padding __padding; // applied padding
-    struct ntg_constr __content_constr; // content constraints(children)
+    struct ntg_constr __box_content_constr;
 
     /* Cached - initialized in measure phase ------------ */
 
-    struct ntg_xy __content_size; // size of rectangle containing children
-    struct ntg_xy  __content_box_size; // size - padding_size
+    struct ntg_xy __box_content_size;
+    struct ntg_xy  __box_content_extra_size;
 };
 
 #endif // _NTG_BOX_H

@@ -3,14 +3,16 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static void __nsize_fn(ntg_object* _solid_block)
+static void __calculate_nsize_fn(ntg_object* _solid_block)
 {
-    _ntg_object_set_nsize(_solid_block, ntg_xy_size(_solid_block->_pref_size));
+    _ntg_object_set_content_nsize(_solid_block,
+            ntg_xy_size(_solid_block->_pref_size));
 }
 
 static void __measure_fn(ntg_object* _solid_block)
 {
-    _ntg_object_set_size(_solid_block, _solid_block->_constr.min_size);
+    _ntg_object_set_content_size(_solid_block,
+            ntg_object_get_content_constr(_solid_block).min_size);
 }
 
 static void __arrange_fn(ntg_object* _solid_block)
@@ -22,7 +24,9 @@ static void __arrange_fn(ntg_object* _solid_block)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_object_drawing_at_(_solid_block->_drawing, ntg_xy(j, i));
+            it_cell = ntg_object_drawing_at_(_solid_block->_drawing,
+                    ntg_xy(j, i));
+
             (*it_cell) = (NTG_SOLID_BLOCK(_solid_block))->_cell_bp;
         }
     }
@@ -32,7 +36,10 @@ void __ntg_solid_block_init__(ntg_solid_block* solid_block, ntg_cell cell_bp)
 {
     assert(solid_block != NULL);
 
-    __ntg_pane_init__(NTG_PANE(solid_block), __nsize_fn, __measure_fn, __arrange_fn);
+    __ntg_pane_init__(NTG_PANE(solid_block),
+            __calculate_nsize_fn,
+            __measure_fn,
+            __arrange_fn);
 
     solid_block->_cell_bp = cell_bp;
 }

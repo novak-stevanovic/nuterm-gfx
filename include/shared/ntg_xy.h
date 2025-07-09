@@ -144,4 +144,11 @@ static inline struct ntg_constr ntg_constr(struct ntg_xy min_size,
     return (struct ntg_constr) { .min_size = min_size, .max_size = max_size };
 }
 
+static inline bool ntg_constr_contains(struct ntg_constr constr,
+        struct ntg_xy point)
+{
+    return (point.x >= constr.min_size.x) && (point.x < constr.max_size.x) &&
+        (point.y >= constr.min_size.y) && (point.y < constr.max_size.y);
+}
+
 #endif // _NTG_XY_H_

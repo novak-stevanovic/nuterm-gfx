@@ -125,7 +125,7 @@ static void _draw_all(ntg_object* curr_obj, ntg_simple_scene* scene)
         struct ntg_xy obj_drawing_size = ntg_object_drawing_get_vp_size(obj_drawing);
         struct ntg_xy scene_drawing_size = ntg_scene_drawing_get_size(&_scene->_drawing);
 
-        struct ntg_xy obj_pos = curr_obj->_pos;
+        struct ntg_xy obj_pos = ntg_object_get_pos_abs(curr_obj);
         const ntg_cell* it_obj_cell;
         struct ntg_rcell* it_scene_cell;
         struct ntg_xy it_obj_pos, it_scene_pos;

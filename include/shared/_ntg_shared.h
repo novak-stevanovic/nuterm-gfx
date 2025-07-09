@@ -1,8 +1,19 @@
 #ifndef __NTG_SHARED_H__
 #define __NTG_SHARED_H__
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <sys/types.h>
+
+static inline bool _in_between(size_t min, size_t between, size_t max)
+{
+    return ((between > min) && (between < max));
+}
+
+static inline bool _in_between_eq(size_t min, size_t between, size_t max)
+{
+    return ((between >= min) && (between <= max));
+}
 
 static inline size_t _max2_size(size_t x, size_t y)
 {
