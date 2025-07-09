@@ -73,7 +73,6 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
     ntg_box_add_child(box2, NTG_OBJECT(cb5));
     ntg_box_add_child(box2, NTG_OBJECT(cb6));
 
-
     ntg_border_container* bc = ntg_border_container_new();
 
     ntg_border_container_set_north(bc, NTG_OBJECT(box1));

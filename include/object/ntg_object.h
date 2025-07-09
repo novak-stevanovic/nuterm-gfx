@@ -1,9 +1,11 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
+#include <stddef.h>
+
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
-#include <stddef.h>
+#include "object/ntg_object_border.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
@@ -26,7 +28,8 @@ typedef void (*ntg_nsize_fn)(ntg_object* object);
 /* Calculate and set constraints of object's children. This calculation
  * should be performed based on their natural sizes.
  *
- * Object's constraints are assumed to be set. */
+ * Object's constraints are assumed to be set. Use the object's content
+ * constraints for this calculation .*/
 typedef void (*ntg_constrain_fn)(ntg_object* object);
 
 /* Calculate the final size of an object.
@@ -42,6 +45,11 @@ typedef void (*ntg_arrange_fn)(ntg_object* object);
 /* Returns whether the key has been processed(true) or ignored(false). */
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event);
+
+/* This is done at the beginning of `constrain phase`. The object should
+ * calculate border sizes depending on the min. constraints. The function
+ * is called on _ntg_object_set_constr(). */
+typedef void (*ntg_calculate_border_size_fn)(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
@@ -69,6 +77,9 @@ void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size);
 struct ntg_xy ntg_object_get_pos_rel(const ntg_object* object);
 struct ntg_xy ntg_object_get_content_pos(const ntg_object* object);
 
+struct ntg_xy ntg_object_get_content_constr(const ntg_object* object);
+
+/* Calculates content size based on current size and border width. */
 struct ntg_xy ntg_object_get_content_size(const ntg_object* object);
 
 bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
@@ -85,7 +96,8 @@ struct ntg_object
     ntg_object* _parent;
     ntg_object_vec* _children;
 
-    // ntg_object_vec* _spec_children;
+    struct ntg_object_border _border_north, _border_east,
+            _border_south, _border_west;
 
     bool __scroll;
     struct ntg_dxy __buffered_scroll; // buffered until object is remeasured
@@ -103,6 +115,11 @@ struct ntg_object
     ntg_arrange_fn __arrange_fn;
 
     ntg_object_process_key_fn __process_key_fn;
+    ntg_calculate_border_size_fn __calculate_border_size_fn;
+
+    /* Cached */
+    size_t __border_north_width, __border_south_width,
+           __border_east_width, __border_west_width;
 
     ntg_scene* _scene;
 };
@@ -130,6 +147,8 @@ struct ntg_xy _ntg_object_get_scroll(const ntg_object* object);
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn);
+void _ntg_object_set_calculate_border_size_fn(ntg_object*
+        ntg_calculate_border_size_fn calculate_border_size_fn);
 
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),
