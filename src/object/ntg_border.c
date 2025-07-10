@@ -1,10 +1,9 @@
-#include "object/ntg_object_border.h"
-#include "object/shared/ntg_object_drawing.h"
+#include "object/ntg_border.h"
 #include <assert.h>
 
-struct ntg_object_border_style ntg_object_border_no_border()
+struct ntg_border_style ntg_border_style_default()
 {
-    return (struct ntg_object_border_style) {
+    return (struct ntg_border_style) {
 
         .north_line = ntg_cell_default(),
         .east_line = ntg_cell_default(),

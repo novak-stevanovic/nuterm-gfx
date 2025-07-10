@@ -14,7 +14,7 @@
 #include "shared/ntg_log.h"
 #include "shared/ntg_vector.h"
 
-struct ntg_object_border_style __create_border1()
+struct ntg_border_style __create_border1()
 {
     ntg_cell outline = ntg_cell_full('#',
             nt_color_new(255, 0, 180),
@@ -23,7 +23,7 @@ struct ntg_object_border_style __create_border1()
 
     ntg_cell inside = ntg_cell_default();
 
-    return (struct ntg_object_border_style) {
+    return (struct ntg_border_style) {
         .north_line = outline,
         .east_line = outline,
         .south_line = outline,

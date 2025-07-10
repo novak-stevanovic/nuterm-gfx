@@ -5,7 +5,7 @@
 
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
-#include "object/ntg_object_border.h"
+#include "object/ntg_border.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
@@ -13,11 +13,6 @@
 
 #define NTG_PREF_SIZE_UNSET (SIZE_MAX - 1)
 #define NTG_PREF_SIZE_MAX SIZE_MAX
-
-struct ntg_object_border_size
-{
-    size_t north, east, south, west;
-};
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
@@ -75,6 +70,11 @@ void ntg_object_arrange(ntg_object* object);
 
 void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size);
 
+void ntg_object_set_border_style(ntg_object* object,
+        struct ntg_border_style border_style);
+void ntg_object_set_border_size(ntg_object* object,
+        struct ntg_border_size border_size);
+
 struct ntg_xy ntg_object_get_nsize(const ntg_object* object);
 struct ntg_xy ntg_object_get_content_nsize(const ntg_object* object);
 
@@ -107,9 +107,9 @@ struct ntg_object
 
     struct
     {
-        struct ntg_object_border_style _border_style;
+        struct ntg_border_style _border_style;
         /* Border size is calculated at the start of constrain phase */
-        struct ntg_object_border_size _border_pref_size, _border_size;
+        struct ntg_border_size _border_pref_size, _border_size;
     };
 
     struct
