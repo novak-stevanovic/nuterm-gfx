@@ -77,12 +77,17 @@ static inline struct ntg_xy ntg_xy_sub(struct ntg_xy a, struct ntg_xy b)
 
 static inline struct ntg_xy ntg_xy_from_dxy(struct ntg_dxy xy)
 {
-    return (struct ntg_xy) { .x = xy.x, .y = xy.y };
+    return (struct ntg_xy) { .x = (size_t)xy.x, .y = (size_t)xy.y };
 }
 
 static inline bool ntg_xy_is_greater(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x > b.x) && (a.y > b.y));
+}
+
+static inline bool ntg_xy_is_greater_eq(struct ntg_xy a, struct ntg_xy b)
+{
+    return ((a.x >= b.x) && (a.y >= b.y));
 }
 
 static inline bool ntg_xy_are_equal(struct ntg_xy a, struct ntg_xy b)
@@ -102,6 +107,11 @@ static inline struct ntg_xy ntg_xy_clamp(struct ntg_xy min, struct ntg_xy val,
     return val;
 }
 
+static inline bool ntg_xy_is_zero(struct ntg_xy size)
+{
+    return ((size.x == 0) && (size.y == 0));
+}
+
 /* -------------------------------------------------------------------------- */
 
 static inline struct ntg_dxy ntg_dxy(ssize_t x, ssize_t y)
@@ -111,7 +121,7 @@ static inline struct ntg_dxy ntg_dxy(ssize_t x, ssize_t y)
 
 static inline struct ntg_dxy ntg_dxy_from_xy(struct ntg_xy xy)
 {
-    return (struct ntg_dxy) { .x = xy.x, .y = xy.y };
+    return (struct ntg_dxy) { .x = (ssize_t)xy.x, .y = (ssize_t)xy.y };
 }
 
 static inline struct ntg_dxy ntg_dxy_add(struct ntg_dxy a, struct ntg_dxy b)

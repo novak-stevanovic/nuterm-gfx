@@ -1,4 +1,5 @@
 #include "object/ntg_object.h"
+#include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
 #include "core/ntg_scene.h"
 #include "object/shared/ntg_object_drawing.h"
@@ -7,123 +8,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static void __calculate_border_size(ntg_object* object)
-{
-    assert(object != NULL);
+static void __calculate_border_size(ntg_object* object);
+static void __construct_full_drawing(ntg_object* object);
 
-    struct ntg_xy total_size = object->__constr.max_size;
-
-    struct ntg_xy pref_border_size = ntg_xy(
-            object->_border_pref_size.west + object->_border_pref_size.east,
-            object->_border_pref_size.north + object->_border_pref_size.south);
-
-    size_t ns_nsizes[] = { 
-        object->_border_pref_size.north,
-        object->_border_pref_size.south
-    };
-    size_t _ns_sizes[2] = {0};
-
-    ntg_sap_nsize_round_robin(ns_nsizes, _ns_sizes, total_size.y, 2);
-
-    object->_border_size.north = _ns_sizes[0];
-    object->_border_size.south = _ns_sizes[1];
-
-    size_t we_nsizes[] = { 
-        object->_border_pref_size.west,
-        object->_border_pref_size.east
-    };
-    size_t _we_sizes[2] = {0};
-
-    ntg_sap_nsize_round_robin(we_nsizes, _we_sizes, total_size.x, 2);
-
-    object->_border_size.west = _we_sizes[0];
-    object->_border_size.east = _we_sizes[1];
-}
-
-void __object_border_apply(ntg_object* object)
-{
-    assert(object->_drawing != NULL);
-
-    struct ntg_xy size = ntg_object_drawing_get_vp_size(object->_drawing);
-
-    if((size.x == 0) || (size.y == 0)) return;
-
-    struct ntg_object_border border = object->_border;
-
-    size_t north_width = object->_border_size.north;
-    size_t east_width = object->_border_size.east;
-    size_t south_width = object->_border_size.south;
-    size_t west_width = object->_border_size.west;
-    
-    struct ntg_xy center_size = ntg_xy(size.x - (east_width + west_width),
-            size.y - (north_width + south_width));
-
-    struct ntg_xy center_box_start = ntg_xy(west_width, north_width);
-    struct ntg_xy center_box_end = ntg_xy(west_width + center_size.x,
-            north_width + center_size.y);
-
-    struct ntg_constr center_box = ntg_constr(center_box_start, center_box_end);
-
-    size_t i, j;
-    ntg_cell* it_cell;
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            it_cell = ntg_object_drawing_vp_at_(object->_drawing, ntg_xy(j, i));
-            
-            // if(border.border_inside_as_outline)
-            // {
-            //     assert(0);
-            // }
-            // else
-            {
-                if(ntg_constr_contains(center_box, ntg_xy(j, i)))
-                {
-                    continue;
-                }
-
-                if((north_width > 0) && (i == 0) && (j == 0))
-                {
-                    *it_cell = border.north_west_corner;
-                }
-                else if((north_width > 0) && (i == 0) && (j == (size.x - 1)))
-                {
-                    *it_cell = border.north_east_corner;
-                }
-                else if((south_width > 0) && (i == (size.y - 1)) && (j == 0))
-                {
-                    *it_cell = border.south_west_corner;
-                }
-                else if((south_width > 0) && (i == (size.y - 1)) &&
-                        (j == (size.x - 1)))
-                {
-                    *it_cell = border.south_east_corner;
-                }
-                else if((north_width > 0) && (i == 0))
-                {
-                    *it_cell = border.north_line;
-                }
-                else if((west_width > 0) && (j == 0))
-                {
-                    *it_cell = border.west_line;
-                }
-                else if((south_width > 0) && (i == (size.y - 1)))
-                {
-                    *it_cell = border.south_line;
-                }
-                else if((east_width > 0) && (j == (size.x - 1)))
-                {
-                    *it_cell = border.east_line;
-                }
-                else
-                {
-                    *it_cell = border.border_inside;
-                }
-            }
-        }
-    }
-}
 /* -------------------------------------------------------------------------- */
 /* def/ntg_object_def.h */
 /* -------------------------------------------------------------------------- */
@@ -133,15 +20,18 @@ static void _ntg_object_init_default(ntg_object* object)
     object->_parent = NULL;
     object->_children = NULL;
 
-    object->_border = ntg_object_border_no_border();
+    object->_border_style = ntg_object_border_no_border();
     object->_border_pref_size = (struct ntg_object_border_size) {0};
     object->_border_size = (struct ntg_object_border_size) {0};
  
     object->__scroll = false;
-    object->_drawing = NULL;
+    object->_virtual_drawing = NULL;
+    object->__curr_scroll = ntg_xy(0, 0);
     object->__buffered_scroll = ntg_dxy(0, 0);
 
-    object->_pref_size = NTG_XY_UNSET;
+    object->_full_drawing = NULL;
+
+    object->_pref_size = ntg_xy(NTG_PREF_SIZE_UNSET, NTG_PREF_SIZE_UNSET);
     object->__nsize = NTG_XY_UNSET;
     object->__constr = NTG_CONSTR_UNSET;
     object->__size = NTG_XY_UNSET;
@@ -171,7 +61,12 @@ void __ntg_object_init__(ntg_object* object,
     object->__arrange_fn = arrange_fn;
     object->__calculate_nsize_fn = calculate_nsize_fn;
 
-    object->_drawing = ntg_object_drawing_new();
+    object->_virtual_drawing = ntg_object_drawing_new();
+    assert(object->_virtual_drawing != NULL);
+
+    object->_full_drawing = ntg_object_drawing_new();
+    assert(object->_full_drawing != NULL);
+
     object->_children = ntg_object_vec_new();
 }
 
@@ -179,8 +74,8 @@ void __ntg_object_deinit__(ntg_object* object)
 {
     assert(object != NULL); 
 
-    if(object->_drawing != NULL)
-        ntg_object_drawing_destroy(object->_drawing);
+    ntg_object_drawing_destroy(object->_virtual_drawing);
+    ntg_object_drawing_destroy(object->_full_drawing);
 
     if(object->_children != NULL)
         ntg_object_vec_destroy(object->_children);
@@ -259,29 +154,35 @@ void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy size)
     object->__size = size;
 
     struct ntg_xy content_nsize = ntg_object_get_content_nsize(object);
+    struct ntg_xy content_size = ntg_object_get_content_size(object);
 
     if(object->__scroll)
     {
-        struct ntg_xy drawing_size = ntg_xy(
-                _max2_size(content_nsize.x, size.x),
-                _max2_size(content_nsize.y, size.y));
+        struct ntg_xy virtual_size = ntg_xy(
+                _max2_size(content_nsize.x, content_size.x),
+                _max2_size(content_nsize.y, content_size.y));
 
-        ntg_object_drawing_set_size(object->_drawing, drawing_size);
+        ntg_object_drawing_set_size(object->_virtual_drawing, virtual_size);
+        ntg_object_drawing_set_size(object->_full_drawing, size);
 
-        ntg_object_drawing_scroll(object->_drawing, object->__buffered_scroll);
+        struct ntg_dxy _curr_scroll = ntg_dxy_from_xy(object->__curr_scroll);
+
+        _curr_scroll = ntg_dxy_add(_curr_scroll, object->__buffered_scroll);
+
+        _curr_scroll = ntg_dxy_clamp(ntg_dxy(0, 0),
+                _curr_scroll,
+                ntg_dxy_from_xy(ntg_xy_sub(virtual_size, content_size)));
+
+        object->__curr_scroll = ntg_xy_from_dxy(_curr_scroll);
         object->__buffered_scroll = ntg_dxy(0, 0);
-
-        ntg_object_drawing_set_vp_size(object->_drawing, size);
     }
     else
     {
-        ntg_object_drawing_set_size(object->_drawing, size);
+        ntg_object_drawing_set_size(object->_virtual_drawing, content_size);
+        ntg_object_drawing_set_size(object->_full_drawing, size);
 
-        ntg_object_drawing_set_vp_offset(object->_drawing,
-                ntg_xy(0, 0));
         object->__buffered_scroll = ntg_dxy(0, 0);
-
-        ntg_object_drawing_set_vp_size(object->_drawing, size);
+        object->__curr_scroll = ntg_xy(0, 0);
     }
 }
 
@@ -306,20 +207,32 @@ void _ntg_object_set_pos_inside_content(ntg_object* object, struct ntg_xy pos)
 
 void _ntg_object_scroll_enable(ntg_object* object)
 {
-    if(!object->__scroll)
-        ntg_object_drawing_set_vp_offset(object->_drawing, ntg_xy(0, 0));
+    assert(object != NULL);
 
-    object->__scroll = true;
+    if(!(object->__scroll))
+    {
+        object->__scroll = true;
+        object->__curr_scroll = ntg_xy(0, 0);
+        object->__buffered_scroll = ntg_dxy(0, 0);
+    }
 }
 
 void _ntg_object_scroll_disable(ntg_object* object)
 {
-    object->__scroll = false;
-    ntg_object_drawing_set_vp_offset(object->_drawing, ntg_xy(0, 0));
+    assert(object != NULL);
+
+    if(object->__scroll)
+    {
+        object->__scroll = false;
+        object->__curr_scroll = ntg_xy(0, 0);
+        object->__buffered_scroll = ntg_dxy(0, 0);
+    }
 }
 
 void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff)
 {
+    assert(object != NULL);
+
     if(object->__scroll)
     {
         object->__buffered_scroll = ntg_dxy_add(object->__buffered_scroll,
@@ -329,9 +242,7 @@ void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff)
 
 struct ntg_xy _ntg_object_get_scroll(const ntg_object* object)
 {
-    return (object->__scroll) ?
-        ntg_object_drawing_get_vp_offset(object->_drawing) :
-        ntg_xy(0, 0);
+    return object->__curr_scroll;
 }
 
 static void __adjust_scene_fn(ntg_object* object, void* scene)
@@ -442,12 +353,7 @@ void ntg_object_arrange(ntg_object* object)
     if(object->__arrange_fn != NULL)
         object->__arrange_fn(object);
 
-    __object_border_apply(object);
-}
-
-const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object)
-{
-    return object->_drawing;
+    __construct_full_drawing(object);
 }
 
 struct ntg_xy ntg_object_get_nsize(const ntg_object* object)
@@ -564,4 +470,204 @@ void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene)
     assert(root != NULL);
 
     _ntg_object_perform_tree(root, __adjust_scene_fn, scene);
+}
+
+static void __calculate_border_size(ntg_object* object)
+{
+    assert(object != NULL);
+
+    struct ntg_xy total_size = object->__constr.max_size;
+    struct ntg_xy pref_border_size = ntg_xy(
+            object->_border_pref_size.west + object->_border_pref_size.east,
+            object->_border_pref_size.north + object->_border_pref_size.south);
+
+    struct ntg_xy content_nsize = ntg_object_get_content_nsize(object);
+    struct ntg_xy content_size = ntg_xy_sub(total_size, pref_border_size);
+
+    struct ntg_xy border_total_size;
+
+    if(content_size.x >= content_nsize.x)
+    {
+        border_total_size.x = total_size.x - content_size.x;
+    }
+    else
+    {
+        border_total_size.x = 0;
+    }
+
+    if(content_size.y >= content_nsize.y)
+    {
+        border_total_size.y = total_size.y - content_size.y;
+    }
+    else
+    {
+        border_total_size.y = 0;
+    }
+
+    size_t ns_nsizes[] = { 
+        object->_border_pref_size.north,
+        object->_border_pref_size.south
+    };
+    size_t _ns_sizes[2] = {0};
+
+    ntg_sap_nsize_round_robin(ns_nsizes, _ns_sizes, border_total_size.y, 2);
+
+    object->_border_size.north = _ns_sizes[0];
+    object->_border_size.south = _ns_sizes[1];
+
+    size_t we_nsizes[] = { 
+        object->_border_pref_size.west,
+        object->_border_pref_size.east
+    };
+    size_t _we_sizes[2] = {0};
+
+    ntg_sap_nsize_round_robin(we_nsizes, _we_sizes, border_total_size.x, 2);
+
+    object->_border_size.west = _we_sizes[0];
+    object->_border_size.east = _we_sizes[1];
+}
+
+// static void __calculate_border_size(ntg_object* object)
+// {
+//     assert(object != NULL);
+//
+//     struct ntg_xy total_size = object->__constr.max_size;
+//     struct ntg_xy pref_border_size = ntg_xy(
+//             object->_border_pref_size.west + object->_border_pref_size.east,
+//             object->_border_pref_size.north + object->_border_pref_size.south);
+//
+//     struct ntg_xy adj_pref_border_size = ntg_xy(
+//             _min2_size(pref_border_size.x, total_size.x),
+//             _min2_size(pref_border_size.y, total_size.y));
+//
+//     struct ntg_xy content_nsize = ntg_object_get_content_nsize(object);
+//     struct ntg_xy content_size = ntg_xy_sub(total_size, adj_pref_border_size);
+//
+//     struct ntg_xy border_total_size;
+//
+//     if(content_size.x >= content_nsize.x)
+//     {
+//         border_total_size.x = pref_border_size.x;
+//     }
+//     else
+//     {
+//         border_total_size.x = 0.4 * pref_border_size.x;
+//     }
+//     if(content_size.y >= content_nsize.y)
+//     {
+//         border_total_size.y = pref_border_size.y;
+//     }
+//     else
+//     {
+//         border_total_size.y = 0.4 * pref_border_size.y;
+//     }
+//
+//     size_t ns_nsizes[] = { 
+//         object->_border_pref_size.north,
+//         object->_border_pref_size.south
+//     };
+//     size_t _ns_sizes[2] = {0};
+//
+//     ntg_sap_nsize_round_robin(ns_nsizes, _ns_sizes, border_total_size.y, 2);
+//
+//     object->_border_size.north = _ns_sizes[0];
+//     object->_border_size.south = _ns_sizes[1];
+//
+//     size_t we_nsizes[] = { 
+//         object->_border_pref_size.west,
+//         object->_border_pref_size.east
+//     };
+//     size_t _we_sizes[2] = {0};
+//
+//     ntg_sap_nsize_round_robin(we_nsizes, _we_sizes, border_total_size.x, 2);
+//
+//     object->_border_size.west = _we_sizes[0];
+//     object->_border_size.east = _we_sizes[1];
+// }
+
+static void __construct_full_drawing(ntg_object* object)
+{
+    struct ntg_xy content_size = ntg_object_get_content_size(object);
+    struct ntg_xy border_offset = ntg_xy(object->_border_size.west, object->_border_size.north);
+
+    if(object->__scroll)
+    {
+        ntg_object_drawing_place(
+                object->_virtual_drawing, object->__curr_scroll, content_size,
+                object->_full_drawing, border_offset);
+    }
+    else
+    {
+        ntg_object_drawing_place(
+                object->_virtual_drawing, ntg_xy(0, 0), content_size,
+                object->_full_drawing, border_offset);
+    }
+
+    struct ntg_xy size = ntg_object_get_size(object);
+
+    struct ntg_object_border_style border = object->_border_style;
+
+    size_t north_width = object->_border_size.north;
+    size_t east_width = object->_border_size.east;
+    size_t south_width = object->_border_size.south;
+    size_t west_width = object->_border_size.west;
+
+    struct ntg_xy center_size = ntg_xy(size.x - (east_width + west_width),
+            size.y - (north_width + south_width));
+
+    struct ntg_xy center_box_start = ntg_xy(west_width, north_width);
+    struct ntg_xy center_box_end = ntg_xy(west_width + center_size.x,
+            north_width + center_size.y);
+
+    struct ntg_constr center_box = ntg_constr(center_box_start, center_box_end);
+
+    size_t i, j;
+    ntg_cell* it_cell;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            if(ntg_constr_contains(center_box, ntg_xy(j, i))) continue;
+
+            it_cell = ntg_object_drawing_at_(object->_full_drawing, ntg_xy(j, i));
+
+            if((north_width > 0) && (i == 0) && (j == 0))
+            {
+                *it_cell = border.north_west_corner;
+            }
+            else if((north_width > 0) && (i == 0) && (j == (size.x - 1)))
+            {
+                *it_cell = border.north_east_corner;
+            }
+            else if((south_width > 0) && (i == (size.y - 1)) && (j == 0))
+            {
+                *it_cell = border.south_west_corner;
+            }
+            else if((south_width > 0) && (i == (size.y - 1)) &&
+                    (j == (size.x - 1)))
+            {
+                *it_cell = border.south_east_corner;
+            }
+            else if((north_width > 0) && (i == 0))
+            {
+                *it_cell = border.north_line;
+            }
+            else if((west_width > 0) && (j == 0))
+            {
+                *it_cell = border.west_line;
+            }
+            else if((south_width > 0) && (i == (size.y - 1)))
+            {
+                *it_cell = border.south_line;
+            }
+            else if((east_width > 0) && (j == (size.x - 1)))
+            {
+                *it_cell = border.east_line;
+            }
+            else
+            {
+                *it_cell = border.border_inside;
+            }
+        }
+    }
 }

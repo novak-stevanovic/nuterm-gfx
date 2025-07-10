@@ -10,7 +10,7 @@ static void __arrange_fn(ntg_object* object)
 
     ntg_container* container = (ntg_container*)object;
 
-    ntg_object_drawing* drawing = object->_drawing;
+    ntg_object_drawing* drawing = object->_virtual_drawing;
     struct ntg_xy size = ntg_object_drawing_get_size(drawing);
 
     size_t i, j;

@@ -11,7 +11,13 @@
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-#define NTG_PREF_SIZE_UNSET 0
+#define NTG_PREF_SIZE_UNSET (SIZE_MAX - 1)
+#define NTG_PREF_SIZE_MAX SIZE_MAX
+
+struct ntg_object_border_size
+{
+    size_t north, east, south, west;
+};
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
@@ -88,11 +94,6 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
 /* Called internally by ntg_scene when root changes. */
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene);
 
-struct ntg_object_border_size
-{
-    size_t north, east, south, west;
-};
-
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
@@ -102,24 +103,40 @@ struct ntg_object
     ntg_object* _parent;
     ntg_object_vec* _children;
 
-    struct ntg_object_border _border;
-    /* Border size is calculated at the start of constrain phase */
-    struct ntg_object_border_size _border_pref_size, _border_size;
-
-    bool __scroll;
-    struct ntg_dxy __buffered_scroll; // buffered until object is remeasured
-    ntg_object_drawing* _drawing;
-
     struct ntg_xy _pref_size;
-    struct ntg_xy __nsize;
-    struct ntg_constr __constr;
-    struct ntg_xy __size;
-    struct ntg_xy __pos; // absolute
 
-    ntg_calculate_nsize_fn __calculate_nsize_fn;
-    ntg_constrain_fn __constrain_fn;
-    ntg_measure_fn __measure_fn;
-    ntg_arrange_fn __arrange_fn;
+    struct
+    {
+        struct ntg_object_border_style _border_style;
+        /* Border size is calculated at the start of constrain phase */
+        struct ntg_object_border_size _border_pref_size, _border_size;
+    };
+
+    struct
+    {
+        ntg_object_drawing* _virtual_drawing;
+        bool __scroll;
+        struct ntg_xy __curr_scroll;
+        struct ntg_dxy __buffered_scroll; // buffered until object is remeasured
+
+        ntg_object_drawing* _full_drawing;
+    };
+
+    struct
+    {
+        struct ntg_xy __nsize;
+        struct ntg_constr __constr;
+        struct ntg_xy __size;
+        struct ntg_xy __pos; // absolute
+    };
+
+    struct
+    {
+        ntg_calculate_nsize_fn __calculate_nsize_fn;
+        ntg_constrain_fn __constrain_fn;
+        ntg_measure_fn __measure_fn;
+        ntg_arrange_fn __arrange_fn;
+    };
 
     ntg_object_process_key_fn __process_key_fn;
 

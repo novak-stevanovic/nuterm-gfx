@@ -5,7 +5,7 @@
 
 typedef struct ntg_object_drawing ntg_object_drawing;
 
-struct ntg_object_border
+struct ntg_object_border_style
 {
     ntg_cell north_line, east_line,
              south_line, west_line;
@@ -16,9 +16,9 @@ struct ntg_object_border
     ntg_cell border_inside;
 };
 
-struct ntg_object_border ntg_object_border_no_border();
+struct ntg_object_border_style ntg_object_border_no_border();
 
 void ntg_object_border_apply(ntg_object_drawing* drawing,
-        struct ntg_object_border border);
+        struct ntg_object_border_style border);
 
 #endif // _NTG_OBJECT_BORDER_H_

@@ -17,17 +17,24 @@ static void __measure_fn(ntg_object* _solid_block)
 
 static void __arrange_fn(ntg_object* _solid_block)
 {
-    struct ntg_xy size = ntg_object_drawing_get_vp_size(_solid_block->_drawing);
+    ntg_object_drawing* drawing = _solid_block->_virtual_drawing;
+    struct ntg_xy size = ntg_object_drawing_get_size(drawing);
+
     size_t i, j;
     struct ntg_cell* it_cell;
+    char it_letter;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_object_drawing_at_(_solid_block->_drawing,
-                    ntg_xy(j, i));
+            it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i));
+
+            // TODO:
 
             (*it_cell) = (NTG_SOLID_BLOCK(_solid_block))->_cell_bp;
+
+            it_letter = 'a' + ((i + j) % 26);
+            it_cell->__base.codepoint = it_letter;
         }
     }
 }

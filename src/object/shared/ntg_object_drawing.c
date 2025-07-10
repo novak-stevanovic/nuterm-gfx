@@ -2,25 +2,21 @@
 #include <assert.h>
 
 #include "object/shared/ntg_object_drawing.h"
-#include "shared/_ntg_shared.h"
+#include "core/ntg_scene_drawing.h"
 #include "shared/ntg_log.h"
 
 void __ntg_object_drawing_init__(ntg_object_drawing* drawing)
 {
-    assert(drawing != NULL);
+    if(drawing == NULL) return;
 
-    __ntg_cell_vgrid_init__(&drawing->__data);
-
-    drawing->__vp_size = NTG_XY_UNSET;
-    drawing->__vp_offset = NTG_XY_UNSET;
+    __ntg_cell_vgrid_init__(&drawing->___data);
 }
 
 void __ntg_object_drawing_deinit__(ntg_object_drawing* drawing)
 {
-    assert(drawing != NULL);
+    if(drawing == NULL) return;
 
-    drawing->__vp_size = NTG_XY_UNSET;
-    drawing->__vp_offset = NTG_XY_UNSET;
+    __ntg_cell_vgrid_deinit__(&drawing->___data);
 }
 
 ntg_object_drawing* ntg_object_drawing_new()
@@ -37,106 +33,125 @@ ntg_object_drawing* ntg_object_drawing_new()
 
 void ntg_object_drawing_destroy(ntg_object_drawing* drawing)
 {
-    assert(drawing != NULL);
+    if(drawing == NULL) return;
 
     __ntg_object_drawing_deinit__(drawing);
 
     free(drawing);
 }
 
-void ntg_object_drawing_scroll(ntg_object_drawing* drawing,
-        struct ntg_dxy vp_offset_diff)
-{
-    struct ntg_dxy total = ntg_dxy_add(
-            vp_offset_diff,
-            ntg_dxy_from_xy(drawing->__vp_offset));
-
-    struct ntg_xy total_xy = ntg_xy_from_dxy(
-            ntg_dxy_clamp(ntg_dxy(0, 0), total, NTG_DXY_MAX));
-
-    ntg_object_drawing_set_vp_offset(drawing, total_xy);
-}
-
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 {
-    assert(drawing != NULL);
-
-    return ntg_cell_vgrid_get_size(&drawing->__data);
+    return (drawing != NULL) ? ntg_cell_vgrid_get_size(&drawing->___data) : NTG_XY_UNSET;
 }
 
 void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
         struct ntg_xy size)
 {
-    assert(drawing != NULL);
+    if(drawing == NULL) return;
 
-    ntg_xy_size_(&size);
-
-    ntg_cell_vgrid_set_size(&drawing->__data, size, NULL);
-
-    // struct ntg_xy total_size = ntg_cell_vgrid_get_size(&drawing->__data);
-
-    struct ntg_xy _vp_size = ntg_xy(
-            _min2_size(drawing->__vp_size.x, size.x),
-            _min2_size(drawing->__vp_size.y, size.y));
-
-    if(!ntg_xy_are_equal(_vp_size, drawing->__vp_size))
-        ntg_object_drawing_set_vp_size(drawing, _vp_size);
+    ntg_status _status;
+    ntg_cell_vgrid_set_size(&drawing->___data, size, &_status);
+    assert(_status == NTG_SUCCESS);
 }
 
-struct ntg_xy ntg_object_drawing_get_vp_offset(const ntg_object_drawing* drawing)
+void ntg_object_drawing_place(const ntg_object_drawing* src_drawing,
+        struct ntg_xy src_start_pos, struct ntg_xy src_box_size,
+        ntg_object_drawing* dest_drawing, struct ntg_xy dest_start_pos)
 {
-    assert(drawing != NULL);
+    assert(src_drawing != NULL);
+    assert(dest_drawing != NULL);
+    assert(src_drawing != dest_drawing);
 
-    return drawing->__vp_offset;
+    src_box_size = ntg_xy_size(src_box_size);
+    if(ntg_xy_is_zero(src_box_size)) return;
+
+    struct ntg_xy dest_size = ntg_object_drawing_get_size(dest_drawing);
+    struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
+
+    struct ntg_xy src_end_pos = ntg_xy_add(src_start_pos, src_box_size);
+
+    ntg_log_log("A: (%d,%d), (%d,%d)",
+            src_size.x, src_size.y,
+            dest_size.x, dest_size.y);
+
+    ntg_log_log("B :(%d,%d), (%d,%d)",
+            src_start_pos.x, src_start_pos.y,
+            src_box_size.x, src_box_size.y);
+
+    assert(ntg_xy_is_greater(src_size, src_start_pos));
+    assert(ntg_xy_is_greater_eq(src_size, src_end_pos));
+    assert(ntg_xy_is_greater(src_end_pos, src_start_pos));
+
+    assert(ntg_xy_is_greater(dest_size, dest_start_pos));
+    
+    struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_box_size);
+
+    ntg_log_log("C: (%d,%d), (%d,%d)",
+            dest_start_pos.x, dest_start_pos.y,
+            dest_end_pos.x, dest_end_pos.y);
+
+    assert(ntg_xy_is_greater_eq(dest_size, dest_end_pos));
+
+    size_t i, j;
+    struct ntg_xy it_dest_pos, it_src_pos;
+    ntg_cell* it_dest_cell;
+    const ntg_cell* it_src_cell;
+    for(i = 0; i < src_box_size.y; i++)
+    {
+        for(j = 0; j < src_box_size.x; j++)
+        {
+            it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
+            it_src_pos = ntg_xy_add(src_start_pos, ntg_xy(j, i));
+
+            it_dest_cell = ntg_object_drawing_at_(dest_drawing, it_dest_pos);
+            it_src_cell = ntg_object_drawing_at(src_drawing, it_src_pos);
+
+            (*it_dest_cell) = *it_src_cell;
+        }
+    }
 }
 
-void ntg_object_drawing_set_vp_offset(ntg_object_drawing* drawing,
-        struct ntg_xy vp_offset)
+void ntg_object_drawing_place_(const ntg_object_drawing* src_drawing,
+        struct ntg_xy src_start_pos, struct ntg_xy src_box_size,
+        ntg_scene_drawing* dest_drawing, struct ntg_xy dest_start_pos)
 {
-    assert(drawing != NULL);
+    assert(src_drawing != NULL);
+    assert(dest_drawing != NULL);
 
-    struct ntg_xy total_size = ntg_cell_vgrid_get_size(&drawing->__data);
+    src_box_size = ntg_xy_size(src_box_size);
+    if(ntg_xy_is_zero(src_box_size)) return;
 
-    struct ntg_xy max_offset = ntg_xy_sub(total_size, drawing->__vp_size);
+    struct ntg_xy dest_size = ntg_scene_drawing_get_size(dest_drawing);
+    struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
-    vp_offset.x = _min2_size(vp_offset.x, max_offset.x);
-    vp_offset.y = _min2_size(vp_offset.y, max_offset.y);
+    struct ntg_xy src_end_pos = ntg_xy_add(src_start_pos, src_box_size);
 
-    drawing->__vp_offset = vp_offset;
-}
+    assert(ntg_xy_is_greater(src_size, src_start_pos));
+    assert(ntg_xy_is_greater_eq(src_size, src_end_pos));
+    assert(ntg_xy_is_greater(src_end_pos, src_start_pos));
 
-struct ntg_xy ntg_object_drawing_get_vp_size(const ntg_object_drawing* drawing)
-{
-    assert(drawing != NULL);
+    assert(ntg_xy_is_greater(dest_size, dest_start_pos));
+    
+    struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_box_size);
 
-    return drawing->__vp_size;
-}
+    assert(ntg_xy_is_greater_eq(dest_size, dest_end_pos));
 
-void ntg_object_drawing_set_vp_size(ntg_object_drawing* drawing,
-        struct ntg_xy size)
-{
-    assert(drawing != NULL);
+    size_t i, j;
+    struct ntg_xy it_dest_pos, it_src_pos;
+    struct ntg_rcell* it_dest_cell;
+    const ntg_cell* it_src_cell;
+    for(i = 0; i < src_box_size.y; i++)
+    {
+        for(j = 0; j < src_box_size.x; j++)
+        {
+            it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
+            it_src_pos = ntg_xy_add(src_start_pos, ntg_xy(j, i));
 
-    struct ntg_xy total_size = ntg_cell_vgrid_get_size(&drawing->__data);
+            it_dest_cell = ntg_scene_drawing_at_(dest_drawing, it_dest_pos);
+            it_src_cell = ntg_object_drawing_at(src_drawing, it_src_pos);
 
-    ntg_xy_size_(&size);
-
-    /* vp_size must not be greater than size */
-
-    if((size.x > total_size.x) || (size.y > total_size.y))
-        assert(0);
-
-    drawing->__vp_size = size;
-
-    /* If offset + vp_size > size, make the offset smaller */
-
-    struct ntg_dxy extra = ntg_dxy_sub(
-            ntg_dxy_from_xy(ntg_xy_add(drawing->__vp_offset, size)),
-            ntg_dxy_from_xy(total_size));
-
-    extra.x = (extra.x >= 0) ? extra.x : 0;
-    extra.y = (extra.y >= 0) ? extra.y : 0;
-
-    drawing->__vp_offset = ntg_xy_sub(drawing->__vp_offset,
-                ntg_xy_from_dxy(extra));
+            (*it_dest_cell) = ntg_cell_overwrite(*it_src_cell, *it_dest_cell);
+        }
+    }
 }

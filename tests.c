@@ -1,29 +1,29 @@
+#include <stdio.h>
+#include <unistd.h>
+#include "ntg.h"
+
 #include "core/ntg_simple_stage.h"
 #include "core/ntg_simple_scene.h"
 #include "core/ntg_stage.h"
-#include "ntg.h"
 #include "core/ntg_scene.h"
 #include "object/ntg_border_container.h"
 #include "object/ntg_color_block.h"
-#include <stdio.h>
-#include <unistd.h>
 #include "object/ntg_container.h"
 #include "object/ntg_object.h"
 #include "object/ntg_box.h"
 #include "shared/ntg_log.h"
 #include "shared/ntg_vector.h"
 
-
-struct ntg_object_border __create_border1()
+struct ntg_object_border_style __create_border1()
 {
     ntg_cell outline = ntg_cell_full('#',
-            nt_color_new(255, 255, 255),
+            nt_color_new(255, 0, 180),
             NT_COLOR_DEFAULT,
             NT_STYLE_DEFAULT);
 
     ntg_cell inside = ntg_cell_default();
 
-    return (struct ntg_object_border) {
+    return (struct ntg_object_border_style) {
         .north_line = outline,
         .east_line = outline,
         .south_line = outline,
@@ -47,7 +47,7 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
     ntg_object_set_pref_size(NTG_OBJECT(cb1), ntg_xy(20, 10));
 
     ntg_color_block* cb2 = ntg_color_block_new(nt_color_new(0, 255, 0));
-    ntg_object_set_pref_size(NTG_OBJECT(cb2), ntg_xy(700, 10));
+    ntg_object_set_pref_size(NTG_OBJECT(cb2), ntg_xy(7, 10));
 
     ntg_color_block* cb3 = ntg_color_block_new(nt_color_new(0, 0, 255));
     ntg_object_set_pref_size(NTG_OBJECT(cb3), ntg_xy(15, 10));
@@ -63,7 +63,7 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
 
     ntg_color_block* cb7 = ntg_color_block_new(nt_color_new(200, 200, 200));
 
-    (NTG_OBJECT(cb7))->_border = __create_border1();
+    (NTG_OBJECT(cb7))->_border_style = __create_border1();
 
     (NTG_OBJECT(cb7))->_border_pref_size.north = 2;
     (NTG_OBJECT(cb7))->_border_pref_size.south = 2;
@@ -76,13 +76,15 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
     ntg_object_set_pref_size(NTG_OBJECT(cb8), ntg_xy(10, 0));
 
     ntg_color_block* cb9 = ntg_color_block_new(nt_color_new(255, 0, 255));
-    ntg_object_set_pref_size(NTG_OBJECT(cb9), ntg_xy(30, 30));
+    ntg_object_set_pref_size(NTG_OBJECT(cb9), ntg_xy(9, 10));
+
+    _ntg_object_scroll_enable(NTG_OBJECT(cb3));
 
     ntg_box* box1 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL,
-            NTG_BOX_ALIGNMENT_0,
+            NTG_BOX_ALIGNMENT_2,
             NTG_BOX_ALIGNMENT_0);
 
-    (NTG_OBJECT(box1))->_border = __create_border1();
+    (NTG_OBJECT(box1))->_border_style = __create_border1();
 
     (NTG_OBJECT(box1))->_border_pref_size.north = 1;
     (NTG_OBJECT(box1))->_border_pref_size.south = 1;
@@ -124,7 +126,7 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
     ntg_simple_scene* s1 = ntg_simple_scene_new(ntg_scene_process_key_fn_def);
     ntg_scene_set_root(NTG_SCENE(s1), NTG_OBJECT(bc));
     ntg_stage_set_scene(_main_stage, NTG_SCENE(s1));
-    ntg_scene_focus(NTG_SCENE(s1), NTG_OBJECT(box1));
+    ntg_scene_focus(NTG_SCENE(s1), NTG_OBJECT(cb3));
 
     ntg_loop(_main_stage, NTG_FRAMERATE_DEFAULT);
 

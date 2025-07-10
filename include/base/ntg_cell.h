@@ -178,7 +178,7 @@ void ntg_cell_grid_set_size(ntg_cell_grid* grid, struct ntg_xy size,
 
 typedef struct ntg_rcell_vgrid
 {
-    ntg_rcell_grid __data; // grid + allocated size
+    ntg_rcell_grid ___data; // grid + allocated size
     struct ntg_xy __size; // current size
 } ntg_rcell_vgrid;
 
@@ -197,7 +197,7 @@ static inline const struct ntg_rcell* ntg_rcell_vgrid_at(
         const ntg_rcell_vgrid* vgrid, struct ntg_xy pos)
 {
     return ((vgrid != NULL) ?
-            ntg_rcell_grid_at(&vgrid->__data, pos) :
+            ntg_rcell_grid_at(&vgrid->___data, pos) :
             NULL);
 }
 
@@ -205,7 +205,7 @@ static inline struct ntg_rcell* ntg_rcell_vgrid_at_(
         ntg_rcell_vgrid* vgrid, struct ntg_xy pos)
 {
     return ((vgrid != NULL) ?
-            ntg_rcell_grid_at_(&vgrid->__data, pos) :
+            ntg_rcell_grid_at_(&vgrid->___data, pos) :
             NULL);
 }
 
@@ -215,7 +215,7 @@ static inline struct ntg_rcell* ntg_rcell_vgrid_at_(
 
 typedef struct ntg_cell_vgrid
 {
-    ntg_cell_grid __data; // grid + allocated size
+    ntg_cell_grid ___data; // grid + allocated size
     struct ntg_xy __size; // current size
 } ntg_cell_vgrid;
 
@@ -234,7 +234,7 @@ static inline const struct ntg_cell* ntg_cell_vgrid_at(
         const ntg_cell_vgrid* vgrid, struct ntg_xy pos)
 {
     return ((vgrid != NULL) ?
-            ntg_cell_grid_at(&vgrid->__data, pos) :
+            ntg_cell_grid_at(&vgrid->___data, pos) :
             NULL);
 }
 
@@ -242,7 +242,7 @@ static inline struct ntg_cell* ntg_cell_vgrid_at_(
         ntg_cell_vgrid* vgrid, struct ntg_xy pos)
 {
     return ((vgrid != NULL) ?
-            ntg_cell_grid_at_(&vgrid->__data, pos) :
+            ntg_cell_grid_at_(&vgrid->___data, pos) :
             NULL);
 }
 

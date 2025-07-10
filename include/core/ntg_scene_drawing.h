@@ -6,7 +6,7 @@
 
 typedef struct ntg_scene_drawing
 {
-    ntg_rcell_vgrid __data;
+    ntg_rcell_vgrid ___data;
 } ntg_scene_drawing;
 
 void __ntg_scene_drawing_init__(ntg_scene_drawing* drawing);
@@ -22,7 +22,7 @@ static inline const struct ntg_rcell* ntg_scene_drawing_at(
         const ntg_scene_drawing* drawing, struct ntg_xy pos)
 {
     return (drawing != NULL) ?
-        ntg_rcell_vgrid_at(&drawing->__data, pos) :
+        ntg_rcell_vgrid_at(&drawing->___data, pos) :
         NULL;
 }
 
@@ -30,7 +30,7 @@ static inline struct ntg_rcell* ntg_scene_drawing_at_(
         ntg_scene_drawing* drawing, struct ntg_xy pos)
 {
     return (drawing != NULL) ?
-        ntg_rcell_vgrid_at_(&drawing->__data, pos) :
+        ntg_rcell_vgrid_at_(&drawing->___data, pos) :
         NULL;
 }
 

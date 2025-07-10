@@ -5,6 +5,43 @@
 #include "shared/ntg_log.h"
 #include "object/ntg_color_block.h"
 
+static bool __object_process_key_fn(ntg_object* _color_block,
+        struct nt_key_event key_event)
+{
+    if(key_event.type == NT_KEY_EVENT_UTF32)
+    {
+        switch(key_event.utf32_data.codepoint)
+        {
+            case 'w':
+                _ntg_object_scroll(_color_block, ntg_dxy(0, -1));
+                return true;
+            case 'a':
+                _ntg_object_scroll(_color_block, ntg_dxy(-1, 0));
+                return true;
+            case 's':
+                _ntg_object_scroll(_color_block, ntg_dxy(0, 1));
+                return true;
+            case 'd':
+                _ntg_object_scroll(_color_block, ntg_dxy(1, 0));
+                return true;
+            case 'r':
+                ntg_color_block_set_color(NTG_COLOR_BLOCK(_color_block),
+                        nt_color_new(255, 0, 0));
+                return true;
+            case 'g':
+                ntg_color_block_set_color(NTG_COLOR_BLOCK(_color_block),
+                        nt_color_new(0, 255, 0));
+                return true;
+            case 'b':
+                ntg_color_block_set_color(NTG_COLOR_BLOCK(_color_block),
+                        nt_color_new(0, 0, 255));
+                return true;
+
+        }
+    }
+    return false;
+}
+
 static void inline __update_color(ntg_color_block* block, nt_color color)
 {
     block->_color = color;
@@ -17,6 +54,8 @@ void __ntg_color_block_init__(ntg_color_block* block, nt_color color)
     __ntg_solid_block_init__(NTG_SOLID_BLOCK(block), ntg_cell_default());
 
     __update_color(block, color);
+
+    _ntg_object_set_process_key_fn(NTG_OBJECT(block), __object_process_key_fn);
 }
 
 void __ntg_color_block_deinit__(ntg_color_block* block)
