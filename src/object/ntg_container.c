@@ -28,7 +28,7 @@ static void __arrange_fn(ntg_object* object)
 }
 
 void __ntg_container_init__(ntg_container* container,
-        ntg_calculate_nsize_fn calculate_nsize_fn, ntg_constrain_fn constrain_fn,
+        ntg_natural_size_fn calculate_nsize_fn, ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn, ntg_arrange_children_fn arrange_fn)
 {
     ntg_object* _container = (ntg_object*)container;

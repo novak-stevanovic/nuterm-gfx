@@ -9,19 +9,18 @@
 /* -------------------------------------------------------------------------- */
 
 void __ntg_scene_init__(ntg_scene* scene,
-        ntg_scene_process_key_fn process_key_fn,
         ntg_scene_layout_fn layout_fn)
 {
     assert(scene != NULL);
 
-    scene->__process_key_fn = process_key_fn;
+    scene->__process_key_fn = ntg_scene_process_key_fn_default;
     scene->__layout_fn = layout_fn;
     scene->_focused = NULL;
     scene->_root = NULL;
     __ntg_scene_drawing_init__(&scene->_drawing);
 }
 
-bool ntg_scene_process_key_fn_def(ntg_scene* scene,
+bool ntg_scene_process_key_fn_default(ntg_scene* scene,
         struct nt_key_event key_event)
 {
     assert(scene != NULL);
@@ -80,4 +79,13 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
     assert(scene != NULL);
 
     return scene->__process_key_fn(scene, key_event);
+}
+
+void _ntg_scene_set_process_key_fn(ntg_scene* scene,
+        ntg_scene_process_key_fn process_key_fn)
+{
+    assert(scene != NULL);
+    assert(process_key_fn != NULL);
+
+    scene->__process_key_fn = process_key_fn;
 }

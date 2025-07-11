@@ -8,7 +8,12 @@
 typedef struct ntg_object ntg_object;
 typedef struct ntg_scene ntg_scene;
 
+/* Returns if the scene processed the key event */
 typedef bool (*ntg_scene_process_key_fn)(ntg_scene* scene,
+        struct nt_key_event key_event);
+
+/* Default: Dispatches the key event to focused object. */
+bool ntg_scene_process_key_fn_default(ntg_scene* scene,
         struct nt_key_event key_event);
 
 typedef void (*ntg_scene_layout_fn)(ntg_scene* scene, struct ntg_xy size);
@@ -27,12 +32,7 @@ struct ntg_scene
 };
 
 void __ntg_scene_init__(ntg_scene* scene,
-        ntg_scene_process_key_fn process_key_fn,
         ntg_scene_layout_fn layout_fn);
-
-/* Default: Dispatches the key event to focused object. */
-bool ntg_scene_process_key_fn_def(ntg_scene* scene,
-        struct nt_key_event key_event);
 
 void __ntg_scene_deinit__(ntg_scene* scene);
 
@@ -44,5 +44,8 @@ void ntg_scene_focus(ntg_scene* scene, ntg_object* object);
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size);
 
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
+
+void _ntg_scene_set_process_key_fn(ntg_scene* scene,
+        ntg_scene_process_key_fn process_key_fn);
 
 #endif // _NTG_SCENE_H_

@@ -42,7 +42,9 @@ void ntg_object_drawing_destroy(ntg_object_drawing* drawing)
 
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 {
-    return (drawing != NULL) ? ntg_cell_vgrid_get_size(&drawing->___data) : NTG_XY_UNSET;
+    return (drawing != NULL) ?
+        ntg_cell_vgrid_get_size(&drawing->___data) :
+        NTG_XY_UNSET;
 }
 
 void ntg_object_drawing_set_size(ntg_object_drawing* drawing,

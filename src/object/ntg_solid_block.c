@@ -16,7 +16,7 @@ static void __calculate_nsize_fn(ntg_object* _solid_block)
 static void __measure_fn(ntg_object* _solid_block)
 {
     _ntg_object_set_content_size(_solid_block,
-            ntg_object_get_content_constr(_solid_block).max_size);
+            ntg_object_get_content_constr(_solid_block).min_size);
 }
 
 static void __arrange_fn(ntg_object* _solid_block)

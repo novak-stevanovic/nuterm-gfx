@@ -20,7 +20,7 @@ struct ntg_container
 };
 
 void __ntg_container_init__(ntg_container* container,
-        ntg_calculate_nsize_fn calculate_nsize_fn, ntg_constrain_fn constrain_fn,
+        ntg_natural_size_fn calculate_nsize_fn, ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn, ntg_arrange_children_fn arrange_fn);
 
 void __ntg_container_deinit__(ntg_container* container);

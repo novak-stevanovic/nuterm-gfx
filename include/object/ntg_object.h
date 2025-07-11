@@ -19,26 +19,38 @@ typedef struct ntg_object_vec ntg_object_vec;
 typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_scene ntg_scene;
 
-/* Calculate and set the object's natural size. An object's natural size
- * represents the size it gravitates towards naturally. This calculation
- * must take into account preferred size.
+/* OBJECT CONTENT - OBJECT EXCLUDING THE BORDERS */
+
+/* Calculate and set the object's content natural size.
+ * An object's content natural size represents the size it gravitates towards
+ * naturally. This calculation must take into account preferred size.
+ *
+ * Use _ntg_object_set_content_nsize() to set the size.
  *
  * Children's natural sizes are assumed to be set. */
-typedef void (*ntg_calculate_nsize_fn)(ntg_object* object);
+typedef void (*ntg_natural_size_fn)(ntg_object* object);
 
 /* Calculate and set constraints of object's children. This calculation
  * should be performed based on their natural sizes.
+ *
+ * Use _ntg_object_set_constr() to set the constraints.
  *
  * Object's constraints are assumed to be set. Use the object's content
  * constraints for this calculation .*/
 typedef void (*ntg_constrain_fn)(ntg_object* object);
 
-/* Calculate the final size of an object.
+/* Calculate the final size of an object's content.
+ *
+ * Use _ntg_object_set_content_size() to set the size.
  *
  * Object's constraints and its children's sizes are assumed to be set. */
 typedef void (*ntg_measure_fn)(ntg_object* object);
 
-/* Arrange object's inner content(children, drawing).
+/* Arrange object's content(children, drawing).
+ *
+ * To set the position of a child, use _ntg_object_set_pos_inside_content().
+ * When setting the position, ignore the object's borders, they will be
+ * accounted for automatically.
  *
  * The object's final size is assumed to be set. */
 typedef void (*ntg_arrange_fn)(ntg_object* object);
@@ -46,6 +58,17 @@ typedef void (*ntg_arrange_fn)(ntg_object* object);
 /* Returns whether the key has been processed(true) or ignored(false). */
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event);
+
+/* Calculates border size depending on object constraints and preferred border size.
+ * Object's content will take up the remaining space depending on remaining
+ * constraints. */
+typedef struct ntg_border_size (*ntg_border_size_fn)(const ntg_object* object);
+
+/* Only show borders if the object can fit all of its content on the screen */
+struct ntg_border_size ntg_border_size_fn_default(const ntg_object* object);
+
+/* Show borders even if the content is not drawn. */
+struct ntg_border_size ntg_border_size_fn_always_show(const ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
@@ -79,6 +102,8 @@ void ntg_object_set_border_style(ntg_object* object,
         struct ntg_border_style border_style);
 void ntg_object_set_border_size(ntg_object* object,
         struct ntg_border_size border_size);
+void ntg_object_set_border_size_fn(ntg_object* object,
+        ntg_border_size_fn border_size_fn);
 
 struct ntg_xy ntg_object_get_nsize(const ntg_object* object);
 struct ntg_xy ntg_object_get_content_nsize(const ntg_object* object);
@@ -113,8 +138,15 @@ struct ntg_object
     struct
     {
         struct ntg_border_style _border_style;
+
+        /* Preferred border size - final border size is decided by the
+         * border_size_fn */
+        struct ntg_border_size _border_pref_size;
+
         /* Border size is calculated at the start of constrain phase */
-        struct ntg_border_size _border_pref_size, _border_size;
+        struct ntg_border_size _border_size;
+
+        ntg_border_size_fn __border_size_fn;
     };
 
     struct
@@ -137,7 +169,7 @@ struct ntg_object
 
     struct
     {
-        ntg_calculate_nsize_fn __calculate_nsize_fn;
+        ntg_natural_size_fn __natural_size_fn;
         ntg_constrain_fn __constrain_fn;
         ntg_measure_fn __measure_fn;
         ntg_arrange_fn __arrange_fn;
@@ -151,16 +183,25 @@ struct ntg_object
 /* ntg_object protected */
 
 void __ntg_object_init__(ntg_object* object,
-        ntg_calculate_nsize_fn calculate_nsize_fn,
+        ntg_natural_size_fn natural_size_fn,
         ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn,
         ntg_arrange_fn arrange_fn);
 
 void __ntg_object_deinit__(ntg_object* object);
 
+/* Configure object behavior */
+void _ntg_object_set_process_key_fn(ntg_object* object,
+        ntg_object_process_key_fn process_key_fn);
+void _ntg_object_set_border_size_fn(ntg_object* object,
+        ntg_border_size_fn calculate_border_size_fn);
+
 void _ntg_object_set_content_nsize(ntg_object* object, struct ntg_xy size);
+
 void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr);
-void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy size);
+
+void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy content_size);
+
 void _ntg_object_set_pos_inside_content(ntg_object* object, struct ntg_xy pos);
 
 void _ntg_object_child_add(ntg_object* parent, ntg_object* child);
@@ -170,9 +211,6 @@ void _ntg_object_scroll_enable(ntg_object* object);
 void _ntg_object_scroll_disable(ntg_object* object);
 void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff);
 struct ntg_xy _ntg_object_get_scroll(const ntg_object* object);
-
-void _ntg_object_set_process_key_fn(ntg_object* object,
-        ntg_object_process_key_fn process_key_fn);
 
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),

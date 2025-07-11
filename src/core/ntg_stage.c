@@ -1,14 +1,10 @@
 #include <assert.h>
 #include "core/ntg_stage.h"
-#include "base/ntg_cell.h"
 #include "core/ntg_scene.h"
 #include "object/ntg_object.h"
-#include "shared/ntg_log.h"
 #include "shared/ntg_xy.h"
-#include "nt.h"
-#include "core/ntg_scene_drawing.h"
 
-ntg_stage_status ntg_stage_process_key_fn_def(ntg_stage* stage,
+ntg_stage_status ntg_stage_process_key_fn_default(ntg_stage* stage,
         struct nt_key_event key_event)
 {
     assert(stage != NULL);
@@ -30,13 +26,12 @@ ntg_stage_status ntg_stage_process_key_fn_def(ntg_stage* stage,
 }
 
 void __ntg_stage_init__(ntg_stage* stage,
-        ntg_stage_process_key_fn process_key_fn,
         ntg_stage_render_fn render_fn)
 {
     assert(stage != NULL);
 
     stage->_active_scene = NULL;
-    stage->__process_key_fn = process_key_fn;
+    stage->__process_key_fn = ntg_stage_process_key_fn_default;
     stage->__render_fn = render_fn;
 }
 
@@ -69,4 +64,13 @@ ntg_stage_status ntg_stage_feed_key_event(ntg_stage* stage,
     assert(stage != NULL);
 
     return stage->__process_key_fn(stage, key_event);
+}
+
+void _ntg_stage_set_process_key_fn(ntg_stage* stage,
+        ntg_stage_process_key_fn process_key_fn)
+{
+    assert(stage != NULL);
+    assert(process_key_fn != NULL);
+
+    stage->__process_key_fn = process_key_fn;
 }

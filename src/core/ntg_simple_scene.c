@@ -7,13 +7,11 @@
 
 static void __layout_fn(ntg_scene* _scene, struct ntg_xy size);
 
-void __ntg_simple_scene_init__(ntg_simple_scene* scene,
-        ntg_scene_process_key_fn process_key_fn)
+void __ntg_simple_scene_init__(ntg_simple_scene* scene)
 {
     assert(scene != NULL);
-    assert(process_key_fn != NULL);
 
-    __ntg_scene_init__((ntg_scene*)scene, process_key_fn, __layout_fn);
+    __ntg_scene_init__((ntg_scene*)scene, __layout_fn);
 }
 
 void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
@@ -23,16 +21,14 @@ void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
     __ntg_scene_deinit__((ntg_scene*)scene);
 }
 
-ntg_simple_scene* ntg_simple_scene_new(ntg_scene_process_key_fn process_key_fn)
+ntg_simple_scene* ntg_simple_scene_new()
 {
-    assert(process_key_fn != NULL);
-
     ntg_simple_scene* new = (ntg_simple_scene*)malloc(
             sizeof(struct ntg_simple_scene));
 
     assert(new != NULL);
 
-    __ntg_simple_scene_init__(new, process_key_fn);
+    __ntg_simple_scene_init__(new);
 
     return new;
 }

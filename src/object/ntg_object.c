@@ -8,11 +8,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static void __calculate_border_size(ntg_object* object);
 static void __construct_full_drawing(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
-/* def/ntg_object_def.h */
 /* -------------------------------------------------------------------------- */
 
 static void _ntg_object_init_default(ntg_object* object)
@@ -22,6 +20,7 @@ static void _ntg_object_init_default(ntg_object* object)
 
     object->_border_style = ntg_border_style_default();
     object->_border_pref_size = (struct ntg_border_size) {0};
+    object->__border_size_fn = ntg_border_size_fn_default;
     object->_border_size = (struct ntg_border_size) {0};
  
     object->__scroll = false;
@@ -40,14 +39,15 @@ static void _ntg_object_init_default(ntg_object* object)
     object->__arrange_fn = NULL;
     object->__measure_fn = NULL;
     object->__constrain_fn = NULL;
-    object->__calculate_nsize_fn = NULL;
+    object->__natural_size_fn = NULL;
+
     object->__process_key_fn = NULL;
 
     object->_scene = NULL;
 }
 
 void __ntg_object_init__(ntg_object* object,
-        ntg_calculate_nsize_fn calculate_nsize_fn,
+        ntg_natural_size_fn natural_size_fn,
         ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn,
         ntg_arrange_fn arrange_fn)
@@ -59,7 +59,7 @@ void __ntg_object_init__(ntg_object* object,
     object->__constrain_fn = constrain_fn;
     object->__measure_fn = measure_fn;
     object->__arrange_fn = arrange_fn;
-    object->__calculate_nsize_fn = calculate_nsize_fn;
+    object->__natural_size_fn = natural_size_fn;
 
     object->_virtual_drawing = ntg_object_drawing_new();
     assert(object->_virtual_drawing != NULL);
@@ -93,9 +93,8 @@ void _ntg_object_set_content_nsize(ntg_object* object, struct ntg_xy size)
         return;
     }
 
-    struct ntg_xy pref_border_size = ntg_xy(
-            object->_border_pref_size.west + object->_border_pref_size.east,
-            object->_border_pref_size.north + object->_border_pref_size.south);
+    struct ntg_xy pref_border_size = ntg_border_size_sum(
+            object->_border_pref_size);
 
     size = ntg_xy_add(size, pref_border_size);
 
@@ -132,7 +131,17 @@ void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr)
 
     object->__constr = constr;
 
-    __calculate_border_size(object);
+    struct ntg_border_size border_size = object->__border_size_fn(object);
+    struct ntg_xy border_size_sum = ntg_border_size_sum(border_size);
+
+    // TODO: decrease border size
+    if((border_size_sum.x > constr.max_size.x) ||
+            (border_size_sum.y > constr.max_size.y))
+    {
+        assert(0);
+    }
+
+    object->_border_size = border_size;
 }
 
 static void _fit_size_to_constr(size_t* size, size_t min_size, size_t max_size)
@@ -144,30 +153,21 @@ static void _fit_size_to_constr(size_t* size, size_t min_size, size_t max_size)
         (*size) = min_size;
 }
 
-void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy size)
+void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy content_size)
 {
     if(object == NULL) return;
 
     struct ntg_constr content_constr = ntg_object_get_content_constr(object);
 
-    _fit_size_to_constr(&(size.x), content_constr.min_size.x,
+    _fit_size_to_constr(&(content_size.x), content_constr.min_size.x,
             content_constr.max_size.x);
-    _fit_size_to_constr(&(size.y), content_constr.min_size.y,
+    _fit_size_to_constr(&(content_size.y), content_constr.min_size.y,
             content_constr.max_size.y);
 
-    struct ntg_xy border_size = ntg_border_size_sum(object->_border_size);
+    // content_size = ntg_xy_size(content_size);
 
-    struct ntg_xy content_size;
-    if((size.x == 0) || (size.y == 0))
-    {
-        content_size = ntg_xy(0, 0);
-        size = ntg_xy(0, 0);
-    }
-    else
-    {
-        content_size = size;
-        size = ntg_xy_add(size, border_size);
-    }
+    struct ntg_xy border_size = ntg_border_size_sum(object->_border_size);
+    struct ntg_xy size = ntg_xy_add(content_size, border_size);
 
     object->__size = size;
 
@@ -214,7 +214,7 @@ void _ntg_object_set_pos_inside_content(ntg_object* object, struct ntg_xy pos)
         NTG_XY_UNSET;
 
     struct ntg_xy border_offset = (parent != NULL) ?
-        ntg_xy(parent->_border_size.west, parent->_border_size.north) :
+        ntg_border_size_offset(parent->_border_size) :
         ntg_xy(0, 0);
 
     struct ntg_xy abs_pos = ntg_xy_add(border_offset, ntg_xy_add(pos, parent_pos));
@@ -304,6 +304,14 @@ void _ntg_object_set_process_key_fn(ntg_object* object,
     object->__process_key_fn = process_key_fn;
 }
 
+void _ntg_object_set_border_size_fn(ntg_object* object,
+        ntg_border_size_fn calculate_border_size_fn)
+{
+    assert(object != NULL);
+
+    object->__border_size_fn = calculate_border_size_fn;
+}
+
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),
         void* data)
@@ -320,7 +328,6 @@ void _ntg_object_perform_tree(ntg_object* root,
 }
 
 /* -------------------------------------------------------------------------- */
-/* ntg_object.h */
 /* -------------------------------------------------------------------------- */
 
 void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size)
@@ -344,7 +351,8 @@ struct ntg_xy ntg_object_get_pref_content_size(const ntg_object* object)
 
     struct ntg_xy pref_content_size;
 
-    struct ntg_xy pref_border_size = ntg_border_size_sum(object->_border_pref_size);
+    struct ntg_xy pref_border_size = ntg_border_size_sum(
+            object->_border_pref_size);
 
     pref_content_size.x = (object->__pref_size.x != NTG_PREF_SIZE_UNSET) ?
         object->__pref_size.x - pref_border_size.x :
@@ -401,8 +409,8 @@ void ntg_object_calculate_nsize(ntg_object* object)
     if(object == NULL) return;
     // if(object->_parent == NULL) return;
 
-    if(object->__calculate_nsize_fn != NULL)
-        object->__calculate_nsize_fn(object);
+    if(object->__natural_size_fn != NULL)
+        object->__natural_size_fn(object);
 }
 
 void ntg_object_constrain(ntg_object* object)
@@ -442,9 +450,8 @@ struct ntg_xy ntg_object_get_content_nsize(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy pref_border_size = ntg_xy(
-            object->_border_pref_size.west + object->_border_pref_size.east,
-            object->_border_pref_size.north + object->_border_pref_size.south);
+    struct ntg_xy pref_border_size = ntg_border_size_sum(
+            object->_border_pref_size);
 
     return ntg_xy_sub(object->__nsize, pref_border_size);
 }
@@ -453,15 +460,19 @@ struct ntg_constr ntg_object_get_content_constr(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy border_size = ntg_xy(
-            object->_border_size.west + object->_border_size.east,
-            object->_border_size.north + object->_border_size.south);
+    struct ntg_xy border_size = ntg_border_size_sum(object->_border_size);
 
-    struct ntg_xy min_size = ntg_xy_size(ntg_xy_sub(object->__constr.min_size,
-                border_size));
+    // struct ntg_xy min_size = ntg_xy_size(ntg_xy_sub(object->__constr.min_size,
+    //             border_size));
+    //
+    // struct ntg_xy max_size = ntg_xy_size(ntg_xy_sub(object->__constr.max_size,
+    //             border_size));
 
-    struct ntg_xy max_size = ntg_xy_size(ntg_xy_sub(object->__constr.max_size,
-                border_size));
+    struct ntg_xy min_size = ntg_xy_sub(object->__constr.min_size,
+                border_size);
+
+    struct ntg_xy max_size = ntg_xy_sub(object->__constr.max_size,
+                border_size);
 
     return ntg_constr(min_size, max_size);
 }
@@ -484,9 +495,7 @@ struct ntg_xy ntg_object_get_content_size(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy border_size = ntg_xy(
-            object->_border_size.west + object->_border_size.east,
-            object->_border_size.north + object->_border_size.south);
+    struct ntg_xy border_size = ntg_border_size_sum(object->_border_size);
 
     return ntg_xy_size(ntg_xy_sub(object->__size, border_size));
 }
@@ -514,8 +523,7 @@ struct ntg_xy ntg_object_get_content_pos_abs(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy border_offset = ntg_xy(object->_border_size.west,
-            object->_border_size.north);
+    struct ntg_xy border_offset = ntg_border_size_offset(object->_border_size);
 
     return ntg_xy_add(ntg_object_get_pos_abs(object), border_offset);
 }
@@ -524,8 +532,7 @@ struct ntg_xy ntg_object_get_content_pos_rel(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy border_offset = ntg_xy(object->_border_size.west,
-            object->_border_size.north);
+    struct ntg_xy border_offset = ntg_border_size_offset(object->_border_size);
 
     return ntg_xy_add(ntg_object_get_pos_rel(object), border_offset);
 }
@@ -547,17 +554,50 @@ void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene)
     _ntg_object_perform_tree(root, __adjust_scene_fn, scene);
 }
 
-static void __calculate_border_size(ntg_object* object)
+static struct ntg_border_size __border_size_round_robin(
+        struct ntg_border_size pref_border_size,
+        struct ntg_xy border_size_sum)
+{
+    size_t size_north, size_east, size_south, size_west;
+
+    size_t ns_nsizes[] = { 
+        pref_border_size.north,
+        pref_border_size.south
+    };
+    size_t _ns_sizes[2] = {0};
+
+    ntg_sap_nsize_round_robin(ns_nsizes, _ns_sizes, border_size_sum.y, 2);
+
+    size_north = _ns_sizes[0];
+    size_south = _ns_sizes[1];
+
+    size_t we_nsizes[] = { 
+        pref_border_size.west,
+        pref_border_size.east
+    };
+    size_t _we_sizes[2] = {0};
+
+    ntg_sap_nsize_round_robin(we_nsizes, _we_sizes, border_size_sum.x, 2);
+
+    size_west = _we_sizes[0];
+    size_east = _we_sizes[1];
+
+    return (struct ntg_border_size) {
+        .north = size_north,
+        .east = size_east,
+        .south = size_south,
+        .west = size_west
+    };
+}
+
+struct ntg_border_size ntg_border_size_fn_default(const ntg_object* object)
 {
     assert(object != NULL);
 
     struct ntg_xy total_size = object->__constr.max_size;
-    struct ntg_xy pref_border_size = ntg_xy(
-            object->_border_pref_size.west + object->_border_pref_size.east,
-            object->_border_pref_size.north + object->_border_pref_size.south);
-
+    struct ntg_xy pref_border_size = ntg_border_size_sum(
+            object->_border_pref_size);
     struct ntg_xy content_nsize = ntg_object_get_content_nsize(object);
-    // struct ntg_xy content_size = ntg_xy_sub(total_size, pref_border_size);
 
     struct ntg_xy border_total_size;
 
@@ -569,9 +609,7 @@ static void __calculate_border_size(ntg_object* object)
             border_total_size.x = total_size.x - content_nsize.x;
     }
     else
-    {
         border_total_size.x = 0;
-    }
 
     if(total_size.y >= content_nsize.y)
     {
@@ -581,37 +619,22 @@ static void __calculate_border_size(ntg_object* object)
             border_total_size.y = total_size.y - content_nsize.y;
     }
     else
-    {
         border_total_size.y = 0;
-    }
 
-    size_t ns_nsizes[] = { 
-        object->_border_pref_size.north,
-        object->_border_pref_size.south
-    };
-    size_t _ns_sizes[2] = {0};
+    return __border_size_round_robin(object->_border_pref_size, border_total_size);
+}
 
-    ntg_sap_nsize_round_robin(ns_nsizes, _ns_sizes, border_total_size.y, 2);
-
-    object->_border_size.north = _ns_sizes[0];
-    object->_border_size.south = _ns_sizes[1];
-
-    size_t we_nsizes[] = { 
-        object->_border_pref_size.west,
-        object->_border_pref_size.east
-    };
-    size_t _we_sizes[2] = {0};
-
-    ntg_sap_nsize_round_robin(we_nsizes, _we_sizes, border_total_size.x, 2);
-
-    object->_border_size.west = _we_sizes[0];
-    object->_border_size.east = _we_sizes[1];
+struct ntg_border_size ntg_border_size_fn_always_show(const ntg_object* object)
+{
+    return __border_size_round_robin(
+            object->_border_pref_size,
+            object->__constr.max_size);
 }
 
 static void __construct_full_drawing(ntg_object* object)
 {
     struct ntg_xy content_size = ntg_object_get_content_size(object);
-    struct ntg_xy border_offset = ntg_xy(object->_border_size.west, object->_border_size.north);
+    struct ntg_xy border_offset = ntg_border_size_offset(object->_border_size);
 
     if(object->__scroll)
     {

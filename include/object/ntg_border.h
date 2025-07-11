@@ -25,6 +25,11 @@ static inline struct ntg_xy ntg_border_size_sum(struct ntg_border_size border_si
             border_size.north + border_size.south);
 }
 
+static inline struct ntg_xy ntg_border_size_offset(struct ntg_border_size border_size)
+{
+    return ntg_xy(border_size.west, border_size.north);
+}
+
 struct ntg_border_style ntg_border_style_default();
 
 #endif // _NTG_BORDER_H_
