@@ -401,7 +401,17 @@ void ntg_object_set_border_size(ntg_object* object,
 {
     assert(object != NULL);
 
+    struct ntg_xy pref_content_size = ntg_xy_sub(
+            object->__pref_size,
+            ntg_border_size_sum(object->_border_pref_size));
+
     object->_border_pref_size = border_size;
+
+    struct ntg_xy new_pref_size = ntg_xy_add(
+            pref_content_size,
+            ntg_border_size_sum(border_size));
+
+    object->__pref_size = new_pref_size;
 }
 
 void ntg_object_calculate_nsize(ntg_object* object)
