@@ -9,9 +9,6 @@
 
 #define NTG_TERM_MAX_SIZE 10000
 
-#define NTG_TERM_MAX_WIDTH 500
-#define NTG_TERM_MAX_HEIGHT 150
-
 struct ntg_xy
 {
     size_t x, y;

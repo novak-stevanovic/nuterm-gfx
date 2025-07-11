@@ -90,8 +90,9 @@ static void __constrain_fn(ntg_object* _container)
     {
         size_t nsizes[3] = { 
             nsize_west.x,
-            (container->_north || container->_south) ? NTG_TERM_MAX_WIDTH : 0,
-            nsize_east.x };
+            (container->_north || container->_south) ? nsize_center.x : 0,
+            nsize_east.x
+        };
         size_t _sizes[3] = {0};
         ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.x, 3);
 
@@ -99,8 +100,10 @@ static void __constrain_fn(ntg_object* _container)
         size_south.x = constr.max_size.x;
 
         size_west.x = _sizes[0];
-        size_center.x = _sizes[1];
         size_east.x = _sizes[2];
+
+        size_t center_extra = constr.max_size.x - (_sizes[1] + size_west.x + size_east.x);
+        size_center.x = _sizes[1] + center_extra;
     }
 
     if(nsize.y < constr.min_size.y)
@@ -128,15 +131,19 @@ static void __constrain_fn(ntg_object* _container)
     }
     else
     {
-        size_t nsizes[3] = { nsize_north.y,
-            (container->_west || container->_east) ? NTG_TERM_MAX_HEIGHT : 0,
-            nsize_south.y };
+        size_t nsizes[3] = { 
+            nsize_north.y,
+            (container->_west || container->_east) ? nsize_center.y : 0,
+            nsize_south.y
+        };
         size_t _sizes[3] = {0};
         ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.y, 3);
 
         size_north.y = _sizes[0];
-        size_center.y = _sizes[1];
         size_south.y = _sizes[2];
+
+        size_t center_extra = constr.max_size.y - (_sizes[1] + size_north.y + size_south.y);
+        size_center.y = _sizes[1] + center_extra;
 
         size_west.y = constr.max_size.y - (size_north.y + size_south.y);
         size_east.y = constr.max_size.y - (size_north.y + size_south.y);
@@ -150,32 +157,27 @@ static void __constrain_fn(ntg_object* _container)
 
     if(container->_north != NULL)
     {
-        _ntg_object_set_constr(
-                container->_north,
+        _ntg_object_set_constr(container->_north,
                 ntg_constr(size_north, size_north));
     }
     if(container->_east != NULL)
     {
-        _ntg_object_set_constr(
-                container->_east,
+        _ntg_object_set_constr(container->_east,
                 ntg_constr(size_east, size_east));
     }
     if(container->_south != NULL)
     {
-        _ntg_object_set_constr(
-                container->_south,
+        _ntg_object_set_constr(container->_south,
                 ntg_constr(size_south, size_south));
     }
     if(container->_west != NULL)
     {
-        _ntg_object_set_constr(
-                container->_west,
+        _ntg_object_set_constr(container->_west,
                 ntg_constr(size_west, size_west));
     }
     if(container->_center != NULL)
     {
-        _ntg_object_set_constr(
-                container->_center,
+        _ntg_object_set_constr( container->_center,
                 ntg_constr(size_center, size_center));
     }
 }

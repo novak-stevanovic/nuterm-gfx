@@ -82,7 +82,7 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     // (NTG_OBJECT(cb7))->_border_pref_size.east = 2;
 
     ntg_color_block* cb8 = ntg_color_block_new(nt_color_new(255, 255, 0));
-    ntg_object_set_pref_size(NTG_OBJECT(cb8), ntg_xy(195, 190));
+    ntg_object_set_pref_size(NTG_OBJECT(cb8), ntg_xy(155, 19));
 
     ntg_color_block* cb9 = ntg_color_block_new(nt_color_new(255, 0, 255));
 
