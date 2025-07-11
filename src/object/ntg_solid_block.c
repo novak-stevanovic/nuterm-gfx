@@ -5,8 +5,12 @@
 
 static void __calculate_nsize_fn(ntg_object* _solid_block)
 {
-    _ntg_object_set_content_nsize(_solid_block,
-            ntg_xy_size(_solid_block->_pref_size));
+    struct ntg_xy pref_size = ntg_object_get_pref_content_size(_solid_block);
+    struct ntg_xy nsize = ntg_xy(
+            ((pref_size.x != NTG_PREF_SIZE_UNSET) ? pref_size.x : 1),
+            ((pref_size.y != NTG_PREF_SIZE_UNSET) ? pref_size.y : 1));
+
+    _ntg_object_set_content_nsize(_solid_block, nsize);
 }
 
 static void __measure_fn(ntg_object* _solid_block)
@@ -29,10 +33,10 @@ static void __arrange_fn(ntg_object* _solid_block)
         {
             it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i));
 
-            // TODO:
 
             (*it_cell) = (NTG_SOLID_BLOCK(_solid_block))->_cell_bp;
 
+            // TODO:
             it_letter = 'a' + ((i + j) % 26);
             it_cell->__base.codepoint = it_letter;
         }

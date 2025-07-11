@@ -31,7 +31,7 @@ static void _ntg_object_init_default(ntg_object* object)
 
     object->_full_drawing = NULL;
 
-    object->_pref_size = ntg_xy(NTG_PREF_SIZE_UNSET, NTG_PREF_SIZE_UNSET);
+    object->__pref_size = ntg_xy(NTG_PREF_SIZE_UNSET, NTG_PREF_SIZE_UNSET);
     object->__nsize = NTG_XY_UNSET;
     object->__constr = NTG_CONSTR_UNSET;
     object->__size = NTG_XY_UNSET;
@@ -87,7 +87,11 @@ void _ntg_object_set_content_nsize(ntg_object* object, struct ntg_xy size)
 {
     if(object == NULL) return;
 
-    ntg_xy_size_(&size);
+    if((size.x == 0) || (size.y == 0))
+    {
+        object->__nsize = ntg_xy(0, 0);
+        return;
+    }
 
     struct ntg_xy pref_border_size = ntg_xy(
             object->_border_pref_size.west + object->_border_pref_size.east,
@@ -95,11 +99,11 @@ void _ntg_object_set_content_nsize(ntg_object* object, struct ntg_xy size)
 
     size = ntg_xy_add(size, pref_border_size);
 
-    if(object->_pref_size.x != NTG_PREF_SIZE_UNSET)
-        size.x = object->_pref_size.x;
+    if(object->__pref_size.x != NTG_PREF_SIZE_UNSET)
+        size.x = object->__pref_size.x;
 
-    if(object->_pref_size.y != NTG_PREF_SIZE_UNSET)
-        size.y = object->_pref_size.y;
+    if(object->__pref_size.y != NTG_PREF_SIZE_UNSET)
+        size.y = object->__pref_size.y;
 
     object->__nsize = size;
 }
@@ -123,8 +127,8 @@ void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr)
 {
     if(object == NULL) return;
 
-    _adjust_constr(object->_pref_size.x, &constr.min_size.x, &constr.max_size.x);
-    _adjust_constr(object->_pref_size.y, &constr.min_size.y, &constr.max_size.y);
+    _adjust_constr(object->__pref_size.x, &constr.min_size.x, &constr.max_size.x);
+    _adjust_constr(object->__pref_size.y, &constr.min_size.y, &constr.max_size.y);
 
     object->__constr = constr;
 
@@ -314,11 +318,53 @@ void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size)
     root->__pos = ntg_xy(0, 0);
 }
 
+struct ntg_xy ntg_object_get_pref_size(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__pref_size;
+}
+
+struct ntg_xy ntg_object_get_pref_content_size(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    struct ntg_xy pref_content_size;
+
+    struct ntg_xy pref_border_size = ntg_border_size_sum(object->_border_pref_size);
+
+    pref_content_size.x = (object->__pref_size.x != NTG_PREF_SIZE_UNSET) ?
+        object->__pref_size.x - pref_border_size.x :
+        NTG_PREF_SIZE_UNSET;
+
+    pref_content_size.y = (object->__pref_size.y != NTG_PREF_SIZE_UNSET) ?
+        object->__pref_size.y - pref_border_size.y :
+        NTG_PREF_SIZE_UNSET;
+
+    return pref_content_size;
+}
+
 void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size)
 {
     if(object == NULL) return;
 
-    object->_pref_size = pref_size;
+    object->__pref_size = pref_size;
+}
+
+void ntg_object_set_pref_content_size(ntg_object* object, struct ntg_xy pref_size)
+{
+    if(object == NULL) return;
+
+    struct ntg_xy border_size = ntg_border_size_sum(object->_border_pref_size);
+
+    if(pref_size.x != NTG_PREF_SIZE_UNSET)
+    {
+        object->__pref_size.x = pref_size.x + border_size.x;
+    }
+    if(pref_size.y != NTG_PREF_SIZE_UNSET)
+    {
+        object->__pref_size.y = pref_size.y + border_size.y;
+    }
 }
 
 void ntg_object_set_border_style(ntg_object* object,
@@ -334,7 +380,7 @@ void ntg_object_set_border_size(ntg_object* object,
 {
     assert(object != NULL);
 
-    object->_border_size = border_size;
+    object->_border_pref_size = border_size;
 }
 
 void ntg_object_calculate_nsize(ntg_object* object)
@@ -498,26 +544,32 @@ static void __calculate_border_size(ntg_object* object)
             object->_border_pref_size.north + object->_border_pref_size.south);
 
     struct ntg_xy content_nsize = ntg_object_get_content_nsize(object);
-    struct ntg_xy content_size = ntg_xy_sub(total_size, pref_border_size);
+    // struct ntg_xy content_size = ntg_xy_sub(total_size, pref_border_size);
 
     struct ntg_xy border_total_size;
 
-    if((pref_border_size.x + content_nsize.x) <= total_size.x)
+    if(total_size.x >= content_nsize.x)
     {
-        border_total_size.x = pref_border_size.x;
+        if((pref_border_size.x + content_nsize.x) <= total_size.x)
+            border_total_size.x = pref_border_size.x;
+        else
+            border_total_size.x = total_size.x - content_nsize.x;
     }
     else
     {
-        border_total_size.x = total_size.x - content_nsize.x;
+        border_total_size.x = 0;
     }
 
-    if((pref_border_size.y + content_nsize.y) <= total_size.y)
+    if(total_size.y >= content_nsize.y)
     {
-        border_total_size.y = pref_border_size.y;
+        if((pref_border_size.y + content_nsize.y) <= total_size.y)
+            border_total_size.y = pref_border_size.y;
+        else
+            border_total_size.y = total_size.y - content_nsize.y;
     }
     else
     {
-        border_total_size.y = total_size.y - content_nsize.y;
+        border_total_size.y = 0;
     }
 
     size_t ns_nsizes[] = { 

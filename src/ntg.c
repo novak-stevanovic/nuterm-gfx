@@ -22,7 +22,7 @@ static void* _ntg_thread_fn(void* _thread_fn_data);
 
 void __ntg_init__()
 {
-    __ntg_log_init__("ntg_log.txt");
+    // __ntg_log_init__("ntg_log.txt");
 
     nt_status _status;
     __nt_init__(&_status);
@@ -83,7 +83,7 @@ void ntg_destroy()
     nt_cursor_show(NULL);
     __nt_deinit__();
 
-   __ntg_log_deinit__();
+   // __ntg_log_deinit__();
 }
 
 struct ntg_xy ntg_get_size()

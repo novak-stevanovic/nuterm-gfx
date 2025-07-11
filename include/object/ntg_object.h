@@ -11,8 +11,8 @@
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-#define NTG_PREF_SIZE_UNSET (SIZE_MAX - 1)
-#define NTG_PREF_SIZE_MAX SIZE_MAX
+#define NTG_PREF_SIZE_UNSET (NTG_TERM_MAX_SIZE - 1)
+#define NTG_PREF_SIZE_MAX NTG_TERM_MAX_SIZE
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
@@ -68,7 +68,12 @@ void ntg_object_measure(ntg_object* object);
 /* Arranges the content inside `object`. */
 void ntg_object_arrange(ntg_object* object);
 
+struct ntg_xy ntg_object_get_pref_size(const ntg_object* object);
+struct ntg_xy ntg_object_get_pref_content_size(const ntg_object* object);
+
 void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size);
+void ntg_object_set_pref_content_size(ntg_object* object,
+        struct ntg_xy pref_size);
 
 void ntg_object_set_border_style(ntg_object* object,
         struct ntg_border_style border_style);
@@ -103,7 +108,7 @@ struct ntg_object
     ntg_object* _parent;
     ntg_object_vec* _children;
 
-    struct ntg_xy _pref_size;
+    struct ntg_xy __pref_size;
 
     struct
     {

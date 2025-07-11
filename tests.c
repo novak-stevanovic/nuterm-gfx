@@ -17,7 +17,7 @@
 struct ntg_border_style __create_border1()
 {
     ntg_cell outline = ntg_cell_full('#',
-            nt_color_new(255, 0, 180),
+            nt_color_new(255, 0, 90),
             NT_COLOR_DEFAULT,
             NT_STYLE_DEFAULT);
 
@@ -44,7 +44,18 @@ struct ntg_border_style __create_border1()
 void init_gui_fn(ntg_stage* _main_stage, void* data)
 {
     ntg_color_block* cb1 = ntg_color_block_new(nt_color_new(255, 0, 0));
-    ntg_object_set_pref_size(NTG_OBJECT(cb1), ntg_xy(20, 10));
+
+    struct ntg_border_size cb1_border_size = {
+        .north = 1,
+        .south = 1,
+        .west = 1,
+        .east = 1
+    };
+
+    ntg_object_set_border_size(NTG_OBJECT(cb1), cb1_border_size);
+    // ntg_object_set_border_style(NTG_OBJECT(cb1), __create_border1());
+    ntg_object_set_pref_size(NTG_OBJECT(cb1),
+            ntg_xy(5, 13));
 
     ntg_color_block* cb2 = ntg_color_block_new(nt_color_new(0, 255, 0));
     ntg_object_set_pref_size(NTG_OBJECT(cb2), ntg_xy(7, 10));
@@ -70,19 +81,32 @@ void init_gui_fn(ntg_stage* _main_stage, void* data)
     (NTG_OBJECT(cb7))->_border_pref_size.west = 2;
     (NTG_OBJECT(cb7))->_border_pref_size.east = 2;
 
-    ntg_object_set_pref_size(NTG_OBJECT(cb7), ntg_xy(0 + 4, 5 + 4));
+    ntg_object_set_pref_content_size(NTG_OBJECT(cb7), ntg_xy(NTG_PREF_SIZE_UNSET, 5));
 
     ntg_color_block* cb8 = ntg_color_block_new(nt_color_new(255, 255, 0));
     ntg_object_set_pref_size(NTG_OBJECT(cb8), ntg_xy(10, 0));
 
     ntg_color_block* cb9 = ntg_color_block_new(nt_color_new(255, 0, 255));
-    ntg_object_set_pref_size(NTG_OBJECT(cb9), ntg_xy(9, 10));
+    ntg_object_set_pref_size(NTG_OBJECT(cb9),
+            ntg_xy(0, 0));
+
+    struct ntg_border_size cb9_border_size = {
+        .north = 1,
+        .south = 1,
+        .west = 1,
+        .east = 1
+    };
+
+    ntg_object_set_border_size(NTG_OBJECT(cb9), cb9_border_size);
+    ntg_object_set_border_style(NTG_OBJECT(cb9), __create_border1());
 
     _ntg_object_scroll_enable(NTG_OBJECT(cb3));
 
     ntg_box* box1 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL,
             NTG_BOX_ALIGNMENT_2,
             NTG_BOX_ALIGNMENT_0);
+
+    ntg_object_set_pref_size(NTG_OBJECT(box1), ntg_xy(0, 15));
 
     (NTG_OBJECT(box1))->_border_style = __create_border1();
 

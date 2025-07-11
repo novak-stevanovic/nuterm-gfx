@@ -19,6 +19,12 @@ struct ntg_border_size
     size_t north, east, south, west;
 };
 
+static inline struct ntg_xy ntg_border_size_sum(struct ntg_border_size border_size)
+{
+    return ntg_xy(border_size.west + border_size.east,
+            border_size.north + border_size.south);
+}
+
 struct ntg_border_style ntg_border_style_default();
 
 #endif // _NTG_BORDER_H_

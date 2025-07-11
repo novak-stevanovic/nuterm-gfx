@@ -71,14 +71,6 @@ void ntg_object_drawing_place(const ntg_object_drawing* src_drawing,
 
     struct ntg_xy src_end_pos = ntg_xy_add(src_start_pos, src_box_size);
 
-    ntg_log_log("A: (%d,%d), (%d,%d)",
-            src_size.x, src_size.y,
-            dest_size.x, dest_size.y);
-
-    ntg_log_log("B :(%d,%d), (%d,%d)",
-            src_start_pos.x, src_start_pos.y,
-            src_box_size.x, src_box_size.y);
-
     assert(ntg_xy_is_greater(src_size, src_start_pos));
     assert(ntg_xy_is_greater_eq(src_size, src_end_pos));
     assert(ntg_xy_is_greater(src_end_pos, src_start_pos));
@@ -86,10 +78,6 @@ void ntg_object_drawing_place(const ntg_object_drawing* src_drawing,
     assert(ntg_xy_is_greater(dest_size, dest_start_pos));
     
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_box_size);
-
-    ntg_log_log("C: (%d,%d), (%d,%d)",
-            dest_start_pos.x, dest_start_pos.y,
-            dest_end_pos.x, dest_end_pos.y);
 
     assert(ntg_xy_is_greater_eq(dest_size, dest_end_pos));
 
