@@ -148,17 +148,30 @@ void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy size)
 {
     if(object == NULL) return;
 
-    _fit_size_to_constr(&(size.x), object->__constr.min_size.x,
-            object->__constr.max_size.x);
-    _fit_size_to_constr(&(size.y), object->__constr.min_size.y,
-            object->__constr.max_size.y);
+    struct ntg_constr content_constr = ntg_object_get_content_constr(object);
 
-    ntg_xy_size_(&size);
+    _fit_size_to_constr(&(size.x), content_constr.min_size.x,
+            content_constr.max_size.x);
+    _fit_size_to_constr(&(size.y), content_constr.min_size.y,
+            content_constr.max_size.y);
+
+    struct ntg_xy border_size = ntg_border_size_sum(object->_border_size);
+
+    struct ntg_xy content_size;
+    if((size.x == 0) || (size.y == 0))
+    {
+        content_size = ntg_xy(0, 0);
+        size = ntg_xy(0, 0);
+    }
+    else
+    {
+        content_size = size;
+        size = ntg_xy_add(size, border_size);
+    }
 
     object->__size = size;
 
     struct ntg_xy content_nsize = ntg_object_get_content_nsize(object);
-    struct ntg_xy content_size = ntg_object_get_content_size(object);
 
     if(object->__scroll)
     {

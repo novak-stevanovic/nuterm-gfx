@@ -88,7 +88,10 @@ static void __constrain_fn(ntg_object* _container)
     }
     else
     {
-        size_t nsizes[3] = { nsize_west.x, NTG_TERM_MAX_WIDTH, nsize_east.x };
+        size_t nsizes[3] = { 
+            nsize_west.x,
+            (container->_north || container->_south) ? NTG_TERM_MAX_WIDTH : 0,
+            nsize_east.x };
         size_t _sizes[3] = {0};
         ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.x, 3);
 
@@ -125,7 +128,9 @@ static void __constrain_fn(ntg_object* _container)
     }
     else
     {
-        size_t nsizes[3] = { nsize_north.y, NTG_TERM_MAX_HEIGHT, nsize_south.y };
+        size_t nsizes[3] = { nsize_north.y,
+            (container->_west || container->_east) ? NTG_TERM_MAX_HEIGHT : 0,
+            nsize_south.y };
         size_t _sizes[3] = {0};
         ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.y, 3);
 
@@ -238,20 +243,20 @@ static void __arrange_fn(ntg_container* _container)
         struct ntg_xy pos_north = ntg_xy(0, 0);
         _ntg_object_set_pos_inside_content(container->_north, pos_north);
     }
-    if(container->_west)
+    if(container->_east)
     {
-        struct ntg_xy pos_west = ntg_xy(0, size_north.y);
-        _ntg_object_set_pos_inside_content(container->_west, pos_west);
+        struct ntg_xy pos_east = ntg_xy(0, size_north.y);
+        _ntg_object_set_pos_inside_content(container->_east, pos_east);
     }
     if(container->_center)
     {
-        struct ntg_xy pos_center = ntg_xy(size_west.x, size_north.y);
+        struct ntg_xy pos_center = ntg_xy(size_east.x, size_north.y);
         _ntg_object_set_pos_inside_content(container->_center, pos_center);
     }
-    if(container->_east)
+    if(container->_west)
     {
-        struct ntg_xy pos_east = ntg_xy(size_west.x + size_center.x, size_north.y);
-        _ntg_object_set_pos_inside_content(container->_east, pos_east);
+        struct ntg_xy pos_west = ntg_xy(size_east.x + size_center.x, size_north.y);
+        _ntg_object_set_pos_inside_content(container->_west, pos_west);
     }
     if(container->_south)
     {
