@@ -9,7 +9,4 @@
 void ntg_sap_nsize_round_robin(const size_t* nsizes, size_t* out_sizes,
         size_t space_pool, size_t count);
 
-void ntg_sap_nsize_round_robin_sub(const size_t* nsizes, size_t* curr_sizes,
-        size_t space, size_t count);
-
 #endif // _NTG_SAP_H_

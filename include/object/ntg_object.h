@@ -11,6 +11,8 @@
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
+#define NTG_OBJECT(obj_ptr) ((ntg_object*)(obj_ptr))
+
 #define NTG_PREF_SIZE_UNSET (NTG_TERM_MAX_SIZE - 1)
 #define NTG_PREF_SIZE_MAX NTG_TERM_MAX_SIZE
 
@@ -18,6 +20,8 @@ typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
 typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_scene ntg_scene;
+
+/* -------------------------------------------------------------------------- */
 
 /* OBJECT CONTENT - OBJECT EXCLUDING THE BORDERS */
 
@@ -30,6 +34,8 @@ typedef struct ntg_scene ntg_scene;
  * Children's natural sizes are assumed to be set. */
 typedef void (*ntg_natural_size_fn)(ntg_object* object);
 
+/* ------------------------------------------------------ */
+
 /* Calculate and set constraints of object's children. This calculation
  * should be performed based on their natural sizes.
  *
@@ -39,12 +45,16 @@ typedef void (*ntg_natural_size_fn)(ntg_object* object);
  * constraints for this calculation .*/
 typedef void (*ntg_constrain_fn)(ntg_object* object);
 
+/* ------------------------------------------------------ */
+
 /* Calculate the final size of an object's content.
  *
  * Use _ntg_object_set_content_size() to set the size.
  *
  * Object's constraints and its children's sizes are assumed to be set. */
 typedef void (*ntg_measure_fn)(ntg_object* object);
+
+/* ------------------------------------------------------ */
 
 /* Arrange object's content(children, drawing).
  *
@@ -54,6 +64,8 @@ typedef void (*ntg_measure_fn)(ntg_object* object);
  *
  * The object's final size is assumed to be set. */
 typedef void (*ntg_arrange_fn)(ntg_object* object);
+
+/* ------------------------------------------------------ */
 
 /* Returns whether the key has been processed(true) or ignored(false). */
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
@@ -72,31 +84,63 @@ struct ntg_border_size ntg_border_size_fn_always_show(const ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
-#define NTG_OBJECT(obj_ptr) ((ntg_object*)(obj_ptr))
-
-/* Sets root's constraints and position. */
-void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size);
-
-/* Calculates and sets the natural size of `object`. 
- * If `object` is root, function returns immediately. */
-void ntg_object_calculate_nsize(ntg_object* object);
-
-/* Calculates and sets the constraints of `object`'s children. */
-void ntg_object_constrain(ntg_object* object);
-
-/* Calculates and sets the final size of an object.
- * If `object` is root, function returns immediately. */
-void ntg_object_measure(ntg_object* object);
-
-/* Arranges the content inside `object`. */
-void ntg_object_arrange(ntg_object* object);
-
 struct ntg_xy ntg_object_get_pref_size(const ntg_object* object);
 struct ntg_xy ntg_object_get_pref_content_size(const ntg_object* object);
 
 void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size);
 void ntg_object_set_pref_content_size(ntg_object* object,
         struct ntg_xy pref_size);
+
+/* ------------------------------------------------------ */
+
+struct ntg_xy ntg_object_get_nsize(const ntg_object* object);
+struct ntg_xy ntg_object_get_content_nsize(const ntg_object* object);
+
+/* ------------------------------------------------------ */
+
+struct ntg_constr ntg_object_get_constr(const ntg_object* object);
+struct ntg_constr ntg_object_get_content_constr(const ntg_object* object);
+
+/* ------------------------------------------------------ */
+
+struct ntg_xy ntg_object_get_size(const ntg_object* object);
+struct ntg_xy ntg_object_get_content_size(const ntg_object* object);
+
+/* ------------------------------------------------------ */
+
+struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object);
+struct ntg_xy ntg_object_get_pos_rel(const ntg_object* object);
+struct ntg_xy ntg_object_get_content_pos_abs(const ntg_object* object);
+struct ntg_xy ntg_object_get_content_pos_rel(const ntg_object* object);
+
+/* ------------------------------------------------------ */
+
+/* Sets root's constraints and position. */
+void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size);
+
+/* ------------------------------------------------------ */
+
+/* Calculates and sets the natural size of `object`. 
+ * If `object` is root, function returns immediately. */
+void ntg_object_calculate_nsize(ntg_object* object);
+
+/* ------------------------------------------------------ */
+
+/* Calculates and sets the constraints of `object`'s children. */
+void ntg_object_constrain(ntg_object* object);
+
+/* ------------------------------------------------------ */
+
+/* Calculates and sets the final size of an object.
+ * If `object` is root, function returns immediately. */
+void ntg_object_measure(ntg_object* object);
+
+/* ------------------------------------------------------ */
+
+/* Arranges the content inside `object`. */
+void ntg_object_arrange(ntg_object* object);
+
+/* ------------------------------------------------------ */
 
 void ntg_object_set_border_style(ntg_object* object,
         struct ntg_border_style border_style);
@@ -105,21 +149,11 @@ void ntg_object_set_border_size(ntg_object* object,
 void ntg_object_set_border_size_fn(ntg_object* object,
         ntg_border_size_fn border_size_fn);
 
-struct ntg_xy ntg_object_get_nsize(const ntg_object* object);
-struct ntg_xy ntg_object_get_content_nsize(const ntg_object* object);
-
-struct ntg_constr ntg_object_get_content_constr(const ntg_object* object);
-struct ntg_constr ntg_object_get_constr(const ntg_object* object);
-
-struct ntg_xy ntg_object_get_size(const ntg_object* object);
-struct ntg_xy ntg_object_get_content_size(const ntg_object* object);
-
-struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object);
-struct ntg_xy ntg_object_get_pos_rel(const ntg_object* object);
-struct ntg_xy ntg_object_get_content_pos_abs(const ntg_object* object);
-struct ntg_xy ntg_object_get_content_pos_rel(const ntg_object* object);
+/* ------------------------------------------------------ */
 
 bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
+
+/* ------------------------------------------------------ */
 
 /* Called internally by ntg_scene when root changes. */
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene);
@@ -190,27 +224,32 @@ void __ntg_object_init__(ntg_object* object,
 
 void __ntg_object_deinit__(ntg_object* object);
 
+/* ------------------------------------------------------ */
+
 /* Configure object behavior */
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn);
-void _ntg_object_set_border_size_fn(ntg_object* object,
-        ntg_border_size_fn calculate_border_size_fn);
+
+/* ------------------------------------------------------ */
 
 void _ntg_object_set_content_nsize(ntg_object* object, struct ntg_xy size);
-
 void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr);
-
 void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy content_size);
-
 void _ntg_object_set_pos_inside_content(ntg_object* object, struct ntg_xy pos);
+
+/* ------------------------------------------------------ */
 
 void _ntg_object_child_add(ntg_object* parent, ntg_object* child);
 void _ntg_object_child_remove(ntg_object* parent, ntg_object* child);
+
+/* ------------------------------------------------------ */
 
 void _ntg_object_scroll_enable(ntg_object* object);
 void _ntg_object_scroll_disable(ntg_object* object);
 void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff);
 struct ntg_xy _ntg_object_get_scroll(const ntg_object* object);
+
+/* ------------------------------------------------------ */
 
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),

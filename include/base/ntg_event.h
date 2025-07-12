@@ -3,8 +3,12 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <sys/types.h>
 
-#include "base/ntg_event_sub_vec.h"
+#define NTG_EVENT_TYPE_INVALID UINT_MAX 
+#define NTG_EVENT_ID_INVALID UINT_MAX;
+
+typedef struct ntg_event_sub_vec ntg_event_sub_vec;
 
 typedef struct ntg_event
 {
@@ -14,45 +18,50 @@ typedef struct ntg_event
     void* _data;
 } ntg_event;
 
-typedef struct ntg_event_sub_delegate
-{
-    ntg_event_sub_vec __subs;
-} ntg_event_sub_delegate;
-
+/* Keep this internal to prevent other objects from raising the event */
 typedef struct ntg_event_delegate
 {
-    ntg_event_sub_delegate _sub_delegate;
+    ntg_event_sub_vec* _subs;
 } ntg_event_delegate;
 
-typedef void (*ntg_event_handler_fn)(void* subscriber, const ntg_event* event);
+/* Expose this to allow other objects to subscribe/unsubscribe */
+typedef struct ntg_event_delegate_view
+{
+    ntg_event_delegate* __delegate;
+} ntg_event_delegate_view;
 
-/* Event subscriber */
+typedef void (*ntg_event_handler)(void* subscriber, ntg_event* event);
+
 struct ntg_event_sub
 {
-    ntg_event_handler_fn handler;
     void* subscriber;
+    ntg_event_handler handler;
 };
+
+/* -------------------------------------------------------------------------- */
 
 void __ntg_event_init__(ntg_event* event, uint type, void* source, void* data);
 void __ntg_event_deinit__(ntg_event* event);
 
-/* -------------------------------------------------------------------------- */
-
-void __ntg_event_sub_delegate_init__(ntg_event_sub_delegate* sub_delegate);
-void __ntg_event_sub_delegate_deinit__(ntg_event_sub_delegate* sub_delegate);
-
-void ntg_event_sub_delegate_sub(ntg_event_sub_delegate* sub_delegate,
-        struct ntg_event_sub subscription);
-void ntg_event_sub_delegate_unsub(ntg_event_sub_delegate* sub_delegate,
-        void* subscriber);
-bool ntg_event_sub_delegate_is_sub(ntg_event_sub_delegate* sub_delegate,
-        void* subscriber);
-
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 void __ntg_event_delegate_init__(ntg_event_delegate* delegate);
 void __ntg_event_delegate_deinit__(ntg_event_delegate* delegate);
 
 void ntg_event_delegate_raise(ntg_event_delegate* delegate, ntg_event* event);
+
+/* ------------------------------------------------------ */
+
+void __ntg_event_delegate_view_init__(ntg_event_delegate_view* view,
+        ntg_event_delegate* delegate);
+
+void ntg_event_delegate_view_sub(ntg_event_delegate_view* view,
+        struct ntg_event_sub subscription);
+void ntg_event_delegate_view_unsub(ntg_event_delegate_view* view,
+        void* subscriber);
+bool ntg_event_delegate_view_is_subbed(const ntg_event_delegate_view* view,
+        void* subscriber);
+
+/* -------------------------------------------------------------------------- */
 
 #endif // _NTG_EVENT_H_

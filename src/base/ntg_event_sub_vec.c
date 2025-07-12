@@ -49,5 +49,5 @@ void ntg_event_sub_vec_remove_sub(const ntg_event_sub_vec* vec,
     int status = ntg_vector_remove((struct ntg_vector*)vec,
             subscriber, EL_SIZE, _cmp_fn);
 
-    assert(status != 0);
+    assert(status == 0);
 }
