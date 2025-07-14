@@ -7,6 +7,8 @@
 #include "shared/_ntg_shared.h"
 #include "object/ntg_box.h"
 
+// TODO: refactor using ntg_oxy
+
 /* pa - primary axis
  * sa - secondary axis */
 
@@ -24,10 +26,10 @@ static bool __process_key_fn(ntg_object* _box,
         switch(key_event.utf32_data.codepoint)
         {
             case 'h':
-                ntg_box_set_orientation(box, NTG_BOX_ORIENTATION_HORIZONTAL);
+                ntg_box_set_orientation(box, NTG_ORIENTATION_HORIZONTAL);
                 return true;
             case 'v':
-                ntg_box_set_orientation(box, NTG_BOX_ORIENTATION_VERTICAL);
+                ntg_box_set_orientation(box, NTG_ORIENTATION_VERTICAL);
                 return true;
             case 'a':
                 ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_0);
@@ -54,31 +56,31 @@ static inline size_t _padding_y(struct ntg_box_padding padding)
     return padding.north + padding.south;
 }
 
-static inline size_t _prim_axis(ntg_box_orientation ort, struct ntg_xy size)
+static inline size_t _prim_axis(ntg_orientation ort, struct ntg_xy size)
 {
-    return (ort == NTG_BOX_ORIENTATION_HORIZONTAL) ? size.x : size.y;
+    return (ort == NTG_ORIENTATION_HORIZONTAL) ? size.x : size.y;
 }
 
-static inline size_t _sec_axis(ntg_box_orientation ort, struct ntg_xy size)
+static inline size_t _sec_axis(ntg_orientation ort, struct ntg_xy size)
 {
-    return (ort == NTG_BOX_ORIENTATION_HORIZONTAL) ? size.y : size.x;
+    return (ort == NTG_ORIENTATION_HORIZONTAL) ? size.y : size.x;
 }
 
-static inline struct ntg_xy _xy_new(ntg_box_orientation ort,
+static inline struct ntg_xy _xy_new(ntg_orientation ort,
         size_t psize, size_t ssize)
 {
     return ntg_xy(
-        (ort == NTG_BOX_ORIENTATION_HORIZONTAL) ? psize : ssize,
-        (ort == NTG_BOX_ORIENTATION_HORIZONTAL) ? ssize : psize
+        (ort == NTG_ORIENTATION_HORIZONTAL) ? psize : ssize,
+        (ort == NTG_ORIENTATION_HORIZONTAL) ? ssize : psize
     );
 }
 
-static inline struct ntg_xy _xy_add_prim_axis_val(ntg_box_orientation ort,
+static inline struct ntg_xy _xy_add_prim_axis_val(ntg_orientation ort,
         struct ntg_xy size, size_t psize)
 {
     struct ntg_xy to_add = NTG_XY_UNSET;
 
-    if(ort == NTG_BOX_ORIENTATION_HORIZONTAL)
+    if(ort == NTG_ORIENTATION_HORIZONTAL)
         to_add.x += psize;
     else
         to_add.y += psize;
@@ -86,12 +88,12 @@ static inline struct ntg_xy _xy_add_prim_axis_val(ntg_box_orientation ort,
     return ntg_xy_add(size, to_add);
 }
 
-static inline struct ntg_xy _xy_sub_prim_axis_val(ntg_box_orientation ort,
+static inline struct ntg_xy _xy_sub_prim_axis_val(ntg_orientation ort,
         struct ntg_xy size, size_t psize)
 {
     struct ntg_xy to_add = NTG_XY_UNSET;
 
-    if(ort == NTG_BOX_ORIENTATION_HORIZONTAL)
+    if(ort == NTG_ORIENTATION_HORIZONTAL)
         to_add.x += psize;
     else
         to_add.y += psize;
@@ -119,6 +121,24 @@ static void __ntg_box_on_nsize(ntg_box* box)
     }
 
     box->__box_content_nsize = _xy_new(box->_orientation, psize, ssize);
+
+    // struct ntg_oxy osize = ntg_oxy(0, 0);
+    // struct ntg_oxy it_osize;
+    // struct ntg_xy it_size;
+    //
+    // size_t i;
+    // for(i = 0; i < children->_count; i++)
+    // {
+    //     it_size = ntg_object_get_nsize(children->_data[i]);
+    //     it_osize = ntg_oxy_from_xy(it_size, box->_orientation);
+    //
+    //     it_osize = ntg_oxy_size(it_osize);
+    //
+    //     osize.prim_val += it_osize.prim_val;
+    //     osize.sec_val = _max2_size(osize.sec_val, it_osize.sec_val);
+    // }
+    //
+    // box->__box_content_nsize = ntg_xy_from_oxy(osize, box->_orientation);
 }
 
 static void __ntg_box_on_constrain(ntg_box* box)
@@ -195,7 +215,7 @@ static void __constrain_fn(ntg_object* _box)
     struct ntg_constr cconstr = box->__box_content_constr;
     struct ntg_xy cnsize = box->__box_content_nsize;
 
-    ntg_box_orientation ort = box->_orientation;
+    ntg_orientation ort = box->_orientation;
 
     struct ntg_xy it_nsize;
     if((_prim_axis(ort, cnsize) <= _prim_axis(ort, cconstr.max_size)) &&
@@ -426,7 +446,7 @@ static void __arrange_fn(ntg_container* _box)
 static inline void _set_default_values(ntg_box* box)
 {
     box->_pref_padding = NTG_BOX_PADDING_UNSET;
-    box->_orientation = NTG_BOX_ORIENTATION_HORIZONTAL;
+    box->_orientation = NTG_ORIENTATION_HORIZONTAL;
     box->_primary_alignment = NTG_BOX_ALIGNMENT_0;
     box->_secondary_alignment = NTG_BOX_ALIGNMENT_0;
 
@@ -438,7 +458,7 @@ static inline void _set_default_values(ntg_box* box)
 }
 
 void __ntg_box_init__(ntg_box* box,
-        ntg_box_orientation orientation,
+        ntg_orientation orientation,
         ntg_box_alignment primary_alignment,
         ntg_box_alignment secondary_alignment)
 {
@@ -461,7 +481,7 @@ void __ntg_box_deinit__(ntg_box* box)
     _set_default_values(box);
 }
 
-ntg_box* ntg_box_new(ntg_box_orientation orientation,
+ntg_box* ntg_box_new(ntg_orientation orientation,
         ntg_box_alignment primary_alignment,
         ntg_box_alignment secondary_alignment)
 {
@@ -492,7 +512,7 @@ void ntg_box_set_padding(ntg_box* box, struct ntg_box_padding padding)
     box->_pref_padding = padding;
 }
 
-void ntg_box_set_orientation(ntg_box* box, ntg_box_orientation orientation)
+void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation)
 {
     assert(box != NULL);
 

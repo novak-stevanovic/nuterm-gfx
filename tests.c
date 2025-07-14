@@ -101,7 +101,7 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
 
     _ntg_object_scroll_enable(NTG_OBJECT(cb9));
 
-    ntg_box* box1 = ntg_box_new(NTG_BOX_ORIENTATION_HORIZONTAL,
+    ntg_box* box1 = ntg_box_new(NTG_ORIENTATION_HORIZONTAL,
             NTG_BOX_ALIGNMENT_2,
             NTG_BOX_ALIGNMENT_0);
 
@@ -129,7 +129,7 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     ntg_box_add_child(box1, NTG_OBJECT(cb3));
     ntg_box_add_child(box1, NTG_OBJECT(cb4));
 
-    ntg_box* box2 = ntg_box_new(NTG_BOX_ORIENTATION_VERTICAL,
+    ntg_box* box2 = ntg_box_new(NTG_ORIENTATION_VERTICAL,
             NTG_BOX_ALIGNMENT_0,
             NTG_BOX_ALIGNMENT_0);
 

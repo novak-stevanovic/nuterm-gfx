@@ -13,8 +13,8 @@
 
 #define NTG_OBJECT(obj_ptr) ((ntg_object*)(obj_ptr))
 
-#define NTG_PREF_SIZE_UNSET (NTG_TERM_MAX_SIZE - 1)
-#define NTG_PREF_SIZE_MAX NTG_TERM_MAX_SIZE
+#define NTG_PREF_SIZE_UNSET SIZE_MAX
+#define NTG_PREF_SIZE_MAX (SIZE_MAX - 1)
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;

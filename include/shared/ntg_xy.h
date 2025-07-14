@@ -7,8 +7,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#define NTG_TERM_MAX_SIZE 10000
-
 struct ntg_xy
 {
     size_t x, y;
@@ -22,6 +20,17 @@ struct ntg_dxy
 struct ntg_constr
 {
     struct ntg_xy min_size, max_size;
+};
+
+typedef enum ntg_orientation
+{
+    NTG_ORIENTATION_HORIZONTAL,
+    NTG_ORIENTATION_VERTICAL
+} ntg_orientation;
+
+struct ntg_oxy
+{
+    size_t prim_val, sec_val;
 };
 
 static const struct ntg_xy NTG_XY_MAX = { SIZE_MAX, SIZE_MAX };
@@ -159,5 +168,43 @@ static inline bool ntg_constr_contains(struct ntg_constr constr,
     return (point.x >= constr.min_size.x) && (point.x < constr.max_size.x) &&
         (point.y >= constr.min_size.y) && (point.y < constr.max_size.y);
 }
+
+/* -------------------------------------------------------------------------- */
+
+static inline struct ntg_xy ntg_xy_from_oxy(struct ntg_oxy orient_xy,
+        ntg_orientation orientation)
+{
+    if(orientation == NTG_ORIENTATION_HORIZONTAL)
+        return ntg_xy(orient_xy.prim_val, orient_xy.sec_val);
+    else
+        return ntg_xy(orient_xy.sec_val, orient_xy.prim_val);
+}
+
+static inline struct ntg_oxy ntg_oxy(size_t prim_val, size_t sec_val)
+{
+    return (struct ntg_oxy) {
+        .prim_val = prim_val,
+        .sec_val = sec_val
+    };
+}
+
+static inline struct ntg_oxy ntg_oxy_size(struct ntg_oxy oxy)
+{
+    if((oxy.prim_val == 0) || (oxy.sec_val == 0))
+        return ntg_oxy(0, 0);
+    else
+        return oxy;
+}
+
+static inline struct ntg_oxy ntg_oxy_from_xy(struct ntg_xy xy,
+        ntg_orientation orientation)
+{
+    if(orientation == NTG_ORIENTATION_HORIZONTAL)
+        return ntg_oxy(xy.x, xy.y);
+    else
+        return ntg_oxy(xy.y, xy.x);
+}
+
+/* -------------------------------------------------------------------------- */
 
 #endif // _NTG_XY_H_

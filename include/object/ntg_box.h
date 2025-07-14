@@ -7,12 +7,6 @@
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-typedef enum ntg_box_orientation
-{ 
-    NTG_BOX_ORIENTATION_HORIZONTAL,
-    NTG_BOX_ORIENTATION_VERTICAL 
-} ntg_box_orientation;
-
 typedef enum ntg_box_alignment
 {
     /* left, when used in reference to x axis alignment */
@@ -38,13 +32,13 @@ static const struct ntg_box_padding NTG_BOX_PADDING_UNSET = {0};
 typedef struct ntg_box ntg_box;
 
 void __ntg_box_init__(ntg_box* box,
-        ntg_box_orientation orientation,
+        ntg_orientation orientation,
         ntg_box_alignment primary_alignment,
         ntg_box_alignment secondary_alignment);
 
 void __ntg_box_deinit__(ntg_box* box);
 
-ntg_box* ntg_box_new(ntg_box_orientation orientation,
+ntg_box* ntg_box_new(ntg_orientation orientation,
         ntg_box_alignment primary_alignment,
         ntg_box_alignment secondary_alignment);
 
@@ -54,7 +48,7 @@ void ntg_box_add_child(ntg_box* box, ntg_object* object);
 void ntg_box_remove_child(ntg_box* box, ntg_object* object);
 
 void ntg_box_set_padding(ntg_box* box, struct ntg_box_padding padding);
-void ntg_box_set_orientation(ntg_box* box, ntg_box_orientation orientation);
+void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation);
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_box_alignment alignment);
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment);
 
@@ -71,7 +65,7 @@ struct ntg_box
 {
     ntg_container __base;
 
-    ntg_box_orientation _orientation;
+    ntg_orientation _orientation;
     ntg_box_alignment _primary_alignment, _secondary_alignment;
 
     struct ntg_box_padding _pref_padding;

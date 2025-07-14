@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static void __calculate_nsize_fn(ntg_object* _solid_block)
+static void __natural_size_fn(ntg_object* _solid_block)
 {
     struct ntg_xy pref_size = ntg_object_get_pref_content_size(_solid_block);
     struct ntg_xy nsize = ntg_xy(
@@ -37,8 +37,8 @@ static void __arrange_fn(ntg_object* _solid_block)
             (*it_cell) = (NTG_SOLID_BLOCK(_solid_block))->_cell_bp;
 
             // TODO:
-            it_letter = 'a' + ((i + j) % 26);
-            it_cell->__base.codepoint = it_letter;
+            // it_letter = 'a' + ((i + j) % 26);
+            // it_cell->__base.codepoint = it_letter;
         }
     }
 }
@@ -48,7 +48,7 @@ void __ntg_solid_block_init__(ntg_solid_block* solid_block, ntg_cell cell_bp)
     assert(solid_block != NULL);
 
     __ntg_pane_init__(NTG_PANE(solid_block),
-            __calculate_nsize_fn,
+            __natural_size_fn,
             __measure_fn,
             __arrange_fn);
 
