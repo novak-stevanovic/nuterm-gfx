@@ -32,7 +32,7 @@ struct ntg_border_size ntg_border_size_fn_default(const ntg_object* object)
     struct ntg_xy total_size = object->__constr.max_size;
     struct ntg_xy pref_border_size = ntg_border_size_sum(
             object->_border_pref_size);
-    struct ntg_xy content_nsize = ntg_object_get_content_nsize(object);
+    struct ntg_xy content_nsize = ntg_object_get_natural_content_size(object);
 
     struct ntg_xy border_total_size;
 
@@ -124,14 +124,14 @@ void ntg_object_set_pref_content_size(ntg_object* object, struct ntg_xy pref_siz
     }
 }
 
-struct ntg_xy ntg_object_get_nsize(const ntg_object* object)
+struct ntg_xy ntg_object_get_natural_size(const ntg_object* object)
 {
     assert(object != NULL);
 
     return object->__nsize;
 }
 
-struct ntg_xy ntg_object_get_content_nsize(const ntg_object* object)
+struct ntg_xy ntg_object_get_natural_content_size(const ntg_object* object)
 {
     assert(object != NULL);
 
@@ -222,7 +222,7 @@ struct ntg_xy ntg_object_get_content_pos_rel(const ntg_object* object)
     return ntg_xy_add(ntg_object_get_pos_rel(object), border_offset);
 }
 
-void ntg_object_calculate_nsize(ntg_object* object)
+void ntg_object_calculate_natural_size(ntg_object* object)
 {
     if(object == NULL) return;
     // if(object->_parent == NULL) return;
@@ -349,7 +349,7 @@ void __ntg_object_deinit__(ntg_object* object)
     __ntg_object_init_default(object);
 }
 
-void _ntg_object_set_content_nsize(ntg_object* object, struct ntg_xy size)
+void _ntg_object_set_natural_content_size(ntg_object* object, struct ntg_xy size)
 {
     if(object == NULL) return;
 
@@ -413,7 +413,7 @@ void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy content_size
 
     object->__size = size;
 
-    struct ntg_xy content_nsize = ntg_object_get_content_nsize(object);
+    struct ntg_xy content_nsize = ntg_object_get_natural_content_size(object);
 
     if(object->__scroll)
     {

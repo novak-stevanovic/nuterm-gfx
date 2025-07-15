@@ -29,7 +29,7 @@ typedef struct ntg_scene ntg_scene;
  * An object's content natural size represents the size it gravitates towards
  * naturally. This calculation must take into account preferred size.
  *
- * Use _ntg_object_set_content_nsize() to set the size.
+ * Use _ntg_object_set_natural_content_size() to set the size.
  *
  * Children's natural sizes are assumed to be set. */
 typedef void (*ntg_natural_size_fn)(ntg_object* object);
@@ -93,8 +93,8 @@ void ntg_object_set_pref_content_size(ntg_object* object,
 
 /* ------------------------------------------------------ */
 
-struct ntg_xy ntg_object_get_nsize(const ntg_object* object);
-struct ntg_xy ntg_object_get_content_nsize(const ntg_object* object);
+struct ntg_xy ntg_object_get_natural_size(const ntg_object* object);
+struct ntg_xy ntg_object_get_natural_content_size(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
@@ -122,7 +122,7 @@ void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size);
 
 /* Calculates and sets the natural size of `object`. 
  * If `object` is root, function returns immediately. */
-void ntg_object_calculate_nsize(ntg_object* object);
+void ntg_object_calculate_natural_size(ntg_object* object);
 
 /* ------------------------------------------------------ */
 
@@ -232,7 +232,7 @@ void _ntg_object_set_process_key_fn(ntg_object* object,
 
 /* ------------------------------------------------------ */
 
-void _ntg_object_set_content_nsize(ntg_object* object, struct ntg_xy size);
+void _ntg_object_set_natural_content_size(ntg_object* object, struct ntg_xy size);
 void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr);
 void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy content_size);
 void _ntg_object_set_pos_inside_content(ntg_object* object, struct ntg_xy pos);

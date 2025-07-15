@@ -112,7 +112,7 @@ static void __ntg_box_on_nsize(ntg_box* box)
 
     for(i = 0; i < children->_count; i++)
     {
-        it_size = ntg_object_get_nsize(children->_data[i]);
+        it_size = ntg_object_get_natural_size(children->_data[i]);
 
         ntg_xy_size_(&it_size);
 
@@ -199,7 +199,7 @@ static void __calculate_nsize_fn(ntg_object* _box)
     psize += _prim_axis(box->_orientation, pref_padding_size);
     ssize += _sec_axis(box->_orientation, pref_padding_size);
 
-    _ntg_object_set_content_nsize(_box, _xy_new(box->_orientation, psize, ssize));
+    _ntg_object_set_natural_content_size(_box, _xy_new(box->_orientation, psize, ssize));
 }
 
 static void __constrain_fn(ntg_object* _box)
@@ -223,7 +223,7 @@ static void __constrain_fn(ntg_object* _box)
     {
         for(i = 0; i < children->_count; i++) {
             it_child = children->_data[i];
-            it_nsize = ntg_object_get_nsize(it_child);
+            it_nsize = ntg_object_get_natural_size(it_child);
 
             _ntg_object_set_constr(it_child, ntg_constr(it_nsize, it_nsize));
         }
@@ -239,7 +239,7 @@ static void __constrain_fn(ntg_object* _box)
         for(i = 0; i < children->_count; i++)
         {
             it_child = children->_data[i];
-            it_nsize = ntg_object_get_nsize(it_child);
+            it_nsize = ntg_object_get_natural_size(it_child);
             nsizes[i] = _prim_axis(ort, it_nsize);
 
             it_min_size = _xy_new(ort, _prim_axis(ort, it_nsize), 0),
@@ -275,7 +275,7 @@ static void __constrain_fn(ntg_object* _box)
         {
             it_child = children->_data[i];
 
-            it_nsize = ntg_object_get_nsize(it_child);
+            it_nsize = ntg_object_get_natural_size(it_child);
             nsizes[i] = _prim_axis(ort, it_nsize);
 
             base_constr[i] = ntg_constr(

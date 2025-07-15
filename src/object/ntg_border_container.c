@@ -10,19 +10,19 @@ static void __calculate_nsize_fn(ntg_object* _container)
     ntg_border_container* container = NTG_BORDER_CONTAINER(_container);
 
     struct ntg_xy nsize_north = (container->_north != NULL) ?
-        ntg_object_get_nsize(container->_north) :
+        ntg_object_get_natural_size(container->_north) :
         ntg_xy(0, 0);
     struct ntg_xy nsize_east = (container->_east != NULL) ?
-        ntg_object_get_nsize(container->_east) :
+        ntg_object_get_natural_size(container->_east) :
         ntg_xy(0, 0);
     struct ntg_xy nsize_south = (container->_south != NULL) ?
-        ntg_object_get_nsize(container->_south) :
+        ntg_object_get_natural_size(container->_south) :
         ntg_xy(0, 0);
     struct ntg_xy nsize_west = (container->_west != NULL) ?
-        ntg_object_get_nsize(container->_west) :
+        ntg_object_get_natural_size(container->_west) :
         ntg_xy(0, 0);
     struct ntg_xy nsize_center = (container->_center != NULL) ?
-        ntg_object_get_nsize(container->_center) :
+        ntg_object_get_natural_size(container->_center) :
         ntg_xy(0, 0);
 
     size_t width = _max3_size(
@@ -35,7 +35,7 @@ static void __calculate_nsize_fn(ntg_object* _container)
                 nsize_west.y,
                 nsize_east.y);
 
-    _ntg_object_set_content_nsize(_container, ntg_xy_size(ntg_xy(width, height)));
+    _ntg_object_set_natural_content_size(_container, ntg_xy_size(ntg_xy(width, height)));
 }
 
 static void __constrain_fn(ntg_object* _container)
@@ -44,22 +44,22 @@ static void __constrain_fn(ntg_object* _container)
     ntg_border_container* container = NTG_BORDER_CONTAINER(_container);
 
     struct ntg_constr constr = ntg_object_get_content_constr(_container);
-    struct ntg_xy nsize = ntg_object_get_content_nsize(_container);
+    struct ntg_xy nsize = ntg_object_get_natural_content_size(_container);
 
     struct ntg_xy nsize_north = (container->_north != NULL) ?
-        ntg_object_get_nsize(container->_north) :
+        ntg_object_get_natural_size(container->_north) :
         ntg_xy(0, 0);
     struct ntg_xy nsize_east = (container->_east != NULL) ?
-        ntg_object_get_nsize(container->_east) :
+        ntg_object_get_natural_size(container->_east) :
         ntg_xy(0, 0);
     struct ntg_xy nsize_south = (container->_south != NULL) ?
-        ntg_object_get_nsize(container->_south) :
+        ntg_object_get_natural_size(container->_south) :
         ntg_xy(0, 0);
     struct ntg_xy nsize_west = (container->_west != NULL) ?
-        ntg_object_get_nsize(container->_west) :
+        ntg_object_get_natural_size(container->_west) :
         ntg_xy(0, 0);
     struct ntg_xy nsize_center = (container->_center != NULL) ?
-        ntg_object_get_nsize(container->_center) :
+        ntg_object_get_natural_size(container->_center) :
         ntg_xy(0, 0);
 
     struct ntg_xy size_north, size_east, size_south, size_west, size_center; 

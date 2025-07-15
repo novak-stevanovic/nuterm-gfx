@@ -10,7 +10,7 @@ static void __natural_size_fn(ntg_object* _solid_block)
             ((pref_size.x != NTG_PREF_SIZE_UNSET) ? pref_size.x : 1),
             ((pref_size.y != NTG_PREF_SIZE_UNSET) ? pref_size.y : 1));
 
-    _ntg_object_set_content_nsize(_solid_block, nsize);
+    _ntg_object_set_natural_content_size(_solid_block, nsize);
 }
 
 static void __measure_fn(ntg_object* _solid_block)

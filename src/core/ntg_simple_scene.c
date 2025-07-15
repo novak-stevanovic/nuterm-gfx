@@ -57,7 +57,7 @@ static void _nsize_all(ntg_object* curr_obj, ntg_simple_scene* scene)
         _nsize_all(it_obj, scene);
     }
 
-    ntg_object_calculate_nsize(curr_obj);
+    ntg_object_calculate_natural_size(curr_obj);
 }
 
 static void _constrain_all(ntg_object* curr_obj, ntg_simple_scene* scene)
