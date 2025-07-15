@@ -108,22 +108,6 @@ void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size)
     object->__pref_size = pref_size;
 }
 
-void ntg_object_set_pref_content_size(ntg_object* object, struct ntg_xy pref_size)
-{
-    if(object == NULL) return;
-
-    struct ntg_xy border_size = ntg_border_size_sum(object->_border_pref_size);
-
-    if(pref_size.x != NTG_PREF_SIZE_UNSET)
-    {
-        object->__pref_size.x = pref_size.x + border_size.x;
-    }
-    if(pref_size.y != NTG_PREF_SIZE_UNSET)
-    {
-        object->__pref_size.y = pref_size.y + border_size.y;
-    }
-}
-
 struct ntg_xy ntg_object_get_natural_size(const ntg_object* object)
 {
     assert(object != NULL);
@@ -270,17 +254,7 @@ void ntg_object_set_border_size(ntg_object* object,
 {
     assert(object != NULL);
 
-    struct ntg_xy pref_content_size = ntg_xy_sub(
-            object->__pref_size,
-            ntg_border_size_sum(object->_border_pref_size));
-
     object->_border_pref_size = border_size;
-
-    struct ntg_xy new_pref_size = ntg_xy_add(
-            pref_content_size,
-            ntg_border_size_sum(border_size));
-
-    object->__pref_size = new_pref_size;
 }
 
 void ntg_object_set_border_size_fn(ntg_object* object,

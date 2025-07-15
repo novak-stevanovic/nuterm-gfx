@@ -68,7 +68,7 @@ ifneq ($(PC_DEPS),)
 endif
 
 DEP_CFLAGS = $(PC_CFLAGS)
-DEP_LFLAGS = $(PC_LFLAGS)
+DEP_LFLAGS = $(PC_LFLAGS) -lm
 
 # ---------------------------------------------------------
 # Source Flags
@@ -96,7 +96,7 @@ TEST_CFLAGS_INCLUDE = -Iinclude $(DEP_CFLAGS)
 TEST_CFLAGS = -c $(TEST_CFLAGS_INCLUDE) $(TEST_CFLAGS_MAKE) \
 $(TEST_CFLAGS_WARN) $(TEST_CFLAGS_DEBUG) $(TEST_CFLAGS_OPTIMIZATION)
 
-TEST_LFLAGS = -L. -l$(LIB_NAME) $(DEP_LFLAGS) 
+TEST_LFLAGS = -L. -l$(LIB_NAME) $(DEP_LFLAGS)
 
 ifeq ($(LIB_TYPE),so)
     TEST_LFLAGS += -Wl,-rpath,.

@@ -104,6 +104,7 @@ void ntg_loop(ntg_stage* main_stage, uint framerate)
         event = nt_wait_for_event(timeout, &_status);
 
         timeout = NTG_WAIT_TIMEOUT(framerate) - event.elapsed;
+        // timeout = 1000 - event.elapsed;
 
         size_t _width, _height;
         ntg_stage_status status;

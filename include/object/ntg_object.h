@@ -88,8 +88,6 @@ struct ntg_xy ntg_object_get_pref_size(const ntg_object* object);
 struct ntg_xy ntg_object_get_pref_content_size(const ntg_object* object);
 
 void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size);
-void ntg_object_set_pref_content_size(ntg_object* object,
-        struct ntg_xy pref_size);
 
 /* ------------------------------------------------------ */
 

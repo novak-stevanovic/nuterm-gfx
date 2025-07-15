@@ -1,16 +1,37 @@
+#include <math.h>
 #include <stdlib.h>
 #include <assert.h>
 
 #include "object/ntg_prog_bar.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "shared/_ntg_shared.h"
+#include "shared/ntg_log.h"
 
 #define PROG_BAR_DEFAULT_PRIMARY_AXIS 10
 #define PROG_BAR_DEFAULT_SECONDARY_AXIS 1
 
+static bool __process_key_event_fn(ntg_object* __prog_bar,
+        struct nt_key_event key_event)
+{
+    ntg_prog_bar* prog_bar = NTG_PROG_BAR(__prog_bar);
+
+    if(key_event.type == NT_KEY_EVENT_UTF32)
+    {
+        switch(key_event.utf32_data.codepoint)
+        {
+            case 'a':
+                ntg_prog_bar_set_completed_job_count(prog_bar,
+                        prog_bar->_completed_jobs + 1);
+                return true;
+        }
+    }
+
+    return false;
+}
+
 static inline double __calculate_percentage(uint completed_jobs, uint total_jobs)
 {
-    return _max2_double(((1.0 * completed_jobs) / total_jobs), 1.0);
+    return ((1.0 * completed_jobs) / (1.0 * total_jobs));
 }
 
 static void __natural_size_fn(ntg_object* __prog_bar)
@@ -72,7 +93,7 @@ static void __arrange_fn(ntg_object* __prog_bar)
             prog_bar->_completed_jobs,
             prog_bar->_total_jobs);
 
-    size_t completed_len = _size.prim_val * percentage;
+    size_t completed_len = round(_size.prim_val * percentage);
 
     size_t p, s;
     struct ntg_xy it_xy;
@@ -86,7 +107,9 @@ static void __arrange_fn(ntg_object* __prog_bar)
             it_xy = ntg_xy_from_oxy(_it_xy, orientation);
             it_cell = ntg_object_drawing_at_(drawing, it_xy);
 
-            if(completed_len > 0)
+            if(completed_len == _size.prim_val)
+                (*it_cell) = prog_bar->_completed_style;
+            else if(completed_len > 0)
             {
                 if(p < (completed_len - 1))
                     (*it_cell) = prog_bar->_completed_style;
@@ -118,6 +141,8 @@ void __ntg_prog_bar_init__(ntg_prog_bar* prog_bar,
     prog_bar->_completed_style = completed_style;
     prog_bar->_uncompleted_style = uncompleted_style;
     prog_bar->_threshold_style = threshold_style;
+
+    _ntg_object_set_process_key_fn(NTG_OBJECT(prog_bar), __process_key_event_fn);
 }
 
 void __ntg_prog_bar_deinit__(ntg_prog_bar* prog_bar)
@@ -168,5 +193,6 @@ void ntg_prog_bar_set_completed_job_count(ntg_prog_bar* prog_bar,
 {
     assert(prog_bar != NULL);
 
-    prog_bar->_completed_jobs = completed_jobs;
+    prog_bar->_completed_jobs = (completed_jobs <= prog_bar->_total_jobs) ?
+        completed_jobs : prog_bar->_total_jobs;
 }
