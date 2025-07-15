@@ -20,8 +20,7 @@ static bool __process_key_event_fn(ntg_object* __prog_bar,
         switch(key_event.utf32_data.codepoint)
         {
             case 'a':
-                ntg_prog_bar_set_completed_job_count(prog_bar,
-                        prog_bar->_completed_jobs + 1);
+                ntg_prog_bar_increase_completed_job_count(prog_bar, 2);
                 return true;
         }
     }
@@ -195,4 +194,13 @@ void ntg_prog_bar_set_completed_job_count(ntg_prog_bar* prog_bar,
 
     prog_bar->_completed_jobs = (completed_jobs <= prog_bar->_total_jobs) ?
         completed_jobs : prog_bar->_total_jobs;
+}
+
+void ntg_prog_bar_increase_completed_job_count(ntg_prog_bar* prog_bar,
+        uint completed_job_increase)
+{
+    assert(prog_bar != NULL);
+
+    ntg_prog_bar_set_completed_job_count(prog_bar, prog_bar->_completed_jobs +
+            completed_job_increase);
 }

@@ -35,5 +35,7 @@ void ntg_prog_bar_set_total_job_count(ntg_prog_bar* prog_bar,
         uint total_jobs);
 void ntg_prog_bar_set_completed_job_count(ntg_prog_bar* prog_bar,
         uint completed_jobs);
+void ntg_prog_bar_increase_completed_job_count(ntg_prog_bar* prog_bar,
+        uint completed_job_increase);
 
 #endif // _NTG_PROG_BAR_H_
