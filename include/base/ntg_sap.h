@@ -5,7 +5,8 @@
 
 #include <stddef.h>
 
-/* sum of `nsizes` should be greater or equal to `space_pool` */
+/* sum of `nsizes` should be greater or equal to `space_pool`.
+ * If the algorithm should ignore natural sizes, set nsizes to NULL. */
 void ntg_sap_nsize_round_robin(const size_t* nsizes, size_t* out_sizes,
         size_t space_pool, size_t count);
 

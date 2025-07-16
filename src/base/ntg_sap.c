@@ -5,7 +5,7 @@
 void ntg_sap_nsize_round_robin(const size_t* nsizes, size_t* out_sizes,
         size_t space_pool, size_t count)
 {
-    if((nsizes == NULL) || (out_sizes == NULL)) assert(0);
+    assert(out_sizes != NULL);
 
     size_t i;
     for(i = 0; i < count; i++)
@@ -17,7 +17,7 @@ void ntg_sap_nsize_round_robin(const size_t* nsizes, size_t* out_sizes,
         loop = false;
         for(i = 0; i < count; i++)
         {
-            if(nsizes[i] > out_sizes[i])
+            if((nsizes == NULL) || (nsizes[i] > out_sizes[i]))
             {
                 (out_sizes[i])++;
                 space_pool--;
