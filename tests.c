@@ -109,7 +109,7 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
 
     ntg_box* box1 = ntg_box_new(NTG_ORIENTATION_HORIZONTAL,
             NTG_BOX_ALIGNMENT_2,
-            NTG_BOX_ALIGNMENT_0);
+            NTG_BOX_ALIGNMENT_1);
 
     ntg_object_set_pref_size(NTG_OBJECT(box1), ntg_xy(0, 15));
 
@@ -136,8 +136,8 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     ntg_box_add_child(box1, NTG_OBJECT(cb4));
 
     ntg_box* box2 = ntg_box_new(NTG_ORIENTATION_VERTICAL,
-            NTG_BOX_ALIGNMENT_0,
-            NTG_BOX_ALIGNMENT_0);
+            NTG_BOX_ALIGNMENT_1,
+            NTG_BOX_ALIGNMENT_1);
 
     ntg_box_set_bg_color(box2, nt_color_new(255, 255, 255));
 

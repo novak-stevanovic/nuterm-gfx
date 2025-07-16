@@ -2,6 +2,7 @@
 #define _NTG_BOX_H_
 
 #include "object/ntg_container.h"
+#include "object/ntg_padding.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
@@ -11,23 +12,16 @@ typedef enum ntg_box_alignment
 {
     /* left, when used in reference to x axis alignment */
     /* top, when used in reference to y axis alignment */
-    NTG_BOX_ALIGNMENT_0,
+    NTG_BOX_ALIGNMENT_1,
 
     /* center */
-    NTG_BOX_ALIGNMENT_1,
+    NTG_BOX_ALIGNMENT_2,
 
     /* right, when used in reference to x axis alignment */
     /* bottom, when used in reference to y axis alignment */
-    NTG_BOX_ALIGNMENT_2
+    NTG_BOX_ALIGNMENT_3
 
 } ntg_box_alignment;
-
-struct ntg_box_padding
-{
-    size_t north, east, south, west;
-};
-
-static const struct ntg_box_padding NTG_BOX_PADDING_UNSET = {0};
 
 typedef struct ntg_box ntg_box;
 
@@ -47,7 +41,7 @@ void ntg_box_destroy(ntg_box* box);
 void ntg_box_add_child(ntg_box* box, ntg_object* object);
 void ntg_box_remove_child(ntg_box* box, ntg_object* object);
 
-void ntg_box_set_padding(ntg_box* box, struct ntg_box_padding padding);
+void ntg_box_set_padding_size(ntg_box* box, struct ntg_padding_size padding);
 void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation);
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_box_alignment alignment);
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment);
@@ -68,7 +62,7 @@ struct ntg_box
     ntg_orientation _orientation;
     ntg_box_alignment _primary_alignment, _secondary_alignment;
 
-    struct ntg_box_padding _pref_padding;
+    struct ntg_padding_size _padding;
 
     /* Content - object's content without the object borders
      * Box content - children
@@ -80,7 +74,7 @@ struct ntg_box
 
     /* Cached - initialized in constrain phase ---------- */
 
-    struct ntg_box_padding __padding; // applied padding
+    struct ntg_padding_size __applied_padding; // applied padding
     struct ntg_constr __box_content_constr;
 
     /* Cached - initialized in measure phase ------------ */

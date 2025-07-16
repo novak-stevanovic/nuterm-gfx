@@ -77,7 +77,7 @@ typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
 typedef struct ntg_border_size (*ntg_border_size_fn)(const ntg_object* object);
 
 /* Only show borders if the object can fit all of its content on the screen */
-struct ntg_border_size ntg_border_size_fn_default(const ntg_object* object);
+struct ntg_border_size ntg_border_size_fn_show_if_can_fit(const ntg_object* object);
 
 /* Show borders even if the content is not drawn. */
 struct ntg_border_size ntg_border_size_fn_always_show(const ntg_object* object);

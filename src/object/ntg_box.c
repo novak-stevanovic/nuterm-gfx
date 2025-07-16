@@ -32,13 +32,13 @@ static bool __process_key_fn(ntg_object* _box,
                 ntg_box_set_orientation(box, NTG_ORIENTATION_VERTICAL);
                 return true;
             case 'a':
-                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_0);
-                return true;
-            case 'b':
                 ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_1);
                 return true;
-            case 'c':
+            case 'b':
                 ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_2);
+                return true;
+            case 'c':
+                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_3);
                 return true;
         }
     }
@@ -46,12 +46,12 @@ static bool __process_key_fn(ntg_object* _box,
     return false;
 }
 
-static inline size_t _padding_x(struct ntg_box_padding padding)
+static inline size_t _padding_x(struct ntg_padding_size padding)
 {
     return padding.west + padding.east;
 }
 
-static inline size_t _padding_y(struct ntg_box_padding padding)
+static inline size_t _padding_y(struct ntg_padding_size padding)
 {
     return padding.north + padding.south;
 }
@@ -104,83 +104,24 @@ static inline struct ntg_xy _xy_sub_prim_axis_val(ntg_orientation ort,
 static void __ntg_box_on_nsize(ntg_box* box)
 {
     ntg_object* _box = (ntg_object*)box;
+    ntg_orientation orientation = box->_orientation;
     const ntg_object_vec* children = _box->_children;
 
-    size_t psize = 0, ssize = 0;
+    struct ntg_oxy _size;
     struct ntg_xy it_size;
-    size_t i;
+    struct ntg_oxy _it_size;
 
+    size_t i;
     for(i = 0; i < children->_count; i++)
     {
-        it_size = ntg_object_get_natural_size(children->_data[i]);
+        it_size = ntg_xy_size(ntg_object_get_natural_size(children->_data[i]));
+        _it_size = ntg_oxy_from_xy(it_size, orientation);
 
-        ntg_xy_size_(&it_size);
-
-        psize += _prim_axis(box->_orientation, it_size);
-        ssize = _max2_size(_sec_axis(box->_orientation, it_size), ssize);
+        _size.prim_val += _it_size.prim_val;
+        _size.sec_val = _max2_size(_size.sec_val, _it_size.sec_val);
     }
 
-    box->__box_content_nsize = _xy_new(box->_orientation, psize, ssize);
-
-    // struct ntg_oxy osize = ntg_oxy(0, 0);
-    // struct ntg_oxy it_osize;
-    // struct ntg_xy it_size;
-    //
-    // size_t i;
-    // for(i = 0; i < children->_count; i++)
-    // {
-    //     it_size = ntg_object_get_nsize(children->_data[i]);
-    //     it_osize = ntg_oxy_from_xy(it_size, box->_orientation);
-    //
-    //     it_osize = ntg_oxy_size(it_osize);
-    //
-    //     osize.prim_val += it_osize.prim_val;
-    //     osize.sec_val = _max2_size(osize.sec_val, it_osize.sec_val);
-    // }
-    //
-    // box->__box_content_nsize = ntg_xy_from_oxy(osize, box->_orientation);
-}
-
-static void __ntg_box_on_constrain(ntg_box* box)
-{
-    if(box == NULL) return;
-
-    ntg_object* __box = (ntg_object*)box;
-    struct ntg_constr constr = ntg_object_get_content_constr(__box);
-
-    size_t padding_x = _padding_x(box->_pref_padding);
-    size_t padding_y = _padding_y(box->_pref_padding);
-
-    struct ntg_constr box_content_constr = constr;
-    struct ntg_box_padding padding = NTG_BOX_PADDING_UNSET;
-
-    if(constr.max_size.x > padding_x)
-    {
-        box_content_constr.max_size.x -= padding_x;
-
-        box_content_constr.min_size.x =
-            (box_content_constr.min_size.x > padding_x) ?
-            box_content_constr.min_size.x - padding_x :
-            0;
-
-        padding.west = box->_pref_padding.west;
-        padding.east = box->_pref_padding.east;
-    }
-    if(constr.max_size.y > padding_y)
-    {
-        box_content_constr.max_size.y -= padding_y;
-
-        box_content_constr.min_size.y =
-            (box_content_constr.min_size.y > padding_y) ?
-            box_content_constr.min_size.y - padding_y :
-            0;
-
-        padding.north = box->_pref_padding.north;
-        padding.south = box->_pref_padding.south;
-    }
-
-    box->__padding = padding;
-    box->__box_content_constr = box_content_constr;
+    box->__box_content_nsize = ntg_xy_from_oxy(_size, orientation);
 }
 
 static void __calculate_nsize_fn(ntg_object* _box)
@@ -189,18 +130,50 @@ static void __calculate_nsize_fn(ntg_object* _box)
 
     __ntg_box_on_nsize(box);
 
-    size_t psize = _prim_axis(box->_orientation, box->__box_content_nsize);
-    size_t ssize = _sec_axis(box->_orientation, box->__box_content_nsize);
+    struct ntg_xy box_content_nsize = box->__box_content_nsize;
 
-    struct ntg_xy pref_padding_size = ntg_xy(
-            _padding_x(box->_pref_padding),
-            _padding_y(box->_pref_padding));
+    struct ntg_xy nsize = ntg_xy_add(box_content_nsize,
+            ntg_padding_size_sum(box->_padding));
 
-    psize += _prim_axis(box->_orientation, pref_padding_size);
-    ssize += _sec_axis(box->_orientation, pref_padding_size);
-
-    _ntg_object_set_natural_content_size(_box, _xy_new(box->_orientation, psize, ssize));
+    _ntg_object_set_natural_content_size(_box, nsize);
 }
+
+static void __ntg_box_on_constrain(ntg_box* box)
+{
+    ntg_object* __box = (ntg_object*)box;
+    struct ntg_constr constr = ntg_object_get_content_constr(__box);
+
+    struct ntg_xy padding_sum = ntg_padding_size_sum(box->_padding);
+
+    // TODO: test because changed
+    struct ntg_xy applied_padding_sum = ntg_xy(
+            (padding_sum.x <= constr.max_size.x) ? padding_sum.x : constr.max_size.x,
+            (padding_sum.y <= constr.max_size.y) ? padding_sum.y : constr.max_size.y);
+
+    size_t nsizes[2];
+    size_t _sizes1[2], _sizes2[2];
+
+    nsizes[0] = box->_padding.north;
+    nsizes[1] = box->_padding.south;
+    ntg_sap_nsize_round_robin(nsizes, _sizes1, constr.max_size.y, 2);
+
+    nsizes[0] = box->_padding.west;
+    nsizes[1] = box->_padding.east;
+    ntg_sap_nsize_round_robin(nsizes, _sizes2, constr.max_size.x, 2);
+
+    struct ntg_padding_size applied_padding = (struct ntg_padding_size) {
+        .north = _sizes1[0],
+        .south = _sizes1[1],
+        .west = _sizes2[0],
+        .east = _sizes2[1]
+    };
+
+    box->__applied_padding = applied_padding;
+    box->__box_content_constr = ntg_constr(
+            ntg_xy_sub(constr.min_size, applied_padding_sum),
+            ntg_xy_sub(constr.max_size, applied_padding_sum));
+}
+
 
 static void __constrain_fn(ntg_object* _box)
 {
@@ -329,8 +302,8 @@ void _ntg_box_on_measure(ntg_box* box)
     box->__box_content_size = content_size;
 
     struct ntg_xy padding_size = ntg_xy(
-            _padding_x(box->__padding),
-            _padding_y(box->__padding));
+            _padding_x(box->__applied_padding),
+            _padding_y(box->__applied_padding));
 
     struct ntg_xy content_padding_size = ntg_xy_add(content_size, padding_size);
 
@@ -353,8 +326,8 @@ static void __measure_fn(ntg_object* _box)
     _ntg_box_on_measure(box);
 
     struct ntg_xy padding_size = ntg_xy(
-            _padding_x(box->__padding),
-            _padding_y(box->__padding));
+            _padding_x(box->__applied_padding),
+            _padding_y(box->__applied_padding));
 
     struct ntg_xy size = ntg_xy_add(box->__box_content_size, padding_size);
     ntg_xy_size_(&size);
@@ -371,11 +344,11 @@ static inline struct ntg_xy _determine_total_offset(const ntg_box* box,
     struct ntg_xy content_size = box->__box_content_size;
     struct ntg_xy content_box_size = box->__box_content_extra_size;
 
-    if(box->_primary_alignment == NTG_BOX_ALIGNMENT_0)
+    if(box->_primary_alignment == NTG_BOX_ALIGNMENT_1)
     {
         poffset = 0;
     }
-    else if(box->_primary_alignment == NTG_BOX_ALIGNMENT_1)
+    else if(box->_primary_alignment == NTG_BOX_ALIGNMENT_2)
     {
         poffset = (_prim_axis(box->_orientation, content_box_size) / 2) -
             (_prim_axis(box->_orientation, content_size) / 2);
@@ -386,11 +359,11 @@ static inline struct ntg_xy _determine_total_offset(const ntg_box* box,
             _prim_axis(box->_orientation, content_size);
     }
 
-    if(box->_secondary_alignment == NTG_BOX_ALIGNMENT_0)
+    if(box->_secondary_alignment == NTG_BOX_ALIGNMENT_1)
     {
         soffset = 0;
     }
-    else if(box->_secondary_alignment == NTG_BOX_ALIGNMENT_1)
+    else if(box->_secondary_alignment == NTG_BOX_ALIGNMENT_2)
     {
         soffset = (_sec_axis(box->_orientation, content_box_size) / 2) -
             (_sec_axis(box->_orientation, child_size) / 2);
@@ -401,8 +374,8 @@ static inline struct ntg_xy _determine_total_offset(const ntg_box* box,
             _sec_axis(box->_orientation, child_size);
     }
 
-    struct ntg_xy padding_offset = ntg_xy(box->__padding.west,
-            box->__padding.north);
+    struct ntg_xy padding_offset = ntg_xy(box->__applied_padding.west,
+            box->__applied_padding.north);
 
     struct ntg_xy align_offset = _xy_new(box->_orientation, poffset, soffset);
 
@@ -445,12 +418,12 @@ static void __arrange_fn(ntg_container* _box)
 
 static inline void _set_default_values(ntg_box* box)
 {
-    box->_pref_padding = NTG_BOX_PADDING_UNSET;
+    box->_padding = NTG_BOX_PADDING_SIZE_ZERO;
     box->_orientation = NTG_ORIENTATION_HORIZONTAL;
-    box->_primary_alignment = NTG_BOX_ALIGNMENT_0;
-    box->_secondary_alignment = NTG_BOX_ALIGNMENT_0;
+    box->_primary_alignment = NTG_BOX_ALIGNMENT_1;
+    box->_secondary_alignment = NTG_BOX_ALIGNMENT_1;
 
-    box->__padding = NTG_BOX_PADDING_UNSET;
+    box->__applied_padding = NTG_BOX_PADDING_SIZE_ZERO;
     box->__box_content_constr = NTG_CONSTR_UNSET;
     box->__box_content_nsize = NTG_XY_UNSET;
     box->__box_content_size = NTG_XY_UNSET;
@@ -505,11 +478,11 @@ void ntg_box_add_child(ntg_box* box, ntg_object* object)
     _ntg_object_child_add((ntg_object*)box, object);
 }
 
-void ntg_box_set_padding(ntg_box* box, struct ntg_box_padding padding)
+void ntg_box_set_padding_size(ntg_box* box, struct ntg_padding_size padding)
 {
     assert(box != NULL);
 
-    box->_pref_padding = padding;
+    box->_padding = padding;
 }
 
 void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation)

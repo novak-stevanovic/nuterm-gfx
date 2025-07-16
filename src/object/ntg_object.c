@@ -25,7 +25,7 @@ static void __adjust_scene_fn(ntg_object* object, void* scene);
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_border_size ntg_border_size_fn_default(const ntg_object* object)
+struct ntg_border_size ntg_border_size_fn_show_if_can_fit(const ntg_object* object)
 {
     assert(object != NULL);
 
@@ -577,7 +577,7 @@ static void __ntg_object_init_default(ntg_object* object)
 
     object->_border_style = ntg_border_style_default();
     object->_border_pref_size = (struct ntg_border_size) {0};
-    object->__border_size_fn = ntg_border_size_fn_default;
+    object->__border_size_fn = ntg_border_size_fn_always_show;
     object->_border_size = (struct ntg_border_size) {0};
  
     object->__scroll = false;
