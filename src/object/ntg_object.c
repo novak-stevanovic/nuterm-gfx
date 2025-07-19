@@ -29,7 +29,7 @@ struct ntg_border_size ntg_border_size_fn_show_if_can_fit(const ntg_object* obje
 {
     assert(object != NULL);
 
-    struct ntg_xy total_size = object->__constr.max_size;
+    struct ntg_xy total_size = object->__constraints.max_size;
     struct ntg_xy pref_border_size = ntg_border_size_sum(
             object->_border_pref_size);
     struct ntg_xy content_nsize = ntg_object_get_natural_content_size(object);
@@ -63,7 +63,7 @@ struct ntg_border_size ntg_border_size_fn_always_show(const ntg_object* object)
 {
     return __border_size_round_robin(
             object->_border_pref_size,
-            object->__constr.max_size);
+            object->__constraints.max_size);
 }
 
 void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size)
@@ -112,7 +112,7 @@ struct ntg_xy ntg_object_get_natural_size(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return object->__nsize;
+    return object->__natural_size;
 }
 
 struct ntg_xy ntg_object_get_natural_content_size(const ntg_object* object)
@@ -122,7 +122,7 @@ struct ntg_xy ntg_object_get_natural_content_size(const ntg_object* object)
     struct ntg_xy pref_border_size = ntg_border_size_sum(
             object->_border_pref_size);
 
-    return ntg_xy_sub(object->__nsize, pref_border_size);
+    return ntg_xy_sub(object->__natural_size, pref_border_size);
 }
 
 struct ntg_constr ntg_object_get_content_constr(const ntg_object* object)
@@ -137,10 +137,10 @@ struct ntg_constr ntg_object_get_content_constr(const ntg_object* object)
     // struct ntg_xy max_size = ntg_xy_size(ntg_xy_sub(object->__constr.max_size,
     //             border_size));
 
-    struct ntg_xy min_size = ntg_xy_sub(object->__constr.min_size,
+    struct ntg_xy min_size = ntg_xy_sub(object->__constraints.min_size,
                 border_size);
 
-    struct ntg_xy max_size = ntg_xy_sub(object->__constr.max_size,
+    struct ntg_xy max_size = ntg_xy_sub(object->__constraints.max_size,
                 border_size);
 
     return ntg_constr(min_size, max_size);
@@ -150,7 +150,7 @@ struct ntg_constr ntg_object_get_constr(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return object->__constr;
+    return object->__constraints;
 }
 
 struct ntg_xy ntg_object_get_size(const ntg_object* object)
@@ -249,12 +249,13 @@ void ntg_object_set_border_style(ntg_object* object,
     object->_border_style = border_style;
 }
 
-void ntg_object_set_border_size(ntg_object* object,
+void ntg_object_set_border_pref_size(ntg_object* object,
         struct ntg_border_size border_size)
 {
     assert(object != NULL);
 
-    object->_border_pref_size = border_size;
+    object->__border_pref_size_buffered = border_size;
+    object->__border_pref_size_is_buffered = true;
 }
 
 void ntg_object_set_border_size_fn(ntg_object* object,
@@ -327,9 +328,16 @@ void _ntg_object_set_natural_content_size(ntg_object* object, struct ntg_xy size
 {
     if(object == NULL) return;
 
+    if(object->__border_pref_size_is_buffered)
+    {
+        object->_border_pref_size = object->__border_pref_size_buffered;
+        object->__border_pref_size_buffered = NTG_BORDER_SIZE_DEFAULT;
+        object->__border_pref_size_is_buffered = false;
+    }
+
     if((size.x == 0) || (size.y == 0))
     {
-        object->__nsize = ntg_xy(0, 0);
+        object->__natural_size = ntg_xy(0, 0);
         return;
     }
 
@@ -344,7 +352,7 @@ void _ntg_object_set_natural_content_size(ntg_object* object, struct ntg_xy size
     if(object->__pref_size.y != NTG_PREF_SIZE_UNSET)
         size.y = object->__pref_size.y;
 
-    object->__nsize = size;
+    object->__natural_size = size;
 }
 
 void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr)
@@ -354,7 +362,7 @@ void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr)
     __adjust_constr(object->__pref_size.x, &constr.min_size.x, &constr.max_size.x);
     __adjust_constr(object->__pref_size.y, &constr.min_size.y, &constr.max_size.y);
 
-    object->__constr = constr;
+    object->__constraints = constr;
 
     struct ntg_border_size border_size = object->__border_size_fn(object);
     struct ntg_xy border_size_sum = ntg_border_size_sum(border_size);
@@ -575,10 +583,12 @@ static void __ntg_object_init_default(ntg_object* object)
     object->_parent = NULL;
     object->_children = NULL;
 
+    object->__border_pref_size_buffered = NTG_BORDER_SIZE_DEFAULT;
+    object->__border_pref_size_is_buffered = false;
+    object->_border_pref_size = NTG_BORDER_SIZE_DEFAULT;
+    object->_border_size = NTG_BORDER_SIZE_DEFAULT;
     object->_border_style = ntg_border_style_default();
-    object->_border_pref_size = (struct ntg_border_size) {0};
     object->__border_size_fn = ntg_border_size_fn_always_show;
-    object->_border_size = (struct ntg_border_size) {0};
  
     object->__scroll = false;
     object->_virtual_drawing = NULL;
@@ -588,8 +598,8 @@ static void __ntg_object_init_default(ntg_object* object)
     object->_full_drawing = NULL;
 
     object->__pref_size = ntg_xy(NTG_PREF_SIZE_UNSET, NTG_PREF_SIZE_UNSET);
-    object->__nsize = NTG_XY_UNSET;
-    object->__constr = NTG_CONSTR_UNSET;
+    object->__natural_size = NTG_XY_UNSET;
+    object->__constraints = NTG_CONSTR_UNSET;
     object->__size = NTG_XY_UNSET;
     object->__pos = NTG_XY_UNSET;
 
@@ -716,5 +726,16 @@ static void _fit_size_to_constr(size_t* size, size_t min_size, size_t max_size)
 
 static void __adjust_scene_fn(ntg_object* object, void* scene)
 {
+    if(object->_scene == scene) return;
+    if(object == NULL) return;
+
+    if(object->_scene != NULL)
+    {
+        ntg_scene_unregister_object(NTG_SCENE(scene), object);
+    }
     object->_scene = (ntg_scene*)scene;
+    if(scene != NULL)
+    {
+        ntg_scene_register_object(NTG_SCENE(scene), object);
+    }
 }

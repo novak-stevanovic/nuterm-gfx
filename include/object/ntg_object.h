@@ -142,7 +142,7 @@ void ntg_object_arrange(ntg_object* object);
 
 void ntg_object_set_border_style(ntg_object* object,
         struct ntg_border_style border_style);
-void ntg_object_set_border_size(ntg_object* object,
+void ntg_object_set_border_pref_size(ntg_object* object,
         struct ntg_border_size border_size);
 void ntg_object_set_border_size_fn(ntg_object* object,
         ntg_border_size_fn border_size_fn);
@@ -175,6 +175,16 @@ struct ntg_object
          * border_size_fn */
         struct ntg_border_size _border_pref_size;
 
+        /* Natural content size is computed as follows:
+         * `natural_content_size = natural_size - border_pref_size`. This means
+         * that if _border_pref_size changes, `natural_content_size` is calculated
+         * incorrectly. To combat this, when using ntg_object_set_border_size(),
+         * __border_pref_size_buffered is changed instead. Then, when calculating
+         * the natural size, first _border_pref size is updated depending on
+         * __border_pref_size_buffered, then natural size is calculated */
+        struct ntg_border_size __border_pref_size_buffered;
+        bool __border_pref_size_is_buffered;
+
         /* Border size is calculated at the start of constrain phase */
         struct ntg_border_size _border_size;
 
@@ -193,8 +203,8 @@ struct ntg_object
 
     struct
     {
-        struct ntg_xy __nsize;
-        struct ntg_constr __constr;
+        struct ntg_xy __natural_size;
+        struct ntg_constr __constraints;
         struct ntg_xy __size;
         struct ntg_xy __pos; // absolute
     };

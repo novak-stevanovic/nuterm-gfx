@@ -8,8 +8,9 @@
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_scene_init__(ntg_scene* scene,
-        ntg_scene_layout_fn layout_fn)
+void __ntg_scene_init__(ntg_scene* scene, ntg_scene_layout_fn layout_fn,
+        ntg_scene_on_object_register_fn on_object_register_fn,
+        ntg_scene_on_object_unregister_fn on_object_unregister_fn)
 {
     assert(scene != NULL);
 
@@ -17,6 +18,8 @@ void __ntg_scene_init__(ntg_scene* scene,
     scene->__layout_fn = layout_fn;
     scene->_focused = NULL;
     scene->_root = NULL;
+    scene->__on_object_register_fn = on_object_register_fn;
+    scene->__on_object_unregister_fn = on_object_unregister_fn;
     __ntg_scene_drawing_init__(&scene->_drawing);
 }
 
@@ -88,4 +91,26 @@ void _ntg_scene_set_process_key_fn(ntg_scene* scene,
     assert(process_key_fn != NULL);
 
     scene->__process_key_fn = process_key_fn;
+}
+
+void ntg_scene_register_object(ntg_scene* scene, ntg_object* object)
+{
+    assert(scene != NULL);
+    assert(object != NULL);
+
+    if(scene->__on_object_register_fn != NULL)
+    {
+        scene->__on_object_register_fn(scene, object);
+    }
+}
+
+void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object)
+{
+    assert(scene != NULL);
+    assert(object != NULL);
+
+    if(scene->__on_object_unregister_fn != NULL)
+    {
+        scene->__on_object_unregister_fn(scene, object);
+    }
 }

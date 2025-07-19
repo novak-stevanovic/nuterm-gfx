@@ -1,0 +1,20 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-fPIC",
+      "-Iinclude",
+      "-I/usr/local/include/nuterm",
+      "-Wall",
+      "-g",
+      "-O0",
+      "-o",
+      "build/object/ntg_object.o",
+      "src/object/ntg_object.c"
+    ],
+    "directory": "/home/novak/code/nuterm-gfx",
+    "file": "/home/novak/code/nuterm-gfx/src/object/ntg_object.c",
+    "output": "/home/novak/code/nuterm-gfx/build/object/ntg_object.o"
+  }
+]

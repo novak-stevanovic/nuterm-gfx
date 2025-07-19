@@ -1,17 +1,33 @@
+#include <assert.h>
+#include <stdlib.h>
+
 #include "core/ntg_simple_scene.h"
 #include "object/ntg_object.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
-#include <assert.h>
-#include <stdlib.h>
+
+struct object_data
+{
+    ntg_object* object;
+
+    bool recalculate_natural_size;
+    bool reconstrain;
+    bool remeasure;
+    bool rearrange;
+};
 
 static void __layout_fn(ntg_scene* _scene, struct ntg_xy size);
+static void __on_object_register_fn(ntg_scene* _scene, ntg_object* object);
+static void __on_object_unregister_fn(ntg_scene* _scene, ntg_object* object);
 
 void __ntg_simple_scene_init__(ntg_simple_scene* scene)
 {
     assert(scene != NULL);
 
-    __ntg_scene_init__((ntg_scene*)scene, __layout_fn);
+    __ntg_scene_init__((ntg_scene*)scene,
+            __layout_fn,
+            __on_object_register_fn,
+            __on_object_unregister_fn);
 }
 
 void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
@@ -43,7 +59,7 @@ void ntg_simple_scene_destroy(ntg_simple_scene* scene)
 
 /* -------------------------------------------------------------------------- */
 
-static void _nsize_all(ntg_object* curr_obj, ntg_simple_scene* scene)
+static void __natural_size_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -54,13 +70,13 @@ static void _nsize_all(ntg_object* curr_obj, ntg_simple_scene* scene)
     for(i = 0; i < children->_count; i++)
     {
         it_obj = children->_data[i];
-        _nsize_all(it_obj, scene);
+        __natural_size_phase(it_obj, scene);
     }
 
     ntg_object_calculate_natural_size(curr_obj);
 }
 
-static void _constrain_all(ntg_object* curr_obj, ntg_simple_scene* scene)
+static void __constrain_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -72,11 +88,11 @@ static void _constrain_all(ntg_object* curr_obj, ntg_simple_scene* scene)
     for(i = 0; i < children->_count; i++)
     {
         it_obj = children->_data[i];
-        _constrain_all(it_obj, scene);
+        __constrain_phase(it_obj, scene);
     }
 }
 
-static void _measure_all(ntg_object* curr_obj, ntg_simple_scene* scene)
+static void __measure_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -87,12 +103,12 @@ static void _measure_all(ntg_object* curr_obj, ntg_simple_scene* scene)
     for(i = 0; i < children->_count; i++)
     {
         it_obj = children->_data[i];
-        _measure_all(it_obj, scene);
+        __measure_phase(it_obj, scene);
     }
     ntg_object_measure(curr_obj);
 }
 
-static void _arrange_all(ntg_object* curr_obj, ntg_simple_scene* scene)
+static void __arrange_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -104,11 +120,11 @@ static void _arrange_all(ntg_object* curr_obj, ntg_simple_scene* scene)
     for(i = 0; i < children->_count; i++)
     {
         it_obj = children->_data[i];
-        _arrange_all(it_obj, scene);
+        __arrange_phase(it_obj, scene);
     }
 }
 
-static void _draw_all(ntg_object* curr_obj, ntg_simple_scene* scene)
+static void __draw_all(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     if(curr_obj == NULL) return;
 
@@ -125,7 +141,7 @@ static void _draw_all(ntg_object* curr_obj, ntg_simple_scene* scene)
     for(i = 0; i < children->_count; i++)
     {
         it_obj = children->_data[i];
-        _draw_all(it_obj, scene);
+        __draw_all(it_obj, scene);
     }
 }
 
@@ -137,9 +153,17 @@ static void __layout_fn(ntg_scene* _scene, struct ntg_xy size)
 
     ntg_object_layout_root(root, size);
 
-    _nsize_all(root, scene);
-    _constrain_all(root, scene);
-    _measure_all(root, scene);
-    _arrange_all(root, scene);
-    _draw_all(root, scene);
+    __natural_size_phase(root, scene);
+    __constrain_phase(root, scene);
+    __measure_phase(root, scene);
+    __arrange_phase(root, scene);
+    __draw_all(root, scene);
+}
+
+static void __on_object_register_fn(ntg_scene* _scene, ntg_object* object)
+{
+}
+
+static void __on_object_unregister_fn(ntg_scene* _scene, ntg_object* object)
+{
 }

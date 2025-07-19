@@ -142,7 +142,8 @@ static void __constrain_fn(ntg_object* _container)
         size_north.y = _sizes[0];
         size_south.y = _sizes[2];
 
-        size_t center_extra = constr.max_size.y - (_sizes[1] + size_north.y + size_south.y);
+        // size_t center_extra = constr.max_size.y - (_sizes[1] + size_north.y + size_south.y);
+        size_t center_extra = 0;
         size_center.y = _sizes[1] + center_extra;
 
         size_west.y = constr.max_size.y - (size_north.y + size_south.y);
@@ -245,20 +246,20 @@ static void __arrange_fn(ntg_container* _container)
         struct ntg_xy pos_north = ntg_xy(0, 0);
         _ntg_object_set_pos_inside_content(container->_north, pos_north);
     }
-    if(container->_east)
+    if(container->_west)
     {
-        struct ntg_xy pos_east = ntg_xy(0, size_north.y);
-        _ntg_object_set_pos_inside_content(container->_east, pos_east);
+        struct ntg_xy pos_west = ntg_xy(0, size_north.y);
+        _ntg_object_set_pos_inside_content(container->_west, pos_west);
     }
     if(container->_center)
     {
-        struct ntg_xy pos_center = ntg_xy(size_east.x, size_north.y);
+        struct ntg_xy pos_center = ntg_xy(size_west.x, size_north.y);
         _ntg_object_set_pos_inside_content(container->_center, pos_center);
     }
-    if(container->_west)
+    if(container->_east)
     {
-        struct ntg_xy pos_west = ntg_xy(size_east.x + size_center.x, size_north.y);
-        _ntg_object_set_pos_inside_content(container->_west, pos_west);
+        struct ntg_xy pos_east = ntg_xy(size_west.x + size_center.x, size_north.y);
+        _ntg_object_set_pos_inside_content(container->_east, pos_east);
     }
     if(container->_south)
     {

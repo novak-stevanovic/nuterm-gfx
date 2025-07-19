@@ -47,7 +47,7 @@ static void __ntg_box_on_nsize(ntg_box* box)
     ntg_orientation orientation = box->_orientation;
     const ntg_object_vec* children = _box->_children;
 
-    struct ntg_oxy _size;
+    struct ntg_oxy _size = ntg_oxy(0, 0);;
     struct ntg_xy it_size;
     struct ntg_oxy _it_size;
 

@@ -49,19 +49,7 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     ntg_cell uncompleted = ntg_cell_bg(nt_color_new(100, 0, 0));
     ntg_prog_bar* pb1 = ntg_prog_bar_new(NTG_ORIENTATION_HORIZONTAL, 100,
             completed, uncompleted, threshold);
-    // ntg_color_block* cb1 = ntg_color_block_new(nt_color_new(255, 0, 0));
-    //
-    struct ntg_border_size pb1_border_size = {
-        .north = 1,
-        .south = 1,
-        .west = 1,
-        .east = 1
-    };
-    //
-    ntg_object_set_border_size(NTG_OBJECT(pb1), pb1_border_size);
-    ntg_object_set_border_style(NTG_OBJECT(pb1), __create_border1());
-    ntg_object_set_pref_size(NTG_OBJECT(pb1),
-            ntg_xy(100, 5));
+    ntg_object_set_pref_size(NTG_OBJECT(pb1), ntg_xy(100, 5));
 
     ntg_color_block* cb2 = ntg_color_block_new(nt_color_new(0, 255, 0));
     ntg_object_set_pref_size(NTG_OBJECT(cb2), ntg_xy(7, 10));
@@ -80,55 +68,26 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
 
     ntg_color_block* cb7 = ntg_color_block_new(nt_color_new(200, 200, 200));
 
-    (NTG_OBJECT(cb7))->_border_style = __create_border1();
-
-    (NTG_OBJECT(cb7))->_border_pref_size.north = 1;
-    // (NTG_OBJECT(cb7))->_border_pref_size.south = 2;
-    // (NTG_OBJECT(cb7))->_border_pref_size.west = 2;
-    // (NTG_OBJECT(cb7))->_border_pref_size.east = 2;
-
     ntg_color_block* cb8 = ntg_color_block_new(nt_color_new(255, 255, 0));
-    ntg_object_set_pref_size(NTG_OBJECT(cb8), ntg_xy(155, 19));
+    ntg_object_set_pref_size(NTG_OBJECT(cb8), ntg_xy(55, 19));
 
     ntg_color_block* cb9 = ntg_color_block_new(nt_color_new(255, 0, 255));
+    ntg_object_set_pref_size(NTG_OBJECT(cb9), ntg_xy(5500, 5000));
 
-    struct ntg_border_size cb9_border_size = {
+    ntg_box* box1 = ntg_box_new(NTG_ORIENTATION_HORIZONTAL,
+            NTG_BOX_ALIGNMENT_2,
+            NTG_BOX_ALIGNMENT_2);
+
+    struct ntg_border_size border_size1 = {
         .north = 1,
         .south = 1,
         .west = 1,
         .east = 1
     };
+    ntg_object_set_border_pref_size(NTG_OBJECT(box1), border_size1);
+    ntg_object_set_border_style(NTG_OBJECT(box1), __create_border1());
 
-    // ntg_object_set_pref_content_size(NTG_OBJECT(cb9), ntg_xy(6, 9));
-
-    ntg_object_set_border_size(NTG_OBJECT(cb9), cb9_border_size);
-
-    ntg_object_set_border_style(NTG_OBJECT(cb9), __create_border1());
-
-    _ntg_object_scroll_enable(NTG_OBJECT(cb9));
-
-    ntg_box* box1 = ntg_box_new(NTG_ORIENTATION_HORIZONTAL,
-            NTG_BOX_ALIGNMENT_2,
-            NTG_BOX_ALIGNMENT_1);
-
-    ntg_object_set_pref_size(NTG_OBJECT(box1), ntg_xy(0, 15));
-
-    (NTG_OBJECT(box1))->_border_style = __create_border1();
-
-    (NTG_OBJECT(box1))->_border_pref_size.north = 1;
-    (NTG_OBJECT(box1))->_border_pref_size.south = 1;
-    (NTG_OBJECT(box1))->_border_pref_size.west = 1;
-    (NTG_OBJECT(box1))->_border_pref_size.east = 1;
-
-    // struct ntg_box_padding box1_padding = {
-    //     .north = 2,
-    //     .south = 1,
-    //     .east = 0,
-    //     .west = 0
-    // };
-    // ntg_box_set_padding(box1, box1_padding);
-
-    ntg_box_set_bg_color(box1, nt_color_new(255, 255, 255));
+    _ntg_container_set_bg(NTG_CONTAINER(box1), nt_color_new(0, 0, 0));
 
     ntg_box_add_child(box1, NTG_OBJECT(pb1));
     ntg_box_add_child(box1, NTG_OBJECT(cb2));
@@ -157,7 +116,7 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     ntg_stage_set_scene(_main_stage, NTG_SCENE(s1));
     ntg_scene_focus(NTG_SCENE(s1), NTG_OBJECT(pb1));
 
-    ntg_loop(_main_stage, 150);
+    ntg_loop(_main_stage, 60);
 
     ntg_prog_bar_destroy(pb1);
     ntg_color_block_destroy(cb2);
@@ -184,11 +143,6 @@ void gui_fn2(ntg_stage* _main_stage, void* data)
         .north = 1, .south = 1,
         .west = 1, .east = 1
     };
-
-    // ntg_object_set_border_size(_cb1, cb1_border_size);
-    // ntg_object_set_border_style(_cb1, __create_border1());
-    // ntg_object_set_pref_size(NTG_OBJECT(cb1),
-    //         ntg_xy(10, 1));
 
     ntg_border_container* bc = ntg_border_container_new();
     ntg_object* _bc = NTG_OBJECT(bc);

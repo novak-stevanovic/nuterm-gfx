@@ -19,6 +19,8 @@ struct ntg_border_size
     size_t north, east, south, west;
 };
 
+static const struct ntg_border_size NTG_BORDER_SIZE_DEFAULT = {0};
+
 static inline struct ntg_xy ntg_border_size_sum(struct ntg_border_size border_size)
 {
     return ntg_xy(border_size.west + border_size.east,
