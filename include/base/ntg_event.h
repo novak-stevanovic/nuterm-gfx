@@ -1,6 +1,7 @@
 #ifndef _NTG_EVENT_H_
 #define _NTG_EVENT_H_
 
+#include "base/ntg_event_sub_vec.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <sys/types.h>
@@ -21,7 +22,7 @@ typedef struct ntg_event
 /* Keep this internal to prevent other objects from raising the event */
 typedef struct ntg_event_delegate
 {
-    ntg_event_sub_vec* _subs;
+    ntg_event_sub_vec _subs;
 } ntg_event_delegate;
 
 /* Expose this to allow other objects to subscribe/unsubscribe */
@@ -52,8 +53,7 @@ void ntg_event_delegate_raise(ntg_event_delegate* delegate, ntg_event* event);
 
 /* ------------------------------------------------------ */
 
-void __ntg_event_delegate_view_init__(ntg_event_delegate_view* view,
-        ntg_event_delegate* delegate);
+ntg_event_delegate_view ntg_event_delegate_view_new(ntg_event_delegate* delegate);
 
 void ntg_event_delegate_view_sub(ntg_event_delegate_view* view,
         struct ntg_event_sub subscription);

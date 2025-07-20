@@ -3,9 +3,13 @@
 
 #include "core/ntg_scene.h"
 
+struct object_data;
+
 typedef struct ntg_simple_scene
 {
     ntg_scene _base;
+
+    struct object_data* __objects_data;
 } ntg_simple_scene;
 
 /* To specify default behavior for `ntg_scene_process_key_fn`,

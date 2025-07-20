@@ -169,6 +169,12 @@ static inline bool ntg_constr_contains(struct ntg_constr constr,
         (point.y >= constr.min_size.y) && (point.y < constr.max_size.y);
 }
 
+static inline bool ntg_constr_are_equal(struct ntg_constr c1, struct ntg_constr c2)
+{
+    return (ntg_xy_are_equal(c1.min_size, c2.min_size) &&
+            ntg_xy_are_equal(c1.max_size, c2.max_size));
+}
+
 /* -------------------------------------------------------------------------- */
 
 static inline struct ntg_xy ntg_xy_from_oxy(struct ntg_oxy orient_xy,

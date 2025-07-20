@@ -32,14 +32,14 @@ void __ntg_event_delegate_init__(ntg_event_delegate* delegate)
 {
     assert(delegate != NULL);
     
-    __ntg_event_sub_vec_init__(delegate->_subs);
+    __ntg_event_sub_vec_init__(&delegate->_subs);
 }
 
 void __ntg_event_delegate_deinit__(ntg_event_delegate* delegate)
 {
     assert(delegate != NULL);
 
-    __ntg_event_sub_vec_deinit__(delegate->_subs);
+    __ntg_event_sub_vec_deinit__(&delegate->_subs);
 }
 
 void ntg_event_delegate_raise(ntg_event_delegate* delegate, ntg_event* event)
@@ -48,21 +48,22 @@ void ntg_event_delegate_raise(ntg_event_delegate* delegate, ntg_event* event)
 
     size_t i;
     struct ntg_event_sub it_sub;
-    for(i = 0; i < delegate->_subs->_count; i++)
+    for(i = 0; i < delegate->_subs._count; i++)
     {
-        it_sub = delegate->_subs->_data[i];
+        it_sub = delegate->_subs._data[i];
         it_sub.handler(it_sub.subscriber, event);
     }
 }
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_event_delegate_view_init__(ntg_event_delegate_view* view,
-        ntg_event_delegate* delegate)
+ntg_event_delegate_view ntg_event_delegate_view_new(ntg_event_delegate* delegate)
 {
-    assert(view != NULL);
+    assert(delegate!= NULL);
 
-    view->__delegate = delegate;
+    return (ntg_event_delegate_view) {
+        .__delegate = delegate
+    };
 }
 
 void ntg_event_delegate_view_sub(ntg_event_delegate_view* view,
@@ -72,7 +73,9 @@ void ntg_event_delegate_view_sub(ntg_event_delegate_view* view,
     assert(subscription.subscriber != NULL);
     assert(subscription.handler != NULL);
 
-    ntg_event_sub_vec_append(view->__delegate->_subs, subscription);
+    if(!ntg_event_delegate_view_is_subbed(view, subscription.subscriber))
+        ntg_event_sub_vec_append(&(view->__delegate->_subs), subscription);
+
 }
 
 void ntg_event_delegate_view_unsub(ntg_event_delegate_view* view,
@@ -82,12 +85,12 @@ void ntg_event_delegate_view_unsub(ntg_event_delegate_view* view,
     assert(subscriber != NULL);
 
     ssize_t find_status = ntg_event_sub_vec_find_sub(
-            view->__delegate->_subs,
+            &(view->__delegate->_subs),
             subscriber);
 
     if(find_status != -1)
     {
-        ntg_event_sub_vec_remove_sub(view->__delegate->_subs, subscriber);
+        ntg_event_sub_vec_remove_sub(&(view->__delegate->_subs), subscriber);
     }
 }
 
@@ -97,7 +100,7 @@ bool ntg_event_delegate_view_is_subbed(const ntg_event_delegate_view* view,
     assert(view != NULL);
 
     ssize_t find_status = ntg_event_sub_vec_find_sub(
-            view->__delegate->_subs,
+            &(view->__delegate->_subs),
             subscriber);
 
     assert(find_status != -2);

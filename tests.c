@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include "base/ntg_event.h"
 #include "ntg.h"
 
 #include "core/ntg_simple_stage.h"
@@ -166,6 +167,18 @@ void gui_fn2(ntg_stage* _main_stage, void* data)
     return;
 }
 
+static void __handler1(void* subscriber, ntg_event* event)
+{
+    printf("\rH1 | SUB: %p EVENT_ID: %d EVENT_TYPE: %d\n",
+            subscriber, event->_id, event->_type);
+}
+
+static void __handler2(void* subscriber, ntg_event* event)
+{
+    printf("\rH2 | SUB: %p EVENT_ID: %d EVENT_TYPE: %d\n",
+            subscriber, event->_id, event->_type);
+}
+
 int main(int argc, char *argv[])
 {
     __ntg_init__();
@@ -173,20 +186,12 @@ int main(int argc, char *argv[])
     ntg_simple_stage* main_stage = ntg_simple_stage_new();
 
     ntg_launch(NTG_STAGE(main_stage), gui_fn1, NULL);
-    // printf("\rMT: Launched NTG thread - STATUS: %d\n", _status);
 
-    // printf("\rMT: Waiting for NTG thread.\n");
     ntg_wait();
 
-    // TODO: shouldnt be after ntg_destroy()
     ntg_simple_stage_destroy(main_stage);
 
     ntg_destroy();
 
-    // printf("\rMT: Done. Exiting.\n");
-
-    // int n1[] = { 1, 2 };
-    // int* n2 = { 1, 2 };
-    //
     return 0;
 }

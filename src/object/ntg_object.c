@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "object/ntg_object.h"
+#include "base/ntg_event_types.h"
 #include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
 #include "core/ntg_scene.h"
@@ -105,7 +106,18 @@ void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size)
 {
     if(object == NULL) return;
 
+    struct ntg_xy old = object->__pref_size;
+
     object->__pref_size = pref_size;
+
+    struct ntg_pref_size_change data = {
+        .old = old,
+        .new = pref_size
+    };
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_OBJECT_PREF_SIZE_CHANGE, object, &data);
+    ntg_event_delegate_raise(&object->__delegate, &e);
 }
 
 struct ntg_xy ntg_object_get_natural_size(const ntg_object* object)
@@ -129,7 +141,7 @@ struct ntg_constr ntg_object_get_content_constr(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy border_size = ntg_border_size_sum(object->_border_size);
+    struct ntg_xy border_constr = ntg_border_size_sum(object->__border_constr);
 
     // struct ntg_xy min_size = ntg_xy_size(ntg_xy_sub(object->__constr.min_size,
     //             border_size));
@@ -138,10 +150,10 @@ struct ntg_constr ntg_object_get_content_constr(const ntg_object* object)
     //             border_size));
 
     struct ntg_xy min_size = ntg_xy_sub(object->__constraints.min_size,
-                border_size);
+                border_constr);
 
     struct ntg_xy max_size = ntg_xy_sub(object->__constraints.max_size,
-                border_size);
+                border_constr);
 
     return ntg_constr(min_size, max_size);
 }
@@ -247,15 +259,23 @@ void ntg_object_set_border_style(ntg_object* object,
     assert(object != NULL);
 
     object->_border_style = border_style;
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    ntg_event_delegate_raise(&object->__delegate, &e);
 }
 
 void ntg_object_set_border_pref_size(ntg_object* object,
         struct ntg_border_size border_size)
 {
     assert(object != NULL);
-
+    
     object->__border_pref_size_buffered = border_size;
     object->__border_pref_size_is_buffered = true;
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    ntg_event_delegate_raise(&object->__delegate, &e);
 }
 
 void ntg_object_set_border_size_fn(ntg_object* object,
@@ -264,6 +284,10 @@ void ntg_object_set_border_size_fn(ntg_object* object,
     assert(object != NULL);
 
     object->__border_size_fn = calculate_border_size_fn;
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    ntg_event_delegate_raise(&object->__delegate, &e);
 }
 
 bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
@@ -274,6 +298,23 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
         return object->__process_key_fn(object, key_event);
     else
         return false;
+}
+
+// ntg_event_delegate_view ntg_object_get_delegate_view(ntg_object* object)
+// {
+//     return ntg_event_delegate_view_new(&(object->__delegate));
+// }
+
+void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription)
+{
+    ntg_event_delegate_view view = ntg_event_delegate_view_new(&object->__delegate);
+    ntg_event_delegate_view_sub(&view, subscription);
+}
+
+void ntg_object_stop_listening(ntg_object* object, void* subscriber)
+{
+    ntg_event_delegate_view view = ntg_event_delegate_view_new(&object->__delegate);
+    ntg_event_delegate_view_unsub(&view, subscriber);
 }
 
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene)
@@ -309,6 +350,8 @@ void __ntg_object_init__(ntg_object* object,
     assert(object->_full_drawing != NULL);
 
     object->_children = ntg_object_vec_new();
+
+    __ntg_event_delegate_init__(&object->__delegate);
 }
 
 void __ntg_object_deinit__(ntg_object* object)
@@ -321,6 +364,7 @@ void __ntg_object_deinit__(ntg_object* object)
     if(object->_children != NULL)
         ntg_object_vec_destroy(object->_children);
 
+    __ntg_event_delegate_deinit__(&object->__delegate);
     __ntg_object_init_default(object);
 }
 
@@ -364,8 +408,8 @@ void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr)
 
     object->__constraints = constr;
 
-    struct ntg_border_size border_size = object->__border_size_fn(object);
-    struct ntg_xy border_size_sum = ntg_border_size_sum(border_size);
+    struct ntg_border_size border_constr = object->__border_size_fn(object);
+    struct ntg_xy border_size_sum = ntg_border_size_sum(border_constr);
 
     // TODO: decrease border size
     if((border_size_sum.x > constr.max_size.x) ||
@@ -374,7 +418,7 @@ void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr)
         assert(0);
     }
 
-    object->_border_size = border_size;
+    object->__border_constr = border_constr;
 }
 
 void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy content_size)
@@ -390,9 +434,11 @@ void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy content_size
 
     // content_size = ntg_xy_size(content_size);
 
-    struct ntg_xy border_size = ntg_border_size_sum(object->_border_size);
-    struct ntg_xy size = ntg_xy_add(content_size, border_size);
+    struct ntg_border_size border_size = object->__border_constr;
+    object->_border_size = border_size;
+    struct ntg_xy border_size_sum = ntg_border_size_sum(border_size);
 
+    struct ntg_xy size = ntg_xy_add(content_size, border_size_sum);
     object->__size = size;
 
     struct ntg_xy content_nsize = ntg_object_get_natural_content_size(object);
@@ -455,6 +501,10 @@ void _ntg_object_scroll_enable(ntg_object* object)
         object->__scroll = true;
         object->__curr_scroll = ntg_xy(0, 0);
         object->__buffered_scroll = ntg_dxy(0, 0);
+
+        ntg_event e;
+        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        ntg_event_delegate_raise(&object->__delegate, &e);
     }
 }
 
@@ -467,6 +517,10 @@ void _ntg_object_scroll_disable(ntg_object* object)
         object->__scroll = false;
         object->__curr_scroll = ntg_xy(0, 0);
         object->__buffered_scroll = ntg_dxy(0, 0);
+
+        ntg_event e;
+        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        ntg_event_delegate_raise(&object->__delegate, &e);
     }
 }
 
@@ -478,6 +532,10 @@ void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff)
     {
         object->__buffered_scroll = ntg_dxy_add(object->__buffered_scroll,
                 offset_diff);
+
+        ntg_event e;
+        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        ntg_event_delegate_raise(&object->__delegate, &e);
     }
 }
 
@@ -502,6 +560,10 @@ void _ntg_object_child_add(ntg_object* parent, ntg_object* child)
     child->_parent = parent;
 
     _ntg_object_perform_tree(child, __adjust_scene_fn, parent->_scene);
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, parent, NULL);
+    ntg_event_delegate_raise(&parent->__delegate, &e);
 }
 
 void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
@@ -513,6 +575,10 @@ void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
     child->_parent = NULL;
 
     _ntg_object_perform_tree(child, __adjust_scene_fn, NULL);
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, parent, NULL);
+    ntg_event_delegate_raise(&parent->__delegate, &e);
 }
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
@@ -521,6 +587,11 @@ void _ntg_object_set_process_key_fn(ntg_object* object,
     assert(object != NULL);
 
     object->__process_key_fn = process_key_fn;
+}
+
+ntg_event_delegate* _ntg_object_get_delegate(ntg_object* object)
+{
+    return &object->__delegate;
 }
 
 void _ntg_object_perform_tree(ntg_object* root,
@@ -583,30 +654,34 @@ static void __ntg_object_init_default(ntg_object* object)
     object->_parent = NULL;
     object->_children = NULL;
 
-    object->__border_pref_size_buffered = NTG_BORDER_SIZE_DEFAULT;
-    object->__border_pref_size_is_buffered = false;
-    object->_border_pref_size = NTG_BORDER_SIZE_DEFAULT;
-    object->_border_size = NTG_BORDER_SIZE_DEFAULT;
+    object->__pref_size = ntg_xy(NTG_PREF_SIZE_UNSET, NTG_PREF_SIZE_UNSET);
+
     object->_border_style = ntg_border_style_default();
     object->__border_size_fn = ntg_border_size_fn_always_show;
  
-    object->__scroll = false;
     object->_virtual_drawing = NULL;
+    object->__scroll = false;
     object->__curr_scroll = ntg_xy(0, 0);
     object->__buffered_scroll = ntg_dxy(0, 0);
-
     object->_full_drawing = NULL;
 
-    object->__pref_size = ntg_xy(NTG_PREF_SIZE_UNSET, NTG_PREF_SIZE_UNSET);
     object->__natural_size = NTG_XY_UNSET;
+    object->_border_pref_size = NTG_BORDER_SIZE_DEFAULT;
+    object->__border_pref_size_buffered = NTG_BORDER_SIZE_DEFAULT;
+    object->__border_pref_size_is_buffered = false;
+
     object->__constraints = NTG_CONSTR_UNSET;
+    object->__border_constr = NTG_BORDER_SIZE_DEFAULT;
+
     object->__size = NTG_XY_UNSET;
+    object->_border_size = NTG_BORDER_SIZE_DEFAULT;
+
     object->__pos = NTG_XY_UNSET;
 
-    object->__arrange_fn = NULL;
-    object->__measure_fn = NULL;
-    object->__constrain_fn = NULL;
     object->__natural_size_fn = NULL;
+    object->__constrain_fn = NULL;
+    object->__measure_fn = NULL;
+    object->__arrange_fn = NULL;
 
     object->__process_key_fn = NULL;
 

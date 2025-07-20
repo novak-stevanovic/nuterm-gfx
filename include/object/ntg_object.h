@@ -3,12 +3,13 @@
 
 #include <stddef.h>
 
+#include "base/ntg_event.h"
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
 #include "object/ntg_border.h"
 
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* PUBLIC NTG_OBJECT API */
 /* -------------------------------------------------------------------------- */
 
 #define NTG_OBJECT(obj_ptr) ((ntg_object*)(obj_ptr))
@@ -153,11 +154,19 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
 
 /* ------------------------------------------------------ */
 
+// ntg_event_delegate_view ntg_object_get_delegate_view(ntg_object* object);
+
+void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription);
+
+void ntg_object_stop_listening(ntg_object* object, void* subscriber);
+
+/* ------------------------------------------------------ */
+
 /* Called internally by ntg_scene when root changes. */
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
-/* INTERNAL */
+/* INTERNAL NTG_OBJECT API */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object
@@ -170,24 +179,6 @@ struct ntg_object
     struct
     {
         struct ntg_border_style _border_style;
-
-        /* Preferred border size - final border size is decided by the
-         * border_size_fn */
-        struct ntg_border_size _border_pref_size;
-
-        /* Natural content size is computed as follows:
-         * `natural_content_size = natural_size - border_pref_size`. This means
-         * that if _border_pref_size changes, `natural_content_size` is calculated
-         * incorrectly. To combat this, when using ntg_object_set_border_size(),
-         * __border_pref_size_buffered is changed instead. Then, when calculating
-         * the natural size, first _border_pref size is updated depending on
-         * __border_pref_size_buffered, then natural size is calculated */
-        struct ntg_border_size __border_pref_size_buffered;
-        bool __border_pref_size_is_buffered;
-
-        /* Border size is calculated at the start of constrain phase */
-        struct ntg_border_size _border_size;
-
         ntg_border_size_fn __border_size_fn;
     };
 
@@ -204,8 +195,16 @@ struct ntg_object
     struct
     {
         struct ntg_xy __natural_size;
+        struct ntg_border_size _border_pref_size;
+        struct ntg_border_size __border_pref_size_buffered;
+        bool __border_pref_size_is_buffered;
+
         struct ntg_constr __constraints;
+        struct ntg_border_size __border_constr;
+
         struct ntg_xy __size;
+        struct ntg_border_size _border_size;
+
         struct ntg_xy __pos; // absolute
     };
 
@@ -220,6 +219,8 @@ struct ntg_object
     ntg_object_process_key_fn __process_key_fn;
 
     ntg_scene* _scene;
+
+    ntg_event_delegate __delegate;
 };
 
 /* ntg_object protected */
@@ -259,8 +260,21 @@ struct ntg_xy _ntg_object_get_scroll(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
+ntg_event_delegate* _ntg_object_get_delegate(ntg_object* object);
+
+/* ------------------------------------------------------ */
+
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),
         void* data);
+
+/* -------------------------------------------------------------------------- */
+/* EVENT TYPE DATA STRUCTS */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_pref_size_change
+{
+    struct ntg_xy old, new;
+};
 
 #endif // _NTG_OBJECT_H_
