@@ -205,7 +205,7 @@ struct ntg_object
         struct ntg_xy __size;
         struct ntg_border_size _border_size;
 
-        struct ntg_xy __pos; // absolute
+        struct ntg_xy __pos; // relative
     };
 
     struct

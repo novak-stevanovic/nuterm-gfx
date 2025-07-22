@@ -3,6 +3,8 @@
 #include <assert.h>
 
 #include "object/ntg_prog_bar.h"
+#include "base/ntg_event_types.h"
+#include "core/ntg_scene.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_log.h"
@@ -21,6 +23,9 @@ static bool __process_key_event_fn(ntg_object* __prog_bar,
         {
             case 'a':
                 ntg_prog_bar_increase_completed_job_count(prog_bar, 2);
+                ntg_event e;
+                __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, __prog_bar, NULL);
+                ntg_event_delegate_raise(&__prog_bar->__delegate, &e);
                 return true;
         }
     }
@@ -62,17 +67,17 @@ static void __measure_fn(ntg_object* __prog_bar)
     struct ntg_constr constr = ntg_object_get_content_constr(__prog_bar);
 
     struct ntg_oxy _min_size = ntg_oxy_from_xy(constr.min_size, orientation);
-    struct ntg_oxy _max_size = ntg_oxy_from_xy(constr.max_size, orientation);
+    // struct ntg_oxy _max_size = ntg_oxy_from_xy(constr.max_size, orientation);
 
     struct ntg_oxy _size;
 
     if(_min_size.prim_val < PROG_BAR_DEFAULT_PRIMARY_AXIS)
-        _size.prim_val = _max_size.prim_val;
+        _size.prim_val = PROG_BAR_DEFAULT_PRIMARY_AXIS;
     else
         _size.prim_val = _min_size.prim_val;
 
     if(_min_size.sec_val < PROG_BAR_DEFAULT_SECONDARY_AXIS)
-        _size.sec_val = _max_size.sec_val;
+        _size.sec_val = PROG_BAR_DEFAULT_SECONDARY_AXIS;
     else
         _size.sec_val = _min_size.sec_val;
 

@@ -140,10 +140,7 @@ void gui_fn2(ntg_stage* _main_stage, void* data)
     ntg_color_block* cb1 = ntg_color_block_new(nt_color_new(255, 0, 0));
     ntg_object* _cb1 = NTG_OBJECT(cb1);
 
-    struct ntg_border_size cb1_border_size = {
-        .north = 1, .south = 1,
-        .west = 1, .east = 1
-    };
+    ntg_object_set_pref_size(_cb1, ntg_xy(10, 10));
 
     ntg_border_container* bc = ntg_border_container_new();
     ntg_object* _bc = NTG_OBJECT(bc);
@@ -157,7 +154,6 @@ void gui_fn2(ntg_stage* _main_stage, void* data)
 
     ntg_scene_set_root(_s1, _bc);
     ntg_stage_set_scene(_main_stage, _s1);
-    // ntg_scene_focus(NTG_SCENE(s1), NTG_OBJECT(cb3));
 
     ntg_loop(_main_stage, 500);
 
@@ -165,18 +161,6 @@ void gui_fn2(ntg_stage* _main_stage, void* data)
     ntg_simple_scene_destroy(s1);
 
     return;
-}
-
-static void __handler1(void* subscriber, ntg_event* event)
-{
-    printf("\rH1 | SUB: %p EVENT_ID: %d EVENT_TYPE: %d\n",
-            subscriber, event->_id, event->_type);
-}
-
-static void __handler2(void* subscriber, ntg_event* event)
-{
-    printf("\rH2 | SUB: %p EVENT_ID: %d EVENT_TYPE: %d\n",
-            subscriber, event->_id, event->_type);
 }
 
 int main(int argc, char *argv[])

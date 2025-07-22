@@ -185,19 +185,22 @@ struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return object->__pos;
+    struct ntg_xy pos = ntg_xy(0, 0);
+    const ntg_object* it_obj = object;
+    while(it_obj != NULL)
+    {
+        pos = ntg_xy_add(pos, ntg_object_get_pos_rel(it_obj));
+        it_obj = it_obj->_parent;
+    }
+
+    return pos;
 }
 
 struct ntg_xy ntg_object_get_pos_rel(const ntg_object* object)
 {
     assert(object != NULL);
-    if(object == NULL) return ntg_xy(SIZE_MAX, SIZE_MAX);
 
-    if(object->_parent != NULL)
-        return ntg_xy_sub(ntg_object_get_pos_abs(object),
-                ntg_object_get_pos_abs(object->_parent));
-    else
-        return object->__pos;
+    return object->__pos;
 }
 
 struct ntg_xy ntg_object_get_content_pos_abs(const ntg_object* object)
@@ -215,12 +218,14 @@ struct ntg_xy ntg_object_get_content_pos_rel(const ntg_object* object)
 
     struct ntg_xy border_offset = ntg_border_size_offset(object->_border_size);
 
-    return ntg_xy_add(ntg_object_get_pos_rel(object), border_offset);
+    return ntg_xy_add(object->__pos, border_offset);
 }
 
 void ntg_object_calculate_natural_size(ntg_object* object)
 {
     if(object == NULL) return;
+
+    ntg_log_log("CALCULATING NATURAL SIZE FOR: %p", object);
     // if(object->_parent == NULL) return;
 
     if(object->__natural_size_fn != NULL)
@@ -231,6 +236,8 @@ void ntg_object_constrain(ntg_object* object)
 {
     if(object == NULL) return;
 
+    ntg_log_log("CONSTRAINING CHILDREN: %p", object);
+
     if(object->__constrain_fn != NULL)
         object->__constrain_fn(object);
 }
@@ -239,6 +246,8 @@ void ntg_object_measure(ntg_object* object)
 {
     if(object == NULL) return;
 
+    ntg_log_log("MEASURING: %p", object);
+
     if(object->__measure_fn != NULL)
         object->__measure_fn(object);
 }
@@ -246,6 +255,8 @@ void ntg_object_measure(ntg_object* object)
 void ntg_object_arrange(ntg_object* object)
 {
     if(object == NULL) return;
+
+    ntg_log_log("ARRANGING: %p", object);
 
     if(object->__arrange_fn != NULL)
         object->__arrange_fn(object);
@@ -479,17 +490,13 @@ void _ntg_object_set_pos_inside_content(ntg_object* object, struct ntg_xy pos)
 
     ntg_object* parent = object->_parent;
 
-    struct ntg_xy parent_pos = (parent != NULL) ?
-        parent->__pos :
-        NTG_XY_UNSET;
-
     struct ntg_xy border_offset = (parent != NULL) ?
         ntg_border_size_offset(parent->_border_size) :
         ntg_xy(0, 0);
 
-    struct ntg_xy abs_pos = ntg_xy_add(border_offset, ntg_xy_add(pos, parent_pos));
+    struct ntg_xy final_pos = ntg_xy_add(border_offset, pos);
 
-    object->__pos = abs_pos;
+    object->__pos = final_pos;
 }
 
 void _ntg_object_scroll_enable(ntg_object* object)
