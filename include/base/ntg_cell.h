@@ -2,6 +2,7 @@
 #define _NTG_CELL_H_
 
 #include <stdint.h>
+#include <string.h>
 #include "shared/ntg_xy.h"
 #include "nt_gfx.h"
 #include "shared/ntg_status.h"
@@ -32,6 +33,12 @@ static inline struct ntg_rcell ntg_rcell_default()
         .codepoint = NTG_CELL_EMPTY,
         .gfx = NT_GFX_DEFAULT
     };
+}
+
+static inline bool ntg_rcell_are_equal(struct ntg_rcell cell1,
+        struct ntg_rcell cell2)
+{
+    return (memcmp(&cell1, &cell2, sizeof(struct ntg_rcell)) == 0);
 }
 
 /* -------------------------------------------------------------------------- */

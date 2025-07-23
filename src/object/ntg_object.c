@@ -30,17 +30,17 @@ struct ntg_border_size ntg_border_size_fn_show_if_can_fit(const ntg_object* obje
 {
     assert(object != NULL);
 
-    struct ntg_xy total_size = object->__constraints.max_size;
-    struct ntg_xy pref_border_size = ntg_border_size_sum(
-            object->_border_pref_size);
+    struct ntg_xy total_size = ntg_object_get_constr(object).max_size;
+    struct ntg_border_size border_nsize = ntg_object_get_natural_border_size(object);
+    struct ntg_xy border_nsize_sum = ntg_border_size_sum(border_nsize);
     struct ntg_xy content_nsize = ntg_object_get_natural_content_size(object);
 
     struct ntg_xy border_total_size;
 
     if(total_size.x >= content_nsize.x)
     {
-        if((pref_border_size.x + content_nsize.x) <= total_size.x)
-            border_total_size.x = pref_border_size.x;
+        if((border_nsize_sum.x + content_nsize.x) <= total_size.x)
+            border_total_size.x = border_nsize_sum.x;
         else
             border_total_size.x = total_size.x - content_nsize.x;
     }
@@ -49,22 +49,22 @@ struct ntg_border_size ntg_border_size_fn_show_if_can_fit(const ntg_object* obje
 
     if(total_size.y >= content_nsize.y)
     {
-        if((pref_border_size.y + content_nsize.y) <= total_size.y)
-            border_total_size.y = pref_border_size.y;
+        if((border_nsize_sum.y + content_nsize.y) <= total_size.y)
+            border_total_size.y = border_nsize_sum.y;
         else
             border_total_size.y = total_size.y - content_nsize.y;
     }
     else
         border_total_size.y = 0;
 
-    return __border_size_round_robin(object->_border_pref_size, border_total_size);
+    return __border_size_round_robin(border_nsize, border_total_size);
 }
 
 struct ntg_border_size ntg_border_size_fn_always_show(const ntg_object* object)
 {
     return __border_size_round_robin(
-            object->_border_pref_size,
-            object->__constraints.max_size);
+            ntg_object_get_natural_border_size(object),
+            ntg_object_get_constr(object).max_size);
 }
 
 void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size)
@@ -137,6 +137,11 @@ struct ntg_xy ntg_object_get_natural_content_size(const ntg_object* object)
     return ntg_xy_sub(object->__natural_size, pref_border_size);
 }
 
+struct ntg_border_size ntg_object_get_natural_border_size(const ntg_object* object)
+{
+    return object->__natural_border_size;
+}
+
 struct ntg_constr ntg_object_get_content_constr(const ntg_object* object)
 {
     assert(object != NULL);
@@ -176,9 +181,14 @@ struct ntg_xy ntg_object_get_content_size(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy border_size = ntg_border_size_sum(object->_border_size);
+    struct ntg_xy border_size = ntg_border_size_sum(object->__border_size);
 
     return ntg_xy_size(ntg_xy_sub(object->__size, border_size));
+}
+
+struct ntg_border_size ntg_object_get_border_size(const ntg_object* object)
+{
+    return object->__border_size;
 }
 
 struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object)
@@ -207,7 +217,7 @@ struct ntg_xy ntg_object_get_content_pos_abs(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy border_offset = ntg_border_size_offset(object->_border_size);
+    struct ntg_xy border_offset = ntg_border_size_offset(object->__border_size);
 
     return ntg_xy_add(ntg_object_get_pos_abs(object), border_offset);
 }
@@ -216,7 +226,7 @@ struct ntg_xy ntg_object_get_content_pos_rel(const ntg_object* object)
 {
     assert(object != NULL);
 
-    struct ntg_xy border_offset = ntg_border_size_offset(object->_border_size);
+    struct ntg_xy border_offset = ntg_border_size_offset(object->__border_size);
 
     return ntg_xy_add(object->__pos, border_offset);
 }
@@ -225,7 +235,7 @@ void ntg_object_calculate_natural_size(ntg_object* object)
 {
     if(object == NULL) return;
 
-    ntg_log_log("CALCULATING NATURAL SIZE FOR: %p", object);
+    // ntg_log_log("CALCULATING NATURAL SIZE FOR: %p", object);
     // if(object->_parent == NULL) return;
 
     if(object->__natural_size_fn != NULL)
@@ -236,7 +246,7 @@ void ntg_object_constrain(ntg_object* object)
 {
     if(object == NULL) return;
 
-    ntg_log_log("CONSTRAINING CHILDREN: %p", object);
+    // ntg_log_log("CONSTRAINING CHILDREN: %p", object);
 
     if(object->__constrain_fn != NULL)
         object->__constrain_fn(object);
@@ -246,7 +256,7 @@ void ntg_object_measure(ntg_object* object)
 {
     if(object == NULL) return;
 
-    ntg_log_log("MEASURING: %p", object);
+    // ntg_log_log("MEASURING: %p", object);
 
     if(object->__measure_fn != NULL)
         object->__measure_fn(object);
@@ -256,7 +266,7 @@ void ntg_object_arrange(ntg_object* object)
 {
     if(object == NULL) return;
 
-    ntg_log_log("ARRANGING: %p", object);
+    // ntg_log_log("ARRANGING: %p", object);
 
     if(object->__arrange_fn != NULL)
         object->__arrange_fn(object);
@@ -281,8 +291,7 @@ void ntg_object_set_border_pref_size(ntg_object* object,
 {
     assert(object != NULL);
     
-    object->__border_pref_size_buffered = border_size;
-    object->__border_pref_size_is_buffered = true;
+    object->_border_pref_size = border_size;
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
@@ -383,12 +392,9 @@ void _ntg_object_set_natural_content_size(ntg_object* object, struct ntg_xy size
 {
     if(object == NULL) return;
 
-    if(object->__border_pref_size_is_buffered)
-    {
-        object->_border_pref_size = object->__border_pref_size_buffered;
-        object->__border_pref_size_buffered = NTG_BORDER_SIZE_DEFAULT;
-        object->__border_pref_size_is_buffered = false;
-    }
+    struct ntg_border_size border_pref_size = object->_border_pref_size;
+
+    object->__natural_border_size = border_pref_size;
 
     if((size.x == 0) || (size.y == 0))
     {
@@ -396,10 +402,9 @@ void _ntg_object_set_natural_content_size(ntg_object* object, struct ntg_xy size
         return;
     }
 
-    struct ntg_xy pref_border_size = ntg_border_size_sum(
-            object->_border_pref_size);
+    struct ntg_xy border_pref_size_sum = ntg_border_size_sum(border_pref_size);
 
-    size = ntg_xy_add(size, pref_border_size);
+    size = ntg_xy_add(size, border_pref_size_sum);
 
     if(object->__pref_size.x != NTG_PREF_SIZE_UNSET)
         size.x = object->__pref_size.x;
@@ -446,7 +451,7 @@ void _ntg_object_set_content_size(ntg_object* object, struct ntg_xy content_size
     // content_size = ntg_xy_size(content_size);
 
     struct ntg_border_size border_size = object->__border_constr;
-    object->_border_size = border_size;
+    object->__border_size = border_size;
     struct ntg_xy border_size_sum = ntg_border_size_sum(border_size);
 
     struct ntg_xy size = ntg_xy_add(content_size, border_size_sum);
@@ -491,7 +496,7 @@ void _ntg_object_set_pos_inside_content(ntg_object* object, struct ntg_xy pos)
     ntg_object* parent = object->_parent;
 
     struct ntg_xy border_offset = (parent != NULL) ?
-        ntg_border_size_offset(parent->_border_size) :
+        ntg_border_size_offset(parent->__border_size) :
         ntg_xy(0, 0);
 
     struct ntg_xy final_pos = ntg_xy_add(border_offset, pos);
@@ -663,6 +668,7 @@ static void __ntg_object_init_default(ntg_object* object)
 
     object->__pref_size = ntg_xy(NTG_PREF_SIZE_UNSET, NTG_PREF_SIZE_UNSET);
 
+    object->_border_pref_size = NTG_BORDER_SIZE_DEFAULT;
     object->_border_style = ntg_border_style_default();
     object->__border_size_fn = ntg_border_size_fn_always_show;
  
@@ -673,15 +679,13 @@ static void __ntg_object_init_default(ntg_object* object)
     object->_full_drawing = NULL;
 
     object->__natural_size = NTG_XY_UNSET;
-    object->_border_pref_size = NTG_BORDER_SIZE_DEFAULT;
-    object->__border_pref_size_buffered = NTG_BORDER_SIZE_DEFAULT;
-    object->__border_pref_size_is_buffered = false;
+    object->__natural_border_size = NTG_BORDER_SIZE_DEFAULT;
 
     object->__constraints = NTG_CONSTR_UNSET;
     object->__border_constr = NTG_BORDER_SIZE_DEFAULT;
 
     object->__size = NTG_XY_UNSET;
-    object->_border_size = NTG_BORDER_SIZE_DEFAULT;
+    object->__border_size = NTG_BORDER_SIZE_DEFAULT;
 
     object->__pos = NTG_XY_UNSET;
 
@@ -698,7 +702,7 @@ static void __ntg_object_init_default(ntg_object* object)
 static void __construct_full_drawing(ntg_object* object)
 {
     struct ntg_xy content_size = ntg_object_get_content_size(object);
-    struct ntg_xy border_offset = ntg_border_size_offset(object->_border_size);
+    struct ntg_xy border_offset = ntg_border_size_offset(object->__border_size);
 
     if(object->__scroll)
     {
@@ -717,10 +721,10 @@ static void __construct_full_drawing(ntg_object* object)
 
     struct ntg_border_style border = object->_border_style;
 
-    size_t north_width = object->_border_size.north;
-    size_t east_width = object->_border_size.east;
-    size_t south_width = object->_border_size.south;
-    size_t west_width = object->_border_size.west;
+    size_t north_width = object->__border_size.north;
+    size_t east_width = object->__border_size.east;
+    size_t south_width = object->__border_size.south;
+    size_t west_width = object->__border_size.west;
 
     struct ntg_xy center_size = ntg_xy(size.x - (east_width + west_width),
             size.y - (north_width + south_width));

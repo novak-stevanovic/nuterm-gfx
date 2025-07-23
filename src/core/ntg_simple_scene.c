@@ -7,6 +7,7 @@
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "shared/_uthash.h"
+#include "shared/ntg_log.h"
 
 /* -------------------------------------------------------------------------- */
 /* HASHMAP */
@@ -16,21 +17,19 @@ struct object_data
 {
     ntg_object* object;
 
-    bool recalculate_natural_size;
-    bool reconstrain;
-    bool remeasure;
-    bool rearrange;
-    bool redraw;
+    bool recalculate_natural_size,
+    reconstrain, remeasure,
+    rearrange, redraw;
 
     UT_hash_handle hh;
 };
 
-static inline void __objects_data_add(struct object_data** hm, struct object_data* data)
+static inline void __graph_data_add(struct object_data** hm, struct object_data* data)
 {
     HASH_ADD_PTR((*hm), object, data);
 }
 
-static inline struct object_data* __objects_data_get(struct object_data** hm, ntg_object* object)
+static inline struct object_data* __graph_data_get(struct object_data** hm, ntg_object* object)
 {
     struct object_data* _data;
 
@@ -39,13 +38,13 @@ static inline struct object_data* __objects_data_get(struct object_data** hm, nt
     return _data;
 }
 
-static inline void __objects_data_remove(struct object_data** hm, struct object_data* data)
+static inline void __graph_data_remove(struct object_data** hm, struct object_data* data)
 {
     HASH_DEL((*hm), data);
     free(data);
 }
 
-static void __objects_data_destroy(struct object_data** hm)
+static void __graph_data_destroy(struct object_data** hm)
 {
     struct object_data *curr_data, *tmp;
 
@@ -74,6 +73,8 @@ void __ntg_simple_scene_init__(ntg_simple_scene* scene)
             __layout_fn,
             __on_object_register_fn,
             __on_object_unregister_fn);
+
+    scene->__tainted = true;
 }
 
 void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
@@ -81,6 +82,8 @@ void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
     assert(scene != NULL);
 
     __ntg_scene_deinit__((ntg_scene*)scene);
+
+    scene->__tainted = false;
 }
 
 ntg_simple_scene* ntg_simple_scene_new()
@@ -99,7 +102,7 @@ void ntg_simple_scene_destroy(ntg_simple_scene* scene)
 {
     assert(scene != NULL);
 
-    __objects_data_destroy(&scene->__objects_data);
+    __graph_data_destroy(&scene->__graph_data);
     __ntg_simple_scene_deinit__(scene);
     free(scene);
 }
@@ -110,7 +113,7 @@ static void __natural_size_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     assert(curr_obj != NULL);
 
-    struct object_data* data = __objects_data_get(&scene->__objects_data, curr_obj);
+    struct object_data* data = __graph_data_get(&scene->__graph_data, curr_obj);
     assert(data != NULL);
 
     const ntg_object_vec* children = curr_obj->_children;
@@ -142,7 +145,7 @@ static void __natural_size_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
         if(!ntg_xy_are_equal(old_nsize, new_nsize) && (curr_obj->_parent != NULL))
         {
             struct object_data* parent_data =
-                __objects_data_get(&scene->__objects_data, curr_obj->_parent);
+                __graph_data_get(&scene->__graph_data, curr_obj->_parent);
 
             parent_data->recalculate_natural_size = true;
         }
@@ -155,7 +158,7 @@ static void __constrain_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     assert(curr_obj != NULL);
 
-    struct object_data* data = __objects_data_get(&scene->__objects_data, curr_obj);
+    struct object_data* data = __graph_data_get(&scene->__graph_data, curr_obj);
     assert(data != NULL);
     ntg_object_vec* children = curr_obj->_children;
 
@@ -185,7 +188,7 @@ static void __constrain_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 
             if(!ntg_constr_are_equal(old_constr[i], it_constr))
             {
-                it_data = __objects_data_get(&scene->__objects_data, it_obj);
+                it_data = __graph_data_get(&scene->__graph_data, it_obj);
                 assert(it_data != NULL);
 
                 it_data->reconstrain = true;
@@ -207,7 +210,7 @@ static void __measure_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     assert(curr_obj != NULL);
 
-    struct object_data* data = __objects_data_get(&scene->__objects_data, curr_obj);
+    struct object_data* data = __graph_data_get(&scene->__graph_data, curr_obj);
     assert(data != NULL);
     const ntg_object_vec* children = curr_obj->_children;
 
@@ -221,12 +224,6 @@ static void __measure_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 
     struct ntg_xy old_size = ntg_object_get_size(curr_obj);
     struct ntg_xy old_content_size = ntg_object_get_content_size(curr_obj);
-    /* TODO: fixed?
-     * problem with syncing (natural) size/content size because border size is
-     * determined at constr phase. Meaning:
-     * 1. if object has certain content and border size,
-     * 2. border_size changes - content_size calculation changes
-     * 3. `old_content_size` will be invalid. */
 
     if(data->remeasure)
     {
@@ -250,10 +247,11 @@ static void __arrange_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     assert(curr_obj != NULL);
 
-    struct object_data* data = __objects_data_get(&scene->__objects_data, curr_obj);
+    struct object_data* data = __graph_data_get(&scene->__graph_data, curr_obj);
     assert(data != NULL);
     const ntg_object_vec* children = curr_obj->_children;
 
+    // TODO: what if object changes location?
     if(data->rearrange)
     {
         ntg_object_arrange(curr_obj);
@@ -273,7 +271,7 @@ static void __draw_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     assert(curr_obj != NULL);
 
-    struct object_data* data = __objects_data_get(&scene->__objects_data, curr_obj);
+    struct object_data* data = __graph_data_get(&scene->__graph_data, curr_obj);
     assert(data != NULL);
     const ntg_object_vec* children = curr_obj->_children;
 
@@ -301,7 +299,7 @@ static void __mark_redraw_all(ntg_object* curr_obj, ntg_simple_scene* scene)
 {
     assert(curr_obj != NULL);
 
-    struct object_data* data = __objects_data_get(&scene->__objects_data, curr_obj);
+    struct object_data* data = __graph_data_get(&scene->__graph_data, curr_obj);
     assert(data != NULL);
 
     ntg_object_vec* children = curr_obj->_children;
@@ -323,11 +321,19 @@ static void __layout_fn(ntg_scene* _scene, struct ntg_xy size)
     ntg_object* root = _scene->_root;
 
     if(root == NULL) return;
-    struct object_data* root_data = __objects_data_get(&scene->__objects_data, root);
 
     struct ntg_constr old_root_constr = ntg_object_get_constr(root);
+
+    if(!ntg_xy_are_equal(old_root_constr.min_size, size))
+        scene->__tainted = true;
+
+    if(!scene->__tainted) return;
+
+    struct object_data* root_data = __graph_data_get(&scene->__graph_data, root);
+
     ntg_object_layout_root(root, size);
     struct ntg_constr new_root_constr = ntg_object_get_constr(root);
+
     if(!ntg_constr_are_equal(old_root_constr, new_root_constr))
     {
         root_data->reconstrain = true;
@@ -340,6 +346,8 @@ static void __layout_fn(ntg_scene* _scene, struct ntg_xy size)
     __measure_phase(root, scene);
     __arrange_phase(root, scene);
     __draw_phase(root, scene);
+
+    scene->__tainted = false;
 }
 
 static void __on_object_register_fn(ntg_scene* _scene, ntg_object* object)
@@ -359,7 +367,7 @@ static void __on_object_register_fn(ntg_scene* _scene, ntg_object* object)
         .redraw = true
     };
 
-    __objects_data_add(&scene->__objects_data, data);
+    __graph_data_add(&scene->__graph_data, data);
 
     struct ntg_event_sub sub = {
         .subscriber = _scene,
@@ -373,8 +381,8 @@ static void __on_object_unregister_fn(ntg_scene* _scene, ntg_object* object)
 {
     ntg_simple_scene* scene = (ntg_simple_scene*)_scene;
 
-    struct object_data* data = __objects_data_get(&scene->__objects_data, object);
-    __objects_data_remove(&scene->__objects_data, data);
+    struct object_data* data = __graph_data_get(&scene->__graph_data, object);
+    __graph_data_remove(&scene->__graph_data, data);
 
     ntg_object_stop_listening(object, _scene);
 }
@@ -385,7 +393,7 @@ static void __object_handler(void* __scene, ntg_event* event)
     ntg_simple_scene* scene = (ntg_simple_scene*)__scene;
 
     ntg_object* source = (ntg_object*)event->_source;
-    struct object_data* data = __objects_data_get(&scene->__objects_data, source);
+    struct object_data* data = __graph_data_get(&scene->__graph_data, source);
 
     switch(event->_type)
     {
@@ -395,11 +403,17 @@ static void __object_handler(void* __scene, ntg_event* event)
             data->remeasure = true;
             data->rearrange = true;
             __mark_redraw_all(source, scene);
+
+            scene->__tainted = true;
             break;
         case NTG_OBJECT_PREF_SIZE_CHANGE:
             data->recalculate_natural_size = true;
             data->reconstrain = true;
             data->remeasure = true;
+
+            scene->__tainted = true;
+            break;
+        default:
             break;
     }
 }

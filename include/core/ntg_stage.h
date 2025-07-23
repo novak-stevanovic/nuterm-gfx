@@ -15,10 +15,6 @@ typedef enum ntg_stage_status
 typedef ntg_stage_status (*ntg_stage_process_key_fn)(ntg_stage* stage,
         struct nt_key_event key_event);
 
-/* Default: Dispatches the key event to active scene. */
-ntg_stage_status ntg_stage_process_key_fn_default(ntg_stage* stage,
-        struct nt_key_event key_event);
-
 typedef void (*ntg_stage_render_fn)(ntg_stage* stage, struct ntg_xy size);
 
 #define NTG_STAGE(stg_ptr) ((ntg_stage*)(stg_ptr))
@@ -33,7 +29,6 @@ struct ntg_stage
 
 void __ntg_stage_init__(ntg_stage* stage,
         ntg_stage_render_fn render_fn);
-
 void __ntg_stage_deinit__(ntg_stage* stage);
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
@@ -45,6 +40,8 @@ void ntg_stage_render(ntg_stage* stage, struct ntg_xy size);
 ntg_stage_status ntg_stage_feed_key_event(ntg_stage* stage,
         struct nt_key_event key_event);
 
+/* By default, the stage will feed the key event to the active scene.
+ * Tell the stage to shut down by pressing 'q'. */
 void _ntg_stage_set_process_key_fn(ntg_stage* stage,
         ntg_stage_process_key_fn process_key_fn);
 

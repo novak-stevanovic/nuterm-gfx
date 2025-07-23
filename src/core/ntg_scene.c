@@ -6,6 +6,9 @@
 #include "object/ntg_object.h"
 #include "shared/ntg_xy.h"
 
+static bool __process_key_fn_default(ntg_scene* scene,
+        struct nt_key_event key_event);
+
 /* -------------------------------------------------------------------------- */
 
 void __ntg_scene_init__(ntg_scene* scene, ntg_scene_layout_fn layout_fn,
@@ -14,24 +17,13 @@ void __ntg_scene_init__(ntg_scene* scene, ntg_scene_layout_fn layout_fn,
 {
     assert(scene != NULL);
 
-    scene->__process_key_fn = ntg_scene_process_key_fn_default;
+    scene->__process_key_fn = __process_key_fn_default;
     scene->__layout_fn = layout_fn;
     scene->_focused = NULL;
     scene->_root = NULL;
     scene->__on_object_register_fn = on_object_register_fn;
     scene->__on_object_unregister_fn = on_object_unregister_fn;
     __ntg_scene_drawing_init__(&scene->_drawing);
-}
-
-bool ntg_scene_process_key_fn_default(ntg_scene* scene,
-        struct nt_key_event key_event)
-{
-    assert(scene != NULL);
-
-    if(scene->_focused != NULL)
-        return ntg_object_feed_key(scene->_focused, key_event);
-    else
-        return false;
 }
 
 void __ntg_scene_deinit__(ntg_scene* scene)
@@ -114,3 +106,17 @@ void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object)
         scene->__on_object_unregister_fn(scene, object);
     }
 }
+
+/* -------------------------------------------------------------------------- */
+
+static bool __process_key_fn_default(ntg_scene* scene,
+        struct nt_key_event key_event)
+{
+    assert(scene != NULL);
+
+    if(scene->_focused != NULL)
+        return ntg_object_feed_key(scene->_focused, key_event);
+    else
+        return false;
+}
+

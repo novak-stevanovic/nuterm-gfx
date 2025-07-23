@@ -8,12 +8,8 @@
 typedef struct ntg_object ntg_object;
 typedef struct ntg_scene ntg_scene;
 
-/* Returns if the scene processed the key event */
+/* Returns if the scene processed the key event. */
 typedef bool (*ntg_scene_process_key_fn)(ntg_scene* scene,
-        struct nt_key_event key_event);
-
-/* Default: Dispatches the key event to focused object. */
-bool ntg_scene_process_key_fn_default(ntg_scene* scene,
         struct nt_key_event key_event);
 
 typedef void (*ntg_scene_layout_fn)(ntg_scene* scene, struct ntg_xy size);
@@ -56,6 +52,7 @@ void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object);
 
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
 
+/* By default, the scene will feed the key event to the focus object. */
 void _ntg_scene_set_process_key_fn(ntg_scene* scene,
         ntg_scene_process_key_fn process_key_fn);
 

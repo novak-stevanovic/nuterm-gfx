@@ -72,7 +72,8 @@ typedef void (*ntg_arrange_fn)(ntg_object* object);
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event);
 
-/* Calculates border size depending on object constraints and preferred border size.
+/* Calculates border size depending on object constraints, natural border size and
+ * natural content size.
  * Object's content will take up the remaining space depending on remaining
  * constraints. */
 typedef struct ntg_border_size (*ntg_border_size_fn)(const ntg_object* object);
@@ -94,6 +95,7 @@ void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size);
 
 struct ntg_xy ntg_object_get_natural_size(const ntg_object* object);
 struct ntg_xy ntg_object_get_natural_content_size(const ntg_object* object);
+struct ntg_border_size ntg_object_get_natural_border_size(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
@@ -104,6 +106,7 @@ struct ntg_constr ntg_object_get_content_constr(const ntg_object* object);
 
 struct ntg_xy ntg_object_get_size(const ntg_object* object);
 struct ntg_xy ntg_object_get_content_size(const ntg_object* object);
+struct ntg_border_size ntg_object_get_border_size(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
@@ -178,6 +181,7 @@ struct ntg_object
 
     struct
     {
+        struct ntg_border_size _border_pref_size;
         struct ntg_border_style _border_style;
         ntg_border_size_fn __border_size_fn;
     };
@@ -195,15 +199,18 @@ struct ntg_object
     struct
     {
         struct ntg_xy __natural_size;
-        struct ntg_border_size _border_pref_size;
-        struct ntg_border_size __border_pref_size_buffered;
-        bool __border_pref_size_is_buffered;
+        /* Must exist because of potential sync issues - pref border size can be
+         * set in between natural size calculations. This means that
+         * ntg_object_get_natural_content_size() will return an invalid value
+         * (the value was previously calculated by subtracting border pref size
+         * from natural size). */
+        struct ntg_border_size __natural_border_size;
 
         struct ntg_constr __constraints;
         struct ntg_border_size __border_constr;
 
         struct ntg_xy __size;
-        struct ntg_border_size _border_size;
+        struct ntg_border_size __border_size;
 
         struct ntg_xy __pos; // relative
     };

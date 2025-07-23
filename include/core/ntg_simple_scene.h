@@ -9,7 +9,10 @@ typedef struct ntg_simple_scene
 {
     ntg_scene _base;
 
-    struct object_data* __objects_data;
+    struct object_data* __graph_data;
+
+    bool __tainted;
+
 } ntg_simple_scene;
 
 /* To specify default behavior for `ntg_scene_process_key_fn`,

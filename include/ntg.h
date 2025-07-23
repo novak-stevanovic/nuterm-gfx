@@ -19,7 +19,7 @@ void* ntg_wait();
 
 void ntg_destroy();
 
-#define NTG_FRAMERATE_DEFAULT 60
+#define NTG_FRAMERATE_DEFAULT 30
 #define NTG_WAIT_TIMEOUT(fps) (1000.0 / (fps)) /* Can be used for custom loop */
 
 void ntg_loop(ntg_stage* main_stage, uint framerate);
