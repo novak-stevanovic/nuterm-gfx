@@ -12,6 +12,7 @@
 /* -------------------------------------------------------------------------- */
 
 static struct ntg_xy _app_size = NTG_XY_UNSET;
+static bool _resize = true;
 
 static pthread_t _ntg_thread;
 static bool _launched = false;
@@ -108,6 +109,7 @@ void ntg_loop(ntg_stage* main_stage, uint framerate)
 
         size_t _width, _height;
         ntg_stage_status status;
+        ntg_stage_render_mode render_mode;
         switch(event.type)
         {
             case NT_EVENT_TYPE_KEY:
@@ -118,9 +120,14 @@ void ntg_loop(ntg_stage* main_stage, uint framerate)
             case NT_EVENT_TYPE_RESIZE:
                 nt_get_term_size(&_width, &_height);
                 _app_size = ntg_xy(_width, _height);
+                _resize = true;
                 break;
             case NT_EVENT_TYPE_TIMEOUT:
-                ntg_stage_render(main_stage, _app_size);
+                render_mode = _resize ?
+                    NTG_STAGE_RENDER_MODE_FULL :
+                    NTG_STAGE_RENDER_MODE_OPTIMIZED;
+                _resize = false;
+                ntg_stage_render(main_stage, _app_size, render_mode);
                 break;
         }
 

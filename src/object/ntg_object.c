@@ -62,9 +62,11 @@ struct ntg_border_size ntg_border_size_fn_show_if_can_fit(const ntg_object* obje
 
 struct ntg_border_size ntg_border_size_fn_always_show(const ntg_object* object)
 {
-    return __border_size_round_robin(
+    struct ntg_border_size border_size = __border_size_round_robin(
             ntg_object_get_natural_border_size(object),
             ntg_object_get_constr(object).max_size);
+
+    return border_size;
 }
 
 void ntg_object_layout_root(ntg_object* root, struct ntg_xy root_size)
@@ -427,11 +429,31 @@ void _ntg_object_set_constr(ntg_object* object, struct ntg_constr constr)
     struct ntg_border_size border_constr = object->__border_size_fn(object);
     struct ntg_xy border_size_sum = ntg_border_size_sum(border_constr);
 
-    // TODO: decrease border size
-    if((border_size_sum.x > constr.max_size.x) ||
-            (border_size_sum.y > constr.max_size.y))
+    if(border_size_sum.x > constr.max_size.x)
     {
-        assert(0);
+        size_t _sizes[2];
+        size_t nsizes[] = { 
+            object->__natural_border_size.west,
+            object->__natural_border_size.east
+        };
+
+        ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.x, 2);
+
+        border_constr.west = _sizes[0];
+        border_constr.east = _sizes[1];
+    }
+    if(border_size_sum.y > constr.max_size.y)
+    { 
+        size_t _sizes[2];
+        size_t nsizes[] = { 
+            object->__natural_border_size.north,
+            object->__natural_border_size.south
+        };
+
+        ntg_sap_nsize_round_robin(nsizes, _sizes, constr.max_size.y, 2);
+
+        border_constr.north = _sizes[0];
+        border_constr.south = _sizes[1];
     }
 
     object->__border_constr = border_constr;

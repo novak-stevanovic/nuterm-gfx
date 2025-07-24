@@ -35,11 +35,12 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     stage->_active_scene = scene;
 }
 
-void ntg_stage_render(ntg_stage* stage, struct ntg_xy size)
+void ntg_stage_render(ntg_stage* stage, struct ntg_xy size,
+        ntg_stage_render_mode render_mode)
 {
     assert(stage != NULL);
 
-    stage->__render_fn(stage, size);
+    stage->__render_fn(stage, size, render_mode);
 }
 
 ntg_stage_status ntg_stage_feed_key_event(ntg_stage* stage,

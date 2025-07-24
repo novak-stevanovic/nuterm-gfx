@@ -5,7 +5,8 @@
 
 #define BUFF_CAP 10000
 
-static void __render_fn(ntg_stage* _stage, struct ntg_xy size);
+static void __render_fn(ntg_stage* _stage, struct ntg_xy size,
+        ntg_stage_render_mode render_mode);
 static void __optimized_render(ntg_simple_stage* stage, struct ntg_xy size);
 static void __full_render(ntg_simple_stage* stage, struct ntg_xy size);
 
@@ -17,7 +18,6 @@ void __ntg_simple_stage_init__(ntg_simple_stage* stage)
 
     stage->__buff = nt_charbuff_new(BUFF_CAP);
     __ntg_rcell_vgrid_init__(&stage->__back_buffer);
-    stage->__old_size = NTG_XY_UNSET;
 
     assert(stage->__buff != NULL);
 }
@@ -30,7 +30,6 @@ void __ntg_simple_stage_deinit__(ntg_simple_stage* stage)
 
     nt_charbuff_destroy(stage->__buff);
     __ntg_rcell_vgrid_deinit__(&stage->__back_buffer);
-    stage->__old_size = NTG_XY_UNSET;
 }
 
 ntg_simple_stage* ntg_simple_stage_new()
@@ -107,7 +106,8 @@ static void __full_render(ntg_simple_stage* stage, struct ntg_xy size)
     }
 }
 
-static void __render_fn(ntg_stage* _stage, struct ntg_xy size)
+static void __render_fn(ntg_stage* _stage, struct ntg_xy size,
+        ntg_stage_render_mode render_mode)
 {
     assert(_stage->_active_scene != NULL);
 
@@ -117,12 +117,11 @@ static void __render_fn(ntg_stage* _stage, struct ntg_xy size)
 
     nt_buffer_enable(stage->__buff);
 
-    if(ntg_xy_are_equal(size, stage->__old_size))
+    if(render_mode == NTG_STAGE_RENDER_MODE_OPTIMIZED)
         __optimized_render(stage, size);
     else
         __full_render(stage, size);
 
     nt_buffer_disable(NT_BUFF_FLUSH);
 
-    stage->__old_size = size;
 }

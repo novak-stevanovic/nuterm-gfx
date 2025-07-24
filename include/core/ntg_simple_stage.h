@@ -10,7 +10,6 @@ typedef struct ntg_simple_stage
 
     nt_charbuff* __buff;
     ntg_rcell_vgrid __back_buffer;
-    struct ntg_xy __old_size;
 } ntg_simple_stage;
 
 /* To specify default behavior for `ntg_stage_process_key_fn`,

@@ -12,10 +12,17 @@ typedef enum ntg_stage_status
     NTG_STAGE_QUIT
 } ntg_stage_status;
 
+typedef enum ntg_stage_render_mode
+{
+    NTG_STAGE_RENDER_MODE_FULL,
+    NTG_STAGE_RENDER_MODE_OPTIMIZED
+} ntg_stage_render_mode;
+
 typedef ntg_stage_status (*ntg_stage_process_key_fn)(ntg_stage* stage,
         struct nt_key_event key_event);
 
-typedef void (*ntg_stage_render_fn)(ntg_stage* stage, struct ntg_xy size);
+typedef void (*ntg_stage_render_fn)(ntg_stage* stage, struct ntg_xy size,
+        ntg_stage_render_mode render_mode);
 
 #define NTG_STAGE(stg_ptr) ((ntg_stage*)(stg_ptr))
 
@@ -34,7 +41,8 @@ void __ntg_stage_deinit__(ntg_stage* stage);
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 
 /* Calls used ntg_stage_render_fn. */
-void ntg_stage_render(ntg_stage* stage, struct ntg_xy size);
+void ntg_stage_render(ntg_stage* stage, struct ntg_xy size,
+        ntg_stage_render_mode render_mode);
 
 /* Calls used ntg_stage_process_key_fn. */
 ntg_stage_status ntg_stage_feed_key_event(ntg_stage* stage,
