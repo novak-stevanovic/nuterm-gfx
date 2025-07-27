@@ -5,10 +5,9 @@
 
 #define BUFF_CAP 10000
 
-static void __render_fn(ntg_stage* _stage, struct ntg_xy size,
-        ntg_stage_render_mode render_mode);
-static void __optimized_render(ntg_simple_stage* stage, struct ntg_xy size);
-static void __full_render(ntg_simple_stage* stage, struct ntg_xy size);
+static void __render_fn(ntg_stage* _stage, ntg_stage_render_mode render_mode);
+static void __optimized_render(ntg_simple_stage* stage);
+static void __full_render(ntg_simple_stage* stage);
 
 void __ntg_simple_stage_init__(ntg_simple_stage* stage)
 {
@@ -51,9 +50,10 @@ void ntg_simple_stage_destroy(ntg_simple_stage* stage)
     free(stage);
 }
 
-static void __optimized_render(ntg_simple_stage* stage, struct ntg_xy size)
+static void __optimized_render(ntg_simple_stage* stage)
 {
     ntg_stage* _stage = (ntg_stage*)stage;
+    struct ntg_xy size = _stage->_size;
 
     const ntg_scene_drawing* drawing = &(_stage->_active_scene->_drawing);
 
@@ -82,9 +82,10 @@ static void __optimized_render(ntg_simple_stage* stage, struct ntg_xy size)
     }
 }
 
-static void __full_render(ntg_simple_stage* stage, struct ntg_xy size)
+static void __full_render(ntg_simple_stage* stage)
 {
     ntg_stage* _stage = (ntg_stage*)stage;
+    struct ntg_xy size = _stage->_size;
 
     const ntg_scene_drawing* drawing = &(_stage->_active_scene->_drawing);
 
@@ -106,21 +107,20 @@ static void __full_render(ntg_simple_stage* stage, struct ntg_xy size)
     }
 }
 
-static void __render_fn(ntg_stage* _stage, struct ntg_xy size,
-        ntg_stage_render_mode render_mode)
+static void __render_fn(ntg_stage* _stage, ntg_stage_render_mode render_mode)
 {
     assert(_stage->_active_scene != NULL);
 
     ntg_simple_stage* stage = (ntg_simple_stage*)_stage;
 
-    ntg_scene_layout(_stage->_active_scene, size);
+    ntg_scene_layout(_stage->_active_scene);
 
     nt_buffer_enable(stage->__buff);
 
     if(render_mode == NTG_STAGE_RENDER_MODE_OPTIMIZED)
-        __optimized_render(stage, size);
+        __optimized_render(stage);
     else
-        __full_render(stage, size);
+        __full_render(stage);
 
     nt_buffer_disable(NT_BUFF_FLUSH);
 

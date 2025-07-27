@@ -59,7 +59,7 @@ static void __graph_data_destroy(struct object_data** hm)
 /* SIMPLE SCENE */
 /* -------------------------------------------------------------------------- */
 
-static void __layout_fn(ntg_scene* _scene, struct ntg_xy size);
+static void __layout_fn(ntg_scene* _scene);
 static void __on_object_register_fn(ntg_scene* _scene, ntg_object* object);
 static void __on_object_unregister_fn(ntg_scene* _scene, ntg_object* object);
 
@@ -315,10 +315,11 @@ static void __mark_redraw_all(ntg_object* curr_obj, ntg_simple_scene* scene)
     }
 }
 
-static void __layout_fn(ntg_scene* _scene, struct ntg_xy size)
+static void __layout_fn(ntg_scene* _scene)
 {
     ntg_simple_scene* scene = (ntg_simple_scene*)_scene;
     ntg_object* root = _scene->_root;
+    struct ntg_xy size = _scene->_size;
 
     if(root == NULL) return;
 

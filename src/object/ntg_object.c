@@ -237,9 +237,6 @@ void ntg_object_calculate_natural_size(ntg_object* object)
 {
     if(object == NULL) return;
 
-    // ntg_log_log("CALCULATING NATURAL SIZE FOR: %p", object);
-    // if(object->_parent == NULL) return;
-
     if(object->__natural_size_fn != NULL)
         object->__natural_size_fn(object);
 }
@@ -247,8 +244,6 @@ void ntg_object_calculate_natural_size(ntg_object* object)
 void ntg_object_constrain(ntg_object* object)
 {
     if(object == NULL) return;
-
-    // ntg_log_log("CONSTRAINING CHILDREN: %p", object);
 
     if(object->__constrain_fn != NULL)
         object->__constrain_fn(object);
@@ -258,8 +253,6 @@ void ntg_object_measure(ntg_object* object)
 {
     if(object == NULL) return;
 
-    // ntg_log_log("MEASURING: %p", object);
-
     if(object->__measure_fn != NULL)
         object->__measure_fn(object);
 }
@@ -267,8 +260,6 @@ void ntg_object_measure(ntg_object* object)
 void ntg_object_arrange(ntg_object* object)
 {
     if(object == NULL) return;
-
-    // ntg_log_log("ARRANGING: %p", object);
 
     if(object->__arrange_fn != NULL)
         object->__arrange_fn(object);
@@ -366,7 +357,7 @@ void __ntg_object_init__(ntg_object* object,
 
     object->_children = ntg_object_vec_new();
 
-    __ntg_listenable_init__(&object->__listenable, object);
+    __ntg_listenable_init__(&object->__listenable);
 }
 
 void __ntg_object_deinit__(ntg_object* object)
@@ -827,7 +818,7 @@ static void __adjust_scene_fn(ntg_object* object, void* scene)
 
     if(object->_scene != NULL)
     {
-        ntg_scene_unregister_object(NTG_SCENE(scene), object);
+        ntg_scene_unregister_object(object->_scene, object);
     }
     object->_scene = (ntg_scene*)scene;
     if(scene != NULL)

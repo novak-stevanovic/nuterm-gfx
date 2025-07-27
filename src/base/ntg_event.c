@@ -28,12 +28,10 @@ void __ntg_event_deinit__(ntg_event* event)
     event->_source = NULL;
 }
 
-void __ntg_listenable_init__(ntg_listenable* listenable, void* source)
+void __ntg_listenable_init__(ntg_listenable* listenable)
 {
     assert(listenable != NULL);
-    assert(source != NULL);
     
-    listenable->_source = source;
     listenable->_subs = ntg_event_sub_vec_new();
 }
 
@@ -41,7 +39,6 @@ void __ntg_listenable_deinit__(ntg_listenable* listenable)
 {
     assert(listenable != NULL);
 
-    listenable->_source = NULL;
     ntg_event_sub_vec_destroy(listenable->_subs);
     listenable->_subs = NULL;
 }

@@ -20,7 +20,6 @@ typedef struct ntg_event
 
 typedef struct ntg_listenable
 {
-    void* _source;
     ntg_event_sub_vec* _subs;
 } ntg_listenable;
 
@@ -39,7 +38,7 @@ void __ntg_event_deinit__(ntg_event* event);
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_listenable_init__(ntg_listenable* listenable, void* source);
+void __ntg_listenable_init__(ntg_listenable* listenable);
 void __ntg_listenable_deinit__(ntg_listenable* listenable);
 
 void ntg_listenable_raise(ntg_listenable* listenable, ntg_event* event);

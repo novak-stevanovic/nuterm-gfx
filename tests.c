@@ -15,6 +15,34 @@
 #include "object/ntg_prog_bar.h"
 #include "shared/ntg_log.h"
 #include "shared/ntg_vector.h"
+#include "base/ntg_event_types.h"
+#include "base/ntg_event_participants.h"
+
+static void __root_change_handler(void* subscriber, ntg_event* event)
+{
+    if(event->_type == NTG_SCENE_ROOT_CHANGE)
+    {
+        struct ntg_object_change data = *(struct ntg_object_change*)event->_data;
+        ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | CHANGED ROOT FOR SCENE: %p | OLD: %p | NEW: %p",
+                subscriber, event->_source, data.old, data.new);
+    }
+}
+
+static void __scene_layout_handler(void* subscriber, ntg_event* event)
+{
+    if(event->_type == NTG_SCENE_LAYOUT)
+    {
+        ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | SCENE LAYOUT", subscriber, event->_source);
+    }
+}
+
+static void __stage_render_handler(void* subscriber, ntg_event* event)
+{
+    if(event->_type == NTG_STAGE_RENDER)
+    {
+        ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | STAGE RENDER", subscriber, event->_source);
+    }
+}
 
 struct ntg_border_style __create_border1()
 {
@@ -113,6 +141,22 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     ntg_border_container_set_center(bc, NTG_OBJECT(cb9));
 
     ntg_simple_scene* s1 = ntg_simple_scene_new();
+    ntg_scene* _s1 = NTG_SCENE(s1);
+
+    struct ntg_event_sub sub1 = {
+        .subscriber = NTG_EVENT_PARTICIPANT_APP,
+        .handler = __stage_render_handler
+    };
+
+    struct ntg_event_sub sub2 = {
+        .subscriber = NTG_EVENT_PARTICIPANT_APP,
+        .handler = __scene_layout_handler
+    };
+
+    ntg_stage_listen(_main_stage, sub1);
+    ntg_scene_listen(_s1, sub2);
+
+    ntg_scene_set_root(NTG_SCENE(s1), NTG_OBJECT(NTG_OBJECT(box1)));
     ntg_scene_set_root(NTG_SCENE(s1), NTG_OBJECT(bc));
     ntg_stage_set_scene(_main_stage, NTG_SCENE(s1));
     ntg_scene_focus(NTG_SCENE(s1), NTG_OBJECT(pb1));

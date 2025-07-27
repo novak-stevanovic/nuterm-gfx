@@ -105,7 +105,6 @@ void ntg_loop(ntg_stage* main_stage, uint framerate)
         event = nt_wait_for_event(timeout, &_status);
 
         timeout = NTG_WAIT_TIMEOUT(framerate) - event.elapsed;
-        // timeout = 1000 - event.elapsed;
 
         size_t _width, _height;
         ntg_stage_status status;
@@ -127,7 +126,8 @@ void ntg_loop(ntg_stage* main_stage, uint framerate)
                     NTG_STAGE_RENDER_MODE_FULL :
                     NTG_STAGE_RENDER_MODE_OPTIMIZED;
                 _resize = false;
-                ntg_stage_render(main_stage, _app_size, render_mode);
+                ntg_stage_set_size(main_stage, _app_size);
+                ntg_stage_render(main_stage, render_mode);
                 break;
         }
 
