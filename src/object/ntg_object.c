@@ -119,7 +119,7 @@ void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size)
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_OBJECT_PREF_SIZE_CHANGE, object, &data);
-    ntg_event_delegate_raise(&object->__delegate, &e);
+    ntg_listenable_raise(&object->__listenable, &e);
 }
 
 struct ntg_xy ntg_object_get_natural_size(const ntg_object* object)
@@ -285,7 +285,7 @@ void ntg_object_set_border_style(ntg_object* object,
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
-    ntg_event_delegate_raise(&object->__delegate, &e);
+    ntg_listenable_raise(&object->__listenable, &e);
 }
 
 void ntg_object_set_border_pref_size(ntg_object* object,
@@ -297,7 +297,7 @@ void ntg_object_set_border_pref_size(ntg_object* object,
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
-    ntg_event_delegate_raise(&object->__delegate, &e);
+    ntg_listenable_raise(&object->__listenable, &e);
 }
 
 void ntg_object_set_border_size_fn(ntg_object* object,
@@ -309,7 +309,7 @@ void ntg_object_set_border_size_fn(ntg_object* object,
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
-    ntg_event_delegate_raise(&object->__delegate, &e);
+    ntg_listenable_raise(&object->__listenable, &e);
 }
 
 bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
@@ -322,21 +322,14 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
         return false;
 }
 
-// ntg_event_delegate_view ntg_object_get_delegate_view(ntg_object* object)
-// {
-//     return ntg_event_delegate_view_new(&(object->__delegate));
-// }
-
 void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription)
 {
-    ntg_event_delegate_view view = ntg_event_delegate_view_new(&object->__delegate);
-    ntg_event_delegate_view_sub(&view, subscription);
+    ntg_listenable_listen(&object->__listenable, subscription);
 }
 
 void ntg_object_stop_listening(ntg_object* object, void* subscriber)
 {
-    ntg_event_delegate_view view = ntg_event_delegate_view_new(&object->__delegate);
-    ntg_event_delegate_view_unsub(&view, subscriber);
+    ntg_listenable_stop_listening(&object->__listenable, subscriber);
 }
 
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene)
@@ -373,7 +366,7 @@ void __ntg_object_init__(ntg_object* object,
 
     object->_children = ntg_object_vec_new();
 
-    __ntg_event_delegate_init__(&object->__delegate);
+    __ntg_listenable_init__(&object->__listenable, object);
 }
 
 void __ntg_object_deinit__(ntg_object* object)
@@ -386,7 +379,7 @@ void __ntg_object_deinit__(ntg_object* object)
     if(object->_children != NULL)
         ntg_object_vec_destroy(object->_children);
 
-    __ntg_event_delegate_deinit__(&object->__delegate);
+    __ntg_listenable_deinit__(&object->__listenable);
     __ntg_object_init_default(object);
 }
 
@@ -538,7 +531,7 @@ void _ntg_object_scroll_enable(ntg_object* object)
 
         ntg_event e;
         __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
-        ntg_event_delegate_raise(&object->__delegate, &e);
+        ntg_listenable_raise(&object->__listenable, &e);
     }
 }
 
@@ -554,7 +547,7 @@ void _ntg_object_scroll_disable(ntg_object* object)
 
         ntg_event e;
         __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
-        ntg_event_delegate_raise(&object->__delegate, &e);
+        ntg_listenable_raise(&object->__listenable, &e);
     }
 }
 
@@ -569,7 +562,7 @@ void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff)
 
         ntg_event e;
         __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
-        ntg_event_delegate_raise(&object->__delegate, &e);
+        ntg_listenable_raise(&object->__listenable, &e);
     }
 }
 
@@ -597,7 +590,7 @@ void _ntg_object_child_add(ntg_object* parent, ntg_object* child)
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, parent, NULL);
-    ntg_event_delegate_raise(&parent->__delegate, &e);
+    ntg_listenable_raise(&parent->__listenable, &e);
 }
 
 void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
@@ -612,7 +605,7 @@ void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, parent, NULL);
-    ntg_event_delegate_raise(&parent->__delegate, &e);
+    ntg_listenable_raise(&parent->__listenable, &e);
 }
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
@@ -621,11 +614,6 @@ void _ntg_object_set_process_key_fn(ntg_object* object,
     assert(object != NULL);
 
     object->__process_key_fn = process_key_fn;
-}
-
-ntg_event_delegate* _ntg_object_get_delegate(ntg_object* object)
-{
-    return &object->__delegate;
 }
 
 void _ntg_object_perform_tree(ntg_object* root,

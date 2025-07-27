@@ -107,6 +107,8 @@ void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object)
     }
 }
 
+void ntg_scene_listen(ntg_scene* scene, struct ntg_event_sub sub);
+
 /* -------------------------------------------------------------------------- */
 
 static bool __process_key_fn_default(ntg_scene* scene,
@@ -119,4 +121,3 @@ static bool __process_key_fn_default(ntg_scene* scene,
     else
         return false;
 }
-

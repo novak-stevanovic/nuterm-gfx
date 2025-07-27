@@ -4,6 +4,7 @@
 #include "nt_shared.h"
 #include "nt_gfx.h"
 #include <sys/types.h>
+#include "base/ntg_event.h"
 
 typedef struct ntg_stage ntg_stage;
 

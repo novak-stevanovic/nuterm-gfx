@@ -1,3 +1,0 @@
-#ifndef _NTG_PROCESS_KEY_FN_H_
-#define _NTG_PROCESS_KEY_FN_H_
-#endif _NTG_PROCESS_KEY_FN_H_

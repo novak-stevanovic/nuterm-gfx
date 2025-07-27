@@ -1,6 +1,7 @@
 #ifndef _NTG_SCENE_H_
 #define _NTG_SCENE_H_
 
+#include "base/ntg_event.h"
 #include "core/ntg_scene_drawing.h"
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
@@ -55,5 +56,7 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
 /* By default, the scene will feed the key event to the focus object. */
 void _ntg_scene_set_process_key_fn(ntg_scene* scene,
         ntg_scene_process_key_fn process_key_fn);
+
+void ntg_scene_listen(ntg_scene* scene, struct ntg_event_sub sub);
 
 #endif // _NTG_SCENE_H_

@@ -22,6 +22,26 @@ void __ntg_event_sub_vec_deinit__(ntg_event_sub_vec* vec)
     assert(status == 0);
 }
 
+ntg_event_sub_vec* ntg_event_sub_vec_new()
+{
+    ntg_event_sub_vec* new = (ntg_event_sub_vec*)malloc(
+            sizeof(struct ntg_event_sub_vec));
+    assert(new != NULL);
+
+    __ntg_event_sub_vec_init__(new);
+
+    return new;
+}
+
+void ntg_event_sub_vec_destroy(ntg_event_sub_vec* vec)
+{
+    assert(vec != NULL);
+
+    __ntg_event_sub_vec_deinit__(vec);
+
+    free(vec);
+}
+
 void ntg_event_sub_vec_append(ntg_event_sub_vec* vec, struct ntg_event_sub sub)
 {
     int status = ntg_vector_append((struct ntg_vector*)vec, &sub, EL_SIZE);

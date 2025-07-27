@@ -20,90 +20,80 @@ void __ntg_event_init__(ntg_event* event, uint type, void* source, void* data)
 
 void __ntg_event_deinit__(ntg_event* event)
 {
+    assert(event != NULL);
+
     event->_type = UINT_MAX;
     event->_id = UINT_MAX;
     event->_data = NULL;
     event->_source = NULL;
 }
 
-/* -------------------------------------------------------------------------- */
-
-void __ntg_event_delegate_init__(ntg_event_delegate* delegate)
+void __ntg_listenable_init__(ntg_listenable* listenable, void* source)
 {
-    assert(delegate != NULL);
+    assert(listenable != NULL);
+    assert(source != NULL);
     
-    __ntg_event_sub_vec_init__(&delegate->_subs);
+    listenable->_source = source;
+    listenable->_subs = ntg_event_sub_vec_new();
 }
 
-void __ntg_event_delegate_deinit__(ntg_event_delegate* delegate)
+void __ntg_listenable_deinit__(ntg_listenable* listenable)
 {
-    assert(delegate != NULL);
+    assert(listenable != NULL);
 
-    __ntg_event_sub_vec_deinit__(&delegate->_subs);
+    listenable->_source = NULL;
+    ntg_event_sub_vec_destroy(listenable->_subs);
+    listenable->_subs = NULL;
 }
 
-void ntg_event_delegate_raise(ntg_event_delegate* delegate, ntg_event* event)
+void ntg_listenable_raise(ntg_listenable* listenable, ntg_event* event)
 {
-    assert(event != NULL);
+    assert(listenable != NULL);
+
+    ntg_event_sub_vec* subs = listenable->_subs;
 
     size_t i;
-    struct ntg_event_sub it_sub;
-    for(i = 0; i < delegate->_subs._count; i++)
+    for(i = 0; i < subs->_count; i++)
     {
-        it_sub = delegate->_subs._data[i];
-        it_sub.handler(it_sub.subscriber, event);
+        subs->_data[i].handler(subs->_data[i].subscriber, event);
     }
 }
 
-/* -------------------------------------------------------------------------- */
-
-ntg_event_delegate_view ntg_event_delegate_view_new(ntg_event_delegate* delegate)
+void ntg_listenable_listen(ntg_listenable* listenable,
+        struct ntg_event_sub subscriber)
 {
-    assert(delegate!= NULL);
+    assert(listenable != NULL);
+    assert(subscriber.subscriber != NULL);
+    assert(subscriber.handler != NULL);
 
-    return (ntg_event_delegate_view) {
-        .__delegate = delegate
-    };
+    if(ntg_listenable_is_listening(listenable, subscriber.subscriber))
+        return;
+
+    ntg_event_sub_vec_append(listenable->_subs, subscriber);
 }
 
-void ntg_event_delegate_view_sub(ntg_event_delegate_view* view,
-        struct ntg_event_sub subscription)
+void ntg_listenable_stop_listening(ntg_listenable* listenable, void* subscriber)
 {
-    assert(view != NULL);
-    assert(subscription.subscriber != NULL);
-    assert(subscription.handler != NULL);
+    assert(listenable != NULL);
 
-    if(!ntg_event_delegate_view_is_subbed(view, subscription.subscriber))
-        ntg_event_sub_vec_append(&(view->__delegate->_subs), subscription);
+    if(!ntg_listenable_is_listening(listenable, subscriber))
+        return;
 
+    ntg_event_sub_vec_remove_sub(listenable->_subs, subscriber);
 }
 
-void ntg_event_delegate_view_unsub(ntg_event_delegate_view* view,
-        void* subscriber)
+bool ntg_listenable_is_listening(ntg_listenable* listenable, void* subscriber)
 {
-    assert(view != NULL);
-    assert(subscriber != NULL);
+    assert(listenable != NULL);
 
-    ssize_t find_status = ntg_event_sub_vec_find_sub(
-            &(view->__delegate->_subs),
-            subscriber);
+    ntg_event_sub_vec* subs = listenable->_subs;
 
-    if(find_status != -1)
+    size_t i;
+    for(i = 0; i < subs->_count; i++)
     {
-        ntg_event_sub_vec_remove_sub(&(view->__delegate->_subs), subscriber);
+        if(subs->_data[i].subscriber == subscriber)
+            return true;
     }
-}
 
-bool ntg_event_delegate_view_is_subbed(const ntg_event_delegate_view* view,
-        void* subscriber)
-{
-    assert(view != NULL);
-
-    ssize_t find_status = ntg_event_sub_vec_find_sub(
-            &(view->__delegate->_subs),
-            subscriber);
-
-    assert(find_status != -2);
-
-    return (find_status != -1);
+    return false;
 }

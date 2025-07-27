@@ -1,0 +1,6 @@
+#ifndef _NTG_EVENT_SOURCES_H_
+#define _NTG_EVENT_SOURCES_H_
+
+#define NTG_EVENT_SOURCE_ADAPTER 0x01
+
+#endif // _NTG_EVENT_SOURCES_H_

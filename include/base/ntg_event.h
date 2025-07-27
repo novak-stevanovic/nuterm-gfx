@@ -1,7 +1,6 @@
 #ifndef _NTG_EVENT_H_
 #define _NTG_EVENT_H_
 
-#include "base/ntg_event_sub_vec.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <sys/types.h>
@@ -19,17 +18,11 @@ typedef struct ntg_event
     void* _data;
 } ntg_event;
 
-/* Keep this internal to prevent other objects from raising the event */
-typedef struct ntg_event_delegate
+typedef struct ntg_listenable
 {
-    ntg_event_sub_vec _subs;
-} ntg_event_delegate;
-
-/* Expose this to allow other objects to subscribe/unsubscribe */
-typedef struct ntg_event_delegate_view
-{
-    ntg_event_delegate* __delegate;
-} ntg_event_delegate_view;
+    void* _source;
+    ntg_event_sub_vec* _subs;
+} ntg_listenable;
 
 typedef void (*ntg_event_handler)(void* subscriber, ntg_event* event);
 
@@ -44,23 +37,16 @@ struct ntg_event_sub
 void __ntg_event_init__(ntg_event* event, uint type, void* source, void* data);
 void __ntg_event_deinit__(ntg_event* event);
 
-/* ------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
 
-void __ntg_event_delegate_init__(ntg_event_delegate* delegate);
-void __ntg_event_delegate_deinit__(ntg_event_delegate* delegate);
+void __ntg_listenable_init__(ntg_listenable* listenable, void* source);
+void __ntg_listenable_deinit__(ntg_listenable* listenable);
 
-void ntg_event_delegate_raise(ntg_event_delegate* delegate, ntg_event* event);
-
-/* ------------------------------------------------------ */
-
-ntg_event_delegate_view ntg_event_delegate_view_new(ntg_event_delegate* delegate);
-
-void ntg_event_delegate_view_sub(ntg_event_delegate_view* view,
-        struct ntg_event_sub subscription);
-void ntg_event_delegate_view_unsub(ntg_event_delegate_view* view,
-        void* subscriber);
-bool ntg_event_delegate_view_is_subbed(const ntg_event_delegate_view* view,
-        void* subscriber);
+void ntg_listenable_raise(ntg_listenable* listenable, ntg_event* event);
+void ntg_listenable_listen(ntg_listenable* listenable,
+        struct ntg_event_sub subscriber);
+void ntg_listenable_stop_listening(ntg_listenable* listenable, void* subscriber);
+bool ntg_listenable_is_listening(ntg_listenable* listenable, void* subscriber);
 
 /* -------------------------------------------------------------------------- */
 

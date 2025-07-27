@@ -16,6 +16,9 @@ typedef struct ntg_event_sub_vec
 void __ntg_event_sub_vec_init__(ntg_event_sub_vec* vec);
 void __ntg_event_sub_vec_deinit__(ntg_event_sub_vec* vec);
 
+ntg_event_sub_vec* ntg_event_sub_vec_new();
+void ntg_event_sub_vec_destroy(ntg_event_sub_vec* vec);
+
 void ntg_event_sub_vec_append(ntg_event_sub_vec* vec, struct ntg_event_sub sub);
 
 ssize_t ntg_event_sub_vec_find_sub(const ntg_event_sub_vec* vec,

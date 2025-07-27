@@ -157,8 +157,6 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
 
 /* ------------------------------------------------------ */
 
-// ntg_event_delegate_view ntg_object_get_delegate_view(ntg_object* object);
-
 void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription);
 
 void ntg_object_stop_listening(ntg_object* object, void* subscriber);
@@ -227,7 +225,7 @@ struct ntg_object
 
     ntg_scene* _scene;
 
-    ntg_event_delegate __delegate;
+    ntg_listenable __listenable;
 };
 
 /* ntg_object protected */
@@ -264,10 +262,6 @@ void _ntg_object_scroll_enable(ntg_object* object);
 void _ntg_object_scroll_disable(ntg_object* object);
 void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff);
 struct ntg_xy _ntg_object_get_scroll(const ntg_object* object);
-
-/* ------------------------------------------------------ */
-
-ntg_event_delegate* _ntg_object_get_delegate(ntg_object* object);
 
 /* ------------------------------------------------------ */
 
