@@ -63,6 +63,15 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
 void _ntg_scene_set_process_key_fn(ntg_scene* scene,
         ntg_scene_process_key_fn process_key_fn);
 
+/* Event types raised by ntg_scene:
+ * 1) NTG_ETYPE_SCENE_RESIZE,
+ * 2) NTG_ETYPE_SCENE_ROOT_CHANGE,
+ * 3) NTG_ETYPE_SCENE_FOCUSED_CHANGE,
+ * 4) NTG_ETYPE_SCENE_LAYOUT,
+ * 5) NTG_ETYPE_SCENE_OBJECT_REGISTER,
+ * 6) NTG_ETYPE_SCENE_OBJECT_UNREGISTER
+ */
+
 void ntg_scene_listen(ntg_scene* scene, struct ntg_event_sub sub);
 void ntg_scene_stop_listening(ntg_scene* scene, void* subscriber);
 

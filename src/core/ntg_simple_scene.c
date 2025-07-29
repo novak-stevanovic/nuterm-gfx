@@ -398,7 +398,7 @@ static void __object_handler(void* __scene, ntg_event* event)
 
     switch(event->_type)
     {
-        case NTG_OBJECT_INTERNALS_CHANGE:
+        case NTG_ETYPE_OBJECT_INTERNALS_CHANGE:
             data->recalculate_natural_size = true;
             data->reconstrain = true;
             data->remeasure = true;
@@ -407,7 +407,7 @@ static void __object_handler(void* __scene, ntg_event* event)
 
             scene->__tainted = true;
             break;
-        case NTG_OBJECT_PREF_SIZE_CHANGE:
+        case NTG_ETYPE_OBJECT_PREF_SIZE_CHANGE:
             data->recalculate_natural_size = true;
             data->reconstrain = true;
             data->remeasure = true;

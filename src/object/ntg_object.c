@@ -112,13 +112,13 @@ void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size)
 
     object->__pref_size = pref_size;
 
-    struct ntg_pref_size_change data = {
+    struct ntg_size_change data = {
         .old = old,
         .new = pref_size
     };
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_PREF_SIZE_CHANGE, object, &data);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_PREF_SIZE_CHANGE, object, &data);
     ntg_listenable_raise(&object->__listenable, &e);
 }
 
@@ -275,7 +275,7 @@ void ntg_object_set_border_style(ntg_object* object,
     object->_border_style = border_style;
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, object, NULL);
     ntg_listenable_raise(&object->__listenable, &e);
 }
 
@@ -287,7 +287,7 @@ void ntg_object_set_border_pref_size(ntg_object* object,
     object->_border_pref_size = border_size;
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, object, NULL);
     ntg_listenable_raise(&object->__listenable, &e);
 }
 
@@ -299,7 +299,7 @@ void ntg_object_set_border_size_fn(ntg_object* object,
     object->__border_size_fn = calculate_border_size_fn;
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, object, NULL);
     ntg_listenable_raise(&object->__listenable, &e);
 }
 
@@ -521,7 +521,7 @@ void _ntg_object_scroll_enable(ntg_object* object)
         object->__buffered_scroll = ntg_dxy(0, 0);
 
         ntg_event e;
-        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, object, NULL);
         ntg_listenable_raise(&object->__listenable, &e);
     }
 }
@@ -537,7 +537,7 @@ void _ntg_object_scroll_disable(ntg_object* object)
         object->__buffered_scroll = ntg_dxy(0, 0);
 
         ntg_event e;
-        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, object, NULL);
         ntg_listenable_raise(&object->__listenable, &e);
     }
 }
@@ -552,7 +552,7 @@ void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff)
                 offset_diff);
 
         ntg_event e;
-        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, object, NULL);
         ntg_listenable_raise(&object->__listenable, &e);
     }
 }
@@ -580,7 +580,7 @@ void _ntg_object_child_add(ntg_object* parent, ntg_object* child)
     _ntg_object_perform_tree(child, __adjust_scene_fn, parent->_scene);
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, parent, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, parent, NULL);
     ntg_listenable_raise(&parent->__listenable, &e);
 }
 
@@ -595,7 +595,7 @@ void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
     _ntg_object_perform_tree(child, __adjust_scene_fn, NULL);
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, parent, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, parent, NULL);
     ntg_listenable_raise(&parent->__listenable, &e);
 }
 

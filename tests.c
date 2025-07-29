@@ -20,7 +20,7 @@
 
 static void __root_change_handler(void* subscriber, ntg_event* event)
 {
-    if(event->_type == NTG_SCENE_ROOT_CHANGE)
+    if(event->_type == NTG_ETYPE_SCENE_ROOT_CHANGE)
     {
         struct ntg_object_change data = *(struct ntg_object_change*)event->_data;
         ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | CHANGED ROOT FOR SCENE: %p | OLD: %p | NEW: %p",
@@ -30,7 +30,7 @@ static void __root_change_handler(void* subscriber, ntg_event* event)
 
 static void __scene_layout_handler(void* subscriber, ntg_event* event)
 {
-    if(event->_type == NTG_SCENE_LAYOUT)
+    if(event->_type == NTG_ETYPE_SCENE_LAYOUT)
     {
         ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | SCENE LAYOUT", subscriber, event->_source);
     }
@@ -38,7 +38,7 @@ static void __scene_layout_handler(void* subscriber, ntg_event* event)
 
 static void __stage_render_handler(void* subscriber, ntg_event* event)
 {
-    if(event->_type == NTG_STAGE_RENDER)
+    if(event->_type == NTG_ETYPE_STAGE_RENDER)
     {
         ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | STAGE RENDER", subscriber, event->_source);
     }

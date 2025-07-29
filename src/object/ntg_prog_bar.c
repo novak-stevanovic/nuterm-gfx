@@ -24,7 +24,7 @@ static bool __process_key_event_fn(ntg_object* __prog_bar,
             case 'a':
                 ntg_prog_bar_increase_completed_job_count(prog_bar, 2);
                 ntg_event e;
-                __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, __prog_bar, NULL);
+                __ntg_event_init__(&e, NTG_ETYPE_OBJECT_INTERNALS_CHANGE, __prog_bar, NULL);
                 ntg_listenable_raise(&__prog_bar->__listenable, &e);
                 return true;
         }

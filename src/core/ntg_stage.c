@@ -50,7 +50,7 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         stage->_active_scene = scene;
 
         ntg_event e;
-        __ntg_event_init__(&e, NTG_STAGE_SCENE_CHANGE, stage, &data);
+        __ntg_event_init__(&e, NTG_ETYPE_STAGE_SCENE_CHANGE, stage, &data);
         ntg_listenable_raise(&stage->__listenable, &e);
     }
 }
@@ -74,7 +74,7 @@ void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
         }
 
         ntg_event e;
-        __ntg_event_init__(&e, NTG_STAGE_RESIZE, stage, &data);
+        __ntg_event_init__(&e, NTG_ETYPE_STAGE_RESIZE, stage, &data);
         ntg_listenable_raise(&stage->__listenable, &e);
     }
 }
@@ -84,7 +84,7 @@ void ntg_stage_render(ntg_stage* stage, ntg_stage_render_mode render_mode)
     assert(stage != NULL);
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_STAGE_RENDER, stage, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_STAGE_RENDER, stage, NULL);
     ntg_listenable_raise(&stage->__listenable, &e);
 
     stage->__render_fn(stage, render_mode);
