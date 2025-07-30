@@ -16,6 +16,7 @@ static bool __process_key_event_fn(ntg_object* __prog_bar,
         struct nt_key_event key_event)
 {
     ntg_prog_bar* prog_bar = NTG_PROG_BAR(__prog_bar);
+    ntg_listenable* listenable = _ntg_object_get_listenable(__prog_bar);
 
     if(key_event.type == NT_KEY_EVENT_UTF32)
     {
@@ -23,9 +24,6 @@ static bool __process_key_event_fn(ntg_object* __prog_bar,
         {
             case 'a':
                 ntg_prog_bar_increase_completed_job_count(prog_bar, 2);
-                ntg_event e;
-                __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, __prog_bar, NULL);
-                ntg_listenable_raise(&__prog_bar->__listenable, &e);
                 return true;
         }
     }
@@ -189,7 +187,27 @@ void ntg_prog_bar_set_total_job_count(ntg_prog_bar* prog_bar,
 {
     assert(prog_bar != NULL);
 
+    if(prog_bar->_total_jobs == total_jobs) return;
+
+    uint old_total = prog_bar->_total_jobs;
     prog_bar->_total_jobs = total_jobs;
+
+    ntg_event e1, e2;
+    struct ntg_uint_change data1 = {
+        .old = old_total,
+        .new = prog_bar->_total_jobs
+    };
+
+    ntg_object* __prog_bar = NTG_OBJECT(prog_bar);
+    ntg_listenable* listenable = _ntg_object_get_listenable(__prog_bar);
+    __ntg_event_init__(&e1, NTG_ETYPE_PROG_BAR_TOTAL_JOB_CHANGE, __prog_bar, &data1);
+    ntg_listenable_raise(listenable, &e1);
+    __ntg_event_init__(&e2, NTG_ETYPE_OBJECT_CONTENT_INVALID, __prog_bar, NULL);
+    ntg_listenable_raise(listenable, &e2);
+
+    uint new_completed = _min2_uint(prog_bar->_completed_jobs, prog_bar->_total_jobs);
+    ntg_prog_bar_set_completed_job_count(prog_bar, new_completed);
+
 }
 
 void ntg_prog_bar_set_completed_job_count(ntg_prog_bar* prog_bar,
@@ -197,8 +215,25 @@ void ntg_prog_bar_set_completed_job_count(ntg_prog_bar* prog_bar,
 {
     assert(prog_bar != NULL);
 
-    prog_bar->_completed_jobs = (completed_jobs <= prog_bar->_total_jobs) ?
+    uint old = prog_bar->_completed_jobs;
+    uint new = (completed_jobs <= prog_bar->_total_jobs) ?
         completed_jobs : prog_bar->_total_jobs;
+
+    if(old == new) return;
+
+    prog_bar->_completed_jobs = new;
+
+    ntg_event e1, e2;
+    struct ntg_uint_change data = {
+        .old = old,
+        .new = new
+    };
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(prog_bar));
+    __ntg_event_init__(&e1, NTG_ETYPE_PROG_BAR_CURRENT_JOB_CHANGE, prog_bar, &data);
+    ntg_listenable_raise(listenable, &e1);
+    __ntg_event_init__(&e2, NTG_ETYPE_OBJECT_CONTENT_INVALID, prog_bar, NULL);
+    ntg_listenable_raise(listenable, &e2);
+
 }
 
 void ntg_prog_bar_increase_completed_job_count(ntg_prog_bar* prog_bar,
@@ -208,4 +243,64 @@ void ntg_prog_bar_increase_completed_job_count(ntg_prog_bar* prog_bar,
 
     ntg_prog_bar_set_completed_job_count(prog_bar, prog_bar->_completed_jobs +
             completed_job_increase);
+}
+
+void ntg_prog_bar_set_completed_style(ntg_prog_bar* prog_bar,
+        ntg_cell completed_style)
+{
+    assert(prog_bar != NULL);
+
+    if(ntg_cell_are_equal(completed_style, prog_bar->_completed_style)) return;
+
+    prog_bar->_completed_style = completed_style;
+
+    ntg_event e1, e2;
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(prog_bar));
+    __ntg_event_init__(&e2, NTG_ETYPE_OBJECT_CONTENT_INVALID, prog_bar, NULL);
+    ntg_listenable_raise(listenable, &e2);
+}
+
+void ntg_prog_bar_set_uncompleted_style(ntg_prog_bar* prog_bar,
+        ntg_cell uncompleted_style)
+{
+    assert(prog_bar != NULL);
+
+    if(ntg_cell_are_equal(uncompleted_style, prog_bar->_uncompleted_style)) return;
+
+    prog_bar->_uncompleted_style = uncompleted_style;
+
+    ntg_event e1, e2;
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(prog_bar));
+    __ntg_event_init__(&e2, NTG_ETYPE_OBJECT_CONTENT_INVALID, prog_bar, NULL);
+    ntg_listenable_raise(listenable, &e2);
+}
+
+void ntg_prog_bar_set_threshold_style(ntg_prog_bar* prog_bar,
+        ntg_cell threshold_style)
+{
+    assert(prog_bar != NULL);
+
+    if(ntg_cell_are_equal(threshold_style, prog_bar->_threshold_style)) return;
+
+    prog_bar->_threshold_style = threshold_style;
+
+    ntg_event e1, e2;
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(prog_bar));
+    __ntg_event_init__(&e2, NTG_ETYPE_OBJECT_CONTENT_INVALID, prog_bar, NULL);
+    ntg_listenable_raise(listenable, &e2);
+}
+
+void ntg_prog_bar_set_orientation(ntg_prog_bar* prog_bar,
+        ntg_orientation orientation)
+{
+    assert(prog_bar != NULL);
+
+    if(prog_bar->_orientation == orientation) return;
+
+    prog_bar->_orientation = orientation;
+
+    ntg_event e1, e2;
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(prog_bar));
+    __ntg_event_init__(&e2, NTG_ETYPE_OBJECT_LAYOUT_INVALID, prog_bar, NULL);
+    ntg_listenable_raise(listenable, &e2);
 }

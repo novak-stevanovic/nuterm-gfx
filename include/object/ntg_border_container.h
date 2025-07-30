@@ -11,7 +11,8 @@ typedef struct ntg_border_container
 {
     ntg_container __base;
 
-    ntg_object *_north, *_east, *_south, *_west, *_center;
+    ntg_object *_north, *_east, *_south,
+               *_west, *_center;
 } ntg_border_container;
 
 void __ntg_border_container_init__(ntg_border_container* container);

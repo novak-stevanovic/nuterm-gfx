@@ -113,8 +113,6 @@ static void __render_fn(ntg_stage* _stage, ntg_stage_render_mode render_mode)
 
     ntg_simple_stage* stage = (ntg_simple_stage*)_stage;
 
-    ntg_scene_layout(_stage->_active_scene);
-
     nt_buffer_enable(stage->__buff);
 
     if(render_mode == NTG_STAGE_RENDER_MODE_OPTIMIZED)

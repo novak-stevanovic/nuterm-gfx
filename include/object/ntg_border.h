@@ -32,6 +32,16 @@ static inline struct ntg_xy ntg_border_size_offset(struct ntg_border_size border
     return ntg_xy(border_size.west, border_size.north);
 }
 
+static inline bool ntg_border_size_are_equal(struct ntg_border_size s1, struct ntg_border_size s2)
+{
+    return (memcmp(&s1, &s2, sizeof(struct ntg_border_size)) == 0);
+}
+
 struct ntg_border_style ntg_border_style_default();
+
+static inline bool ntg_border_style_are_equal(struct ntg_border_style s1, struct ntg_border_style s2)
+{
+    return (memcmp(&s1, &s2, sizeof(struct ntg_border_style)) == 0);
+}
 
 #endif // _NTG_BORDER_H_

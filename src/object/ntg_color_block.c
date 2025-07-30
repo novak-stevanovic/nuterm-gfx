@@ -44,9 +44,11 @@ static bool __object_process_key_fn(ntg_object* _color_block,
 
 static void inline __update_color(ntg_color_block* block, nt_color color)
 {
+    if(nt_color_cmp(block->_color, color)) return;
+
     block->_color = color;
-    
-    (NTG_SOLID_BLOCK(block))->_cell_bp = ntg_cell_bg(color);
+
+    _ntg_solid_block_set_cell_bp(NTG_SOLID_BLOCK(block), ntg_cell_bg(color));
 }
 
 void __ntg_color_block_init__(ntg_color_block* block, nt_color color)

@@ -157,6 +157,11 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
 
 /* ------------------------------------------------------ */
 
+/* Events types raised by ntg_object:
+ * 1) NTG_ETYPE_OBJECT_INTERNALS_CHANGE,
+ * 2) NTG_ETYPE_OBJECT_PREF_SIZE_CHANGE 
+ */
+
 void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription);
 
 void ntg_object_stop_listening(ntg_object* object, void* subscriber);
@@ -265,17 +270,12 @@ struct ntg_xy _ntg_object_get_scroll(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
+ntg_listenable* _ntg_object_get_listenable(ntg_object* object);
+
+/* ------------------------------------------------------ */
+
 void _ntg_object_perform_tree(ntg_object* root,
         void (*perform_fn)(ntg_object* curr_obj, void* data),
         void* data);
-
-/* -------------------------------------------------------------------------- */
-/* EVENT TYPE DATA STRUCTS */
-/* -------------------------------------------------------------------------- */
-
-struct ntg_pref_size_change
-{
-    struct ntg_xy old, new;
-};
 
 #endif // _NTG_OBJECT_H_

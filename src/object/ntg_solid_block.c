@@ -1,7 +1,9 @@
-#include "object/ntg_solid_block.h"
-#include "object/shared/ntg_object_drawing.h"
 #include <assert.h>
 #include <stdlib.h>
+
+#include "object/ntg_solid_block.h"
+#include "object/shared/ntg_object_drawing.h"
+#include "base/ntg_event_types.h"
 
 static void __natural_size_fn(ntg_object* _solid_block)
 {
@@ -84,7 +86,15 @@ void ntg_solid_block_destroy(ntg_solid_block* solid_block)
     free(solid_block);
 }
 
-void ntg_solid_block_set_cell_bp(ntg_solid_block* solid_block, ntg_cell cell_bp)
+void _ntg_solid_block_set_cell_bp(ntg_solid_block* solid_block, ntg_cell cell_bp)
 {
     assert(solid_block != NULL);
+
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(solid_block));
+
+    solid_block->_cell_bp = cell_bp;
+
+    ntg_event e1;
+    __ntg_event_init__(&e1, NTG_ETYPE_OBJECT_CONTENT_INVALID, solid_block, NULL);
+    ntg_listenable_raise(listenable, &e1);
 }

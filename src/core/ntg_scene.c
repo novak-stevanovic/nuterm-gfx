@@ -48,78 +48,75 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* new_root)
 {
     assert(scene != NULL);
 
+    if(scene->_root == new_root) return;
+
     if(scene->_root != NULL)
         _ntg_object_set_scene(scene->_root, NULL);
 
-    if(scene->_root != new_root)
-    {
-        struct ntg_object_change data = {
-            .old = scene->_root,
-            .new = new_root
-        };
+    if(new_root)
+        _ntg_object_set_scene(new_root, scene);
 
-        ntg_event e;
-        __ntg_event_init__(&e, NTG_SCENE_ROOT_CHANGE, scene, &data);
-        ntg_listenable_raise(&scene->__listenable, &e);
-    }
+    struct ntg_object_change data = {
+        .old = scene->_root,
+        .new = new_root
+    };
 
     scene->_root = new_root;
 
-    if(new_root)
-        _ntg_object_set_scene(new_root, scene);
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_ETYPE_SCENE_ROOT_CHANGE, scene, &data);
+    ntg_listenable_raise(&scene->__listenable, &e);
 }
 
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
 {
     assert(scene != NULL);
 
-    if(scene->_focused != object)
-    {
-        struct ntg_object_change data = {
-            .old = scene->_focused,
-            .new = object
-        };
+    if(scene->_focused == object) return;
 
-        ntg_event e;
-        __ntg_event_init__(&e, NTG_SCENE_FOCUSED_CHANGE, scene, &data);
-        ntg_listenable_raise(&scene->__listenable, &e);
-    }
-    
     if(object != NULL)
         assert(scene == object->_scene);
 
+    struct ntg_object_change data = {
+        .old = scene->_focused,
+        .new = object
+    };
+
     scene->_focused = object;
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_ETYPE_SCENE_FOCUSED_CHANGE, scene, &data);
+    ntg_listenable_raise(&scene->__listenable, &e);
 }
 
 void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 {
     assert(scene != NULL);
 
-    if(!ntg_xy_are_equal(scene->_size, size))
-    {
-        struct ntg_size_change data = {
-            .old = scene->_size,
-            .new = size
-        };
+    if(ntg_xy_are_equal(scene->_size, size)) return;
 
-        scene->_size = size;
-        ntg_scene_drawing_set_size(&scene->_drawing, size);
+    struct ntg_size_change data = {
+        .old = scene->_size,
+        .new = size
+    };
 
-        ntg_event e;
-        __ntg_event_init__(&e, NTG_STAGE_RESIZE, scene, &data);
-        ntg_listenable_raise(&scene->__listenable, &e);
-    }
+    scene->_size = size;
+    ntg_scene_drawing_set_size(&scene->_drawing, size);
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_ETYPE_STAGE_RESIZE, scene, &data);
+    ntg_listenable_raise(&scene->__listenable, &e);
 }
 
 void ntg_scene_layout(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    ntg_event e;
-    __ntg_event_init__(&e, NTG_SCENE_LAYOUT, scene, NULL);
-    ntg_listenable_raise(&scene->__listenable, &e);
-
     scene->__layout_fn(scene);
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_ETYPE_SCENE_LAYOUT, scene, NULL);
+    ntg_listenable_raise(&scene->__listenable, &e);
 }
 
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
@@ -143,14 +140,14 @@ void ntg_scene_register_object(ntg_scene* scene, ntg_object* object)
     assert(scene != NULL);
     assert(object != NULL);
 
-    ntg_event e;
-    __ntg_event_init__(&e, NTG_SCENE_OBJECT_REGISTER, scene, object);
-    ntg_listenable_raise(&scene->__listenable, &e);
-
     if(scene->__on_object_register_fn != NULL)
     {
         scene->__on_object_register_fn(scene, object);
     }
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_ETYPE_SCENE_OBJECT_REGISTER, scene, object);
+    ntg_listenable_raise(&scene->__listenable, &e);
 }
 
 void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object)
@@ -158,14 +155,14 @@ void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object)
     assert(scene != NULL);
     assert(object != NULL);
 
-    ntg_event e;
-    __ntg_event_init__(&e, NTG_SCENE_OBJECT_UNREGISTER, scene, object);
-    ntg_listenable_raise(&scene->__listenable, &e);
-
     if(scene->__on_object_unregister_fn != NULL)
     {
         scene->__on_object_unregister_fn(scene, object);
     }
+
+    ntg_event e;
+    __ntg_event_init__(&e, NTG_ETYPE_SCENE_OBJECT_UNREGISTER, scene, object);
+    ntg_listenable_raise(&scene->__listenable, &e);
 }
 
 void ntg_scene_listen(ntg_scene* scene, struct ntg_event_sub sub)

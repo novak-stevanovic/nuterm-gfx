@@ -1,4 +1,5 @@
 #include "base/ntg_cell.h"
+#include "base/ntg_event_types.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "object/ntg_object.h"
@@ -61,5 +62,12 @@ void _ntg_container_set_bg(ntg_container* container, nt_color bg)
 {
     if(container == NULL) return;
 
+    if(nt_color_cmp(container->__bg, bg)) return;
+
     container->__bg = bg;
+
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(container));
+    ntg_event e1;
+    __ntg_event_init__(&e1, NTG_ETYPE_OBJECT_CONTENT_INVALID, container, NULL);
+    ntg_listenable_raise(listenable, &e1);
 }

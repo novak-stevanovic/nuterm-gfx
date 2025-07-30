@@ -65,6 +65,8 @@ static void __on_object_unregister_fn(ntg_scene* _scene, ntg_object* object);
 
 static void __object_handler(void* __scene, ntg_event* event);
 
+static void __mark_redraw_all(ntg_object* curr_obj, ntg_simple_scene* scene);
+
 void __ntg_simple_scene_init__(ntg_simple_scene* scene)
 {
     assert(scene != NULL);
@@ -140,6 +142,7 @@ static void __natural_size_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
         {
             data->reconstrain = true;
             data->remeasure = true;
+            data->rearrange = true;
         }
 
         if(!ntg_xy_are_equal(old_nsize, new_nsize) && (curr_obj->_parent != NULL))
@@ -148,6 +151,8 @@ static void __natural_size_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
                 __graph_data_get(&scene->__graph_data, curr_obj->_parent);
 
             parent_data->recalculate_natural_size = true;
+            // parent_data->reconstrain = true;
+            // parent_data->remeasure = true;
         }
 
         data->recalculate_natural_size = false;
@@ -177,6 +182,7 @@ static void __constrain_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
         }
 
         ntg_object_constrain(curr_obj);
+
         data->reconstrain = false;
 
         struct ntg_constr it_constr;
@@ -234,12 +240,12 @@ static void __measure_phase(ntg_object* curr_obj, ntg_simple_scene* scene)
     struct ntg_xy new_size = ntg_object_get_size(curr_obj);
     struct ntg_xy new_content_size = ntg_object_get_content_size(curr_obj);
 
-    if((!ntg_xy_are_equal(old_content_size, new_content_size)) ||
+    if(!ntg_xy_are_equal(old_content_size, new_content_size) ||
             !(ntg_xy_are_equal(old_size, new_size)))
     {
         data->rearrange = true;
         // TODO ?
-        data->redraw = true;
+        __mark_redraw_all(curr_obj, scene);
     }
 }
 
@@ -390,7 +396,7 @@ static void __on_object_unregister_fn(ntg_scene* _scene, ntg_object* object)
 
 static void __object_handler(void* __scene, ntg_event* event)
 {
-    // ntg_scene* _scene = (ntg_scene*)__scene;
+    ntg_scene* _scene = (ntg_scene*)__scene;
     ntg_simple_scene* scene = (ntg_simple_scene*)__scene;
 
     ntg_object* source = (ntg_object*)event->_source;
@@ -398,7 +404,7 @@ static void __object_handler(void* __scene, ntg_event* event)
 
     switch(event->_type)
     {
-        case NTG_OBJECT_INTERNALS_CHANGE:
+        case NTG_ETYPE_OBJECT_LAYOUT_INVALID:
             data->recalculate_natural_size = true;
             data->reconstrain = true;
             data->remeasure = true;
@@ -407,7 +413,13 @@ static void __object_handler(void* __scene, ntg_event* event)
 
             scene->__tainted = true;
             break;
-        case NTG_OBJECT_PREF_SIZE_CHANGE:
+        case NTG_ETYPE_OBJECT_CONTENT_INVALID:
+            data->rearrange = true;
+            __mark_redraw_all(source, scene);
+
+            scene->__tainted = true;
+            break;
+        case NTG_ETYPE_OBJECT_PREF_SIZE_CHANGE:
             data->recalculate_natural_size = true;
             data->reconstrain = true;
             data->remeasure = true;

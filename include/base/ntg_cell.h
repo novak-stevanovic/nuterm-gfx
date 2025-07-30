@@ -109,6 +109,11 @@ static inline ntg_cell ntg_cell_transparent()
 struct ntg_rcell ntg_cell_overwrite(ntg_cell overwriting,
         struct ntg_rcell overwritten);
 
+static inline bool ntg_cell_are_equal(ntg_cell cell1, ntg_cell cell2)
+{
+    return (memcmp(&cell1, &cell2, sizeof(struct ntg_rcell)) == 0);
+}
+
 /* -------------------------------------------------------------------------- */
 /* NTG_RCELL_GRID */
 /* -------------------------------------------------------------------------- */

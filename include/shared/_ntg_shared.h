@@ -25,6 +25,16 @@ static inline size_t _min2_size(size_t x, size_t y)
     return (x > y) ? y : x;
 }
 
+static inline uint _max2_uint(uint x, uint y)
+{
+    return (x > y) ? x : y;
+}
+
+static inline uint _min2_uint(uint x, uint y)
+{
+    return (x > y) ? y : x;
+}
+
 static inline size_t _max3_size(size_t x, size_t y, size_t z)
 {
     size_t tmp = _max2_size(x, y);

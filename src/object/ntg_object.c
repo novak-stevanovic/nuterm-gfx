@@ -108,17 +108,17 @@ void ntg_object_set_pref_size(ntg_object* object, struct ntg_xy pref_size)
 {
     if(object == NULL) return;
 
-    struct ntg_xy old = object->__pref_size;
+    if(ntg_xy_are_equal(object->__pref_size, pref_size)) return;
 
-    object->__pref_size = pref_size;
-
-    struct ntg_pref_size_change data = {
-        .old = old,
+    struct ntg_size_change data = {
+        .old = object->__pref_size,
         .new = pref_size
     };
 
+    object->__pref_size = pref_size;
+
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_PREF_SIZE_CHANGE, object, &data);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_PREF_SIZE_CHANGE, object, &data);
     ntg_listenable_raise(&object->__listenable, &e);
 }
 
@@ -272,10 +272,12 @@ void ntg_object_set_border_style(ntg_object* object,
 {
     assert(object != NULL);
 
+    if(ntg_border_style_are_equal(object->_border_style, border_style)) return;
+
     object->_border_style = border_style;
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_CONTENT_INVALID, object, NULL);
     ntg_listenable_raise(&object->__listenable, &e);
 }
 
@@ -283,11 +285,13 @@ void ntg_object_set_border_pref_size(ntg_object* object,
         struct ntg_border_size border_size)
 {
     assert(object != NULL);
+
+    if(ntg_border_size_are_equal(object->_border_pref_size, border_size)) return;
     
     object->_border_pref_size = border_size;
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_LAYOUT_INVALID, object, NULL);
     ntg_listenable_raise(&object->__listenable, &e);
 }
 
@@ -296,10 +300,12 @@ void ntg_object_set_border_size_fn(ntg_object* object,
 {
     assert(object != NULL);
 
+    if(object->__border_size_fn == calculate_border_size_fn) return;
+
     object->__border_size_fn = calculate_border_size_fn;
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_LAYOUT_INVALID, object, NULL);
     ntg_listenable_raise(&object->__listenable, &e);
 }
 
@@ -326,6 +332,8 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber)
 void _ntg_object_set_scene(ntg_object* root, ntg_scene* scene)
 {
     assert(root != NULL);
+
+    // TODO: event?
 
     _ntg_object_perform_tree(root, __adjust_scene_fn, scene);
 }
@@ -521,7 +529,7 @@ void _ntg_object_scroll_enable(ntg_object* object)
         object->__buffered_scroll = ntg_dxy(0, 0);
 
         ntg_event e;
-        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        __ntg_event_init__(&e, NTG_ETYPE_OBJECT_LAYOUT_INVALID, object, NULL);
         ntg_listenable_raise(&object->__listenable, &e);
     }
 }
@@ -537,7 +545,7 @@ void _ntg_object_scroll_disable(ntg_object* object)
         object->__buffered_scroll = ntg_dxy(0, 0);
 
         ntg_event e;
-        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        __ntg_event_init__(&e, NTG_ETYPE_OBJECT_LAYOUT_INVALID, object, NULL);
         ntg_listenable_raise(&object->__listenable, &e);
     }
 }
@@ -552,7 +560,7 @@ void _ntg_object_scroll(ntg_object* object, struct ntg_dxy offset_diff)
                 offset_diff);
 
         ntg_event e;
-        __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, object, NULL);
+        __ntg_event_init__(&e, NTG_ETYPE_OBJECT_CONTENT_INVALID, object, NULL);
         ntg_listenable_raise(&object->__listenable, &e);
     }
 }
@@ -565,6 +573,8 @@ struct ntg_xy _ntg_object_get_scroll(const ntg_object* object)
 void _ntg_object_child_add(ntg_object* parent, ntg_object* child)
 {
     assert((parent != NULL) && (child != NULL));
+
+    if(child->_parent == parent) return;
 
     ntg_object* curr_parent = child->_parent;
 
@@ -580,13 +590,15 @@ void _ntg_object_child_add(ntg_object* parent, ntg_object* child)
     _ntg_object_perform_tree(child, __adjust_scene_fn, parent->_scene);
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, parent, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_LAYOUT_INVALID, parent, NULL);
     ntg_listenable_raise(&parent->__listenable, &e);
 }
 
 void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
 {
     assert((parent != NULL) && (child != NULL));
+
+    if(child->_parent != parent) return;
 
     ntg_object_vec_remove(parent->_children, child);
 
@@ -595,7 +607,7 @@ void _ntg_object_child_remove(ntg_object* parent, ntg_object* child)
     _ntg_object_perform_tree(child, __adjust_scene_fn, NULL);
 
     ntg_event e;
-    __ntg_event_init__(&e, NTG_OBJECT_INTERNALS_CHANGE, parent, NULL);
+    __ntg_event_init__(&e, NTG_ETYPE_OBJECT_LAYOUT_INVALID, parent, NULL);
     ntg_listenable_raise(&parent->__listenable, &e);
 }
 
@@ -605,6 +617,13 @@ void _ntg_object_set_process_key_fn(ntg_object* object,
     assert(object != NULL);
 
     object->__process_key_fn = process_key_fn;
+}
+
+ntg_listenable* _ntg_object_get_listenable(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return &object->__listenable;
 }
 
 void _ntg_object_perform_tree(ntg_object* root,

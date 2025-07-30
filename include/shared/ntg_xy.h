@@ -28,6 +28,21 @@ typedef enum ntg_orientation
     NTG_ORIENTATION_VERTICAL
 } ntg_orientation;
 
+typedef enum ntg_alignment
+{
+    /* left, when used in reference to x axis alignment */
+    /* top, when used in reference to y axis alignment */
+    NTG_ALIGNMENT_1,
+
+    /* center */
+    NTG_ALIGNMENT_2,
+
+    /* right, when used in reference to x axis alignment */
+    /* bottom, when used in reference to y axis alignment */
+    NTG_ALIGNMENT_3
+
+} ntg_alignment;
+
 struct ntg_oxy
 {
     size_t prim_val, sec_val;

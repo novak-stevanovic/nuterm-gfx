@@ -20,7 +20,7 @@
 
 static void __root_change_handler(void* subscriber, ntg_event* event)
 {
-    if(event->_type == NTG_SCENE_ROOT_CHANGE)
+    if(event->_type == NTG_ETYPE_SCENE_ROOT_CHANGE)
     {
         struct ntg_object_change data = *(struct ntg_object_change*)event->_data;
         ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | CHANGED ROOT FOR SCENE: %p | OLD: %p | NEW: %p",
@@ -30,7 +30,7 @@ static void __root_change_handler(void* subscriber, ntg_event* event)
 
 static void __scene_layout_handler(void* subscriber, ntg_event* event)
 {
-    if(event->_type == NTG_SCENE_LAYOUT)
+    if(event->_type == NTG_ETYPE_SCENE_LAYOUT)
     {
         ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | SCENE LAYOUT", subscriber, event->_source);
     }
@@ -38,7 +38,7 @@ static void __scene_layout_handler(void* subscriber, ntg_event* event)
 
 static void __stage_render_handler(void* subscriber, ntg_event* event)
 {
-    if(event->_type == NTG_STAGE_RENDER)
+    if(event->_type == NTG_ETYPE_STAGE_RENDER)
     {
         ntg_log_log("SUBSCRIBER RECEIVED EVENT: %p | STAGE RENDER", subscriber, event->_source);
     }
@@ -70,7 +70,6 @@ struct ntg_border_style __create_border1()
 
 // // TODO: remove
 // #include "object/def/ntg_object_def.h"
-
 void gui_fn1(ntg_stage* _main_stage, void* data)
 {
     ntg_cell completed = ntg_cell_bg(nt_color_new(0, 100, 0));
@@ -93,7 +92,7 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     ntg_object_set_pref_size(NTG_OBJECT(cb5), ntg_xy(12, 50));
 
     ntg_color_block* cb6 = ntg_color_block_new(nt_color_new(150, 150, 150));
-    ntg_object_set_pref_size(NTG_OBJECT(cb6), ntg_xy(12, 50));
+    ntg_object_set_pref_size(NTG_OBJECT(cb6), ntg_xy(12, 57));
 
     ntg_color_block* cb7 = ntg_color_block_new(nt_color_new(200, 200, 200));
 
@@ -104,8 +103,8 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     ntg_object_set_pref_size(NTG_OBJECT(cb9), ntg_xy(5500, 5000));
 
     ntg_box* box1 = ntg_box_new(NTG_ORIENTATION_HORIZONTAL,
-            NTG_BOX_ALIGNMENT_2,
-            NTG_BOX_ALIGNMENT_2);
+            NTG_ALIGNMENT_2,
+            NTG_ALIGNMENT_2);
 
     struct ntg_border_size border_size1 = {
         .north = 1,
@@ -123,9 +122,9 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
     ntg_box_add_child(box1, NTG_OBJECT(cb3));
     ntg_box_add_child(box1, NTG_OBJECT(cb4));
 
-    ntg_box* box2 = ntg_box_new(NTG_ORIENTATION_VERTICAL,
-            NTG_BOX_ALIGNMENT_1,
-            NTG_BOX_ALIGNMENT_1);
+    ntg_box* box2 = ntg_box_new(NTG_ORIENTATION_HORIZONTAL,
+            NTG_ALIGNMENT_1,
+            NTG_ALIGNMENT_1);
 
     ntg_box_set_bg_color(box2, nt_color_new(255, 255, 255));
 
@@ -153,13 +152,13 @@ void gui_fn1(ntg_stage* _main_stage, void* data)
         .handler = __scene_layout_handler
     };
 
-    ntg_stage_listen(_main_stage, sub1);
-    ntg_scene_listen(_s1, sub2);
+    // ntg_stage_listen(_main_stage, sub1);
+    // ntg_scene_listen(_s1, sub2);
 
     ntg_scene_set_root(NTG_SCENE(s1), NTG_OBJECT(NTG_OBJECT(box1)));
     ntg_scene_set_root(NTG_SCENE(s1), NTG_OBJECT(bc));
     ntg_stage_set_scene(_main_stage, NTG_SCENE(s1));
-    ntg_scene_focus(NTG_SCENE(s1), NTG_OBJECT(pb1));
+    ntg_scene_focus(NTG_SCENE(s1), NTG_OBJECT(box1));
 
     ntg_loop(_main_stage, 60);
 

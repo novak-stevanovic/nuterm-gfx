@@ -23,7 +23,7 @@ static void* _ntg_thread_fn(void* _thread_fn_data);
 
 void __ntg_init__()
 {
-    // __ntg_log_init__("ntg_log.txt");
+    __ntg_log_init__("ntg_log.txt");
 
     nt_status _status;
     __nt_init__(&_status);
@@ -84,7 +84,7 @@ void ntg_destroy()
     nt_cursor_show(NULL);
     __nt_deinit__();
 
-   // __ntg_log_deinit__();
+   __ntg_log_deinit__();
 }
 
 struct ntg_xy ntg_get_size()
@@ -96,6 +96,20 @@ struct ntg_xy ntg_get_size()
 
 void ntg_loop(ntg_stage* main_stage, uint framerate)
 {
+    // ntg_stage_set_size(main_stage, _app_size);
+    // ntg_stage_render(main_stage, NTG_STAGE_RENDER_MODE_FULL);
+    // struct nt_key_event event = {
+    //     .type = NT_KEY_EVENT_UTF32,
+    //     .utf32_data = {
+    //         .codepoint = 'v',
+    //         .alt = 0
+    //     }
+    // };
+    // ntg_stage_feed_key_event(main_stage, event);
+    // ntg_stage_set_size(main_stage, _app_size);
+    // ntg_stage_render(main_stage, NTG_STAGE_RENDER_MODE_FULL);
+    // getchar();
+
     nt_status _status;
     struct nt_event event;
     uint timeout = NTG_WAIT_TIMEOUT(framerate); 

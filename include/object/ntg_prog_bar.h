@@ -5,6 +5,13 @@
 
 #define NTG_PROG_BAR(prog_bar_ptr) ((ntg_prog_bar*)(prog_bar_ptr))
 
+// TODO: add methods to change styles
+
+/* Additionally, ntg_prog_bar raises event of the following types:
+ * 1) NTG_ETYPE_PROG_BAR_TOTAL_JOB_CHANGE,
+ * 2) NTG_ETYPE_PROG_BAR_CURRENT_JOB_CHANGE
+ */
+
 typedef struct ntg_prog_bar
 {
     ntg_pane __base;
@@ -37,5 +44,15 @@ void ntg_prog_bar_set_completed_job_count(ntg_prog_bar* prog_bar,
         uint completed_jobs);
 void ntg_prog_bar_increase_completed_job_count(ntg_prog_bar* prog_bar,
         uint completed_job_increase);
+
+void ntg_prog_bar_set_completed_style(ntg_prog_bar* prog_bar,
+        ntg_cell completed_style);
+void ntg_prog_bar_set_uncompleted_style(ntg_prog_bar* prog_bar,
+        ntg_cell uncompleted_style);
+void ntg_prog_bar_set_threshold_style(ntg_prog_bar* prog_bar,
+        ntg_cell threshold_style);
+
+void ntg_prog_bar_set_orientation(ntg_prog_bar* prog_bar,
+        ntg_orientation orientation);
 
 #endif // _NTG_PROG_BAR_H_

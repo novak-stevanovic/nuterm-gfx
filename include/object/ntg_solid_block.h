@@ -19,6 +19,6 @@ void __ntg_solid_block_deinit__(ntg_solid_block* solid_block);
 ntg_solid_block* ntg_solid_block_new(ntg_cell cell_bp);
 void ntg_solid_block_destroy(ntg_solid_block* solid_block);
 
-void ntg_solid_block_set_cell_bp(ntg_solid_block* solid_block, ntg_cell cell_bp);
+void _ntg_solid_block_set_cell_bp(ntg_solid_block* solid_block, ntg_cell cell_bp);
 
 #endif // _NTG_SOLID_BLOCK_H_

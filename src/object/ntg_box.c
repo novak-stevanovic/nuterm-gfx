@@ -1,10 +1,12 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "base/ntg_event_types.h"
 #include "base/ntg_sap.h"
 #include "object/ntg_object.h"
 #include "object/shared/ntg_object_vec.h"
 #include "shared/_ntg_shared.h"
+#include "shared/ntg_log.h"
 #include "object/ntg_box.h"
 
 static void __ntg_box_on_nsize(ntg_box* box);
@@ -27,13 +29,13 @@ static bool __process_key_fn(ntg_object* _box,
                 ntg_box_set_orientation(box, NTG_ORIENTATION_VERTICAL);
                 return true;
             case 'a':
-                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_1);
+                ntg_box_set_primary_alignment(box, NTG_ALIGNMENT_1);
                 return true;
             case 'b':
-                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_2);
+                ntg_box_set_primary_alignment(box, NTG_ALIGNMENT_2);
                 return true;
             case 'c':
-                ntg_box_set_primary_alignment(box, NTG_BOX_ALIGNMENT_3);
+                ntg_box_set_primary_alignment(box, NTG_ALIGNMENT_3);
                 return true;
         }
     }
@@ -135,14 +137,26 @@ static void __constrain_fn(ntg_object* _box)
 
     struct ntg_xy it_nsize;
     struct ntg_oxy _it_nsize;
+    struct ntg_oxy _it_min_size, _it_max_size;
+    struct ntg_xy it_min_size, it_max_size;
     if(_content_nsize.prim_val <= _content_constr_max.prim_val)
     {
         for(i = 0; i < children->_count; i++)
         {
             it_child = children->_data[i];
             it_nsize = ntg_object_get_natural_size(it_child);
+            _it_nsize = ntg_oxy_from_xy(it_nsize, orientation);
 
-            _ntg_object_set_constr(it_child, ntg_constr(it_nsize, it_nsize));
+            _it_min_size.prim_val = _it_nsize.prim_val;
+            _it_min_size.sec_val = 0;
+
+            _it_max_size.prim_val = _it_nsize.prim_val;
+            _it_max_size.sec_val = _content_constr_max.sec_val;
+
+            it_min_size = ntg_xy_from_oxy(_it_min_size, orientation);
+            it_max_size = ntg_xy_from_oxy(_it_max_size, orientation);
+
+            _ntg_object_set_constr(it_child, ntg_constr(it_min_size, it_max_size));
         }
     }
     else if((_content_nsize.prim_val <= _content_constr_max.prim_val) &&
@@ -155,8 +169,6 @@ static void __constrain_fn(ntg_object* _box)
 
         ntg_sap_nsize_round_robin(NULL, _sizes, extra, children->_count);
 
-        struct ntg_oxy _it_min_size, _it_max_size;
-        struct ntg_xy it_min_size, it_max_size;
         for(i = 0; i < children->_count; i++)
         {
             it_child = children->_data[i];
@@ -168,8 +180,8 @@ static void __constrain_fn(ntg_object* _box)
             _it_max_size = ntg_oxy(_it_nsize.prim_val + _sizes[i],
                     _content_constr_max.sec_val);
 
-            it_min_size = ntg_xy_size(ntg_xy_from_oxy(_it_min_size, orientation));
-            it_max_size = ntg_xy_size(ntg_xy_from_oxy(_it_max_size, orientation));
+            it_min_size = ntg_xy_from_oxy(_it_min_size, orientation);
+            it_max_size = ntg_xy_from_oxy(_it_max_size, orientation);
 
             _ntg_object_set_constr(it_child, ntg_constr(it_min_size, it_max_size));
         }
@@ -192,16 +204,14 @@ static void __constrain_fn(ntg_object* _box)
                 _content_constr_max.prim_val,
                 children->_count);
 
-        struct ntg_oxy _it_min_size, _it_max_size;
-        struct ntg_xy it_min_size, it_max_size;
         for(i = 0; i < children->_count; i++)
         {
             it_child = children->_data[i];
             _it_min_size = ntg_oxy(_sizes[i], 0);
             _it_max_size = ntg_oxy(_sizes[i], _content_constr_max.sec_val);
 
-            it_min_size = ntg_xy_size(ntg_xy_from_oxy(_it_min_size, orientation));
-            it_max_size = ntg_xy_size(ntg_xy_from_oxy(_it_max_size, orientation));
+            it_min_size = ntg_xy_from_oxy(_it_min_size, orientation);
+            it_max_size = ntg_xy_from_oxy(_it_max_size, orientation);
 
             _ntg_object_set_constr(it_child, ntg_constr(it_min_size, it_max_size));
         }
@@ -271,11 +281,11 @@ static inline struct ntg_xy _determine_total_offset(const ntg_box* box,
     struct ntg_oxy _content_box_size = ntg_oxy_from_xy(content_box_size, orientation);
     struct ntg_oxy _child_size = ntg_oxy_from_xy(child_size, orientation);
 
-    if(box->_primary_alignment == NTG_BOX_ALIGNMENT_1)
+    if(box->_primary_alignment == NTG_ALIGNMENT_1)
     {
         _align_offset.prim_val = 0;
     }
-    else if(box->_primary_alignment == NTG_BOX_ALIGNMENT_2)
+    else if(box->_primary_alignment == NTG_ALIGNMENT_2)
     {
         _align_offset.prim_val = (_content_box_size.prim_val / 2) -
             (_content_size.prim_val / 2);
@@ -286,11 +296,11 @@ static inline struct ntg_xy _determine_total_offset(const ntg_box* box,
             _content_size.prim_val;
     }
 
-    if(box->_secondary_alignment == NTG_BOX_ALIGNMENT_1)
+    if(box->_secondary_alignment == NTG_ALIGNMENT_1)
     {
         _align_offset.sec_val = 0;
     }
-    else if(box->_secondary_alignment == NTG_BOX_ALIGNMENT_2)
+    else if(box->_secondary_alignment == NTG_ALIGNMENT_2)
     {
         _align_offset.sec_val = (_content_box_size.sec_val / 2) -
             (_child_size.sec_val / 2);
@@ -343,12 +353,12 @@ static void __arrange_fn(ntg_container* _box)
 
 static inline void _set_default_values(ntg_box* box)
 {
-    box->_padding = NTG_BOX_PADDING_SIZE_ZERO;
+    box->_padding = NTG_PADDING_SIZE_ZERO;
     box->_orientation = NTG_ORIENTATION_HORIZONTAL;
-    box->_primary_alignment = NTG_BOX_ALIGNMENT_1;
-    box->_secondary_alignment = NTG_BOX_ALIGNMENT_1;
+    box->_primary_alignment = NTG_ALIGNMENT_1;
+    box->_secondary_alignment = NTG_ALIGNMENT_1;
 
-    box->__applied_padding = NTG_BOX_PADDING_SIZE_ZERO;
+    box->__applied_padding = NTG_PADDING_SIZE_ZERO;
     box->__box_content_constr = NTG_CONSTR_UNSET;
     box->__box_content_nsize = NTG_XY_UNSET;
     box->__box_content_size = NTG_XY_UNSET;
@@ -357,8 +367,8 @@ static inline void _set_default_values(ntg_box* box)
 
 void __ntg_box_init__(ntg_box* box,
         ntg_orientation orientation,
-        ntg_box_alignment primary_alignment,
-        ntg_box_alignment secondary_alignment)
+        ntg_alignment primary_alignment,
+        ntg_alignment secondary_alignment)
 {
     __ntg_container_init__(NTG_CONTAINER(box), __calculate_nsize_fn,
             __constrain_fn, __measure_fn, __arrange_fn);
@@ -380,8 +390,8 @@ void __ntg_box_deinit__(ntg_box* box)
 }
 
 ntg_box* ntg_box_new(ntg_orientation orientation,
-        ntg_box_alignment primary_alignment,
-        ntg_box_alignment secondary_alignment)
+        ntg_alignment primary_alignment,
+        ntg_alignment secondary_alignment)
 {
     ntg_box* new = (ntg_box*)malloc(sizeof(struct ntg_box));
     if(new == NULL) return NULL;
@@ -407,28 +417,56 @@ void ntg_box_set_padding_size(ntg_box* box, struct ntg_padding_size padding)
 {
     assert(box != NULL);
 
+    if(ntg_padding_size_are_equal(box->_padding, padding)) return;
+
     box->_padding = padding;
+
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(box));
+    ntg_event e1;
+    __ntg_event_init__(&e1, NTG_ETYPE_OBJECT_LAYOUT_INVALID, box, NULL);
+    ntg_listenable_raise(listenable, &e1);
 }
 
 void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation)
 {
     assert(box != NULL);
 
+    if(box->_orientation == orientation) return;
+
     box->_orientation = orientation;
+
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(box));
+    ntg_event e1;
+    __ntg_event_init__(&e1, NTG_ETYPE_OBJECT_LAYOUT_INVALID, box, NULL);
+    ntg_listenable_raise(listenable, &e1);
 }
 
-void ntg_box_set_primary_alignment(ntg_box* box, ntg_box_alignment alignment)
+void ntg_box_set_primary_alignment(ntg_box* box, ntg_alignment alignment)
 {
     assert(box != NULL);
+
+    if(box->_primary_alignment == alignment) return;
 
     box->_primary_alignment = alignment;
+
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(box));
+    ntg_event e1;
+    __ntg_event_init__(&e1, NTG_ETYPE_OBJECT_CONTENT_INVALID, box, NULL);
+    ntg_listenable_raise(listenable, &e1);
 }
 
-void ntg_box_set_secondary_alignment(ntg_box* box, ntg_box_alignment alignment)
+void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment)
 {
     assert(box != NULL);
+    
+    if(box->_secondary_alignment == alignment) return;
 
     box->_secondary_alignment = alignment;
+
+    ntg_listenable* listenable = _ntg_object_get_listenable(NTG_OBJECT(box));
+    ntg_event e1;
+    __ntg_event_init__(&e1, NTG_ETYPE_OBJECT_CONTENT_INVALID, box, NULL);
+    ntg_listenable_raise(listenable, &e1);
 }
 
 void ntg_box_set_bg_color(ntg_box* box, nt_color color)
