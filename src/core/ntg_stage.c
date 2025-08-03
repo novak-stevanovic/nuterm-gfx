@@ -69,7 +69,12 @@ void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 
     if(stage->_active_scene != NULL)
     {
-        ntg_scene_set_size(stage->_active_scene, size);
+        stage->_size = size;
+
+        if(stage->_active_scene != NULL)
+        {
+            ntg_scene_set_size(stage->_active_scene, size);
+        }
     }
 
     ntg_event e;
@@ -80,11 +85,6 @@ void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 void ntg_stage_render(ntg_stage* stage, ntg_stage_render_mode render_mode)
 {
     assert(stage != NULL);
-
-    if(stage->_active_scene)
-    {
-        ntg_scene_layout(stage->_active_scene);
-    }
 
     stage->__render_fn(stage, render_mode);
 
