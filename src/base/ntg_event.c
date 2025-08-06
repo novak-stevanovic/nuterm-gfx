@@ -57,16 +57,16 @@ void ntg_listenable_raise(ntg_listenable* listenable, ntg_event* event)
 }
 
 void ntg_listenable_listen(ntg_listenable* listenable,
-        struct ntg_event_sub subscriber)
+        struct ntg_event_sub subscription)
 {
     assert(listenable != NULL);
-    assert(subscriber.subscriber != NULL);
-    assert(subscriber.handler != NULL);
+    assert(subscription.subscriber != NULL);
+    assert(subscription.handler != NULL);
 
-    if(ntg_listenable_is_listening(listenable, subscriber.subscriber))
+    if(ntg_listenable_is_listening(listenable, subscription.subscriber))
         return;
 
-    ntg_event_sub_vec_append(listenable->_subs, subscriber);
+    ntg_event_sub_vec_append(listenable->_subs, subscription);
 }
 
 void ntg_listenable_stop_listening(ntg_listenable* listenable, void* subscriber)

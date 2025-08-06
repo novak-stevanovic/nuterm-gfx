@@ -39,16 +39,19 @@ typedef enum ntg_object_type
 
 typedef enum ntg_object_get_parent_mode
 {
-    NTG_OBJECT_GET_PARENT_DEFAULT,
-    NTG_OBJECT_GET_PARENT_DECORATOR
+    NTG_OBJECT_GET_PARENT_INC_DECORATOR,
+    NTG_OBJECT_GET_PARENT_EXC_DECORATOR
 } ntg_object_get_parent_mode;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
+ntg_object_type ntg_object_get_type(const ntg_object* object);
+
 /* Gets object's parent node. */
-ntg_object* ntg_object_get_parent(ntg_object* object, ntg_object_get_parent_mode mode);
+ntg_object* ntg_object_get_parent(ntg_object* object,
+        ntg_object_get_parent_mode mode);
 
 /* Gets decorator for object. If object is top decorator, returns NULL. */
 ntg_object* ntg_object_get_decorator(ntg_object* object);
@@ -64,16 +67,28 @@ ntg_object_vec* ntg_object_get_children(ntg_object* object);
 /* ---------------------------------------------------------------- */
 
 struct ntg_xy ntg_object_get_natural_size(const ntg_object* object);
+struct ntg_xy ntg_object_get_adjusted_natural_size(const ntg_object* object);
+
 struct ntg_constr ntg_object_get_constraints(const ntg_object* object);
 struct ntg_constr ntg_object_get_adjusted_constraints(const ntg_object* object);
+
 struct ntg_xy ntg_object_get_size(const ntg_object* object);
 struct ntg_xy ntg_object_get_position(const ntg_object* object);
+
 const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
+void ntg_object_compute_natural_size(ntg_object* object);
+void ntg_object_constrain(ntg_object* object);
+void ntg_object_measure(ntg_object* object);
+void ntg_object_arrange_children(ntg_object* object);
+void ntg_object_arrange_drawing(ntg_object* object);
+
+/* ---------------------------------------------------------------- */
+
 void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription);
-void ntg_object_stop_listening(ntg_object* object, ntg_object* listener);
+void ntg_object_stop_listening(ntg_object* object, void* subscriber);
 
 /* -------------------------------------------------------------------------- */
 /* DEFINITION */
@@ -81,6 +96,9 @@ void ntg_object_stop_listening(ntg_object* object, ntg_object* listener);
 
 struct ntg_object
 {
+    uint _id;
+    ntg_object_type _type;
+
     struct
     {
         ntg_object* __parent;
@@ -99,6 +117,7 @@ struct ntg_object
     struct
     {
         struct ntg_xy __natural_size;
+        struct ntg_xy __adjusted_natural_size;
 
         struct ntg_constr __constraints;
         struct ntg_constr __adjusted_constraints;
@@ -127,6 +146,7 @@ struct ntg_object
 /* -------------------------------------------------------------------------- */
 
 void __ntg_object_init__(ntg_object* object,
+        ntg_object_type type,
         ntg_natural_size_fn natural_size_fn,
         ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn,
