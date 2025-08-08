@@ -1,35 +1,23 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
+#include "base/ntg_cell.h"
 #include "base/ntg_event.h"
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
 #include "base/ntg_event.h"
 
 /* -------------------------------------------------------------------------- */
-/* DECLARATIONS & DEFINITIONS */
+/* PUBLIC */
 /* -------------------------------------------------------------------------- */
+
+#define NTG_OBJECT(obj_ptr) ((ntg_object*)(obj_ptr))
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
-typedef struct ntg_constr_object ntg_constraints_object;
-typedef struct ntg_positions_object ntg_positions_object;
 typedef struct ntg_object_drawing ntg_object_drawing;
 
 /* ---------------------------------------------------------------- */
-
-typedef struct ntg_xy (*ntg_natural_size_fn)(ntg_object* object);
-
-typedef ntg_constraints_object* (*ntg_constrain_fn)(ntg_object* object);
-
-typedef struct ntg_xy (*ntg_measure_fn)(ntg_object* object);
-
-typedef ntg_positions_object* (*ntg_arrange_children_fn)(ntg_object* object);
-
-typedef void (*ntg_arrange_drawing_fn)(ntg_object* object, ntg_object_drawing* drawing);
-
-typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
-        struct nt_key_event key_event);
 
 typedef enum ntg_object_type
 {
@@ -43,9 +31,13 @@ typedef enum ntg_object_get_parent_mode
     NTG_OBJECT_GET_PARENT_EXC_DECORATOR
 } ntg_object_get_parent_mode;
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC API */
-/* -------------------------------------------------------------------------- */
+typedef enum ntg_object_perform_mode
+{
+    NTG_OBJECT_PERFORM_TOP_DOWN,
+    NTG_OBJECT_PERFORM_BOTTOM_UP
+} ntg_object_perform_mode;
+
+/* ---------------------------------------------------------------- */
 
 ntg_object_type ntg_object_get_type(const ntg_object* object);
 
@@ -66,33 +58,70 @@ ntg_object_vec* ntg_object_get_children(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-struct ntg_xy ntg_object_get_natural_size(const ntg_object* object);
-struct ntg_xy ntg_object_get_adjusted_natural_size(const ntg_object* object);
-
-struct ntg_constr ntg_object_get_constraints(const ntg_object* object);
-struct ntg_constr ntg_object_get_adjusted_constraints(const ntg_object* object);
-
-struct ntg_xy ntg_object_get_size(const ntg_object* object);
-struct ntg_xy ntg_object_get_position(const ntg_object* object);
-
-const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object);
+// struct ntg_xy ntg_object_get_natural_size(const ntg_object* object);
+// struct ntg_xy ntg_object_get_adjusted_natural_size(const ntg_object* object);
+//
+// struct ntg_constr ntg_object_get_constraints(const ntg_object* object);
+// struct ntg_constr ntg_object_get_adjusted_constraints(const ntg_object* object);
+//
+// struct ntg_xy ntg_object_get_size(const ntg_object* object);
+// struct ntg_xy ntg_object_get_position(const ntg_object* object);
+//
+// const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-void ntg_object_compute_natural_size(ntg_object* object);
-void ntg_object_constrain(ntg_object* object);
-void ntg_object_measure(ntg_object* object);
-void ntg_object_arrange_children(ntg_object* object);
-void ntg_object_arrange_drawing(ntg_object* object);
+void ntg_object_layout(ntg_object* root, struct ntg_xy size,
+        ntg_orientation layout_orientation);
 
 /* ---------------------------------------------------------------- */
 
 void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription);
 void ntg_object_stop_listening(ntg_object* object, void* subscriber);
 
+/* ---------------------------------------------------------------- */
+
+void ntg_object_perform_tree(ntg_object* object,
+        ntg_object_perform_mode mode,
+        void (*perform_fn)(ntg_object* object, void* data),
+        void* data);
+
 /* -------------------------------------------------------------------------- */
-/* DEFINITION */
+/* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
+
+typedef struct ntg_object_xy_map ntg_object_xy_map;
+typedef struct ntg_object_size_map ntg_object_size_map;
+
+struct ntg_measure_object
+{
+    size_t min_size, natural_size;
+};
+
+/* Measures how much space this object would require along axis A
+ * if it is allocated `size` units along axis B.
+ *
+ * The calculation should be based on the object's current state
+ * (spacing, text content, etc.). */
+typedef struct ntg_measure_object (*ntg_measure_fn)(ntg_object* object,
+        ntg_orientation orientation, size_t for_size);
+
+/* Determines the children's sizes based on the given `size` for the parent,
+ * as well as the children's min, natural and max sizes. */
+typedef void (*ntg_constrain_fn)(ntg_object* object,
+        ntg_orientation orienation, size_t size,
+        ntg_object_size_map* out_sizes);
+
+typedef void (*ntg_arrange_children_fn)(ntg_object* object,
+        struct ntg_xy size, ntg_object_xy_map* out_positions);
+
+typedef void (*ntg_arrange_drawing_fn)(ntg_object* object,
+        struct ntg_xy size, ntg_object_drawing* drawing);
+
+typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
+        struct nt_key_event key_event);
+
+/* ---------------------------------------------------------------- */
 
 struct ntg_object
 {
@@ -107,22 +136,19 @@ struct ntg_object
 
     struct
     {
-        ntg_natural_size_fn __natural_size_fn;
-        ntg_constrain_fn __constrain_fn;
         ntg_measure_fn __measure_fn;
+        ntg_constrain_fn __constrain_fn;
         ntg_arrange_children_fn __arrange_children_fn;
+
         ntg_arrange_drawing_fn __arrange_drawing_fn;
+        /* `bg` is used for drawing the background before arranging
+         * the drawing. */
+        ntg_cell __bg;
     };
 
     struct
     {
-        struct ntg_xy __natural_size;
-        struct ntg_xy __adjusted_natural_size;
-
-        struct ntg_constr __constraints;
-        struct ntg_constr __adjusted_constraints;
-
-        struct ntg_xy __size;
+        size_t __ideal_size;
 
         struct ntg_xy __position;
 
@@ -131,7 +157,10 @@ struct ntg_object
 
     struct
     {
-        struct ntg_xy __min_size, __max_size;
+        ntg_orientation __layout_orientation;
+
+        struct ntg_oxy __min_size, __natural_size,
+                       __max_size, __size;
     };
 
     ntg_object_process_key_fn __process_key_fn;
@@ -147,13 +176,18 @@ struct ntg_object
 
 void __ntg_object_init__(ntg_object* object,
         ntg_object_type type,
-        ntg_natural_size_fn natural_size_fn,
-        ntg_constrain_fn constrain_fn,
         ntg_measure_fn measure_fn,
+        ntg_constrain_fn constrain_fn,
         ntg_arrange_children_fn arrange_children_fn,
         ntg_arrange_drawing_fn arrange_drawing_fn);
 
 void __ntg_object_deinit__(ntg_object* object);
+
+/* ---------------------------------------------------------------- */
+
+void _ntg_object_set_bg(ntg_object* object, ntg_cell bg);
+
+/* ---------------------------------------------------------------- */
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn);

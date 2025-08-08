@@ -192,6 +192,15 @@ static inline bool ntg_constr_are_equal(struct ntg_constr c1, struct ntg_constr 
 
 /* -------------------------------------------------------------------------- */
 
+static inline ntg_orientation ntg_orientation_get_other(ntg_orientation ort)
+{
+    return (ort == NTG_ORIENTATION_HORIZONTAL) ?
+        NTG_ORIENTATION_VERTICAL :
+        NTG_ORIENTATION_HORIZONTAL;
+}
+
+/* -------------------------------------------------------------------------- */
+
 static inline struct ntg_xy ntg_xy_from_oxy(struct ntg_oxy orient_xy,
         ntg_orientation orientation)
 {

@@ -1,0 +1,11 @@
+/* Set ideal widths - bottom up */
+measure(HORIZONTAL, height=UNCONSTRAINED):
+
+/* Set widths to be as close as possible to ideal(adjusted_ideal) */
+constrain(HORIZONTAL, min=screen_width, max=screen_width);
+
+/* Get heights for ideal widths - bottom up */
+measure(VERTICAL, width=adjusted_ideal_width);
+
+/* Clamp the adjusted_ideal heights */
+constrain(VERTICAL, min=screen_height, max=screen_height);
