@@ -71,7 +71,14 @@ ntg_object* ntg_object_get_base_widget(ntg_object* object)
     return it_obj;
 }
 
-ntg_object_vec* ntg_object_get_children(ntg_object* object)
+ntg_object_vec* ntg_object_get_children_(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__children;
+}
+
+const ntg_object_vec* ntg_object_get_children(const ntg_object* object)
 {
     assert(object != NULL);
 
@@ -147,7 +154,7 @@ static void __measure1_fn(ntg_object* object, void* _)
 {
     assert(object != NULL);
 
-    struct ntg_measure_object data = object->__measure_fn(
+    struct ntg_measure_result data = object->__measure_fn(
             object, object->__layout_orientation, SIZE_MAX);
 
     object->__min_size.prim_val = data.min_size;
@@ -185,7 +192,7 @@ static void __measure2_fn(ntg_object* object, void* _)
 {
     assert(object != NULL);
 
-    struct ntg_measure_object data = object->__measure_fn(object,
+    struct ntg_measure_result data = object->__measure_fn(object,
             ntg_orientation_get_other(object->__layout_orientation),
             object->__size.prim_val);
 

@@ -46,7 +46,7 @@ void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment)
 
 /* -------------------------------------------------------------------------- */
 
-struct ntg_measure_object __measure_fn(ntg_object* _box,
+struct ntg_measure_result __measure_fn(ntg_object* _box,
         ntg_orientation orientation, size_t for_size)
 {
     assert(_box != NULL);

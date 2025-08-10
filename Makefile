@@ -58,7 +58,7 @@ _PC_DESCRIPTION = Terminal event detection, function abstraction.
 _PC_VERSION = 1.0.0
 _PC_LIBS = -L$${libdir} -l$(LIB_NAME)
 _PC_CFLAGS = -I$${includedir}/$(LIB_NAME)
-_PC_REQUIRES = nuterm
+_PC_REQUIRES = nuterm sarena
 _PC_REQUIRES_PRIVATE =
 
 PC_DEPS = $(_PC_REQUIRES)

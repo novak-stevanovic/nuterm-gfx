@@ -6,6 +6,7 @@
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
 #include "base/ntg_event.h"
+#include "object/shared/ntg_fn.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
@@ -54,7 +55,8 @@ ntg_object* ntg_object_get_top_decorator(ntg_object* object);
 ntg_object* ntg_object_get_base_widget(ntg_object* object);
 
 /* Returns children of object. These can include object decorators. */
-ntg_object_vec* ntg_object_get_children(ntg_object* object);
+ntg_object_vec* ntg_object_get_children_(ntg_object* object);
+const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
@@ -76,6 +78,11 @@ void ntg_object_layout(ntg_object* root, struct ntg_xy size,
 
 /* ---------------------------------------------------------------- */
 
+struct ntg_xy ntg_object_get_ideal_size(ntg_object* object);
+struct ntg_xy ntg_object_get_min_size(ntg_object* object);
+
+/* ---------------------------------------------------------------- */
+
 void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription);
 void ntg_object_stop_listening(ntg_object* object, void* subscriber);
 
@@ -89,34 +96,6 @@ void ntg_object_perform_tree(ntg_object* object,
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
-
-typedef struct ntg_object_xy_map ntg_object_xy_map;
-typedef struct ntg_object_size_map ntg_object_size_map;
-
-struct ntg_measure_object
-{
-    size_t min_size, natural_size;
-};
-
-/* Measures how much space this object would require along axis A
- * if it is allocated `size` units along axis B.
- *
- * The calculation should be based on the object's current state
- * (spacing, text content, etc.). */
-typedef struct ntg_measure_object (*ntg_measure_fn)(ntg_object* object,
-        ntg_orientation orientation, size_t for_size);
-
-/* Determines the children's sizes based on the given `size` for the parent,
- * as well as the children's min, natural and max sizes. */
-typedef void (*ntg_constrain_fn)(ntg_object* object,
-        ntg_orientation orienation, size_t size,
-        ntg_object_size_map* out_sizes);
-
-typedef void (*ntg_arrange_children_fn)(ntg_object* object,
-        struct ntg_xy size, ntg_object_xy_map* out_positions);
-
-typedef void (*ntg_arrange_drawing_fn)(ntg_object* object,
-        struct ntg_xy size, ntg_object_drawing* drawing);
 
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event);
