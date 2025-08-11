@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "object/ntg_object.h"
+#include "object/ntg_layout_object.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "object/shared/ntg_object_xy_map.h"
@@ -103,186 +104,13 @@ const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
-static void __set_layout_orientation(ntg_object* object,
-        void* _orientation);
-static void __measure1_fn(ntg_object* object, void* _);
-static void __constrain1_fn(ntg_object* object, void* _);
-static void __measure2_fn(ntg_object* object, void* _);
-static void __constrain2_fn(ntg_object* object, void* _);
-static void __arrange_fn(ntg_object* object, void* _); // children & drawing
-static void __arrange_children_fn(ntg_object* object, void* _);
-static void __arrange_drawing_fn(ntg_object* object, void* _);
-
 void ntg_object_layout(ntg_object* root, struct ntg_xy size,
-        ntg_orientation layout_orientation)
+        ntg_orientation orientation)
 {
-    assert(root != NULL);
+    ntg_layout_object layout_object;
+    __ntg_layout_object_init__(&layout_object, root, size, orientation);
 
-    struct ntg_oxy _size = ntg_oxy_from_xy(size, layout_orientation);
-
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-            __set_layout_orientation, &layout_orientation);
-
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_BOTTOM_UP,
-            __measure1_fn, NULL);
-
-    root->__size.prim_val = _size.prim_val;
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-            __constrain1_fn, NULL);
-
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_BOTTOM_UP,
-            __measure2_fn, NULL);
-
-    root->__size.sec_val = _size.sec_val;
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-            __constrain2_fn, NULL);
-
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-            __arrange_fn, NULL);
-}
-
-static void __set_layout_orientation(ntg_object* object,
-        void* _orientation)
-{
-    assert(object != NULL);
-    
-    ntg_orientation orientation = *(ntg_orientation*)_orientation;
-    object->__layout_orientation = orientation;
-}
-
-static void __measure1_fn(ntg_object* object, void* _)
-{
-    assert(object != NULL);
-
-    struct ntg_measure_result data = object->__measure_fn(
-            object, object->__layout_orientation, SIZE_MAX);
-
-    object->__min_size.prim_val = data.min_size;
-    object->__natural_size.prim_val = data.natural_size;
-}
-
-static void __constrain1_fn(ntg_object* object, void* _)
-{
-    assert(object != NULL);
-
-    ntg_object_vec* children = object->__children;
-    if((children == NULL) || (children->_count == 0))
-        return;
-
-    ntg_object_size_map sizes;
-    __ntg_object_size_map_init__(&sizes, object);
-
-    object->__constrain_fn(object, 
-            object->__layout_orientation,
-            object->__size.prim_val, &sizes);
-
-    size_t i;
-    ntg_object* it_obj;
-    for(i = 0; i < children->_count; i++)
-    {
-        it_obj = children->_data[i];
-        // TODO: check if correct
-        it_obj->__size.prim_val = ntg_object_size_map_get(&sizes, it_obj);
-    }
-
-    __ntg_object_size_map_deinit__(&sizes);
-}
-
-static void __measure2_fn(ntg_object* object, void* _)
-{
-    assert(object != NULL);
-
-    struct ntg_measure_result data = object->__measure_fn(object,
-            ntg_orientation_get_other(object->__layout_orientation),
-            object->__size.prim_val);
-
-    object->__min_size.sec_val = data.min_size;
-    object->__natural_size.sec_val = data.natural_size;
-}
-
-static void __constrain2_fn(ntg_object* object, void* _)
-{
-    assert(object != NULL);
-
-    ntg_object_vec* children = object->__children;
-    if((children == NULL) || (children->_count == 0))
-        return;
-
-    ntg_object_size_map sizes;
-    __ntg_object_size_map_init__(&sizes, object);
-
-    object->__constrain_fn(object, 
-            ntg_orientation_get_other(object->__layout_orientation),
-            object->__size.sec_val, &sizes);
-
-    size_t i;
-    ntg_object* it_obj;
-    for(i = 0; i < children->_count; i++)
-    {
-        it_obj = children->_data[i];
-        // TODO: check if correct
-        it_obj->__size.sec_val = ntg_object_size_map_get(&sizes, it_obj);
-    }
-
-    __ntg_object_size_map_deinit__(&sizes);
-}
-
-static void __arrange_fn(ntg_object* object, void* _)
-{
-    assert(object != NULL);
-
-    __arrange_children_fn(object, _);
-    __arrange_drawing_fn(object, _);
-}
-
-static void __arrange_children_fn(ntg_object* object, void* _)
-{
-    assert(object != NULL);
-
-    ntg_object_vec* children = object->__children;
-    if((children == NULL) || (children->_count == 0))
-        return;
-
-    ntg_object_xy_map _positions;
-    __ntg_object_xy_map_init__(&_positions, object);
-
-    struct ntg_xy size = ntg_xy_from_oxy(object->__size,
-            object->__layout_orientation);
-
-    object->__arrange_children_fn(object, size, &_positions);
-
-    size_t i;
-    ntg_object* it_obj;
-    for(i = 0; i < children->_count; i++)
-    {
-        it_obj = children->_data[i];
-        // TODO: check if correct
-        it_obj->__position = ntg_object_xy_map_get(&_positions, it_obj);
-    }
-
-    __ntg_object_xy_map_deinit__(&_positions);
-}
-
-static void __arrange_drawing_fn(ntg_object* object, void* _)
-{
-    assert(object != NULL);
-
-    struct ntg_xy size = ntg_xy_from_oxy(object->__size,
-            object->__layout_orientation);
-
-    size_t i, j;
-    ntg_cell* it_cell;
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            it_cell = ntg_object_drawing_at_(object->__drawing, ntg_xy(j, i));
-            (*it_cell) = object->__bg;
-        }
-    }
-
-    if(object->__arrange_drawing_fn)
-        object->__arrange_drawing_fn(object, size, object->__drawing);
+    __ntg_layout_object_deinit__(&layout_object);
 }
 
 /* ---------------------------------------------------------------- */
@@ -293,6 +121,7 @@ void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription)
 
     ntg_listenable_listen(&object->__listenable, subscription);
 }
+
 void ntg_object_stop_listening(ntg_object* object, void* subscriber)
 {
     assert(object != NULL);
@@ -408,14 +237,13 @@ static void __init_default_values(ntg_object* object)
     object->__arrange_children_fn = NULL;
     object->__arrange_drawing_fn = NULL;
 
-    object->__position = ntg_xy(0, 0);
     object->__drawing = NULL;
 
-    object->__layout_orientation = NTG_ORIENTATION_HORIZONTAL;
-    object->__min_size = ntg_oxy(0, 0);
-    object->__natural_size = ntg_oxy(0, 0);
-    object->__max_size = ntg_oxy(0, 0);
-    object->__size = ntg_oxy(0, 0);
+    object->__min_size = ntg_xy(0, 0);
+    object->__natural_size = ntg_xy(0, 0);
+    object->__max_size = ntg_xy(0, 0);
+    object->__size = ntg_xy(0, 0);
+    object->__position = ntg_xy(0, 0);
 
     object->__process_key_fn = NULL;
     object->__listenable = (ntg_listenable) {0};

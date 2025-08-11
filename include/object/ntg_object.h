@@ -74,7 +74,7 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 /* ---------------------------------------------------------------- */
 
 void ntg_object_layout(ntg_object* root, struct ntg_xy size,
-        ntg_orientation layout_orientation);
+        ntg_orientation orientation);
 
 /* ---------------------------------------------------------------- */
 
@@ -127,10 +127,6 @@ struct ntg_object
 
     struct
     {
-        size_t __ideal_size;
-
-        struct ntg_xy __position;
-
         ntg_object_drawing* __drawing;
     };
 
@@ -138,8 +134,10 @@ struct ntg_object
     {
         ntg_orientation __layout_orientation;
 
-        struct ntg_oxy __min_size, __natural_size,
-                       __max_size, __size;
+        struct ntg_xy __min_size, __natural_size,
+                      __max_size, __size;
+
+        struct ntg_xy __position;
     };
 
     ntg_object_process_key_fn __process_key_fn;
