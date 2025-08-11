@@ -29,7 +29,7 @@ typedef struct ntg_measure_context ntg_measure_context;
  *
  * The calculation should be based on the object's current state
  * (spacing, text content, etc.). */
-typedef struct ntg_measure_result (*ntg_measure_fn)(ntg_object* object,
+typedef struct ntg_measure_result (*ntg_measure_fn)(const ntg_object* object,
         ntg_orientation orientation, size_t for_size,
         const ntg_measure_context* context);
 
@@ -60,9 +60,11 @@ struct ntg_constrain_result
 };
 
 /* Determines the children's sizes based on the given `size` for the parent,
- * as well as the children's min, natural and max sizes. */
-typedef void (*ntg_constrain_fn)(ntg_object* object,
-        ntg_orientation orienation, size_t size,
+ * as well as the children's min, natural and max sizes.
+ *
+ * Returns collective children size(content size). */
+typedef size_t (*ntg_constrain_fn)(const ntg_object* object,
+        ntg_orientation orientation, size_t size,
         const ntg_constrain_context* context,
         ntg_constrain_output* out_sizes);
 
@@ -75,6 +77,12 @@ struct ntg_constrain_data ntg_constrain_context_get(
 void ntg_constrain_context_set(ntg_constrain_context* context,
         const ntg_object* child,
         struct ntg_constrain_data data);
+void ntg_constrain_context_set_min_size(ntg_constrain_context* context,
+        size_t min_size);
+void ntg_constrain_context_set_natural_size(ntg_constrain_context* context,
+        size_t natural_size);
+size_t ntg_constrain_context_get_min_size(const ntg_constrain_context* context);
+size_t ntg_constrain_context_get_natural_size(const ntg_constrain_context* context);
 
 /* ntg_constrain_output */
 ntg_constrain_output* ntg_constrain_output_new(const ntg_object* parent, SArena* arena);
@@ -103,13 +111,13 @@ struct ntg_arrange_result
 typedef struct ntg_arrange_context ntg_arrange_context;
 typedef struct ntg_arrange_output ntg_arrange_output;
 
-typedef void (*ntg_arrange_children_fn)(ntg_object* object,
+typedef void (*ntg_arrange_children_fn)(const ntg_object* object,
         struct ntg_xy size,
         const ntg_arrange_context* context,
         ntg_arrange_output* out_positions);
 
-typedef void (*ntg_arrange_drawing_fn)(ntg_object* object,
-        struct ntg_xy size, ntg_object_drawing* drawing);
+typedef void (*ntg_arrange_drawing_fn)(const ntg_object* object,
+        struct ntg_xy size, ntg_object_drawing* out_drawing);
 
 /* ntg_arrange_context */
 ntg_arrange_context* ntg_arrange_context_new(const ntg_object* parent, SArena* arena);
@@ -120,6 +128,9 @@ struct ntg_arrange_data ntg_arrange_context_get(
 void ntg_arrange_context_set(ntg_arrange_context* context,
         const ntg_object* child,
         struct ntg_arrange_data data);
+void ntg_arrange_context_set_content_size(ntg_arrange_context* context,
+        struct ntg_xy size);
+struct ntg_xy ntg_arrange_context_get_content_size(const ntg_arrange_context* context);
 
 /* ntg_arrange_output */
 ntg_arrange_output* ntg_arrange_output_new(const ntg_object* parent, SArena* arena);

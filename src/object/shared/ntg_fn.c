@@ -11,7 +11,7 @@
 struct ntg_map
 {
     const ntg_object** objects;
-    void* data;
+    char* data;
     size_t data_size;
     size_t count;
     SArena* arena;
@@ -132,6 +132,8 @@ void ntg_measure_context_set(ntg_measure_context* context,
 struct ntg_constrain_context
 {
     struct ntg_map _base;
+
+    size_t min_size, natural_size;
 };
 
 ntg_constrain_context* ntg_constrain_context_new(const ntg_object* parent, SArena* arena)
@@ -146,12 +148,18 @@ ntg_constrain_context* ntg_constrain_context_new(const ntg_object* parent, SAren
             sizeof(struct ntg_constrain_data),
             arena);
 
+    new->min_size = 0;
+    new->natural_size = 0;
+
     return new;
 }
 
 void ntg_constrain_context_destroy(ntg_constrain_context* context)
 {
     __ntg_map_deinit__((struct ntg_map*)context);
+
+    context->min_size = 0;
+    context->natural_size = 0;
 }
 
 struct ntg_constrain_data ntg_constrain_context_get(const ntg_constrain_context* context,
@@ -168,6 +176,17 @@ void ntg_constrain_context_set(ntg_constrain_context* context,
         struct ntg_constrain_data data)
 {
     __ntg_map_set((struct ntg_map*)context, child, &data);
+}
+
+void ntg_constrain_context_set_min_size(ntg_constrain_context* context,
+        size_t min_size)
+{
+    context->min_size = min_size;
+}
+void ntg_constrain_context_set_natural_size(ntg_constrain_context* context,
+        size_t natural_size)
+{
+    context->natural_size = natural_size;
 }
 
 struct ntg_constrain_output
@@ -212,6 +231,16 @@ void ntg_constrain_output_set(ntg_constrain_output* output,
     __ntg_map_set((struct ntg_map*)output, child, &data);
 }
 
+size_t ntg_constrain_context_get_min_size(const ntg_constrain_context* context)
+{
+    return context->min_size;
+}
+
+size_t ntg_constrain_context_get_natural_size(const ntg_constrain_context* context)
+{
+    return context->natural_size;
+}
+
 /* -------------------------------------------------------------------------- */
 /* ARRANGE */
 /* -------------------------------------------------------------------------- */
@@ -219,6 +248,8 @@ void ntg_constrain_output_set(ntg_constrain_output* output,
 struct ntg_arrange_context
 {
     struct ntg_map _base;
+
+    struct ntg_xy size;
 };
 
 ntg_arrange_context* ntg_arrange_context_new(const ntg_object* parent, SArena* arena)
@@ -233,12 +264,16 @@ ntg_arrange_context* ntg_arrange_context_new(const ntg_object* parent, SArena* a
             sizeof(struct ntg_arrange_data),
             arena);
 
+    new->size = ntg_xy(0, 0);
+
     return new;
 }
 
 void ntg_arrange_context_destroy(ntg_arrange_context* context)
 {
     __ntg_map_deinit__((struct ntg_map*)context);
+
+    context->size = ntg_xy(0, 0);
 }
 
 struct ntg_arrange_data ntg_arrange_context_get(const ntg_arrange_context* context,
@@ -255,6 +290,17 @@ void ntg_arrange_context_set(ntg_arrange_context* context,
         struct ntg_arrange_data data)
 {
     __ntg_map_set((struct ntg_map*)context, child, &data);
+}
+
+void ntg_arrange_context_set_content_size(ntg_arrange_context* context,
+        struct ntg_xy size)
+{
+    context->size = size;
+}
+
+struct ntg_xy ntg_arrange_context_get_content_size(const ntg_arrange_context* context)
+{
+    return context->size;
 }
 
 struct ntg_arrange_output

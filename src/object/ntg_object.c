@@ -1,11 +1,14 @@
 #include <assert.h>
 
 #include "object/ntg_object.h"
+#include "core/ntg_scene.h"
 #include "object/ntg_layout_object.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "object/shared/ntg_object_xy_map.h"
 #include "object/shared/ntg_object_size_map.h"
+
+static void __update_scene_fn(ntg_object* object, void* _scene);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -33,6 +36,8 @@ ntg_object* ntg_object_get_parent(ntg_object* object,
 
              if(top_decorator == NULL) return object->__parent;
              else return (top_decorator->__parent);
+        default:
+             assert(0);
     }
 }
 
@@ -88,29 +93,55 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
-struct ntg_xy ntg_object_get_position(const ntg_object* object)
+void ntg_object_layout(ntg_object* root, struct ntg_xy size)
 {
-    assert(object != NULL);
+    ntg_layout_object layout_object;
+    __ntg_layout_object_init__(&layout_object, root, size);
 
-    return object->__position;
-}
-
-const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    return ((const ntg_object_drawing*)object->__drawing);
+    __ntg_layout_object_deinit__(&layout_object);
 }
 
 /* ---------------------------------------------------------------- */
 
-void ntg_object_layout(ntg_object* root, struct ntg_xy size,
-        ntg_orientation orientation)
+struct ntg_xy ntg_object_get_size(const ntg_object* object)
 {
-    ntg_layout_object layout_object;
-    __ntg_layout_object_init__(&layout_object, root, size, orientation);
+    return object->__size;
+}
 
-    __ntg_layout_object_deinit__(&layout_object);
+struct ntg_xy ntg_object_get_position_abs(const ntg_object* object)
+{
+    struct ntg_xy position = ntg_xy(0, 0);
+
+    const ntg_object* it_obj = object;
+    while(it_obj != NULL)
+    {
+        position = ntg_xy_add(position, object->__position);
+        it_obj = it_obj->__parent;
+    }
+
+    return position;
+}
+
+struct ntg_xy ntg_object_get_position_rel(const ntg_object* object)
+{
+    return object->__position;
+}
+
+ntg_scene* ntg_object_get_scene(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__scene;
+}
+
+const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object)
+{
+    return object->__drawing;
+}
+
+ntg_object_drawing* ntg_object_get_drawing_(ntg_object* object)
+{
+    return object->__drawing;
 }
 
 /* ---------------------------------------------------------------- */
@@ -131,6 +162,13 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber)
 
 /* ---------------------------------------------------------------- */
 
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
+{
+    return object->__process_key_fn(object, key_event);
+}
+
+/* ---------------------------------------------------------------- */
+
 void ntg_object_perform_tree(ntg_object* object,
         ntg_object_perform_mode mode,
         void (*perform_fn)(ntg_object* object, void* data),
@@ -139,20 +177,25 @@ void ntg_object_perform_tree(ntg_object* object,
     assert(object != NULL);
     assert(perform_fn != NULL);
 
+    size_t i;
     if(mode == NTG_OBJECT_PERFORM_TOP_DOWN)
     {
         perform_fn(object, data);
-    }
 
-    size_t i;
-    for(i = 0; i < object->__children->_count; i++)
-    {
-        ntg_object_perform_tree(object->__children->_data[i], mode,
-                perform_fn, data);
+        for(i = 0; i < object->__children->_count; i++)
+        {
+            ntg_object_perform_tree(object->__children->_data[i],
+                    mode, perform_fn, data);
+        }
     }
-
-    if(mode == NTG_OBJECT_PERFORM_BOTTOM_UP)
+    else
     {
+        for(i = 0; i < object->__children->_count; i++)
+        {
+            ntg_object_perform_tree(object->__children->_data[i],
+                    mode, perform_fn, data);
+        }
+
         perform_fn(object, data);
     }
 }
@@ -200,6 +243,44 @@ void __ntg_object_deinit__(ntg_object* object)
     __init_default_values(object);
 }
 
+void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene)
+{
+    assert(root != NULL);
+
+    ntg_object* parent = ntg_object_get_parent(root, NTG_OBJECT_GET_PARENT_EXC_DECORATOR);
+    assert(parent == NULL);
+
+    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
+            __update_scene_fn, scene);
+}
+
+void _ntg_object_add_child(ntg_object* object, ntg_object* child)
+{
+    assert(object != NULL);
+    assert(child != NULL);
+
+    assert(child->__parent == NULL);
+
+    ntg_object_vec_append(object->__children, child);
+    ntg_object_perform_tree(child, NTG_OBJECT_PERFORM_TOP_DOWN,
+            __update_scene_fn, object->__scene);
+}
+
+void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
+{
+    assert(object != NULL);
+    assert(child != NULL);
+
+    if(child->__parent != object) return;
+
+    ntg_object_vec_remove(object->__children, child);
+
+    child->__parent = NULL;
+
+    ntg_object_perform_tree(object, NTG_OBJECT_PERFORM_TOP_DOWN,
+            __update_scene_fn, NULL);
+}
+
 void _ntg_object_set_bg(ntg_object* object, ntg_cell bg)
 {
     assert(object != NULL);
@@ -242,9 +323,27 @@ static void __init_default_values(ntg_object* object)
     object->__min_size = ntg_xy(0, 0);
     object->__natural_size = ntg_xy(0, 0);
     object->__max_size = ntg_xy(0, 0);
+    object->__content_size = ntg_xy(0, 0);
     object->__size = ntg_xy(0, 0);
     object->__position = ntg_xy(0, 0);
 
+    object->__scene = NULL;
+
     object->__process_key_fn = NULL;
     object->__listenable = (ntg_listenable) {0};
+}
+
+/* ---------------------------------------------------------------- */
+
+static void __update_scene_fn(ntg_object* object, void* _scene)
+{
+    ntg_scene* scene = (ntg_scene*)_scene;
+
+    if(object->__scene != NULL)
+        ntg_scene_unregister_object(object->__scene, object);
+
+    if(scene != NULL)
+        ntg_scene_register_object(scene, object);
+
+    object->__scene = scene;
 }

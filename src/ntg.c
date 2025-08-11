@@ -154,12 +154,13 @@ static void* _ntg_thread_fn(void* _thread_fn_data)
 {
     _launched = true;
 
-    struct ntg_thread_fn_data* thread_fn_data =
+    struct ntg_thread_fn_data* data =
         (struct ntg_thread_fn_data*)_thread_fn_data;
 
-    thread_fn_data->gui_fn(thread_fn_data->stage, thread_fn_data->gui_fn_data);
+    if(data->gui_fn != NULL)
+        data->gui_fn(data->stage, data->gui_fn_data);
 
-    free(thread_fn_data);
+    free(data);
 
     return NULL;
 }

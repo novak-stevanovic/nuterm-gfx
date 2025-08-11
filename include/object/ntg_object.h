@@ -17,6 +17,7 @@
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
 typedef struct ntg_object_drawing ntg_object_drawing;
+typedef struct ntg_scene ntg_scene;
 
 /* ---------------------------------------------------------------- */
 
@@ -73,18 +74,27 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-void ntg_object_layout(ntg_object* root, struct ntg_xy size,
-        ntg_orientation orientation);
+void ntg_object_layout(ntg_object* root, struct ntg_xy size);
 
 /* ---------------------------------------------------------------- */
 
-struct ntg_xy ntg_object_get_ideal_size(ntg_object* object);
-struct ntg_xy ntg_object_get_min_size(ntg_object* object);
+struct ntg_xy ntg_object_get_size(const ntg_object* object);
+struct ntg_xy ntg_object_get_position_abs(const ntg_object* object);
+struct ntg_xy ntg_object_get_position_rel(const ntg_object* object);
+
+ntg_scene* ntg_object_get_scene(ntg_object* object);
+
+const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object);
+// ntg_object_drawing* ntg_object_get_drawing_(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
 void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription);
 void ntg_object_stop_listening(ntg_object* object, void* subscriber);
+
+/* ---------------------------------------------------------------- */
+
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
 
 /* ---------------------------------------------------------------- */
 
@@ -135,14 +145,15 @@ struct ntg_object
         ntg_orientation __layout_orientation;
 
         struct ntg_xy __min_size, __natural_size,
-                      __max_size, __size;
+                      __max_size, __content_size,
+                      __size;
 
         struct ntg_xy __position;
     };
 
     ntg_object_process_key_fn __process_key_fn;
 
-    // ntg_scene* _scene;
+    ntg_scene* __scene;
 
     ntg_listenable __listenable;
 };
@@ -163,11 +174,19 @@ void __ntg_object_deinit__(ntg_object* object);
 /* ---------------------------------------------------------------- */
 
 void _ntg_object_set_bg(ntg_object* object, ntg_cell bg);
+void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene);
+
+/* ---------------------------------------------------------------- */
+
+void _ntg_object_add_child(ntg_object* object, ntg_object* child);
+void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
 
 /* ---------------------------------------------------------------- */
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn);
+
+/* ---------------------------------------------------------------- */
 
 ntg_object_drawing* _ntg_object_get_drawing(ntg_object* object);
 

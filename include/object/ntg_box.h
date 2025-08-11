@@ -32,4 +32,18 @@ struct ntg_box
                   _secondary_alignment;
 };
 
+struct ntg_measure_result _ntg_box_measure_fn(const ntg_object* _box,
+        ntg_orientation orientation, size_t for_size,
+        const ntg_measure_context* context);
+
+size_t _ntg_box_constrain_fn(const ntg_object* _box,
+        ntg_orientation orientation, size_t size,
+        const ntg_constrain_context* context,
+        ntg_constrain_output* out_sizes);
+
+void _ntg_box_arrange_children_fn(const ntg_object* _box,
+        struct ntg_xy size,
+        const ntg_arrange_context* context,
+        ntg_arrange_output* out_positions);
+
 #endif // _NTG_BOX_H_
