@@ -19,6 +19,9 @@ void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation);
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_alignment alignment);
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment);
 
+void ntg_box_add_child(ntg_box* box, ntg_object* child);
+void ntg_box_rm_child(ntg_box* box, ntg_object* child);
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */

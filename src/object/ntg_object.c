@@ -98,6 +98,8 @@ void ntg_object_layout(ntg_object* root, struct ntg_xy size)
     ntg_layout_object layout_object;
     __ntg_layout_object_init__(&layout_object, root, size);
 
+    ntg_layout_object_perform(&layout_object);
+
     __ntg_layout_object_deinit__(&layout_object);
 }
 

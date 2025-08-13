@@ -46,6 +46,16 @@ void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment)
     assert(box != NULL);
 }
 
+void ntg_box_add_child(ntg_box* box, ntg_object* child)
+{
+    _ntg_object_add_child(NTG_OBJECT(box), child);
+}
+
+void ntg_box_rm_child(ntg_box* box, ntg_object* child)
+{
+    _ntg_object_rm_child(NTG_OBJECT(box), child);
+}
+
 /* -------------------------------------------------------------------------- */
 
 struct ntg_measure_result _ntg_box_measure_fn(const ntg_object* _box,
@@ -180,8 +190,7 @@ size_t _ntg_box_constrain_fn(const ntg_object* _box,
         }
     }
 
-    free(caps);
-    free(_sizes);
+    free(block);
 
     return content_size;
 }

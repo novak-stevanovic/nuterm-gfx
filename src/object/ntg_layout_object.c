@@ -122,6 +122,12 @@ static void __measure1_fn(ntg_object* object, void* _layout_data)
 
 static void __constrain1_fn(ntg_object* object, void* _layout_data)
 {
+    if(object->__constrain_fn == NULL)
+    {
+        object->__content_size.x = 0;
+        return;
+    }
+
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_constrain_context* context = ntg_constrain_context_new(object, data.arena);
     ntg_constrain_output* output = ntg_constrain_output_new(object, data.arena);
@@ -196,6 +202,12 @@ static void __measure2_fn(ntg_object* object, void* _layout_data)
 
 static void __constrain2_fn(ntg_object* object, void* _layout_data)
 {
+    if(object->__constrain_fn == NULL)
+    {
+        object->__content_size.y = 0;
+        return;
+    }
+
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_constrain_context* context = ntg_constrain_context_new(object, data.arena);
     ntg_constrain_output* output = ntg_constrain_output_new(object, data.arena);
@@ -239,6 +251,8 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
 
 static void __arrange_children_fn(ntg_object* object, void* _layout_data)
 {
+    if(object->__arrange_children_fn == NULL) return;
+
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_arrange_context* context = ntg_arrange_context_new(object, data.arena);
     ntg_arrange_output* output = ntg_arrange_output_new(object, data.arena);
@@ -275,6 +289,7 @@ static void __arrange_children_fn(ntg_object* object, void* _layout_data)
 
 static void __arrange_drawing_fn(ntg_object* object, void* _layout_data)
 {
+    ntg_object_drawing_set_size(object->__drawing, object->__size);
     size_t i, j;
     struct ntg_xy size = object->__size;
     ntg_cell* it_cell;

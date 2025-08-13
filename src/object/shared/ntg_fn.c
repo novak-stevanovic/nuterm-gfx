@@ -25,9 +25,12 @@ static void __ntg_map_init__(struct ntg_map* map, const ntg_object_vec* objects,
     assert(data_size != 0);
 
     map->objects = sarena_malloc(arena, sizeof(ntg_object*) * objects->_count, NULL);
-    assert(map->objects != NULL);
+    assert((objects->_count == 0) || (map->objects != NULL));
     map->data = sarena_calloc(arena, data_size * objects->_count, NULL);
-    assert(map->data != NULL);
+    assert((objects->_count == 0) || (map->data != NULL));
+
+    // map->objects = malloc(sizeof(void*) * objects->_count);
+    // map->data = calloc(data_size, objects->_count);
 
     size_t i;
     for(i = 0; i < objects->_count; i++)
@@ -60,7 +63,7 @@ static void* __ntg_map_get(struct ntg_map* map, const ntg_object* child)
     for(i = 0; i < map->count; i++)
     {
         if(map->objects[i] == child)
-            return &(map->data[i]);
+            return (map->data + (i * map->data_size));
     }
 
     return NULL;
@@ -76,8 +79,13 @@ static void __ntg_map_set(struct ntg_map* map, const ntg_object* child, void* da
     for(i = 0; i < map->count; i++)
     {
         if(map->objects[i] == child)
-            memcpy(&(map->data[i]), data, map->data_size);
+        {
+            memcpy(map->data + (i * map->data_size), data, map->data_size);
+            return;
+        }
     }
+
+    assert(0);
 }
 
 /* -------------------------------------------------------------------------- */
