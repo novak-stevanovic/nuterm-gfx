@@ -24,26 +24,38 @@ void __ntg_box_init__(ntg_box* box, ntg_orientation orientation,
             _ntg_box_arrange_children_fn, NULL);
 
     __init_default_values(box);
+
+    box->_orientation = orientation;
+    box->_primary_alignment = primary_alignment;
+    box->_secondary_alignment = secondary_alignment;
 }
 
 void __ntg_box_deinit__(ntg_box* box)
 {
     assert(box != NULL);
+
+    __init_default_values(box);
 }
 
 void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation)
 {
     assert(box != NULL);
+
+    box->_orientation = orientation;
 }
 
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_alignment alignment)
 {
     assert(box != NULL);
+
+    box->_primary_alignment = alignment;
 }
 
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment)
 {
     assert(box != NULL);
+
+    box->_secondary_alignment = alignment;
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child)

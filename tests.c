@@ -20,7 +20,7 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     __ntg_scene_init__(&scene);
 
     ntg_box root;
-    __ntg_box_init__(&root, NTG_ORIENTATION_HORIZONTAL,
+    __ntg_box_init__(&root, NTG_ORIENTATION_VERTICAL,
             NTG_ALIGNMENT_1, NTG_ALIGNMENT_1);
 
     ntg_color_block cb1, cb2, cb3;
