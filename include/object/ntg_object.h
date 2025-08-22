@@ -61,16 +61,9 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-// struct ntg_xy ntg_object_get_natural_size(const ntg_object* object);
-// struct ntg_xy ntg_object_get_adjusted_natural_size(const ntg_object* object);
-//
-// struct ntg_constr ntg_object_get_constraints(const ntg_object* object);
-// struct ntg_constr ntg_object_get_adjusted_constraints(const ntg_object* object);
-//
-// struct ntg_xy ntg_object_get_size(const ntg_object* object);
-// struct ntg_xy ntg_object_get_position(const ntg_object* object);
-//
-// const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object);
+void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size);
+void ntg_object_set_natural_size(ntg_object* object, struct ntg_xy size);
+void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size);
 
 /* ---------------------------------------------------------------- */
 

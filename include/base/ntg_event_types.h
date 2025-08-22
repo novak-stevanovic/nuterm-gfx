@@ -31,11 +31,10 @@ struct ntg_uint_change
 #define NTG_ETYPE_STAGE_RENDER 12 // data type: NONE
  
 #define NTG_ETYPE_SCENE_RESIZE 100 // data type: struct ntg_size_change
-#define NTG_ETYPE_SCENE_ROOT_CHANGE 102 // data type: struct ntg_object_change
-#define NTG_ETYPE_SCENE_FOCUSED_CHANGE 103 // data type: struct ntg_object_change
-#define NTG_ETYPE_SCENE_LAYOUT 104 // data type: NONE
-#define NTG_ETYPE_SCENE_OBJECT_REGISTER 105 // data type: ntg_object*
-#define NTG_ETYPE_SCENE_OBJECT_UNREGISTER 106 // data type: ntg_object*
+#define NTG_ETYPE_SCENE_FOCUSED_CHANGE 102 // data type: struct ntg_object_change
+#define NTG_ETYPE_SCENE_LAYOUT 103 // data type: NONE
+#define NTG_ETYPE_SCENE_OBJECT_REGISTER 104 // data type: ntg_object*
+#define NTG_ETYPE_SCENE_OBJECT_UNREGISTER 105 // data type: ntg_object*
 
 /* Complete re-layout is needed */
 #define NTG_ETYPE_OBJECT_LAYOUT_INVALID 1000

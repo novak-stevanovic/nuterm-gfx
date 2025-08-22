@@ -249,7 +249,8 @@ void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene)
 {
     assert(root != NULL);
 
-    ntg_object* parent = ntg_object_get_parent(root, NTG_OBJECT_GET_PARENT_EXC_DECORATOR);
+    ntg_object* parent = ntg_object_get_parent(root,
+            NTG_OBJECT_GET_PARENT_EXC_DECORATOR);
     assert(parent == NULL);
 
     ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
@@ -324,7 +325,7 @@ static void __init_default_values(ntg_object* object)
 
     object->__min_size = ntg_xy(0, 0);
     object->__natural_size = ntg_xy(0, 0);
-    object->__max_size = ntg_xy(0, 0);
+    object->__max_size = ntg_xy(SIZE_MAX, SIZE_MAX);
     object->__content_size = ntg_xy(0, 0);
     object->__size = ntg_xy(0, 0);
     object->__position = ntg_xy(0, 0);

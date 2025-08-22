@@ -13,13 +13,14 @@ static void __construct_empty_drawing(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_scene_init__(ntg_scene* scene)
+void __ntg_scene_init__(ntg_scene* scene, ntg_object* root)
 {
     assert(scene != NULL);
+    assert(root != NULL);
 
     scene->__process_key_fn = _ntg_scene_process_key_fn_default;
     scene->_focused = NULL;
-    scene->_root = NULL;
+    scene->_root = root;
     scene->__on_object_register_fn = NULL;
     scene->__on_object_unregister_fn = NULL;
     scene->_size = NTG_XY_UNSET;
@@ -39,30 +40,6 @@ void __ntg_scene_deinit__(ntg_scene* scene)
 
     __ntg_scene_drawing_deinit__(&scene->_drawing);
     __ntg_listenable_deinit__(&scene->__listenable);
-}
-
-void ntg_scene_set_root(ntg_scene* scene, ntg_object* new_root)
-{
-    assert(scene != NULL);
-
-    if(scene->_root == new_root) return;
-
-    if(scene->_root != NULL)
-        _ntg_object_root_set_scene(scene->_root, NULL);
-
-    if(new_root)
-        _ntg_object_root_set_scene(new_root, scene);
-
-    struct ntg_object_change data = {
-        .old = scene->_root,
-        .new = new_root
-    };
-
-    scene->_root = new_root;
-
-    ntg_event e;
-    __ntg_event_init__(&e, NTG_ETYPE_SCENE_ROOT_CHANGE, scene, &data);
-    ntg_listenable_raise(&scene->__listenable, &e);
 }
 
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
