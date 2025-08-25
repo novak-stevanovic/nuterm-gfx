@@ -60,12 +60,30 @@ void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment)
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child)
 {
-    _ntg_object_add_child(NTG_OBJECT(box), child);
+    assert(box != NULL);
+    assert(child != NULL);
+
+    ntg_object* group_root = ntg_object_get_group_root(child);
+    ntg_object* parent = ntg_object_get_parent(child,
+            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+
+    assert(parent == NULL);
+
+    _ntg_object_add_child(NTG_OBJECT(box), group_root);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 {
-    _ntg_object_rm_child(NTG_OBJECT(box), child);
+    assert(box != NULL);
+    assert(child != NULL);
+
+    ntg_object* group_root = ntg_object_get_group_root(child);
+    ntg_object* parent = ntg_object_get_parent(child,
+            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+
+    assert(parent == NTG_OBJECT(box));
+
+    _ntg_object_rm_child(parent, group_root);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -79,7 +97,7 @@ struct ntg_measure_result _ntg_box_measure_fn(const ntg_object* _box,
 
     if(children->_count == 0) return (struct ntg_measure_result) {0};
 
-    size_t min_size = 0, natural_size = 0;
+    size_t min_size = 0, natural_size = 0, max_size;
 
     size_t i;
     struct ntg_measure_data it_data;
@@ -93,17 +111,21 @@ struct ntg_measure_result _ntg_box_measure_fn(const ntg_object* _box,
         {
             min_size += it_data.min_size;
             natural_size += it_data.natural_size;
+            max_size += it_data.max_size;
         }
         else
         {
             min_size = _max2_size(min_size, it_data.min_size);
             natural_size = _max2_size(natural_size, it_data.natural_size);
+            max_size = _max2_size(max_size, it_data.max_size);
         }
     }
 
     return (struct ntg_measure_result) {
         .min_size = min_size,
-        .natural_size = natural_size
+        .natural_size = natural_size,
+        // .max_size = max_size
+        .max_size = SIZE_MAX
     };
 }
 

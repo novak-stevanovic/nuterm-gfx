@@ -14,12 +14,12 @@ typedef struct ntg_object_drawing ntg_object_drawing;
 
 struct ntg_measure_data
 {
-    size_t min_size, natural_size;
+    size_t min_size, natural_size, max_size;
 };
 
 struct ntg_measure_result
 {
-    size_t min_size, natural_size;
+    size_t min_size, natural_size, max_size;
 };
 
 typedef struct ntg_measure_context ntg_measure_context;

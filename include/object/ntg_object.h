@@ -29,8 +29,8 @@ typedef enum ntg_object_type
 
 typedef enum ntg_object_get_parent_mode
 {
-    NTG_OBJECT_GET_PARENT_INC_DECORATOR,
-    NTG_OBJECT_GET_PARENT_EXC_DECORATOR
+    NTG_OBJECT_GET_PARENT_INCL_DECORATOR,
+    NTG_OBJECT_GET_PARENT_EXCL_DECORATOR
 } ntg_object_get_parent_mode;
 
 typedef enum ntg_object_perform_mode
@@ -43,14 +43,11 @@ typedef enum ntg_object_perform_mode
 
 ntg_object_type ntg_object_get_type(const ntg_object* object);
 
+ntg_object* ntg_object_get_group_root(ntg_object* object);
+
 /* Gets object's parent node. */
 ntg_object* ntg_object_get_parent(ntg_object* object,
         ntg_object_get_parent_mode mode);
-
-/* Gets decorator for object. If object is top decorator, returns NULL. */
-ntg_object* ntg_object_get_decorator(ntg_object* object);
-/* Gets top decorator for an object. Works for decorators as well. */
-ntg_object* ntg_object_get_top_decorator(ntg_object* object);
 
 /* Returns base widget for node group(non-decorator). */
 ntg_object* ntg_object_get_base_widget(ntg_object* object);
@@ -64,6 +61,14 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size);
 void ntg_object_set_natural_size(ntg_object* object, struct ntg_xy size);
 void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size);
+
+void ntg_object_unset_min_size(ntg_object* object);
+void ntg_object_unset_natural_size(ntg_object* object);
+void ntg_object_unset_max_size(ntg_object* object);
+
+struct ntg_xy ntg_object_get_min_size(ntg_object* object);
+struct ntg_xy ntg_object_get_natural_size(ntg_object* object);
+struct ntg_xy ntg_object_get_max_size(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
@@ -123,14 +128,12 @@ struct ntg_object
         ntg_arrange_children_fn __arrange_children_fn;
 
         ntg_arrange_drawing_fn __arrange_drawing_fn;
-        /* `bg` is used for drawing the background before arranging
-         * the drawing. */
-        ntg_cell __bg;
     };
 
     struct
     {
         ntg_object_drawing* __drawing;
+        ntg_cell __background;
     };
 
     struct
@@ -140,6 +143,9 @@ struct ntg_object
         struct ntg_xy __min_size, __natural_size,
                       __max_size, __content_size,
                       __size;
+        
+        bool __set_min_size, __set_natural_size,
+             __set_max_size;
 
         struct ntg_xy __position;
     };
@@ -166,7 +172,28 @@ void __ntg_object_deinit__(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-void _ntg_object_set_bg(ntg_object* object, ntg_cell bg);
+struct ntg_measure_result _ntg_object_measure(ntg_object* object,
+        ntg_orientation orientation, size_t for_size,
+        const ntg_measure_context* context);
+
+size_t _ntg_object_constrain(ntg_object* object,
+        ntg_orientation orientation, size_t size,
+        const ntg_constrain_context* context,
+        ntg_constrain_output* output);
+
+void _ntg_object_arrange_children(ntg_object* object, struct ntg_xy size,
+        const ntg_arrange_context* context,
+        ntg_arrange_output* output);
+
+void _ntg_object_arrange_drawing(ntg_object* object, struct ntg_xy size,
+        ntg_object_drawing* drawing);
+
+/* ---------------------------------------------------------------- */
+
+void _ntg_object_set_background(ntg_object* object, ntg_cell background);
+
+/* ---------------------------------------------------------------- */
+
 void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene);
 
 /* ---------------------------------------------------------------- */

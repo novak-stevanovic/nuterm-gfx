@@ -16,28 +16,32 @@
 
 void gui_fn1(ntg_stage* main_stage, void* data)
 {
-    ntg_scene scene;
-    __ntg_scene_init__(&scene);
-
     ntg_box root;
     __ntg_box_init__(&root, NTG_ORIENTATION_VERTICAL,
             NTG_ALIGNMENT_1, NTG_ALIGNMENT_1);
+
+    ntg_scene scene;
+    __ntg_scene_init__(&scene, NTG_OBJECT(&root));
 
     ntg_color_block cb1, cb2, cb3;
     __ntg_color_block_init__(&cb1, nt_color_new(255, 0, 0));
     __ntg_color_block_init__(&cb2, nt_color_new(0, 255, 0));
     __ntg_color_block_init__(&cb3, nt_color_new(0, 0, 255));
 
+    ntg_object_set_min_size(NTG_OBJECT(&cb1), ntg_xy(100, 10));
+
     ntg_box_add_child(&root, NTG_OBJECT(&cb1));
     ntg_box_add_child(&root, NTG_OBJECT(&cb2));
     ntg_box_add_child(&root, NTG_OBJECT(&cb3));
 
-    ntg_scene_set_root(&scene, NTG_OBJECT(&root));
     ntg_stage_set_scene(main_stage, &scene);
     ntg_loop(main_stage, 60);
 
     __ntg_scene_deinit__(&scene);
     __ntg_box_deinit__(&root);
+    __ntg_color_block_deinit__(&cb1);
+    __ntg_color_block_deinit__(&cb2);
+    __ntg_color_block_deinit__(&cb3);
 }
 
 int main(int argc, char *argv[])

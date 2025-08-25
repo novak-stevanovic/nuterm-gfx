@@ -7,6 +7,7 @@
 #include "object/shared/ntg_object_vec.h"
 #include "object/shared/ntg_object_xy_map.h"
 #include "object/shared/ntg_object_size_map.h"
+#include "shared/_ntg_shared.h"
 
 static void __update_scene_fn(ntg_object* object, void* _scene);
 
@@ -21,50 +22,66 @@ ntg_object_type ntg_object_get_type(const ntg_object* object)
     return object->_type;
 }
 
+ntg_object* ntg_object_get_group_root(ntg_object* object)
+{
+    assert(object != NULL);
+
+    ntg_object* it_obj = object;
+    while(true)
+    {
+        if((it_obj->__parent == NULL) ||
+                (it_obj->__parent->_type == NTG_OBJECT_WIDGET))
+        {
+            return it_obj;
+        }
+
+        it_obj = it_obj->__parent;
+    }
+}
+
 ntg_object* ntg_object_get_parent(ntg_object* object,
         ntg_object_get_parent_mode mode)
 {
     assert(object != NULL);
 
-    ntg_object* top_decorator;
+    ntg_object* group_root;
     switch(mode)
     {
-        case NTG_OBJECT_GET_PARENT_INC_DECORATOR:
+        case NTG_OBJECT_GET_PARENT_INCL_DECORATOR:
             return object->__parent;
-        case NTG_OBJECT_GET_PARENT_EXC_DECORATOR:
-             top_decorator = ntg_object_get_top_decorator(object);
+        case NTG_OBJECT_GET_PARENT_EXCL_DECORATOR:
+             group_root = ntg_object_get_group_root(object);
 
-             if(top_decorator == NULL) return object->__parent;
-             else return (top_decorator->__parent);
+             return group_root->__parent;
         default:
              assert(0);
     }
 }
 
-ntg_object* ntg_object_get_decorator(ntg_object* object)
-{
-    assert(object != NULL);
-
-    if(object->__parent == NULL) return NULL;
-
-    return ((object->__parent->_type != NTG_OBJECT_WIDGET) ? object->__parent : NULL);
-}
-
-ntg_object* ntg_object_get_top_decorator(ntg_object* object)
-{
-    assert(object != NULL);
-
-    ntg_object* prev_obj = object;
-    ntg_object* it_obj = object->__parent;
-
-    while((it_obj != NULL) && (it_obj->_type == NTG_OBJECT_DECORATOR))
-    {
-        prev_obj = it_obj;
-        it_obj = it_obj->__parent;
-    }
-
-    return (prev_obj->_type == NTG_OBJECT_DECORATOR) ? prev_obj : NULL;
-}
+// ntg_object* ntg_object_get_decorator(ntg_object* object)
+// {
+//     assert(object != NULL);
+//
+//     if(object->__parent == NULL) return NULL;
+//
+//     return ((object->__parent->_type != NTG_OBJECT_WIDGET) ? object->__parent : NULL);
+// }
+//
+// ntg_object* ntg_object_get_top_decorator(ntg_object* object)
+// {
+//     assert(object != NULL);
+//
+//     ntg_object* prev_obj = object;
+//     ntg_object* it_obj = object->__parent;
+//
+//     while((it_obj != NULL) && (it_obj->_type == NTG_OBJECT_DECORATOR))
+//     {
+//         prev_obj = it_obj;
+//         it_obj = it_obj->__parent;
+//     }
+//
+//     return (prev_obj->_type == NTG_OBJECT_DECORATOR) ? prev_obj : NULL;
+// }
 
 ntg_object* ntg_object_get_base_widget(ntg_object* object)
 {
@@ -89,6 +106,74 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object)
     assert(object != NULL);
 
     return object->__children;
+}
+
+/* ---------------------------------------------------------------- */
+
+void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size)
+{
+    assert(object != NULL);
+
+    object->__min_size = size;
+    object->__set_min_size = true;
+}
+
+void ntg_object_set_natural_size(ntg_object* object, struct ntg_xy size)
+{
+    assert(object != NULL);
+
+    object->__natural_size = size;
+    object->__set_natural_size = true;
+}
+
+void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size)
+{
+    assert(object != NULL);
+
+    object->__max_size = size;
+    object->__set_max_size = true;
+}
+
+void ntg_object_unset_min_size(ntg_object* object)
+{
+    assert(object != NULL);
+
+    object->__set_min_size = false;
+}
+
+void ntg_object_unset_natural_size(ntg_object* object)
+{
+    assert(object != NULL);
+
+    object->__set_natural_size = false;
+}
+
+void ntg_object_unset_max_size(ntg_object* object)
+{
+    assert(object != NULL);
+
+    object->__set_max_size = false;
+}
+
+struct ntg_xy ntg_object_get_min_size(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__min_size;
+}
+
+struct ntg_xy ntg_object_get_natural_size(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__natural_size;
+}
+
+struct ntg_xy ntg_object_get_max_size(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__max_size;
 }
 
 /* ---------------------------------------------------------------- */
@@ -245,12 +330,108 @@ void __ntg_object_deinit__(ntg_object* object)
     __init_default_values(object);
 }
 
+struct ntg_measure_result _ntg_object_measure(ntg_object* object,
+        ntg_orientation orientation, size_t for_size,
+        const ntg_measure_context* context)
+{
+    assert(object != NULL);
+    assert(context != NULL);
+
+    if(object->__measure_fn == NULL)
+        return (struct ntg_measure_result) {0};
+
+    struct ntg_measure_result result = object->__measure_fn(
+            object, orientation, for_size, context);
+
+    if(object->__set_min_size)
+    {
+        result.min_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
+            object->__min_size.x : object->__min_size.y;
+    }
+    if(object->__set_natural_size)
+    {
+        result.natural_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
+            object->__natural_size.x : object->__natural_size.y;
+    }
+    if(object->__set_max_size)
+    {
+        result.max_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
+            object->__max_size.x : object->__max_size.y;
+    }
+
+    return (struct ntg_measure_result) {
+        .min_size = result.min_size,
+        .natural_size = _max2_size(result.min_size, result.natural_size),
+        .max_size = _max3_size(result.min_size, result.natural_size, result.max_size)
+    };
+}
+
+size_t _ntg_object_constrain(ntg_object* object,
+        ntg_orientation orientation, size_t size,
+        const ntg_constrain_context* context,
+        ntg_constrain_output* output)
+{
+    assert(object != NULL);
+    assert(context != NULL);
+    assert(output != NULL);
+
+    if(object->__constrain_fn  == NULL)
+        return 0;
+
+    size_t result = object->__constrain_fn(object, orientation,
+            size, context, output);
+
+    return result;
+}
+
+void _ntg_object_arrange_children(ntg_object* object, struct ntg_xy size,
+        const ntg_arrange_context* context,
+        ntg_arrange_output* output)
+{
+    assert(object != NULL);
+    assert(context != NULL);
+    assert(output != NULL);
+
+    if(object->__arrange_children_fn == NULL) return;
+
+    object->__arrange_children_fn(object, size, context, output);
+}
+
+void _ntg_object_arrange_drawing(ntg_object* object, struct ntg_xy size,
+        ntg_object_drawing* drawing)
+{
+    assert(object != NULL);
+    assert(drawing != NULL);
+
+    size_t i, j;
+    ntg_cell* it_cell;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_cell = ntg_object_drawing_at_(drawing, ntg_xy(j, i)); 
+            (*it_cell) = object->__background;
+        }
+    }
+
+    if(object->__arrange_drawing_fn == NULL) return;
+
+    object->__arrange_drawing_fn(object, size, drawing);
+}
+
+void _ntg_object_set_background(ntg_object* object, ntg_cell background)
+{
+    assert(object != NULL);
+
+    object->__background = background;
+}
+
 void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene)
 {
     assert(root != NULL);
 
     ntg_object* parent = ntg_object_get_parent(root,
-            NTG_OBJECT_GET_PARENT_EXC_DECORATOR);
+            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
     assert(parent == NULL);
 
     ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
@@ -284,13 +465,6 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
             __update_scene_fn, NULL);
 }
 
-void _ntg_object_set_bg(ntg_object* object, ntg_cell bg)
-{
-    assert(object != NULL);
-
-    object->__bg = bg;
-}
-
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn)
 {
@@ -322,12 +496,16 @@ static void __init_default_values(ntg_object* object)
     object->__arrange_drawing_fn = NULL;
 
     object->__drawing = NULL;
+    object->__background = ntg_cell_default();
 
     object->__min_size = ntg_xy(0, 0);
     object->__natural_size = ntg_xy(0, 0);
     object->__max_size = ntg_xy(SIZE_MAX, SIZE_MAX);
     object->__content_size = ntg_xy(0, 0);
     object->__size = ntg_xy(0, 0);
+    object->__set_min_size = false;
+    object->__set_natural_size = false;
+    object->__set_max_size = false;
     object->__position = ntg_xy(0, 0);
 
     object->__scene = NULL;

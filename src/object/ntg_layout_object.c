@@ -105,29 +105,25 @@ static void __measure1_fn(ntg_object* object, void* _layout_data)
         it_data = (struct ntg_measure_data) {
             .min_size = it_object->__min_size.x,
             .natural_size = it_object->__natural_size.x,
+            .max_size = it_object->__max_size.x
         };
 
         ntg_measure_context_set(context, it_object, it_data);
     }
 
-    struct ntg_measure_result result = object->__measure_fn(
+    struct ntg_measure_result result = _ntg_object_measure(
             object, NTG_ORIENTATION_HORIZONTAL,
             SIZE_MAX, context);
 
     object->__min_size.x = result.min_size;
     object->__natural_size.x = result.natural_size;
+    object->__max_size.x = result.max_size;
 
     ntg_measure_context_destroy(context);
 }
 
 static void __constrain1_fn(ntg_object* object, void* _layout_data)
 {
-    if(object->__constrain_fn == NULL)
-    {
-        object->__content_size.x = 0;
-        return;
-    }
-
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_constrain_context* context = ntg_constrain_context_new(object, data.arena);
     ntg_constrain_output* output = ntg_constrain_output_new(object, data.arena);
@@ -142,8 +138,8 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
 
         it_data = (struct ntg_constrain_data) {
             .min_size = it_object->__min_size.x,
-            .max_size = it_object->__max_size.x,
-            .natural_size = it_object->__natural_size.x
+            .natural_size = it_object->__natural_size.x,
+            .max_size = it_object->__max_size.x
         };
 
         ntg_constrain_context_set(context, it_object, it_data);
@@ -152,7 +148,7 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
     ntg_constrain_context_set_min_size(context, object->__min_size.x);
     ntg_constrain_context_set_natural_size(context, object->__natural_size.x);
 
-    size_t content_size = object->__constrain_fn(object,
+    size_t content_size = _ntg_object_constrain(object,
             NTG_ORIENTATION_HORIZONTAL, object->__size.x,
             context, output);
 
@@ -185,29 +181,25 @@ static void __measure2_fn(ntg_object* object, void* _layout_data)
         it_data = (struct ntg_measure_data) {
             .min_size = it_object->__min_size.y,
             .natural_size = it_object->__natural_size.y,
+            .max_size = it_object->__natural_size.y
         };
 
         ntg_measure_context_set(context, it_object, it_data);
     }
 
-    struct ntg_measure_result result = object->__measure_fn(
+    struct ntg_measure_result result = _ntg_object_measure(
             object, NTG_ORIENTATION_VERTICAL,
             object->__size.x, context);
 
     object->__min_size.y = result.min_size;
     object->__natural_size.y = result.natural_size;
+    object->__max_size.y = result.max_size;
 
     ntg_measure_context_destroy(context);
 }
 
 static void __constrain2_fn(ntg_object* object, void* _layout_data)
 {
-    if(object->__constrain_fn == NULL)
-    {
-        object->__content_size.y = 0;
-        return;
-    }
-
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_constrain_context* context = ntg_constrain_context_new(object, data.arena);
     ntg_constrain_output* output = ntg_constrain_output_new(object, data.arena);
@@ -232,7 +224,7 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
     ntg_constrain_context_set_min_size(context, object->__min_size.y);
     ntg_constrain_context_set_natural_size(context, object->__natural_size.y);
 
-    size_t content_size = object->__constrain_fn(object,
+    size_t content_size = _ntg_object_constrain(object,
             NTG_ORIENTATION_VERTICAL, object->__size.y,
             context, output);
 
@@ -251,8 +243,6 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
 
 static void __arrange_children_fn(ntg_object* object, void* _layout_data)
 {
-    if(object->__arrange_children_fn == NULL) return;
-
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_arrange_context* context = ntg_arrange_context_new(object, data.arena);
     ntg_arrange_output* output = ntg_arrange_output_new(object, data.arena);
@@ -274,7 +264,7 @@ static void __arrange_children_fn(ntg_object* object, void* _layout_data)
 
     ntg_arrange_context_set_content_size(context, object->__content_size);
 
-    object->__arrange_children_fn(object, object->__size, context, output);
+    _ntg_object_arrange_children(object, object->__size, context, output);
 
     for(i = 0; i < children->_count; i++)
     {
@@ -290,24 +280,12 @@ static void __arrange_children_fn(ntg_object* object, void* _layout_data)
 static void __arrange_drawing_fn(ntg_object* object, void* _layout_data)
 {
     ntg_object_drawing_set_size(object->__drawing, object->__size);
-    size_t i, j;
-    struct ntg_xy size = object->__size;
-    ntg_cell* it_cell;
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            it_cell = ntg_object_drawing_at_(object->__drawing, ntg_xy(j, i));
-            (*it_cell) = object->__bg;
-        }
-    }
 
-    if(object->__arrange_drawing_fn)
-        object->__arrange_drawing_fn(object, size, object->__drawing);
+    _ntg_object_arrange_drawing(object, object->__size, object->__drawing);
 }
 
 static void __arrange_fn(ntg_object* object, void* _layout_data) // children & drawing
 {
-    __arrange_children_fn(object, _layout_data);// children & drawing
-    __arrange_drawing_fn(object, _layout_data);// children & drawing
+    __arrange_children_fn(object, _layout_data);
+    __arrange_drawing_fn(object, _layout_data);
 }
