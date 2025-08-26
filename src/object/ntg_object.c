@@ -366,7 +366,7 @@ struct ntg_measure_result _ntg_object_measure(ntg_object* object,
     };
 }
 
-size_t _ntg_object_constrain(ntg_object* object,
+void _ntg_object_constrain(ntg_object* object,
         ntg_orientation orientation, size_t size,
         const ntg_constrain_context* context,
         ntg_constrain_output* output)
@@ -375,13 +375,9 @@ size_t _ntg_object_constrain(ntg_object* object,
     assert(context != NULL);
     assert(output != NULL);
 
-    if(object->__constrain_fn  == NULL)
-        return 0;
+    if(object->__constrain_fn  == NULL) return;
 
-    size_t result = object->__constrain_fn(object, orientation,
-            size, context, output);
-
-    return result;
+    object->__constrain_fn(object, orientation, size, context, output);
 }
 
 void _ntg_object_arrange_children(ntg_object* object, struct ntg_xy size,
@@ -500,8 +496,7 @@ static void __init_default_values(ntg_object* object)
 
     object->__min_size = ntg_xy(0, 0);
     object->__natural_size = ntg_xy(0, 0);
-    object->__max_size = ntg_xy(SIZE_MAX, SIZE_MAX);
-    object->__content_size = ntg_xy(0, 0);
+    object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
     object->__size = ntg_xy(0, 0);
     object->__set_min_size = false;
     object->__set_natural_size = false;

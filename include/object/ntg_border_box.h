@@ -28,7 +28,7 @@ struct ntg_measure_result _ntg_border_box_measure_fn(
         ntg_orientation orientation, size_t for_size,
         const ntg_measure_context* context);
 
-size_t _ntg_border_box_constrain_fn(
+void _ntg_border_box_constrain_fn(
         const ntg_object* _box,
         ntg_orientation orientation, size_t size,
         const ntg_constrain_context* context,

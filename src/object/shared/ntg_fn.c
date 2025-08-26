@@ -141,7 +141,7 @@ struct ntg_constrain_context
 {
     struct ntg_map _base;
 
-    size_t min_size, natural_size;
+    size_t min_size, natural_size, max_size;
 };
 
 ntg_constrain_context* ntg_constrain_context_new(const ntg_object* parent, SArena* arena)
@@ -158,6 +158,7 @@ ntg_constrain_context* ntg_constrain_context_new(const ntg_object* parent, SAren
 
     new->min_size = 0;
     new->natural_size = 0;
+    new->max_size = 0;
 
     return new;
 }
@@ -168,6 +169,7 @@ void ntg_constrain_context_destroy(ntg_constrain_context* context)
 
     context->min_size = 0;
     context->natural_size = 0;
+    context->max_size = 0;
 }
 
 struct ntg_constrain_data ntg_constrain_context_get(const ntg_constrain_context* context,
@@ -195,6 +197,12 @@ void ntg_constrain_context_set_natural_size(ntg_constrain_context* context,
         size_t natural_size)
 {
     context->natural_size = natural_size;
+}
+
+void ntg_constrain_context_set_max_size(ntg_constrain_context* context,
+        size_t max_size)
+{
+    context->max_size = max_size;
 }
 
 struct ntg_constrain_output

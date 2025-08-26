@@ -59,14 +59,16 @@ struct ntg_measure_result _ntg_color_block_measure_fn(const ntg_object* _block,
     {
         return (struct ntg_measure_result) {
             .min_size = 1,
-            .natural_size = 10 
+            .natural_size = 10,
+            .max_size = NTG_SIZE_MAX
         };
     }
     else
     {
         return (struct ntg_measure_result) {
             .min_size = 1,
-            .natural_size = 4
+            .natural_size = 4,
+            .max_size = NTG_SIZE_MAX
         };
     }
 }

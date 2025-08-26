@@ -113,7 +113,7 @@ static void __measure1_fn(ntg_object* object, void* _layout_data)
 
     struct ntg_measure_result result = _ntg_object_measure(
             object, NTG_ORIENTATION_HORIZONTAL,
-            SIZE_MAX, context);
+            NTG_SIZE_MAX, context);
 
     object->__min_size.x = result.min_size;
     object->__natural_size.x = result.natural_size;
@@ -147,10 +147,10 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
 
     ntg_constrain_context_set_min_size(context, object->__min_size.x);
     ntg_constrain_context_set_natural_size(context, object->__natural_size.x);
+    ntg_constrain_context_set_natural_size(context, object->__max_size.x);
 
-    size_t content_size = _ntg_object_constrain(object,
-            NTG_ORIENTATION_HORIZONTAL, object->__size.x,
-            context, output);
+    _ntg_object_constrain(object, NTG_ORIENTATION_HORIZONTAL,
+            object->__size.x, context, output);
 
     for(i = 0; i < children->_count; i++)
     {
@@ -158,8 +158,6 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
 
         it_object->__size.x = ntg_constrain_output_get(output, it_object).size;
     }
-
-    object->__content_size.x = content_size;
 
     ntg_constrain_context_destroy(context);
     ntg_constrain_output_destroy(output);
@@ -223,9 +221,9 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
 
     ntg_constrain_context_set_min_size(context, object->__min_size.y);
     ntg_constrain_context_set_natural_size(context, object->__natural_size.y);
+    ntg_constrain_context_set_natural_size(context, object->__max_size.y);
 
-    size_t content_size = _ntg_object_constrain(object,
-            NTG_ORIENTATION_VERTICAL, object->__size.y,
+    _ntg_object_constrain(object, NTG_ORIENTATION_VERTICAL, object->__size.y,
             context, output);
 
     for(i = 0; i < children->_count; i++)
@@ -235,8 +233,6 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
         it_object->__size.y = ntg_constrain_output_get(output, it_object).size;
     }
     
-    object->__content_size.y = content_size;
-
     ntg_constrain_context_destroy(context);
     ntg_constrain_output_destroy(output);
 }
@@ -261,8 +257,6 @@ static void __arrange_children_fn(ntg_object* object, void* _layout_data)
 
         ntg_arrange_context_set(context, it_object, it_data);
     }
-
-    ntg_arrange_context_set_content_size(context, object->__content_size);
 
     _ntg_object_arrange_children(object, object->__size, context, output);
 

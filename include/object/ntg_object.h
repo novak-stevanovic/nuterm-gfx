@@ -141,8 +141,7 @@ struct ntg_object
         ntg_orientation __layout_orientation;
 
         struct ntg_xy __min_size, __natural_size,
-                      __max_size, __content_size,
-                      __size;
+                      __max_size, __size;
         
         bool __set_min_size, __set_natural_size,
              __set_max_size;
@@ -176,7 +175,7 @@ struct ntg_measure_result _ntg_object_measure(ntg_object* object,
         ntg_orientation orientation, size_t for_size,
         const ntg_measure_context* context);
 
-size_t _ntg_object_constrain(ntg_object* object,
+void _ntg_object_constrain(ntg_object* object,
         ntg_orientation orientation, size_t size,
         const ntg_constrain_context* context,
         ntg_constrain_output* output);

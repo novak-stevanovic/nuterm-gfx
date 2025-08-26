@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#define NTG_SIZE_MAX 10000
+
 struct ntg_xy
 {
     size_t x, y;
@@ -48,12 +50,12 @@ struct ntg_oxy
     size_t prim_val, sec_val;
 };
 
-static const struct ntg_xy NTG_XY_MAX = { SIZE_MAX, SIZE_MAX };
+static const struct ntg_xy NTG_XY_MAX = { NTG_SIZE_MAX, NTG_SIZE_MAX };
 static const struct ntg_xy NTG_XY_MIN = { 0, 0 };
 static const struct ntg_xy NTG_XY_UNSET = { 0, 0 };
 
-static const struct ntg_dxy NTG_DXY_MAX = { SSIZE_MAX, SSIZE_MAX };
-static const struct ntg_dxy NTG_DXY_MIN = { -SSIZE_MAX - 1, -SSIZE_MAX - 1 };
+static const struct ntg_dxy NTG_DXY_MAX = { NTG_SIZE_MAX, NTG_SIZE_MAX };
+static const struct ntg_dxy NTG_DXY_MIN = { 0, 0 };
 static const struct ntg_dxy NTG_DXY_UNSET = { 0, 0 };
 
 static const struct ntg_constr NTG_CONSTR_UNSET = {
