@@ -116,14 +116,11 @@ void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size)
 
     object->__min_size = size;
     object->__set_min_size = true;
-}
 
-void ntg_object_set_natural_size(ntg_object* object, struct ntg_xy size)
-{
-    assert(object != NULL);
-
-    object->__natural_size = size;
-    object->__set_natural_size = true;
+    // object->__natural_size.x = _max2_size(size.x, object->__natural_size.x);
+    // object->__natural_size.y = _max2_size(size.y, object->__natural_size.y);
+    // object->__max_size.x = _max2_size(size.x, object->__max_size.x);
+    // object->__max_size.y = _max2_size(size.y, object->__max_size.y);
 }
 
 void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size)
@@ -132,6 +129,11 @@ void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size)
 
     object->__max_size = size;
     object->__set_max_size = true;
+
+    // object->__min_size.x = _min2_size(size.x, object->__min_size.x);
+    // object->__min_size.y = _min2_size(size.y, object->__min_size.y);
+    // object->__natural_size.x = _min2_size(size.x, object->__natural_size.x);
+    // object->__natural_size.y = _min2_size(size.y, object->__natural_size.y);
 }
 
 void ntg_object_unset_min_size(ntg_object* object)
@@ -139,13 +141,6 @@ void ntg_object_unset_min_size(ntg_object* object)
     assert(object != NULL);
 
     object->__set_min_size = false;
-}
-
-void ntg_object_unset_natural_size(ntg_object* object)
-{
-    assert(object != NULL);
-
-    object->__set_natural_size = false;
 }
 
 void ntg_object_unset_max_size(ntg_object* object)
@@ -180,6 +175,8 @@ struct ntg_xy ntg_object_get_max_size(ntg_object* object)
 
 void ntg_object_layout(ntg_object* root, struct ntg_xy size)
 {
+    assert(root != NULL);
+
     ntg_layout_object layout_object;
     __ntg_layout_object_init__(&layout_object, root, size);
 
@@ -192,17 +189,21 @@ void ntg_object_layout(ntg_object* root, struct ntg_xy size)
 
 struct ntg_xy ntg_object_get_size(const ntg_object* object)
 {
+    assert(object != NULL);
+
     return object->__size;
 }
 
 struct ntg_xy ntg_object_get_position_abs(const ntg_object* object)
 {
+    assert(object != NULL);
+
     struct ntg_xy position = ntg_xy(0, 0);
 
     const ntg_object* it_obj = object;
     while(it_obj != NULL)
     {
-        position = ntg_xy_add(position, object->__position);
+        position = ntg_xy_add(position, it_obj->__position);
         it_obj = it_obj->__parent;
     }
 
@@ -223,11 +224,15 @@ ntg_scene* ntg_object_get_scene(ntg_object* object)
 
 const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object)
 {
+    assert(object != NULL);
+
     return object->__drawing;
 }
 
 ntg_object_drawing* ntg_object_get_drawing_(ntg_object* object)
 {
+    assert(object != NULL);
+
     return object->__drawing;
 }
 
@@ -348,22 +353,25 @@ struct ntg_measure_result _ntg_object_measure(ntg_object* object,
         result.min_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
             object->__min_size.x : object->__min_size.y;
     }
-    if(object->__set_natural_size)
-    {
-        result.natural_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
-            object->__natural_size.x : object->__natural_size.y;
-    }
     if(object->__set_max_size)
     {
         result.max_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
             object->__max_size.x : object->__max_size.y;
     }
 
-    return (struct ntg_measure_result) {
-        .min_size = result.min_size,
-        .natural_size = _max2_size(result.min_size, result.natural_size),
-        .max_size = _max3_size(result.min_size, result.natural_size, result.max_size)
-    };
+    if(object->__set_min_size && object->__set_max_size)
+        result.max_size = _max2_size(result.max_size, result.min_size);
+    else if(object->__set_min_size && !object->__set_max_size)
+        result.max_size = _max2_size(result.max_size, result.min_size);
+    else if(!object->__set_min_size && object->__set_max_size)
+        result.min_size = _min2_size(result.min_size, result.max_size);
+    else // !object->__set_min_size && !object->__set_max_size
+        result.max_size = _max2_size(result.max_size, result.min_size);
+
+    result.natural_size = _clamp_size(result.min_size,
+            result.natural_size, result.max_size);
+
+    return result;
 }
 
 void _ntg_object_constrain(ntg_object* object,
@@ -442,6 +450,9 @@ void _ntg_object_add_child(ntg_object* object, ntg_object* child)
     assert(child->__parent == NULL);
 
     ntg_object_vec_append(object->__children, child);
+
+    child->__parent = object;
+
     ntg_object_perform_tree(child, NTG_OBJECT_PERFORM_TOP_DOWN,
             __update_scene_fn, object->__scene);
 }
@@ -499,7 +510,6 @@ static void __init_default_values(ntg_object* object)
     object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
     object->__size = ntg_xy(0, 0);
     object->__set_min_size = false;
-    object->__set_natural_size = false;
     object->__set_max_size = false;
     object->__position = ntg_xy(0, 0);
 

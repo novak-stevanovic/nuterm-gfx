@@ -59,11 +59,9 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 /* ---------------------------------------------------------------- */
 
 void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size);
-void ntg_object_set_natural_size(ntg_object* object, struct ntg_xy size);
 void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size);
 
 void ntg_object_unset_min_size(ntg_object* object);
-void ntg_object_unset_natural_size(ntg_object* object);
 void ntg_object_unset_max_size(ntg_object* object);
 
 struct ntg_xy ntg_object_get_min_size(ntg_object* object);
@@ -143,8 +141,7 @@ struct ntg_object
         struct ntg_xy __min_size, __natural_size,
                       __max_size, __size;
         
-        bool __set_min_size, __set_natural_size,
-             __set_max_size;
+        bool __set_min_size, __set_max_size;
 
         struct ntg_xy __position;
     };

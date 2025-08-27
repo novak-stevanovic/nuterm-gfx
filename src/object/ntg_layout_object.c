@@ -147,7 +147,7 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
 
     ntg_constrain_context_set_min_size(context, object->__min_size.x);
     ntg_constrain_context_set_natural_size(context, object->__natural_size.x);
-    ntg_constrain_context_set_natural_size(context, object->__max_size.x);
+    ntg_constrain_context_set_max_size(context, object->__max_size.x);
 
     _ntg_object_constrain(object, NTG_ORIENTATION_HORIZONTAL,
             object->__size.x, context, output);
@@ -179,7 +179,7 @@ static void __measure2_fn(ntg_object* object, void* _layout_data)
         it_data = (struct ntg_measure_data) {
             .min_size = it_object->__min_size.y,
             .natural_size = it_object->__natural_size.y,
-            .max_size = it_object->__natural_size.y
+            .max_size = it_object->__max_size.y
         };
 
         ntg_measure_context_set(context, it_object, it_data);
@@ -212,8 +212,8 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
 
         it_data = (struct ntg_constrain_data) {
             .min_size = it_object->__min_size.y,
-            .max_size = it_object->__max_size.y,
-            .natural_size = it_object->__natural_size.y
+            .natural_size = it_object->__natural_size.y,
+            .max_size = it_object->__max_size.y
         };
 
         ntg_constrain_context_set(context, it_object, it_data);
@@ -221,7 +221,7 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
 
     ntg_constrain_context_set_min_size(context, object->__min_size.y);
     ntg_constrain_context_set_natural_size(context, object->__natural_size.y);
-    ntg_constrain_context_set_natural_size(context, object->__max_size.y);
+    ntg_constrain_context_set_max_size(context, object->__max_size.y);
 
     _ntg_object_constrain(object, NTG_ORIENTATION_VERTICAL, object->__size.y,
             context, output);

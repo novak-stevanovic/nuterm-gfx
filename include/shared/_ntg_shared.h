@@ -5,6 +5,14 @@
 #include <stddef.h>
 #include <sys/types.h>
 
+static inline size_t _clamp_size(size_t min, size_t mid, size_t max)
+{
+    if(mid < min) mid = min;
+    else if(mid > max) mid = max;
+
+    return mid;
+}
+
 static inline bool _in_between(size_t min, size_t between, size_t max)
 {
     return ((between > min) && (between < max));

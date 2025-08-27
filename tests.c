@@ -69,12 +69,12 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_stage_set_scene(main_stage, &scene);
     ntg_loop(main_stage, 60);
 
-    __ntg_border_box_deinit__(&root);
     __ntg_color_block_deinit__(&cb1);
     __ntg_color_block_deinit__(&cb2);
     __ntg_color_block_deinit__(&cb3);
     __ntg_color_block_deinit__(&cb4);
     __ntg_color_block_deinit__(&cb5);
+    __ntg_border_box_deinit__(&root);
     __ntg_scene_deinit__(&scene);
 }
 
