@@ -2,34 +2,32 @@
 #define _NTG_LABEL_H_
 
 #include "object/ntg_object.h"
+#include "shared/ntg_string.h"
+#include "shared/ntg_text.h"
 
 typedef struct ntg_label ntg_label;
 
-typedef enum ntg_label_wrap_mode
-{
-    NTG_LABEL_WRAP_MODE_NOWRAP,
-    NTG_LABEL_WRAP_MODE_WRAP,
-    NTG_LABEL_WRAP_MODE_WORD_WRAP,
-    NTG_LABEL_WRAP_MODE_SCROLL 
-} ntg_label_wrap_mode;
+#define NTG_LABEL(label_ptr) ((ntg_label*)(label_ptr))
 
 struct ntg_label
 {
     ntg_object __base;
 
-    char* _text;
+    struct ntg_str _text;
     struct nt_gfx _gfx;
     ntg_orientation _orientation;
-    ntg_alignment _alignment;
-    ntg_label_wrap_mode _wrap_mode;
+    ntg_text_alignment _alignment;
+    ntg_text_wrap_mode _wrap_mode;
+    size_t _indent;
 };
 
 void __ntg_label_init__(ntg_label* label, ntg_orientation orientation);
 void __ntg_label_deinit__(ntg_label* label);
 
-void ntg_label_set_text(ntg_label* label, const char* text);
+void ntg_label_set_text(ntg_label* label, struct ntg_str_view view);
 void ntg_label_set_gfx(ntg_label* label, struct nt_gfx gfx);
-void ntg_label_set_wrap_mode(ntg_label* label, ntg_label_wrap_mode wrap_mode);
+void ntg_label_set_wrap_mode(ntg_label* label, ntg_text_wrap_mode wrap_mode);
+void ntg_label_set_indent(ntg_label* label, size_t indent);
 
 struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
         ntg_orientation orientation, size_t for_size,

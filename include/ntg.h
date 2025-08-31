@@ -18,7 +18,7 @@ void ntg_launch(ntg_stage* main_stage, ntg_gui_fn gui_fn, void* data);
  * This function returns the return value of `gui_fn` passed in nui_launch(). */
 void* ntg_wait();
 
-void ntg_destroy();
+void __ntg_deinit__();
 
 #define NTG_FRAMERATE_DEFAULT 30
 #define NTG_WAIT_TIMEOUT(fps) (1000.0 / (fps)) /* Can be used for custom loop */

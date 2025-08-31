@@ -68,17 +68,21 @@ void ntg_launch(ntg_stage* main_stage, ntg_gui_fn gui_fn, void* data)
             _ntg_thread_fn, thread_fn_data);
 
     assert(status == 0);
+
+    _launched = true;
 }
 
 void* ntg_wait()
 {
+    if(!_launched) return NULL;
+
     void* _data;
     pthread_join(_ntg_thread, &_data);
     
     return _data;
 }
 
-void ntg_destroy()
+void __ntg_deinit__()
 {
     nt_alt_screen_disable(NULL);
     nt_cursor_show(NULL);
@@ -152,8 +156,6 @@ void ntg_loop(ntg_stage* main_stage, uint framerate)
 
 static void* _ntg_thread_fn(void* _thread_fn_data)
 {
-    _launched = true;
-
     struct ntg_thread_fn_data* data =
         (struct ntg_thread_fn_data*)_thread_fn_data;
 

@@ -10,6 +10,7 @@
 #include "object/ntg_object.h"
 #include "object/ntg_box.h"
 #include "shared/ntg_log.h"
+#include "shared/ntg_string.h"
 #include "shared/ntg_vector.h"
 #include "base/ntg_event_types.h"
 #include "base/ntg_event_participants.h"
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
 
     ntg_simple_stage_destroy(main_stage);
 
-    ntg_destroy();
+    __ntg_deinit__();
 
     return 0;
 }
