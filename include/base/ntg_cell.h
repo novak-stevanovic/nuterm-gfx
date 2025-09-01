@@ -58,11 +58,9 @@ typedef struct ntg_cell
     ntg_cell_type _type;
 } ntg_cell;
 
-static inline ntg_cell ntg_cell_full(uint32_t codepoint, nt_color fg,
-        nt_color bg, nt_style style)
-{
+static inline ntg_cell ntg_cell_full(uint32_t codepoint, struct nt_gfx gfx) {
     return (ntg_cell) {
-        .__base = { codepoint, { fg, bg, style } },
+        .__base = { .codepoint = codepoint, .gfx = gfx },
         ._type = NTG_CELL_TYPE_FULL
     };
 }

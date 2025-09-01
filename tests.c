@@ -7,6 +7,7 @@
 #include "core/ntg_stage.h"
 #include "core/ntg_scene.h"
 #include "object/ntg_border_box.h"
+#include "object/ntg_label.h"
 #include "object/ntg_object.h"
 #include "object/ntg_box.h"
 #include "shared/ntg_log.h"
@@ -54,18 +55,26 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_scene scene;
     __ntg_scene_init__(&scene, NTG_OBJECT(&root));
 
+    struct ntg_str_view text;
+    text.data = "novak";
+    text.len = strlen(text.data);
+
     ntg_color_block cb1, cb2, cb3, cb4, cb5;
+    ntg_label l1;
     __ntg_color_block_init__(&cb1, nt_color_new(255, 0, 0));
     __ntg_color_block_init__(&cb2, nt_color_new(0, 255, 0));
     __ntg_color_block_init__(&cb3, nt_color_new(0, 0, 255));
     __ntg_color_block_init__(&cb4, nt_color_new(50, 50, 50));
-    __ntg_color_block_init__(&cb5, nt_color_new(150, 150, 150));
+    __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
+    ntg_label_set_text(&l1, text);
+    // __ntg_color_block_init__(&cb5, nt_color_new(150, 150, 150));
 
     ntg_border_box_set_north(&root, NTG_OBJECT(&cb1));
     ntg_border_box_set_east(&root, NTG_OBJECT(&cb2));
     ntg_border_box_set_south(&root, NTG_OBJECT(&cb3));
     ntg_border_box_set_west(&root, NTG_OBJECT(&cb4));
-    ntg_border_box_set_center(&root, NTG_OBJECT(&cb5));
+    ntg_border_box_set_center(&root, NTG_OBJECT(&l1));
+    // ntg_border_box_set_center(&root, NTG_OBJECT(&cb5));
 
     ntg_stage_set_scene(main_stage, &scene);
     ntg_loop(main_stage, 60);
@@ -74,7 +83,8 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     __ntg_color_block_deinit__(&cb2);
     __ntg_color_block_deinit__(&cb3);
     __ntg_color_block_deinit__(&cb4);
-    __ntg_color_block_deinit__(&cb5);
+    __ntg_label_deinit__(&l1);
+    // __ntg_color_block_deinit__(&cb5);
     __ntg_border_box_deinit__(&root);
     __ntg_scene_deinit__(&scene);
 }
