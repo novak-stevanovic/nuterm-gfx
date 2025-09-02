@@ -407,6 +407,8 @@ void _ntg_object_arrange_drawing(ntg_object* object, struct ntg_xy size,
     assert(object != NULL);
     assert(drawing != NULL);
 
+    if(ntg_xy_is_zero(ntg_xy_size(size))) return;
+
     size_t i, j;
     ntg_cell* it_cell;
     for(i = 0; i < size.y; i++)

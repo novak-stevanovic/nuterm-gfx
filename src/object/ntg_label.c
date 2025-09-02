@@ -246,7 +246,8 @@ static void __row_apply_alignment_and_indent(uint32_t* row, size_t indent,
         size_t content_len, size_t row_total_len, ntg_text_alignment alignment)
 {
     assert(row != NULL);
-    assert(indent <= row_total_len);
+    indent = _min2_size(indent, row_total_len);
+    content_len = _min2_size(content_len, row_total_len);
     assert(content_len <= row_total_len);
 
     if(alignment == NTG_TEXT_ALIGNMENT_JUSTIFY)
@@ -294,9 +295,13 @@ static void __arrange_label_content_nowrap(const ntg_label_rows_utf32* rows,
     if(secondary_alignment == NTG_ALIGNMENT_1)
         first_row_offset = 0;
     else if(secondary_alignment == NTG_ALIGNMENT_2)
-        first_row_offset = (out_content->_size.y - rows->_count) / 2;
+        first_row_offset = (out_content->_size.y >= rows->_count) ?
+            (out_content->_size.y - rows->_count) / 2 :
+            0;
     else // NTG_ALIGNMENT_3
-        first_row_offset = (out_content->_size.y - rows->_count);
+        first_row_offset = (out_content->_size.y >= rows->_count) ?
+            (out_content->_size.y - rows->_count) :
+            0;
 
     size_t i, j;
     struct ntg_xy it_xy;
@@ -305,14 +310,14 @@ static void __arrange_label_content_nowrap(const ntg_label_rows_utf32* rows,
     uint32_t* it_content_row;
     for(i = 0; i < rows->_count; i++)
     {
+        if(i >= out_content->_size.y) break;
         it_row = &(rows->_data[i]);
 
         for(j = 0; j < it_row->count; j++)
         {
-            it_xy = ntg_xy(j, i + first_row_offset);
+            if(j >= out_content->_size.x) break;
 
-            if(!ntg_xy_is_greater(out_content->_size, it_xy))
-                break;
+            it_xy = ntg_xy(j, i + first_row_offset);
 
             it_char = ntg_label_content_at(out_content, it_xy);
             (*it_char) = it_row->data[j];
