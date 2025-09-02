@@ -48,37 +48,6 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     __ntg_scene_deinit__(&scene);
 }
 
-void test_row_alignment()
-{
-    size_t total_row_len = 10; // CHANGE THIS
-    assert(total_row_len > 0);
-    char* str = "novak"; // CHANGE THIS
-    size_t content_len = strlen(str);
-    size_t indent = 6; // CHANGE THIS
-
-    uint32_t* row = (uint32_t*)malloc(sizeof(uint32_t) * total_row_len);
-    assert(row != NULL);
-
-    size_t i;
-    for(i = 0; i < content_len; i++)
-        row[i] = str[i];
-
-    ntg_text_row_apply_alignment_and_indent(row, indent, content_len,
-            total_row_len, NTG_TEXT_ALIGNMENT_2);
-
-    char* aligned_str = (char*)malloc(total_row_len);
-    assert(aligned_str != NULL);
-
-    for(i = 0; i < total_row_len; i++)
-        aligned_str[i] = row[i];
-
-    printf("%.*s\n", (int)total_row_len, aligned_str);
-
-    free(row);
-    free(aligned_str);
-}
-
-
 void gui_fn2(ntg_stage* main_stage, void* data)
 {
     ntg_border_box root;
@@ -88,7 +57,7 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     __ntg_scene_init__(&scene, NTG_OBJECT(&root));
 
     struct ntg_str_view text;
-    text.data = "novak";
+    text.data = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer to\nok a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially un\nchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMa\nker including versions of Lorem Ipsum.";
     text.len = strlen(text.data);
 
     ntg_color_block cb1, cb2, cb3, cb4, cb5;
@@ -97,15 +66,16 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     __ntg_color_block_init__(&cb2, nt_color_new(0, 255, 0));
     __ntg_color_block_init__(&cb3, nt_color_new(0, 0, 255));
     __ntg_color_block_init__(&cb4, nt_color_new(50, 50, 50));
-    __ntg_label_init__(&l1, NTG_ORIENTATION_VERTICAL);
+    __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
 
     struct ntg_label_opts opts = l1._opts;
-    opts.primary_alignment = NTG_TEXT_ALIGNMENT_3;
+    opts.primary_alignment = NTG_TEXT_ALIGNMENT_1;
     opts.indent = 0;
+    opts.secondary_alignment = NTG_ALIGNMENT_1;
     ntg_label_set_opts(&l1, opts);
 
     struct nt_gfx gfx = l1._gfx;
-    gfx.fg = nt_color_new(200, 20, 150);
+    gfx.bg = nt_color_new(200, 20, 150);
     gfx.style = NT_STYLE_ITALIC;
     ntg_label_set_gfx(&l1, gfx);
 

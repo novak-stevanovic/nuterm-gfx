@@ -13,7 +13,7 @@ struct ntg_label_opts
 {
     ntg_orientation orientation;
     ntg_text_alignment primary_alignment;
-    ntg_alignment secondary_aligmnent;
+    ntg_alignment secondary_alignment;
     size_t indent;
     ntg_text_wrap_mode wrap_mode;
 };
