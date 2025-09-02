@@ -1,47 +1,11 @@
 #include <assert.h>
 
 #include "object/ntg_label.h"
+#include "object/_ntg_label.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_string.h"
 #include "uconv/uconv.h"
-
-typedef struct ntg_label_content
-{
-    uint32_t* _data;
-    struct ntg_xy _size;
-} ntg_label_content;
-
-static void __ntg_label_content_init__(ntg_label_content* content,
-        struct ntg_xy size)
-{
-    assert(content != NULL);
-
-    size_t count = size.x * size.y;
-
-    content->_data = (uint32_t*)malloc(sizeof(uint32_t) * count);
-    assert(content->_data != NULL);
-    size_t i;
-    for(i = 0; i < size.x * count; i++)
-        content->_data[i] = NTG_CELL_EMPTY;
-
-    content->_size = size;
-}
-
-static void __ntg_label_content_deinit__(ntg_label_content* content)
-{
-    assert(content != NULL);
-    
-    if(content->_data != NULL)
-        free(content->_data);
-    content->_size = ntg_xy(0, 0);
-}
-
-static inline uint32_t* __ntg_label_content_at(ntg_label_content* content,
-        struct ntg_xy position)
-{
-    return &(content->_data[position.y * content->_size.x + position.x]);
-}
 
 /* -------------------------------------------------------------------------- */
 
@@ -49,7 +13,8 @@ struct ntg_label_opts ntg_label_opts_default()
 {
     return (struct ntg_label_opts) {
         .orientation = NTG_ORIENTATION_HORIZONTAL,
-        .alignment = NTG_TEXT_ALIGNMENT_1,
+        .primary_alignment = NTG_TEXT_ALIGNMENT_1,
+        .secondary_aligmnent = NTG_ALIGNMENT_1,
         .indent = 0,
         .wrap_mode = NTG_TEXT_WRAP_NOWRAP
     };
@@ -73,6 +38,8 @@ void __ntg_label_init__(ntg_label* label, ntg_orientation orientation)
             _ntg_label_arrange_drawing_fn);
 
     __init_default_values(label);
+
+    label->_opts.orientation = orientation;
 }
 
 void __ntg_label_deinit__(ntg_label* label)
@@ -91,6 +58,8 @@ void ntg_label_set_text(ntg_label* label, struct ntg_str_view text)
 {
     char* new_text_data = (char*)realloc(label->_text.data, text.len + 1);
     assert(new_text_data != NULL);
+
+    memcpy(new_text_data, text.data, text.len);
 
     label->_text.data = new_text_data;
     label->_text.len = text.len;
@@ -182,53 +151,30 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
     return result;;
 }
 
-static void __arrange_content_nowrap(ntg_label* label,
-        struct ntg_xy size, ntg_label_content* content)
+/* Ignores orientation */
+static void __arrange_content_nowrap(const ntg_label_rows_utf32* rows,
+        size_t indent, ntg_text_alignment alignment, ntg_label_content* out_content)
 {
 
     size_t i, j;
-    uint32_t* it_char;
-    for(i = 0; i < split_res.count; i++)
+    uint32_t *it_char;
+    struct ntg_str_utf32* it_row;
+    uint32_t* it_content_row;
+    for(i = 0; i < rows->_count; i++)
     {
-        for(j = 0; j < split_res.views[i].len; j++)
+        it_row = &(rows->_data[i]);
+
+        for(j = 0; j < it_row->count; j++)
         {
-            it_char = __ntg_label_content_at(content, ntg_xy(j, i));
+            assert(ntg_xy_is_greater(out_content->_size, ntg_xy(j, i)));
 
-            (*it_char) = split_res.views[i].data[j];
-
-            ntg_text_row_apply_alignment_and_indent
+            it_char = ntg_label_content_at(out_content, ntg_xy(j, i));
+            (*it_char) = it_row->data[j];
         }
-    }
-}
 
-struct label_row_utf32
-{
-    uint32_t* data;
-    size_t count; // codepoint count
-};
-
-void __label_row_utf32_init__(struct label_row_utf32
-
-struct label_rows_utf32
-{
-    struct label_row_utf32* data;
-    size_t count; // row count
-};
-
-static void __label_rows_utf32_init__(struct label_rows_utf32* rows,
-        struct ntg_str_split_result* split_res)
-{
-
-    rows->data = (struct label_row_utf32*)malloc(split_res->count *
-            sizeof(struct label_row_utf32));
-    assert(rows->data != NULL);
-
-    rows->count = split_res->count;
-
-    size_t i;
-    for(i = 0; i < split_res->count; i++)
-    {
-        rows->data[i].data = (uint32_t*)malloc(sizeof(uint32_t) * split_res->data[i].len);
+        it_content_row = ntg_label_content_at(out_content, ntg_xy(0, i));
+        ntg_text_row_apply_alignment_and_indent(it_content_row, indent,
+                j, out_content->_size.x, alignment);
     }
 }
 
@@ -238,8 +184,7 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
     assert(_label != NULL);
     ntg_label* label = NTG_LABEL(_label);
 
-    ntg_label_content content;
-    __ntg_label_content_init__(&content, size);
+    if(label->_text.data == NULL) return;
 
     struct ntg_str_view view = { 
         .data = label->_text.data,
@@ -251,18 +196,22 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
         // TODO
         assert(0);
     }
-
-    size_t i;
-    for(i = 0; i < split_res.count; i++)
-    {
-    }
-
+    ntg_label_rows_utf32 rows; // rows converted to utf32
+    __ntg_label_rows_utf32_init__(&rows, split_res.views, split_res.count);
     free(split_res.views);
+
+    struct ntg_xy arrange_size = 
+        (label->_opts.orientation == NTG_ORIENTATION_HORIZONTAL) ?
+        size : ntg_xy_transpose(size);
+
+    ntg_label_content _content; // content matrix
+    __ntg_label_content_init__(&_content, arrange_size);
 
     switch(label->_opts.wrap_mode)
     {
         case NTG_TEXT_WRAP_NOWRAP:
-            __arrange_content_nowrap(size, &content);
+            __arrange_content_nowrap(&rows, label->_opts.indent,
+                    label->_opts.primary_alignment, &_content);
             break;
         case NTG_TEXT_WRAP_WRAP:
             assert(0);
@@ -275,5 +224,26 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
         default: assert(0);
     }
 
-    __ntg_label_content_deinit__(&content);
+    size_t i, j;
+    ntg_cell* it_cell;
+    uint32_t* it_char;
+    struct ntg_xy it_xy, it_content_xy;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_xy = ntg_xy(j, i);
+            it_content_xy = 
+            (label->_opts.orientation == NTG_ORIENTATION_HORIZONTAL) ?
+            it_xy : ntg_xy_transpose(it_xy);
+
+            it_cell = ntg_object_drawing_at_(out_drawing, it_xy);
+            it_char = ntg_label_content_at(&_content, it_content_xy);
+
+            (*it_cell) = ntg_cell_full((*it_char), label->_gfx);
+        }
+    }
+
+    __ntg_label_rows_utf32_deinit__(&rows);
+    __ntg_label_content_deinit__(&_content);
 }

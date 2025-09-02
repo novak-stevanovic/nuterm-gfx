@@ -3,6 +3,7 @@
 
 #include "base/ntg_text.h"
 #include "shared/_ntg_shared.h"
+#include "base/ntg_cell.h"
 
 void ntg_text_row_apply_alignment_and_indent(uint32_t* row, size_t indent,
         size_t content_len, size_t row_total_len, ntg_text_alignment alignment)
@@ -40,9 +41,9 @@ void ntg_text_row_apply_alignment_and_indent(uint32_t* row, size_t indent,
 
         size_t i;
         for(i = 0; i < total_indent; i++)
-            row[i] = '1';
+            row[i] = NTG_CELL_EMPTY;
 
         for(i = total_indent + adj_content_len; i < row_total_len; i++)
-            row[i] = '2';
+            row[i] = NTG_CELL_EMPTY;
     }
 }

@@ -1,9 +1,9 @@
-#include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <assert.h>
+
 #include "base/ntg_event.h"
 #include "ntg.h"
-
 #include "core/ntg_simple_stage.h"
 #include "core/ntg_stage.h"
 #include "core/ntg_scene.h"
@@ -97,7 +97,18 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     __ntg_color_block_init__(&cb2, nt_color_new(0, 255, 0));
     __ntg_color_block_init__(&cb3, nt_color_new(0, 0, 255));
     __ntg_color_block_init__(&cb4, nt_color_new(50, 50, 50));
-    __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
+    __ntg_label_init__(&l1, NTG_ORIENTATION_VERTICAL);
+
+    struct ntg_label_opts opts = l1._opts;
+    opts.primary_alignment = NTG_TEXT_ALIGNMENT_3;
+    opts.indent = 0;
+    ntg_label_set_opts(&l1, opts);
+
+    struct nt_gfx gfx = l1._gfx;
+    gfx.fg = nt_color_new(200, 20, 150);
+    gfx.style = NT_STYLE_ITALIC;
+    ntg_label_set_gfx(&l1, gfx);
+
     ntg_label_set_text(&l1, text);
     // __ntg_color_block_init__(&cb5, nt_color_new(150, 150, 150));
 

@@ -2,6 +2,7 @@
 #define _NTG_STRING_H_
 
 #include <stddef.h>
+#include <stdint.h>
 
 struct ntg_str_view
 {
@@ -13,6 +14,12 @@ struct ntg_str
 {
     char* data;
     size_t len;
+};
+
+struct ntg_str_utf32
+{
+    uint32_t* data;
+    size_t count; // codepoint count
 };
 
 size_t ntg_str_count(struct ntg_str_view str, char sep);

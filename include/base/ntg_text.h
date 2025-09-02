@@ -26,7 +26,7 @@ typedef enum ntg_text_alignment
  * Function assumes that `content_len` <= `row_total_len`,
  * `indent` <= `row_total_len`,
  * `row` is not NULL */
-void ntg_text_row_apply_alignment_and_indent(uint32_t* row, size_t indent, size_t content_len,
-        size_t row_total_len, ntg_text_alignment alignment);
+void ntg_text_row_apply_alignment_and_indent(uint32_t* row, size_t indent,
+        size_t content_len, size_t row_total_len, ntg_text_alignment alignment);
 
 #endif // _NTG_TEXT_H_
