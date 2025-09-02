@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
 #include "base/ntg_event.h"
@@ -46,6 +47,37 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     __ntg_box_deinit__(&root);
     __ntg_scene_deinit__(&scene);
 }
+
+void test_row_alignment()
+{
+    size_t total_row_len = 10; // CHANGE THIS
+    assert(total_row_len > 0);
+    char* str = "novak"; // CHANGE THIS
+    size_t content_len = strlen(str);
+    size_t indent = 6; // CHANGE THIS
+
+    uint32_t* row = (uint32_t*)malloc(sizeof(uint32_t) * total_row_len);
+    assert(row != NULL);
+
+    size_t i;
+    for(i = 0; i < content_len; i++)
+        row[i] = str[i];
+
+    ntg_text_row_apply_alignment_and_indent(row, indent, content_len,
+            total_row_len, NTG_TEXT_ALIGNMENT_2);
+
+    char* aligned_str = (char*)malloc(total_row_len);
+    assert(aligned_str != NULL);
+
+    for(i = 0; i < total_row_len; i++)
+        aligned_str[i] = row[i];
+
+    printf("%.*s\n", (int)total_row_len, aligned_str);
+
+    free(row);
+    free(aligned_str);
+}
+
 
 void gui_fn2(ntg_stage* main_stage, void* data)
 {
