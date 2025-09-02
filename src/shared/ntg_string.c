@@ -68,7 +68,7 @@ void _ntg_str_split(struct ntg_str_view str, char sep, size_t count,
     // TODO: check count calculation
     out_views[count] = (struct ntg_str_view) {
         .data = it_str,
-        .len = diff
+        .len = str.len - (size_t)(it_str - str.data)
     };
 }
 
