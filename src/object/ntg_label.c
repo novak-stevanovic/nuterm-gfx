@@ -8,7 +8,7 @@
 #include "shared/ntg_string.h"
 #include "uconv/uconv.h"
 
-#define NTG_LABEL_DEFAULT_MIN_SIZE 5
+#define NTG_LABEL_DEFAULT_SIZE 5
 
 static size_t __wwrap_how_many_rows(uint32_t* row, size_t row_len, size_t max_size);
 static size_t __get_longest_word_len(uint32_t* row, size_t row_len);
@@ -135,6 +135,7 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
     size_t wwrap_sum = 0;
 
     size_t i;
+    size_t empty_row_count = 0;
     for(i = 0; i < rows._count; i++)
     {
         it_adj_row_len = rows._data[i].count + label->_opts.indent;
@@ -151,6 +152,9 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
         it_wwrap_rows_needed_for_row = __wwrap_how_many_rows(rows._data[i].data,
                 rows._data[i].count, for_size);
         wwrap_sum += it_wwrap_rows_needed_for_row;
+
+        if(rows._data[i].count == 0)
+            empty_row_count++;
     }
 
     if(orientation == label->_opts.orientation)
@@ -165,15 +169,15 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
                 };
             case NTG_TEXT_WRAP_WRAP:
                 return (struct ntg_measure_result) {
-                    .min_size = NTG_LABEL_DEFAULT_MIN_SIZE,
-                    .natural_size = max_row_len,
-                    .max_size = max_row_len
+                    .min_size = NTG_LABEL_DEFAULT_SIZE,
+                    .natural_size = _max2_size(max_row_len, NTG_LABEL_DEFAULT_SIZE),
+                    .max_size = _max2_size(max_row_len, NTG_LABEL_DEFAULT_SIZE)
                 };
             case NTG_TEXT_WRAP_WORD_WRAP:
                 return (struct ntg_measure_result) {
                     .min_size = max_word_size,
-                    .natural_size = max_row_len,
-                    .max_size = max_row_len
+                    .natural_size = _max2_size(max_row_len, NTG_LABEL_DEFAULT_SIZE),
+                    .max_size = _max2_size(max_row_len, NTG_LABEL_DEFAULT_SIZE)
                 };
         }
     }
@@ -189,15 +193,15 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
                 };
             case NTG_TEXT_WRAP_WRAP:
                 return (struct ntg_measure_result) {
-                    .min_size = wrap_sum,
-                    .natural_size = wrap_sum,
-                    .max_size = wrap_sum
+                    .min_size = wrap_sum + empty_row_count,
+                    .natural_size = wrap_sum + empty_row_count,
+                    .max_size = wrap_sum + empty_row_count
                 };
             case NTG_TEXT_WRAP_WORD_WRAP:
                 return (struct ntg_measure_result) {
-                    .min_size = wwrap_sum,
-                    .natural_size = wwrap_sum,
-                    .max_size = wwrap_sum
+                    .min_size = wwrap_sum + empty_row_count,
+                    .natural_size = wwrap_sum + empty_row_count,
+                    .max_size = wwrap_sum + empty_row_count
                 };
         }
     }
