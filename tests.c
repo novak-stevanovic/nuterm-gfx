@@ -104,17 +104,40 @@ void gui_fn2(ntg_stage* main_stage, void* data)
 
 int main(int argc, char *argv[])
 {
-    __ntg_init__();
+    // __ntg_init__();
+    //
+    // ntg_simple_stage* main_stage = ntg_simple_stage_new();
+    //
+    // ntg_launch(NTG_STAGE(main_stage), gui_fn2, NULL);
+    //
+    // ntg_wait();
+    //
+    // ntg_simple_stage_destroy(main_stage);
+    //
+    // __ntg_deinit__();
 
-    ntg_simple_stage* main_stage = ntg_simple_stage_new();
+    const char* str = "";
+    const char* sep = "_";
 
-    ntg_launch(NTG_STAGE(main_stage), gui_fn2, NULL);
+    size_t sep_count = _ntg_str_count(str, strlen(str), sep, 1);
 
-    ntg_wait();
+    printf("%ld\n", sep_count);
 
-    ntg_simple_stage_destroy(main_stage);
+    const char** strs = (const char**)malloc(sizeof(char*) * (sep_count + 1));
+    assert(strs != NULL);
+    size_t* lens = (size_t*)malloc(sizeof(size_t) * (sep_count + 1));
+    assert(lens != NULL);
 
-    __ntg_deinit__();
+    _ntg_str_split(str, strlen(str), sep, sep_count, strs, lens, 1);
+    
+    size_t i;
+    for(i = 0; i < (sep_count + 1); i++)
+    {
+        printf("%d %.*s\n", (int)lens[i], (int)lens[i], strs[i]);
+    }
+
+    free(strs);
+    free(lens);
 
     return 0;
 }

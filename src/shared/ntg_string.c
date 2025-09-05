@@ -5,85 +5,73 @@
 
 #include "shared/ntg_string.h"
 
-size_t ntg_str_count(struct ntg_str_view str, char sep)
+size_t _ntg_str_count(const char* str, size_t len, const char* sep, size_t data_size)
 {
-    if((str.data == NULL) ||(str.len == 0))
-        return 0;
+    assert(str != NULL);
+    assert(sep != NULL);
+    assert(data_size > 0);
 
-    size_t count = 0;
-    const char* it_str = str.data;
-    size_t it_len = str.len;
-    const char* it_result = NULL; 
-    size_t diff = 0;
-    while(true)
-    {
-        it_result = memchr(it_str, sep, it_len);
-        if(it_result == NULL) break;
-
-        count++;
-        diff = it_result - it_str;
-        it_str += diff + 1;
-        it_len -= diff + 1;
-    }
-
-    return count;
-}
-
-void _ntg_str_split(struct ntg_str_view str, char sep, size_t count,
-        struct ntg_str_view* out_views)
-{
-    if(str.len == 0) 
-    {
-        out_views[0] = (struct ntg_str_view) {0};
-        return;
-    }
-    if(count == 0)
-    {
-        out_views[0] = (struct ntg_str_view) {
-            .data = str.data,
-            .len = str.len
-        };
-        return;
-    }
+    if(len == 0) return 0;
 
     size_t i;
-    const char* it_str = str.data;
-    size_t it_len = str.len;
-    const char* it_result = NULL; 
-    size_t diff = 0;
-    for(i = 0; i < count; i++)
+    const char* it_char;
+    size_t sum = 0;
+    for(i = 0; i < len; i++)
     {
-        it_result = memchr(it_str, sep, it_len);
-        diff = it_result - it_str;
+        it_char = str + (i * data_size);
 
-        out_views[i] = (struct ntg_str_view) {
-            .data = it_str,
-            .len = diff
-        };
-
-        it_str += (diff + 1);
-        it_len -= (diff + 1);
+        if(memcmp(it_char, sep, data_size) == 0)
+            sum++;
     }
 
-    // TODO: check count calculation
-    out_views[count] = (struct ntg_str_view) {
-        .data = it_str,
-        .len = str.len - (size_t)(it_str - str.data)
-    };
+    return sum;
 }
 
-struct ntg_str_split_result ntg_str_split(struct ntg_str_view str, char sep)
+void _ntg_str_split(const char* str, size_t len, const char* sep, size_t sep_count,
+        const char** out_strs, size_t* out_lens, size_t data_size)
 {
-    size_t count = ntg_str_count(str, sep);
+    assert(str != NULL);
+    assert(sep != NULL);
+    assert(out_strs != NULL);
+    assert(out_lens != NULL);
+    assert(data_size > 0);
 
-    struct ntg_str_view* views = (struct ntg_str_view*)malloc(
-            sizeof(struct ntg_str_view) * (count + 1));
-    assert(views != NULL);
+    if(len == 0)
+    {
+        assert(sep_count == 0);
 
-    _ntg_str_split(str, sep, count, views);
+        out_strs[0] = str;
+        out_lens[0] = len;
+        return;
+    }
 
-    return (struct ntg_str_split_result) {
-        .views = views,
-        .count = count + 1
-    };
+    if(sep_count == 0)
+    {
+        out_strs[0] = str;
+        out_lens[0] = len;
+        return;
+    }
+    
+    size_t i;
+    const char* it_char;
+    size_t it_str_start = 0;
+    size_t sep_counter = 0;
+    // size_t it_str_count = 0;
+    for(i = 0; i < len; i++)
+    {
+        it_char = str + (i * data_size);
+
+        /* Found separator or end of string */
+        if((memcmp(it_char, sep, data_size) == 0))
+        {
+            out_strs[sep_counter] = &(str[it_str_start * data_size]);
+            out_lens[sep_counter] = i - it_str_start;
+
+            it_str_start = i + 1;
+            sep_counter++;
+        }
+    }
+
+    out_strs[sep_count] = &(str[it_str_start * data_size]);
+    out_lens[i] = i - it_str_start;
 }
