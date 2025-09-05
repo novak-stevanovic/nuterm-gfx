@@ -8,11 +8,6 @@
 #include "shared/ntg_string.h"
 #include "uconv/uconv.h"
 
-#define NTG_LABEL_DEFAULT_SIZE 5
-
-static size_t __wwrap_how_many_rows(uint32_t* row, size_t row_len, size_t max_size);
-static size_t __get_longest_word_len(uint32_t* row, size_t row_len);
-
 /* content_len - length of text inside row(excluding padding)
  * 
  * If `content_len` + `indent` > `row_total_len`, the text will be clipped.
@@ -99,235 +94,218 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
     label->_opts = opts;
 }
 
+static size_t __wrap_rows_for_row(size_t row_count, size_t indent, size_t for_size)
+{
+    return ceil((1.0 * (row_count + indent)) / for_size);
+}
+
+static size_t __wwrap_rows_for_row(const struct ntg_str_utf32_view row,
+        size_t indent, size_t for_size)
+{
+    struct ntg_str_utf32_split_result words = ntg_str_utf32_split(row, ' ');
+
+    size_t i;
+    size_t it_word_len = 0;
+    size_t rows_needed = 0;
+    size_t curr_row_len = 0;
+    size_t effective_space, effective_indent;
+    for(i = 0; i < words.count; i++)
+    {
+        it_word_len = words.views[i].count;
+        effective_space = (curr_row_len > 0) ? 1 : 0;
+        effective_indent = (rows_needed == 0) ? indent : 0;
+        if((curr_row_len + effective_space + it_word_len) <= (for_size - effective_indent))
+        {
+            curr_row_len += (effective_space + it_word_len);
+            if(i == (words.count - 1))
+            {
+                rows_needed++;
+                break;
+            }
+        }
+        else // not enough space
+        {
+            if(it_word_len <= for_size) // can fit in next row
+            {
+                rows_needed++;
+                curr_row_len = it_word_len;
+            }
+            else // can't fit at all
+            {
+                rows_needed += 2;
+                curr_row_len = 0;
+            }
+        }
+    }
+
+    return rows_needed;
+}
+
 struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
         ntg_orientation orientation, size_t for_size,
         const ntg_measure_context* context)
 {
-<<<<<<< HEAD
-    // assert(_label != NULL);
-    // ntg_label* label = NTG_LABEL(_label);
-    //
-    // if(label->_text.data == NULL) return (struct ntg_measure_result) {0};
-    // size_t len = label->_text.len;
-    // if(len == 0) return (struct ntg_measure_result) {0};
-    //
-    // struct ntg_measure_result result = {0};
-    //
-    // struct ntg_str_view _text = {
-    //     .data = label->_text.data,
-    //     .len = label->_text.len
-    // };
-    // struct ntg_str_split_result split_res = ntg_str_split(_text, '\n');
-    // if(split_res.views == NULL) assert(0);
-    // ntg_label_rows_utf32 rows; // rows converted to utf32
-    // __ntg_label_rows_utf32_init__(&rows, split_res.views, split_res.count);
-    // free(split_res.views);
-    //
-    // /* primary size */
-    // size_t max_row_len = 0;
-    // size_t it_adj_row_len;
-    // size_t max_word_size = 0;
-    // size_t it_row_max_len = 0;
-    //
-    // /* secondary size */
-    // size_t it_wrap_rows_needed_for_row = 0;
-    // size_t it_wwrap_rows_needed_for_row = 0;
-    // size_t wrap_sum = 0;
-    // size_t wwrap_sum = 0;
-    //
-    // size_t empty_rows = 0;
-    //
-    // size_t i;
-    // for(i = 0; i < rows._count; i++)
-    // {
-    //     it_adj_row_len = rows._data[i].count + label->_opts.indent;
-    //     max_row_len = _max2_size(max_row_len, it_adj_row_len);
-    //
-    //     it_row_max_len = __get_longest_word_len(rows._data[i].data,
-    //             rows._data[i].count);
-    //     max_word_size = _max2_size(max_word_size, it_row_max_len);
-    //
-    //     it_wrap_rows_needed_for_row = ceil((1.0 * (rows._data[i].count + label->_opts.indent))
-    //             / for_size);
-    //     wrap_sum += it_wrap_rows_needed_for_row;
-    //
-    //     it_wwrap_rows_needed_for_row = __wwrap_how_many_rows(rows._data[i].data,
-    //             rows._data[i].count, for_size);
-    //     wwrap_sum += it_wwrap_rows_needed_for_row;
-    //
-    //     if(rows._data[i].count == 0) empty_rows++;
-    // }
-    //
-    // if(orientation == label->_opts.orientation)
-    // {
-    //     switch(label->_opts.wrap_mode)
-    //     {
-    //         case NTG_TEXT_WRAP_NOWRAP:
-    //             return (struct ntg_measure_result) {
-    //                 .min_size = max_row_len,
-    //                 .natural_size = max_row_len,
-    //                 .max_size = max_row_len
-    //             };
-    //         case NTG_TEXT_WRAP_WRAP:
-    //             return (struct ntg_measure_result) {
-    //                 .min_size = NTG_LABEL_DEFAULT_MIN_SIZE,
-    //                 .natural_size = max_row_len,
-    //                 .max_size = max_row_len
-    //             };
-    //         case NTG_TEXT_WRAP_WORD_WRAP:
-    //             return (struct ntg_measure_result) {
-    //                 .min_size = max_word_size,
-    //                 .natural_size = max_row_len,
-    //                 .max_size = max_row_len
-    //             };
-    //     }
-    // }
-    // else
-    // {
-    //     switch(label->_opts.wrap_mode)
-    //     {
-    //         case NTG_TEXT_WRAP_NOWRAP:
-    //             return (struct ntg_measure_result) {
-    //                 .min_size = rows._count,
-    //                 .natural_size = rows._count,
-    //                 .max_size = rows._count
-    //             };
-    //         case NTG_TEXT_WRAP_WRAP:
-    //             return (struct ntg_measure_result) {
-    //                 .min_size = wrap_sum + empty_rows,
-    //                 .natural_size = wrap_sum + empty_rows,
-    //                 .max_size = wrap_sum + empty_rows
-    //             };
-    //         case NTG_TEXT_WRAP_WORD_WRAP:
-    //             return (struct ntg_measure_result) {
-    //                 .min_size = wwrap_sum + empty_rows,
-    //                 .natural_size = wwrap_sum + empty_rows,
-    //                 .max_size = wwrap_sum + empty_rows
-    //             };
-    //     }
-    // }
-    //
-    // __ntg_label_rows_utf32_deinit__(&rows);
+    assert(_label != NULL);
+    ntg_label* label = NTG_LABEL(_label);
+
+    if(label->_text.data == NULL) return (struct ntg_measure_result) {0};
+    size_t len = label->_text.len;
+    if(len == 0) return (struct ntg_measure_result) {0};
+
+    struct ntg_str_view _text = {
+        .data = label->_text.data,
+        .len = label->_text.len
+    };
+    struct ntg_str_split_result split_res = ntg_str_split(_text, '\n');
+    if(split_res.views == NULL) assert(0);
+    ntg_label_rows_utf32 rows; // rows converted to utf32
+    __ntg_label_rows_utf32_init__(&rows, split_res.views, split_res.count);
+    free(split_res.views);
+
+    /* primary size */
+    size_t max_row_len = 0;
+    size_t it_adj_row_len;
+    size_t max_word_size = 0;
+
+    /* secondary size */
+    size_t wrap_sum = 0;
+    size_t wwrap_sum = 0;
+
+    size_t empty_rows = 0;
+
+    size_t i;
+    for(i = 0; i < rows._count; i++)
+    {
+        it_adj_row_len = rows._data[i].count + label->_opts.indent;
+        max_row_len = _max2_size(max_row_len, it_adj_row_len);
+
+        wrap_sum += __wrap_rows_for_row(rows._data[i].count,
+                label->_opts.indent, for_size);
+
+        if(rows._data[i].count == 0) empty_rows++;
+    }
+
+    if(orientation == label->_opts.orientation)
+    {
+        switch(label->_opts.wrap_mode)
+        {
+            case NTG_TEXT_WRAP_NOWRAP:
+                return (struct ntg_measure_result) {
+                    .min_size = max_row_len,
+                    .natural_size = max_row_len,
+                    .max_size = max_row_len
+                };
+            case NTG_TEXT_WRAP_WRAP:
+                return (struct ntg_measure_result) {
+                    .min_size = 1,
+                    .natural_size = max_row_len,
+                    .max_size = max_row_len
+                };
+            case NTG_TEXT_WRAP_WORD_WRAP:
+                return (struct ntg_measure_result) {
+                    .min_size = max_word_size,
+                    .natural_size = max_row_len,
+                    .max_size = max_row_len
+                };
+        }
+    }
+    else
+    {
+        switch(label->_opts.wrap_mode)
+        {
+            case NTG_TEXT_WRAP_NOWRAP:
+                return (struct ntg_measure_result) {
+                    .min_size = rows._count,
+                    .natural_size = rows._count,
+                    .max_size = rows._count
+                };
+            case NTG_TEXT_WRAP_WRAP:
+                return (struct ntg_measure_result) {
+                    .min_size = wrap_sum + empty_rows,
+                    .natural_size = wrap_sum + empty_rows,
+                    .max_size = wrap_sum + empty_rows
+                };
+            case NTG_TEXT_WRAP_WORD_WRAP:
+                return (struct ntg_measure_result) {
+                    .min_size = wwrap_sum + empty_rows,
+                    .natural_size = wwrap_sum + empty_rows,
+                    .max_size = wwrap_sum + empty_rows
+                };
+        }
+    }
+
+    __ntg_label_rows_utf32_deinit__(&rows);
 }
 
 void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
         struct ntg_xy size, ntg_object_drawing* out_drawing)
 {
-    // assert(_label != NULL);
-    // ntg_label* label = NTG_LABEL(_label);
-    //
-    // if(label->_text.data == NULL) return;
-    //
-    // struct ntg_str_view view = { 
-    //     .data = label->_text.data,
-    //     .len = label->_text.len
-    // };
-    // struct ntg_str_split_result split_res = ntg_str_split(view, '\n');
-    // if(split_res.views == NULL) assert(0);
-    // ntg_label_rows_utf32 rows; // rows converted to utf32
-    // __ntg_label_rows_utf32_init__(&rows, split_res.views, split_res.count);
-    // free(split_res.views);
-    //
-    // struct ntg_xy arrange_size = 
-    //     (label->_opts.orientation == NTG_ORIENTATION_HORIZONTAL) ?
-    //     size : ntg_xy_transpose(size);
-    //
-    // ntg_label_content _content; // content matrix
-    // __ntg_label_content_init__(&_content, arrange_size);
-    //
-    // switch(label->_opts.wrap_mode)
-    // {
-    //     case NTG_TEXT_WRAP_NOWRAP:
-    //         __arrange_label_content_nowrap(&rows, label->_opts.indent,
-    //                 label->_opts.primary_alignment,
-    //                 label->_opts.secondary_alignment,
-    //                 &_content);
-    //         break;
-    //     case NTG_TEXT_WRAP_WRAP:
-    //         assert(0);
-    //         // result = __arrange_drawing_wrap();
-    //         break;
-    //     case NTG_TEXT_WRAP_WORD_WRAP:
-    //         assert(0);
-    //         // result = __arrange_drawing_word_wrap();
-    //         break;
-    //     default: assert(0);
-    // }
-    //
-    // size_t i, j;
-    // ntg_cell* it_cell;
-    // uint32_t* it_char;
-    // struct ntg_xy it_xy, it_content_xy;
-    // for(i = 0; i < size.y; i++)
-    // {
-    //     for(j = 0; j < size.x; j++)
-    //     {
-    //         it_xy = ntg_xy(j, i);
-    //         it_content_xy = 
-    //         (label->_opts.orientation == NTG_ORIENTATION_HORIZONTAL) ?
-    //         it_xy : ntg_xy_transpose(it_xy);
-    //
-    //         it_cell = ntg_object_drawing_at_(out_drawing, it_xy);
-    //         it_char = ntg_label_content_at(&_content, it_content_xy);
-    //
-    //         (*it_cell) = ntg_cell_full((*it_char), label->_gfx);
-    //     }
-    // }
-    //
-    // __ntg_label_rows_utf32_deinit__(&rows);
-    // __ntg_label_content_deinit__(&_content);
+    assert(_label != NULL);
+    ntg_label* label = NTG_LABEL(_label);
+
+    if(label->_text.data == NULL) return;
+
+    struct ntg_str_view view = { 
+        .data = label->_text.data,
+        .len = label->_text.len
+    };
+    struct ntg_str_split_result split_res = ntg_str_split(view, '\n');
+    if(split_res.views == NULL) assert(0);
+    ntg_label_rows_utf32 rows; // rows converted to utf32
+    __ntg_label_rows_utf32_init__(&rows, split_res.views, split_res.count);
+    free(split_res.views);
+
+    struct ntg_xy arrange_size = 
+        (label->_opts.orientation == NTG_ORIENTATION_HORIZONTAL) ?
+        size : ntg_xy_transpose(size);
+
+    ntg_label_content _content; // content matrix
+    __ntg_label_content_init__(&_content, arrange_size);
+
+    switch(label->_opts.wrap_mode)
+    {
+        case NTG_TEXT_WRAP_NOWRAP:
+            __arrange_label_content_nowrap(&rows, label->_opts.indent,
+                    label->_opts.primary_alignment,
+                    label->_opts.secondary_alignment,
+                    &_content);
+            break;
+        case NTG_TEXT_WRAP_WRAP:
+            assert(0);
+            // result = __arrange_drawing_wrap();
+            break;
+        case NTG_TEXT_WRAP_WORD_WRAP:
+            assert(0);
+            // result = __arrange_drawing_word_wrap();
+            break;
+        default: assert(0);
+    }
+
+    size_t i, j;
+    ntg_cell* it_cell;
+    uint32_t* it_char;
+    struct ntg_xy it_xy, it_content_xy;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_xy = ntg_xy(j, i);
+            it_content_xy = 
+            (label->_opts.orientation == NTG_ORIENTATION_HORIZONTAL) ?
+            it_xy : ntg_xy_transpose(it_xy);
+
+            it_cell = ntg_object_drawing_at_(out_drawing, it_xy);
+            it_char = ntg_label_content_at(&_content, it_content_xy);
+
+            (*it_cell) = ntg_cell_full((*it_char), label->_gfx);
+        }
+    }
+
+    __ntg_label_rows_utf32_deinit__(&rows);
+    __ntg_label_content_deinit__(&_content);
 }
 
 /* -------------------------------------------------------------------------- */
-
-static size_t __get_longest_word_len(uint32_t* row, size_t row_len)
-{
-    size_t i;
-    size_t it_len = 0;
-    size_t max_word_size = 0;
-    for(i = 0; i < row_len; i++)
-    {
-        if(row[i] == ' ')
-            it_len = 0;
-        else
-            it_len++;
-
-        max_word_size = _max2_size(max_word_size, it_len);
-    }
-
-    return max_word_size;
-}
-
-static size_t __wwrap_how_many_rows(uint32_t* row, size_t row_len, size_t max_size)
-{
-    size_t i;
-    size_t it_word_len = 0;
-    size_t it_wwrap_row_len = 0;
-    size_t wwrap_row_sum = 0;
-    for(i = 0; i < row_len; i++)
-    {
-        if(row[i] == ' ')
-        {
-            if(it_wwrap_row_len + it_word_len > max_size)
-            {
-                it_wwrap_row_len = it_word_len;
-                wwrap_row_sum++;
-            }
-            else
-            {
-                it_wwrap_row_len += it_word_len;
-            }
-
-            it_word_len = 0;
-        }
-        else
-        {
-            it_word_len++;
-        }
-    }
-
-    return wwrap_row_sum;
-}
 
 static void __row_apply_alignment_and_indent(uint32_t* row, size_t indent,
         size_t content_len, size_t row_total_len, ntg_text_alignment alignment)
