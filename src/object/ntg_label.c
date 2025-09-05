@@ -8,7 +8,7 @@
 #include "shared/ntg_string.h"
 #include "uconv/uconv.h"
 
-#define NTG_LABEL_DEFAULT_MIN_SIZE 5
+#define NTG_LABEL_DEFAULT_SIZE 5
 
 static size_t __wwrap_how_many_rows(uint32_t* row, size_t row_len, size_t max_size);
 static size_t __get_longest_word_len(uint32_t* row, size_t row_len);
@@ -103,6 +103,7 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
         ntg_orientation orientation, size_t for_size,
         const ntg_measure_context* context)
 {
+<<<<<<< HEAD
     // assert(_label != NULL);
     // ntg_label* label = NTG_LABEL(_label);
     //

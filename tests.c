@@ -56,10 +56,6 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_scene scene;
     __ntg_scene_init__(&scene, NTG_OBJECT(&root));
 
-    struct ntg_str_view text;
-    text.data = "Lorem Ipsum is simply dummy text of the printing and typesetting industry.\nLorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.\nIt has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.\nIt was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages.";
-    text.len = strlen(text.data);
-
     ntg_color_block cb1, cb2, cb3, cb4, cb5;
     ntg_label l1;
     __ntg_color_block_init__(&cb1, nt_color_new(255, 0, 0));
@@ -72,6 +68,7 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     opts.primary_alignment = NTG_TEXT_ALIGNMENT_1;
     opts.indent = 0;
     opts.secondary_alignment = NTG_ALIGNMENT_1;
+    opts.wrap_mode = NTG_TEXT_WRAP_WORD_WRAP;
     ntg_label_set_opts(&l1, opts);
 
     struct nt_gfx gfx = l1._gfx;
@@ -79,7 +76,20 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     gfx.style = NT_STYLE_ITALIC;
     ntg_label_set_gfx(&l1, gfx);
 
+    struct ntg_str_view text;
+    text.data = "novakk\nnovak";
+    text.len = strlen(text.data);
     ntg_label_set_text(&l1, text);
+
+    struct ntg_measure_result horizontal = _ntg_label_measure_fn(
+            NTG_OBJECT(&l1), NTG_ORIENTATION_HORIZONTAL, NTG_SIZE_MAX, NULL);
+
+    struct ntg_measure_result vertical = _ntg_label_measure_fn(
+            NTG_OBJECT(&l1), NTG_ORIENTATION_VERTICAL, 3, NULL);
+
+    printf("%ld %ld %ld\n", horizontal.min_size, horizontal.natural_size, horizontal.max_size);
+    printf("\r%ld %ld %ld\n", vertical.min_size, vertical.natural_size, vertical.max_size);
+    getchar();
     // __ntg_color_block_init__(&cb5, nt_color_new(150, 150, 150));
 
     ntg_border_box_set_north(&root, NTG_OBJECT(&cb1));
@@ -89,8 +99,8 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_border_box_set_center(&root, NTG_OBJECT(&l1));
     // ntg_border_box_set_center(&root, NTG_OBJECT(&cb5));
 
-    ntg_stage_set_scene(main_stage, &scene);
-    ntg_loop(main_stage, 60);
+    // ntg_stage_set_scene(main_stage, &scene);
+    // ntg_loop(main_stage, 60);
 
     __ntg_color_block_deinit__(&cb1);
     __ntg_color_block_deinit__(&cb2);
