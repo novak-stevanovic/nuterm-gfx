@@ -73,7 +73,7 @@ void _ntg_str_split(const char* str, size_t len, const char* sep, size_t sep_cou
     }
 
     out_strs[sep_count] = &(str[it_str_start * data_size]);
-    out_lens[i] = i - it_str_start;
+    out_lens[sep_count] = i - it_str_start;
 }
 
 size_t ntg_str_count(struct ntg_str_view str, char sep)

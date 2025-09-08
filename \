@@ -93,10 +93,9 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
     label->_opts = opts;
 }
 
-static size_t __wrap_rows_for_row(struct ntg_str_utf32_view row, size_t indent,
-        size_t for_size)
+static size_t __wrap_rows_for_row(size_t row_count, size_t for_size)
 {
-    return ceil((1.0 * (row.count + indent)) / for_size);
+    return ceil((1.0 * (row_count)) / for_size);
 }
 
 static size_t __wwrap_rows_for_row(const struct ntg_str_utf32_view row,
@@ -164,6 +163,7 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
 
     /* primary size */
     size_t max_row_len = 0;
+    size_t it_adj_row_len;
     size_t max_word_size = 0;
 
     /* secondary size */
@@ -180,12 +180,13 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
             .data = rows._data[i].data,
             .count = rows._data[i].count
         };
+        it_adj_row_len = it_row.count + label->_opts.indent;
 
-        max_row_len = _max2_size(max_row_len, it_row.count + label->_opts.indent);
+        max_row_len = _max2_size(max_row_len, it_adj_row_len);
 
-        wrap_sum += __wrap_rows_for_row(it_row, label->_opts.indent, for_size);
+        wrap_sum += __wrap_rows_for_row(it_adj_row_len, for_size);
 
-        wwrap_sum += __wwrap_rows_for_row(it_row, label->_opts.indent, for_size);
+        wwrap_sum += __wwrap_rows_for_row(rows._data[i], label->_opts.indent, for_size);
 
         if(rows._data[i].count == 0) empty_rows++;
     }

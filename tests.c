@@ -77,7 +77,7 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_label_set_gfx(&l1, gfx);
 
     struct ntg_str_view text;
-    text.data = "novakk\nnovak";
+    text.data = "a";
     text.len = strlen(text.data);
     ntg_label_set_text(&l1, text);
 
@@ -114,40 +114,40 @@ void gui_fn2(ntg_stage* main_stage, void* data)
 
 int main(int argc, char *argv[])
 {
-    // __ntg_init__();
+    __ntg_init__();
+
+    ntg_simple_stage* main_stage = ntg_simple_stage_new();
+
+    ntg_launch(NTG_STAGE(main_stage), gui_fn2, NULL);
+
+    ntg_wait();
+
+    ntg_simple_stage_destroy(main_stage);
+
+    __ntg_deinit__();
+
+    // const char* str = "";
+    // const char* sep = "_";
     //
-    // ntg_simple_stage* main_stage = ntg_simple_stage_new();
+    // size_t sep_count = _ntg_str_count(str, strlen(str), sep, 1);
     //
-    // ntg_launch(NTG_STAGE(main_stage), gui_fn2, NULL);
+    // printf("%ld\n", sep_count);
     //
-    // ntg_wait();
+    // const char** strs = (const char**)malloc(sizeof(char*) * (sep_count + 1));
+    // assert(strs != NULL);
+    // size_t* lens = (size_t*)malloc(sizeof(size_t) * (sep_count + 1));
+    // assert(lens != NULL);
     //
-    // ntg_simple_stage_destroy(main_stage);
+    // _ntg_str_split(str, strlen(str), sep, sep_count, strs, lens, 1);
     //
-    // __ntg_deinit__();
-
-    const char* str = "";
-    const char* sep = "_";
-
-    size_t sep_count = _ntg_str_count(str, strlen(str), sep, 1);
-
-    printf("%ld\n", sep_count);
-
-    const char** strs = (const char**)malloc(sizeof(char*) * (sep_count + 1));
-    assert(strs != NULL);
-    size_t* lens = (size_t*)malloc(sizeof(size_t) * (sep_count + 1));
-    assert(lens != NULL);
-
-    _ntg_str_split(str, strlen(str), sep, sep_count, strs, lens, 1);
-    
-    size_t i;
-    for(i = 0; i < (sep_count + 1); i++)
-    {
-        printf("%d %.*s\n", (int)lens[i], (int)lens[i], strs[i]);
-    }
-
-    free(strs);
-    free(lens);
+    // size_t i;
+    // for(i = 0; i < (sep_count + 1); i++)
+    // {
+    //     printf("%d %.*s\n", (int)lens[i], (int)lens[i], strs[i]);
+    // }
+    //
+    // free(strs);
+    // free(lens);
 
     return 0;
 }
