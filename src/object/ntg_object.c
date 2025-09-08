@@ -341,6 +341,7 @@ struct ntg_measure_result _ntg_object_measure(ntg_object* object,
 {
     assert(object != NULL);
     assert(context != NULL);
+    if(for_size == 0) return (struct ntg_measure_result) {0};
 
     if(object->__measure_fn == NULL)
         return (struct ntg_measure_result) {0};

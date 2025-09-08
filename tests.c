@@ -4,7 +4,6 @@
 
 #include "base/ntg_event.h"
 #include "ntg.h"
-#include "core/ntg_simple_stage.h"
 #include "core/ntg_stage.h"
 #include "core/ntg_scene.h"
 #include "object/ntg_border_box.h"
@@ -25,7 +24,7 @@ void gui_fn1(ntg_stage* main_stage, void* data)
             NTG_ALIGNMENT_2, NTG_ALIGNMENT_2);
 
     ntg_scene scene;
-    __ntg_scene_init__(&scene, NTG_OBJECT(&root));
+    __ntg_scene_init__(&scene, NTG_OBJECT(&root), NULL, NULL, NULL);
 
     ntg_color_block cb1, cb2, cb3;
     __ntg_color_block_init__(&cb1, nt_color_new(255, 0, 0));
@@ -54,7 +53,7 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     __ntg_border_box_init__(&root);
 
     ntg_scene scene;
-    __ntg_scene_init__(&scene, NTG_OBJECT(&root));
+    __ntg_scene_init__(&scene, NTG_OBJECT(&root), NULL, NULL, NULL);
 
     ntg_color_block cb1, cb2, cb3, cb4, cb5;
     ntg_label l1;
@@ -116,38 +115,16 @@ int main(int argc, char *argv[])
 {
     __ntg_init__();
 
-    ntg_simple_stage* main_stage = ntg_simple_stage_new();
+    ntg_stage main_stage;
+    __ntg_stage_init__(&main_stage, NULL);
 
-    ntg_launch(NTG_STAGE(main_stage), gui_fn2, NULL);
+    ntg_launch(&main_stage, gui_fn2, NULL);
 
     ntg_wait();
 
-    ntg_simple_stage_destroy(main_stage);
+    __ntg_stage_deinit__(&main_stage);
 
     __ntg_deinit__();
-
-    // const char* str = "";
-    // const char* sep = "_";
-    //
-    // size_t sep_count = _ntg_str_count(str, strlen(str), sep, 1);
-    //
-    // printf("%ld\n", sep_count);
-    //
-    // const char** strs = (const char**)malloc(sizeof(char*) * (sep_count + 1));
-    // assert(strs != NULL);
-    // size_t* lens = (size_t*)malloc(sizeof(size_t) * (sep_count + 1));
-    // assert(lens != NULL);
-    //
-    // _ntg_str_split(str, strlen(str), sep, sep_count, strs, lens, 1);
-    //
-    // size_t i;
-    // for(i = 0; i < (sep_count + 1); i++)
-    // {
-    //     printf("%d %.*s\n", (int)lens[i], (int)lens[i], strs[i]);
-    // }
-    //
-    // free(strs);
-    // free(lens);
 
     return 0;
 }

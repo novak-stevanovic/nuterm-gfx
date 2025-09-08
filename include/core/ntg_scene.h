@@ -36,7 +36,11 @@ struct ntg_scene
     ntg_scene_process_key_fn __process_key_fn;
 };
 
-void __ntg_scene_init__(ntg_scene* scene, ntg_object* root);
+void __ntg_scene_init__(ntg_scene* scene, ntg_object* root,
+        ntg_scene_process_key_fn process_key_fn,
+        ntg_scene_on_object_register_fn on_object_register_fn,
+        ntg_scene_on_object_unregister_fn on_object_unregister_fn);
+
 void __ntg_scene_deinit__(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
@@ -59,6 +63,7 @@ void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
+/* Invokes ntg_scene_process_key_fn */
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
 
 /* Event types raised by ntg_scene:
@@ -74,15 +79,5 @@ void ntg_scene_stop_listening(ntg_scene* scene, void* subscriber);
 ntg_listenable* _ntg_scene_get_listenable(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
-
-/* By default, the scene will feed the key event to the focused object. */
-bool _ntg_scene_process_key_fn_default(ntg_scene* scene,
-        struct nt_key_event key_event);
-void _ntg_scene_set_process_key_fn(ntg_scene* scene,
-        ntg_scene_process_key_fn process_key_fn);
-void _ntg_scene_set_on_object_register_fn(ntg_scene* scene,
-        ntg_scene_on_object_register_fn on_object_register_fn);
-void _ntg_scene_set_on_object_unregister_fn(ntg_scene* scene,
-        ntg_scene_on_object_unregister_fn on_object_unregister_fn);
 
 #endif // _NTG_SCENE_H_
