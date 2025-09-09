@@ -67,7 +67,7 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     opts.primary_alignment = NTG_TEXT_ALIGNMENT_1;
     opts.indent = 0;
     opts.secondary_alignment = NTG_ALIGNMENT_1;
-    opts.wrap_mode = NTG_TEXT_WRAP_WORD_WRAP;
+    opts.wrap_mode = NTG_TEXT_WRAP_WRAP;
     ntg_label_set_opts(&l1, opts);
 
     struct nt_gfx gfx = l1._gfx;
@@ -76,7 +76,8 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_label_set_gfx(&l1, gfx);
 
     struct ntg_str_view text;
-    text.data = "a";
+    text.data = "t\ne\nst123";
+    
     text.len = strlen(text.data);
     ntg_label_set_text(&l1, text);
 
