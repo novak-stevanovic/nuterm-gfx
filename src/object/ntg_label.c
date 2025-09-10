@@ -7,6 +7,22 @@
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_string.h"
 
+typedef struct label_content
+{
+    uint32_t* __data;
+    struct ntg_xy _size;
+} label_content;
+
+static void __label_content_init__(label_content* content,
+        struct ntg_xy size);
+static void __label_content_deinit__(label_content* content);
+
+static inline uint32_t* __label_content_at(label_content* content,
+        struct ntg_xy position)
+{
+    return &(content->__data[position.y * content->_size.x + position.x]);
+}
+
 static struct ntg_measure_result __measure_nowrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         struct ntg_label_opts label_opts,
@@ -19,6 +35,16 @@ static struct ntg_measure_result __measure_wwrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         struct ntg_label_opts label_opts,
         ntg_orientation orientation, size_t for_size);
+
+static void __arrange_content_nowrap_fn(struct ntg_str_utf32_view text,
+        ntg_text_alignment primary_alignment, size_t indent,
+        label_content* out_content);
+static void __arrange_content_wrap_fn(struct ntg_str_utf32_view text,
+        ntg_text_alignment primary_alignment, size_t indent,
+        label_content* out_content);
+static void __arrange_content_wwrap_fn(struct ntg_str_utf32_view text,
+        ntg_text_alignment primary_alignment, size_t indent,
+        label_content* out_content);
 
 /* -------------------------------------------------------------------------- */
 
@@ -101,19 +127,15 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
     
     if(label->_text.len == 0) return (struct ntg_measure_result) {0};
 
-    size_t _width;
-    uc_status_t _status;
-    uc_utf8_to_utf32((uint8_t*)label->_text.data, label->_text.len, NULL,
-            0, 0, &_width, &_status);
-
-    assert(_status == UC_SUCCESS);
-    if(_width == 0) return (struct ntg_measure_result) {0};
-
-    uint32_t* text_utf32 = (uint32_t*)malloc(sizeof(uint32_t) * _width);
+    /* Get UTF-32 text */
+    size_t utf32_cap = label->_text.len;
+    uint32_t* text_utf32 = (uint32_t*)malloc(sizeof(uint32_t) * utf32_cap);
     assert(text_utf32 != NULL);
 
-    uc_utf8_to_utf32((uint8_t*)label->_text.data, label->_text.len, text_utf32,
-            _width, 0, &_width, &_status);
+    size_t _width;
+    uc_status_t _status;
+    uc_utf8_to_utf32((uint8_t*)label->_text.data, utf32_cap, text_utf32,
+            label->_text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
 
     struct ntg_str_utf32_view view = {
@@ -121,28 +143,35 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
         .count = _width
     };
 
+    /* Split by rows */
     struct ntg_str_utf32_split_result rows = ntg_str_utf32_split(view, '\n');
     assert(rows.views != NULL);
 
     if(rows.count == 0) return (struct ntg_measure_result) {0};
 
+    struct ntg_measure_result result;
     switch(label->_opts.wrap_mode)
     {
         case NTG_TEXT_WRAP_NOWRAP:
-            return __measure_nowrap_fn(rows.views, rows.count, label->_opts,
+            result = __measure_nowrap_fn(rows.views, rows.count, label->_opts,
                     orientation, for_size);
+            break;
         case NTG_TEXT_WRAP_WRAP:
-            return __measure_wrap_fn(rows.views, rows.count, label->_opts,
+            result = __measure_wrap_fn(rows.views, rows.count, label->_opts,
                     orientation, for_size);
+            break;
         case NTG_TEXT_WRAP_WORD_WRAP:
-            return __measure_wwrap_fn(rows.views, rows.count, label->_opts,
+            result = __measure_wwrap_fn(rows.views, rows.count, label->_opts,
                     orientation, for_size);
+            break;
+
         default: assert(0);
     }
 
     free(rows.views);
-    rows.views = NULL;
-    rows.count = 0;
+    free(text_utf32);
+
+    return result;
 }
 
 void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
@@ -150,12 +179,79 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
 {
     assert(_label != NULL);
 
+    ntg_label* label = NTG_LABEL(_label);
+
     if(ntg_xy_are_equal(ntg_xy_size(size), ntg_xy(0, 0))) return;
 
-    assert(0);
+    /* Init content matrix */
+    label_content _content;
+    __label_content_init__(&_content, size);
+
+    /* Get UTF-32 text */
+    size_t utf32_cap = label->_text.len;
+    uint32_t* text_utf32 = (uint32_t*)malloc(sizeof(uint32_t) * utf32_cap);
+    assert(text_utf32 != NULL);
+
+    size_t _width;
+    uc_status_t _status;
+    uc_utf8_to_utf32((uint8_t*)label->_text.data, utf32_cap, text_utf32,
+            label->_text.len, 0, &_width, &_status);
+    assert(_status == UC_SUCCESS);
+
+    struct ntg_str_utf32_view view = {
+        .data = text_utf32,
+        .count = _width
+    };
+
+    switch(label->_opts.wrap_mode)
+    {
+        case NTG_TEXT_WRAP_NOWRAP:
+            __arrange_content_nowrap_fn(view, label->_opts.primary_alignment,
+                    label->_opts.indent, &_content);
+            break;
+        case NTG_TEXT_WRAP_WRAP:
+            __arrange_content_wrap_fn(view, label->_opts.primary_alignment,
+                    label->_opts.indent, &_content);
+            break;
+        case NTG_TEXT_WRAP_WORD_WRAP:
+            __arrange_content_wwrap_fn(view, label->_opts.primary_alignment,
+                    label->_opts.indent, &_content);
+            break;
+    }
+
+    __label_content_deinit__(&_content);
+    free(text_utf32);
 }
 
 /* -------------------------------------------------------------------------- */
+
+static void __label_content_init__(label_content* content,
+        struct ntg_xy size)
+{
+    assert(content != NULL);
+
+    content->__data = NULL;
+    content->_size = ntg_xy(0, 0);
+
+    size_t count = size.x * size.y;
+
+    content->__data = (uint32_t*)malloc(sizeof(uint32_t) * count);
+    assert(content->__data != NULL);
+    size_t i;
+    for(i = 0; i < count; i++)
+        content->__data[i] = NTG_CELL_EMPTY;
+
+    content->_size = size;
+}
+
+static void __label_content_deinit__(label_content* content)
+{
+    assert(content != NULL);
+    
+    if(content->__data != NULL)
+        free(content->__data);
+    content->_size = ntg_xy(0, 0);
+}
 
 static struct ntg_measure_result __measure_nowrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
@@ -356,4 +452,25 @@ static struct ntg_measure_result __measure_wwrap_fn(
             .max_size = NTG_SIZE_MAX
         };
     }
+}
+
+static void __arrange_content_nowrap_fn(struct ntg_str_utf32_view text,
+        ntg_text_alignment primary_alignment, size_t indent,
+        label_content* out_content)
+{
+    assert(0);
+}
+
+static void __arrange_content_wrap_fn(struct ntg_str_utf32_view text,
+        ntg_text_alignment primary_alignment, size_t indent,
+        label_content* out_content)
+{
+    assert(0);
+}
+
+static void __arrange_content_wwrap_fn(struct ntg_str_utf32_view text,
+        ntg_text_alignment primary_alignment, size_t indent,
+        label_content* out_content)
+{
+    assert(0);
 }
