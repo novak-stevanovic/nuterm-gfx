@@ -36,15 +36,12 @@ static struct ntg_measure_result __measure_wwrap_fn(
         struct ntg_label_opts label_opts,
         ntg_orientation orientation, size_t for_size);
 
-static void __arrange_content_nowrap_fn(const struct ntg_str_utf32_view* rows,
-        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
-        label_content* out_content);
-static void __arrange_content_wrap_fn(const struct ntg_str_utf32_view* rows,
-        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
-        label_content* out_content);
-static void __arrange_content_wwrap_fn(const struct ntg_str_utf32_view* rows,
-        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
-        label_content* out_content);
+static void __get_wrap_rows_nowrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view* out_wrap_rows, size_t* out_wrap_row_count);
+static void __get_wrap_rows_wrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view* out_wrap_rows, size_t* out_wrap_row_count);
+static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view* out_wrap_rows, size_t* out_wrap_row_count);
 
 /* -------------------------------------------------------------------------- */
 
@@ -168,6 +165,7 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
         default: assert(0);
     }
 
+    /* Clean up */
     free(rows.views);
     free(text_utf32);
 
@@ -209,26 +207,66 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
     assert(rows.views != NULL);
     if(rows.count == 0) return;
 
-    switch(label->_opts.wrap_mode)
+    size_t indent = _min2_size(label->_opts.indent, size.x);
+
+    size_t i, j, k;
+    size_t content_i = 0, content_j = 0;
+    size_t effective_indent;
+    struct ntg_str_utf32_view* _it_wrap_rows;
+    size_t _it_wrap_rows_count;
+    uint32_t* it_content_cell;
+    for(i = 0; i < rows.count; i++)
     {
-        case NTG_TEXT_WRAP_NOWRAP:
-            __arrange_content_nowrap_fn(rows.views, rows.count,
-                    label->_opts.primary_alignment,
-                    label->_opts.indent, &_content);
-            break;
-        case NTG_TEXT_WRAP_WRAP:
-            __arrange_content_wrap_fn(rows.views, rows.count,
-                    label->_opts.primary_alignment,
-                    label->_opts.indent, &_content);
-            break;
-        case NTG_TEXT_WRAP_WORD_WRAP:
-            __arrange_content_wwrap_fn(rows.views, rows.count,
-                    label->_opts.primary_alignment,
-                    label->_opts.indent, &_content);
-            break;
+        switch(label->_opts.wrap_mode)
+        {
+            case NTG_TEXT_WRAP_NOWRAP:
+               __get_wrap_rows_nowrap(rows.views[i], size.x, _it_wrap_rows,
+                       &_it_wrap_rows_count); 
+                break;
+            case NTG_TEXT_WRAP_WRAP:
+               __get_wrap_rows_wrap(rows.views[i], size.x, _it_wrap_rows,
+                       &_it_wrap_rows_count); 
+                break;
+            case NTG_TEXT_WRAP_WORD_WRAP:
+               __get_wrap_rows_wwrap(rows.views[i], size.x, _it_wrap_rows,
+                       &_it_wrap_rows_count); 
+                break;
+            default: assert(0);
+        }
+
+        for(j = 0; j < _it_wrap_rows_count; j++)
+        {
+            switch(label->_opts.wrap_mode)
+            {
+                case NTG_TEXT_WRAP_NOWRAP:
+                    effective_indent = 0;
+                    break;
+                case NTG_TEXT_WRAP_WRAP:
+                    effective_indent = (size.x -_it_wrap_rows[i].count) / 2;
+                    break;
+                case NTG_TEXT_WRAP_WORD_WRAP:
+                    effective_indent = (size.x -_it_wrap_rows[i].count);
+                    break;
+                default: assert(0);
+            }
+            effective_indent += (j == 0) ? indent : 0;
+
+            content_j = effective_indent;
+            for(k = 0; k < _it_wrap_rows[j].count; k++)
+            {
+                it_content_cell = __label_content_at(&_content,
+                        ntg_xy(content_j, content_i));
+
+                (*it_content_cell) = _it_wrap_rows[j].data[k]; 
+
+                content_j++;
+            }
+
+            content_i++;
+        }
     }
 
-    size_t i, j;
+    /* Transpose the content matrix if needed */
     ntg_cell* it_cell;
     uint32_t* it_content;
     if(label->_opts.orientation == NTG_ORIENTATION_HORIZONTAL)
@@ -249,6 +287,7 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
         assert(0);
     }
 
+    /* Clean up */
     __label_content_deinit__(&_content);
     free(text_utf32);
     free(rows.views);
@@ -485,73 +524,20 @@ static struct ntg_measure_result __measure_wwrap_fn(
     }
 }
 
-static void __arrange_content_nowrap_fn(const struct ntg_str_utf32_view* rows,
-        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
-        label_content* out_content)
+static void __get_wrap_rows_nowrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view* out_wrap_rows, size_t* out_wrap_row_count)
 {
-    assert(rows != NULL);
-    assert(row_count > 0);
-    assert(out_content != NULL);
-
-    struct ntg_xy content_size = out_content->_size;
-    indent = _min2_size(indent, content_size.x);
-
-    size_t i, j;
-    size_t content_i = 0, content_j = indent;
-    struct ntg_str_utf32_view it_row;
-    uint32_t it_char;
-    uint32_t* it_content_char;
-
-    for(i = 0; i < row_count; i++)
-    {
-        if(i >= content_size.y) break;
-        if(content_i >= content_size.y) break;
-
-        it_row = rows[i];
-
-        for(j = 0; j < it_row.count; j++)
-        {
-            if(j >= content_size.x) break;
-            if(content_j >= content_size.x) break;
-
-            it_char = it_row.data[j];
-            it_content_char = __label_content_at(out_content,
-                    ntg_xy(content_j, content_i));
-
-            if(it_char == '\n')
-            {
-                content_i++;
-                content_j = indent;
-            }
-            else
-            {
-               (*it_content_char) = it_char; 
-               content_j++;
-            }
-        }
-        content_i++;
-        content_j = indent;
-    }
-}
-
-static void __arrange_content_wrap_fn(const struct ntg_str_utf32_view* rows,
-        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
-        label_content* out_content)
-{
-    assert(rows != NULL);
-    assert(row_count > 0);
-    assert(out_content != NULL);
-
     assert(0);
 }
 
-static void __arrange_content_wwrap_fn(const struct ntg_str_utf32_view* rows,
-        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
-        label_content* out_content)
+static void __get_wrap_rows_wrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view* out_wrap_rows, size_t* out_wrap_row_count)
 {
-    assert(rows != NULL);
-    assert(row_count > 0);
-    assert(out_content != NULL);
+    assert(0);
+}
 
+static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view* out_wrap_rows, size_t* out_wrap_row_count)
+{
     assert(0);
 }
