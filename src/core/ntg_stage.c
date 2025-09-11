@@ -26,7 +26,7 @@ void __ntg_stage_init__(ntg_stage* stage,
 
     stage->_active_scene = NULL;
     stage->__process_key_fn = (process_key_fn != NULL) ?
-        __process_key_fn_default : NULL;
+        process_key_fn : __process_key_fn_default;
     stage->_size = NTG_XY_UNSET;
     stage->__buff = nt_charbuff_new(CHARBUFF_CAP);
     __ntg_rcell_vgrid_init__(&stage->__back_buffer);
@@ -39,8 +39,8 @@ void __ntg_stage_deinit__(ntg_stage* stage)
     assert(stage != NULL);
 
     stage->_active_scene = NULL;
-    stage->__process_key_fn = NULL;
     stage->_size = NTG_XY_UNSET;
+    stage->__process_key_fn = NULL;
     nt_charbuff_destroy(stage->__buff);
     stage->__buff = NULL;
     __ntg_rcell_vgrid_deinit__(&stage->__back_buffer);
@@ -96,23 +96,24 @@ void ntg_stage_render(ntg_stage* stage, ntg_stage_render_mode render_mode)
 {
     assert(stage != NULL);
 
-    nt_buffer_enable(stage->__buff);
 
     if(stage->_active_scene != NULL)
     {
         ntg_scene_layout(stage->_active_scene);
 
+        nt_buffer_enable(stage->__buff);
         if(render_mode == NTG_STAGE_RENDER_MODE_OPTIMIZED)
             __optimized_render(stage);
         else
             __full_render(stage);
+        nt_buffer_disable(NT_BUFF_FLUSH);
     }
     else
     {
+        nt_buffer_enable(stage->__buff);
         __full_empty_render(stage);
+        nt_buffer_disable(NT_BUFF_FLUSH);
     }
-
-    nt_buffer_disable(NT_BUFF_FLUSH);
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_ETYPE_STAGE_RENDER, stage, NULL);

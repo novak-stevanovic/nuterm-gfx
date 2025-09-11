@@ -36,14 +36,14 @@ static struct ntg_measure_result __measure_wwrap_fn(
         struct ntg_label_opts label_opts,
         ntg_orientation orientation, size_t for_size);
 
-static void __arrange_content_nowrap_fn(struct ntg_str_utf32_view text,
-        ntg_text_alignment primary_alignment, size_t indent,
+static void __arrange_content_nowrap_fn(const struct ntg_str_utf32_view* rows,
+        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
         label_content* out_content);
-static void __arrange_content_wrap_fn(struct ntg_str_utf32_view text,
-        ntg_text_alignment primary_alignment, size_t indent,
+static void __arrange_content_wrap_fn(const struct ntg_str_utf32_view* rows,
+        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
         label_content* out_content);
-static void __arrange_content_wwrap_fn(struct ntg_str_utf32_view text,
-        ntg_text_alignment primary_alignment, size_t indent,
+static void __arrange_content_wwrap_fn(const struct ntg_str_utf32_view* rows,
+        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
         label_content* out_content);
 
 /* -------------------------------------------------------------------------- */
@@ -181,7 +181,8 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
 
     ntg_label* label = NTG_LABEL(_label);
 
-    if(ntg_xy_are_equal(ntg_xy_size(size), ntg_xy(0, 0))) return;
+    if((label->_text.len == 0) || (label->_text.data == NULL)) return;
+    if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
     /* Init content matrix */
     label_content _content;
@@ -203,24 +204,54 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
         .count = _width
     };
 
+    /* Split by rows */
+    struct ntg_str_utf32_split_result rows = ntg_str_utf32_split(view, '\n');
+    assert(rows.views != NULL);
+    if(rows.count == 0) return;
+
     switch(label->_opts.wrap_mode)
     {
         case NTG_TEXT_WRAP_NOWRAP:
-            __arrange_content_nowrap_fn(view, label->_opts.primary_alignment,
+            __arrange_content_nowrap_fn(rows.views, rows.count,
+                    label->_opts.primary_alignment,
                     label->_opts.indent, &_content);
             break;
         case NTG_TEXT_WRAP_WRAP:
-            __arrange_content_wrap_fn(view, label->_opts.primary_alignment,
+            __arrange_content_wrap_fn(rows.views, rows.count,
+                    label->_opts.primary_alignment,
                     label->_opts.indent, &_content);
             break;
         case NTG_TEXT_WRAP_WORD_WRAP:
-            __arrange_content_wwrap_fn(view, label->_opts.primary_alignment,
+            __arrange_content_wwrap_fn(rows.views, rows.count,
+                    label->_opts.primary_alignment,
                     label->_opts.indent, &_content);
             break;
     }
 
+    size_t i, j;
+    ntg_cell* it_cell;
+    uint32_t* it_content;
+    if(label->_opts.orientation == NTG_ORIENTATION_HORIZONTAL)
+    {
+        for(i = 0; i < size.y; i++)
+        {
+            for(j = 0; j < size.x; j++)
+            {
+                it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(j, i));
+                it_content = __label_content_at(&_content, ntg_xy(j, i));
+
+                (*it_cell) = ntg_cell_full((*it_content), label->_gfx);
+            }
+        }
+    }
+    else // NTG_ORIENTATION_VERTICAL
+    {
+        assert(0);
+    }
+
     __label_content_deinit__(&_content);
     free(text_utf32);
+    free(rows.views);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -454,23 +485,73 @@ static struct ntg_measure_result __measure_wwrap_fn(
     }
 }
 
-static void __arrange_content_nowrap_fn(struct ntg_str_utf32_view text,
-        ntg_text_alignment primary_alignment, size_t indent,
+static void __arrange_content_nowrap_fn(const struct ntg_str_utf32_view* rows,
+        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
         label_content* out_content)
 {
+    assert(rows != NULL);
+    assert(row_count > 0);
+    assert(out_content != NULL);
+
+    struct ntg_xy content_size = out_content->_size;
+    indent = _min2_size(indent, content_size.x);
+
+    size_t i, j;
+    size_t content_i = 0, content_j = indent;
+    struct ntg_str_utf32_view it_row;
+    uint32_t it_char;
+    uint32_t* it_content_char;
+
+    for(i = 0; i < row_count; i++)
+    {
+        if(i >= content_size.y) break;
+        if(content_i >= content_size.y) break;
+
+        it_row = rows[i];
+
+        for(j = 0; j < it_row.count; j++)
+        {
+            if(j >= content_size.x) break;
+            if(content_j >= content_size.x) break;
+
+            it_char = it_row.data[j];
+            it_content_char = __label_content_at(out_content,
+                    ntg_xy(content_j, content_i));
+
+            if(it_char == '\n')
+            {
+                content_i++;
+                content_j = indent;
+            }
+            else
+            {
+               (*it_content_char) = it_char; 
+               content_j++;
+            }
+        }
+        content_i++;
+        content_j = indent;
+    }
+}
+
+static void __arrange_content_wrap_fn(const struct ntg_str_utf32_view* rows,
+        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
+        label_content* out_content)
+{
+    assert(rows != NULL);
+    assert(row_count > 0);
+    assert(out_content != NULL);
+
     assert(0);
 }
 
-static void __arrange_content_wrap_fn(struct ntg_str_utf32_view text,
-        ntg_text_alignment primary_alignment, size_t indent,
+static void __arrange_content_wwrap_fn(const struct ntg_str_utf32_view* rows,
+        size_t row_count, ntg_text_alignment primary_alignment, size_t indent,
         label_content* out_content)
 {
-    assert(0);
-}
+    assert(rows != NULL);
+    assert(row_count > 0);
+    assert(out_content != NULL);
 
-static void __arrange_content_wwrap_fn(struct ntg_str_utf32_view text,
-        ntg_text_alignment primary_alignment, size_t indent,
-        label_content* out_content)
-{
     assert(0);
 }

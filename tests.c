@@ -20,8 +20,8 @@
 void gui_fn1(ntg_stage* main_stage, void* data)
 {
     ntg_box root;
-    __ntg_box_init__(&root, NTG_ORIENTATION_VERTICAL,
-            NTG_ALIGNMENT_2, NTG_ALIGNMENT_2);
+    __ntg_box_init__(&root, NTG_ORIENTATION_HORIZONTAL,
+            NTG_ALIGNMENT_1, NTG_ALIGNMENT_1);
 
     ntg_scene scene;
     __ntg_scene_init__(&scene, NTG_OBJECT(&root), NULL, NULL, NULL);
@@ -31,11 +31,28 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     __ntg_color_block_init__(&cb2, nt_color_new(0, 255, 0));
     __ntg_color_block_init__(&cb3, nt_color_new(0, 0, 255));
 
+    ntg_label l1;
+    __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
+    struct ntg_str_view l1_text;
+    l1_text.data = "test123";
+    l1_text.len = strlen(l1_text.data);
+    ntg_label_set_text(&l1, l1_text);
+    struct nt_gfx l1_gfx = {
+        .fg = nt_color_new(255, 0, 0),
+        .bg = nt_color_new(0, 0, 100),
+        .style = NT_STYLE_DEFAULT
+    };
+    ntg_label_set_gfx(&l1, l1_gfx);
+    struct ntg_label_opts l1_opts = ntg_label_opts_default();
+    l1_opts.indent = 50;
+    ntg_label_set_opts(&l1, l1_opts);
+
     ntg_object_set_min_size(NTG_OBJECT(&cb1), ntg_xy(100, 10));
 
     ntg_box_add_child(&root, NTG_OBJECT(&cb1));
     ntg_box_add_child(&root, NTG_OBJECT(&cb2));
     ntg_box_add_child(&root, NTG_OBJECT(&cb3));
+    ntg_box_add_child(&root, NTG_OBJECT(&l1));
 
     ntg_stage_set_scene(main_stage, &scene);
     ntg_loop(main_stage, 60);
@@ -43,6 +60,7 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     __ntg_color_block_deinit__(&cb1);
     __ntg_color_block_deinit__(&cb2);
     __ntg_color_block_deinit__(&cb3);
+    __ntg_label_deinit__(&l1);
     __ntg_box_deinit__(&root);
     __ntg_scene_deinit__(&scene);
 }
@@ -67,7 +85,7 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     opts.primary_alignment = NTG_TEXT_ALIGNMENT_1;
     opts.indent = 0;
     opts.secondary_alignment = NTG_ALIGNMENT_1;
-    opts.wrap_mode = NTG_TEXT_WRAP_WRAP;
+    opts.wrap_mode = NTG_TEXT_WRAP_NOWRAP;
     ntg_label_set_opts(&l1, opts);
 
     struct nt_gfx gfx = l1._gfx;
@@ -76,20 +94,20 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_label_set_gfx(&l1, gfx);
 
     struct ntg_str_view text;
-    text.data = "t\ne\nst123";
+    text.data = "aabcd";
     
     text.len = strlen(text.data);
     ntg_label_set_text(&l1, text);
 
-    struct ntg_measure_result horizontal = _ntg_label_measure_fn(
-            NTG_OBJECT(&l1), NTG_ORIENTATION_HORIZONTAL, NTG_SIZE_MAX, NULL);
-
-    struct ntg_measure_result vertical = _ntg_label_measure_fn(
-            NTG_OBJECT(&l1), NTG_ORIENTATION_VERTICAL, 3, NULL);
-
-    printf("%ld %ld %ld\n", horizontal.min_size, horizontal.natural_size, horizontal.max_size);
-    printf("\r%ld %ld %ld\n", vertical.min_size, vertical.natural_size, vertical.max_size);
-    getchar();
+    // struct ntg_measure_result horizontal = _ntg_label_measure_fn(
+    //         NTG_OBJECT(&l1), NTG_ORIENTATION_HORIZONTAL, NTG_SIZE_MAX, NULL);
+    //
+    // struct ntg_measure_result vertical = _ntg_label_measure_fn(
+    //         NTG_OBJECT(&l1), NTG_ORIENTATION_VERTICAL, 3, NULL);
+    //
+    // printf("%ld %ld %ld\n", horizontal.min_size, horizontal.natural_size, horizontal.max_size);
+    // printf("\r%ld %ld %ld\n", vertical.min_size, vertical.natural_size, vertical.max_size);
+    // getchar();
     // __ntg_color_block_init__(&cb5, nt_color_new(150, 150, 150));
 
     ntg_border_box_set_north(&root, NTG_OBJECT(&cb1));
@@ -99,8 +117,8 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_border_box_set_center(&root, NTG_OBJECT(&l1));
     // ntg_border_box_set_center(&root, NTG_OBJECT(&cb5));
 
-    // ntg_stage_set_scene(main_stage, &scene);
-    // ntg_loop(main_stage, 60);
+    ntg_stage_set_scene(main_stage, &scene);
+    ntg_loop(main_stage, 60);
 
     __ntg_color_block_deinit__(&cb1);
     __ntg_color_block_deinit__(&cb2);
@@ -119,7 +137,7 @@ int main(int argc, char *argv[])
     ntg_stage main_stage;
     __ntg_stage_init__(&main_stage, NULL);
 
-    ntg_launch(&main_stage, gui_fn2, NULL);
+    ntg_launch(&main_stage, gui_fn1, NULL);
 
     ntg_wait();
 
