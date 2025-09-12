@@ -11,7 +11,6 @@ typedef struct ntg_label ntg_label;
 
 struct ntg_label_opts
 {
-    ntg_orientation orientation;
     ntg_text_alignment primary_alignment;
     ntg_alignment secondary_alignment;
     size_t indent;
@@ -26,6 +25,7 @@ struct ntg_label
     struct nt_gfx _gfx;
 
     struct ntg_str _text;
+    ntg_orientation _orientation;
     struct ntg_label_opts _opts;
 };
 

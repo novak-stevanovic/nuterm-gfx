@@ -32,9 +32,9 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     __ntg_color_block_init__(&cb3, nt_color_new(0, 0, 255));
 
     ntg_label l1;
-    __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
+    __ntg_label_init__(&l1, NTG_ORIENTATION_VERTICAL);
     struct ntg_str_view l1_text;
-    l1_text.data = "test123";
+    l1_text.data = "test123456789123456789\n\na";
     l1_text.len = strlen(l1_text.data);
     ntg_label_set_text(&l1, l1_text);
     struct nt_gfx l1_gfx = {
@@ -44,7 +44,8 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     };
     ntg_label_set_gfx(&l1, l1_gfx);
     struct ntg_label_opts l1_opts = ntg_label_opts_default();
-    l1_opts.indent = 50;
+    l1_opts.indent = 0;
+    l1_opts.primary_alignment = NTG_TEXT_ALIGNMENT_3;
     ntg_label_set_opts(&l1, l1_opts);
 
     ntg_object_set_min_size(NTG_OBJECT(&cb1), ntg_xy(100, 10));
