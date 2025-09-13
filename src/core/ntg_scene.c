@@ -28,15 +28,15 @@ void __ntg_scene_init__(ntg_scene* scene, ntg_object* root,
 
     scene->__process_key_fn = (process_key_fn != NULL) ?
         process_key_fn : __process_key_fn_default;
-    scene->_focused = NULL;
-    scene->_root = root;
+    scene->__focused = NULL;
+    scene->__root = root;
     scene->__on_object_register_fn = (on_object_register_fn != NULL) ?
         on_object_register_fn : __on_object_register_fn_default;
     scene->__on_object_unregister_fn = (on_object_unregister_fn != NULL) ?
         on_object_unregister_fn : __on_object_unregister_fn_default;
-    scene->_size = NTG_XY_UNSET;
+    scene->__size = NTG_XY_UNSET;
 
-    __ntg_scene_drawing_init__(&scene->_drawing);
+    __ntg_scene_drawing_init__(&scene->__drawing);
     __ntg_listenable_init__(&scene->__listenable);
 }
 
@@ -45,50 +45,64 @@ void __ntg_scene_deinit__(ntg_scene* scene)
     assert(scene != NULL);
 
     scene->__process_key_fn = NULL;
-    scene->_focused = NULL;
-    scene->_root = NULL;
-    scene->_size = NTG_XY_UNSET;
+    scene->__focused = NULL;
+    scene->__root = NULL;
+    scene->__size = NTG_XY_UNSET;
     scene->__on_object_register_fn = NULL;
     scene->__on_object_unregister_fn = NULL;
 
-    __ntg_scene_drawing_deinit__(&scene->_drawing);
+    __ntg_scene_drawing_deinit__(&scene->__drawing);
     __ntg_listenable_deinit__(&scene->__listenable);
+}
+
+ntg_object* ntg_scene_get_focused(ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return scene->__focused;
 }
 
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
 {
     assert(scene != NULL);
 
-    if(scene->_focused == object) return;
+    if(scene->__focused == object) return;
 
     if(object != NULL)
         assert(scene == ntg_object_get_scene(object));
 
     struct ntg_object_change data = {
-        .old = scene->_focused,
+        .old = scene->__focused,
         .new = object
     };
 
-    scene->_focused = object;
+    scene->__focused = object;
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_ETYPE_SCENE_FOCUSED_CHANGE, scene, &data);
     ntg_listenable_raise(&scene->__listenable, &e);
 }
 
+struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return scene->__size;
+}
+
 void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 {
     assert(scene != NULL);
 
-    if(ntg_xy_are_equal(scene->_size, size)) return;
+    if(ntg_xy_are_equal(scene->__size, size)) return;
 
     struct ntg_size_change data = {
-        .old = scene->_size,
+        .old = scene->__size,
         .new = size
     };
 
-    scene->_size = size;
-    ntg_scene_drawing_set_size(&scene->_drawing, size);
+    scene->__size = size;
+    ntg_scene_drawing_set_size(&scene->__drawing, size);
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_ETYPE_STAGE_RESIZE, scene, &data);
@@ -99,10 +113,10 @@ void ntg_scene_layout(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    if(scene->_root != NULL)
+    if(scene->__root != NULL)
     {
-        ntg_object_layout(scene->_root, scene->_size);
-        ntg_object_perform_tree(scene->_root, NTG_OBJECT_PERFORM_TOP_DOWN,
+        ntg_object_layout(scene->__root, scene->__size);
+        ntg_object_perform_tree(scene->__root, NTG_OBJECT_PERFORM_TOP_DOWN,
                 __draw_scene_object_fn, scene);
     }
     else // construct empty drawing
@@ -152,6 +166,17 @@ void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object)
     ntg_listenable_raise(&scene->__listenable, &e);
 }
 
+/* -------------------------------------------------------------------------- */
+
+const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return &(scene->__drawing);
+}
+
+/* -------------------------------------------------------------------------- */
+
 void ntg_scene_listen(ntg_scene* scene, struct ntg_event_sub sub)
 {
     assert(scene != NULL);
@@ -168,21 +193,12 @@ void ntg_scene_stop_listening(ntg_scene* scene, void* subscriber)
 
 /* -------------------------------------------------------------------------- */
 
-ntg_listenable* _ntg_scene_get_listenable(ntg_scene* scene)
-{
-    assert(scene != NULL);
-
-    return &scene->__listenable;
-}
-
-/* -------------------------------------------------------------------------- */
-
 static void __draw_scene_object_fn(ntg_object* object, void* _scene)
 {
     ntg_scene* scene = NTG_SCENE(_scene);
 
     const ntg_object_drawing* object_drawing =  ntg_object_get_drawing(object);
-    ntg_scene_drawing* scene_drawing = &scene->_drawing;
+    ntg_scene_drawing* scene_drawing = &scene->__drawing;
 
     struct ntg_xy pos = ntg_object_get_position_abs(object);
     struct ntg_xy size = ntg_object_get_size(object);
@@ -195,11 +211,11 @@ static void __construct_empty_drawing(ntg_scene* scene)
 {
     size_t i, j;
     struct ntg_rcell* it_cell;
-    for(i = 0; i < scene->_size.y; i++)
+    for(i = 0; i < scene->__size.y; i++)
     {
-        for(j = 0; j < scene->_size.x; j++)
+        for(j = 0; j < scene->__size.x; j++)
         {
-            it_cell = ntg_scene_drawing_at_(&scene->_drawing, ntg_xy(j, i));
+            it_cell = ntg_scene_drawing_at_(&scene->__drawing, ntg_xy(j, i));
             (*it_cell) = ntg_rcell_default();
         }
     }
@@ -210,16 +226,14 @@ static bool __process_key_fn_default(ntg_scene* scene,
 {
     assert(scene != NULL);
 
-    if(scene->_focused != NULL)
-        return ntg_object_feed_key(scene->_focused, key_event);
+    if(scene->__focused != NULL)
+        return ntg_object_feed_key(scene->__focused, key_event);
     else
         return false;
 }
 
 static void __on_object_register_fn_default(ntg_scene* scene, ntg_object* object)
-{
-}
+{ }
 
 static void __on_object_unregister_fn_default(ntg_scene* scene, ntg_object* object)
-{
-}
+{ }

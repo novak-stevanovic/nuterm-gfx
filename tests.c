@@ -32,7 +32,7 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     __ntg_color_block_init__(&cb3, nt_color_new(0, 0, 255));
 
     ntg_label l1;
-    __ntg_label_init__(&l1, NTG_ORIENTATION_VERTICAL);
+    __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
     struct ntg_str_view l1_text;
     l1_text.data = "test123456789123456789\n\na";
     l1_text.len = strlen(l1_text.data);
@@ -43,10 +43,6 @@ void gui_fn1(ntg_stage* main_stage, void* data)
         .style = NT_STYLE_DEFAULT
     };
     ntg_label_set_gfx(&l1, l1_gfx);
-    struct ntg_label_opts l1_opts = ntg_label_opts_default();
-    l1_opts.indent = 0;
-    l1_opts.primary_alignment = NTG_TEXT_ALIGNMENT_3;
-    ntg_label_set_opts(&l1, l1_opts);
 
     ntg_object_set_min_size(NTG_OBJECT(&cb1), ntg_xy(100, 10));
 
@@ -82,14 +78,7 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     __ntg_color_block_init__(&cb4, nt_color_new(50, 50, 50));
     __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
 
-    struct ntg_label_opts opts = l1._opts;
-    opts.primary_alignment = NTG_TEXT_ALIGNMENT_1;
-    opts.indent = 0;
-    opts.secondary_alignment = NTG_ALIGNMENT_1;
-    opts.wrap_mode = NTG_TEXT_WRAP_NOWRAP;
-    ntg_label_set_opts(&l1, opts);
-
-    struct nt_gfx gfx = l1._gfx;
+    struct nt_gfx gfx = l1.__gfx;
     gfx.bg = nt_color_new(200, 20, 150);
     gfx.style = NT_STYLE_ITALIC;
     ntg_label_set_gfx(&l1, gfx);

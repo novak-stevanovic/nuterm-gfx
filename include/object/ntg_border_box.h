@@ -10,12 +10,18 @@ typedef struct ntg_border_box ntg_border_box;
 struct ntg_border_box
 {
     ntg_object __base;
-    ntg_object *_north, *_east, *_south,
-               *_west, *_center;
+    ntg_object *__north, *__east, *__south,
+               *__west, *__center;
 };
 
 void __ntg_border_box_init__(ntg_border_box* box);
 void __ntg_border_box_deinit__(ntg_border_box* box);
+
+ntg_object* ntg_border_box_get_north(ntg_border_box* box);
+ntg_object* ntg_border_box_get_east(ntg_border_box* box);
+ntg_object* ntg_border_box_get_south(ntg_border_box* box);
+ntg_object* ntg_border_box_get_west(ntg_border_box* box);
+ntg_object* ntg_border_box_get_center(ntg_border_box* box);
 
 void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north);
 void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east);

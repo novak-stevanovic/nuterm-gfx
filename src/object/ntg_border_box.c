@@ -5,11 +5,11 @@
 
 static void __init_default(ntg_border_box* box)
 {
-    box->_north = NULL;
-    box->_east = NULL;
-    box->_south = NULL;
-    box->_west = NULL;
-    box->_center = NULL;
+    box->__north = NULL;
+    box->__east = NULL;
+    box->__south = NULL;
+    box->__west = NULL;
+    box->__center = NULL;
 }
 
 void __ntg_border_box_init__(ntg_border_box* box)
@@ -40,24 +40,24 @@ struct ntg_measure_result _ntg_border_box_measure_fn(
     ntg_border_box* box = NTG_BORDER_BOX(_box);
 
     struct ntg_measure_data north_data = 
-        (box->_north != NULL) ?
-        ntg_measure_context_get(context, box->_north) :
+        (box->__north != NULL) ?
+        ntg_measure_context_get(context, box->__north) :
         (struct ntg_measure_data) {0};
     struct ntg_measure_data east_data = 
-        (box->_east != NULL) ?
-        ntg_measure_context_get(context, box->_east) :
+        (box->__east != NULL) ?
+        ntg_measure_context_get(context, box->__east) :
         (struct ntg_measure_data) {0};
     struct ntg_measure_data south_data = 
-        (box->_south != NULL) ?
-        ntg_measure_context_get(context, box->_south) :
+        (box->__south != NULL) ?
+        ntg_measure_context_get(context, box->__south) :
         (struct ntg_measure_data) {0};
     struct ntg_measure_data west_data = 
-        (box->_west != NULL) ?
-        ntg_measure_context_get(context, box->_west) :
+        (box->__west != NULL) ?
+        ntg_measure_context_get(context, box->__west) :
         (struct ntg_measure_data) {0};
     struct ntg_measure_data center_data = 
-        (box->_center != NULL) ?
-        ntg_measure_context_get(context, box->_center) :
+        (box->__center != NULL) ?
+        ntg_measure_context_get(context, box->__center) :
         (struct ntg_measure_data) {0};
 
     size_t min, natural, max;
@@ -102,24 +102,24 @@ void _ntg_border_box_constrain_fn(
     ntg_border_box* box = NTG_BORDER_BOX(_box);
 
     struct ntg_constrain_data north_data = 
-        (box->_north != NULL) ?
-        ntg_constrain_context_get(context, box->_north) :
+        (box->__north != NULL) ?
+        ntg_constrain_context_get(context, box->__north) :
         (struct ntg_constrain_data) {0};
     struct ntg_constrain_data east_data = 
-        (box->_east != NULL) ?
-        ntg_constrain_context_get(context, box->_east) :
+        (box->__east != NULL) ?
+        ntg_constrain_context_get(context, box->__east) :
         (struct ntg_constrain_data) {0};
     struct ntg_constrain_data south_data = 
-        (box->_south != NULL) ?
-        ntg_constrain_context_get(context, box->_south) :
+        (box->__south != NULL) ?
+        ntg_constrain_context_get(context, box->__south) :
         (struct ntg_constrain_data) {0};
     struct ntg_constrain_data west_data = 
-        (box->_west != NULL) ?
-        ntg_constrain_context_get(context, box->_west) :
+        (box->__west != NULL) ?
+        ntg_constrain_context_get(context, box->__west) :
         (struct ntg_constrain_data) {0};
     struct ntg_constrain_data center_data = 
-        (box->_center != NULL) ?
-        ntg_constrain_context_get(context, box->_center) :
+        (box->__center != NULL) ?
+        ntg_constrain_context_get(context, box->__center) :
         (struct ntg_constrain_data) {0};
 
     // size_t min_size = ntg_constrain_context_get_min_size(context);
@@ -243,16 +243,16 @@ void _ntg_border_box_constrain_fn(
         center_result = (struct ntg_constrain_result) { .size = _sizes[1] };
     }
 
-    if(box->_north != NULL)
-        ntg_constrain_output_set(out_sizes, box->_north, north_result);
-    if(box->_east != NULL)
-        ntg_constrain_output_set(out_sizes, box->_east, east_result);
-    if(box->_south != NULL)
-        ntg_constrain_output_set(out_sizes, box->_south, south_result);
-    if(box->_west != NULL)
-        ntg_constrain_output_set(out_sizes, box->_west, west_result);
-    if(box->_center != NULL)
-        ntg_constrain_output_set(out_sizes, box->_center, center_result);
+    if(box->__north != NULL)
+        ntg_constrain_output_set(out_sizes, box->__north, north_result);
+    if(box->__east != NULL)
+        ntg_constrain_output_set(out_sizes, box->__east, east_result);
+    if(box->__south != NULL)
+        ntg_constrain_output_set(out_sizes, box->__south, south_result);
+    if(box->__west != NULL)
+        ntg_constrain_output_set(out_sizes, box->__west, west_result);
+    if(box->__center != NULL)
+        ntg_constrain_output_set(out_sizes, box->__center, center_result);
 }
 
 void _ntg_border_box_arrange_children_fn(
@@ -264,24 +264,24 @@ void _ntg_border_box_arrange_children_fn(
     ntg_border_box* box = NTG_BORDER_BOX(_box);
 
     struct ntg_arrange_data north_data = 
-        (box->_north != NULL) ?
-        ntg_arrange_context_get(context, box->_north) :
+        (box->__north != NULL) ?
+        ntg_arrange_context_get(context, box->__north) :
         (struct ntg_arrange_data) {0};
     struct ntg_arrange_data east_data = 
-        (box->_east != NULL) ?
-        ntg_arrange_context_get(context, box->_east) :
+        (box->__east != NULL) ?
+        ntg_arrange_context_get(context, box->__east) :
         (struct ntg_arrange_data) {0};
     struct ntg_arrange_data south_data = 
-        (box->_south != NULL) ?
-        ntg_arrange_context_get(context, box->_south) :
+        (box->__south != NULL) ?
+        ntg_arrange_context_get(context, box->__south) :
         (struct ntg_arrange_data) {0};
     struct ntg_arrange_data west_data = 
-        (box->_west != NULL) ?
-        ntg_arrange_context_get(context, box->_west) :
+        (box->__west != NULL) ?
+        ntg_arrange_context_get(context, box->__west) :
         (struct ntg_arrange_data) {0};
     struct ntg_arrange_data center_data = 
-        (box->_center != NULL) ?
-        ntg_arrange_context_get(context, box->_center) :
+        (box->__center != NULL) ?
+        ntg_arrange_context_get(context, box->__center) :
         (struct ntg_arrange_data) {0};
 
     struct ntg_xy north_size = ntg_xy_size(north_data.size);
@@ -307,16 +307,51 @@ void _ntg_border_box_arrange_children_fn(
     struct ntg_arrange_result west_result = { .pos = west_pos };
     struct ntg_arrange_result center_result = { .pos = center_pos };
 
-    if(box->_north != NULL)
-        ntg_arrange_output_set(out_positions, box->_north, north_result);
-    if(box->_east != NULL)
-        ntg_arrange_output_set(out_positions, box->_east, east_result);
-    if(box->_south != NULL)
-        ntg_arrange_output_set(out_positions, box->_south, south_result);
-    if(box->_west != NULL)
-        ntg_arrange_output_set(out_positions, box->_west, west_result);
-    if(box->_center != NULL)
-        ntg_arrange_output_set(out_positions, box->_center, center_result);
+    if(box->__north != NULL)
+        ntg_arrange_output_set(out_positions, box->__north, north_result);
+    if(box->__east != NULL)
+        ntg_arrange_output_set(out_positions, box->__east, east_result);
+    if(box->__south != NULL)
+        ntg_arrange_output_set(out_positions, box->__south, south_result);
+    if(box->__west != NULL)
+        ntg_arrange_output_set(out_positions, box->__west, west_result);
+    if(box->__center != NULL)
+        ntg_arrange_output_set(out_positions, box->__center, center_result);
+}
+
+ntg_object* ntg_border_box_get_north(ntg_border_box* box)
+{
+    assert(box != NULL);
+
+    return box->__north;
+}
+
+ntg_object* ntg_border_box_get_east(ntg_border_box* box)
+{
+    assert(box != NULL);
+
+    return box->__east;
+}
+
+ntg_object* ntg_border_box_get_south(ntg_border_box* box)
+{
+    assert(box != NULL);
+
+    return box->__south;
+}
+
+ntg_object* ntg_border_box_get_west(ntg_border_box* box)
+{
+    assert(box != NULL);
+
+    return box->__west;
+}
+
+ntg_object* ntg_border_box_get_center(ntg_border_box* box)
+{
+    assert(box != NULL);
+
+    return box->__center;
 }
 
 void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north)
@@ -330,8 +365,8 @@ void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north)
 
     assert(parent == NULL);
 
-    if(box->_north != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->_north);
+    if(box->__north != NULL)
+        _ntg_object_rm_child(NTG_OBJECT(box), box->__north);
 
     if(north != NULL)
     {
@@ -340,7 +375,7 @@ void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north)
         _ntg_object_add_child(_box, group_root);
     }
 
-    box->_north = north;
+    box->__north = north;
 }
 
 void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east)
@@ -354,8 +389,8 @@ void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east)
 
     assert(parent == NULL);
 
-    if(box->_east != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->_east);
+    if(box->__east != NULL)
+        _ntg_object_rm_child(NTG_OBJECT(box), box->__east);
 
     if(east != NULL)
     {
@@ -364,7 +399,7 @@ void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east)
         _ntg_object_add_child(_box, group_root);
     }
 
-    box->_east = east;
+    box->__east = east;
 }
 
 void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south)
@@ -378,8 +413,8 @@ void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south)
 
     assert(parent == NULL);
 
-    if(box->_south != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->_south);
+    if(box->__south != NULL)
+        _ntg_object_rm_child(NTG_OBJECT(box), box->__south);
 
     if(south)
     {
@@ -388,7 +423,7 @@ void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south)
         _ntg_object_add_child(_box, group_root);
     }
 
-    box->_south = south;
+    box->__south = south;
 }
 
 void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west)
@@ -402,8 +437,8 @@ void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west)
 
     assert(parent == NULL);
 
-    if(box->_west != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->_west);
+    if(box->__west != NULL)
+        _ntg_object_rm_child(NTG_OBJECT(box), box->__west);
 
     if(west)
     {
@@ -412,7 +447,7 @@ void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west)
         _ntg_object_add_child(_box, group_root);
     }
 
-    box->_west = west;
+    box->__west = west;
 }
 
 void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center)
@@ -426,8 +461,8 @@ void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center)
 
     assert(parent == NULL);
 
-    if(box->_center != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->_center);
+    if(box->__center != NULL)
+        _ntg_object_rm_child(NTG_OBJECT(box), box->__center);
 
     if(center)
     {
@@ -436,5 +471,5 @@ void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center)
         _ntg_object_add_child(_box, group_root);
     }
 
-    box->_center = center;
+    box->__center = center;
 }

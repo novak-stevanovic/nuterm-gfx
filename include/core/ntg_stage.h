@@ -27,8 +27,8 @@ typedef ntg_stage_status (*ntg_stage_process_key_fn)(ntg_stage* stage,
 /* Abstract */
 struct ntg_stage
 {
-    ntg_scene* _active_scene;
-    struct ntg_xy _size;
+    ntg_scene* __active_scene;
+    struct ntg_xy __size;
 
     ntg_stage_process_key_fn __process_key_fn;
 
@@ -42,7 +42,10 @@ void __ntg_stage_init__(ntg_stage* stage,
         ntg_stage_process_key_fn process_key_fn);
 void __ntg_stage_deinit__(ntg_stage* stage);
 
+ntg_scene* ntg_stage_get_scene(ntg_stage* stage);
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
+
+struct ntg_xy ntg_stage_get_size(const ntg_stage* stage);
 void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
 
 void ntg_stage_render(ntg_stage* stage, ntg_stage_render_mode render_mode);

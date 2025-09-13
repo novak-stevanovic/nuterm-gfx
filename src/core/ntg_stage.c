@@ -24,10 +24,10 @@ void __ntg_stage_init__(ntg_stage* stage,
 {
     assert(stage != NULL);
 
-    stage->_active_scene = NULL;
+    stage->__active_scene = NULL;
     stage->__process_key_fn = (process_key_fn != NULL) ?
         process_key_fn : __process_key_fn_default;
-    stage->_size = NTG_XY_UNSET;
+    stage->__size = NTG_XY_UNSET;
     stage->__buff = nt_charbuff_new(CHARBUFF_CAP);
     __ntg_rcell_vgrid_init__(&stage->__back_buffer);
 
@@ -38,8 +38,8 @@ void __ntg_stage_deinit__(ntg_stage* stage)
 {
     assert(stage != NULL);
 
-    stage->_active_scene = NULL;
-    stage->_size = NTG_XY_UNSET;
+    stage->__active_scene = NULL;
+    stage->__size = NTG_XY_UNSET;
     stage->__process_key_fn = NULL;
     nt_charbuff_destroy(stage->__buff);
     stage->__buff = NULL;
@@ -48,43 +48,57 @@ void __ntg_stage_deinit__(ntg_stage* stage)
     __ntg_listenable_deinit__(&stage->__listenable);
 }
 
+ntg_scene* ntg_stage_get_scene(ntg_stage* stage)
+{
+    assert(stage != NULL);
+
+    return stage->__active_scene;
+}
+
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 {
     assert(stage != NULL);
 
-    if(stage->_active_scene == scene) return;
+    if(stage->__active_scene == scene) return;
 
     struct ntg_scene_change data = {
-        .old = stage->_active_scene,
+        .old = stage->__active_scene,
         .new = scene
     };
 
-    stage->_active_scene = scene;
+    stage->__active_scene = scene;
 
     ntg_event e;
     __ntg_event_init__(&e, NTG_ETYPE_STAGE_SCENE_CHANGE, stage, &data);
     ntg_listenable_raise(&stage->__listenable, &e);
 }
 
+struct ntg_xy ntg_stage_get_size(const ntg_stage* stage)
+{
+    assert(stage != NULL);
+
+    return stage->__size;
+}
+
 void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {
     assert(stage != NULL);
 
-    if(ntg_xy_are_equal(stage->_size, size)) return;
+    if(ntg_xy_are_equal(stage->__size, size)) return;
 
     struct ntg_size_change data = {
-        .old = stage->_size,
+        .old = stage->__size,
         .new = size
     };
 
-    stage->_size = size;
+    stage->__size = size;
 
-    if(stage->_active_scene != NULL)
+    if(stage->__active_scene != NULL)
     {
-        stage->_size = size;
+        stage->__size = size;
 
-        if(stage->_active_scene != NULL)
-            ntg_scene_set_size(stage->_active_scene, size);
+        if(stage->__active_scene != NULL)
+            ntg_scene_set_size(stage->__active_scene, size);
     }
 
     ntg_event e;
@@ -97,9 +111,9 @@ void ntg_stage_render(ntg_stage* stage, ntg_stage_render_mode render_mode)
     assert(stage != NULL);
 
 
-    if(stage->_active_scene != NULL)
+    if(stage->__active_scene != NULL)
     {
-        ntg_scene_layout(stage->_active_scene);
+        ntg_scene_layout(stage->__active_scene);
 
         nt_buffer_enable(stage->__buff);
         if(render_mode == NTG_STAGE_RENDER_MODE_OPTIMIZED)
@@ -165,15 +179,15 @@ static ntg_stage_status __process_key_fn_default(ntg_stage* stage,
         }
     }
 
-    if(stage->_active_scene != NULL)
-        ntg_scene_feed_key_event(stage->_active_scene, key_event);
+    if(stage->__active_scene != NULL)
+        ntg_scene_feed_key_event(stage->__active_scene, key_event);
 
     return NTG_STAGE_CONTINUE;
 }
 
 static void __full_empty_render(ntg_stage* stage)
 {
-    struct ntg_xy size = stage->_size;
+    struct ntg_xy size = stage->__size;
 
     ntg_rcell_vgrid_set_size(&stage->__back_buffer, size, NULL);
 
@@ -195,9 +209,9 @@ static void __full_empty_render(ntg_stage* stage)
 
 static void __optimized_render(ntg_stage* stage)
 {
-    struct ntg_xy size = stage->_size;
+    struct ntg_xy size = stage->__size;
 
-    const ntg_scene_drawing* drawing = &(stage->_active_scene->_drawing);
+    const ntg_scene_drawing* drawing = ntg_scene_get_drawing(stage->__active_scene);
 
     struct ntg_xy old_back_buffer_size = ntg_rcell_vgrid_get_size(&stage->__back_buffer);
     ntg_rcell_vgrid_set_size(&stage->__back_buffer, size, NULL);
@@ -226,9 +240,9 @@ static void __optimized_render(ntg_stage* stage)
 
 static void __full_render(ntg_stage* stage)
 {
-    struct ntg_xy size = stage->_size;
+    struct ntg_xy size = stage->__size;
 
-    const ntg_scene_drawing* drawing = &(stage->_active_scene->_drawing);
+    const ntg_scene_drawing* drawing = ntg_scene_get_drawing(stage->__active_scene);
 
     ntg_rcell_vgrid_set_size(&stage->__back_buffer, size, NULL);
 

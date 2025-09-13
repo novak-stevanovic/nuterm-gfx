@@ -19,7 +19,14 @@ ntg_object_type ntg_object_get_type(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return object->_type;
+    return object->__type;
+}
+
+uint ntg_object_get_id(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__id;
 }
 
 ntg_object* ntg_object_get_group_root(ntg_object* object)
@@ -30,7 +37,7 @@ ntg_object* ntg_object_get_group_root(ntg_object* object)
     while(true)
     {
         if((it_obj->__parent == NULL) ||
-                (it_obj->__parent->_type == NTG_OBJECT_WIDGET))
+                (it_obj->__parent->__type == NTG_OBJECT_WIDGET))
         {
             return it_obj;
         }
@@ -58,37 +65,12 @@ ntg_object* ntg_object_get_parent(ntg_object* object,
     }
 }
 
-// ntg_object* ntg_object_get_decorator(ntg_object* object)
-// {
-//     assert(object != NULL);
-//
-//     if(object->__parent == NULL) return NULL;
-//
-//     return ((object->__parent->_type != NTG_OBJECT_WIDGET) ? object->__parent : NULL);
-// }
-//
-// ntg_object* ntg_object_get_top_decorator(ntg_object* object)
-// {
-//     assert(object != NULL);
-//
-//     ntg_object* prev_obj = object;
-//     ntg_object* it_obj = object->__parent;
-//
-//     while((it_obj != NULL) && (it_obj->_type == NTG_OBJECT_DECORATOR))
-//     {
-//         prev_obj = it_obj;
-//         it_obj = it_obj->__parent;
-//     }
-//
-//     return (prev_obj->_type == NTG_OBJECT_DECORATOR) ? prev_obj : NULL;
-// }
-
 ntg_object* ntg_object_get_base_widget(ntg_object* object)
 {
     assert(object != NULL);
 
     ntg_object* it_obj = object;
-    while(it_obj->_type == NTG_OBJECT_DECORATOR)
+    while(it_obj->__type == NTG_OBJECT_DECORATOR)
         it_obj = it_obj->__children->_data[0];
 
     return it_obj;
@@ -311,8 +293,8 @@ void __ntg_object_init__(ntg_object* object,
 
     __init_default_values(object);
 
-    object->_id = __id_generator++;
-    object->_type = type;
+    object->__id = __id_generator++;
+    object->__type = type;
 
     object->__constrain_fn = constrain_fn;
     object->__measure_fn = measure_fn;
@@ -494,8 +476,8 @@ ntg_object_drawing* _ntg_object_get_drawing(ntg_object* object)
 
 static void __init_default_values(ntg_object* object)
 {
-    object->_id = UINT_MAX;
-    object->_type = NTG_OBJECT_WIDGET;
+    object->__id = UINT_MAX;
+    object->__type = NTG_OBJECT_WIDGET;
 
     object->__parent = NULL;
     object->__children = NULL;

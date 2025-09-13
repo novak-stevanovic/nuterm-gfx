@@ -9,9 +9,9 @@
 
 static void __init_default_values(ntg_box* box)
 {
-    box->_orientation = NTG_ORIENTATION_HORIZONTAL;
-    box->_primary_alignment = NTG_ALIGNMENT_1;
-    box->_secondary_alignment = NTG_ALIGNMENT_1;
+    box->__orientation = NTG_ORIENTATION_HORIZONTAL;
+    box->__primary_alignment = NTG_ALIGNMENT_1;
+    box->__secondary_alignment = NTG_ALIGNMENT_1;
 }
 
 void __ntg_box_init__(ntg_box* box, ntg_orientation orientation,
@@ -25,9 +25,9 @@ void __ntg_box_init__(ntg_box* box, ntg_orientation orientation,
 
     __init_default_values(box);
 
-    box->_orientation = orientation;
-    box->_primary_alignment = primary_alignment;
-    box->_secondary_alignment = secondary_alignment;
+    box->__orientation = orientation;
+    box->__primary_alignment = primary_alignment;
+    box->__secondary_alignment = secondary_alignment;
 }
 
 void __ntg_box_deinit__(ntg_box* box)
@@ -37,25 +37,46 @@ void __ntg_box_deinit__(ntg_box* box)
     __init_default_values(box);
 }
 
+ntg_orientation ntg_box_get_orientation(const ntg_box* box)
+{
+    assert(box != NULL);
+
+    return box->__orientation;
+}
+
+ntg_alignment ntg_box_get_primary_alignment(const ntg_box* box)
+{
+    assert(box != NULL);
+
+    return box->__primary_alignment;
+}
+
+ntg_alignment ntg_box_get_secondary_alignment(const ntg_box* box)
+{
+    assert(box != NULL);
+    
+    return box->__secondary_alignment;
+}
+
 void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation)
 {
     assert(box != NULL);
 
-    box->_orientation = orientation;
+    box->__orientation = orientation;
 }
 
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_alignment alignment)
 {
     assert(box != NULL);
 
-    box->_primary_alignment = alignment;
+    box->__primary_alignment = alignment;
 }
 
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment)
 {
     assert(box != NULL);
 
-    box->_secondary_alignment = alignment;
+    box->__secondary_alignment = alignment;
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child)
@@ -107,7 +128,7 @@ struct ntg_measure_result _ntg_box_measure_fn(const ntg_object* _box,
         it_child = children->_data[i];
         it_data = ntg_measure_context_get(context, it_child);
 
-        if(orientation == box->_orientation)
+        if(orientation == box->__orientation)
         {
             min_size += it_data.min_size;
             natural_size += it_data.natural_size;
@@ -152,7 +173,7 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
     struct ntg_constrain_data it_data;
     struct ntg_constrain_result it_result;
     size_t i;
-    if(orientation == box->_orientation)
+    if(orientation == box->__orientation)
     {
         if(size >= natural_size) // redistribute extra, capped with max_size
         {
@@ -231,9 +252,9 @@ void _ntg_box_arrange_children_fn(const ntg_object* _box,
 {
     ntg_box* box = NTG_BOX(_box);
     const ntg_object_vec* children = ntg_object_get_children(_box);
-    ntg_orientation orient = box->_orientation;
-    ntg_alignment prim_align = box->_primary_alignment;
-    ntg_alignment sec_align = box->_secondary_alignment;
+    ntg_orientation orient = box->__orientation;
+    ntg_alignment prim_align = box->__primary_alignment;
+    ntg_alignment sec_align = box->__secondary_alignment;
 
     size_t i;
     ntg_object* it_obj;

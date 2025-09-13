@@ -23,13 +23,13 @@ typedef void (*ntg_scene_on_object_unregister_fn)(ntg_scene* scene,
 
 struct ntg_scene
 {
-    ntg_object* _root;
-    ntg_scene_drawing _drawing;
-    ntg_object* _focused;
+    ntg_object* __root;
+    ntg_scene_drawing __drawing;
+    ntg_object* __focused;
 
     ntg_listenable __listenable;
 
-    struct ntg_xy _size;
+    struct ntg_xy __size;
 
     ntg_scene_on_object_register_fn __on_object_register_fn;
     ntg_scene_on_object_unregister_fn __on_object_unregister_fn;
@@ -45,9 +45,13 @@ void __ntg_scene_deinit__(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 
+ntg_object* ntg_scene_get_focused(ntg_scene* scene);
+
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
+
+struct ntg_xy ntg_scene_get_size(const ntg_scene* scene);
 
 /* Should be called by a stage every time the scene should be resized. */
 void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
@@ -63,6 +67,10 @@ void ntg_scene_unregister_object(ntg_scene* scene, ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
+const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene);
+
+/* -------------------------------------------------------------------------- */
+
 /* Invokes ntg_scene_process_key_fn */
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
 
@@ -75,8 +83,6 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
  */
 void ntg_scene_listen(ntg_scene* scene, struct ntg_event_sub sub);
 void ntg_scene_stop_listening(ntg_scene* scene, void* subscriber);
-
-ntg_listenable* _ntg_scene_get_listenable(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 

@@ -42,6 +42,7 @@ typedef enum ntg_object_perform_mode
 /* ---------------------------------------------------------------- */
 
 ntg_object_type ntg_object_get_type(const ntg_object* object);
+uint ntg_object_get_id(const ntg_object* object);
 
 ntg_object* ntg_object_get_group_root(ntg_object* object);
 
@@ -110,8 +111,8 @@ typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
 
 struct ntg_object
 {
-    uint _id;
-    ntg_object_type _type;
+    uint __id;
+    ntg_object_type __type;
 
     struct
     {

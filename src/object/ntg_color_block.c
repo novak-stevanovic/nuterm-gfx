@@ -14,7 +14,7 @@ void __ntg_color_block_init__(ntg_color_block* color_block, nt_color color)
             _ntg_color_block_measure_fn, NULL, NULL,
             _ntg_color_block_arrange_drawing_fn);
 
-    color_block->_color = color;
+    color_block->__color = color;
 }
 
 void __ntg_color_block_deinit__(ntg_color_block* color_block)
@@ -23,7 +23,7 @@ void __ntg_color_block_deinit__(ntg_color_block* color_block)
 
     __ntg_object_deinit__(NTG_OBJECT(color_block));
 
-    color_block->_color = NT_COLOR_DEFAULT;
+    color_block->__color = NT_COLOR_DEFAULT;
 }
 
 ntg_color_block* ntg_color_block_new(nt_color color)
@@ -45,11 +45,18 @@ void ntg_color_block_destroy(ntg_color_block* color_block)
     free(color_block);
 }
 
+nt_color ntg_color_block_get_color(ntg_color_block* color_block)
+{
+    assert(color_block != NULL);
+
+    return color_block->__color;
+}
+
 void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
 {
     assert(color_block != NULL);
 
-    color_block->_color = color;
+    color_block->__color = color;
 }
 
 struct ntg_measure_result _ntg_color_block_measure_fn(const ntg_object* _block,
@@ -75,7 +82,7 @@ void _ntg_color_block_arrange_drawing_fn(const ntg_object* _block,
         for(j = 0; j < size.x; j++)
         {
             it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(j, i));
-            (*it_cell) = ntg_cell_bg(block->_color);
+            (*it_cell) = ntg_cell_bg(block->__color);
         }
     }
 }
