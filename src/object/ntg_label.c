@@ -41,7 +41,7 @@ static void __get_wrap_rows_nowrap(struct ntg_str_utf32_view row, size_t for_siz
 static void __get_wrap_rows_wrap(struct ntg_str_utf32_view row, size_t for_size,
         struct ntg_str_utf32_view** out_wrap_rows, size_t* out_wrap_row_count);
 static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size,
-        struct ntg_str_utf32_view** out_wrap_rows, size_t* out_wrap_row_count);
+        struct ntg_str_utf32_view** out_wwrap_rows, size_t* out_wwrap_row_count);
 
 /* -------------------------------------------------------------------------- */
 
@@ -512,7 +512,10 @@ static struct ntg_measure_result __measure_wrap_fn(
         size_t row_counter = 0;
         for(i = 0; i < row_count; i++)
         {
-            row_counter += __wrap_rows_for_row(rows[i], indent, for_size);
+            if(rows[i].count == 0) 
+                row_counter++;
+            else
+                row_counter += __wrap_rows_for_row(rows[i], indent, for_size);
         }
 
         return (struct ntg_measure_result) {
@@ -640,6 +643,7 @@ static void __get_wrap_rows_nowrap(struct ntg_str_utf32_view row, size_t for_siz
 {
     assert(out_wrap_rows != NULL);
     assert(out_wrap_row_count != NULL);
+    assert(for_size != 0);
 
     if((row.count == 0) || (row.data == NULL))
     {
@@ -667,6 +671,7 @@ static void __get_wrap_rows_wrap(struct ntg_str_utf32_view row, size_t for_size,
 {
     assert(out_wrap_rows != NULL);
     assert(out_wrap_row_count != NULL);
+    assert(for_size != 0);
 
     if((row.count == 0) || (row.data == NULL))
     {
@@ -679,23 +684,95 @@ static void __get_wrap_rows_wrap(struct ntg_str_utf32_view row, size_t for_size,
         (*out_wrap_row_count) = 1;
         return; 
     }
+
+    size_t wrap_row_count = ceil((1.0 * row.count) / for_size);
+    struct ntg_str_utf32_view* wrap_rows = (struct ntg_str_utf32_view*)malloc
+        (wrap_row_count * sizeof(struct ntg_str_utf32_view));
+    assert(wrap_rows != NULL);
+
+    size_t i;
+    size_t it_start = 0, it_end;
+    for(i = 0; i < wrap_row_count; i++)
+    {
+        it_end = it_start + _min2_size(for_size, row.count - it_start);
+
+        wrap_rows[i] = (struct ntg_str_utf32_view) {
+            .data = &(row.data[it_start]),
+            .count = it_end - it_start
+        };
+
+        it_start = it_end;
+    }
+
+    (*out_wrap_rows) = wrap_rows;
+    (*out_wrap_row_count) = wrap_row_count;
 }
 
 static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size,
-        struct ntg_str_utf32_view** out_wrap_rows, size_t* out_wrap_row_count)
+        struct ntg_str_utf32_view** out_wwrap_rows, size_t* out_wwrap_row_count)
 {
-    assert(out_wrap_rows != NULL);
-    assert(out_wrap_row_count != NULL);
+    assert(out_wwrap_rows != NULL);
+    assert(out_wwrap_row_count != NULL);
+    assert(for_size != 0);
+    assert(0);
 
     if((row.count == 0) || (row.data == NULL))
     {
-        (*out_wrap_rows) = (struct ntg_str_utf32_view*)malloc(
+        (*out_wwrap_rows) = (struct ntg_str_utf32_view*)malloc(
                 sizeof(struct ntg_str_utf32_view));
-        (*out_wrap_rows)[0] = (struct ntg_str_utf32_view) {
+        (*out_wwrap_rows)[0] = (struct ntg_str_utf32_view) {
             .data = row.data,
             .count = 0
         };
-        (*out_wrap_row_count) = 1;
+        (*out_wwrap_row_count) = 1;
         return; 
     }
+
+    struct ntg_str_utf32_split_result words = ntg_str_utf32_split(row, ' ');
+    size_t wwrap_row_max_count = words.count;
+    size_t wwrap_row_count = 0;
+
+    struct ntg_str_utf32_view* wwrap_rows = (struct ntg_str_utf32_view*)malloc
+        (wwrap_row_max_count * sizeof(struct ntg_str_utf32_view));
+    assert(wwrap_rows != NULL);
+
+    size_t i;
+    size_t it_row_word_start = 0;
+    size_t it_row_word_count = 0;
+    size_t it_row_count = 0;
+    struct ntg_str_utf32_view it_row_start_word = words.views[0];
+    struct ntg_str_utf32_view it_row_end_word;
+    size_t effective_space;
+    struct ntg_str_utf32_view it_word;
+    for(i = 0; i < words.count; i++)
+    {
+        effective_space = (it_row_word_count == 0) ? 0 : 1;
+        it_word = words.views[i];
+        if((it_row_word_start + it_word.count + effective_space) < for_size)
+        {
+            it_row_word_start += (effective_space + it_word.count);
+            it_row_word_count++;
+        }
+        else
+        {
+            it_row_count++;
+            it_row_word_start = 0;
+            it_row_word_count = 0;
+
+            if(it_word.count < for_size) // can fit in next row
+            {
+                it_row_word_start = it_word.count;
+                it_row_word_count++;
+            }
+            else // can't fit in next row(or can, but just right)
+            {
+                it_row_count++;
+            }
+        }
+    }
+
+    free(words.views);
+
+    (*out_wwrap_rows) = wwrap_rows;
+    (*out_wwrap_row_count) = wwrap_row_count;
 }

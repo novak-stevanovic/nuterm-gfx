@@ -5,8 +5,6 @@
 #include "object/ntg_layout_object.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
-#include "object/shared/ntg_object_xy_map.h"
-#include "object/shared/ntg_object_size_map.h"
 #include "shared/_ntg_shared.h"
 
 static void __update_scene_fn(ntg_object* object, void* _scene);
