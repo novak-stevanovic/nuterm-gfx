@@ -7,6 +7,8 @@
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_string.h"
 
+#define DEFAULT_SIZE 5
+
 typedef struct label_content
 {
     uint32_t* __data;
@@ -23,6 +25,13 @@ static inline uint32_t* __label_content_at(label_content* content,
     return &(content->__data[position.y * content->_size.x + position.x]);
 }
 
+static void __get_wrap_rows_nowrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view** out_wrap_rows, size_t* out_wrap_row_count);
+static void __get_wrap_rows_wrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view** out_wrap_rows, size_t* out_wrap_row_count);
+static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size,
+        struct ntg_str_utf32_view** out_wwrap_rows, size_t* out_wwrap_row_count);
+
 static struct ntg_measure_result __measure_nowrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         ntg_orientation label_orientation, size_t indent,
@@ -35,13 +44,6 @@ static struct ntg_measure_result __measure_wwrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         ntg_orientation label_orientation, size_t indent,
         ntg_orientation orientation, size_t for_size);
-
-static void __get_wrap_rows_nowrap(struct ntg_str_utf32_view row, size_t for_size,
-        struct ntg_str_utf32_view** out_wrap_rows, size_t* out_wrap_row_count);
-static void __get_wrap_rows_wrap(struct ntg_str_utf32_view row, size_t for_size,
-        struct ntg_str_utf32_view** out_wrap_rows, size_t* out_wrap_row_count);
-static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size,
-        struct ntg_str_utf32_view** out_wwrap_rows, size_t* out_wwrap_row_count);
 
 /* -------------------------------------------------------------------------- */
 
@@ -452,6 +454,7 @@ static struct ntg_measure_result __measure_nowrap_fn(
     {
         size_t i;
         size_t max_row_len = 0;
+        struct ntg_str_utf32_view* rows = NULL;
         for(i = 0; i < row_count; i++)
         {
             if(rows[i].count == 0) continue;
@@ -460,25 +463,19 @@ static struct ntg_measure_result __measure_nowrap_fn(
         }
 
         return (struct ntg_measure_result) {
-            .min_size = max_row_len,
-            .natural_size = max_row_len,
+            .min_size = _max2_size(max_row_len, DEFAULT_SIZE),
+            .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
     else
     {
         return (struct ntg_measure_result) {
-            .min_size = rows->count,
-            .natural_size = rows->count,
+            .min_size = _max2_size(rows->count, DEFAULT_SIZE),
+            .natural_size = _max2_size(rows->count, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
-}
-
-static size_t __wrap_rows_for_row(struct ntg_str_utf32_view row, size_t indent,
-        size_t for_size)
-{
-    return ceil((1.0 * (row.count + indent)) / for_size);
 }
 
 static struct ntg_measure_result __measure_wrap_fn(
@@ -502,81 +499,32 @@ static struct ntg_measure_result __measure_wrap_fn(
         }
 
         return (struct ntg_measure_result) {
-            .min_size = 1,
-            .natural_size = max_row_len,
+            .min_size = DEFAULT_SIZE,
+            .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
     else
     {
         size_t row_counter = 0;
+        struct ntg_str_utf32_view* it_row_wrap_rows;
+        size_t it_row_wrap_row_count;
         for(i = 0; i < row_count; i++)
         {
-            if(rows[i].count == 0) 
-                row_counter++;
-            else
-                row_counter += __wrap_rows_for_row(rows[i], indent, for_size);
+            __get_wrap_rows_wrap(rows[i], for_size, &it_row_wrap_rows,
+                    &it_row_wrap_row_count);
+
+            row_counter += it_row_wrap_row_count;
+
+            free(it_row_wrap_rows);
         }
 
         return (struct ntg_measure_result) {
-            .min_size = row_counter,
-            .natural_size = row_counter,
+            .min_size = _max2_size(row_counter, DEFAULT_SIZE),
+            .natural_size = _max2_size(row_counter, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
-}
-
-static size_t __wwrap_rows_for_row(struct ntg_str_utf32_view row, size_t indent,
-        size_t for_size)
-{
-    assert(for_size != 0);
-
-    if(row.count == 0) return 1;
-
-    struct ntg_str_utf32_split_result words = ntg_str_utf32_split(row, ' ');
-    assert(words.views != NULL);
-
-    size_t wwrap_rows = 0;
-    size_t it_wwrap_row_len = 0;
-    size_t it_effective_indent;
-    size_t it_effective_space;
-    struct ntg_str_utf32_view* it_word;
-
-    size_t i;
-    for(i = 0; i < words.count; i++)
-    {
-        it_word = &(words.views[i]);
-        it_effective_indent = (i == 0) ? indent : 0;
-        it_effective_space = (i == 0) ? 0 : 1;
-
-        if((it_wwrap_row_len + it_word->count + it_effective_indent +
-                    it_effective_space) <= for_size)
-        {
-            it_wwrap_row_len += it_word->count + it_effective_indent +
-                it_effective_space;
-
-            if(i == (words.count - 1)) wwrap_rows++;
-        }
-        else
-        {
-            wwrap_rows++;
-            if(it_word->count + it_effective_indent < for_size)
-            {
-                it_wwrap_row_len = it_word->count + it_effective_indent;
-            }
-            else
-            {
-                wwrap_rows++;
-                it_wwrap_row_len = 0;
-            }
-        }
-    }
-
-    free(words.views);
-    words.views = NULL;
-    words.count = 0;
-
-    return wwrap_rows;
 }
 
 static struct ntg_measure_result __measure_wwrap_fn(
@@ -617,22 +565,29 @@ static struct ntg_measure_result __measure_wwrap_fn(
         }
 
         return (struct ntg_measure_result) {
-            .min_size = max_word_len,
-            .natural_size = max_row_len,
+            .min_size = _max2_size(max_word_len, DEFAULT_SIZE),
+            .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
     else
     {
         size_t row_counter = 0;
+        struct ntg_str_utf32_view* it_row_wrap_rows;
+        size_t it_row_wrap_row_count;
         for(i = 0; i < row_count; i++)
         {
-            row_counter += __wwrap_rows_for_row(rows[i], indent, for_size);
+            __get_wrap_rows_wwrap(rows[i], for_size, &it_row_wrap_rows,
+                    &it_row_wrap_row_count);
+
+            row_counter += it_row_wrap_row_count;
+
+            free(it_row_wrap_rows);
         }
 
         return (struct ntg_measure_result) {
-            .min_size = row_counter,
-            .natural_size = row_counter,
+            .min_size = _max2_size(row_counter, DEFAULT_SIZE),
+            .natural_size = _max2_size(row_counter, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
@@ -714,7 +669,6 @@ static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size
     assert(out_wwrap_rows != NULL);
     assert(out_wwrap_row_count != NULL);
     assert(for_size != 0);
-    assert(0);
 
     if((row.count == 0) || (row.data == NULL))
     {
@@ -730,43 +684,102 @@ static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size
 
     struct ntg_str_utf32_split_result words = ntg_str_utf32_split(row, ' ');
     size_t wwrap_row_max_count = words.count;
-    size_t wwrap_row_count = 0;
 
     struct ntg_str_utf32_view* wwrap_rows = (struct ntg_str_utf32_view*)malloc
         (wwrap_row_max_count * sizeof(struct ntg_str_utf32_view));
     assert(wwrap_rows != NULL);
-
     size_t i;
-    size_t it_row_word_start = 0;
+    struct ntg_str_utf32_view it_word;
+    size_t it_row_len = 0;
     size_t it_row_word_count = 0;
-    size_t it_row_count = 0;
+    size_t wwrap_row_counter = 0;
     struct ntg_str_utf32_view it_row_start_word = words.views[0];
     struct ntg_str_utf32_view it_row_end_word;
     size_t effective_space;
-    struct ntg_str_utf32_view it_word;
     for(i = 0; i < words.count; i++)
     {
         effective_space = (it_row_word_count == 0) ? 0 : 1;
         it_word = words.views[i];
-        if((it_row_word_start + it_word.count + effective_space) < for_size)
+        if((it_row_len + it_word.count + effective_space) <= for_size)
         {
-            it_row_word_start += (effective_space + it_word.count);
+            it_row_len += (effective_space + it_word.count);
             it_row_word_count++;
+
+            if(i == (words.count - 1))
+            {
+                /* process last row */
+
+                it_row_end_word = words.views[i];
+
+                wwrap_rows[wwrap_row_counter] = (struct ntg_str_utf32_view) {
+                    .data = it_row_start_word.data,
+                    .count = &(it_row_end_word.data[it_row_end_word.count]) -
+                        &(it_row_start_word.data[0])
+                };
+
+                wwrap_row_counter++;
+                // it_row_start_word = words.views[i];
+            }
         }
         else
         {
-            it_row_count++;
-            it_row_word_start = 0;
-            it_row_word_count = 0;
+            /* next row */
+
+            if(it_row_word_count > 0)
+            {
+                it_row_end_word = words.views[i - 1];
+
+                wwrap_rows[wwrap_row_counter] = (struct ntg_str_utf32_view) {
+                    .data = it_row_start_word.data,
+                    .count = &(it_row_end_word.data[it_row_end_word.count]) -
+                        &(it_row_start_word.data[0])
+                };
+
+                it_row_start_word = words.views[i];
+
+                wwrap_row_counter++;
+            }
 
             if(it_word.count < for_size) // can fit in next row
             {
-                it_row_word_start = it_word.count;
-                it_row_word_count++;
+                it_row_len = it_word.count;
+                it_row_word_count = 1;
+
+                /* process last row */
+                if(i == (words.count - 1))
+                {
+                    it_row_end_word = words.views[i];
+
+                    wwrap_rows[wwrap_row_counter] = (struct ntg_str_utf32_view) {
+                        .data = it_row_start_word.data,
+                            .count = &(it_row_end_word.data[it_row_end_word.count]) -
+                                &(it_row_start_word.data[0])
+                    };
+
+                    // it_row_start_word = words.views[i];
+
+                    wwrap_row_counter++;
+                }
             }
             else // can't fit in next row(or can, but just right)
             {
-                it_row_count++;
+                /* next row, again */
+
+                it_row_end_word = words.views[i];
+
+                wwrap_rows[wwrap_row_counter] = (struct ntg_str_utf32_view) {
+                    .data = it_row_start_word.data,
+                    .count = &(it_row_end_word.data[for_size]) -
+                        &(it_row_start_word.data[0])
+                };
+
+                if(i < (words.count - 1))
+                    it_row_start_word = words.views[i + 1];
+
+                wwrap_row_counter++;
+
+                it_row_len = 0;
+                it_row_word_count = 0;
             }
         }
     }
@@ -774,5 +787,5 @@ static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size
     free(words.views);
 
     (*out_wwrap_rows) = wwrap_rows;
-    (*out_wwrap_row_count) = wwrap_row_count;
+    (*out_wwrap_row_count) = wwrap_row_counter;
 }

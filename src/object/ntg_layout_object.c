@@ -103,9 +103,9 @@ static void __measure1_fn(ntg_object* object, void* _layout_data)
         it_object = children->_data[i];
 
         it_data = (struct ntg_measure_data) {
-            .min_size = it_object->__min_size.x,
-            .natural_size = it_object->__natural_size.x,
-            .max_size = it_object->__max_size.x
+            .min_size = ntg_object_get_min_size(it_object).x,
+            .natural_size = ntg_object_get_natural_size(it_object).x,
+            .max_size = ntg_object_get_max_size(it_object).x
         };
 
         ntg_measure_context_set(context, it_object, it_data);
@@ -137,9 +137,9 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
         it_object = children->_data[i];
 
         it_data = (struct ntg_constrain_data) {
-            .min_size = it_object->__min_size.x,
-            .natural_size = it_object->__natural_size.x,
-            .max_size = it_object->__max_size.x
+            .min_size = ntg_object_get_min_size(it_object).x,
+            .natural_size = ntg_object_get_natural_size(it_object).x,
+            .max_size = ntg_object_get_max_size(it_object).x
         };
 
         ntg_constrain_context_set(context, it_object, it_data);
@@ -177,9 +177,9 @@ static void __measure2_fn(ntg_object* object, void* _layout_data)
         it_object = children->_data[i];
 
         it_data = (struct ntg_measure_data) {
-            .min_size = it_object->__min_size.y,
-            .natural_size = it_object->__natural_size.y,
-            .max_size = it_object->__max_size.y
+            .min_size = ntg_object_get_min_size(it_object).y,
+            .natural_size = ntg_object_get_natural_size(it_object).y,
+            .max_size = ntg_object_get_max_size(it_object).y
         };
 
         ntg_measure_context_set(context, it_object, it_data);
@@ -211,9 +211,9 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
         it_object = children->_data[i];
 
         it_data = (struct ntg_constrain_data) {
-            .min_size = it_object->__min_size.y,
-            .natural_size = it_object->__natural_size.y,
-            .max_size = it_object->__max_size.y
+            .min_size = ntg_object_get_min_size(it_object).y,
+            .natural_size = ntg_object_get_natural_size(it_object).y,
+            .max_size = ntg_object_get_max_size(it_object).y
         };
 
         ntg_constrain_context_set(context, it_object, it_data);
@@ -252,7 +252,7 @@ static void __arrange_children_fn(ntg_object* object, void* _layout_data)
         it_object = children->_data[i];
 
         it_data = (struct ntg_arrange_data) {
-            .size = it_object->__size
+            .size = ntg_object_get_size(it_object)
         };
 
         ntg_arrange_context_set(context, it_object, it_data);

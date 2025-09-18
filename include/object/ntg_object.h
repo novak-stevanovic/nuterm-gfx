@@ -69,6 +69,12 @@ struct ntg_xy ntg_object_get_min_size(ntg_object* object);
 struct ntg_xy ntg_object_get_natural_size(ntg_object* object);
 struct ntg_xy ntg_object_get_max_size(ntg_object* object);
 
+void ntg_object_set_grow_x(ntg_object* object, bool grow_x);
+void ntg_object_set_grow_y(ntg_object* object, bool grow_y);
+
+bool ntg_object_get_grow_x(const ntg_object* object);
+bool ntg_object_get_grow_y(const ntg_object* object);
+
 /* ---------------------------------------------------------------- */
 
 void ntg_object_layout(ntg_object* root, struct ntg_xy size);
@@ -138,6 +144,8 @@ struct ntg_object
     struct
     {
         ntg_orientation __layout_orientation;
+
+        bool __grow_x, __grow_y;
 
         struct ntg_xy __min_size, __natural_size,
                       __max_size, __size;

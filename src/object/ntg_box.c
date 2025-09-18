@@ -236,7 +236,7 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
             it_data = ntg_constrain_context_get(context, it_obj);
 
             it_result = (struct ntg_constrain_result) {
-                .size = _min2_size(size, it_data.natural_size)
+                .size = _min2_size(size, it_data.max_size)
             };
             ntg_constrain_output_set(out_sizes, it_obj, it_result);
         }

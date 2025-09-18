@@ -148,7 +148,37 @@ struct ntg_xy ntg_object_get_max_size(ntg_object* object)
 {
     assert(object != NULL);
 
-    return object->__max_size;
+    return ntg_xy(
+            object->__grow_x ? object->__max_size.x : object->__natural_size.x,
+            object->__grow_y ? object->__max_size.y : object->__natural_size.y);
+}
+
+void ntg_object_set_grow_x(ntg_object* object, bool grow_x)
+{
+    assert(object != NULL);
+
+    object->__grow_x = grow_x;
+}
+
+void ntg_object_set_grow_y(ntg_object* object, bool grow_y)
+{
+    assert(object != NULL);
+
+    object->__grow_y = grow_y;
+}
+
+bool ntg_object_get_grow_x(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__grow_x;
+}
+
+bool ntg_object_get_grow_y(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__grow_y;
 }
 
 /* ---------------------------------------------------------------- */
@@ -488,6 +518,8 @@ static void __init_default_values(ntg_object* object)
     object->__drawing = NULL;
     object->__background = ntg_cell_default();
 
+    object->__grow_x = false;
+    object->__grow_y = false;
     object->__min_size = ntg_xy(0, 0);
     object->__natural_size = ntg_xy(0, 0);
     object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
