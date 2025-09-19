@@ -34,7 +34,7 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     ntg_label l1;
     __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
     struct ntg_str_view l1_text;
-    l1_text.data = "aiwefuoiwehuof";
+    l1_text.data = "    a  b bbbbbbb bbbb    c     c    ";
     l1_text.len = strlen(l1_text.data);
     ntg_label_set_text(&l1, l1_text);
     struct nt_gfx l1_gfx = {
@@ -43,7 +43,8 @@ void gui_fn1(ntg_stage* main_stage, void* data)
         .style = NT_STYLE_DEFAULT
     };
     ntg_label_set_gfx(&l1, l1_gfx);
-    ntg_label_set_wrap_mode(&l1, NTG_TEXT_WRAP_WORD_WRAP);
+    ntg_label_set_wrap_mode(&l1, NTG_TEXT_WRAP_NOWRAP);
+    ntg_label_set_primary_alignment(&l1, NTG_TEXT_ALIGNMENT_JUSTIFY);
     ntg_object_set_grow_x(NTG_OBJECT(&l1), true);
     ntg_label_set_indent(&l1, 0);
 

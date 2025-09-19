@@ -7,6 +7,8 @@
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_string.h"
 
+/* UGLY CODE WARNING - TODO: rewrite sometime */
+
 #define DEFAULT_SIZE 5
 
 typedef struct label_content
@@ -45,6 +47,41 @@ static struct ntg_measure_result __measure_wwrap_fn(
         ntg_orientation label_orientation, size_t indent,
         ntg_orientation orientation, size_t for_size);
 
+static void __trim_text(ntg_label* label)
+{
+    assert(label != NULL);
+    if((label->__text.len == 0) || (label->__text.data == NULL)) return;
+
+    struct ntg_str_split_result words = ntg_str_split(
+            ntg_str_to_view(label->__text), ' ');
+
+    size_t space_needed = 0;
+
+    size_t i;
+    for(i = 0; i < words.count; i++)
+    {
+        if(words.views[i].len > 0)
+        {
+            memmove(label->__text.data + space_needed,
+                    words.views[i].data,
+                    words.views[i].len);
+
+            label->__text.data[space_needed + words.views[i].len] = ' ';
+            
+            space_needed += (1 + words.views[i].len);
+        }
+    }
+
+    if((space_needed > 0) && (label->__text.data[space_needed - 1] == ' '))
+        space_needed--;
+
+    label->__text.data = realloc(label->__text.data, space_needed);
+    assert(label->__text.data != NULL);
+    label->__text.len = space_needed;
+
+    free(words.views);
+}
+
 /* -------------------------------------------------------------------------- */
 
 static void __init_default_values(ntg_label* label)
@@ -56,6 +93,7 @@ static void __init_default_values(ntg_label* label)
     label->__secondary_alignment = NTG_ALIGNMENT_1;
     label->__wrap_mode = NTG_TEXT_WRAP_NOWRAP;
     label->__indent = 0;
+    label->__autotrim = true;
 }
 
 void __ntg_label_init__(ntg_label* label, ntg_orientation orientation)
@@ -104,6 +142,8 @@ void ntg_label_set_text(ntg_label* label, struct ntg_str_view text)
         .data = text_copy,
         .len = text.len
     };
+
+    if(label->__autotrim) __trim_text(label);
 }
 
 void ntg_label_set_gfx(ntg_label* label, struct nt_gfx gfx)
@@ -139,6 +179,15 @@ void ntg_label_set_indent(ntg_label* label, size_t indent)
     assert(label != NULL);
 
     label->__indent = indent;
+}
+
+void ntg_label_set_autotrim(ntg_label* label, bool autotrim)
+{
+    assert(label != NULL);
+
+    label->__autotrim = autotrim;
+
+    if(autotrim) __trim_text(label);
 }
 
 struct ntg_str_view ntg_label_get_text(const ntg_label* label)
@@ -194,6 +243,13 @@ size_t ntg_label_get_indent(const ntg_label* label)
     assert(label != NULL);
 
     return label->__indent;
+}
+
+bool ntg_label_get_autotrim(const ntg_label* label)
+{
+    assert(label != NULL);
+
+    return label->__autotrim;
 }
 
 struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
@@ -301,10 +357,15 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
     /* Create content matrix */
     size_t i, j, k;
     size_t content_i = 0, content_j = 0;
+    /* align variables */
     size_t it_row_align_indent, it_row_effective_indent;
+    /* wrap variables */
     struct ntg_str_utf32_view* _it_wrap_rows;
     size_t _it_wrap_rows_count;
     uint32_t* it_content_cell;
+    /* justify variables */
+    size_t it_wrap_row_content_space, it_wrap_row_extra_space,
+           it_wrap_row_space_count, it_wrap_row_space_counter;
     for(i = 0; i < rows.count; i++)
     {
         _it_wrap_rows = NULL;
@@ -345,9 +406,8 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
                     it_row_align_indent = (content_size.x -_it_wrap_rows[j].count);
                     break;
                 case NTG_TEXT_ALIGNMENT_JUSTIFY:
-                    assert(0);
-                    // effective_indent = 0;
-                    // break;
+                    it_row_align_indent = 0;
+                    break;
                 default: assert(0);
             }
 
@@ -355,10 +415,25 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
             it_row_effective_indent = (j == 0) ?
                 _max2_size(capped_indent, it_row_align_indent) :
                 it_row_align_indent;
-            
             content_j = it_row_effective_indent;
+
+            it_wrap_row_space_counter = 0;
+            it_wrap_row_space_count = ntg_str_utf32_count(_it_wrap_rows[j], ' ');
+            it_wrap_row_content_space = _it_wrap_rows[j].count + it_row_effective_indent;
+            it_wrap_row_extra_space = _ssub_size(content_size.x, it_wrap_row_content_space);
             for(k = 0; k < _it_wrap_rows[j].count; k++)
             {
+                if(_it_wrap_rows[j].data[k] == ' ')
+                {
+                    if(label->__primary_alignment == NTG_TEXT_ALIGNMENT_JUSTIFY)
+                    {
+                        size_t space_justified_count = (it_wrap_row_extra_space / it_wrap_row_space_count) +
+                            (it_wrap_row_space_counter < (it_wrap_row_extra_space % it_wrap_row_space_count)); 
+
+                        content_j += space_justified_count;
+                    }
+                    it_wrap_row_space_counter++;
+                }
                 if(content_j >= content_size.x) break; // if indent is too big
 
                 it_content_cell = __label_content_at(&_content,
@@ -454,7 +529,6 @@ static struct ntg_measure_result __measure_nowrap_fn(
     {
         size_t i;
         size_t max_row_len = 0;
-        struct ntg_str_utf32_view* rows = NULL;
         for(i = 0; i < row_count; i++)
         {
             if(rows[i].count == 0) continue;

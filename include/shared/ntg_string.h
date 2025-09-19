@@ -33,6 +33,22 @@ struct ntg_str_utf32_view
     size_t count; // codepoint count
 };
 
+static inline struct ntg_str_view ntg_str_to_view(struct ntg_str str)
+{
+    return (struct ntg_str_view) {
+        .data = str.data,
+        .len = str.len
+    };
+}
+
+static inline struct ntg_str_utf32_view ntg_str_utf32_to_view(struct ntg_str_utf32 str)
+{
+    return (struct ntg_str_utf32_view) {
+        .data = str.data,
+        .count = str.count
+    };
+}
+
 size_t ntg_str_count(struct ntg_str_view str, char sep);
 size_t ntg_str_utf32_count(struct ntg_str_utf32_view str, uint32_t sep);
 
