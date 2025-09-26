@@ -10,7 +10,7 @@
  * reaches the capacity - it won't be awarded any more space.
  * 
  * RETURN VALUE: Total amount of distributed space. */
-size_t ntg_sap_cap_round_robin(const size_t* caps, size_t* out_sizes,
-        size_t space_pool, size_t count);
+size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
+        size_t* out_sizes, size_t space_pool, size_t count);
 
 #endif // _NTG_SAP_H_

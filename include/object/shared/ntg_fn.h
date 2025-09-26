@@ -51,7 +51,8 @@ typedef struct ntg_constrain_output ntg_constrain_output;
 
 struct ntg_constrain_data
 {
-    size_t min_size, natural_size, max_size;
+    size_t min_size, natural_size,
+           max_size, grow;
 };
 
 struct ntg_constrain_result

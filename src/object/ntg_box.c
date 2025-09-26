@@ -164,10 +164,11 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
     size_t natural_size = ntg_constrain_context_get_natural_size(context);
 
     size_t extra_size;
-    size_t* block = malloc(children->_count * sizeof(size_t) * 2);
+    size_t* block = malloc(children->_count * sizeof(size_t) * 3);
     assert(block != NULL);
     size_t* caps = &(block[0]);
     size_t* _sizes = &(block[children->_count]);
+    size_t* grows = &(block[children->_count * 2]);
 
     ntg_object* it_obj;
     struct ntg_constrain_data it_data;
@@ -215,7 +216,10 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
             }
         }
 
-        ntg_sap_cap_round_robin(caps, _sizes, extra_size, children->_count);
+        for(i = 0; i < children->_count; i++)
+            grows[i] = ntg_constrain_context_get(context, it_obj).grow;
+
+        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children->_count);
 
         for(i = 0; i < children->_count; i++)
         {

@@ -139,7 +139,8 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
         it_data = (struct ntg_constrain_data) {
             .min_size = ntg_object_get_min_size(it_object).x,
             .natural_size = ntg_object_get_natural_size(it_object).x,
-            .max_size = ntg_object_get_max_size(it_object).x
+            .max_size = ntg_object_get_max_size(it_object).x,
+            .grow = ntg_object_get_grow(it_object).x
         };
 
         ntg_constrain_context_set(context, it_object, it_data);
@@ -213,7 +214,8 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
         it_data = (struct ntg_constrain_data) {
             .min_size = ntg_object_get_min_size(it_object).y,
             .natural_size = ntg_object_get_natural_size(it_object).y,
-            .max_size = ntg_object_get_max_size(it_object).y
+            .max_size = ntg_object_get_max_size(it_object).y,
+            .grow = ntg_object_get_grow(it_object).y
         };
 
         ntg_constrain_context_set(context, it_object, it_data);

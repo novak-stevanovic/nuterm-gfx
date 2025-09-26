@@ -129,6 +129,7 @@ void _ntg_border_box_constrain_fn(
     size_t caps[3] = {0};
     size_t _sizes[3] = {0};
     size_t extra_size = 0;
+    size_t grows[3];
 
     struct ntg_constrain_result north_result, east_result, south_result,
                                 west_result, center_result;
@@ -142,7 +143,12 @@ void _ntg_border_box_constrain_fn(
             .min_size = west_data.min_size + center_data.min_size + east_data.min_size,
             .natural_size = west_data.natural_size + center_data.natural_size + east_data.natural_size,
             .max_size = west_data.max_size + center_data.max_size + east_data.max_size,
+            .grow = 0 // ?
         };
+
+        grows[0] = west_data.grow;
+        grows[1] = center_data.grow;
+        grows[2] = east_data.grow;
 
         if(size >= wce_data.natural_size)
         {
@@ -174,7 +180,7 @@ void _ntg_border_box_constrain_fn(
             _sizes[2] = 0;
             extra_size = size;
         }
-        ntg_sap_cap_round_robin(caps, _sizes, extra_size, 3);
+        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3);
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size)
@@ -189,14 +195,20 @@ void _ntg_border_box_constrain_fn(
         struct ntg_constrain_data wce_data = {
             .min_size = _max3_size(west_data.min_size, center_data.min_size, east_data.min_size),
             .natural_size = _max3_size(west_data.natural_size, center_data.natural_size, east_data.natural_size),
-            .max_size = _max3_size(west_data.max_size, center_data.max_size, east_data.max_size)
+            .max_size = _max3_size(west_data.max_size, center_data.max_size, east_data.max_size),
+            .grow = _max3_size(west_data.grow, center_data.grow, east_data.grow)
         };
 
         struct ntg_constrain_data total_data = {
             .min_size = wce_data.min_size + north_data.min_size + south_data.min_size,
             .natural_size = wce_data.natural_size + north_data.natural_size + south_data.natural_size,
-            .max_size = wce_data.max_size + north_data.max_size + south_data.max_size
+            .max_size = wce_data.max_size + north_data.max_size + south_data.max_size,
+            .grow = 0 // ?
         };
+
+        grows[0] = north_data.grow;
+        grows[1] = wce_data.grow;
+        grows[2] = south_data.grow;
 
         if(size >= total_data.natural_size)
         {
@@ -229,7 +241,7 @@ void _ntg_border_box_constrain_fn(
             extra_size = size;
         }
 
-        ntg_sap_cap_round_robin(caps, _sizes, extra_size, 3);
+        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3);
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size) // add more
