@@ -129,7 +129,6 @@ void _ntg_border_box_constrain_fn(
     size_t caps[3] = {0};
     size_t _sizes[3] = {0};
     size_t extra_size = 0;
-    size_t grows[3];
 
     struct ntg_constrain_result north_result, east_result, south_result,
                                 west_result, center_result;
@@ -146,10 +145,6 @@ void _ntg_border_box_constrain_fn(
             .grow = 0 // ?
         };
 
-        grows[0] = west_data.grow;
-        grows[1] = center_data.grow;
-        grows[2] = east_data.grow;
-
         if(size >= wce_data.natural_size)
         {
             caps[0] = west_data.max_size;
@@ -159,6 +154,13 @@ void _ntg_border_box_constrain_fn(
             _sizes[1] = center_data.natural_size;
             _sizes[2] = east_data.natural_size;
             extra_size = size - wce_data.natural_size;
+
+            size_t grows[3];
+            grows[0] = west_data.grow;
+            grows[1] = center_data.grow;
+            grows[2] = east_data.grow;
+
+            ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3);
         }
         else if(size > wce_data.min_size)
         {
@@ -169,6 +171,8 @@ void _ntg_border_box_constrain_fn(
             _sizes[1] = center_data.min_size;
             _sizes[2] = east_data.min_size;
             extra_size = size - wce_data.min_size;
+
+            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3);
         }
         else // size < wce_data.min-size
         {
@@ -179,8 +183,9 @@ void _ntg_border_box_constrain_fn(
             _sizes[1] = 0;
             _sizes[2] = 0;
             extra_size = size;
+
+            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3);
         }
-        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3);
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size)
@@ -206,10 +211,6 @@ void _ntg_border_box_constrain_fn(
             .grow = 0 // ?
         };
 
-        grows[0] = north_data.grow;
-        grows[1] = wce_data.grow;
-        grows[2] = south_data.grow;
-
         if(size >= total_data.natural_size)
         {
             caps[0] = north_data.max_size;
@@ -219,6 +220,14 @@ void _ntg_border_box_constrain_fn(
             _sizes[1] = wce_data.natural_size;
             _sizes[2] = south_data.natural_size;
             extra_size = size - total_data.natural_size;
+
+            size_t grows[3];
+            grows[0] = north_data.grow;
+            grows[1] = wce_data.grow;
+            grows[2] = south_data.grow;
+
+            ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3);
+
         }
         else if(size >= total_data.min_size)
         {
@@ -229,6 +238,8 @@ void _ntg_border_box_constrain_fn(
             _sizes[1] = wce_data.min_size;
             _sizes[2] = south_data.min_size;
             extra_size = size - total_data.min_size;
+
+            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3);
         }
         else
         {
@@ -239,9 +250,9 @@ void _ntg_border_box_constrain_fn(
             _sizes[1] = 0;
             _sizes[2] = 0;
             extra_size = size;
-        }
 
-        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3);
+            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3);
+        }
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size) // add more

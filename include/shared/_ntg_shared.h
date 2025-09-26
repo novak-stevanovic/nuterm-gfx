@@ -67,12 +67,12 @@ static inline ssize_t _min2_ssize(ssize_t x, ssize_t y)
     return (x > y) ? y : x;
 }
 
-static inline ssize_t _max2_double(double x, double y)
+static inline double _min2_double(double x, double y)
 {
     return (x > y) ? y : x;
 }
 
-static inline ssize_t _min2_double(double x, double y)
+static inline double _max2_double(double x, double y)
 {
     return (x < y) ? y : x;
 }

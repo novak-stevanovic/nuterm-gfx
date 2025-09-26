@@ -84,8 +84,8 @@ void* ntg_wait()
 
 void __ntg_deinit__()
 {
-    nt_alt_screen_disable(NULL);
     nt_cursor_show(NULL);
+    nt_alt_screen_disable(NULL);
     __nt_deinit__();
 
    __ntg_log_deinit__();

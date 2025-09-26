@@ -168,7 +168,7 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
     assert(block != NULL);
     size_t* caps = &(block[0]);
     size_t* _sizes = &(block[children->_count]);
-    size_t* grows = &(block[children->_count * 2]);
+    size_t* grows = NULL;
 
     ntg_object* it_obj;
     struct ntg_constrain_data it_data;
@@ -178,6 +178,7 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
     {
         if(size >= natural_size) // redistribute extra, capped with max_size
         {
+            grows = &(block[children->_count * 2]);
             extra_size = size - natural_size;
             for(i = 0; i < children->_count; i++)
             {
@@ -186,6 +187,7 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
 
                 caps[i] = it_data.max_size;
                 _sizes[i] = it_data.natural_size;
+                grows[i] = it_data.grow;
             }
         }
         else
@@ -215,9 +217,6 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
                 }
             }
         }
-
-        for(i = 0; i < children->_count; i++)
-            grows[i] = ntg_constrain_context_get(context, it_obj).grow;
 
         ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children->_count);
 

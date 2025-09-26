@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "base/ntg_event.h"
+#include "base/ntg_sap.h"
 #include "ntg.h"
 #include "core/ntg_stage.h"
 #include "core/ntg_scene.h"
@@ -124,6 +125,8 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     __ntg_scene_deinit__(&scene);
 }
 
+#define COUNT 100
+
 int main(int argc, char *argv[])
 {
     __ntg_init__();
@@ -137,7 +140,29 @@ int main(int argc, char *argv[])
 
     __ntg_stage_deinit__(&main_stage);
 
+
     __ntg_deinit__();
+
+    // size_t space_pool = 1;
+    // size_t caps[COUNT];
+    // size_t grows[COUNT];
+    // size_t _sizes[COUNT];
+    //
+    // size_t i;
+    // for(i = 0; i < COUNT; i++)
+    // {
+    //     caps[i] = NTG_SIZE_MAX;
+    //     grows[i] = 1;
+    //     _sizes[i] = 0;
+    // }
+    //
+    // ntg_sap_cap_round_robin(caps, grows, _sizes, space_pool, COUNT);
+    //
+    // for(i = 0; i < COUNT; i++)
+    // {
+    //     printf("%ld ", _sizes[i]);
+    // }
+    // printf("\r\n");
 
     return 0;
 }

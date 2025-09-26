@@ -8,6 +8,11 @@
 /* Distributes `space_pool` space into `out_sizes`.
  * Distribution takes place depending on `caps` - if a size in `out_sizes`
  * reaches the capacity - it won't be awarded any more space.
+ *
+ * 'grows' decides how to allocate the `space_pool` - it doesn't take into
+ * account already allocated space in `out_sizes`.
+ *
+ * If `grows` is NULL, all allocations will be treated equally.
  * 
  * RETURN VALUE: Total amount of distributed space. */
 size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,

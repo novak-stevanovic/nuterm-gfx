@@ -10,7 +10,6 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
         size_t* out_sizes, size_t space_pool, size_t count)
 {
     assert(caps != NULL);
-    assert(grows != NULL);
     assert(out_sizes != NULL);
     
     if((space_pool == 0) || (count == 0)) return 0;
@@ -23,10 +22,14 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
     assert(distributed != NULL);
 
     size_t i;
-    for(i = 0; i < count; i++)
+
+    if(grows != NULL)
     {
-        total_grow += grows[i];
-        distributed[i] = 0;
+        for(i = 0; i < count; i++)
+        {
+            total_grow += grows[i];
+            distributed[i] = 0;
+        }
     }
 
     bool loop = true;
@@ -39,16 +42,21 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
             if(caps[i] > (out_sizes[i] + distributed[i]))
             {
                 // TODO: what if not max sizes?
-                it_amount = _min2_double(_space_pool, floor(1.0 * grows[i] / total_grow));
+                if(grows != NULL)
+                    it_amount = _min2_double(_space_pool, 1.0 * grows[i] / total_grow);
+                else
+                    it_amount = _min2_double(_space_pool, 1);
 
-                if(it_amount < 0.05) continue;
+
+                if(it_amount < 0.0005) continue;
 
                 if((1.0 * caps[i]) >= ((1.0 * out_sizes[i]) +
                             distributed[i] + it_amount))
                 {
                     distributed[i] += it_amount;
+                    _space_pool -= it_amount;
 
-                    if(_space_pool <= 0.05)
+                    if(_space_pool <= 0.0005)
                     {
                         loop = false;
                         break;
@@ -72,9 +80,9 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
     {
         if(space_pool == 0) break;
 
-        if(caps[i] > floor(distributed[i]))
+        if(caps[i] > (out_sizes[i] + floor(distributed[i])))
         {
-            distributed[i]++;
+            (out_sizes[i])++;
             distributed_total++;
             space_pool--;
         }
