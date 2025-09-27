@@ -23,13 +23,11 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
 
     size_t i;
 
-    if(grows != NULL)
+    for(i = 0; i < count; i++)
     {
-        for(i = 0; i < count; i++)
-        {
+        if(grows != NULL)
             total_grow += grows[i];
-            distributed[i] = 0;
-        }
+        distributed[i] = 0;
     }
 
     bool loop = true;
