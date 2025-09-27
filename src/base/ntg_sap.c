@@ -41,7 +41,10 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
             {
                 // TODO: what if not max sizes?
                 if(grows != NULL)
-                    it_amount = _min2_double(_space_pool, 1.0 * grows[i] / total_grow);
+                {
+                    it_amount = _min2_double(_space_pool, (total_grow != 0) ?
+                            (1.0 * grows[i] / total_grow) : 0);
+                }
                 else
                     it_amount = _min2_double(_space_pool, 1);
 

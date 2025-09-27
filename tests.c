@@ -87,6 +87,8 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_border_box_set_center(&root, NTG_OBJECT(&cb5));
 
     ntg_object_set_grow(NTG_OBJECT(&cb1), ntg_xy(0, 0));
+    ntg_object_set_grow(NTG_OBJECT(&cb3), ntg_xy(0, 0));
+    ntg_object_set_grow(NTG_OBJECT(&cb5), ntg_xy(0, 0));
 
     ntg_stage_set_scene(main_stage, &scene);
     ntg_loop(main_stage, 60);
