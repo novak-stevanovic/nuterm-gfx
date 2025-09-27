@@ -15,13 +15,15 @@ static void __init_default_values(ntg_box* box)
 }
 
 void __ntg_box_init__(ntg_box* box, ntg_orientation orientation,
-        ntg_alignment primary_alignment, ntg_alignment secondary_alignment)
+        ntg_alignment primary_alignment, ntg_alignment secondary_alignment,
+        ntg_object_process_key_fn process_key_fn)
 {
     assert(box != NULL);
 
     __ntg_object_init__(NTG_OBJECT(box), NTG_OBJECT_WIDGET,
             _ntg_box_measure_fn, _ntg_box_constrain_fn,
-            _ntg_box_arrange_children_fn, NULL);
+            _ntg_box_arrange_children_fn, NULL,
+            process_key_fn);
 
     __init_default_values(box);
 

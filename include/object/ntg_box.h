@@ -12,7 +12,8 @@ typedef struct ntg_box ntg_box;
 #define NTG_BOX(box_ptr) ((ntg_box*)(box_ptr))
 
 void __ntg_box_init__(ntg_box* box, ntg_orientation orientation,
-        ntg_alignment primary_alignment, ntg_alignment secondary_alignment);
+        ntg_alignment primary_alignment, ntg_alignment secondary_alignment,
+        ntg_object_process_key_fn process_key_fn);
 void __ntg_box_deinit__(ntg_box* box);
 
 ntg_orientation ntg_box_get_orientation(const ntg_box* box);
