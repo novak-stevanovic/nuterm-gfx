@@ -116,7 +116,7 @@ void ntg_scene_layout(ntg_scene* scene)
     if(scene->__root != NULL)
     {
         ntg_object_layout(scene->__root, scene->__size);
-        ntg_object_perform_tree(scene->__root, NTG_OBJECT_PERFORM_TOP_DOWN,
+        ntg_object_tree_perform(scene->__root, NTG_OBJECT_PERFORM_TOP_DOWN,
                 __draw_scene_object_fn, scene);
     }
     else // construct empty drawing

@@ -54,25 +54,25 @@ void ntg_layout_object_perform(ntg_layout_object* layout_object)
         .arena = layout_object->__arena,
     };
 
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
             __set_layout_orientation, &orientation);
 
     root->__size = size;
     root->__position = ntg_xy(0, 0);
 
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_BOTTOM_UP,
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP,
             __measure1_fn, &data);
 
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
             __constrain1_fn, &data);
 
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_BOTTOM_UP,
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP,
             __measure2_fn, &data);
 
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
             __constrain2_fn, &data);
 
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
             __arrange_fn, &data);
 
     sarena_rewind(layout_object->__arena);
@@ -93,7 +93,7 @@ static void __measure1_fn(ntg_object* object, void* _layout_data)
 {
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_measure_context* context = ntg_measure_context_new(object, data.arena);
-    ntg_object_vec* children = ntg_object_get_children_(object);
+    ntg_object_vec* children = object->__children;
 
     size_t i;
     struct ntg_measure_data it_data;
@@ -127,7 +127,7 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_constrain_context* context = ntg_constrain_context_new(object, data.arena);
     ntg_constrain_output* output = ntg_constrain_output_new(object, data.arena);
-    ntg_object_vec* children = ntg_object_get_children_(object);
+    ntg_object_vec* children = _ntg_object_get_children(object);
     
     size_t i;
     struct ntg_constrain_data it_data;
@@ -168,7 +168,7 @@ static void __measure2_fn(ntg_object* object, void* _layout_data)
 {
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_measure_context* context = ntg_measure_context_new(object, data.arena);
-    ntg_object_vec* children = ntg_object_get_children_(object);
+    ntg_object_vec* children = _ntg_object_get_children(object);
 
     size_t i;
     struct ntg_measure_data it_data;
@@ -202,7 +202,7 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_constrain_context* context = ntg_constrain_context_new(object, data.arena);
     ntg_constrain_output* output = ntg_constrain_output_new(object, data.arena);
-    ntg_object_vec* children = ntg_object_get_children_(object);
+    ntg_object_vec* children = _ntg_object_get_children(object);
     
     size_t i;
     struct ntg_constrain_data it_data;
@@ -244,7 +244,7 @@ static void __arrange_children_fn(ntg_object* object, void* _layout_data)
     struct layout_data data = *(struct layout_data*)_layout_data;
     ntg_arrange_context* context = ntg_arrange_context_new(object, data.arena);
     ntg_arrange_output* output = ntg_arrange_output_new(object, data.arena);
-    ntg_object_vec* children = ntg_object_get_children_(object);
+    ntg_object_vec* children = _ntg_object_get_children(object);
 
     size_t i;
     struct ntg_arrange_data it_data;

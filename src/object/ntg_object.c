@@ -74,7 +74,7 @@ ntg_object* ntg_object_get_base_widget(ntg_object* object)
     return it_obj;
 }
 
-ntg_object_vec* ntg_object_get_children_(ntg_object* object)
+ntg_object_vec* _ntg_object_get_children(ntg_object* object)
 {
     assert(object != NULL);
 
@@ -255,7 +255,7 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
 
 /* ---------------------------------------------------------------- */
 
-void ntg_object_perform_tree(ntg_object* object,
+void ntg_object_tree_perform(ntg_object* object,
         ntg_object_perform_mode mode,
         void (*perform_fn)(ntg_object* object, void* data),
         void* data)
@@ -270,7 +270,7 @@ void ntg_object_perform_tree(ntg_object* object,
 
         for(i = 0; i < object->__children->_count; i++)
         {
-            ntg_object_perform_tree(object->__children->_data[i],
+            ntg_object_tree_perform(object->__children->_data[i],
                     mode, perform_fn, data);
         }
     }
@@ -278,7 +278,7 @@ void ntg_object_perform_tree(ntg_object* object,
     {
         for(i = 0; i < object->__children->_count; i++)
         {
-            ntg_object_perform_tree(object->__children->_data[i],
+            ntg_object_tree_perform(object->__children->_data[i],
                     mode, perform_fn, data);
         }
 
@@ -435,7 +435,7 @@ void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene)
             NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
     assert(parent == NULL);
 
-    ntg_object_perform_tree(root, NTG_OBJECT_PERFORM_TOP_DOWN,
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
             __update_scene_fn, scene);
 }
 
@@ -450,7 +450,7 @@ void _ntg_object_add_child(ntg_object* object, ntg_object* child)
 
     child->__parent = object;
 
-    ntg_object_perform_tree(child, NTG_OBJECT_PERFORM_TOP_DOWN,
+    ntg_object_tree_perform(child, NTG_OBJECT_PERFORM_TOP_DOWN,
             __update_scene_fn, object->__scene);
 }
 
@@ -465,7 +465,7 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
 
     child->__parent = NULL;
 
-    ntg_object_perform_tree(object, NTG_OBJECT_PERFORM_TOP_DOWN,
+    ntg_object_tree_perform(object, NTG_OBJECT_PERFORM_TOP_DOWN,
             __update_scene_fn, NULL);
 }
 

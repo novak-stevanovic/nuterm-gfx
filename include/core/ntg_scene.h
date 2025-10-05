@@ -47,7 +47,8 @@ void __ntg_scene_deinit__(ntg_scene* scene);
 
 ntg_object* ntg_scene_get_focused(ntg_scene* scene);
 
-void ntg_scene_focus(ntg_scene* scene, ntg_object* object);
+// TODO
+void ntg_scene_full_focus(ntg_scene* scene, ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
