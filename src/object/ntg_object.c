@@ -250,7 +250,9 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber)
 
 bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
 {
-    return object->__process_key_fn(object, key_event);
+    return (object->__process_key_fn != NULL) ?
+        object->__process_key_fn(object, key_event) :
+        false;
 }
 
 /* ---------------------------------------------------------------- */
@@ -299,7 +301,8 @@ void __ntg_object_init__(ntg_object* object,
         ntg_measure_fn measure_fn,
         ntg_constrain_fn constrain_fn,
         ntg_arrange_children_fn arrange_children_fn,
-        ntg_arrange_drawing_fn arrange_drawing_fn)
+        ntg_arrange_drawing_fn arrange_drawing_fn,
+        ntg_object_process_key_fn process_key_fn)
 {
     assert(object != NULL);
 
@@ -312,6 +315,7 @@ void __ntg_object_init__(ntg_object* object,
     object->__measure_fn = measure_fn;
     object->__arrange_children_fn = arrange_children_fn;
     object->__arrange_drawing_fn = arrange_drawing_fn;
+    object->__process_key_fn = process_key_fn;
 
     object->__children = ntg_object_vec_new();
     object->__drawing = ntg_object_drawing_new();
@@ -467,14 +471,6 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
 
     ntg_object_tree_perform(object, NTG_OBJECT_PERFORM_TOP_DOWN,
             __update_scene_fn, NULL);
-}
-
-void _ntg_object_set_process_key_fn(ntg_object* object,
-        ntg_object_process_key_fn process_key_fn)
-{
-    assert(object != NULL);
-
-    object->__process_key_fn = process_key_fn;
 }
 
 ntg_object_drawing* _ntg_object_get_drawing(ntg_object* object)

@@ -189,7 +189,8 @@ void __ntg_object_init__(ntg_object* object,
         ntg_measure_fn measure_fn,
         ntg_constrain_fn constrain_fn,
         ntg_arrange_children_fn arrange_children_fn,
-        ntg_arrange_drawing_fn arrange_drawing_fn);
+        ntg_arrange_drawing_fn arrange_drawing_fn,
+        ntg_object_process_key_fn process_key_fn);
 
 void __ntg_object_deinit__(ntg_object* object);
 

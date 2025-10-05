@@ -35,19 +35,19 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     ntg_label l1;
     __ntg_label_init__(&l1, NTG_ORIENTATION_HORIZONTAL);
     struct ntg_str_view l1_text;
-    l1_text.data = "test1234567";
+    l1_text.data = "test1234567 auhaduih wefweoufhhwfeo";
     l1_text.len = strlen(l1_text.data);
     ntg_label_set_text(&l1, l1_text);
     struct nt_gfx l1_gfx = {
         .fg = nt_color_new(255, 0, 0),
         .bg = nt_color_new(0, 0, 100),
-        .style = NT_STYLE_DEFAULT
+        .style = NT_STYLE_BOLD
     };
     ntg_label_set_gfx(&l1, l1_gfx);
-    ntg_label_set_wrap_mode(&l1, NTG_TEXT_WRAP_NOWRAP);
-    ntg_label_set_primary_alignment(&l1, NTG_TEXT_ALIGNMENT_JUSTIFY);
-    ntg_object_set_grow(NTG_OBJECT(&l1), ntg_xy(3, 0));
-    ntg_label_set_indent(&l1, 0);
+    ntg_label_set_wrap_mode(&l1, NTG_TEXT_WRAP_WORD_WRAP);
+    ntg_label_set_primary_alignment(&l1, NTG_TEXT_ALIGNMENT_1);
+    ntg_object_set_grow(NTG_OBJECT(&l1), ntg_xy(1, 0));
+    ntg_label_set_indent(&l1, 2);
 
     ntg_box_add_child(&root, NTG_OBJECT(&cb1));
     ntg_box_add_child(&root, NTG_OBJECT(&cb2));
@@ -86,9 +86,9 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_border_box_set_west(&root, NTG_OBJECT(&cb4));
     ntg_border_box_set_center(&root, NTG_OBJECT(&cb5));
 
-    ntg_object_set_grow(NTG_OBJECT(&cb1), ntg_xy(0, 0));
-    ntg_object_set_grow(NTG_OBJECT(&cb3), ntg_xy(0, 0));
-    ntg_object_set_grow(NTG_OBJECT(&cb5), ntg_xy(0, 0));
+    ntg_object_set_grow(NTG_OBJECT(&cb1), ntg_xy(10, 10));
+    // ntg_object_set_grow(NTG_OBJECT(&cb5), ntg_xy(0, 0));
+    // ntg_object_set_grow(NTG_OBJECT(&cb3), ntg_xy(0, 0));
 
     ntg_stage_set_scene(main_stage, &scene);
     ntg_loop(main_stage, 60);
@@ -116,7 +116,6 @@ int main(int argc, char *argv[])
     ntg_wait();
 
     __ntg_stage_deinit__(&main_stage);
-
 
     __ntg_deinit__();
 
