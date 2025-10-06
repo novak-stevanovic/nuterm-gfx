@@ -9,8 +9,7 @@ typedef struct ntg_prog_bar ntg_prog_bar;
 
 void __ntg_prog_bar_init__(ntg_prog_bar* prog_bar,
         ntg_orientation orientation, ntg_cell complete_cell,
-        ntg_cell uncomplete_cell, ntg_cell threshold_cell,
-        ntg_object_process_key_fn process_key_fn);
+        ntg_cell uncomplete_cell, ntg_cell threshold_cell);
 void __ntg_prog_bar_deinit__(ntg_prog_bar* prog_bar);
 
 void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage);

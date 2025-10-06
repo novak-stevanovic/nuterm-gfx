@@ -12,8 +12,7 @@ static void __init_default(ntg_border_box* box)
     box->__center = NULL;
 }
 
-void __ntg_border_box_init__(ntg_border_box* box,
-        ntg_object_process_key_fn process_key_fn)
+void __ntg_border_box_init__(ntg_border_box* box)
 {
     assert(box != NULL);
 
@@ -21,8 +20,7 @@ void __ntg_border_box_init__(ntg_border_box* box,
             _ntg_border_box_measure_fn,
             _ntg_border_box_constrain_fn,
             _ntg_border_box_arrange_children_fn,
-            NULL,
-            process_key_fn);
+            NULL);
 
     __init_default(box);
 }

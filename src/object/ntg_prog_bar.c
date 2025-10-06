@@ -6,8 +6,7 @@
 
 void __ntg_prog_bar_init__(ntg_prog_bar* prog_bar,
         ntg_orientation orientation, ntg_cell complete_cell,
-        ntg_cell uncomplete_cell, ntg_cell threshold_cell,
-        ntg_object_process_key_fn process_key_fn)
+        ntg_cell uncomplete_cell, ntg_cell threshold_cell)
 {
     assert(prog_bar != NULL);
 
@@ -16,8 +15,7 @@ void __ntg_prog_bar_init__(ntg_prog_bar* prog_bar,
             _ntg_prog_bar_measure_fn,
             NULL,
             NULL,
-            _ntg_prog_bar_arrange_drawing_fn,
-            process_key_fn);
+            _ntg_prog_bar_arrange_drawing_fn);
 
     prog_bar->__orientation = orientation;
     prog_bar->__complete_cell = complete_cell;

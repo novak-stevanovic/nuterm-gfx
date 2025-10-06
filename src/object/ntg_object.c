@@ -88,6 +88,31 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object)
     return object->__children;
 }
 
+bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor)
+{
+    assert(object != NULL);
+    assert(ancestor != NULL);
+
+    const ntg_object* it_object = object->__parent;
+
+    while(it_object != NULL)
+    {
+        if(it_object == ancestor) return true;
+
+        it_object = (const ntg_object*)it_object->__parent;
+    }
+
+    return false;
+}
+
+bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant)
+{
+    assert(object != NULL);
+    assert(descendant != NULL);
+
+    return ntg_object_is_ancestor(descendant, object);
+}
+
 /* ---------------------------------------------------------------- */
 
 void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size)
@@ -248,11 +273,14 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber)
 
 /* ---------------------------------------------------------------- */
 
-bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event)
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event,
+        bool intercept)
 {
-    return (object->__process_key_fn != NULL) ?
-        object->__process_key_fn(object, key_event) :
-        false;
+    assert(object != NULL);
+
+    if(object->__process_key_fn != NULL)
+        return object->__process_key_fn(object, key_event, intercept);
+    else return false;
 }
 
 /* ---------------------------------------------------------------- */
@@ -301,8 +329,7 @@ void __ntg_object_init__(ntg_object* object,
         ntg_measure_fn measure_fn,
         ntg_constrain_fn constrain_fn,
         ntg_arrange_children_fn arrange_children_fn,
-        ntg_arrange_drawing_fn arrange_drawing_fn,
-        ntg_object_process_key_fn process_key_fn)
+        ntg_arrange_drawing_fn arrange_drawing_fn)
 {
     assert(object != NULL);
 
@@ -315,7 +342,6 @@ void __ntg_object_init__(ntg_object* object,
     object->__measure_fn = measure_fn;
     object->__arrange_children_fn = arrange_children_fn;
     object->__arrange_drawing_fn = arrange_drawing_fn;
-    object->__process_key_fn = process_key_fn;
 
     object->__children = ntg_object_vec_new();
     object->__drawing = ntg_object_drawing_new();
@@ -478,6 +504,16 @@ ntg_object_drawing* _ntg_object_get_drawing(ntg_object* object)
     assert(object != NULL);
 
     return object->__drawing;
+}
+
+/* ---------------------------------------------------------------- */
+
+void _ntg_object_set_process_key_fn(ntg_object* object,
+        ntg_object_process_key_fn process_key_fn)
+{
+    assert(object != NULL);
+
+    object->__process_key_fn = process_key_fn;
 }
 
 /* ---------------------------------------------------------------- */

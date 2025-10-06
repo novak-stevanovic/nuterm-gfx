@@ -11,6 +11,32 @@ typedef struct ntg_scene ntg_scene;
 
 #define NTG_SCENE(scn_ptr) ((ntg_scene*)(scn_ptr))
 
+typedef enum ntg_scene_key_intercept_mode
+{
+    /* calls ntg_scene_process_key_fn, then feeds the key event */
+    NTG_SCENE_INTERCEPT_NO_INTERCEPT,
+
+    /* calls ntg_scene_process_key_fn, then feeds the key event to the focused object,
+     * then the object's focused object, etc. */
+    NTG_SCENE_KEY_INTERCEPT_INTERCEPT_FIRST,
+
+    /* feeds the key event to the directly focused object, then its parent, etc.
+     * lastly, calls ntg_scene_process_key_fn */
+    NTG_SCENE_KEY_INTERCEPT_PROCESS_FIRST,
+
+    /* calls ntg_scene_process_key_fn and returns */
+    NTG_SCENE_KEY_INTERCEPT_SCENE,
+
+    /* ignores all key events */
+    NTG_SCENE_KEY_INTERCEPT_IGNORE
+} ntg_scene_key_intercept_mode;
+
+typedef enum ntg_scene_key_consume_mode
+{
+    NTG_SCENE_KEY_CONSUME_ONCE,
+    NTG_SCENE_KEY_CONSUME_UNCONSTRAINED
+} ntg_scene_key_consume_mode;
+
 /* Returns if the scene processed the key event. */
 typedef bool (*ntg_scene_process_key_fn)(ntg_scene* scene,
         struct nt_key_event key_event);
@@ -34,6 +60,8 @@ struct ntg_scene
     ntg_scene_on_object_register_fn __on_object_register_fn;
     ntg_scene_on_object_unregister_fn __on_object_unregister_fn;
     ntg_scene_process_key_fn __process_key_fn;
+    ntg_scene_key_intercept_mode __key_intercept_mode;
+    ntg_scene_key_consume_mode __key_consume_mode;
 };
 
 void __ntg_scene_init__(ntg_scene* scene, ntg_object* root,
@@ -46,9 +74,18 @@ void __ntg_scene_deinit__(ntg_scene* scene);
 /* -------------------------------------------------------------------------- */
 
 ntg_object* ntg_scene_get_focused(ntg_scene* scene);
+ntg_object* ntg_scene_get_directly_focused(ntg_scene* scene);
 
 // TODO
-void ntg_scene_full_focus(ntg_scene* scene, ntg_object* object);
+void ntg_scene_direct_focus(ntg_scene* scene, ntg_object* object);
+
+void ntg_scene_set_key_intercept_mode(ntg_scene* scene,
+        ntg_scene_key_intercept_mode key_intercept_mode);
+void ntg_scene_set_key_consume_mode(ntg_scene* scene,
+        ntg_scene_key_consume_mode key_consume_mode);
+
+ntg_scene_key_intercept_mode ntg_scene_get_key_intercept_mode(const ntg_scene* scene);
+ntg_scene_key_consume_mode ntg_scene_get_key_consume_mode(const ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 

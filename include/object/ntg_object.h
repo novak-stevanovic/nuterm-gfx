@@ -39,12 +39,6 @@ typedef enum ntg_object_perform_mode
     NTG_OBJECT_PERFORM_BOTTOM_UP
 } ntg_object_perform_mode;
 
-typedef enum ntg_object_process_key_mode
-{
-    NTG_OBJECT_KEY_PROCESS_MODE_1, // pass to child first, process later
-    NTG_OBJECT_KEY_PROCESS_MODE_2
-} ntg_object_process_key_mode;
-
 /* ---------------------------------------------------------------- */
 
 ntg_object_type ntg_object_get_type(const ntg_object* object);
@@ -62,7 +56,6 @@ ntg_object* ntg_object_get_base_widget(ntg_object* object);
 /* Returns children of object. These can include object decorators. */
 const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 
-// TODO
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
 bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant);
 
@@ -103,9 +96,8 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber);
 
 /* ---------------------------------------------------------------- */
 
-// TODO
-
-bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event);
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event,
+        bool intercept);
 
 const ntg_object* ntg_object_get_focused(const ntg_object* object);
 void ntg_object_focus(ntg_object* object, ntg_object* child);
@@ -123,7 +115,7 @@ void ntg_object_tree_perform(ntg_object* object,
 /* -------------------------------------------------------------------------- */
 
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
-        struct nt_key_event key_event);
+        struct nt_key_event key_event, bool intercept);
 
 /* ---------------------------------------------------------------- */
 
@@ -169,10 +161,10 @@ struct ntg_object
 
     struct 
     {
-        // TODO
         ntg_object_process_key_fn __process_key_fn;
-        ntg_object_process_key_mode __process_key_mode;
         ntg_object* __focused;
+        // TODO
+
     };
 
     ntg_scene* __scene;
@@ -189,8 +181,7 @@ void __ntg_object_init__(ntg_object* object,
         ntg_measure_fn measure_fn,
         ntg_constrain_fn constrain_fn,
         ntg_arrange_children_fn arrange_children_fn,
-        ntg_arrange_drawing_fn arrange_drawing_fn,
-        ntg_object_process_key_fn process_key_fn);
+        ntg_arrange_drawing_fn arrange_drawing_fn);
 
 void __ntg_object_deinit__(ntg_object* object);
 
@@ -230,10 +221,6 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn);
-
-// TODO
-void _ntg_object_set_process_key_mode(ntg_object* ntg_object,
-        ntg_object_process_key_mode mode);
 
 /* ---------------------------------------------------------------- */
 

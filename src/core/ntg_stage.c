@@ -67,10 +67,6 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     };
 
     stage->__active_scene = scene;
-
-    ntg_event e;
-    __ntg_event_init__(&e, NTG_ETYPE_STAGE_SCENE_CHANGE, stage, &data);
-    ntg_listenable_raise(&stage->__listenable, &e);
 }
 
 struct ntg_xy ntg_stage_get_size(const ntg_stage* stage)
@@ -100,10 +96,6 @@ void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
         if(stage->__active_scene != NULL)
             ntg_scene_set_size(stage->__active_scene, size);
     }
-
-    ntg_event e;
-    __ntg_event_init__(&e, NTG_ETYPE_STAGE_RESIZE, stage, &data);
-    ntg_listenable_raise(&stage->__listenable, &e);
 }
 
 void ntg_stage_render(ntg_stage* stage, ntg_stage_render_mode render_mode)
@@ -128,10 +120,6 @@ void ntg_stage_render(ntg_stage* stage, ntg_stage_render_mode render_mode)
         __full_empty_render(stage);
         nt_buffer_disable(NT_BUFF_FLUSH);
     }
-
-    ntg_event e;
-    __ntg_event_init__(&e, NTG_ETYPE_STAGE_RENDER, stage, NULL);
-    ntg_listenable_raise(&stage->__listenable, &e);
 }
 
 ntg_stage_status ntg_stage_feed_key_event(ntg_stage* stage,

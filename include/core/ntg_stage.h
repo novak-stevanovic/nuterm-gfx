@@ -57,10 +57,6 @@ ntg_stage_status ntg_stage_feed_key_event(ntg_stage* stage,
 void ntg_stage_listen(ntg_stage* stage, struct ntg_event_sub sub);
 void ntg_stage_stop_listening(ntg_stage* stage, void* subscriber);
 
-/* Event types raised by ntg_stage:
- * 1) NTG_ETYPE_STAGE_RESIZE,
- * 2) NTG_ETYPE_STAGE_SCENE_CHANGE,
- * 3) NTG_ETYPE_STAGE_RENDER */
 ntg_listenable* _ntg_stage_get_listenable(ntg_stage* stage);
 
 #endif // _NTG_STAGE_H_
