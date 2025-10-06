@@ -1,6 +1,7 @@
 #ifndef _NTG_OBJECT_VECTOR_H_
 #define _NTG_OBJECT_VECTOR_H_
 
+#include <stdbool.h>
 #include <stddef.h>
 
 typedef struct ntg_object ntg_object;
@@ -20,5 +21,7 @@ void ntg_object_vec_destroy(ntg_object_vec* vec);
 
 void ntg_object_vec_append(ntg_object_vec* vec, ntg_object* object);
 void ntg_object_vec_remove(ntg_object_vec* vec, ntg_object* object);
+
+bool ntg_object_vec_contains(const ntg_object_vec* vec, const ntg_object* object);
 
 #endif // _NTG_OBJECT_VECTOR_H_

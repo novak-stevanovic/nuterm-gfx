@@ -283,6 +283,27 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event,
     else return false;
 }
 
+void ntg_object_focus(ntg_object* object, ntg_object* child, bool intercept)
+{
+    assert(object != NULL);
+
+    const ntg_object_vec* children = ntg_object_get_children(object);
+
+    assert((child == NULL) || ntg_object_vec_contains(children, object));
+
+    object->__focused = child;
+
+    if(child->__on_focus_fn)
+        object->__on_focus_fn(child, intercept);
+}
+
+ntg_object* ntg_object_get_focused(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__focused;
+}
+
 /* ---------------------------------------------------------------- */
 
 void ntg_object_tree_perform(ntg_object* object,
@@ -516,6 +537,14 @@ void _ntg_object_set_process_key_fn(ntg_object* object,
     object->__process_key_fn = process_key_fn;
 }
 
+void _ntg_object_on_focus_key_fn(ntg_object* object,
+        ntg_object_on_focus_fn on_focus_fn)
+{
+    assert(object != NULL);
+
+    object->__on_focus_fn = on_focus_fn;
+}
+
 /* ---------------------------------------------------------------- */
 
 static void __init_default_values(ntg_object* object)
@@ -546,6 +575,7 @@ static void __init_default_values(ntg_object* object)
     object->__scene = NULL;
 
     object->__process_key_fn = NULL;
+    object->__on_focus_fn = NULL;
     object->__listenable = (ntg_listenable) {0};
 }
 

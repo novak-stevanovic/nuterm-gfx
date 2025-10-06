@@ -41,6 +41,8 @@ void ntg_object_vec_destroy(ntg_object_vec* vec)
 
 void ntg_object_vec_append(ntg_object_vec* vec, ntg_object* object)
 {
+    if(vec == NULL) return;
+
     int status = ntg_vector_append((struct ntg_vector*)vec,
             &object, sizeof(ntg_object*));
 
@@ -49,6 +51,21 @@ void ntg_object_vec_append(ntg_object_vec* vec, ntg_object* object)
 
 void ntg_object_vec_remove(ntg_object_vec* vec, ntg_object* object)
 {
+    if(vec == NULL) return;
+
     ntg_vector_remove((struct ntg_vector*)vec, &object,
             sizeof(ntg_object*), NULL);
+}
+
+bool ntg_object_vec_contains(const ntg_object_vec* vec, const ntg_object* object)
+{
+    if(vec == NULL) return false;
+
+    ssize_t status = ntg_vector_find((struct ntg_vector*)vec,
+            &object,
+            sizeof(ntg_object*),
+            NULL);
+
+    if(status >= 0) return true;
+    else return false;
 }

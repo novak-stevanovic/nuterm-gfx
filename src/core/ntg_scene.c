@@ -1,4 +1,5 @@
 #include "core/ntg_scene.h"
+
 #include <assert.h>
 #include <stdlib.h>
 
@@ -25,7 +26,6 @@ void __ntg_scene_init__(ntg_scene* scene, ntg_object* root,
     assert(root != NULL);
 
     scene->__process_key_fn = NULL;
-    scene->__focused = NULL;
     scene->__root = root;
     scene->__on_object_register_fn = (on_object_register_fn != NULL) ?
         on_object_register_fn : __on_object_register_fn_default;
@@ -42,7 +42,6 @@ void __ntg_scene_deinit__(ntg_scene* scene)
     assert(scene != NULL);
 
     scene->__process_key_fn = NULL;
-    scene->__focused = NULL;
     scene->__root = NULL;
     scene->__size = NTG_XY_UNSET;
     scene->__on_object_register_fn = NULL;
@@ -56,41 +55,62 @@ ntg_object* ntg_scene_get_focused(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    return scene->__focused;
+    ntg_object* it_object = scene->__root;
+
+    while(ntg_object_get_focused(it_object) != NULL)
+    {
+        it_object = ntg_object_get_focused(it_object);
+    }
+
+    return it_object;
 }
 
-ntg_object* ntg_scene_get_directly_focused(ntg_scene* scene)
+void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
 {
     assert(scene != NULL);
-}
+    assert(ntg_object_is_descendant(scene->__root, object));
 
-void ntg_scene_direct_focus(ntg_scene* scene, ntg_object* object)
-{
-    assert(scene != NULL);
+    ntg_object* it_focused_object = object;
+    ntg_object* it_object = ntg_object_get_parent(object,
+            NTG_OBJECT_GET_PARENT_INCL_DECORATOR);
 
-    // none focused?
+    while(it_object != NULL)
+    {
+        ntg_object_focus(it_object, it_focused_object, (it_focused_object != NULL));
+        it_focused_object = it_object;
+        it_object = ntg_object_get_parent(it_object,
+                NTG_OBJECT_GET_PARENT_INCL_DECORATOR);
+    }
 }
 
 void ntg_scene_set_key_intercept_mode(ntg_scene* scene,
         ntg_scene_key_intercept_mode key_intercept_mode)
 {
     assert(scene != NULL);
+
+    scene->__key_intercept_mode = key_intercept_mode;
 }
 
 void ntg_scene_set_key_consume_mode(ntg_scene* scene,
         ntg_scene_key_consume_mode key_consume_mode)
 {
     assert(scene != NULL);
+
+    scene->__key_consume_mode = key_consume_mode;
 }
 
 ntg_scene_key_intercept_mode ntg_scene_get_key_intercept_mode(const ntg_scene* scene)
 {
     assert(scene != NULL);
+
+    return scene->__key_intercept_mode;
 }
 
 ntg_scene_key_consume_mode ntg_scene_get_key_consume_mode(const ntg_scene* scene)
 {
     assert(scene != NULL);
+
+    return scene->__key_consume_mode;
 }
 
 struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)

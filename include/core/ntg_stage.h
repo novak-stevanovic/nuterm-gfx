@@ -38,8 +38,12 @@ struct ntg_stage
     ntg_listenable __listenable;
 };
 
+/* If `process_key_fn` is NULL, a default value will be used.
+ * The default function would exit the program on `q` and would delegate
+ * and key events to the active scene */
 void __ntg_stage_init__(ntg_stage* stage,
         ntg_stage_process_key_fn process_key_fn);
+
 void __ntg_stage_deinit__(ntg_stage* stage);
 
 ntg_scene* ntg_stage_get_scene(ntg_stage* stage);

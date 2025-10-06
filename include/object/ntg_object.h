@@ -99,9 +99,9 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber);
 bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event,
         bool intercept);
 
-const ntg_object* ntg_object_get_focused(const ntg_object* object);
-void ntg_object_focus(ntg_object* object, ntg_object* child);
-ntg_object* ntg_object_get_focused_(ntg_object* object);
+// const ntg_object* ntg_object_get_focused(const ntg_object* object);
+void ntg_object_focus(ntg_object* object, ntg_object* child, bool intercept);
+ntg_object* ntg_object_get_focused(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
@@ -114,8 +114,15 @@ void ntg_object_tree_perform(ntg_object* object,
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
+/* If `intercept` is true, the object is not directly focused,
+ * but its child is. */
+
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event, bool intercept);
+
+/* If `intercept` is true, the object is not directly focused,
+ * but its child is. */
+typedef void (*ntg_object_on_focus_fn)(ntg_object* object, bool intercept);
 
 /* ---------------------------------------------------------------- */
 
@@ -162,9 +169,9 @@ struct ntg_object
     struct 
     {
         ntg_object_process_key_fn __process_key_fn;
+        ntg_object_on_focus_fn __on_focus_fn;
         ntg_object* __focused;
         // TODO
-
     };
 
     ntg_scene* __scene;
@@ -221,6 +228,8 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn);
+void _ntg_object_on_focus_key_fn(ntg_object* object,
+        ntg_object_on_focus_fn on_focus_fn);
 
 /* ---------------------------------------------------------------- */
 

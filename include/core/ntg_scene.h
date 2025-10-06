@@ -13,21 +13,21 @@ typedef struct ntg_scene ntg_scene;
 
 typedef enum ntg_scene_key_intercept_mode
 {
-    /* calls ntg_scene_process_key_fn, then feeds the key event */
+    /* Calls ntg_scene_process_key_fn, then feeds the key event */
     NTG_SCENE_INTERCEPT_NO_INTERCEPT,
 
-    /* calls ntg_scene_process_key_fn, then feeds the key event to the focused object,
-     * then the object's focused object, etc. */
+    /* Calls ntg_scene_process_key_fn, then feeds the key event to the root object,
+     * then the root's focused object, etc. */
     NTG_SCENE_KEY_INTERCEPT_INTERCEPT_FIRST,
 
-    /* feeds the key event to the directly focused object, then its parent, etc.
+    /* Feeds the key event to the directly focused object, then its parent, etc.
      * lastly, calls ntg_scene_process_key_fn */
     NTG_SCENE_KEY_INTERCEPT_PROCESS_FIRST,
 
-    /* calls ntg_scene_process_key_fn and returns */
+    /* Calls ntg_scene_process_key_fn and returns */
     NTG_SCENE_KEY_INTERCEPT_SCENE,
 
-    /* ignores all key events */
+    /* Ignores all key events */
     NTG_SCENE_KEY_INTERCEPT_IGNORE
 } ntg_scene_key_intercept_mode;
 
@@ -51,7 +51,6 @@ struct ntg_scene
 {
     ntg_object* __root;
     ntg_scene_drawing __drawing;
-    ntg_object* __focused;
 
     ntg_listenable __listenable;
 
@@ -74,10 +73,9 @@ void __ntg_scene_deinit__(ntg_scene* scene);
 /* -------------------------------------------------------------------------- */
 
 ntg_object* ntg_scene_get_focused(ntg_scene* scene);
-ntg_object* ntg_scene_get_directly_focused(ntg_scene* scene);
 
 // TODO
-void ntg_scene_direct_focus(ntg_scene* scene, ntg_object* object);
+void ntg_scene_focus(ntg_scene* scene, ntg_object* object);
 
 void ntg_scene_set_key_intercept_mode(ntg_scene* scene,
         ntg_scene_key_intercept_mode key_intercept_mode);
