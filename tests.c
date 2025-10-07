@@ -25,7 +25,7 @@ void gui_fn1(ntg_stage* main_stage, void* data)
             NTG_ALIGNMENT_1, NTG_ALIGNMENT_1);
 
     ntg_scene scene;
-    __ntg_scene_init__(&scene, NTG_OBJECT(&root), NULL, NULL, NULL);
+    __ntg_scene_init__(&scene, NTG_OBJECT(&root));
 
     ntg_color_block cb1, cb2, cb3;
     __ntg_color_block_init__(&cb1, nt_color_new(255, 0, 0));
@@ -65,13 +65,51 @@ void gui_fn1(ntg_stage* main_stage, void* data)
     __ntg_scene_deinit__(&scene);
 }
 
+void color_block_on_focus_fn(ntg_object* _object, bool intercept)
+{
+    if(!intercept)
+    {
+        exit(1);
+        // ntg_color_block* color_block = (ntg_color_block*)_object;
+        //
+        // nt_color color = ntg_color_block_get_color(color_block);
+        // nt_color new_color = nt_color_new(color._rgb.r + 50,
+        //         color._rgb.g + 50, color._rgb.b + 50);
+        //
+        // ntg_color_block_set_color(color_block, new_color);
+    }
+}
+
+bool scene_process_key_fn(ntg_scene* scene, struct nt_key_event key_event)
+{
+    if(key_event.type == NT_KEY_EVENT_UTF32)
+    {
+        ntg_object* _root = ntg_scene_get_root(scene);
+        ntg_border_box* root = NTG_BORDER_BOX(_root);
+        if(key_event.utf32_data.codepoint == '1')
+        {
+            ntg_object* center = ntg_border_box_get_center(root);
+            ntg_scene_focus(scene, center);
+
+            return true;
+        }
+        else if(key_event.utf32_data.codepoint == '2')
+        {
+            ntg_scene_focus(scene, NULL);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void gui_fn2(ntg_stage* main_stage, void* data)
 {
     ntg_border_box root;
     __ntg_border_box_init__(&root);
 
     ntg_scene scene;
-    __ntg_scene_init__(&scene, NTG_OBJECT(&root), NULL, NULL, NULL);
+    __ntg_scene_init__(&scene, NTG_OBJECT(&root));
 
     ntg_color_block cb1, cb2, cb3, cb4, cb5;
     __ntg_color_block_init__(&cb1, nt_color_new(255, 0, 0));
@@ -85,6 +123,9 @@ void gui_fn2(ntg_stage* main_stage, void* data)
     ntg_border_box_set_south(&root, NTG_OBJECT(&cb3));
     ntg_border_box_set_west(&root, NTG_OBJECT(&cb4));
     ntg_border_box_set_center(&root, NTG_OBJECT(&cb5));
+
+    _ntg_object_set_on_focus_fn(NTG_OBJECT(&cb5), color_block_on_focus_fn);
+    ntg_scene_set_process_key_fn(&scene, scene_process_key_fn);
 
     ntg_object_set_grow(NTG_OBJECT(&cb1), ntg_xy(10, 10));
     // ntg_object_set_grow(NTG_OBJECT(&cb5), ntg_xy(0, 0));

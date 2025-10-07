@@ -7,30 +7,28 @@
 #include "core/ntg_scene_drawing.h"
 #include "object/ntg_object.h"
 #include "object/shared/ntg_object_drawing.h"
+#include "object/shared/ntg_object_vec.h"
 #include "shared/ntg_xy.h"
 
 static void __draw_scene_object_fn(ntg_object* object, void* _scene);
 static void __construct_empty_drawing(ntg_scene* scene);
 
-static void __on_object_register_fn_default(ntg_scene* scene, ntg_object* object);
-static void __on_object_unregister_fn_default(ntg_scene* scene, ntg_object* object);
+static bool __perform_intercept(ntg_scene* scene, struct nt_key_event key_event);
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_scene_init__(ntg_scene* scene, ntg_object* root,
-        ntg_scene_process_key_fn process_key_fn,
-        ntg_scene_on_object_register_fn on_object_register_fn,
-        ntg_scene_on_object_unregister_fn on_object_unregister_fn)
+void __ntg_scene_init__(ntg_scene* scene, ntg_object* root)
 {
     assert(scene != NULL);
     assert(root != NULL);
 
     scene->__process_key_fn = NULL;
     scene->__root = root;
-    scene->__on_object_register_fn = (on_object_register_fn != NULL) ?
-        on_object_register_fn : __on_object_register_fn_default;
-    scene->__on_object_unregister_fn = (on_object_unregister_fn != NULL) ?
-        on_object_unregister_fn : __on_object_unregister_fn_default;
+    scene->__key_consume_mode = NTG_SCENE_KEY_CONSUME_ONCE;
+    scene->__key_intercept_order = NTG_SCENE_KEY_INTERCEPT_ORDER_PROCESS_FIRST;
+    scene->__key_intercept_rule = NTG_SCENE_KEY_INTERCEPT_ALLOW_SCENE;
+    scene->__on_object_register_fn = NULL;
+    scene->__on_object_unregister_fn =  NULL;
     scene->__size = NTG_XY_UNSET;
 
     __ntg_scene_drawing_init__(&scene->__drawing);
@@ -68,7 +66,7 @@ ntg_object* ntg_scene_get_focused(ntg_scene* scene)
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
 {
     assert(scene != NULL);
-    assert(ntg_object_is_descendant(scene->__root, object));
+    assert(object == NULL || ntg_object_is_descendant(scene->__root, object));
 
     ntg_object* it_focused_object = object;
     ntg_object* it_object = ntg_object_get_parent(object,
@@ -76,34 +74,46 @@ void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
 
     while(it_object != NULL)
     {
-        ntg_object_focus(it_object, it_focused_object, (it_focused_object != NULL));
+        ntg_object_focus(it_object, it_focused_object);
         it_focused_object = it_object;
         it_object = ntg_object_get_parent(it_object,
                 NTG_OBJECT_GET_PARENT_INCL_DECORATOR);
     }
 }
 
-void ntg_scene_set_key_intercept_mode(ntg_scene* scene,
-        ntg_scene_key_intercept_mode key_intercept_mode)
+void ntg_scene_set_key_intercept_order(ntg_scene* scene, ntg_scene_key_intercept_order order)
 {
     assert(scene != NULL);
 
-    scene->__key_intercept_mode = key_intercept_mode;
+    scene->__key_intercept_order = order;
 }
 
-void ntg_scene_set_key_consume_mode(ntg_scene* scene,
-        ntg_scene_key_consume_mode key_consume_mode)
+ntg_scene_key_intercept_order ntg_scene_get_key_intercept_order(const ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    scene->__key_consume_mode = key_consume_mode;
+    return scene->__key_intercept_order;
 }
 
-ntg_scene_key_intercept_mode ntg_scene_get_key_intercept_mode(const ntg_scene* scene)
+void ntg_scene_set_key_intercept_rule(ntg_scene* scene, ntg_scene_key_intercept_rule rule)
 {
     assert(scene != NULL);
 
-    return scene->__key_intercept_mode;
+    scene->__key_intercept_rule = rule;
+}
+
+ntg_scene_key_intercept_rule ntg_scene_get_key_intercept_rule(const ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return scene->__key_intercept_rule;
+}
+
+void ntg_scene_set_key_consume_mode(ntg_scene* scene, ntg_scene_key_consume_mode mode)
+{
+    assert(scene != NULL);
+
+    scene->__key_consume_mode = mode;
 }
 
 ntg_scene_key_consume_mode ntg_scene_get_key_consume_mode(const ntg_scene* scene)
@@ -111,6 +121,30 @@ ntg_scene_key_consume_mode ntg_scene_get_key_consume_mode(const ntg_scene* scene
     assert(scene != NULL);
 
     return scene->__key_consume_mode;
+}
+
+void ntg_scene_set_process_key_fn(ntg_scene* scene,
+        ntg_scene_process_key_fn process_key_fn)
+{
+    assert(scene != NULL);
+
+    scene->__process_key_fn = process_key_fn;
+}
+
+void ntg_scene_set_on_register_object_fn(ntg_scene* scene,
+        ntg_scene_on_object_register_fn on_object_register_fn)
+{
+    assert(scene != NULL);
+
+    scene->__on_object_register_fn = on_object_register_fn;
+}
+
+void ntg_scene_set_on_unregister_object_fn(ntg_scene* scene,
+        ntg_scene_on_object_unregister_fn on_object_unregister_fn)
+{
+    assert(scene != NULL);
+
+    scene->__on_object_unregister_fn = on_object_unregister_fn;
 }
 
 struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)
@@ -147,10 +181,22 @@ void ntg_scene_layout(ntg_scene* scene)
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
 {
     assert(scene != NULL);
-    
-    if(scene->__process_key_fn == NULL) return false;
 
-    return scene->__process_key_fn(scene, key_event);
+    ntg_object* focused = ntg_scene_get_focused(scene);
+    bool consumed = false;
+
+    if(scene->__key_intercept_order == NTG_SCENE_KEY_INTERCEPT_ORDER_INTERCEPT_FIRST)
+        consumed = __perform_intercept(scene, key_event);
+    if(consumed && (scene->__key_consume_mode == NTG_SCENE_KEY_CONSUME_ONCE))
+        return true;
+
+    consumed = ntg_object_feed_key(focused, key_event, false, consumed);
+    if(consumed && (scene->__key_consume_mode == NTG_SCENE_KEY_CONSUME_ONCE))
+        return true;
+
+    if(scene->__key_intercept_order == NTG_SCENE_KEY_INTERCEPT_ORDER_PROCESS_FIRST)
+        consumed = __perform_intercept(scene, key_event);
+    return consumed;
 }
 
 void ntg_scene_register_object(ntg_scene* scene, ntg_object* object)
@@ -182,6 +228,13 @@ const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene)
     assert(scene != NULL);
 
     return &(scene->__drawing);
+}
+
+ntg_object* ntg_scene_get_root(ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return scene->__root;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -230,8 +283,48 @@ static void __construct_empty_drawing(ntg_scene* scene)
     }
 }
 
-static void __on_object_register_fn_default(ntg_scene* scene, ntg_object* object)
-{ }
+static bool __perform_intercept(ntg_scene* scene, struct nt_key_event key_event)
+{
+    ntg_object* focused = ntg_scene_get_focused(scene);
 
-static void __on_object_unregister_fn_default(ntg_scene* scene, ntg_object* object)
-{ }
+    bool consumed = false;
+    if((scene->__key_intercept_rule == NTG_SCENE_KEY_INTERCEPT_ALLOW_ALL) ||
+            scene->__key_intercept_rule == NTG_SCENE_KEY_INTERCEPT_ALLOW_SCENE)
+    {
+        if(scene->__process_key_fn)
+            consumed = scene->__process_key_fn(scene, key_event);
+    }
+
+    if((scene->__key_intercept_rule == NTG_SCENE_KEY_INTERCEPT_ALLOW_ALL) ||
+            scene->__key_intercept_rule == NTG_SCENE_KEY_INTERCEPT_ALLOW_OBJECTS)
+    {
+        ntg_object* it_object = scene->__root;
+        ntg_object_vec it_children;
+        ntg_object_get_children_(it_object, &it_children);
+
+        size_t i;
+        while(it_object != focused)
+        {
+            if(scene->__key_consume_mode == NTG_SCENE_KEY_CONSUME_ONCE)
+            {
+                if(consumed) return true;
+            }
+
+            consumed = ntg_object_feed_key(it_object, key_event, true, consumed);
+
+            // Find it_object and it_children
+            for(i = 0; i < it_children._count; i++)
+            {
+                if(ntg_object_is_descendant(it_children._data[i], focused))
+                {
+                    it_object = it_children._data[i];
+                    break;
+                }
+            }
+            __ntg_object_vec_deinit__(&it_children);
+            ntg_object_get_children_(it_object, &it_children);
+        }
+    }
+
+    return consumed;
+}

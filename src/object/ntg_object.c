@@ -81,6 +81,20 @@ ntg_object_vec* _ntg_object_get_children(ntg_object* object)
     return object->__children;
 }
 
+void ntg_object_get_children_(ntg_object* object, ntg_object_vec* out_vector)
+{
+    assert(object != NULL);
+    assert(out_vector != NULL);
+
+    __ntg_object_vec_init__(out_vector);
+
+    size_t i;
+    for(i = 0; i < object->__children->_count; i++)
+    {
+        ntg_object_vec_append(out_vector, object->__children->_data[i]);
+    }
+}
+
 const ntg_object_vec* ntg_object_get_children(const ntg_object* object)
 {
     assert(object != NULL);
@@ -274,27 +288,25 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber)
 /* ---------------------------------------------------------------- */
 
 bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event,
-        bool intercept)
+        bool intercept, bool previously_consumed)
 {
     assert(object != NULL);
 
     if(object->__process_key_fn != NULL)
-        return object->__process_key_fn(object, key_event, intercept);
+        return object->__process_key_fn(object, key_event, intercept, previously_consumed);
     else return false;
 }
 
-void ntg_object_focus(ntg_object* object, ntg_object* child, bool intercept)
+void ntg_object_focus(ntg_object* object, ntg_object* child)
 {
     assert(object != NULL);
 
-    const ntg_object_vec* children = ntg_object_get_children(object);
-
-    assert((child == NULL) || ntg_object_vec_contains(children, object));
+    assert((child == NULL) || ntg_object_vec_contains(object->__children, child));
 
     object->__focused = child;
 
     if(child->__on_focus_fn)
-        object->__on_focus_fn(child, intercept);
+        object->__on_focus_fn(child, (child != NULL));
 }
 
 ntg_object* ntg_object_get_focused(ntg_object* object)
@@ -537,7 +549,7 @@ void _ntg_object_set_process_key_fn(ntg_object* object,
     object->__process_key_fn = process_key_fn;
 }
 
-void _ntg_object_on_focus_key_fn(ntg_object* object,
+void _ntg_object_set_on_focus_fn(ntg_object* object,
         ntg_object_on_focus_fn on_focus_fn)
 {
     assert(object != NULL);

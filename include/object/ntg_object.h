@@ -53,7 +53,10 @@ ntg_object* ntg_object_get_parent(ntg_object* object,
 /* Returns base widget for node group(non-decorator). */
 ntg_object* ntg_object_get_base_widget(ntg_object* object);
 
-/* Returns children of object. These can include object decorators. */
+/* Returns children of object. These can include object decorators.
+ *
+ * This function expects an uninitialized `out_vector`. */
+void ntg_object_get_children_(ntg_object* object, ntg_object_vec* out_vector);
 const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
@@ -97,10 +100,10 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber);
 /* ---------------------------------------------------------------- */
 
 bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key_event,
-        bool intercept);
+        bool intercept, bool previously_consumed);
 
 // const ntg_object* ntg_object_get_focused(const ntg_object* object);
-void ntg_object_focus(ntg_object* object, ntg_object* child, bool intercept);
+void ntg_object_focus(ntg_object* object, ntg_object* child);
 ntg_object* ntg_object_get_focused(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
@@ -118,7 +121,7 @@ void ntg_object_tree_perform(ntg_object* object,
  * but its child is. */
 
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
-        struct nt_key_event key_event, bool intercept);
+        struct nt_key_event key_event, bool intercept, bool previously_consumed);
 
 /* If `intercept` is true, the object is not directly focused,
  * but its child is. */
@@ -228,7 +231,7 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
 
 void _ntg_object_set_process_key_fn(ntg_object* object,
         ntg_object_process_key_fn process_key_fn);
-void _ntg_object_on_focus_key_fn(ntg_object* object,
+void _ntg_object_set_on_focus_fn(ntg_object* object,
         ntg_object_on_focus_fn on_focus_fn);
 
 /* ---------------------------------------------------------------- */
