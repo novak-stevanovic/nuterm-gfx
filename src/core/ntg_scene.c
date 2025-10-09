@@ -8,6 +8,7 @@
 #include "object/ntg_object.h"
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
+#include "shared/ntg_log.h"
 #include "shared/ntg_xy.h"
 
 static void __draw_scene_object_fn(ntg_object* object, void* _scene);
@@ -30,6 +31,7 @@ void __ntg_scene_init__(ntg_scene* scene, ntg_object* root)
     scene->__on_object_register_fn = NULL;
     scene->__on_object_unregister_fn =  NULL;
     scene->__size = NTG_XY_UNSET;
+    scene->__unfocused = false;
 
     __ntg_scene_drawing_init__(&scene->__drawing);
     __ntg_listenable_init__(&scene->__listenable);
@@ -53,6 +55,8 @@ ntg_object* ntg_scene_get_focused(ntg_scene* scene)
 {
     assert(scene != NULL);
 
+    if(scene->__unfocused == true) return NULL;
+
     ntg_object* it_object = scene->__root;
 
     while(ntg_object_get_focused(it_object) != NULL)
@@ -66,18 +70,29 @@ ntg_object* ntg_scene_get_focused(ntg_scene* scene)
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
 {
     assert(scene != NULL);
-    assert(object == NULL || ntg_object_is_descendant(scene->__root, object));
 
-    ntg_object* it_focused_object = object;
-    ntg_object* it_object = ntg_object_get_parent(object,
-            NTG_OBJECT_GET_PARENT_INCL_DECORATOR);
-
-    while(it_object != NULL)
+    if(object == NULL)
     {
-        ntg_object_focus(it_object, it_focused_object);
-        it_focused_object = it_object;
-        it_object = ntg_object_get_parent(it_object,
+        scene->__unfocused = true;
+    }
+    else
+    {
+        scene->__unfocused = false;
+
+        assert(ntg_object_is_descendant(scene->__root, object));
+
+        ntg_object* it_focused_object = object;
+        ntg_object* it_object = ntg_object_get_parent(object,
                 NTG_OBJECT_GET_PARENT_INCL_DECORATOR);
+
+        while(it_object != NULL)
+        {
+            ntg_log_log("%p %p", it_object, it_focused_object);
+            ntg_object_focus(it_object, it_focused_object);
+            it_focused_object = it_object;
+            it_object = ntg_object_get_parent(it_object,
+                    NTG_OBJECT_GET_PARENT_INCL_DECORATOR);
+        }
     }
 }
 
@@ -190,12 +205,16 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
     if(consumed && (scene->__key_consume_mode == NTG_SCENE_KEY_CONSUME_ONCE))
         return true;
 
-    consumed = ntg_object_feed_key(focused, key_event, false, consumed);
-    if(consumed && (scene->__key_consume_mode == NTG_SCENE_KEY_CONSUME_ONCE))
-        return true;
+    if(focused != NULL)
+    {
+        consumed = ntg_object_feed_key(focused, key_event, false, consumed);
+        if(consumed && (scene->__key_consume_mode == NTG_SCENE_KEY_CONSUME_ONCE))
+            return true;
+    }
 
     if(scene->__key_intercept_order == NTG_SCENE_KEY_INTERCEPT_ORDER_PROCESS_FIRST)
         consumed = __perform_intercept(scene, key_event);
+
     return consumed;
 }
 
@@ -291,7 +310,7 @@ static bool __perform_intercept(ntg_scene* scene, struct nt_key_event key_event)
     if((scene->__key_intercept_rule == NTG_SCENE_KEY_INTERCEPT_ALLOW_ALL) ||
             scene->__key_intercept_rule == NTG_SCENE_KEY_INTERCEPT_ALLOW_SCENE)
     {
-        if(scene->__process_key_fn)
+        if(scene->__process_key_fn != NULL)
             consumed = scene->__process_key_fn(scene, key_event);
     }
 

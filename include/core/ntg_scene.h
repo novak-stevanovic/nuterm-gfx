@@ -69,6 +69,8 @@ struct ntg_scene
     ntg_scene_key_intercept_order __key_intercept_order;
     ntg_scene_key_intercept_rule __key_intercept_rule;
     ntg_scene_key_consume_mode __key_consume_mode;
+
+    bool __unfocused;
 };
 
 void __ntg_scene_init__(ntg_scene* scene, ntg_object* root);

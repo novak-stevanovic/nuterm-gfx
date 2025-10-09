@@ -69,7 +69,7 @@ void color_block_on_focus_fn(ntg_object* _object, bool intercept)
 {
     if(!intercept)
     {
-        exit(1);
+        ntg_log_log("HAPPENED");
         // ntg_color_block* color_block = (ntg_color_block*)_object;
         //
         // nt_color color = ntg_color_block_get_color(color_block);
@@ -77,6 +77,10 @@ void color_block_on_focus_fn(ntg_object* _object, bool intercept)
         //         color._rgb.g + 50, color._rgb.b + 50);
         //
         // ntg_color_block_set_color(color_block, new_color);
+    }
+    else
+    {
+        ntg_log_log("HAPPENED2");
     }
 }
 

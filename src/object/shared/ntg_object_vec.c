@@ -1,4 +1,5 @@
 #include "object/shared/ntg_object_vec.h"
+#include "shared/ntg_log.h"
 #include <assert.h>
 
 #define _NTG_VECTOR_IMPLEMENTATION_

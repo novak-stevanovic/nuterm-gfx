@@ -6,6 +6,7 @@
 #include "object/shared/ntg_object_drawing.h"
 #include "object/shared/ntg_object_vec.h"
 #include "shared/_ntg_shared.h"
+#include "shared/ntg_log.h"
 
 static void __update_scene_fn(ntg_object* object, void* _scene);
 
@@ -301,12 +302,24 @@ void ntg_object_focus(ntg_object* object, ntg_object* child)
 {
     assert(object != NULL);
 
-    assert((child == NULL) || ntg_object_vec_contains(object->__children, child));
+    if(child != NULL)
+    {
+        ntg_log_log("pre contains");
+        assert(ntg_object_vec_contains(object->__children, child));
 
-    object->__focused = child;
+        ntg_log_log("contains done");
 
-    if(child->__on_focus_fn)
-        object->__on_focus_fn(child, (child != NULL));
+        object->__focused = child;
+        if(child->__on_focus_fn != NULL)
+            child->__on_focus_fn(child, (child != NULL));
+
+        ntg_log_log("4");
+    }
+    else
+    {
+        ntg_log_log("2");
+        object->__focused = NULL;
+    }
 }
 
 ntg_object* ntg_object_get_focused(ntg_object* object)
