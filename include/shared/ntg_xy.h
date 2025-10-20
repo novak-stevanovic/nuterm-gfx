@@ -137,6 +137,11 @@ static inline bool ntg_xy_is_zero(struct ntg_xy size)
     return ((size.x == 0) && (size.y == 0));
 }
 
+static inline bool ntg_xy_size_is_zero(struct ntg_xy size)
+{
+    return ((size.x == 0) || (size.y == 0));
+}
+
 static inline struct ntg_xy ntg_xy_transpose(struct ntg_xy xy)
 {
     return (struct ntg_xy) {
