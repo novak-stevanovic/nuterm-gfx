@@ -42,4 +42,13 @@ ntg_text_wrap_mode ntg_label_get_wrap_mode(const ntg_label* label);
 size_t ntg_label_get_indent(const ntg_label* label);
 bool ntg_label_get_autotrim(const ntg_label* label);
 
+struct ntg_measure_output __ntg_label_measure_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation, size_t for_size,
+        const ntg_measure_context* context);
+
+void __ntg_label_draw_fn(
+        const ntg_drawable* drawable,
+        struct ntg_xy size, ntg_drawing* out_drawing);
+
 #endif // _NTG_LABEL_H_

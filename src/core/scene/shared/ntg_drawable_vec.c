@@ -1,4 +1,4 @@
-#include "core/scene/drawable/shared/ntg_drawable_vec.h"
+#include "core/scene/shared/ntg_drawable_vec.h"
 #include <assert.h>
 
 #define _NTG_VECTOR_IMPLEMENTATION_

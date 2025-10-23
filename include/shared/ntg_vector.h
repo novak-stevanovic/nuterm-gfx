@@ -162,16 +162,6 @@ static int ntg_vector_remove(struct ntg_vector* vec, const void* data,
     return 0;
 }
 
-static void* ntg_vector_at(struct ntg_vector* vec, size_t pos, size_t el_size)
-{
-    if((vec == NULL) || (pos >= vec->count) || (el_size == 0))
-        return NULL;
-
-    char* _vec_data = (char*)vec->data;
-
-    return (_vec_data + (pos * el_size));
-}
-
 #endif // _NTG_VECTOR_IMPLEMENTATION_
 
 #endif // _NTG_VECTOR_H_

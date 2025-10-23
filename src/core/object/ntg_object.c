@@ -2,57 +2,58 @@
 
 #include "core/object/ntg_object.h"
 #include "core/object/shared/ntg_object_vec.h"
-#include "core/scene/drawable/ntg_drawable.h"
-#include "core/scene/drawable/shared/ntg_drawing.h"
-#include "core/scene/drawable/shared/ntg_arrange_output.h"
-#include "core/scene/drawable/shared/ntg_constrain_output.h"
-#include "core/scene/drawable/shared/ntg_drawable_vec.h"
-#include "core/scene/drawable/shared/ntg_measure_output.h"
+#include "core/scene/ntg_drawable.h"
+#include "core/scene/shared/ntg_drawing.h"
+#include "core/scene/shared/ntg_arrange_output.h"
+#include "core/scene/shared/ntg_constrain_output.h"
+#include "core/scene/shared/ntg_drawable_vec.h"
+#include "core/scene/shared/ntg_measure_output.h"
 
 #include "shared/_ntg_shared.h"
 
 static struct ntg_measure_output __ntg_object_measure_fn(
-        const void* _object,
+        const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
         const ntg_measure_context* context);
 
 static void __ntg_object_constrain_fn(
-        const void* _object,
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
         size_t size,
         struct ntg_measure_output measure_output,
         const ntg_constrain_context* context,
         ntg_constrain_output* output);
 
 static void __ntg_object_arrange_fn(
-        const void* _object,
+        const ntg_drawable* drawable,
         struct ntg_xy size,
         const ntg_arrange_context* context,
         ntg_arrange_output* output);
 
 static void __ntg_object_draw_fn(
-        const void* _object,
+        const ntg_drawable* drawable,
         struct ntg_xy size,
         ntg_drawing* out_drawing);
 
 static bool __ntg_object_process_key_fn(
-        void* _object,
+        ntg_drawable* drawable,
         struct nt_key_event key_event,
         struct ntg_process_key_context context);
 
 static void __ntg_object_on_focus_fn(
-        void* _object,
+        ntg_drawable* drawable,
         struct ntg_focus_context context);
 
 static ntg_drawable_vec_view __ntg_object_get_children_fn_(
-        void* _object);
+        ntg_drawable* drawable);
 static const ntg_drawable_vec* __ntg_object_get_children_fn(
-        const void* _object);
+        const ntg_drawable* drawable);
 
 static ntg_drawable* __ntg_object_get_parent_fn_(
-        void* _object);
+        ntg_drawable* drawable);
 static const ntg_drawable* __ntg_object_get_parent_fn(
-        const void* _object);
+        const ntg_drawable* drawable);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -381,17 +382,17 @@ static void __init_default_values(ntg_object* object)
 /* ---------------------------------------------------------------- */
 
 static struct ntg_measure_output __ntg_object_measure_fn(
-        const void* _object,
+        const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
         const ntg_measure_context* context)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
     assert(context != NULL);
     assert(for_size != 0);
     // if(for_size == 0) return (struct ntg_measure_output) {0};
 
-    ntg_object* object = (ntg_object*)_object;
+    const ntg_object* object = ntg_drawable_user(drawable);
 
     struct ntg_measure_output result;
     if(object->__wrapped_measure_fn != NULL)
@@ -423,18 +424,18 @@ static struct ntg_measure_output __ntg_object_measure_fn(
 }
 
 static void __ntg_object_constrain_fn(
-        const void* _object,
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
         size_t size,
         struct ntg_measure_output measure_output,
         const ntg_constrain_context* context,
         ntg_constrain_output* output)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
     assert(context != NULL);
     assert(output != NULL);
 
-    ntg_object* object = (ntg_object*)_object;
-    ntg_drawable* drawable = &(object->__drawable);
+    const ntg_object* object = ntg_drawable_user(drawable);
 
     /* Check if to call wrapped constrain fn */
     if((size == 0) || (object->__wrapped_constrain_fn == NULL))
@@ -451,23 +452,22 @@ static void __ntg_object_constrain_fn(
     }
     else
     {
-        object->__wrapped_constrain_fn(object, size,
+        object->__wrapped_constrain_fn(drawable, orientation, size,
                 measure_output, context, output);
     }
 }
 
 static void __ntg_object_arrange_fn(
-        const void* _object,
+        const ntg_drawable* drawable,
         struct ntg_xy size,
         const ntg_arrange_context* context,
         ntg_arrange_output* output)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
     assert(context != NULL);
     assert(output != NULL);
 
-    ntg_object* object = (ntg_object*)_object;
-    ntg_drawable* drawable = &(object->__drawable);
+    const ntg_object* object = ntg_drawable_user(drawable);
 
     if(ntg_xy_size_is_zero(size) || (object->__wrapped_arrange_fn == NULL))
     {
@@ -483,21 +483,21 @@ static void __ntg_object_arrange_fn(
     }
     else
     {
-        object->__wrapped_arrange_fn(object, size, context, output);
+        object->__wrapped_arrange_fn(drawable, size, context, output);
     }
 }
 
 static void __ntg_object_draw_fn(
-        const void* _object,
+        const ntg_drawable* drawable,
         struct ntg_xy size,
         ntg_drawing* out_drawing)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
     assert(out_drawing != NULL);
 
     if(ntg_xy_size_is_zero(size)) return;
 
-    ntg_object* object = (ntg_object*)_object;
+    const ntg_object* object = ntg_drawable_user(drawable);
     // ntg_drawable* drawable = &(object->__drawable);
 
     size_t i, j;
@@ -512,46 +512,46 @@ static void __ntg_object_draw_fn(
     }
 
     if(object->__wrapped_draw_fn != NULL)
-        object->__wrapped_draw_fn(object, size, out_drawing);
+        object->__wrapped_draw_fn(drawable, size, out_drawing);
 }
 
 static bool __ntg_object_process_key_fn(
-        void* _object,
+        ntg_drawable* drawable,
         struct nt_key_event key_event,
         struct ntg_process_key_context context)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
     assert(context.scene != NULL);
 
-    ntg_object* object = (ntg_object*)_object;
+    ntg_object* object = ntg_drawable_user_(drawable);
     // ntg_drawable* drawable = &(object->__drawable);
 
     if(object->__wrapped_process_key_fn != NULL)
-        return object->__wrapped_process_key_fn(object, key_event, context);
+        return object->__wrapped_process_key_fn(drawable, key_event, context);
     else
         return false;
 }
 
 static void __ntg_object_on_focus_fn(
-        void* _object,
+        ntg_drawable* drawable,
         struct ntg_focus_context context)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
     assert(context.scene != NULL);
 
-    ntg_object* object = (ntg_object*)_object;
+    ntg_object* object = ntg_drawable_user_(drawable);
     // ntg_drawable* drawable = &(object->__drawable);
 
     if(object->__wrapped_process_key_fn != NULL)
-        object->__wrapped_on_focus_fn(object, context);
+        object->__wrapped_on_focus_fn(drawable, context);
 }
 
 static ntg_drawable_vec_view __ntg_object_get_children_fn_(
-        void* _object)
+        ntg_drawable* drawable)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
 
-    ntg_object* object = (ntg_object*)_object;
+    ntg_object* object = ntg_drawable_user_(drawable);
 
     ntg_drawable_vec_view view;
     __ntg_drawable_vec_view_init__(&view, object->__children_drawables);
@@ -560,21 +560,21 @@ static ntg_drawable_vec_view __ntg_object_get_children_fn_(
 }
 
 static const ntg_drawable_vec* __ntg_object_get_children_fn(
-        const void* _object)
+        const ntg_drawable* drawable)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
 
-    ntg_object* object = (ntg_object*)_object;
+    const ntg_object* object = ntg_drawable_user(drawable);
 
     return object->__children_drawables;
 }
 
 static ntg_drawable* __ntg_object_get_parent_fn_(
-        void* _object)
+        ntg_drawable* drawable)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
 
-    ntg_object* object = (ntg_object*)_object;
+    ntg_object* object = ntg_drawable_user_(drawable);
 
     return (object->__parent != NULL) ?
         &(object->__parent->__drawable) :
@@ -582,11 +582,11 @@ static ntg_drawable* __ntg_object_get_parent_fn_(
 }
 
 static const ntg_drawable* __ntg_object_get_parent_fn(
-        const void* _object)
+        const ntg_drawable* drawable)
 {
-    assert(_object != NULL);
+    assert(drawable != NULL);
 
-    ntg_object* object = (ntg_object*)_object;
+    const ntg_object* object = ntg_drawable_user(drawable);
 
     return (object->__parent != NULL) ?
         &(object->__parent->__drawable) :

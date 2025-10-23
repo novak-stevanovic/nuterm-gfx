@@ -4,7 +4,7 @@
 #include "base/ntg_cell.h"
 #include "base/ntg_event.h"
 #include "core/object/shared/ntg_object_vec.h"
-#include "core/scene/drawable/ntg_drawable.h"
+#include "core/scene/ntg_drawable.h"
 #include "shared/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
@@ -74,7 +74,7 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber);
 
 /* ---------------------------------------------------------------- */
 
-ntg_drawable* ntg_object_get_drawable_(ntg_object* object);
+// ntg_drawable* ntg_object_get_drawable_(ntg_object* object);
 const ntg_drawable* ntg_object_get_drawable(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */

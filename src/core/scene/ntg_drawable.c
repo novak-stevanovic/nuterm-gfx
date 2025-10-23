@@ -1,9 +1,11 @@
 #include <assert.h>
 
-#include "core/scene/drawable/ntg_drawable.h"
+#include "core/scene/ntg_drawable.h"
+#include "core/scene/shared/ntg_drawable_vec.h"
+#include "core/scene/shared/ntg_measure_output.h"
 
 static bool __ntg_process_key_fn_default(
-        void* user,
+        const ntg_drawable* drawable,
         struct nt_key_event key_event,
         struct ntg_process_key_context context)
 {
@@ -11,7 +13,7 @@ static bool __ntg_process_key_fn_default(
 }
 
 static void __ntg_on_focus_fn_default(
-        void* user,
+        const ntg_drawable* drawable,
         struct ntg_focus_context context)
 {}
 
@@ -63,6 +65,20 @@ void __ntg_drawable_deinit__(ntg_drawable* drawable)
     (*drawable) = (ntg_drawable) {0};
 }
 
+const void* ntg_drawable_user(const ntg_drawable* drawable)
+{
+    assert(drawable != NULL);
+
+    return drawable->__user;
+}
+
+void* ntg_drawable_user_(ntg_drawable* drawable)
+{
+    assert(drawable != NULL);
+
+    return drawable->__user;
+}
+
 bool ntg_drawable_is_ancestor(const ntg_drawable* drawable, const ntg_drawable* ancestor)
 {
     assert(drawable != NULL);
@@ -74,7 +90,7 @@ bool ntg_drawable_is_ancestor(const ntg_drawable* drawable, const ntg_drawable* 
     {
         if(it_drawable == ancestor) return true;
 
-        it_drawable = (const ntg_drawable*)(it_drawable->_get_parent_fn(it_drawable));
+        it_drawable = (const ntg_drawable*)(it_drawable->_get_parent_fn(drawable));
     }
 
     return false;

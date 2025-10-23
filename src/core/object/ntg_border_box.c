@@ -1,5 +1,12 @@
 #include <assert.h>
+
 #include "core/object/ntg_border_box.h"
+#include "core/scene/shared/ntg_measure_output.h"
+#include "core/scene/shared/ntg_measure_context.h"
+#include "core/scene/shared/ntg_constrain_output.h"
+#include "core/scene/shared/ntg_constrain_context.h"
+#include "core/scene/shared/ntg_arrange_context.h"
+#include "core/scene/shared/ntg_arrange_output.h"
 #include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
 
@@ -17,10 +24,10 @@ void __ntg_border_box_init__(ntg_border_box* box)
     assert(box != NULL);
 
     __ntg_object_init__(NTG_OBJECT(box), NTG_OBJECT_WIDGET,
-            _ntg_border_box_measure_fn,
-            _ntg_border_box_constrain_fn,
-            _ntg_border_box_arrange_children_fn,
-            NULL);
+            __ntg_border_box_measure_fn,
+            __ntg_border_box_constrain_fn,
+            __ntg_border_box_arrange_fn,
+            NULL, NULL, NULL);
 
     __init_default(box);
 }
@@ -32,32 +39,45 @@ void __ntg_border_box_deinit__(ntg_border_box* box)
     __init_default(box);
 }
 
-struct ntg_measure_result _ntg_border_box_measure_fn(
-        const ntg_object* _box,
-        ntg_orientation orientation, size_t for_size,
+struct ntg_measure_output __ntg_border_box_measure_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
+        size_t for_size,
         const ntg_measure_context* context)
 {
-    ntg_border_box* box = NTG_BORDER_BOX(_box);
+    // const ntg_object* object = (const ntg_object*)user;
+    const ntg_border_box* box = ntg_drawable_user(drawable);
 
-    struct ntg_measure_data north_data = 
-        (box->__north != NULL) ?
-        ntg_measure_context_get(context, box->__north) :
+    const ntg_drawable* north_drawable = (box->__north != NULL) ?
+        ntg_object_get_drawable(box->__north) :
+        NULL;
+    const ntg_drawable* east_drawable = (box->__east != NULL) ?
+        ntg_object_get_drawable(box->__east) :
+        NULL;
+    const ntg_drawable* south_drawable = (box->__south != NULL) ?
+        ntg_object_get_drawable(box->__south) :
+        NULL;
+    const ntg_drawable* west_drawable = (box->__west != NULL) ?
+        ntg_object_get_drawable(box->__west) :
+        NULL;
+    const ntg_drawable* center_drawable = (box->__center != NULL) ?
+        ntg_object_get_drawable(box->__center) :
+        NULL;
+
+    struct ntg_measure_data north_data = (north_drawable != NULL) ?
+        ntg_measure_context_get(context, north_drawable) :
         (struct ntg_measure_data) {0};
-    struct ntg_measure_data east_data = 
-        (box->__east != NULL) ?
-        ntg_measure_context_get(context, box->__east) :
+    struct ntg_measure_data east_data = (east_drawable != NULL) ?
+        ntg_measure_context_get(context, east_drawable) :
         (struct ntg_measure_data) {0};
-    struct ntg_measure_data south_data = 
-        (box->__south != NULL) ?
-        ntg_measure_context_get(context, box->__south) :
+    struct ntg_measure_data south_data = (south_drawable != NULL) ?
+        ntg_measure_context_get(context, south_drawable) :
         (struct ntg_measure_data) {0};
-    struct ntg_measure_data west_data = 
-        (box->__west != NULL) ?
-        ntg_measure_context_get(context, box->__west) :
+    struct ntg_measure_data west_data = (west_drawable != NULL) ?
+        ntg_measure_context_get(context, west_drawable) :
         (struct ntg_measure_data) {0};
-    struct ntg_measure_data center_data = 
-        (box->__center != NULL) ?
-        ntg_measure_context_get(context, box->__center) :
+    struct ntg_measure_data center_data = (center_drawable != NULL) ?
+        ntg_measure_context_get(context, center_drawable) :
         (struct ntg_measure_data) {0};
 
     size_t min, natural, max;
@@ -86,40 +106,54 @@ struct ntg_measure_result _ntg_border_box_measure_fn(
                 north_data.max_size + east_data.max_size + south_data.max_size);
     }
 
-    return (struct ntg_measure_result) {
+    return (struct ntg_measure_output) {
         .min_size = min,
         .natural_size = natural,
         .max_size = max
     };
 }
 
-void _ntg_border_box_constrain_fn(
-        const ntg_object* _box,
-        ntg_orientation orientation, size_t size,
+void __ntg_border_box_constrain_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
+        size_t size,
+        struct ntg_measure_output measure_output,
         const ntg_constrain_context* context,
         ntg_constrain_output* out_sizes)
 {
-    ntg_border_box* box = NTG_BORDER_BOX(_box);
+    // const ntg_object* object = (const ntg_object*)user;
+    const ntg_border_box* box = ntg_drawable_user(drawable);
 
-    struct ntg_constrain_data north_data = 
-        (box->__north != NULL) ?
-        ntg_constrain_context_get(context, box->__north) :
+    const ntg_drawable* north_drawable = (box->__north != NULL) ?
+        ntg_object_get_drawable(box->__north) :
+        NULL;
+    const ntg_drawable* east_drawable = (box->__east != NULL) ?
+        ntg_object_get_drawable(box->__east) :
+        NULL;
+    const ntg_drawable* south_drawable = (box->__south != NULL) ?
+        ntg_object_get_drawable(box->__south) :
+        NULL;
+    const ntg_drawable* west_drawable = (box->__west != NULL) ?
+        ntg_object_get_drawable(box->__west) :
+        NULL;
+    const ntg_drawable* center_drawable = (box->__center != NULL) ?
+        ntg_object_get_drawable(box->__center) :
+        NULL;
+
+    struct ntg_constrain_data north_data = (north_drawable != NULL) ?
+        ntg_constrain_context_get(context, north_drawable) :
         (struct ntg_constrain_data) {0};
-    struct ntg_constrain_data east_data = 
-        (box->__east != NULL) ?
-        ntg_constrain_context_get(context, box->__east) :
+    struct ntg_constrain_data east_data = (east_drawable != NULL) ?
+        ntg_constrain_context_get(context, east_drawable) :
         (struct ntg_constrain_data) {0};
-    struct ntg_constrain_data south_data = 
-        (box->__south != NULL) ?
-        ntg_constrain_context_get(context, box->__south) :
+    struct ntg_constrain_data south_data = (south_drawable != NULL) ?
+        ntg_constrain_context_get(context, south_drawable) :
         (struct ntg_constrain_data) {0};
-    struct ntg_constrain_data west_data = 
-        (box->__west != NULL) ?
-        ntg_constrain_context_get(context, box->__west) :
+    struct ntg_constrain_data west_data = (west_drawable != NULL) ?
+        ntg_constrain_context_get(context, west_drawable) :
         (struct ntg_constrain_data) {0};
-    struct ntg_constrain_data center_data = 
-        (box->__center != NULL) ?
-        ntg_constrain_context_get(context, box->__center) :
+    struct ntg_constrain_data center_data = (center_drawable != NULL) ?
+        ntg_constrain_context_get(context, center_drawable) :
         (struct ntg_constrain_data) {0};
 
     // size_t min_size = ntg_constrain_context_get_min_size(context);
@@ -267,45 +301,57 @@ void _ntg_border_box_constrain_fn(
     }
 
     if(box->__north != NULL)
-        ntg_constrain_output_set(out_sizes, box->__north, north_result);
+        ntg_constrain_output_set(out_sizes, north_drawable, north_result);
     if(box->__east != NULL)
-        ntg_constrain_output_set(out_sizes, box->__east, east_result);
+        ntg_constrain_output_set(out_sizes, east_drawable, east_result);
     if(box->__south != NULL)
-        ntg_constrain_output_set(out_sizes, box->__south, south_result);
+        ntg_constrain_output_set(out_sizes, south_drawable, south_result);
     if(box->__west != NULL)
-        ntg_constrain_output_set(out_sizes, box->__west, west_result);
+        ntg_constrain_output_set(out_sizes, west_drawable, west_result);
     if(box->__center != NULL)
-        ntg_constrain_output_set(out_sizes, box->__center, center_result);
+        ntg_constrain_output_set(out_sizes, center_drawable, center_result);
 }
 
-void _ntg_border_box_arrange_children_fn(
-        const ntg_object* _box,
+void __ntg_border_box_arrange_fn(
+        const ntg_drawable* drawable,
         struct ntg_xy size,
         const ntg_arrange_context* context,
         ntg_arrange_output* out_positions)
 {
-    ntg_border_box* box = NTG_BORDER_BOX(_box);
+    // const ntg_object* object = (const ntg_object*)user;
+    const ntg_border_box* box = ntg_drawable_user(drawable);
 
-    struct ntg_arrange_data north_data = 
-        (box->__north != NULL) ?
-        ntg_arrange_context_get(context, box->__north) :
+    const ntg_drawable* north_drawable = (box->__north != NULL) ?
+        ntg_object_get_drawable(box->__north) :
+        NULL;
+    const ntg_drawable* east_drawable = (box->__east != NULL) ?
+        ntg_object_get_drawable(box->__east) :
+        NULL;
+    const ntg_drawable* south_drawable = (box->__south != NULL) ?
+        ntg_object_get_drawable(box->__south) :
+        NULL;
+    const ntg_drawable* west_drawable = (box->__west != NULL) ?
+        ntg_object_get_drawable(box->__west) :
+        NULL;
+    const ntg_drawable* center_drawable = (box->__center != NULL) ?
+        ntg_object_get_drawable(box->__center) :
+        NULL;
+
+    struct ntg_arrange_data north_data = (north_drawable != NULL) ?
+        ntg_arrange_context_get(context, north_drawable) :
         (struct ntg_arrange_data) {0};
-    struct ntg_arrange_data east_data = 
-        (box->__east != NULL) ?
-        ntg_arrange_context_get(context, box->__east) :
+    struct ntg_arrange_data east_data = (east_drawable != NULL) ?
+        ntg_arrange_context_get(context, east_drawable) :
         (struct ntg_arrange_data) {0};
-    struct ntg_arrange_data south_data = 
-        (box->__south != NULL) ?
-        ntg_arrange_context_get(context, box->__south) :
+    struct ntg_arrange_data south_data = (south_drawable != NULL) ?
+        ntg_arrange_context_get(context, south_drawable) :
         (struct ntg_arrange_data) {0};
-    struct ntg_arrange_data west_data = 
-        (box->__west != NULL) ?
-        ntg_arrange_context_get(context, box->__west) :
+    struct ntg_arrange_data west_data = (west_drawable != NULL) ?
+        ntg_arrange_context_get(context, west_drawable) :
         (struct ntg_arrange_data) {0};
-    struct ntg_arrange_data center_data = 
-        (box->__center != NULL) ?
-        ntg_arrange_context_get(context, box->__center) :
-        (struct ntg_arrange_data) {0};
+    // struct ntg_arrange_data center_data = (center_drawable != NULL) ?
+    //     ntg_arrange_context_get(context, center_drawable) :
+    //     (struct ntg_arrange_data) {0};
 
     struct ntg_xy north_size = ntg_xy_size(north_data.size);
     struct ntg_xy east_size = ntg_xy_size(east_data.size);
@@ -331,15 +377,15 @@ void _ntg_border_box_arrange_children_fn(
     struct ntg_arrange_result center_result = { .pos = center_pos };
 
     if(box->__north != NULL)
-        ntg_arrange_output_set(out_positions, box->__north, north_result);
+        ntg_arrange_output_set(out_positions, north_drawable, north_result);
     if(box->__east != NULL)
-        ntg_arrange_output_set(out_positions, box->__east, east_result);
+        ntg_arrange_output_set(out_positions, east_drawable, east_result);
     if(box->__south != NULL)
-        ntg_arrange_output_set(out_positions, box->__south, south_result);
+        ntg_arrange_output_set(out_positions, south_drawable, south_result);
     if(box->__west != NULL)
-        ntg_arrange_output_set(out_positions, box->__west, west_result);
+        ntg_arrange_output_set(out_positions, west_drawable, west_result);
     if(box->__center != NULL)
-        ntg_arrange_output_set(out_positions, box->__center, center_result);
+        ntg_arrange_output_set(out_positions, center_drawable, center_result);
 }
 
 ntg_object* ntg_border_box_get_north(ntg_border_box* box)

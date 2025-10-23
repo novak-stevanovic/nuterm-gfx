@@ -1,6 +1,7 @@
 #ifndef _NTG_STAGE_H_
 #define _NTG_STAGE_H_
 
+#include "base/ntg_cell.h"
 #include "core/scene/ntg_scene.h"
 #include "nt_event.h"
 

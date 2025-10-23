@@ -26,4 +26,15 @@ struct ntg_prog_bar
              __threshold_cell;
 };
 
+struct ntg_measure_output __ntg_prog_bar_measure_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
+        size_t for_size,
+        const ntg_measure_context* context);
+
+void __ntg_prog_bar_arrange_drawing_fn(
+        const ntg_drawable* drawable,
+        struct ntg_xy size,
+        ntg_drawing* out_drawing);
+
 #endif // _NTG_PROG_BAR_H_

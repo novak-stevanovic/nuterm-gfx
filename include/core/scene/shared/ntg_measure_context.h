@@ -16,7 +16,7 @@ struct ntg_measure_data
 ntg_measure_context* ntg_measure_context_new();
 void ntg_measure_context_destroy(ntg_measure_context* context);
 
-struct ntg_measure_cdata ntg_measure_context_get(
+struct ntg_measure_data ntg_measure_context_get(
         const ntg_measure_context* context,
         const ntg_drawable* child);
 void ntg_measure_context_set(

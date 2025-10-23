@@ -39,4 +39,24 @@ struct ntg_box
                   __secondary_alignment;
 };
 
+struct ntg_measure_output __ntg_box_measure_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
+        size_t for_size,
+        const ntg_measure_context* context);
+
+void __ntg_box_constrain_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
+        size_t size,
+        struct ntg_measure_output measure_output,
+        const ntg_constrain_context* context,
+        ntg_constrain_output* out_sizes);
+
+void __ntg_box_arrange_fn(
+        const ntg_drawable* drawable,
+        struct ntg_xy size,
+        const ntg_arrange_context* context,
+        ntg_arrange_output* out_positions);
+
 #endif // _NTG_BOX_H_

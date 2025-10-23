@@ -19,7 +19,7 @@ void ntg_constrain_context_destroy(ntg_constrain_context* context);
 
 struct ntg_constrain_data ntg_constrain_context_get(
         const ntg_constrain_context* context,
-        ntg_drawable* child);
+        const ntg_drawable* child);
 void ntg_constrain_context_set(ntg_constrain_context* context,
         const ntg_drawable* child,
         struct ntg_constrain_data data);

@@ -1,8 +1,15 @@
 #include <assert.h>
+#include <stdlib.h>
 
-#include "object/ntg_box.h"
+#include "core/object/ntg_box.h"
 #include "base/ntg_sap.h"
-#include "object/shared/ntg_object_vec.h"
+#include "core/object/shared/ntg_object_vec.h"
+#include "core/scene/shared/ntg_measure_context.h"
+#include "core/scene/shared/ntg_measure_output.h"
+#include "core/scene/shared/ntg_constrain_context.h"
+#include "core/scene/shared/ntg_constrain_output.h"
+#include "core/scene/shared/ntg_arrange_context.h"
+#include "core/scene/shared/ntg_arrange_output.h"
 #include "shared/_ntg_shared.h"
 
 /* -------------------------------------------------------------------------- */
@@ -14,14 +21,19 @@ static void __init_default_values(ntg_box* box)
     box->__secondary_alignment = NTG_ALIGNMENT_1;
 }
 
-void __ntg_box_init__(ntg_box* box, ntg_orientation orientation,
-        ntg_alignment primary_alignment, ntg_alignment secondary_alignment)
+void __ntg_box_init__(
+        ntg_box* box,
+        ntg_orientation orientation,
+        ntg_alignment primary_alignment,
+        ntg_alignment secondary_alignment)
 {
     assert(box != NULL);
 
     __ntg_object_init__(NTG_OBJECT(box), NTG_OBJECT_WIDGET,
-            _ntg_box_measure_fn, _ntg_box_constrain_fn,
-            _ntg_box_arrange_children_fn, NULL);
+            __ntg_box_measure_fn,
+            __ntg_box_constrain_fn,
+            __ntg_box_arrange_fn,
+            NULL, NULL, NULL);
 
     __init_default_values(box);
 
@@ -109,24 +121,29 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 
 /* -------------------------------------------------------------------------- */
 
-struct ntg_measure_result _ntg_box_measure_fn(const ntg_object* _box,
-        ntg_orientation orientation, size_t for_size,
+struct ntg_measure_output __ntg_box_measure_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
+        size_t for_size,
         const ntg_measure_context* context)
 {
-    ntg_box* box = NTG_BOX(_box);
-    const ntg_object_vec* children = ntg_object_get_children(_box);
+    const ntg_object* object = ntg_drawable_user(drawable);
+    const ntg_box* box = (const ntg_box*)object;
+    const ntg_object_vec* children = ntg_object_get_children(object);
 
-    if(children->_count == 0) return (struct ntg_measure_result) {0};
+    if(children->_count == 0) return (struct ntg_measure_output) {0};
 
     size_t min_size = 0, natural_size = 0, max_size;
 
     size_t i;
     struct ntg_measure_data it_data;
-    ntg_object* it_child;
+    const ntg_object* it_child;
+    const ntg_drawable* it_drawable;
     for(i = 0; i < children->_count; i++)
     {
         it_child = children->_data[i];
-        it_data = ntg_measure_context_get(context, it_child);
+        it_drawable = ntg_object_get_drawable(it_child);
+        it_data = ntg_measure_context_get(context, it_drawable);
 
         if(orientation == box->__orientation)
         {
@@ -142,26 +159,29 @@ struct ntg_measure_result _ntg_box_measure_fn(const ntg_object* _box,
         }
     }
 
-    return (struct ntg_measure_result) {
+    return (struct ntg_measure_output) {
         .min_size = min_size,
         .natural_size = natural_size,
-        // .max_size = max_size
         .max_size = NTG_SIZE_MAX
     };
 }
 
-void _ntg_box_constrain_fn(const ntg_object* _box,
-        ntg_orientation orientation, size_t size,
+void __ntg_box_constrain_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
+        size_t size,
+        struct ntg_measure_output measure_output,
         const ntg_constrain_context* context,
         ntg_constrain_output* out_sizes)
 {
-    ntg_box* box = NTG_BOX(_box);
-    const ntg_object_vec* children = ntg_object_get_children(_box);
+    const ntg_object* object = ntg_drawable_user(drawable);
+    const ntg_box* box = (const ntg_box*)object;
+    const ntg_object_vec* children = ntg_object_get_children(object);
 
     if(children->_count == 0) return;
 
-    size_t min_size = ntg_constrain_context_get_min_size(context);
-    size_t natural_size = ntg_constrain_context_get_natural_size(context);
+    size_t min_size = measure_output.min_size;
+    size_t natural_size = measure_output.natural_size;
 
     size_t extra_size;
     size_t* block = malloc(children->_count * sizeof(size_t) * 3);
@@ -170,7 +190,8 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
     size_t* _sizes = &(block[children->_count]);
     size_t* grows = NULL;
 
-    ntg_object* it_obj;
+    const ntg_object* it_obj;
+    const ntg_drawable* it_drawable;
     struct ntg_constrain_data it_data;
     struct ntg_constrain_result it_result;
     size_t i;
@@ -183,7 +204,8 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
             for(i = 0; i < children->_count; i++)
             {
                 it_obj = children->_data[i];
-                it_data = ntg_constrain_context_get(context, it_obj);
+                it_drawable = ntg_object_get_drawable(it_obj);
+                it_data = ntg_constrain_context_get(context, it_drawable);
 
                 caps[i] = it_data.max_size;
                 _sizes[i] = it_data.natural_size;
@@ -198,7 +220,8 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
                 for(i = 0; i < children->_count; i++)
                 {
                     it_obj = children->_data[i];
-                    it_data = ntg_constrain_context_get(context, it_obj);
+                    it_drawable = ntg_object_get_drawable(it_obj);
+                    it_data = ntg_constrain_context_get(context, it_drawable);
 
                     caps[i] = it_data.natural_size;
                     _sizes[i] = it_data.min_size;
@@ -210,7 +233,8 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
                 for(i = 0; i < children->_count; i++)
                 {
                     it_obj = children->_data[i];
-                    it_data = ntg_constrain_context_get(context, it_obj);
+                    it_drawable = ntg_object_get_drawable(it_obj);
+                    it_data = ntg_constrain_context_get(context, it_drawable);
 
                     caps[i] = it_data.min_size;
                     _sizes[i] = 0;
@@ -223,12 +247,13 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
         for(i = 0; i < children->_count; i++)
         {
             it_obj = children->_data[i];
-            it_data = ntg_constrain_context_get(context, it_obj);
+            it_drawable = ntg_object_get_drawable(it_obj);
+            it_data = ntg_constrain_context_get(context, it_drawable);
 
             it_result = (struct ntg_constrain_result) {
                 .size = _sizes[i]
             };
-            ntg_constrain_output_set(out_sizes, it_obj, it_result);
+            ntg_constrain_output_set(out_sizes, it_drawable, it_result);
         }
     }
     else
@@ -236,7 +261,8 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
         for(i = 0; i < children->_count; i++)
         {
             it_obj = children->_data[i];
-            it_data = ntg_constrain_context_get(context, it_obj);
+            it_drawable = ntg_object_get_drawable(it_obj);
+            it_data = ntg_constrain_context_get(context, it_drawable);
 
             it_result = (struct ntg_constrain_result) {
                 .size = _min2_size(size, 
@@ -244,26 +270,30 @@ void _ntg_box_constrain_fn(const ntg_object* _box,
                          it_data.max_size :
                          it_data.natural_size))
             };
-            ntg_constrain_output_set(out_sizes, it_obj, it_result);
+            ntg_constrain_output_set(out_sizes, it_drawable, it_result);
         }
     }
 
     free(block);
 }
 
-void _ntg_box_arrange_children_fn(const ntg_object* _box,
+void __ntg_box_arrange_fn(
+        const ntg_drawable* drawable,
         struct ntg_xy size,
         const ntg_arrange_context* context,
         ntg_arrange_output* out_positions)
 {
-    ntg_box* box = NTG_BOX(_box);
-    const ntg_object_vec* children = ntg_object_get_children(_box);
+    const ntg_object* object = ntg_drawable_user(drawable);
+    const ntg_box* box = (const ntg_box*)object;
+    const ntg_object_vec* children = ntg_object_get_children(object);
+
     ntg_orientation orient = box->__orientation;
     ntg_alignment prim_align = box->__primary_alignment;
     ntg_alignment sec_align = box->__secondary_alignment;
 
     size_t i;
-    ntg_object* it_obj;
+    const ntg_object* it_obj;
+    const ntg_drawable* it_drawable;
     struct ntg_arrange_data it_data;
     struct ntg_oxy _it_size;
 
@@ -272,8 +302,9 @@ void _ntg_box_arrange_children_fn(const ntg_object* _box,
     for(i = 0; i < children->_count; i++)
     {
         it_obj = children->_data[i];
+        it_drawable = ntg_object_get_drawable(it_obj);
 
-        it_data = ntg_arrange_context_get(context, it_obj);
+        it_data = ntg_arrange_context_get(context, it_drawable);
         _it_size = ntg_oxy_from_xy(it_data.size, orient);
 
         _content_size.prim_val += _it_size.prim_val;
@@ -301,7 +332,9 @@ void _ntg_box_arrange_children_fn(const ntg_object* _box,
     for(i = 0; i < children->_count; i++)
     {
         it_obj = children->_data[i];
-        it_data = ntg_arrange_context_get(context, it_obj);
+        it_drawable = ntg_object_get_drawable(it_obj);
+
+        it_data = ntg_arrange_context_get(context, it_drawable);
         _it_size = ntg_oxy_from_xy(it_data.size, orient);
 
         if(sec_align == NTG_ALIGNMENT_1)
@@ -319,7 +352,7 @@ void _ntg_box_arrange_children_fn(const ntg_object* _box,
             .pos = _it_pos
         };
 
-        ntg_arrange_output_set(out_positions, it_obj, it_result);
+        ntg_arrange_output_set(out_positions, it_drawable, it_result);
 
         _it_extra_offset.prim_val += _it_size.prim_val;
     }

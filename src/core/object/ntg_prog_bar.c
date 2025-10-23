@@ -1,5 +1,6 @@
-#include "object/ntg_prog_bar.h"
-#include "object/shared/ntg_object_drawing.h"
+#include "core/object/ntg_prog_bar.h"
+#include "core/scene/shared/ntg_drawing.h"
+#include "core/scene/shared/ntg_measure_output.h"
 #include "shared/_ntg_shared.h"
 #include <assert.h>
 #include <math.h>
@@ -12,10 +13,10 @@ void __ntg_prog_bar_init__(ntg_prog_bar* prog_bar,
 
     __ntg_object_init__(NTG_OBJECT(prog_bar),
             NTG_OBJECT_WIDGET,
-            _ntg_prog_bar_measure_fn,
-            NULL,
-            NULL,
-            _ntg_prog_bar_arrange_drawing_fn);
+            __ntg_prog_bar_measure_fn,
+            NULL, NULL,
+            __ntg_prog_bar_arrange_drawing_fn,
+            NULL, NULL);
 
     prog_bar->__orientation = orientation;
     prog_bar->__complete_cell = complete_cell;
@@ -51,17 +52,19 @@ double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar)
     return prog_bar->__percentage;
 }
 
-struct ntg_measure_result _ntg_prog_bar_measure_fn(const ntg_object* _prog_bar,
-        ntg_orientation orientation, size_t for_size,
+struct ntg_measure_output __ntg_prog_bar_measure_fn(
+        const ntg_drawable* drawable,
+        ntg_orientation orientation,
+        size_t for_size,
         const ntg_measure_context* context)
 {
-    assert(_prog_bar != NULL);
+    assert(drawable != NULL);
 
-    ntg_prog_bar* prog_bar = NTG_PROG_BAR(_prog_bar);
+    const ntg_prog_bar* prog_bar = ntg_drawable_user(drawable);
 
     if(orientation == prog_bar->__orientation)
     {
-        return (struct ntg_measure_result) {
+        return (struct ntg_measure_output) {
             .min_size = 10,
             .natural_size = 10,
             .max_size = SIZE_MAX 
@@ -69,7 +72,7 @@ struct ntg_measure_result _ntg_prog_bar_measure_fn(const ntg_object* _prog_bar,
     }
     else
     {
-        return (struct ntg_measure_result) {
+        return (struct ntg_measure_output) {
             .min_size = 1,
             .natural_size = 1,
             .max_size = SIZE_MAX 
@@ -77,12 +80,14 @@ struct ntg_measure_result _ntg_prog_bar_measure_fn(const ntg_object* _prog_bar,
     }
 }
 
-void _ntg_prog_bar_arrange_drawing_fn(const ntg_object* _prog_bar,
-        struct ntg_xy size, ntg_object_drawing* out_drawing)
+void __ntg_prog_bar_arrange_drawing_fn(
+        const ntg_drawable* drawable,
+        struct ntg_xy size,
+        ntg_drawing* out_drawing)
 {
-    assert(_prog_bar != NULL);
+    assert(drawable != NULL);
 
-    ntg_prog_bar* prog_bar = NTG_PROG_BAR(_prog_bar);
+    const ntg_prog_bar* prog_bar = ntg_drawable_user(drawable);
 
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
@@ -100,7 +105,7 @@ void _ntg_prog_bar_arrange_drawing_fn(const ntg_object* _prog_bar,
         {
             _it_xy = ntg_oxy(i, j);
             it_xy = ntg_xy_from_oxy(_it_xy, prog_bar->__orientation);
-            it_cell = ntg_object_drawing_at_(out_drawing, it_xy);
+            it_cell = ntg_drawing_at_(out_drawing, it_xy);
             if(complete_count == _size.prim_val)
                 (*it_cell) = prog_bar->__complete_cell;
             else if(complete_count == 0)

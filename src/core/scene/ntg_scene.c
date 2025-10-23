@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "base/ntg_event_types.h"
-#include "core/scene/ntg_scene_drawing.h"
+#include "core/scene/shared/ntg_scene_drawing.h"
 #include "shared/ntg_log.h"
 #include "shared/ntg_xy.h"
 
@@ -21,9 +21,8 @@ void __ntg_scene_init__(ntg_scene* scene, ntg_object* root)
     scene->__root = root;
     scene->__key_consume_mode = NTG_SCENE_KEY_CONSUME_ONCE;
     scene->__key_intercept_order = NTG_SCENE_KEY_INTERCEPT_ORDER_PROCESS_FIRST;
-    scene->__key_intercept_rule = NTG_SCENE_KEY_INTERCEPT_ALLOW_SCENE;
-    scene->__on_object_register_fn = NULL;
-    scene->__on_object_unregister_fn =  NULL;
+    scene->__on_register_fn = NULL;
+    scene->__on_unregister_fn =  NULL;
     scene->__size = NTG_XY_UNSET;
     scene->__focused = NULL;
 
@@ -75,13 +74,6 @@ ntg_scene_key_intercept_order ntg_scene_get_key_intercept_order(const ntg_scene*
     assert(scene != NULL);
 
     return scene->__key_intercept_order;
-}
-
-void ntg_scene_set_key_intercept_rule(ntg_scene* scene, ntg_scene_key_intercept_rule rule)
-{
-    assert(scene != NULL);
-
-    scene->__key_intercept_rule = rule;
 }
 
 ntg_scene_key_intercept_rule ntg_scene_get_key_intercept_rule(const ntg_scene* scene)

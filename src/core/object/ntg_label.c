@@ -1,9 +1,11 @@
 #include <assert.h>
 #include <math.h>
+#include <stdlib.h>
 #include <uconv/uconv.h>
 
-#include "object/ntg_label.h"
-#include "object/shared/ntg_object_drawing.h"
+#include "core/object/ntg_label.h"
+#include "core/scene/shared/ntg_drawing.h"
+#include "core/scene/shared/ntg_measure_output.h"
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_string.h"
 
@@ -34,15 +36,15 @@ static void __get_wrap_rows_wrap(struct ntg_str_utf32_view row, size_t for_size,
 static void __get_wrap_rows_wwrap(struct ntg_str_utf32_view row, size_t for_size,
         struct ntg_str_utf32_view** out_wwrap_rows, size_t* out_wwrap_row_count);
 
-static struct ntg_measure_result __measure_nowrap_fn(
+static struct ntg_measure_output __measure_nowrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         ntg_orientation label_orientation, size_t indent,
         ntg_orientation orientation, size_t for_size);
-static struct ntg_measure_result __measure_wrap_fn(
+static struct ntg_measure_output __measure_wrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         ntg_orientation label_orientation, size_t indent,
         ntg_orientation orientation, size_t for_size);
-static struct ntg_measure_result __measure_wwrap_fn(
+static struct ntg_measure_output __measure_wwrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         ntg_orientation label_orientation, size_t indent,
         ntg_orientation orientation, size_t for_size);
@@ -102,9 +104,10 @@ void __ntg_label_init__(ntg_label* label, ntg_orientation orientation)
 
     __ntg_object_init__(NTG_OBJECT(label),
             NTG_OBJECT_WIDGET,
-            _ntg_label_measure_fn,
+            __ntg_label_measure_fn,
             NULL, NULL,
-            _ntg_label_arrange_drawing_fn);
+            __ntg_label_draw_fn,
+            NULL, NULL);
 
     __init_default_values(label);
 
@@ -252,14 +255,15 @@ bool ntg_label_get_autotrim(const ntg_label* label)
     return label->__autotrim;
 }
 
-struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
+struct ntg_measure_output __ntg_label_measure_fn(
+        const ntg_drawable* drawable,
         ntg_orientation orientation, size_t for_size,
         const ntg_measure_context* context)
 {
-    assert(_label != NULL);
-    ntg_label* label = NTG_LABEL(_label);
+    assert(drawable != NULL);
+    const ntg_label* label = ntg_drawable_user(drawable);
     
-    if(label->__text.len == 0) return (struct ntg_measure_result) {0};
+    if(label->__text.len == 0) return (struct ntg_measure_output) {0};
 
     /* Get UTF-32 text */
     size_t utf32_cap = label->__text.len;
@@ -281,9 +285,9 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
     struct ntg_str_utf32_split_result rows = ntg_str_utf32_split(view, '\n');
     assert(rows.views != NULL);
 
-    if(rows.count == 0) return (struct ntg_measure_result) {0};
+    if(rows.count == 0) return (struct ntg_measure_output) {0};
 
-    struct ntg_measure_result result;
+    struct ntg_measure_output result;
     switch(label->__wrap_mode)
     {
         case NTG_TEXT_WRAP_NOWRAP:
@@ -312,12 +316,13 @@ struct ntg_measure_result _ntg_label_measure_fn(const ntg_object* _label,
     return result;
 }
 
-void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
-        struct ntg_xy size, ntg_object_drawing* out_drawing)
+void __ntg_label_draw_fn(
+        const ntg_drawable* drawable,
+        struct ntg_xy size, ntg_drawing* out_drawing)
 {
-    assert(_label != NULL);
+    assert(drawable != NULL);
 
-    ntg_label* label = NTG_LABEL(_label);
+    const ntg_label* label = ntg_drawable_user(drawable);
 
     if((label->__text.len == 0) || (label->__text.data == NULL)) return;
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
@@ -460,7 +465,7 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
         {
             for(j = 0; j < content_size.x; j++)
             {
-                it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(j, i));
+                it_cell = ntg_drawing_at_(out_drawing, ntg_xy(j, i));
                 it_content = __label_content_at(&_content, ntg_xy(j, i));
 
                 (*it_cell) = ntg_cell_full((*it_content), label->__gfx);
@@ -473,7 +478,7 @@ void _ntg_label_arrange_drawing_fn(const ntg_object* _label,
         {
             for(j = 0; j < content_size.x; j++)
             {
-                it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(i, j));
+                it_cell = ntg_drawing_at_(out_drawing, ntg_xy(i, j));
                 it_content = __label_content_at(&_content, ntg_xy(j, i));
 
                 (*it_cell) = ntg_cell_full((*it_content), label->__gfx);
@@ -517,7 +522,7 @@ static void __label_content_deinit__(label_content* content)
     content->_size = ntg_xy(0, 0);
 }
 
-static struct ntg_measure_result __measure_nowrap_fn(
+static struct ntg_measure_output __measure_nowrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         ntg_orientation label_orientation,
         size_t indent,
@@ -536,7 +541,7 @@ static struct ntg_measure_result __measure_nowrap_fn(
             max_row_len = _max2_size(max_row_len, rows[i].count + indent);
         }
 
-        return (struct ntg_measure_result) {
+        return (struct ntg_measure_output) {
             .min_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
@@ -544,7 +549,7 @@ static struct ntg_measure_result __measure_nowrap_fn(
     }
     else
     {
-        return (struct ntg_measure_result) {
+        return (struct ntg_measure_output) {
             .min_size = _max2_size(rows->count, DEFAULT_SIZE),
             .natural_size = _max2_size(rows->count, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
@@ -552,7 +557,7 @@ static struct ntg_measure_result __measure_nowrap_fn(
     }
 }
 
-static struct ntg_measure_result __measure_wrap_fn(
+static struct ntg_measure_output __measure_wrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         ntg_orientation label_orientation,
         size_t indent,
@@ -572,7 +577,7 @@ static struct ntg_measure_result __measure_wrap_fn(
             max_row_len = _max2_size(max_row_len, rows[i].count + indent);
         }
 
-        return (struct ntg_measure_result) {
+        return (struct ntg_measure_output) {
             .min_size = DEFAULT_SIZE,
             .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
@@ -593,7 +598,7 @@ static struct ntg_measure_result __measure_wrap_fn(
             free(it_row_wrap_rows);
         }
 
-        return (struct ntg_measure_result) {
+        return (struct ntg_measure_output) {
             .min_size = _max2_size(row_counter, DEFAULT_SIZE),
             .natural_size = _max2_size(row_counter, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
@@ -601,7 +606,7 @@ static struct ntg_measure_result __measure_wrap_fn(
     }
 }
 
-static struct ntg_measure_result __measure_wwrap_fn(
+static struct ntg_measure_output __measure_wwrap_fn(
         const struct ntg_str_utf32_view* rows, size_t row_count,
         ntg_orientation label_orientation, size_t indent,
         ntg_orientation orientation, size_t for_size)
@@ -638,7 +643,7 @@ static struct ntg_measure_result __measure_wwrap_fn(
             it_words.count = 0;
         }
 
-        return (struct ntg_measure_result) {
+        return (struct ntg_measure_output) {
             .min_size = _max2_size(max_word_len, DEFAULT_SIZE),
             .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
@@ -659,7 +664,7 @@ static struct ntg_measure_result __measure_wwrap_fn(
             free(it_row_wrap_rows);
         }
 
-        return (struct ntg_measure_result) {
+        return (struct ntg_measure_output) {
             .min_size = _max2_size(row_counter, DEFAULT_SIZE),
             .natural_size = _max2_size(row_counter, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
