@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "core/scene/_ntg_scene_graph.h"
+#include "core/scene/shared/ntg_drawing.h"
 #include "shared/_uthash.h"
 
 struct ntg_scene_data_hh
@@ -15,6 +16,7 @@ static void __ntg_scene_data_hh_init__(struct ntg_scene_data_hh* data_hh,
 {
     data_hh->key = key;
     data_hh->data = (struct ntg_scene_data) {0};
+    data_hh->data.drawing = ntg_drawing_new();
 }
 
 struct ntg_scene_graph
@@ -25,7 +27,6 @@ struct ntg_scene_graph
 static struct ntg_scene_data_hh* __ntg_scene_graph_get(
         ntg_scene_graph* scene_graph,
         ntg_drawable* drawable);
-
 
 ntg_scene_graph* ntg_scene_graph_new()
 {

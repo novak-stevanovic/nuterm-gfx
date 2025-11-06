@@ -5,7 +5,7 @@
 #include "core/scene/shared/ntg_measure_output.h"
 
 static bool __ntg_process_key_fn_default(
-        const ntg_drawable* drawable,
+        ntg_drawable* drawable,
         struct nt_key_event key_event,
         struct ntg_process_key_context context)
 {
@@ -13,7 +13,7 @@ static bool __ntg_process_key_fn_default(
 }
 
 static void __ntg_on_focus_fn_default(
-        const ntg_drawable* drawable,
+        ntg_drawable* drawable,
         struct ntg_focus_context context)
 {}
 

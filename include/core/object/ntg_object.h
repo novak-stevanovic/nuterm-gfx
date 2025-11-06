@@ -2,7 +2,6 @@
 #define _NTG_OBJECT_H_
 
 #include "base/ntg_cell.h"
-#include "base/ntg_event.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/ntg_drawable.h"
 #include "shared/ntg_xy.h"
@@ -15,6 +14,7 @@
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_listenable ntg_listenable;
+typedef struct ntg_event_sub ntg_event_sub;
 
 /* ---------------------------------------------------------------- */
 
@@ -74,7 +74,7 @@ void ntg_object_stop_listening(ntg_object* object, void* subscriber);
 
 /* ---------------------------------------------------------------- */
 
-// ntg_drawable* ntg_object_get_drawable_(ntg_object* object);
+ntg_drawable* ntg_object_get_drawable_(ntg_object* object);
 const ntg_drawable* ntg_object_get_drawable(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
@@ -121,7 +121,7 @@ struct ntg_object
     ntg_on_focus_fn __wrapped_on_focus_fn;
 
     struct ntg_drawable __drawable;
-    ntg_listenable __listenable;
+    ntg_listenable* __listenable;
 };
 
 /* -------------------------------------------------------------------------- */

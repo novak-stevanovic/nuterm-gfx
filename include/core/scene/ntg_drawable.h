@@ -106,7 +106,6 @@ void __ntg_drawable_init__(ntg_drawable* drawable, /* non-NULL */
         ntg_get_parent_fn get_parent_fn, /* non-NULL */
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn);
-
 void __ntg_drawable_deinit__(ntg_drawable* drawable);
 
 const void* ntg_drawable_user(const ntg_drawable* drawable);

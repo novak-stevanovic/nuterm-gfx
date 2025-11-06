@@ -1,6 +1,8 @@
 #include <assert.h>
 
 #include "core/object/ntg_object.h"
+#include "base/event/ntg_event.h"
+#include "base/event/ntg_listenable.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawing.h"
@@ -207,14 +209,14 @@ void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription)
 {
     assert(object != NULL);
 
-    ntg_listenable_listen(&object->__listenable, subscription);
+    ntg_listenable_listen(object->__listenable, subscription);
 }
 
 void ntg_object_stop_listening(ntg_object* object, void* subscriber)
 {
     assert(object != NULL);
 
-    ntg_listenable_stop_listening(&object->__listenable, subscriber);
+    ntg_listenable_stop_listening(object->__listenable, subscriber);
 }
 
 ntg_drawable* ntg_object_get_drawable_(ntg_object* object)
@@ -305,7 +307,7 @@ void __ntg_object_init__(ntg_object* object,
             __ntg_object_process_key_fn,
             __ntg_object_on_focus_fn);
 
-    __ntg_listenable_init__(&object->__listenable);
+    object->__listenable = ntg_listenable_new();
 }
 
 void __ntg_object_deinit__(ntg_object* object)
@@ -313,7 +315,8 @@ void __ntg_object_deinit__(ntg_object* object)
     assert(object != NULL);
 
     ntg_object_vec_destroy(object->__children);
-    __ntg_listenable_deinit__(&object->__listenable);
+    ntg_listenable_destroy(object->__listenable);
+    object->__listenable = NULL;
 
     __init_default_values(object);
 }
@@ -375,8 +378,8 @@ static void __init_default_values(ntg_object* object)
     object->__wrapped_process_key_fn = NULL;
     object->__wrapped_on_focus_fn = NULL;
 
-    object->__listenable = (ntg_listenable) {0};
     object->__drawable = (ntg_drawable) {0};
+    object->__listenable = NULL;
 }
 
 /* ---------------------------------------------------------------- */

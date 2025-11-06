@@ -1,0 +1,141 @@
+#include "core/app/ntg_db_app_renderer.h"
+#include "base/ntg_cell.h"
+#include "core/scene/shared/ntg_scene_drawing.h"
+#include "nt.h"
+#include "nt_charbuff.h"
+#include <assert.h>
+
+#define CHARBUFF_CAP 100000
+
+static void __full_empty_render(ntg_db_app_renderer* renderer, struct ntg_xy size);
+
+static void __full_render(ntg_db_app_renderer* renderer,
+        const ntg_scene_drawing* drawing, struct ntg_xy size);
+
+static void __optimized_render(ntg_db_app_renderer* renderer,
+        const ntg_scene_drawing* drawing, struct ntg_xy size);
+
+/* -------------------------------------------------------------------------- */
+
+void __ntg_db_app_renderer_init__(ntg_db_app_renderer* renderer)
+{
+    assert(renderer != NULL);
+
+    __ntg_app_renderer_init__(
+            (ntg_app_renderer*)renderer,
+            __ntg_db_app_render_fn);
+
+    renderer->__backbuff = ntg_rcell_vgrid_new();
+    assert(renderer->__backbuff != NULL);
+    renderer->__charbuff = nt_charbuff_new(CHARBUFF_CAP);
+    assert(renderer->__charbuff != NULL);
+
+}
+void __ntg_db_app_renderer_deinit__(ntg_db_app_renderer* renderer)
+{
+    assert(renderer != NULL);
+
+    __ntg_app_renderer_deinit__((ntg_app_renderer*)renderer);
+
+    ntg_rcell_vgrid_destroy(renderer->__backbuff);
+    renderer->__backbuff = NULL;
+    nt_charbuff_destroy(renderer->__charbuff);
+    renderer->__charbuff = NULL;
+}
+
+void __ntg_db_app_render_fn(
+        ntg_app_renderer* _renderer,
+        const ntg_scene_drawing* scene_drawing,
+        struct ntg_xy size,
+        ntg_app_render_mode mode)
+{
+    assert(_renderer != NULL);
+
+    ntg_db_app_renderer* renderer = (ntg_db_app_renderer*)_renderer;
+
+    if(scene_drawing == NULL)
+    {
+        __full_empty_render(renderer, size);
+        return;
+    }
+
+    if(mode == NTG_APP_RENDER_MODE_FULL)
+    {
+        __full_render(renderer, scene_drawing, size);
+    }
+    else
+    {
+        __optimized_render(renderer, scene_drawing, size);
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void __full_empty_render(ntg_db_app_renderer* renderer, struct ntg_xy size)
+{
+    ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
+
+    size_t i, j;
+    struct ntg_rcell it_drawing_rcell, *it_back_buffer_rcell;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_drawing_rcell = ntg_rcell_default();
+            it_back_buffer_rcell = ntg_rcell_vgrid_at_(renderer->__backbuff,
+                    ntg_xy(j, i));
+
+            (*it_back_buffer_rcell) = it_drawing_rcell;
+            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL, NULL);
+        }
+    }
+}
+
+static void __full_render(ntg_db_app_renderer* renderer,
+        const ntg_scene_drawing* drawing, struct ntg_xy size)
+{
+    struct ntg_xy old_back_buffer_size = ntg_rcell_vgrid_get_size(renderer->__backbuff);
+    ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
+
+    size_t i, j;
+    struct ntg_rcell it_drawing_rcell, *it_back_buffer_rcell;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_drawing_rcell = *(ntg_scene_drawing_at(drawing, ntg_xy(j, i)));
+            it_back_buffer_rcell = ntg_rcell_vgrid_at_(renderer->__backbuff,
+                    ntg_xy(j, i));
+
+            if((i < old_back_buffer_size.y) || (j < old_back_buffer_size.x))
+            {
+                if(ntg_rcell_are_equal(*it_back_buffer_rcell, it_drawing_rcell))
+                    continue;
+            }
+
+            (*it_back_buffer_rcell) = it_drawing_rcell;
+            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL, NULL);
+        }
+    }
+}
+
+static void __optimized_render(ntg_db_app_renderer* renderer,
+        const ntg_scene_drawing* drawing, struct ntg_xy size)
+{
+    ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
+
+    size_t i, j;
+    struct ntg_rcell it_drawing_rcell, *it_back_buffer_rcell;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_drawing_rcell = *(ntg_scene_drawing_at(drawing, ntg_xy(j, i)));
+            it_back_buffer_rcell = ntg_rcell_vgrid_at_(renderer->__backbuff,
+                    ntg_xy(j, i));
+
+            (*it_back_buffer_rcell) = it_drawing_rcell;
+            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL, NULL);
+        }
+    }
+}

@@ -1,0 +1,166 @@
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "core/app/ntg_app.h"
+#include "core/app/ntg_app_renderer.h"
+#include "core/scene/ntg_scene.h"
+#include "pthread.h"
+#include "nt.h"
+
+#include "shared/ntg_log.h"
+#include "shared/ntg_xy.h"
+
+/* -------------------------------------------------------------------------- */
+
+static pthread_t _ntg_thread;
+static bool _launched = false;
+
+static void* _ntg_app_thread_fn(void* _thread_fn_data);
+
+/* -------------------------------------------------------------------------- */
+
+void __ntg_app_init__()
+{
+    __ntg_log_init__("ntg_log.txt");
+
+    nt_status _status;
+    __nt_init__(&_status);
+
+    switch(_status)
+    {
+        // TODO handle other cases
+        case NT_SUCCESS:
+            break;
+        default:
+            assert(0);
+    }
+}
+
+struct ntg_app_thread_fn_data
+{
+    ntg_app_gui_fn gui_fn;
+    void* gui_fn_data;
+};
+
+void ntg_app_launch(ntg_app_gui_fn gui_fn, void* data)
+{
+    assert(_launched == false);
+
+    nt_alt_screen_enable(NULL);
+    nt_cursor_hide(NULL);
+
+    struct ntg_app_thread_fn_data* thread_fn_data = malloc(
+            sizeof(struct ntg_app_thread_fn_data));
+    assert(thread_fn_data != NULL);
+
+    thread_fn_data->gui_fn = gui_fn;
+    thread_fn_data->gui_fn_data = data;
+
+    int status = pthread_create(&_ntg_thread, NULL,
+            _ntg_app_thread_fn, thread_fn_data);
+
+    assert(status == 0);
+
+    _launched = true;
+}
+
+void* ntg_app_wait()
+{
+    if(!_launched) return NULL;
+
+    void* _data;
+    pthread_join(_ntg_thread, &_data);
+    
+    return _data;
+}
+
+void __ntg_app_deinit__()
+{
+    nt_cursor_show(NULL);
+    nt_alt_screen_disable(NULL);
+    __nt_deinit__();
+
+   __ntg_log_deinit__();
+}
+
+/* -------------------------------------------------------------------------- */
+
+void ntg_app_loop(
+        ntg_scene* scene,
+        uint framerate,
+        ntg_app_renderer* renderer,
+        ntg_app_process_key_fn process_key_fn,
+        void* data)
+{
+    assert(process_key_fn != NULL);
+    assert(renderer != NULL);
+    assert(scene != NULL);
+
+    struct ntg_app_loop_context context = {
+        .scene = scene
+    };
+
+    size_t _width, _height;
+    nt_get_term_size(&_width, &_height);
+    struct ntg_xy app_size = ntg_xy(_width, _height);
+    bool resize = true;
+
+    nt_status _status;
+    struct nt_event event;
+    uint timeout = NTG_APP_WAIT_TIMEOUT(framerate); 
+    bool loop = true;
+    while(loop)
+    {
+        event = nt_wait_for_event(timeout, &_status);
+
+        timeout = NTG_APP_WAIT_TIMEOUT(framerate) - event.elapsed;
+
+        size_t _width, _height;
+        ntg_app_status status;
+        ntg_app_render_mode render_mode;
+        const ntg_scene_drawing* drawing;
+        switch(event.type)
+        {
+            case NT_EVENT_TYPE_KEY:
+                status = process_key_fn(event.key_data, &context, data);
+                if(status == NTG_APP_QUIT)
+                    loop = false;
+                break;
+            case NT_EVENT_TYPE_RESIZE:
+                nt_get_term_size(&_width, &_height);
+                app_size = ntg_xy(_width, _height);
+                resize = true;
+                break;
+            case NT_EVENT_TYPE_TIMEOUT:
+                render_mode = resize ?
+                    NTG_APP_RENDER_MODE_FULL :
+                    NTG_APP_RENDER_MODE_OPTIMIZED;
+                resize = false;
+                drawing = (context.scene != NULL) ?
+                    ntg_scene_get_drawing(context.scene) :
+                    NULL,
+                ntg_app_renderer_render(
+                        renderer,
+                        drawing,
+                        app_size,
+                        render_mode);
+                break;
+        }
+
+        assert(_status == NT_SUCCESS);
+    }
+
+}
+
+static void* _ntg_app_thread_fn(void* _thread_fn_data)
+{
+    struct ntg_app_thread_fn_data* data =
+        (struct ntg_app_thread_fn_data*)_thread_fn_data;
+
+    if(data->gui_fn != NULL) data->gui_fn(data->gui_fn_data);
+
+    free(data);
+
+    return NULL;
+}
