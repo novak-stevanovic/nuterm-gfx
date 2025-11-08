@@ -5,6 +5,7 @@
 #include "nt_event.h"
 
 typedef struct ntg_scene_drawing ntg_scene_drawing;
+typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_drawable ntg_drawable;
 typedef struct ntg_listenable ntg_listenable;
@@ -12,23 +13,13 @@ struct ntg_event_sub;
 
 #define NTG_SCENE(scn_ptr) ((ntg_scene*)(scn_ptr))
 
-typedef enum ntg_scene_key_process_order
+typedef enum ntg_scene_key_process_mode
 {
-    NTG_SCENE_KEY_PROCESS_FOCUSED_FIRST,
-
     NTG_SCENE_KEY_PROCESS_FOCUSED_ONLY,
-
+    NTG_SCENE_KEY_PROCESS_SCENE_ONLY,
+    NTG_SCENE_KEY_PROCESS_FOCUSED_FIRST,
     NTG_SCENE_KEY_PROCESS_SCENE_FIRST,
-
-    NTG_SCENE_KEY_PROCESS_SCENE_ONLY
-} ntg_scene_key_process_order;
-
-typedef enum ntg_scene_key_consume_mode
-{
-    /* if an event is consumed, it is not fed to the next entity(scene or drawable) */
-    NTG_SCENE_KEY_CONSUME_ONCE,
-    NTG_SCENE_KEY_CONSUME_UNCONSTRAINED
-} ntg_scene_key_consume_mode;
+} ntg_scene_key_process_mode;
 
 /* Performs layout and updates the scene's drawing */
 typedef void (*ntg_scene_layout_fn)(
@@ -56,12 +47,14 @@ struct ntg_scene
     ntg_scene_drawing* __drawing;
     struct ntg_xy __size;
 
+    ntg_drawable_vec* __registered;
+
     ntg_scene_layout_fn __layout_fn;
     ntg_scene_on_register_fn __on_register_fn;
     ntg_scene_on_unregister_fn __on_unregister_fn;
     ntg_scene_process_key_fn __process_key_fn;
-    ntg_scene_key_process_order __key_process_order;
-    ntg_scene_key_consume_mode __key_consume_mode;
+
+    ntg_scene_key_process_mode __key_process_mode;
 
     ntg_drawable* __focused;
 
@@ -82,11 +75,8 @@ void __ntg_scene_deinit__(ntg_scene* scene);
 ntg_drawable* ntg_scene_get_focused(ntg_scene* scene);
 void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable);
 
-void ntg_scene_set_key_process_order(ntg_scene* scene, ntg_scene_key_process_order order);
-ntg_scene_key_process_order ntg_scene_get_key_process_order(const ntg_scene* scene);
-
-void ntg_scene_set_key_consume_mode(ntg_scene* scene, ntg_scene_key_consume_mode mode);
-ntg_scene_key_consume_mode ntg_scene_get_key_consume_mode(const ntg_scene* scene);
+void ntg_scene_set_key_process_mode(ntg_scene* scene, ntg_scene_key_process_mode mode);
+ntg_scene_key_process_mode ntg_scene_get_key_process_mode(const ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 

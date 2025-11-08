@@ -235,37 +235,6 @@ const ntg_drawable* ntg_object_get_drawable(const ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
-void ntg_object_tree_perform(ntg_object* object,
-        ntg_object_perform_mode mode,
-        void (*perform_fn)(ntg_object* object, void* data),
-        void* data)
-{
-    assert(object != NULL);
-    assert(perform_fn != NULL);
-
-    size_t i;
-    if(mode == NTG_OBJECT_PERFORM_TOP_DOWN)
-    {
-        perform_fn(object, data);
-
-        for(i = 0; i < object->__children->_count; i++)
-        {
-            ntg_object_tree_perform(object->__children->_data[i],
-                    mode, perform_fn, data);
-        }
-    }
-    else
-    {
-        for(i = 0; i < object->__children->_count; i++)
-        {
-            ntg_object_tree_perform(object->__children->_data[i],
-                    mode, perform_fn, data);
-        }
-
-        perform_fn(object, data);
-    }
-}
-
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED API */
 /* -------------------------------------------------------------------------- */

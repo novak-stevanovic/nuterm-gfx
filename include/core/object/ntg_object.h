@@ -79,10 +79,10 @@ const ntg_drawable* ntg_object_get_drawable(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-void ntg_object_tree_perform(ntg_object* object,
-        ntg_object_perform_mode mode,
-        void (*perform_fn)(ntg_object* object, void* data),
-        void* data);
+// void ntg_object_tree_perform(ntg_object* object,
+//         ntg_object_perform_mode mode,
+//         void (*perform_fn)(ntg_object* object, void* data),
+//         void* data);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

@@ -103,3 +103,39 @@ bool ntg_drawable_is_descendant(const ntg_drawable* drawable, const ntg_drawable
 
     return ntg_drawable_is_ancestor(descendant, drawable);
 }
+
+void ntg_drawable_tree_perform(ntg_drawable* drawable,
+        ntg_drawable_perform_mode mode,
+        void (*perform_fn)(ntg_drawable* drawable, void* data),
+        void* data)
+{
+    assert(drawable != NULL);
+    assert(perform_fn != NULL);
+
+    ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
+    size_t count = ntg_drawable_vec_view_count(&children);
+
+    size_t i;
+    if(mode == NTG_DRAWABLE_PERFORM_TOP_DOWN)
+    {
+        perform_fn(drawable, data);
+
+        for(i = 0; i < count; i++)
+        {
+            ntg_drawable_tree_perform(
+                    ntg_drawable_vec_view_at(&children, i),
+                    mode, perform_fn, data);
+        }
+    }
+    else
+    {
+        for(i = 0; i < count; i++)
+        {
+            ntg_drawable_tree_perform(
+                    ntg_drawable_vec_view_at(&children, i),
+                    mode, perform_fn, data);
+        }
+
+        perform_fn(drawable, data);
+    }
+}

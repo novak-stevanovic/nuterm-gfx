@@ -5,7 +5,8 @@
 
 struct ntg_measure_output
 {
-    size_t min_size, natural_size, max_size;
+    // TODO: grow for objects
+    size_t min_size, natural_size, max_size, grow;
 };
 
 #endif // _NTG_MEASURE_OUTPUT_H_

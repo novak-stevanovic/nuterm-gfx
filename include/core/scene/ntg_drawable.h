@@ -111,7 +111,20 @@ void __ntg_drawable_deinit__(ntg_drawable* drawable);
 const void* ntg_drawable_user(const ntg_drawable* drawable);
 void* ntg_drawable_user_(ntg_drawable* drawable);
 
-bool ntg_drawable_is_ancestor(const ntg_drawable* drawable, const ntg_drawable* ancestor);
-bool ntg_drawable_is_descendant(const ntg_drawable* drawable, const ntg_drawable* descendant);
+bool ntg_drawable_is_ancestor(const ntg_drawable* drawable,
+        const ntg_drawable* ancestor);
+bool ntg_drawable_is_descendant(const ntg_drawable* drawable,
+        const ntg_drawable* descendant);
+
+typedef enum ntg_drawable_perform_mode
+{
+    NTG_DRAWABLE_PERFORM_TOP_DOWN,
+    NTG_DRAWABLE_PERFORM_BOTTOM_UP
+} ntg_drawable_perform_mode;
+
+void ntg_drawable_tree_perform(ntg_drawable* drawable,
+        ntg_drawable_perform_mode mode,
+        void (*perform_fn)(ntg_drawable* drawable, void* data),
+        void* data);
 
 #endif // _NTG_DRAWABLE_H_

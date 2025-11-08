@@ -9,14 +9,12 @@
 //     SArena* arena;
 // };
 //
-// static void __set_layout_orientation(ntg_object* object, void* _orientation);
 // static void __measure1_fn(ntg_object* object, void* _layout_data);
 // static void __constrain1_fn(ntg_object* object, void* _layout_data);
 // static void __measure2_fn(ntg_object* object, void* _layout_data);
 // static void __constrain2_fn(ntg_object* object, void* _layout_data);
 // static void __arrange_children_fn(ntg_object* object, void* _layout_data);
-// static void __arrange_drawing_fn(ntg_object* object, void* _layout_data);
-// static void __arrange_fn(ntg_object* object, void* _layout_data); // children & drawing
+// static void __draw_fn(ntg_object* object, void* _layout_data);
 //
 // /* -------------------------------------------------------------------------- */
 //
@@ -73,7 +71,10 @@
 //             __constrain2_fn, &data);
 //
 //     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-//             __arrange_fn, &data);
+//             __arrange_children_fn, &data);
+//
+//     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
+//             __draw_fn, &data);
 //
 //     sarena_rewind(layout_object->__arena);
 // }
@@ -273,15 +274,9 @@
 //     ntg_arrange_output_destroy(output);
 // }
 //
-// static void __arrange_drawing_fn(ntg_object* object, void* _layout_data)
+// static void __draw_fn(ntg_object* object, void* _layout_data)
 // {
 //     ntg_object_drawing_set_size(object->__drawing, object->__size);
 //
 //     _ntg_object_arrange_drawing(object, object->__size, object->__drawing);
-// }
-//
-// static void __arrange_fn(ntg_object* object, void* _layout_data) // children & drawing
-// {
-//     __arrange_children_fn(object, _layout_data);
-//     __arrange_drawing_fn(object, _layout_data);
 // }
