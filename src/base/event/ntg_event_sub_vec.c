@@ -1,31 +1,40 @@
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
+
 #include "base/event/ntg_event_sub_vec.h"
 #include "base/event/ntg_event.h"
-#include <assert.h>
+#include "shared/_ntg_vector.h"
 
-#define _NTG_VECTOR_IMPLEMENTATION_
-#include "shared/ntg_vector.h"
-#undef _NTG_VECTOR_IMPLEMENTATION_
+static int __cmp_fn(const void* _it_data, const void* key)
+{
+    assert(_it_data != NULL);
+    assert(key != NULL);
 
-#define EL_SIZE sizeof(struct ntg_event_sub)
+    struct ntg_event_sub* it_data = (struct ntg_event_sub*)_it_data;
+
+    return memcmp(it_data, key, sizeof(void*));
+}
 
 void __ntg_event_sub_vec_init__(ntg_event_sub_vec* vec)
 {
-    int status = __ntg_vector_init__((struct ntg_vector*)vec, 5, EL_SIZE);
+    assert(vec != NULL);
 
-    assert(status == 0);
+    __ntg_vector_init__((ntg_vector*)vec, sizeof(struct ntg_event_sub), 5);
 }
 
 void __ntg_event_sub_vec_deinit__(ntg_event_sub_vec* vec)
 {
-    int status = __ntg_vector_deinit__((struct ntg_vector*)vec);
+    assert(vec != NULL);
 
-    assert(status == 0);
+    __ntg_vector_deinit__((ntg_vector*)vec);
 }
 
 ntg_event_sub_vec* ntg_event_sub_vec_new()
 {
+
     ntg_event_sub_vec* new = (ntg_event_sub_vec*)malloc(
-            sizeof(struct ntg_event_sub_vec));
+            sizeof(ntg_event_sub_vec));
     assert(new != NULL);
 
     __ntg_event_sub_vec_init__(new);
@@ -38,36 +47,41 @@ void ntg_event_sub_vec_destroy(ntg_event_sub_vec* vec)
     assert(vec != NULL);
 
     __ntg_event_sub_vec_deinit__(vec);
-
     free(vec);
 }
 
 void ntg_event_sub_vec_append(ntg_event_sub_vec* vec, struct ntg_event_sub sub)
 {
-    int status = ntg_vector_append((struct ntg_vector*)vec, &sub, EL_SIZE);
+    assert(vec != NULL);
 
-    assert(status == 0);
+    assert(!ntg_event_sub_vec_contains(vec, sub.subscriber));
+
+    ntg_vector_append((ntg_vector*)vec, &sub);
 }
 
-static bool _cmp_fn(const void* _sub1, const void* subscriber)
+void ntg_event_sub_vec_remove(ntg_event_sub_vec* vec, struct ntg_event_sub sub)
 {
-    const struct ntg_event_sub* sub1 = (const struct ntg_event_sub*)_sub1;
+    assert(vec != NULL);
 
-    return (sub1->subscriber == subscriber);
+    assert(ntg_event_sub_vec_contains(vec, sub.subscriber));
+
+    ntg_vector_remove((ntg_vector*)vec, &sub, __cmp_fn);
 }
 
-ssize_t ntg_event_sub_vec_find_sub(const ntg_event_sub_vec* vec,
+size_t ntg_event_sub_vec_find(const ntg_event_sub_vec* vec,
         const void* subscriber)
 {
-    return ntg_vector_find((struct ntg_vector*)vec, subscriber,
-            EL_SIZE, _cmp_fn);
+    assert(vec != NULL);
+    assert(subscriber != NULL);
+
+    return ntg_vector_find((ntg_vector*)vec, subscriber, __cmp_fn);
 }
 
-void ntg_event_sub_vec_remove_sub(const ntg_event_sub_vec* vec,
+bool ntg_event_sub_vec_contains(const ntg_event_sub_vec* vec,
         const void* subscriber)
 {
-    int status = ntg_vector_remove((struct ntg_vector*)vec,
-            subscriber, EL_SIZE, _cmp_fn);
+    assert(vec != NULL);
+    assert(subscriber != NULL);
 
-    assert(status == 0);
+    return ntg_vector_contains((ntg_vector*)vec, subscriber, __cmp_fn);
 }

@@ -1,38 +1,34 @@
 #include "core/object/shared/ntg_object_vec.h"
+#include "shared/_ntg_vector.h"
 #include <assert.h>
-
-#define _NTG_VECTOR_IMPLEMENTATION_
-#include "shared/ntg_vector.h"
-#undef _NTG_VECTOR_IMPLEMENTATION_
+#include <stdlib.h>
 
 void __ntg_object_vec_init__(ntg_object_vec* vec)
 {
-    int status = __ntg_vector_init__((struct ntg_vector*)vec,
-            0, sizeof(ntg_object*));
+    assert(vec != NULL);
 
-    assert(status == 0);
+    __ntg_vector_init__((ntg_vector*)vec, sizeof(ntg_object*), 5);
 }
 
 void __ntg_object_vec_deinit__(ntg_object_vec* vec)
 {
-    __ntg_vector_deinit__((struct ntg_vector*)vec);
+    assert(vec != NULL);
+    __ntg_vector_deinit__((ntg_vector*)vec);
 }
 
 ntg_object_vec* ntg_object_vec_new()
 {
-    ntg_object_vec* new = (ntg_object_vec*)malloc(
-            sizeof(struct ntg_object_vec));
-
-    if(new == NULL) return NULL;
+    ntg_object_vec* new = (ntg_object_vec*)malloc(sizeof(ntg_object_vec));
+    assert(new != NULL);
 
     __ntg_object_vec_init__(new);
-    
+
     return new;
 }
 
 void ntg_object_vec_destroy(ntg_object_vec* vec)
 {
-    if(vec == NULL) return;
+    assert(vec != NULL);
 
     __ntg_object_vec_deinit__(vec);
 
@@ -41,37 +37,36 @@ void ntg_object_vec_destroy(ntg_object_vec* vec)
 
 void ntg_object_vec_append(ntg_object_vec* vec, ntg_object* object)
 {
-    if(vec == NULL) return;
+    assert(vec != NULL);
+    assert(object != NULL);
 
-    int status = ntg_vector_append((struct ntg_vector*)vec,
-            &object, sizeof(ntg_object*));
-
-    assert(status == 0);
+    ntg_vector_append((ntg_vector*)vec, &object);
 }
 
 void ntg_object_vec_remove(ntg_object_vec* vec, ntg_object* object)
 {
-    if(vec == NULL) return;
+    assert(vec != NULL);
+    assert(object != NULL);
 
-    ntg_vector_remove((struct ntg_vector*)vec, &object,
-            sizeof(ntg_object*), NULL);
+    ntg_vector_remove((ntg_vector*)vec, &object, NULL);
 }
 
-ssize_t ntg_object_vec_find(const ntg_object_vec* vec, const ntg_object* object)
+size_t ntg_object_vec_find(const ntg_object_vec* vec,
+        const ntg_object* object)
 {
-    if((vec == NULL) || (object == NULL)) return -1;
+    assert(vec != NULL);
+    assert(object != NULL);
 
-    ssize_t status = ntg_vector_find((struct ntg_vector*)vec,
-            &object,
-            sizeof(ntg_object*),
-            NULL);
-
-    return (status < 0) ? -1 : status;
+    return ntg_vector_find((ntg_vector*)vec, &object, NULL);
 }
 
-bool ntg_object_vec_contains(const ntg_object_vec* vec, const ntg_object* object)
+bool ntg_object_vec_contains(const ntg_object_vec* vec,
+        const ntg_object* object)
 {
-    return (ntg_object_vec_find(vec, object) >= 0);
+    assert(vec != NULL);
+    assert(object != NULL);
+
+    return ntg_vector_contains((ntg_vector*)vec, &object, NULL);
 }
 
 void __ntg_object_vec_view_init__(ntg_object_vec_view* view, ntg_object_vec* vec)

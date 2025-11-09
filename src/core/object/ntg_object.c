@@ -380,6 +380,9 @@ static struct ntg_measure_output __ntg_object_measure_fn(
     size_t user_max_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
         object->__max_size.x :
         object->__max_size.y;
+    size_t user_grow = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
+        object->__grow.x :
+        object->__grow.y;
 
     // Correct max sizes
     if(user_max_size < user_min_size) 
@@ -391,6 +394,8 @@ static struct ntg_measure_output __ntg_object_measure_fn(
     result.max_size = _min2_size(user_max_size, result.max_size);
     result.natural_size = _clamp_size(result.min_size,
             result.natural_size, result.max_size);
+
+    result.grow = user_grow;
 
     return result;
 }

@@ -10,9 +10,10 @@ typedef struct ntg_drawable_vec_view ntg_drawable_vec_view;
 
 typedef struct ntg_drawable_vec
 {
+    ntg_drawable** _data;
     size_t _count;
     size_t __capacity;
-    ntg_drawable** _data;
+    size_t __data_size;
 } ntg_drawable_vec;
 
 void __ntg_drawable_vec_init__(ntg_drawable_vec* vec);
@@ -24,9 +25,11 @@ void ntg_drawable_vec_destroy(ntg_drawable_vec* vec);
 void ntg_drawable_vec_append(ntg_drawable_vec* vec, ntg_drawable* drawable);
 void ntg_drawable_vec_remove(ntg_drawable_vec* vec, ntg_drawable* drawable);
 
-/* Returns -1 on fail/non-existing. */
-ssize_t ntg_drawable_vec_find(const ntg_drawable_vec* vec, const ntg_drawable* drawable);
-bool ntg_drawable_vec_contains(const ntg_drawable_vec* vec, const ntg_drawable* drawable);
+/* Returns SIZE_MAX on fail/non-existing. */
+size_t ntg_drawable_vec_find(const ntg_drawable_vec* vec,
+        const ntg_drawable* drawable);
+bool ntg_drawable_vec_contains(const ntg_drawable_vec* vec,
+        const ntg_drawable* drawable);
 
 struct ntg_drawable_vec_view
 {

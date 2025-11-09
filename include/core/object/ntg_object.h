@@ -109,8 +109,7 @@ struct ntg_object
 
     struct
     {
-        struct ntg_xy __grow;
-        struct ntg_xy __min_size, __max_size;
+        struct ntg_xy __min_size, __max_size, __grow;
     };
 
     ntg_measure_fn __wrapped_measure_fn;

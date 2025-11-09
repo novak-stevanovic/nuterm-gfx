@@ -1,38 +1,34 @@
 #include "core/scene/shared/ntg_drawable_vec.h"
+#include "shared/_ntg_vector.h"
 #include <assert.h>
-
-#define _NTG_VECTOR_IMPLEMENTATION_
-#include "shared/ntg_vector.h"
-#undef _NTG_VECTOR_IMPLEMENTATION_
+#include <stdlib.h>
 
 void __ntg_drawable_vec_init__(ntg_drawable_vec* vec)
 {
-    int status = __ntg_vector_init__((struct ntg_vector*)vec,
-            0, sizeof(ntg_drawable*));
+    assert(vec != NULL);
 
-    assert(status == 0);
+    __ntg_vector_init__((ntg_vector*)vec, sizeof(ntg_drawable*), 5);
 }
 
 void __ntg_drawable_vec_deinit__(ntg_drawable_vec* vec)
 {
-    __ntg_vector_deinit__((struct ntg_vector*)vec);
+    assert(vec != NULL);
+    __ntg_vector_deinit__((ntg_vector*)vec);
 }
 
 ntg_drawable_vec* ntg_drawable_vec_new()
 {
-    ntg_drawable_vec* new = (ntg_drawable_vec*)malloc(
-            sizeof(struct ntg_drawable_vec));
-
-    if(new == NULL) return NULL;
+    ntg_drawable_vec* new = (ntg_drawable_vec*)malloc(sizeof(ntg_drawable_vec));
+    assert(new != NULL);
 
     __ntg_drawable_vec_init__(new);
-    
+
     return new;
 }
 
 void ntg_drawable_vec_destroy(ntg_drawable_vec* vec)
 {
-    if(vec == NULL) return;
+    assert(vec != NULL);
 
     __ntg_drawable_vec_deinit__(vec);
 
@@ -41,40 +37,36 @@ void ntg_drawable_vec_destroy(ntg_drawable_vec* vec)
 
 void ntg_drawable_vec_append(ntg_drawable_vec* vec, ntg_drawable* drawable)
 {
-    if(vec == NULL) return;
+    assert(vec != NULL);
+    assert(drawable != NULL);
 
-    int status = ntg_vector_append((struct ntg_vector*)vec,
-            &drawable, sizeof(ntg_drawable*));
-
-    assert(status == 0);
+    ntg_vector_append((ntg_vector*)vec, &drawable);
 }
 
 void ntg_drawable_vec_remove(ntg_drawable_vec* vec, ntg_drawable* drawable)
 {
-    if(vec == NULL) return;
+    assert(vec != NULL);
+    assert(drawable != NULL);
 
-    ntg_vector_remove((struct ntg_vector*)vec, &drawable,
-            sizeof(ntg_drawable*), NULL);
+    ntg_vector_remove((ntg_vector*)vec, &drawable, NULL);
 }
 
-ssize_t ntg_drawable_vec_find(const ntg_drawable_vec* vec, const ntg_drawable* drawable)
+size_t ntg_drawable_vec_find(const ntg_drawable_vec* vec,
+        const ntg_drawable* drawable)
 {
-    if((vec == NULL) || (drawable == NULL)) return -1;
-    if(vec->_data == NULL) return -1;
+    assert(vec != NULL);
+    assert(drawable != NULL);
 
-    ssize_t status = ntg_vector_find((struct ntg_vector*)vec,
-            &drawable,
-            sizeof(ntg_drawable*),
-            NULL);
-
-    return (status < 0) ? -1 : status;
+    return ntg_vector_find((ntg_vector*)vec, &drawable, NULL);
 }
 
-bool ntg_drawable_vec_contains(const ntg_drawable_vec* vec, const ntg_drawable* drawable)
+bool ntg_drawable_vec_contains(const ntg_drawable_vec* vec,
+        const ntg_drawable* drawable)
 {
-    if(vec->_data == NULL) return false;
+    assert(vec != NULL);
+    assert(drawable != NULL);
 
-    return (ntg_drawable_vec_find(vec, drawable) >= 0);
+    return ntg_vector_contains((ntg_vector*)vec, &drawable, NULL);
 }
 
 void __ntg_drawable_vec_view_init__(ntg_drawable_vec_view* view, ntg_drawable_vec* vec)
