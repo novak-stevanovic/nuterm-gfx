@@ -9,6 +9,7 @@ typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_drawable ntg_drawable;
 typedef struct ntg_listenable ntg_listenable;
+typedef struct ntg_event_del ntg_event_del;
 struct ntg_event_sub;
 
 #define NTG_SCENE(scn_ptr) ((ntg_scene*)(scn_ptr))
@@ -58,13 +59,12 @@ struct ntg_scene
 
     ntg_drawable* __focused;
 
-    ntg_listenable* __listenable;
+    ntg_event_del* __del;
 };
 
 void __ntg_scene_init__(
         ntg_scene* scene, /* non-NULL */
-        ntg_drawable* root, /* non-NULL */
-        ntg_scene_layout_fn layout_fn,
+        ntg_scene_layout_fn layout_fn, /* non-NULL */
         ntg_scene_on_register_fn on_register_fn,
         ntg_scene_on_unregister_fn on_unregister_fn,
         ntg_scene_process_key_fn process_key_fn);
@@ -98,6 +98,7 @@ struct ntg_xy ntg_scene_get_size(const ntg_scene* scene);
 /* -------------------------------------------------------------------------- */
 
 const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene);
+void ntg_scene_set_root(ntg_scene* scene, ntg_drawable* root);
 ntg_drawable* ntg_scene_get_root(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
@@ -105,16 +106,8 @@ ntg_drawable* ntg_scene_get_root(ntg_scene* scene);
 /* Invokes ntg_scene_process_key_fn */
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
 
-/* Event types raised by ntg_scene:
- * 1) NTG_ETYPE_SCENE_RESIZE,
- * 3) NTG_ETYPE_SCENE_FOCUSED_CHANGE,
- * 4) NTG_ETYPE_SCENE_LAYOUT,
- * 5) NTG_ETYPE_SCENE_OBJECT_REGISTER,
- * 6) NTG_ETYPE_SCENE_OBJECT_UNREGISTER
- */
-void ntg_scene_listen(ntg_scene* scene, struct ntg_event_sub sub);
-void ntg_scene_stop_listening(ntg_scene* scene, void* subscriber);
-
 /* -------------------------------------------------------------------------- */
+
+ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene);
 
 #endif // _NTG_SCENE_H_

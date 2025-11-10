@@ -1,5 +1,5 @@
-#ifndef _NTG_DRAWING_H_
-#define _NTG_DRAWING_H_
+#ifndef __NTG_DRAWING_H__
+#define __NTG_DRAWING_H__
 
 #include "base/ntg_cell.h"
 #include "shared/ntg_xy.h"
@@ -44,4 +44,4 @@ static inline struct ntg_cell* ntg_drawing_at_(
         NULL;
 }
 
-#endif //  _NTG_DRAWING_H_
+#endif //  __NTG_DRAWING_H__

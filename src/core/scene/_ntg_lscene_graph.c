@@ -1,7 +1,7 @@
 #include <assert.h>
 
 #include "core/scene/_ntg_lscene_graph.h"
-#include "core/scene/shared/ntg_drawing.h"
+#include "core/scene/shared/_ntg_drawing.h"
 #include "shared/_uthash.h"
 
 struct ntg_lscene_data_hh
@@ -28,7 +28,7 @@ static void __ntg_lscene_data_hh_deinit__(struct ntg_lscene_data_hh* data_hh)
 
 struct ntg_lscene_graph
 {
-    struct ntg_lscene_data_hh* graph;
+    struct ntg_lscene_data_hh* head;
 };
 
 static struct ntg_lscene_data_hh* __ntg_lscene_graph_get(
@@ -40,7 +40,7 @@ ntg_lscene_graph* ntg_lscene_graph_new()
     ntg_lscene_graph* new = (ntg_lscene_graph*)malloc(sizeof(ntg_lscene_graph));
     assert(new != NULL);
 
-    new->graph = NULL;
+    new->head = NULL;
 
     return new;
 }
@@ -52,8 +52,8 @@ void ntg_lscene_graph_destroy(ntg_lscene_graph* scene_graph)
     // TODO
     struct ntg_lscene_data_hh *current, *tmp;
 
-    HASH_ITER(hh, scene_graph->graph, current, tmp) {
-        HASH_DEL(scene_graph->graph, current);  /* delete; users advances to next */
+    HASH_ITER(hh, scene_graph->head, current, tmp) {
+        HASH_DEL(scene_graph->head, current);  /* delete; users advances to next */
         __ntg_lscene_data_hh_deinit__(current);
         free(current);
     }
@@ -74,7 +74,7 @@ void ntg_lscene_graph_add(ntg_lscene_graph* scene_graph, const ntg_drawable* dra
 
     __ntg_lscene_data_hh_init__(new, drawable);
 
-    HASH_ADD(hh, scene_graph->graph, key, sizeof(ntg_drawable*), new);
+    HASH_ADD_PTR(scene_graph->head, key, new);
 }
 
 void ntg_lscene_graph_remove(ntg_lscene_graph* scene_graph, const ntg_drawable* drawable)
@@ -84,7 +84,7 @@ void ntg_lscene_graph_remove(ntg_lscene_graph* scene_graph, const ntg_drawable* 
     struct ntg_lscene_data_hh* found = __ntg_lscene_graph_get(scene_graph, drawable);
     assert(found != NULL);
 
-    HASH_DEL(scene_graph->graph, found);
+    HASH_DEL(scene_graph->head, found);
     __ntg_lscene_data_hh_deinit__(found);
     free(found);
 }
@@ -97,7 +97,7 @@ static struct ntg_lscene_data_hh* __ntg_lscene_graph_get(
 
     struct ntg_lscene_data_hh* found = NULL;
 
-    HASH_FIND(hh, scene_graph->graph, drawable, sizeof(void*), found);
+    HASH_FIND_PTR(scene_graph->head, &drawable, found);
 
     return found;
 }

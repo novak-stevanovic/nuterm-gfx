@@ -2,7 +2,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "core/scene/shared/ntg_arrange_context.h"
+#include "core/scene/shared/_ntg_arrange_context.h"
 #include "shared/_ntg_vec_map.h"
 
 struct ntg_arrange_context

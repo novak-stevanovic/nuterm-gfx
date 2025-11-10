@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "core/scene/shared/ntg_drawing.h"
+#include "core/scene/shared/_ntg_drawing.h"
 #include "core/scene/shared/ntg_scene_drawing.h"
 
 void __ntg_drawing_init__(ntg_drawing* drawing)

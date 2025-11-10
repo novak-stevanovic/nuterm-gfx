@@ -13,6 +13,7 @@
 /* STATIC DECLARATIONS */
 /* -------------------------------------------------------------------------- */
 
+static void __layout_no_root(ntg_scene* scene);
 static void __init_default_values(ntg_scene* scene);
 static void __add_to_registered_fn(ntg_drawable* drawable, void* _registered);
 static void __scan_scene(ntg_scene* scene);
@@ -23,19 +24,17 @@ static void __scan_scene(ntg_scene* scene);
 
 void __ntg_scene_init__(
         ntg_scene* scene,
-        ntg_drawable* root,
         ntg_scene_layout_fn layout_fn,
         ntg_scene_on_register_fn on_register_fn,
         ntg_scene_on_unregister_fn on_unregister_fn,
         ntg_scene_process_key_fn process_key_fn)
 {
     assert(scene != NULL);
-    assert(root != NULL);
     assert(layout_fn != NULL);
 
     __init_default_values(scene);
 
-    scene->__root = root;
+    scene->__root = NULL;
     scene->__drawing = ntg_scene_drawing_new();
     scene->__focused = NULL;
 
@@ -45,12 +44,7 @@ void __ntg_scene_init__(
     scene->__process_key_fn = process_key_fn;
 
     scene->__registered = ntg_drawable_vec_new();
-    scene->__listenable = ntg_listenable_new();
-
-    // Register root
-    if(scene->__on_register_fn != NULL)
-        scene->__on_register_fn(scene, root);
-    ntg_drawable_vec_append(scene->__registered, root);
+    scene->__del = ntg_event_del_new();
 }
 
 void __ntg_scene_deinit__(ntg_scene* scene)
@@ -58,7 +52,7 @@ void __ntg_scene_deinit__(ntg_scene* scene)
     assert(scene != NULL);
 
     ntg_scene_drawing_destroy(scene->__drawing);
-    ntg_listenable_destroy(scene->__listenable);
+    ntg_event_del_destroy(scene->__del);
     ntg_drawable_vec_destroy(scene->__registered);
 
     __init_default_values(scene);
@@ -102,7 +96,10 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 
     __scan_scene(scene);
 
-    scene->__layout_fn(scene, size);
+    if(scene->__root != NULL)
+        scene->__layout_fn(scene, size);
+    else
+        __layout_no_root(scene);
 }
 
 struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)
@@ -119,6 +116,13 @@ const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene)
     assert(scene != NULL);
 
     return scene->__drawing;
+}
+
+void ntg_scene_set_root(ntg_scene* scene, ntg_drawable* root)
+{
+    assert(scene != NULL);
+
+    scene->__root = root;
 }
 
 ntg_drawable* ntg_scene_get_root(ntg_scene* scene)
@@ -220,18 +224,11 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
     return processed;
 }
 
-void ntg_scene_listen(ntg_scene* scene, struct ntg_event_sub sub)
+ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    ntg_listenable_listen(scene->__listenable, sub);
-}
-
-void ntg_scene_stop_listening(ntg_scene* scene, void* subscriber)
-{
-    assert(scene != NULL);
-
-    ntg_listenable_stop_listening(scene->__listenable, subscriber);
+    return ntg_event_del_get_listenable(scene->__del);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -257,39 +254,61 @@ static void __scan_scene(ntg_scene* scene)
     ntg_drawable_vec _current;
     ntg_drawable_vec* current = &_current;
     __ntg_drawable_vec_init__(current);
-    ntg_drawable_tree_perform(
-            scene->__root,
-            NTG_DRAWABLE_PERFORM_TOP_DOWN,
-            __add_to_registered_fn,
-            &current);
+    if(scene->__root != NULL)
+    {
+        ntg_drawable_tree_perform(
+                scene->__root,
+                NTG_DRAWABLE_PERFORM_TOP_DOWN,
+                __add_to_registered_fn,
+                current);
+    }
     
-    ntg_drawable_vec* previous = scene->__registered; 
+    ntg_drawable_vec* alr_registered = scene->__registered; 
 
     size_t i;
-    for(i = 0; i < previous->_count; i++)
+    for(i = 0; i < alr_registered->_count; i++)
     {
         // Drawable removed from the scene
-        if(!(ntg_drawable_vec_contains(current, previous->_data[i])))
+        if(!(ntg_drawable_vec_contains(current, alr_registered->_data[i])))
         {
             if(scene->__on_unregister_fn != NULL)
-                scene->__on_unregister_fn(scene, previous->_data[i]);
+                scene->__on_unregister_fn(scene, alr_registered->_data[i]);
 
-            ntg_drawable_vec_remove(previous, previous->_data[i]);
+            ntg_drawable_vec_remove(scene->__registered, alr_registered->_data[i]);
         }
     }
 
     for(i = 0; i < current->_count; i++)
     {
         // Drawable added to the scene
-        if(!(ntg_drawable_vec_contains(previous, current->_data[i])))
+        if(!(ntg_drawable_vec_contains(alr_registered, current->_data[i])))
         {
             if(scene->__on_register_fn != NULL)
                 scene->__on_register_fn(scene, current->_data[i]);
 
-            ntg_drawable_vec_append(current, current->_data[i]);
+            ntg_drawable_vec_append(scene->__registered, current->_data[i]);
         }
     }
 
     __ntg_drawable_vec_deinit__(current);
-    __ntg_drawable_vec_deinit__(previous);
+}
+
+static void __layout_no_root(ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    struct ntg_xy size = ntg_scene_drawing_get_size(scene->__drawing);
+
+    size_t i, j;
+    struct ntg_rcell* it_cell;
+    ntg_cell empty = ntg_cell_default();
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_cell = ntg_scene_drawing_at_(scene->__drawing, ntg_xy(j, i));
+
+            (*it_cell) = ntg_cell_overwrite(empty, *it_cell);
+        }
+    }
 }

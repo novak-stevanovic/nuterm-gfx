@@ -1,5 +1,5 @@
-#ifndef _NTG_ARRANGE_CONTEXT_H_
-#define _NTG_ARRANGE_CONTEXT_H_
+#ifndef __NTG_ARRANGE_CONTEXT_H__
+#define __NTG_ARRANGE_CONTEXT_H__
 
 #include "shared/ntg_xy.h"
 
@@ -22,4 +22,4 @@ void ntg_arrange_context_set(ntg_arrange_context* context,
         const ntg_drawable* child,
         struct ntg_arrange_data data);
 
-#endif // _NTG_ARRANGE_CONTEXT_H_
+#endif // __NTG_ARRANGE_CONTEXT_H__

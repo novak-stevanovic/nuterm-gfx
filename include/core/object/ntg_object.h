@@ -14,6 +14,7 @@
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_listenable ntg_listenable;
+typedef struct ntg_event_del ntg_event_del;
 typedef struct ntg_event_sub ntg_event_sub;
 
 /* ---------------------------------------------------------------- */
@@ -69,13 +70,10 @@ struct ntg_xy ntg_object_get_grow(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-void ntg_object_listen(ntg_object* object, struct ntg_event_sub subscription);
-void ntg_object_stop_listening(ntg_object* object, void* subscriber);
-
-/* ---------------------------------------------------------------- */
-
 ntg_drawable* ntg_object_get_drawable_(ntg_object* object);
 const ntg_drawable* ntg_object_get_drawable(const ntg_object* object);
+
+ntg_listenable* ntg_object_get_listenable(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
@@ -120,7 +118,7 @@ struct ntg_object
     ntg_on_focus_fn __wrapped_on_focus_fn;
 
     struct ntg_drawable __drawable;
-    ntg_listenable* __listenable;
+    ntg_event_del* __del;
 };
 
 /* -------------------------------------------------------------------------- */

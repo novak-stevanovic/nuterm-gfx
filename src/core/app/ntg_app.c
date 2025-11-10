@@ -13,6 +13,8 @@
 
 /* -------------------------------------------------------------------------- */
 
+static ntg_event_del* _del = NULL;
+
 static pthread_t _ntg_thread;
 static bool _launched = false;
 
@@ -35,6 +37,8 @@ void __ntg_app_init__()
         default:
             assert(0);
     }
+
+    _del = ntg_event_del_new();
 }
 
 struct ntg_app_thread_fn_data
@@ -82,6 +86,8 @@ void __ntg_app_deinit__()
     __nt_deinit__();
 
    __ntg_log_deinit__();
+
+   ntg_event_del_destroy(_del);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,7 +110,6 @@ void ntg_app_loop(
     size_t _width, _height;
     nt_get_term_size(&_width, &_height);
     struct ntg_xy app_size = ntg_xy(_width, _height);
-    bool resize = true;
 
     nt_status _status;
     struct nt_event event;
@@ -118,7 +123,6 @@ void ntg_app_loop(
 
         size_t _width, _height;
         ntg_app_status status;
-        ntg_app_render_mode render_mode;
         const ntg_scene_drawing* drawing;
         switch(event.type)
         {
@@ -128,23 +132,18 @@ void ntg_app_loop(
                     loop = false;
                 break;
             case NT_EVENT_TYPE_RESIZE:
+                // TODO: raise event
+                assert(0);
                 nt_get_term_size(&_width, &_height);
                 app_size = ntg_xy(_width, _height);
-                resize = true;
                 break;
             case NT_EVENT_TYPE_TIMEOUT:
-                render_mode = resize ?
-                    NTG_APP_RENDER_MODE_FULL :
-                    NTG_APP_RENDER_MODE_OPTIMIZED;
-                resize = false;
+                ntg_scene_layout(context.scene, app_size);
                 drawing = (context.scene != NULL) ?
                     ntg_scene_get_drawing(context.scene) :
-                    NULL,
-                ntg_app_renderer_render(
-                        renderer,
-                        drawing,
-                        app_size,
-                        render_mode);
+                    NULL;
+                ntg_app_renderer_render(renderer,
+                        drawing, app_size);
                 break;
         }
 
@@ -163,4 +162,9 @@ static void* _ntg_app_thread_fn(void* _thread_fn_data)
     free(data);
 
     return NULL;
+}
+
+ntg_listenable* ntg_app_get_listenable()
+{
+    return ntg_event_del_get_listenable(_del);
 }

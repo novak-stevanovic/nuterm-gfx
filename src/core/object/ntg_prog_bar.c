@@ -1,9 +1,9 @@
-#include "core/object/ntg_prog_bar.h"
-#include "core/scene/shared/ntg_drawing.h"
-#include "core/scene/shared/ntg_measure_output.h"
-#include "shared/_ntg_shared.h"
 #include <assert.h>
 #include <math.h>
+
+#include "core/object/ntg_prog_bar.h"
+#include "core/scene/shared/ntg_drawable_kit.h"
+#include "shared/_ntg_shared.h"
 
 void __ntg_prog_bar_init__(ntg_prog_bar* prog_bar,
         ntg_orientation orientation, ntg_cell complete_cell,

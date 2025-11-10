@@ -1,12 +1,7 @@
 #include <assert.h>
 
 #include "core/object/ntg_border_box.h"
-#include "core/scene/shared/ntg_measure_output.h"
-#include "core/scene/shared/ntg_measure_context.h"
-#include "core/scene/shared/ntg_constrain_output.h"
-#include "core/scene/shared/ntg_constrain_context.h"
-#include "core/scene/shared/ntg_arrange_context.h"
-#include "core/scene/shared/ntg_arrange_output.h"
+#include "core/scene/shared/ntg_drawable_kit.h"
 #include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
 

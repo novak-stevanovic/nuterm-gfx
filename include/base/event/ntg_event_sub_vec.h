@@ -22,7 +22,7 @@ ntg_event_sub_vec* ntg_event_sub_vec_new();
 void ntg_event_sub_vec_destroy(ntg_event_sub_vec* vec);
 
 void ntg_event_sub_vec_append(ntg_event_sub_vec* vec, struct ntg_event_sub sub);
-void ntg_event_sub_vec_remove(ntg_event_sub_vec* vec, struct ntg_event_sub sub);
+void ntg_event_sub_vec_remove(ntg_event_sub_vec* vec, const void* subscriber);
 
 /* Returns SIZE_MAX on fail/non-existing. */
 size_t ntg_event_sub_vec_find(const ntg_event_sub_vec* vec,

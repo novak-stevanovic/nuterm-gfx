@@ -15,7 +15,6 @@ struct ntg_lscene
 
 void __ntg_lscene_init__(
         ntg_lscene* scene,
-        ntg_drawable* root,
         ntg_scene_process_key_fn process_key_fn);
 void __ntg_lscene_deinit__(ntg_lscene* scene);
 

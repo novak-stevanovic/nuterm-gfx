@@ -2,8 +2,7 @@
 #include <stdlib.h>
 
 #include "core/object/ntg_color_block.h"
-#include "core/scene/shared/ntg_drawing.h"
-#include "core/scene/shared/ntg_measure_output.h"
+#include "core/scene/shared/ntg_drawable_kit.h"
 
 #define NTG_COLOR_BLOCK_DEFAULT_SIZE 5
 

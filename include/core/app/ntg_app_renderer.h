@@ -5,13 +5,11 @@
 
 typedef struct ntg_app_renderer ntg_app_renderer;
 typedef struct ntg_scene_drawing ntg_scene_drawing;
-typedef enum ntg_app_render_mode ntg_app_render_mode;
 
 typedef void (*ntg_app_render_fn)(
         ntg_app_renderer* renderer,
         const ntg_scene_drawing* scene_drawing,
-        struct ntg_xy size,
-        ntg_app_render_mode mode);
+        struct ntg_xy size);
 
 struct ntg_app_renderer
 {
@@ -31,7 +29,6 @@ void __ntg_app_renderer_deinit__(ntg_app_renderer* renderer);
 void ntg_app_renderer_render(
         ntg_app_renderer* renderer,
         const ntg_scene_drawing* scene_drawing,
-        struct ntg_xy size,
-        ntg_app_render_mode mode);
+        struct ntg_xy size);
 
 #endif // _NTG_APP_RENDERER_H_

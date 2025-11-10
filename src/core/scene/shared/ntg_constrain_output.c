@@ -2,7 +2,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "core/scene/shared/ntg_constrain_output.h"
+#include "core/scene/shared/_ntg_constrain_output.h"
 #include "shared/_ntg_vec_map.h"
 
 struct ntg_constrain_output

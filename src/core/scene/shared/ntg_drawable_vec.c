@@ -1,7 +1,8 @@
+#include <stdlib.h>
+#include <assert.h>
+
 #include "core/scene/shared/ntg_drawable_vec.h"
 #include "shared/_ntg_vector.h"
-#include <assert.h>
-#include <stdlib.h>
 
 void __ntg_drawable_vec_init__(ntg_drawable_vec* vec)
 {

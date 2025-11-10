@@ -2,7 +2,6 @@
 
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
-#include "core/scene/shared/ntg_measure_output.h"
 
 static bool __ntg_process_key_fn_default(
         ntg_drawable* drawable,
@@ -42,6 +41,7 @@ void __ntg_drawable_init__(ntg_drawable* drawable, /* non-NULL */
     assert(get_parent_fn_ != NULL);
     assert(get_parent_fn != NULL);
 
+    drawable->__user = user;
     drawable->_measure_fn = measure_fn;
     drawable->_constrain_fn = constrain_fn;
     drawable->_arrange_fn = arrange_fn;

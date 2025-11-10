@@ -1,5 +1,5 @@
-#ifndef _NTG_CONSTRAIN_OUTPUT_H_
-#define _NTG_CONSTRAIN_OUTPUT_H_
+#ifndef __NTG_CONSTRAIN_OUTPUT_H__
+#define __NTG_CONSTRAIN_OUTPUT_H__
 
 #include <stddef.h>
 
@@ -22,4 +22,4 @@ struct ntg_constrain_result ntg_constrain_output_get(
         const ntg_constrain_output* output,
         const ntg_drawable* child);
 
-#endif // _NTG_CONSTRAIN_OUTPUT_H_
+#endif // __NTG_CONSTRAIN_OUTPUT_H__

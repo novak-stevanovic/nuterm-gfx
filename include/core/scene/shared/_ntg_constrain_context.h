@@ -1,5 +1,5 @@
-#ifndef _NTG_CONSTRAIN_CONTEXT_H_
-#define _NTG_CONSTRAIN_CONTEXT_H_
+#ifndef __NTG_CONSTRAIN_CONTEXT_H__
+#define __NTG_CONSTRAIN_CONTEXT_H__
 
 #include <stddef.h>
 
@@ -24,4 +24,4 @@ void ntg_constrain_context_set(ntg_constrain_context* context,
         const ntg_drawable* child,
         struct ntg_constrain_data data);
 
-#endif // _NTG_CONSTRAIN_CONTEXT_H_
+#endif // __NTG_CONSTRAIN_CONTEXT_H__

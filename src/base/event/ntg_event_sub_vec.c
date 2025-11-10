@@ -59,13 +59,13 @@ void ntg_event_sub_vec_append(ntg_event_sub_vec* vec, struct ntg_event_sub sub)
     ntg_vector_append((ntg_vector*)vec, &sub);
 }
 
-void ntg_event_sub_vec_remove(ntg_event_sub_vec* vec, struct ntg_event_sub sub)
+void ntg_event_sub_vec_remove(ntg_event_sub_vec* vec, const void* subscriber)
 {
     assert(vec != NULL);
 
-    assert(ntg_event_sub_vec_contains(vec, sub.subscriber));
+    assert(ntg_event_sub_vec_contains(vec, subscriber));
 
-    ntg_vector_remove((ntg_vector*)vec, &sub, __cmp_fn);
+    ntg_vector_remove((ntg_vector*)vec, &subscriber, __cmp_fn);
 }
 
 size_t ntg_event_sub_vec_find(const ntg_event_sub_vec* vec,

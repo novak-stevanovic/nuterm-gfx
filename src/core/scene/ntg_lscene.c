@@ -4,14 +4,8 @@
 #include "core/scene/ntg_lscene.h"
 #include "core/scene/_ntg_lscene_graph.h"
 #include "core/scene/ntg_drawable.h"
-#include "core/scene/shared/ntg_measure_context.h"
-#include "core/scene/shared/ntg_measure_output.h"
-#include "core/scene/shared/ntg_constrain_context.h"
-#include "core/scene/shared/ntg_constrain_output.h"
-#include "core/scene/shared/ntg_arrange_context.h"
-#include "core/scene/shared/ntg_arrange_output.h"
+#include "core/scene/shared/ntg_drawable_kit.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
-#include "core/scene/shared/ntg_drawing.h"
 #include "sarena.h"
 
 static void __measure1_fn(ntg_drawable* drawable, void* _layout_data);
@@ -27,13 +21,11 @@ static void __ntg_lscene_on_unregister_fn(ntg_scene* _scene, const ntg_drawable*
 
 void __ntg_lscene_init__(
         ntg_lscene* scene,
-        ntg_drawable* root,
         ntg_scene_process_key_fn process_key_fn)
 {
     assert(scene != NULL);
 
     __ntg_scene_init__((ntg_scene*)scene,
-            root,
             __ntg_lscene_layout_fn,
             __ntg_lscene_on_register_fn,
             __ntg_lscene_on_unregister_fn,
@@ -106,7 +98,7 @@ static void __ntg_lscene_on_register_fn(ntg_scene* _scene, const ntg_drawable* d
     assert(drawable != NULL);
 
     ntg_lscene* scene = (ntg_lscene*)_scene;
-    ntg_lscene_graph_remove(scene->__graph, drawable);
+    ntg_lscene_graph_add(scene->__graph, drawable);
 }
 
 static void __ntg_lscene_on_unregister_fn(ntg_scene* _scene, const ntg_drawable* drawable)

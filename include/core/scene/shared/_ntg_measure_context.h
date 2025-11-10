@@ -1,5 +1,5 @@
-#ifndef _NTG_MEASURE_CONTEXT_H_
-#define _NTG_MEASURE_CONTEXT_H_
+#ifndef __NTG_MEASURE_CONTEXT_H__
+#define __NTG_MEASURE_CONTEXT_H__
 
 #include <stddef.h>
 
@@ -24,4 +24,4 @@ void ntg_measure_context_set(
         const ntg_drawable* child,
         struct ntg_measure_data data);
 
-#endif // _NTG_MEASURE_CONTEXT_H_
+#endif // __NTG_MEASURE_CONTEXT_H__

@@ -6,15 +6,17 @@
 
 typedef struct ntg_drawable ntg_drawable;
 typedef struct ntg_scene ntg_scene;
+
 typedef struct ntg_measure_context ntg_measure_context;
 typedef struct ntg_constrain_context ntg_constrain_context;
 typedef struct ntg_constrain_output ntg_constrain_output;
 typedef struct ntg_arrange_context ntg_arrange_context;
 typedef struct ntg_arrange_output ntg_arrange_output;
-typedef struct ntg_drawable_vec_view ntg_drawable_vec_view;
-typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_draw_context ntg_draw_context;
 typedef struct ntg_drawing ntg_drawing;
+
+typedef struct ntg_drawable_vec ntg_drawable_vec;
+typedef struct ntg_drawable_vec_view ntg_drawable_vec_view;
 
 /* Measures how much space the drawable would require along one axis,
  * if the size is constrained for the other axis. */
