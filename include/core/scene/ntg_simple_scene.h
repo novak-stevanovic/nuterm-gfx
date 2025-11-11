@@ -4,15 +4,12 @@
 #include "core/scene/ntg_scene.h"
 
 typedef struct ntg_simple_scene ntg_simple_scene;
-typedef struct ntg_simple_scene_graph ntg_simple_scene_graph;
 
 /* Simple scene with implemented layout that allows for wrapping of elements.
  * Layout is always performed in full. */
 struct ntg_simple_scene
 {
     ntg_scene __base;
-    
-    ntg_simple_scene_graph* __graph;
 };
 
 void __ntg_simple_scene_init__(

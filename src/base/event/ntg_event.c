@@ -28,42 +28,43 @@ struct ntg_event_delegate
     ntg_event_sub_vec* __subs;
 };
 
-void ntg_listenable_listen(ntg_listenable* listenable, struct ntg_event_sub sub)
+void ntg_listenable_listen(ntg_listenable* listenable,
+        void* subscriber, ntg_event_handler handler)
 {
     assert(listenable != NULL);
-    assert(sub.subscriber != NULL);
-    assert(sub.handler != NULL);
+    assert(subscriber != NULL);
+    assert(handler != NULL);
 
-    if(ntg_listenable_is_listening(listenable, sub.subscriber))
-        return;
+    assert(!ntg_listenable_has_sub(listenable, subscriber, handler));
 
-    ntg_event_sub_vec_append(listenable->__subs, sub);
+    ntg_event_sub_vec_append(listenable->__subs, subscriber, handler);
 }
 
-void ntg_listenable_stop_listening(ntg_listenable* listenable, void* subscriber)
+void ntg_listenable_stop_listening(ntg_listenable* listenable,
+        void* subscriber, ntg_event_handler handler)
 {
     assert(listenable != NULL);
 
-    if(!ntg_listenable_is_listening(listenable, subscriber))
-        return;
+    assert(ntg_listenable_has_sub(listenable, subscriber, handler));
 
-    ntg_event_sub_vec_remove(listenable->__subs, subscriber);
+    ntg_event_sub_vec_remove(listenable->__subs, subscriber, handler);
 }
 
 bool ntg_listenable_is_listening(ntg_listenable* listenable, void* subscriber)
 {
     assert(listenable != NULL);
+    assert(subscriber != NULL);
 
-    ntg_event_sub_vec* subs = listenable->__subs;
+    return ntg_event_sub_vec_find(listenable->__subs, subscriber);
+}
 
-    size_t i;
-    for(i = 0; i < subs->_count; i++)
-    {
-        if(subs->_data[i].subscriber == subscriber)
-            return true;
-    }
+bool ntg_listenable_has_sub(ntg_listenable* listenable,
+        void* subscriber, ntg_event_handler handler)
+{
+    assert(listenable != NULL);
+    assert(subscriber != NULL);
 
-    return false;
+    return ntg_event_sub_vec_contains_(listenable->__subs, subscriber, handler);
 }
 
 ntg_event_delegate* ntg_event_delegate_new()

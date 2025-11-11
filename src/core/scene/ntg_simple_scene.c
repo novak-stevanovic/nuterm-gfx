@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "core/scene/ntg_simple_scene.h"
-#include "core/scene/_ntg_simple_scene_graph.h"
+#include "core/scene/_ntg_scene_graph.h"
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
@@ -16,8 +16,6 @@ static void __arrange_fn(ntg_drawable* drawable, void* _layout_data);
 static void __draw_fn(ntg_drawable* drawable, void* _layout_data);
 
 static void __ntg_simple_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);
-static void __ntg_simple_scene_on_register_fn(ntg_scene* _scene, const ntg_drawable* drawable);
-static void __ntg_simple_scene_on_unregister_fn(ntg_scene* _scene, const ntg_drawable* drawable);
 
 void __ntg_simple_scene_init__(
         ntg_simple_scene* scene,
@@ -27,11 +25,9 @@ void __ntg_simple_scene_init__(
 
     __ntg_scene_init__((ntg_scene*)scene,
             __ntg_simple_scene_layout_fn,
-            __ntg_simple_scene_on_register_fn,
-            __ntg_simple_scene_on_unregister_fn,
+            NULL,
+            NULL,
             process_key_fn);
-
-    scene->__graph = ntg_simple_scene_graph_new();
 }
 
 void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
@@ -39,14 +35,11 @@ void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
     assert(scene != NULL);
 
     __ntg_scene_deinit__((ntg_scene*)scene);
-
-    ntg_simple_scene_graph_destroy(scene->__graph);
-    scene->__graph = NULL;
 }
 
 struct ntg_layout_data
 {
-    SArena* arena; 
+    // SArena* arena; 
     ntg_simple_scene* scene;
 };
 
@@ -66,7 +59,7 @@ static void __ntg_simple_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
         .scene = scene
     };
 
-    struct ntg_simple_scene_node* root_data = ntg_simple_scene_graph_get(scene->__graph, root);
+    struct _ntg_scene_node* root_data = ntg_scene_graph_get(_ntg_scene_get_graph(_scene), root);
 
     root_data->size = size;
     root_data->position = ntg_xy(0, 0);
@@ -92,33 +85,16 @@ static void __ntg_simple_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
     // sarena_destroy(arena);
 }
 
-static void __ntg_simple_scene_on_register_fn(ntg_scene* _scene, const ntg_drawable* drawable)
-{
-    assert(_scene != NULL);
-    assert(drawable != NULL);
-
-    ntg_simple_scene* scene = (ntg_simple_scene*)_scene;
-    ntg_simple_scene_graph_add(scene->__graph, drawable);
-}
-
-static void __ntg_simple_scene_on_unregister_fn(ntg_scene* _scene, const ntg_drawable* drawable)
-{
-    assert(_scene != NULL);
-    assert(drawable != NULL);
-
-    ntg_simple_scene* scene = (ntg_simple_scene*)_scene;
-    ntg_simple_scene_graph_remove(scene->__graph, drawable);
-}
-
 /* -------------------------------------------------------------------------- */
 
 static void __measure1_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
     ntg_simple_scene* scene = data->scene; 
-    ntg_simple_scene_graph* graph = scene->__graph;
+    ntg_scene* _scene = (ntg_scene*)scene;
+    ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
-    struct ntg_simple_scene_node* node = ntg_simple_scene_graph_get(graph, drawable);
+    struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
     ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
@@ -126,12 +102,12 @@ static void __measure1_fn(ntg_drawable* drawable, void* _layout_data)
 
     ntg_drawable* it_drawable;
     struct ntg_measure_data it_data;
-    struct ntg_simple_scene_node* it_node;
+    struct _ntg_scene_node* it_node;
     size_t i;
     for(i = 0; i < child_count; i++)
     {
         it_drawable = ntg_drawable_vec_view_at(&children, i);
-        it_node = ntg_simple_scene_graph_get(graph, it_drawable);
+        it_node = ntg_scene_graph_get(graph, it_drawable);
 
         it_data = (struct ntg_measure_data) {
             .min_size = it_node->min_size.x,
@@ -159,9 +135,10 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
     ntg_simple_scene* scene = data->scene; 
-    ntg_simple_scene_graph* graph = scene->__graph;
+    ntg_scene* _scene = (ntg_scene*)scene;
+    ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
-    struct ntg_simple_scene_node* node = ntg_simple_scene_graph_get(graph, drawable);
+    struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
     ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
@@ -170,12 +147,12 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
 
     ntg_drawable* it_drawable;
     struct ntg_constrain_data it_data;
-    struct ntg_simple_scene_node* it_node;
+    struct _ntg_scene_node* it_node;
     size_t i;
     for(i = 0; i < child_count; i++)
     {
         it_drawable = ntg_drawable_vec_view_at(&children, i);
-        it_node = ntg_simple_scene_graph_get(graph, it_drawable);
+        it_node = ntg_scene_graph_get(graph, it_drawable);
 
         it_data = (struct ntg_constrain_data) {
             .min_size = it_node->min_size.x,
@@ -202,7 +179,7 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
     for(i = 0; i < child_count; i++)
     {
         it_drawable = ntg_drawable_vec_view_at(&children, i);
-        it_node = ntg_simple_scene_graph_get(graph, it_drawable);
+        it_node = ntg_scene_graph_get(graph, it_drawable);
 
         it_node->size.x = ntg_constrain_output_get(output, it_drawable).size;
     }
@@ -215,9 +192,10 @@ static void __measure2_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
     ntg_simple_scene* scene = data->scene; 
-    ntg_simple_scene_graph* graph = scene->__graph;
+    ntg_scene* _scene = (ntg_scene*)scene;
+    ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
-    struct ntg_simple_scene_node* node = ntg_simple_scene_graph_get(graph, drawable);
+    struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
 
     ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
@@ -226,12 +204,12 @@ static void __measure2_fn(ntg_drawable* drawable, void* _layout_data)
 
     ntg_drawable* it_drawable;
     struct ntg_measure_data it_data;
-    struct ntg_simple_scene_node* it_node;
+    struct _ntg_scene_node* it_node;
     size_t i;
     for(i = 0; i < child_count; i++)
     {
         it_drawable = ntg_drawable_vec_view_at(&children, i);
-        it_node = ntg_simple_scene_graph_get(graph, it_drawable);
+        it_node = ntg_scene_graph_get(graph, it_drawable);
 
         it_data = (struct ntg_measure_data) {
             .min_size = it_node->min_size.y,
@@ -260,9 +238,10 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
     ntg_simple_scene* scene = data->scene; 
-    ntg_simple_scene_graph* graph = scene->__graph;
+    ntg_scene* _scene = (ntg_scene*)scene;
+    ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
-    struct ntg_simple_scene_node* node = ntg_simple_scene_graph_get(graph, drawable);
+    struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
 
     ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
@@ -272,12 +251,12 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
 
     ntg_drawable* it_drawable;
     struct ntg_constrain_data it_data;
-    struct ntg_simple_scene_node* it_node;
+    struct _ntg_scene_node* it_node;
     size_t i;
     for(i = 0; i < child_count; i++)
     {
         it_drawable = ntg_drawable_vec_view_at(&children, i);
-        it_node = ntg_simple_scene_graph_get(graph, it_drawable);
+        it_node = ntg_scene_graph_get(graph, it_drawable);
 
         it_data = (struct ntg_constrain_data) {
             .min_size = it_node->min_size.y,
@@ -304,7 +283,7 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
     for(i = 0; i < child_count; i++)
     {
         it_drawable = ntg_drawable_vec_view_at(&children, i);
-        it_node = ntg_simple_scene_graph_get(graph, it_drawable);
+        it_node = ntg_scene_graph_get(graph, it_drawable);
 
         it_node->size.y = ntg_constrain_output_get(output, it_drawable).size;
     }
@@ -317,9 +296,10 @@ static void __arrange_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
     ntg_simple_scene* scene = data->scene; 
-    ntg_simple_scene_graph* graph = scene->__graph;
+    ntg_scene* _scene = (ntg_scene*)scene;
+    ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
-    struct ntg_simple_scene_node* node = ntg_simple_scene_graph_get(graph, drawable);
+    struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
 
     ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
@@ -329,12 +309,12 @@ static void __arrange_fn(ntg_drawable* drawable, void* _layout_data)
 
     size_t i;
     struct ntg_arrange_data it_data;
-    struct ntg_simple_scene_node* it_node;
+    struct _ntg_scene_node* it_node;
     ntg_drawable* it_drawable;
     for(i = 0; i < child_count; i++)
     {
         it_drawable = ntg_drawable_vec_view_at(&children, i);
-        it_node = ntg_simple_scene_graph_get(graph, it_drawable);
+        it_node = ntg_scene_graph_get(graph, it_drawable);
 
         it_data = (struct ntg_arrange_data) {
             .size = it_node->size
@@ -348,7 +328,7 @@ static void __arrange_fn(ntg_drawable* drawable, void* _layout_data)
     for(i = 0; i < child_count; i++)
     {
         it_drawable = ntg_drawable_vec_view_at(&children, i);
-        it_node = ntg_simple_scene_graph_get(graph, it_drawable);
+        it_node = ntg_scene_graph_get(graph, it_drawable);
 
         it_node->position = ntg_xy_add(node->position,
                 ntg_arrange_output_get(output, it_drawable).pos);
@@ -363,13 +343,10 @@ static void __draw_fn(ntg_drawable* drawable, void* _layout_data)
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
     ntg_simple_scene* scene = data->scene; 
     ntg_scene* _scene = (ntg_scene*)scene;
-    ntg_simple_scene_graph* graph = scene->__graph;
+    ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
-    struct ntg_simple_scene_node* node = ntg_simple_scene_graph_get(graph, drawable);
+    struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
     ntg_drawing_set_size(node->drawing, node->size);
-    drawable->_draw_fn(drawable, node->size, node->drawing);
-
-    ntg_drawing_place_(node->drawing, ntg_xy(0, 0),
-            ntg_drawing_get_size(node->drawing),
-            _scene->__drawing, node->position);
+    if(drawable->_draw_fn)
+        drawable->_draw_fn(drawable, node->size, node->drawing);
 }

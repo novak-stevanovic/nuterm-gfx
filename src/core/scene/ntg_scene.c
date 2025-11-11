@@ -5,6 +5,7 @@
 
 #include "base/event/ntg_event.h"
 #include "core/scene/ntg_drawable.h"
+#include "core/scene/shared/ntg_cdrawable_vec.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
 #include "core/scene/shared/ntg_scene_drawing.h"
 
@@ -12,13 +13,12 @@
 /* STATIC DECLARATIONS */
 /* -------------------------------------------------------------------------- */
 
-static void __layout_no_root(ntg_scene* scene);
 static void __init_default_values(ntg_scene* scene);
 static void __add_to_registered_fn(ntg_drawable* drawable, void* _registered);
 static void __scan_scene(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
-/* API */
+/* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
 void __ntg_scene_init__(
@@ -34,7 +34,6 @@ void __ntg_scene_init__(
     __init_default_values(scene);
 
     scene->__root = NULL;
-    scene->__drawing = ntg_scene_drawing_new();
     scene->__focused = NULL;
 
     scene->__layout_fn = layout_fn;
@@ -42,17 +41,16 @@ void __ntg_scene_init__(
     scene->__on_unregister_fn = on_unregister_fn;
     scene->__process_key_fn = process_key_fn;
 
-    scene->__registered = ntg_drawable_vec_new();
     scene->__del = ntg_event_delegate_new();
+    scene->__graph = ntg_scene_graph_new();
 }
 
 void __ntg_scene_deinit__(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    ntg_scene_drawing_destroy(scene->__drawing);
     ntg_event_delegate_destroy(scene->__del);
-    ntg_drawable_vec_destroy(scene->__registered);
+    ntg_scene_graph_destroy(scene->__graph);
 
     __init_default_values(scene);
 }
@@ -67,7 +65,10 @@ ntg_drawable* ntg_scene_get_focused(ntg_scene* scene)
 void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable)
 {
     assert(scene != NULL);
-    assert(ntg_drawable_vec_contains(scene->__registered, drawable));
+
+    // TODO: What if a user adds an element to the tree, the scene doesnt get
+    // to register and then focuses the element?
+    // assert(ntg_drawable_vec_contains(scene->__registered, drawable));
 
     scene->__focused = drawable;
 }
@@ -86,19 +87,35 @@ ntg_scene_key_process_mode ntg_scene_get_key_process_mode(const ntg_scene* scene
     return scene->__key_process_mode;
 }
 
+struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
+        const ntg_drawable* drawable)
+{
+    assert(scene != NULL);
+    assert(drawable != NULL);
+
+    struct _ntg_scene_node* _node = ntg_scene_graph_get(scene->__graph, drawable);
+    assert(_node != NULL);
+
+    return (struct ntg_scene_node) {
+        .min_size = _node->min_size,
+        .natural_size = _node->natural_size,
+        .max_size = _node->max_size,
+        .size = _node->size,
+        .grow = _node->grow,
+        .position = _node->position,
+        .drawing = _node->drawing
+    };
+}
+
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
     assert(scene != NULL);
 
     scene->__size = size;
-    ntg_scene_drawing_set_size(scene->__drawing, size);
 
     __scan_scene(scene);
 
-    if(scene->__root != NULL)
-        scene->__layout_fn(scene, size);
-    else
-        __layout_no_root(scene);
+    scene->__layout_fn(scene, size);
 }
 
 struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)
@@ -109,13 +126,6 @@ struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)
 }
 
 /* -------------------------------------------------------------------------- */
-
-const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene)
-{
-    assert(scene != NULL);
-
-    return scene->__drawing;
-}
 
 void ntg_scene_set_root(ntg_scene* scene, ntg_drawable* root)
 {
@@ -251,64 +261,59 @@ static void __scan_scene(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    ntg_drawable_vec _current;
-    ntg_drawable_vec* current = &_current;
-    __ntg_drawable_vec_init__(current);
+    ntg_drawable_vec current;
+    __ntg_drawable_vec_init__(&current);
     if(scene->__root != NULL)
     {
         ntg_drawable_tree_perform(
                 scene->__root,
                 NTG_DRAWABLE_PERFORM_TOP_DOWN,
                 __add_to_registered_fn,
-                current);
+                &current);
     }
     
-    ntg_drawable_vec* alr_registered = scene->__registered; 
+    ntg_cdrawable_vec alr_registered; 
+    __ntg_cdrawable_vec_init__(&alr_registered);
 
     size_t i;
-    for(i = 0; i < alr_registered->_count; i++)
+    const ntg_drawable* it_drawable;
+    for(i = 0; i < alr_registered._count; i++)
     {
+        it_drawable = alr_registered._data[i];
+
         // Drawable removed from the scene
-        if(!(ntg_drawable_vec_contains(current, alr_registered->_data[i])))
+        if(!(ntg_drawable_vec_contains(&current, it_drawable)))
         {
+            ntg_scene_graph_remove(scene->__graph, it_drawable);
+
             if(scene->__on_unregister_fn != NULL)
-                scene->__on_unregister_fn(scene, alr_registered->_data[i]);
-
-            ntg_drawable_vec_remove(scene->__registered, alr_registered->_data[i]);
+                scene->__on_unregister_fn(scene, it_drawable);
         }
     }
 
-    for(i = 0; i < current->_count; i++)
+    for(i = 0; i < current._count; i++)
     {
-        // Drawable added to the scene
-        if(!(ntg_drawable_vec_contains(alr_registered, current->_data[i])))
-        {
-            if(scene->__on_register_fn != NULL)
-                scene->__on_register_fn(scene, current->_data[i]);
+        it_drawable = current._data[i];
 
-            ntg_drawable_vec_append(scene->__registered, current->_data[i]);
+        // Drawable added to the scene
+        if(!(ntg_cdrawable_vec_contains(&alr_registered, it_drawable)))
+        {
+            ntg_scene_graph_add(scene->__graph, it_drawable);
+
+            if(scene->__on_register_fn != NULL)
+                scene->__on_register_fn(scene, it_drawable);
         }
     }
 
-    __ntg_drawable_vec_deinit__(current);
+    __ntg_drawable_vec_deinit__(&current);
+    __ntg_cdrawable_vec_deinit__(&alr_registered);
 }
 
-static void __layout_no_root(ntg_scene* scene)
+/* -------------------------------------------------------------------------- */
+/* PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+ntg_scene_graph* _ntg_scene_get_graph(ntg_scene* scene)
 {
-    assert(scene != NULL);
-
-    struct ntg_xy size = ntg_scene_drawing_get_size(scene->__drawing);
-
-    size_t i, j;
-    struct ntg_rcell* it_cell;
-    ntg_cell empty = ntg_cell_default();
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            it_cell = ntg_scene_drawing_at_(scene->__drawing, ntg_xy(j, i));
-
-            (*it_cell) = ntg_cell_overwrite(empty, *it_cell);
-        }
-    }
+    return scene->__graph;
 }

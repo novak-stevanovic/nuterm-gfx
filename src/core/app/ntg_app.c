@@ -160,11 +160,13 @@ void ntg_app_loop(
 
             case NT_EVENT_TYPE_TIMEOUT:
                 ntg_scene_layout(context.scene, app_size);
-                drawing = (context.scene != NULL) ?
-                    ntg_scene_get_drawing(context.scene) :
-                    NULL;
-                ntg_app_renderer_render(renderer,
-                        drawing, app_size);
+                // TODO:
+                // drawing = (context.scene != NULL) ?
+                //     ntg_scene_get_drawing(context.scene) :
+                //     NULL;
+                // ntg_app_renderer_render(renderer,
+                //         drawing, app_size);
+                assert(0);
                 break;
         }
 

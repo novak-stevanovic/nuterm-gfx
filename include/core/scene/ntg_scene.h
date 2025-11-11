@@ -1,10 +1,10 @@
 #ifndef _NTG_SCENE_H_
 #define _NTG_SCENE_H_
 
+#include "core/scene/_ntg_scene_graph.h"
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
 
-typedef struct ntg_scene_drawing ntg_scene_drawing;
 typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_drawable ntg_drawable;
@@ -45,10 +45,9 @@ typedef void (*ntg_scene_on_unregister_fn)(
 struct ntg_scene
 {
     ntg_drawable* __root;
-    ntg_scene_drawing* __drawing;
     struct ntg_xy __size;
 
-    ntg_drawable_vec* __registered;
+    ntg_scene_graph* __graph;
 
     ntg_scene_layout_fn __layout_fn;
     ntg_scene_on_register_fn __on_register_fn;
@@ -61,6 +60,20 @@ struct ntg_scene
 
     ntg_event_delegate* __del;
 };
+
+struct ntg_scene_node
+{
+    struct ntg_xy min_size, natural_size,
+                  max_size, grow;
+
+    struct ntg_xy size;
+    struct ntg_xy position;
+    const ntg_drawing* drawing;
+};
+
+/* -------------------------------------------------------------------------- */
+/* PUBLIC */
+/* -------------------------------------------------------------------------- */
 
 void __ntg_scene_init__(
         ntg_scene* scene, /* non-NULL */
@@ -77,6 +90,9 @@ void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable);
 
 void ntg_scene_set_key_process_mode(ntg_scene* scene, ntg_scene_key_process_mode mode);
 ntg_scene_key_process_mode ntg_scene_get_key_process_mode(const ntg_scene* scene);
+
+struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
+        const ntg_drawable* drawable);
 
 /* -------------------------------------------------------------------------- */
 
@@ -97,7 +113,6 @@ struct ntg_xy ntg_scene_get_size(const ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 
-const ntg_scene_drawing* ntg_scene_get_drawing(const ntg_scene* scene);
 void ntg_scene_set_root(ntg_scene* scene, ntg_drawable* root);
 ntg_drawable* ntg_scene_get_root(ntg_scene* scene);
 
@@ -109,5 +124,11 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
 /* -------------------------------------------------------------------------- */
 
 ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene);
+
+/* -------------------------------------------------------------------------- */
+/* PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+ntg_scene_graph* _ntg_scene_get_graph(ntg_scene* scene);
 
 #endif // _NTG_SCENE_H_

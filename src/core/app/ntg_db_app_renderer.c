@@ -39,12 +39,7 @@ void __ntg_db_app_renderer_init__(ntg_db_app_renderer* renderer)
 
     ntg_listenable* app_listenable = ntg_app_get_listenable();
 
-    struct ntg_event_sub sub = {
-        .subscriber = renderer,
-        .handler = __app_listenable_handler
-    };
-
-    ntg_listenable_listen(app_listenable, sub);
+    ntg_listenable_listen(app_listenable, renderer, __app_listenable_handler);
 }
 
 void __ntg_db_app_renderer_deinit__(ntg_db_app_renderer* renderer)

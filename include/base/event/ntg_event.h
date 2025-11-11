@@ -24,15 +24,6 @@ struct ntg_event
 
 void __ntg_event_init__(ntg_event* event, uint type, void* source, void* data);
 
-/* -------------------------------------------------------------------------- */
-
-/* Event subscription */
-struct ntg_event_sub
-{
-    void* subscriber;
-    ntg_event_handler handler;
-};
-
 /* ------------------------------------------------------ */
 
 ntg_event_delegate* ntg_event_delegate_new();
@@ -43,9 +34,15 @@ void ntg_event_delegate_raise(ntg_event_delegate* del, ntg_event* event);
 
 /* ------------------------------------------------------ */
 
-void ntg_listenable_listen(ntg_listenable* listenable, struct ntg_event_sub sub);
-void ntg_listenable_stop_listening(ntg_listenable* listenable, void* subscriber);
-bool ntg_listenable_is_listening(ntg_listenable* listenable, void* subscriber);
+void ntg_listenable_listen(ntg_listenable* listenable,
+        void* subscriber, ntg_event_handler handler);
+void ntg_listenable_stop_listening(ntg_listenable* listenable,
+        void* subscriber, ntg_event_handler handler);
+
+bool ntg_listenable_is_listening(ntg_listenable* listenable,
+        void* subscriber);
+bool ntg_listenable_has_sub(ntg_listenable* listenable,
+        void* subscriber, ntg_event_handler handler);
 
 /* -------------------------------------------------------------------------- */
 

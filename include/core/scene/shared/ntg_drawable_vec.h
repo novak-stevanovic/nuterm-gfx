@@ -1,5 +1,5 @@
-#ifndef _NTG_DRAWABLE_VECTOR_H_
-#define _NTG_DRAWABLE_VECTOR_H_
+#ifndef _NTG_DRAWABLE_VEC_H_
+#define _NTG_DRAWABLE_VEC_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -44,4 +44,4 @@ void __ntg_drawable_vec_view_deinit__(ntg_drawable_vec_view* view);
 size_t ntg_drawable_vec_view_count(ntg_drawable_vec_view* view);
 ntg_drawable* ntg_drawable_vec_view_at(ntg_drawable_vec_view* view, size_t pos);
 
-#endif // _NTG_DRAWABLE_VECTOR_H_
+#endif // _NTG_DRAWABLE_VEC_H_
