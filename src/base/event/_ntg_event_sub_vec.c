@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "base/event/ntg_event_sub_vec.h"
+#include "base/event/_ntg_event_sub_vec.h"
 #include "base/event/ntg_event.h"
 #include "shared/_ntg_vector.h"
 

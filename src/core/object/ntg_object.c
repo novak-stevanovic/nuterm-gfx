@@ -2,7 +2,6 @@
 
 #include "core/object/ntg_object.h"
 #include "base/event/ntg_event.h"
-#include "base/event/ntg_listenable.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
@@ -220,7 +219,7 @@ ntg_listenable* ntg_object_get_listenable(ntg_object* object)
 {
     assert(object != NULL);
 
-    return ntg_event_del_get_listenable(object->__del);
+    return ntg_event_delegate_listenable(object->__del);
 }
 
 /* ---------------------------------------------------------------- */
@@ -273,7 +272,7 @@ void __ntg_object_init__(ntg_object* object,
             __ntg_object_process_key_fn,
             __ntg_object_on_focus_fn);
 
-    object->__del = ntg_event_del_new();
+    object->__del = ntg_event_delegate_new();
 }
 
 void __ntg_object_deinit__(ntg_object* object)
@@ -282,7 +281,7 @@ void __ntg_object_deinit__(ntg_object* object)
 
     ntg_object_vec_destroy(object->__children);
     ntg_drawable_vec_destroy(object->__children_drawables);
-    ntg_event_del_destroy(object->__del);
+    ntg_event_delegate_destroy(object->__del);
 
     __init_default_values(object);
 }

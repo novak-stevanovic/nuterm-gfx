@@ -2,11 +2,11 @@
 #define _NTG_APP_H_
 
 #include <sys/types.h>
-#include "base/event/ntg_listenable.h"
 #include "nt_event.h"
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_app_renderer ntg_app_renderer;
+typedef struct ntg_listenable ntg_listenable;
 
 /* -------------------------------------------------------------------------- */
 
@@ -58,6 +58,8 @@ void ntg_app_loop(
 
 /* -------------------------------------------------------------------------- */
 
+/* Raises:
+ * NTG_EVT_APP_RESIZE */
 ntg_listenable* ntg_app_get_listenable();
 
 /* -------------------------------------------------------------------------- */

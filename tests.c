@@ -2,10 +2,13 @@
 #include <unistd.h>
 #include <assert.h>
 
+#include "base/event/ntg_event.h"
+#include "core/app/ntg_db_app_renderer.h"
 #include "core/app/ntg_simple_app_renderer.h"
 #include "core/object/ntg_color_block.h"
 #include "ntg.h"
-#include "core/scene/ntg_lscene.h"
+#include "core/scene/ntg_simple_scene.h"
+#include "shared/ntg_log.h"
 
 #define COUNT 100
 
@@ -23,13 +26,16 @@ static void gui_fn1(void* data)
     ntg_object* _root = (ntg_object*)&root;
     __ntg_color_block_init__(&root, nt_color_new(255, 0, 0));
 
-    ntg_lscene scene;
+    ntg_simple_scene scene;
     ntg_scene* _scene = (ntg_scene*)&scene;
-    __ntg_lscene_init__(&scene, NULL);
+    __ntg_simple_scene_init__(&scene, NULL);
     ntg_scene_set_root(_scene, ntg_object_get_drawable_(_root));
 
-    ntg_simple_app_renderer renderer;
-    __ntg_simple_app_renderer_init__(&renderer);
+    // ntg_simple_app_renderer renderer;
+    // __ntg_simple_app_renderer_init__(&renderer);
+    //
+    ntg_db_app_renderer renderer;
+    __ntg_db_app_renderer_init__(&renderer);
 
     ntg_app_loop(
             (ntg_scene*)&scene,
@@ -38,9 +44,13 @@ static void gui_fn1(void* data)
             app_process_key_fn1,
             NULL);
 
-    __ntg_simple_app_renderer_deinit__(&renderer);
+    __ntg_db_app_renderer_deinit__(&renderer);
     __ntg_color_block_deinit__(&root);
-    __ntg_lscene_deinit__(&scene);
+    __ntg_simple_scene_deinit__(&scene);
+}
+
+static void gui_fn2(void* data)
+{
 }
 
 int main(int argc, char *argv[])

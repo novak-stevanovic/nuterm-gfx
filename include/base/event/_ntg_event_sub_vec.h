@@ -1,5 +1,5 @@
-#ifndef _NTG_EVENT_SUB_VEC_H_
-#define _NTG_EVENT_SUB_VEC_H_
+#ifndef __NTG_EVENT_SUB_VEC_H__
+#define __NTG_EVENT_SUB_VEC_H__
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -30,4 +30,4 @@ size_t ntg_event_sub_vec_find(const ntg_event_sub_vec* vec,
 bool ntg_event_sub_vec_contains(const ntg_event_sub_vec* vec,
         const void* subscriber);
 
-#endif // _NTG_EVENT_SUB_VEC_H_
+#endif // __NTG_EVENT_SUB_VEC_H__

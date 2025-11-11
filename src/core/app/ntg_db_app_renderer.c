@@ -6,10 +6,11 @@
 #include "nt.h"
 #include "nt_charbuff.h"
 #include "base/event/ntg_event.h"
+#include "shared/ntg_log.h"
 
 #define CHARBUFF_CAP 100000
 
-static void __app_listenable_handler(void* subscriber, ntg_event* event);
+static void __app_listenable_handler(void* subscriber, const ntg_event* event);
 
 static void __full_empty_render(ntg_db_app_renderer* renderer, struct ntg_xy size);
 
@@ -44,7 +45,6 @@ void __ntg_db_app_renderer_init__(ntg_db_app_renderer* renderer)
     };
 
     ntg_listenable_listen(app_listenable, sub);
-
 }
 
 void __ntg_db_app_renderer_deinit__(ntg_db_app_renderer* renderer)
@@ -76,17 +76,16 @@ void __ntg_db_app_render_fn(
         return;
     }
 
-    // TODO:
-    assert(0);
-
     if(renderer->__resize)
     {
         __full_render(renderer, scene_drawing, size);
         renderer->__resize = false; 
+        ntg_log_log("FULL RENDER");
     }
     else
     {
         __optimized_render(renderer, scene_drawing, size);
+        ntg_log_log("OPTIMIZED RENDER");
     }
 }
 
@@ -161,14 +160,15 @@ static void __full_render(ntg_db_app_renderer* renderer,
     }
 }
 
-static void __app_listenable_handler(void* _subscriber, ntg_event* event)
+static void __app_listenable_handler(void* _subscriber, const ntg_event* event)
 {
     assert(_subscriber != NULL);
     assert(event != NULL);
 
     ntg_db_app_renderer* renderer = (ntg_db_app_renderer*)_subscriber;
 
-    // TODO: check type?
-    renderer->__resize = true;
-
+    if(event->_type == NT_EVENT_TYPE_RESIZE)
+    {
+        renderer->__resize = true;
+    }
 }

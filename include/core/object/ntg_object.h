@@ -14,7 +14,7 @@
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_listenable ntg_listenable;
-typedef struct ntg_event_del ntg_event_del;
+typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_sub ntg_event_sub;
 
 /* ---------------------------------------------------------------- */
@@ -118,7 +118,7 @@ struct ntg_object
     ntg_on_focus_fn __wrapped_on_focus_fn;
 
     struct ntg_drawable __drawable;
-    ntg_event_del* __del;
+    ntg_event_delegate* __del;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -18,6 +18,7 @@ void __ntg_rcell_grid_deinit__(ntg_rcell_grid* grid)
     if(grid == NULL) return;
 
     grid->_size = ntg_xy(0, 0);
+    free(grid->__data);
     grid->__data = NULL;
 }
 
@@ -69,6 +70,17 @@ void ntg_rcell_grid_set_size(ntg_rcell_grid* grid, struct ntg_xy size,
 
         grid->__data = new_data;
         grid->_size = size;
+
+        size_t i, j;
+        struct ntg_rcell* it_cell;
+        for(i = 0; i < size.y; i++)
+        {
+            for(j = 0; j < size.x; j++)
+            {
+                it_cell = ntg_rcell_grid_at_(grid, ntg_xy(j, i));
+                (*it_cell) = ntg_rcell_default();
+            }
+        }
     }
 
     _vreturn(out_status, NTG_SUCCESS);
@@ -127,6 +139,7 @@ void __ntg_cell_grid_deinit__(ntg_cell_grid* grid)
     if(grid == NULL) return;
 
     grid->_size = ntg_xy(0, 0);
+    free(grid->__data);
     grid->__data = NULL;
 }
 
@@ -178,6 +191,17 @@ void ntg_cell_grid_set_size(ntg_cell_grid* grid, struct ntg_xy size,
 
         grid->__data = new_data;
         grid->_size = size;
+
+        size_t i, j;
+        ntg_cell* it_cell;
+        for(i = 0; i < size.y; i++)
+        {
+            for(j = 0; j < size.x; j++)
+            {
+                it_cell = ntg_cell_grid_at_(grid, ntg_xy(j, i));
+                (*it_cell) = ntg_cell_default();
+            }
+        }
     }
 
     _vreturn(out_status, NTG_SUCCESS);
@@ -222,6 +246,8 @@ void ntg_rcell_vgrid_destroy(ntg_rcell_vgrid* vgrid)
     assert(vgrid != NULL);
 
     __ntg_rcell_grid_deinit__(&vgrid->___data);
+
+    free(vgrid);
 }
 
 struct ntg_xy ntg_rcell_vgrid_get_size(const ntg_rcell_vgrid* vgrid)
@@ -232,8 +258,6 @@ struct ntg_xy ntg_rcell_vgrid_get_size(const ntg_rcell_vgrid* vgrid)
 void ntg_rcell_vgrid_set_size(ntg_rcell_vgrid* vgrid, struct ntg_xy size,
         ntg_status* out_status)
 {
-    // TODO
-
     ntg_xy_size_(&size);
 
     ntg_rcell_grid_set_size(&vgrid->___data, size, NULL);
@@ -282,6 +306,8 @@ void ntg_cell_vgrid_destroy(ntg_cell_vgrid* vgrid)
     assert(vgrid != NULL);
 
     __ntg_cell_grid_deinit__(&vgrid->___data);
+
+    free(vgrid);
 }
 
 struct ntg_xy ntg_cell_vgrid_get_size(const ntg_cell_vgrid* vgrid)

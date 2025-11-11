@@ -7,6 +7,8 @@ typedef struct ntg_db_app_renderer ntg_db_app_renderer;
 typedef struct ntg_rcell_vgrid ntg_rcell_vgrid;
 typedef struct nt_charbuff nt_charbuff;
 
+/* Double-buffered app renderer that listens to ntg_app for resizes. When
+ * a resize happens, the next render will not be optimized. */
 struct ntg_db_app_renderer
 {
     ntg_app_renderer __base;

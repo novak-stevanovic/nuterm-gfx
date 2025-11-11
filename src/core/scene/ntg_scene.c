@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include "base/event/ntg_event.h"
-#include "base/event/ntg_listenable.h"
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
 #include "core/scene/shared/ntg_scene_drawing.h"
@@ -44,7 +43,7 @@ void __ntg_scene_init__(
     scene->__process_key_fn = process_key_fn;
 
     scene->__registered = ntg_drawable_vec_new();
-    scene->__del = ntg_event_del_new();
+    scene->__del = ntg_event_delegate_new();
 }
 
 void __ntg_scene_deinit__(ntg_scene* scene)
@@ -52,7 +51,7 @@ void __ntg_scene_deinit__(ntg_scene* scene)
     assert(scene != NULL);
 
     ntg_scene_drawing_destroy(scene->__drawing);
-    ntg_event_del_destroy(scene->__del);
+    ntg_event_delegate_destroy(scene->__del);
     ntg_drawable_vec_destroy(scene->__registered);
 
     __init_default_values(scene);
@@ -134,6 +133,7 @@ ntg_drawable* ntg_scene_get_root(ntg_scene* scene)
 
 /* -------------------------------------------------------------------------- */
 
+// TODO: TEST
 bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
 {
     assert(scene != NULL);
@@ -228,7 +228,7 @@ ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    return ntg_event_del_get_listenable(scene->__del);
+    return ntg_event_delegate_listenable(scene->__del);
 }
 
 /* -------------------------------------------------------------------------- */

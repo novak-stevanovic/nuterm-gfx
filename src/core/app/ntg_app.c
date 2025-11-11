@@ -3,6 +3,9 @@
 #include <stdlib.h>
 
 #include "core/app/ntg_app.h"
+#include "base/event/ntg_event.h"
+#include "base/event/ntg_event_participants.h"
+#include "base/event/ntg_event_types.h"
 #include "core/app/ntg_app_renderer.h"
 #include "core/scene/ntg_scene.h"
 #include "pthread.h"
@@ -13,12 +16,12 @@
 
 /* -------------------------------------------------------------------------- */
 
-static ntg_event_del* _del = NULL;
+static ntg_event_delegate* __del = NULL;
 
-static pthread_t _ntg_thread;
-static bool _launched = false;
+static pthread_t __ntg_thread;
+static bool __launched = false;
 
-static void* _ntg_app_thread_fn(void* _thread_fn_data);
+static void* __ntg_app_thread_fn(void* _thread_fn_data);
 
 /* -------------------------------------------------------------------------- */
 
@@ -38,7 +41,7 @@ void __ntg_app_init__()
             assert(0);
     }
 
-    _del = ntg_event_del_new();
+    __del = ntg_event_delegate_new();
 }
 
 struct ntg_app_thread_fn_data
@@ -49,7 +52,7 @@ struct ntg_app_thread_fn_data
 
 void ntg_app_launch(ntg_app_gui_fn gui_fn, void* data)
 {
-    assert(_launched == false);
+    assert(__launched == false);
 
     nt_alt_screen_enable(NULL);
     nt_cursor_hide(NULL);
@@ -61,20 +64,20 @@ void ntg_app_launch(ntg_app_gui_fn gui_fn, void* data)
     thread_fn_data->gui_fn = gui_fn;
     thread_fn_data->gui_fn_data = data;
 
-    int status = pthread_create(&_ntg_thread, NULL,
-            _ntg_app_thread_fn, thread_fn_data);
+    int status = pthread_create(&__ntg_thread, NULL,
+            __ntg_app_thread_fn, thread_fn_data);
 
     assert(status == 0);
 
-    _launched = true;
+    __launched = true;
 }
 
 void* ntg_app_wait()
 {
-    if(!_launched) return NULL;
+    if(!__launched) return NULL;
 
     void* _data;
-    pthread_join(_ntg_thread, &_data);
+    pthread_join(__ntg_thread, &_data);
     
     return _data;
 }
@@ -87,7 +90,7 @@ void __ntg_app_deinit__()
 
    __ntg_log_deinit__();
 
-   ntg_event_del_destroy(_del);
+   ntg_event_delegate_destroy(__del);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -110,6 +113,7 @@ void ntg_app_loop(
     size_t _width, _height;
     nt_get_term_size(&_width, &_height);
     struct ntg_xy app_size = ntg_xy(_width, _height);
+    struct ntg_xy old_app_size = ntg_xy(0, 0);
 
     nt_status _status;
     struct nt_event event;
@@ -124,6 +128,8 @@ void ntg_app_loop(
         size_t _width, _height;
         ntg_app_status status;
         const ntg_scene_drawing* drawing;
+        ntg_event resize_ev;
+        struct ntg_evt_app_resize_data resize_data;
         switch(event.type)
         {
             case NT_EVENT_TYPE_KEY:
@@ -131,12 +137,27 @@ void ntg_app_loop(
                 if(status == NTG_APP_QUIT)
                     loop = false;
                 break;
+
             case NT_EVENT_TYPE_RESIZE:
-                // TODO: raise event
-                assert(0);
                 nt_get_term_size(&_width, &_height);
+                old_app_size = app_size;
                 app_size = ntg_xy(_width, _height);
+
+                resize_data = (struct ntg_evt_app_resize_data) {
+                    .old = old_app_size,
+                    .new = app_size
+                };
+
+                __ntg_event_init__(
+                        &resize_ev,
+                        NTG_EVT_APP_RESIZE,
+                        NTG_EVENT_PARTICIPANT_APP,
+                        &resize_data);
+
+                ntg_event_delegate_raise(__del, &resize_ev);
+
                 break;
+
             case NT_EVENT_TYPE_TIMEOUT:
                 ntg_scene_layout(context.scene, app_size);
                 drawing = (context.scene != NULL) ?
@@ -152,7 +173,7 @@ void ntg_app_loop(
 
 }
 
-static void* _ntg_app_thread_fn(void* _thread_fn_data)
+static void* __ntg_app_thread_fn(void* _thread_fn_data)
 {
     struct ntg_app_thread_fn_data* data =
         (struct ntg_app_thread_fn_data*)_thread_fn_data;
@@ -166,5 +187,5 @@ static void* _ntg_app_thread_fn(void* _thread_fn_data)
 
 ntg_listenable* ntg_app_get_listenable()
 {
-    return ntg_event_del_get_listenable(_del);
+    return ntg_event_delegate_listenable(__del);
 }

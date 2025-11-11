@@ -9,7 +9,7 @@ typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_drawable ntg_drawable;
 typedef struct ntg_listenable ntg_listenable;
-typedef struct ntg_event_del ntg_event_del;
+typedef struct ntg_event_delegate ntg_event_delegate;
 struct ntg_event_sub;
 
 #define NTG_SCENE(scn_ptr) ((ntg_scene*)(scn_ptr))
@@ -59,7 +59,7 @@ struct ntg_scene
 
     ntg_drawable* __focused;
 
-    ntg_event_del* __del;
+    ntg_event_delegate* __del;
 };
 
 void __ntg_scene_init__(
