@@ -2,7 +2,7 @@
 #include "core/app/ntg_db_app_renderer.h"
 #include "base/ntg_cell.h"
 #include "core/app/ntg_app.h"
-#include "core/scene/shared/ntg_scene_drawing.h"
+#include "core/stage/shared/ntg_stage_drawing.h"
 #include "nt.h"
 #include "nt_charbuff.h"
 #include "base/event/ntg_event.h"
@@ -15,10 +15,10 @@ static void __app_listenable_handler(void* subscriber, const ntg_event* event);
 static void __full_empty_render(ntg_db_app_renderer* renderer, struct ntg_xy size);
 
 static void __full_render(ntg_db_app_renderer* renderer,
-        const ntg_scene_drawing* drawing, struct ntg_xy size);
+        const ntg_stage_drawing* drawing, struct ntg_xy size);
 
 static void __optimized_render(ntg_db_app_renderer* renderer,
-        const ntg_scene_drawing* drawing, struct ntg_xy size);
+        const ntg_stage_drawing* drawing, struct ntg_xy size);
 
 /* -------------------------------------------------------------------------- */
 
@@ -58,14 +58,14 @@ void __ntg_db_app_renderer_deinit__(ntg_db_app_renderer* renderer)
 
 void __ntg_db_app_render_fn(
         ntg_app_renderer* _renderer,
-        const ntg_scene_drawing* scene_drawing,
+        const ntg_stage_drawing* stage_drawing,
         struct ntg_xy size)
 {
     assert(_renderer != NULL);
 
     ntg_db_app_renderer* renderer = (ntg_db_app_renderer*)_renderer;
 
-    if(scene_drawing == NULL)
+    if(stage_drawing == NULL)
     {
         __full_empty_render(renderer, size);
         return;
@@ -73,13 +73,13 @@ void __ntg_db_app_render_fn(
 
     if(renderer->__resize)
     {
-        __full_render(renderer, scene_drawing, size);
+        __full_render(renderer, stage_drawing, size);
         renderer->__resize = false; 
         ntg_log_log("FULL RENDER");
     }
     else
     {
-        __optimized_render(renderer, scene_drawing, size);
+        __optimized_render(renderer, stage_drawing, size);
         ntg_log_log("OPTIMIZED RENDER");
     }
 }
@@ -107,7 +107,7 @@ static void __full_empty_render(ntg_db_app_renderer* renderer, struct ntg_xy siz
 }
 
 static void __optimized_render(ntg_db_app_renderer* renderer,
-        const ntg_scene_drawing* drawing, struct ntg_xy size)
+        const ntg_stage_drawing* drawing, struct ntg_xy size)
 {
     struct ntg_xy old_back_buffer_size = ntg_rcell_vgrid_get_size(renderer->__backbuff);
     ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
@@ -118,7 +118,7 @@ static void __optimized_render(ntg_db_app_renderer* renderer,
     {
         for(j = 0; j < size.x; j++)
         {
-            it_drawing_rcell = *(ntg_scene_drawing_at(drawing, ntg_xy(j, i)));
+            it_drawing_rcell = *(ntg_stage_drawing_at(drawing, ntg_xy(j, i)));
             it_back_buffer_rcell = ntg_rcell_vgrid_at_(renderer->__backbuff,
                     ntg_xy(j, i));
 
@@ -135,7 +135,7 @@ static void __optimized_render(ntg_db_app_renderer* renderer,
 }
 
 static void __full_render(ntg_db_app_renderer* renderer,
-        const ntg_scene_drawing* drawing, struct ntg_xy size)
+        const ntg_stage_drawing* drawing, struct ntg_xy size)
 {
     ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
 
@@ -145,7 +145,7 @@ static void __full_render(ntg_db_app_renderer* renderer,
     {
         for(j = 0; j < size.x; j++)
         {
-            it_drawing_rcell = *(ntg_scene_drawing_at(drawing, ntg_xy(j, i)));
+            it_drawing_rcell = *(ntg_stage_drawing_at(drawing, ntg_xy(j, i)));
             it_back_buffer_rcell = ntg_rcell_vgrid_at_(renderer->__backbuff,
                     ntg_xy(j, i));
 

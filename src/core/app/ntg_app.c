@@ -8,6 +8,9 @@
 #include "base/event/ntg_event_types.h"
 #include "core/app/ntg_app_renderer.h"
 #include "core/scene/ntg_scene.h"
+#include "core/scene/shared/_ntg_drawing.h"
+#include "core/stage/ntg_stage.h"
+#include "core/stage/shared/ntg_stage_drawing.h"
 #include "pthread.h"
 #include "nt.h"
 
@@ -96,7 +99,7 @@ void __ntg_app_deinit__()
 /* -------------------------------------------------------------------------- */
 
 void ntg_app_loop(
-        ntg_scene* scene,
+        ntg_stage* init_stage,
         uint framerate,
         ntg_app_renderer* renderer,
         ntg_app_process_key_fn process_key_fn,
@@ -104,16 +107,18 @@ void ntg_app_loop(
 {
     assert(process_key_fn != NULL);
     assert(renderer != NULL);
-    assert(scene != NULL);
+    assert(init_stage != NULL);
 
     struct ntg_app_loop_context context = {
-        .scene = scene
+        .stage = init_stage
     };
 
     size_t _width, _height;
     nt_get_term_size(&_width, &_height);
     struct ntg_xy app_size = ntg_xy(_width, _height);
     struct ntg_xy old_app_size = ntg_xy(0, 0);
+
+    ntg_stage_drawing* empty_drawing = ntg_stage_drawing_new();
 
     nt_status _status;
     struct nt_event event;
@@ -127,7 +132,7 @@ void ntg_app_loop(
 
         size_t _width, _height;
         ntg_app_status status;
-        const ntg_scene_drawing* drawing;
+        const ntg_stage_drawing* drawing;
         ntg_event resize_ev;
         struct ntg_evt_app_resize_data resize_data;
         switch(event.type)
@@ -159,20 +164,26 @@ void ntg_app_loop(
                 break;
 
             case NT_EVENT_TYPE_TIMEOUT:
-                ntg_scene_layout(context.scene, app_size);
-                // TODO:
-                // drawing = (context.scene != NULL) ?
-                //     ntg_scene_get_drawing(context.scene) :
-                //     NULL;
-                // ntg_app_renderer_render(renderer,
-                //         drawing, app_size);
-                assert(0);
+                if(context.stage != NULL)
+                {
+                    ntg_stage_compose(context.stage, app_size);
+                    drawing = ntg_stage_get_drawing(context.stage);
+                }
+                else
+                {
+                    ntg_stage_drawing_set_size(empty_drawing, app_size);
+                    drawing = empty_drawing;
+                }
+
+                ntg_app_renderer_render(renderer, drawing, app_size);
                 break;
         }
 
         assert(_status == NT_SUCCESS);
     }
 
+    ntg_stage_drawing_destroy(empty_drawing);
+    empty_drawing = NULL;
 }
 
 static void* __ntg_app_thread_fn(void* _thread_fn_data)

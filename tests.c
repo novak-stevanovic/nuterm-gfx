@@ -6,6 +6,7 @@
 #include "core/app/ntg_db_app_renderer.h"
 #include "core/app/ntg_simple_app_renderer.h"
 #include "core/object/ntg_color_block.h"
+#include "core/stage/ntg_simple_stage.h"
 #include "ntg.h"
 #include "core/scene/ntg_simple_scene.h"
 #include "shared/ntg_log.h"
@@ -31,14 +32,15 @@ static void gui_fn1(void* data)
     __ntg_simple_scene_init__(&scene, NULL);
     ntg_scene_set_root(_scene, ntg_object_get_drawable_(_root));
 
-    // ntg_simple_app_renderer renderer;
-    // __ntg_simple_app_renderer_init__(&renderer);
-    //
+    ntg_simple_stage stage;
+    ntg_stage* _stage = (ntg_stage*)&stage;
+    __ntg_simple_stage_init__(&stage, _scene);
+
     ntg_db_app_renderer renderer;
     __ntg_db_app_renderer_init__(&renderer);
 
     ntg_app_loop(
-            (ntg_scene*)&scene,
+            _stage,
             NTG_APP_FRAMERATE_DEFAULT,
             (ntg_app_renderer*)&renderer,
             app_process_key_fn1,
@@ -47,10 +49,6 @@ static void gui_fn1(void* data)
     __ntg_db_app_renderer_deinit__(&renderer);
     __ntg_color_block_deinit__(&root);
     __ntg_simple_scene_deinit__(&scene);
-}
-
-static void gui_fn2(void* data)
-{
 }
 
 int main(int argc, char *argv[])

@@ -4,7 +4,7 @@
 #include "base/ntg_cell.h"
 #include "shared/ntg_xy.h"
 
-typedef struct ntg_scene_drawing ntg_scene_drawing;
+typedef struct ntg_stage_drawing ntg_stage_drawing;
 
 typedef struct ntg_drawing
 {
@@ -26,7 +26,7 @@ void ntg_drawing_place(const ntg_drawing* src_drawing,
 
 void ntg_drawing_place_(const ntg_drawing* src_drawing,
         struct ntg_xy src_start_pos, struct ntg_xy src_box_size,
-        ntg_scene_drawing* dest_drawing, struct ntg_xy dest_start_pos);
+        ntg_stage_drawing* dest_drawing, struct ntg_xy dest_start_pos);
 
 static inline const struct ntg_cell* ntg_drawing_at(
         const ntg_drawing* drawing, struct ntg_xy pos)

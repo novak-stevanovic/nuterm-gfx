@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "core/scene/shared/_ntg_drawing.h"
-#include "core/scene/shared/ntg_scene_drawing.h"
+#include "core/stage/shared/ntg_stage_drawing.h"
 
 void __ntg_drawing_init__(ntg_drawing* drawing)
 {
@@ -103,7 +103,7 @@ void ntg_drawing_place(const ntg_drawing* src_drawing,
 
 void ntg_drawing_place_(const ntg_drawing* src_drawing,
         struct ntg_xy src_start_pos, struct ntg_xy src_box_size,
-        ntg_scene_drawing* dest_drawing, struct ntg_xy dest_start_pos)
+        ntg_stage_drawing* dest_drawing, struct ntg_xy dest_start_pos)
 {
     assert(src_drawing != NULL);
     assert(dest_drawing != NULL);
@@ -111,7 +111,7 @@ void ntg_drawing_place_(const ntg_drawing* src_drawing,
     src_box_size = ntg_xy_size(src_box_size);
     if(ntg_xy_is_zero(src_box_size)) return;
 
-    struct ntg_xy dest_size = ntg_scene_drawing_get_size(dest_drawing);
+    struct ntg_xy dest_size = ntg_stage_drawing_get_size(dest_drawing);
     struct ntg_xy src_size = ntg_drawing_get_size(src_drawing);
 
     struct ntg_xy src_end_pos = ntg_xy_add(src_start_pos, src_box_size);
@@ -137,7 +137,7 @@ void ntg_drawing_place_(const ntg_drawing* src_drawing,
             it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
             it_src_pos = ntg_xy_add(src_start_pos, ntg_xy(j, i));
 
-            it_dest_cell = ntg_scene_drawing_at_(dest_drawing, it_dest_pos);
+            it_dest_cell = ntg_stage_drawing_at_(dest_drawing, it_dest_pos);
             it_src_cell = ntg_drawing_at(src_drawing, it_src_pos);
 
             (*it_dest_cell) = ntg_cell_overwrite(*it_src_cell, *it_dest_cell);

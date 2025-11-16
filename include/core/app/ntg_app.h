@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include "nt_event.h"
 
-typedef struct ntg_scene ntg_scene;
+typedef struct ntg_stage ntg_stage;
 typedef struct ntg_app_renderer ntg_app_renderer;
 typedef struct ntg_listenable ntg_listenable;
 
@@ -39,7 +39,7 @@ typedef enum ntg_app_status
 
 struct ntg_app_loop_context
 {
-    ntg_scene* scene;
+    ntg_stage* stage;
 };
 
 typedef ntg_app_status (*ntg_app_process_key_fn)(
@@ -48,7 +48,7 @@ typedef ntg_app_status (*ntg_app_process_key_fn)(
         void* data);
 
 void ntg_app_loop(
-        ntg_scene* scene,
+        ntg_stage* init_stage,
         uint framerate,
         ntg_app_renderer* renderer,
         ntg_app_process_key_fn process_key_fn,

@@ -7,7 +7,6 @@
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_cdrawable_vec.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
-#include "core/scene/shared/ntg_scene_drawing.h"
 
 /* -------------------------------------------------------------------------- */
 /* STATIC DECLARATIONS */
@@ -274,6 +273,7 @@ static void __scan_scene(ntg_scene* scene)
     
     ntg_cdrawable_vec alr_registered; 
     __ntg_cdrawable_vec_init__(&alr_registered);
+    ntg_scene_graph_get_keys(scene->__graph, &alr_registered);
 
     size_t i;
     const ntg_drawable* it_drawable;

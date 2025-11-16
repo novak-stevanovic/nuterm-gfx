@@ -4,11 +4,11 @@
 #include "shared/ntg_xy.h"
 
 typedef struct ntg_app_renderer ntg_app_renderer;
-typedef struct ntg_scene_drawing ntg_scene_drawing;
+typedef struct ntg_stage_drawing ntg_stage_drawing;
 
 typedef void (*ntg_app_render_fn)(
         ntg_app_renderer* renderer,
-        const ntg_scene_drawing* scene_drawing,
+        const ntg_stage_drawing* stage_drawing,
         struct ntg_xy size);
 
 struct ntg_app_renderer
@@ -28,7 +28,7 @@ void __ntg_app_renderer_deinit__(ntg_app_renderer* renderer);
 
 void ntg_app_renderer_render(
         ntg_app_renderer* renderer,
-        const ntg_scene_drawing* scene_drawing,
+        const ntg_stage_drawing* stage_drawing,
         struct ntg_xy size);
 
 #endif // _NTG_APP_RENDERER_H_

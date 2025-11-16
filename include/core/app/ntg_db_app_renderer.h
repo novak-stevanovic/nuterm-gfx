@@ -24,7 +24,7 @@ void __ntg_db_app_renderer_deinit__(ntg_db_app_renderer* renderer);
 
 void __ntg_db_app_render_fn(
         ntg_app_renderer* _renderer,
-        const ntg_scene_drawing* scene_drawing,
+        const ntg_stage_drawing* stage_drawing,
         struct ntg_xy size);
 
 #endif // _NTG_DB_APP_RENDERER_H_
