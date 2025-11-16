@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 size_t _ntg_str_count(const char* str, size_t len, const char* sep, size_t data_size);
 
@@ -32,6 +33,15 @@ struct ntg_str_utf32_view
     const uint32_t* data;
     size_t count; // codepoint count
 };
+
+// UNSAFE
+static inline struct ntg_str_view ntg_str_view_from_cstr(const char* cstr)
+{
+    return (struct ntg_str_view) {
+        .data = cstr,
+        .len = strlen(cstr)
+    };
+}
 
 static inline struct ntg_str_view ntg_str_to_view(struct ntg_str str)
 {

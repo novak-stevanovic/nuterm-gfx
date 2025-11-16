@@ -17,7 +17,7 @@ static int __key_cmp_fn(const void* _it_pair, const void* key)
 
     struct ntg_vec_map_pair* it_pair = (struct ntg_vec_map_pair*)_it_pair;
 
-    return memcmp(it_pair, key, sizeof(void*));
+    return memcmp(it_pair->key, key, sizeof(void*));
 }
 
 ntg_constrain_output* ntg_constrain_output_new()
