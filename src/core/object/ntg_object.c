@@ -380,14 +380,18 @@ static struct ntg_measure_output __ntg_object_measure_fn(
         object->__grow.x :
         object->__grow.y;
 
-    // Correct max sizes
-    if(user_max_size < user_min_size) 
-        user_max_size = user_min_size;
-    if(result.max_size < result.min_size)
-        result.max_size = result.min_size;
+    user_min_size = _min2_size(user_min_size, user_max_size);
 
-    result.min_size = _max2_size(user_min_size, result.min_size);
-    result.max_size = _min2_size(user_max_size, result.max_size);
+    if(user_max_size < result.min_size)
+        result.min_size = user_max_size;
+    else
+        result.min_size = _max2_size(result.min_size, user_min_size);
+
+    if(user_min_size > result.max_size)
+        result.max_size = user_min_size;
+    else
+        result.max_size = _min2_size(result.max_size, user_max_size);
+
     result.natural_size = _clamp_size(result.min_size,
             result.natural_size, result.max_size);
 

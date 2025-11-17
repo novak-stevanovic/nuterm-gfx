@@ -76,13 +76,13 @@ static void gui_fn2(void* data)
     };
     ntg_label_set_gfx(&north, top_gfx);
     // ntg_label_set_primary_alignment(&north, NTG_TEXT_ALIGNMENT_2);
-    ntg_object_set_max_size(_north, ntg_xy(0, 1));
+    // ntg_object_set_max_size(_north, ntg_xy(0, 1));
 
     ntg_color_block center;
     ntg_object* _center = (ntg_object*)&center;
     __ntg_color_block_init__(&center, nt_color_new(255, 255, 255));
     // TODO: setting min size messes up the size of the label?
-    // ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
+    ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
 
     ntg_box south;
     ntg_object* _south = (ntg_object*)&south;
