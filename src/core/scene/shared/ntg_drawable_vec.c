@@ -70,21 +70,15 @@ bool ntg_drawable_vec_contains(const ntg_drawable_vec* vec,
     return ntg_vector_contains((ntg_vector*)vec, &drawable, NULL);
 }
 
-void __ntg_drawable_vec_view_init__(ntg_drawable_vec_view* view, ntg_drawable_vec* vec)
-{
-    assert(view != NULL);
-    assert(vec != NULL);
-
-    view->__vec = vec;
-}
-
 const ntg_drawable_vec_view NTG_DRAWABLE_VEC_VIEW_EMPTY = {0};
 
-void __ntg_drawable_vec_view_deinit__(ntg_drawable_vec_view* view)
+ntg_drawable_vec_view ntg_drawable_vec_view_new(ntg_drawable_vec* vec)
 {
-    assert(view != NULL);
+    assert(vec != NULL);
 
-    view->__vec = NULL;
+    return (ntg_drawable_vec_view) {
+        .__vec = vec
+    };
 }
 
 size_t ntg_drawable_vec_view_count(ntg_drawable_vec_view* view)

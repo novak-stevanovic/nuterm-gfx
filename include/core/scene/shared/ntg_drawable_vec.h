@@ -38,8 +38,7 @@ struct ntg_drawable_vec_view
 
 extern const ntg_drawable_vec_view NTG_DRAWABLE_VEC_VIEW_EMPTY;
 
-void __ntg_drawable_vec_view_init__(ntg_drawable_vec_view* view, ntg_drawable_vec* vec);
-void __ntg_drawable_vec_view_deinit__(ntg_drawable_vec_view* view);
+ntg_drawable_vec_view ntg_drawable_vec_view_new(ntg_drawable_vec* vec);
 
 size_t ntg_drawable_vec_view_count(ntg_drawable_vec_view* view);
 ntg_drawable* ntg_drawable_vec_view_at(ntg_drawable_vec_view* view, size_t pos);

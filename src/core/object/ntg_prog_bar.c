@@ -5,18 +5,25 @@
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "shared/_ntg_shared.h"
 
-void __ntg_prog_bar_init__(ntg_prog_bar* prog_bar,
-        ntg_orientation orientation, ntg_cell complete_cell,
-        ntg_cell uncomplete_cell, ntg_cell threshold_cell)
+void __ntg_prog_bar_init__(
+        ntg_prog_bar* prog_bar,
+        ntg_orientation orientation,
+        ntg_cell complete_cell,
+        ntg_cell uncomplete_cell,
+        ntg_cell threshold_cell,
+        ntg_process_key_fn process_key_fn,
+        ntg_on_focus_fn on_focus_fn)
 {
     assert(prog_bar != NULL);
 
     __ntg_object_init__(NTG_OBJECT(prog_bar),
             NTG_OBJECT_WIDGET,
             __ntg_prog_bar_measure_fn,
-            NULL, NULL,
+            NULL,
+            NULL,
             __ntg_prog_bar_arrange_drawing_fn,
-            NULL, NULL);
+            process_key_fn,
+            on_focus_fn);
 
     prog_bar->__orientation = orientation;
     prog_bar->__complete_cell = complete_cell;

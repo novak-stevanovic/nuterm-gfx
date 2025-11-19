@@ -54,8 +54,6 @@ void ntg_app_loop(
         ntg_app_process_key_fn process_key_fn,
         void* data);
 
-// void ntg_app_listen();
-
 /* -------------------------------------------------------------------------- */
 
 /* Raises:

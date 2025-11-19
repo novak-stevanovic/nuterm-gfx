@@ -2,6 +2,9 @@
 
 #include "core/object/ntg_object.h"
 #include "base/event/ntg_event.h"
+#include "core/object/shared/ntg_object_fx.h"
+#include "core/object/shared/ntg_object_fx_vec.h"
+#include "core/object/shared/ntg_object_fx.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
@@ -122,10 +125,7 @@ ntg_object_vec_view ntg_object_get_children_(ntg_object* object)
 {
     assert(object != NULL);
 
-    ntg_object_vec_view view;
-    __ntg_object_vec_view_init__(&view, object->__children);
-
-    return view;
+    return ntg_object_vec_view_new(object->__children);
 }
 
 const ntg_object_vec* ntg_object_get_children(const ntg_object* object)
@@ -224,6 +224,25 @@ ntg_listenable* ntg_object_get_listenable(ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
+void ntg_object_add_fx(ntg_object* object, struct ntg_object_fx fx)
+{
+    assert(object != NULL);
+
+    ntg_object_fx_vec_append(object->__fx, fx);
+}
+
+void ntg_object_remove_fx(ntg_object* object, struct ntg_object_fx fx)
+{
+    assert(object != NULL);
+
+    ntg_object_fx_vec_remove(object->__fx, fx);
+}
+
+ntg_object_fx_vec_view ntg_object_get_fx(const ntg_object* object)
+{
+    return ntg_object_fx_vec_view_new(object->__fx);
+}
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED API */
 /* -------------------------------------------------------------------------- */
@@ -250,6 +269,7 @@ void __ntg_object_init__(ntg_object* object,
 
     object->__children = ntg_object_vec_new();
     object->__children_drawables = ntg_drawable_vec_new();
+    object->__fx = ntg_object_fx_vec_new();
 
     object->__wrapped_measure_fn = measure_fn;
     object->__wrapped_constrain_fn = constrain_fn;
@@ -281,6 +301,7 @@ void __ntg_object_deinit__(ntg_object* object)
 
     ntg_object_vec_destroy(object->__children);
     ntg_drawable_vec_destroy(object->__children_drawables);
+    ntg_object_fx_vec_destroy(object->__fx);
     ntg_event_delegate_destroy(object->__del);
 
     __init_default_values(object);
@@ -329,6 +350,7 @@ static void __init_default_values(ntg_object* object)
     object->__parent = NULL;
     object->__children = NULL;
     object->__children_drawables= NULL;
+    object->__fx = NULL;
 
     object->__background = ntg_cell_default();
 
@@ -490,6 +512,13 @@ static void __ntg_object_draw_fn(
 
     if(object->__wrapped_draw_fn != NULL)
         object->__wrapped_draw_fn(drawable, size, out_drawing);
+
+
+    ntg_object_fx_vec* fx = object->__fx;
+    for(i = 0; i < fx->_count; i++)
+    {
+        fx->_data[i].apply_fn(object, fx->_data[i], out_drawing);
+    }
 }
 
 static bool __ntg_object_process_key_fn(
@@ -530,10 +559,7 @@ static ntg_drawable_vec_view __ntg_object_get_children_fn_(
 
     ntg_object* object = ntg_drawable_user_(drawable);
 
-    ntg_drawable_vec_view view;
-    __ntg_drawable_vec_view_init__(&view, object->__children_drawables);
-
-    return view;
+    return ntg_drawable_vec_view_new(object->__children_drawables);
 }
 
 static const ntg_drawable_vec* __ntg_object_get_children_fn(

@@ -45,3 +45,17 @@ const ntg_stage_drawing* ntg_stage_get_drawing(const ntg_stage* stage)
 
     return ((const ntg_stage_drawing*)stage->__drawing);
 }
+
+ntg_scene* ntg_stage_get_scene(ntg_stage* stage)
+{
+    assert(stage != NULL);
+
+    return stage->__scene;
+}
+
+bool ntg_stage_feed_key_event(ntg_stage* stage, struct nt_key_event key_event)
+{
+    assert(stage != NULL);
+
+    return ntg_scene_feed_key_event(stage->__scene, key_event);
+}

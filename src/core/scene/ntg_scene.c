@@ -195,9 +195,8 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
                 for(i = 0; i < ntg_drawable_vec_view_count(&it_children); i++)
                 {
                     it_child = ntg_drawable_vec_view_at(&it_children, i);
-                    if(ntg_drawable_is_descendant(
-                                it_child,
-                                scene->__root))
+
+                    if(ntg_drawable_is_descendant(it_child, scene->__root))
                     {
                         it_drawable = it_child;
                     }

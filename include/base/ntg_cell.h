@@ -1,6 +1,7 @@
 #ifndef _NTG_CELL_H_
 #define _NTG_CELL_H_
 
+#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 #include "shared/ntg_xy.h"
@@ -19,7 +20,7 @@ struct ntg_rcell
     struct nt_gfx gfx;
 };
 
-static inline struct ntg_rcell ntg_rcell(uint32_t codepoint, struct nt_gfx gfx)
+static inline struct ntg_rcell ntg_rcell_new(uint32_t codepoint, struct nt_gfx gfx)
 {
     return (struct ntg_rcell) { 
         .codepoint = codepoint,
@@ -48,8 +49,8 @@ static inline bool ntg_rcell_are_equal(struct ntg_rcell cell1,
 typedef enum ntg_cell_type
 { 
     NTG_CELL_TYPE_FULL,
-    NTG_CELL_TYPE_TRANSPARENT,
-    NTG_CELL_TYPE_OVERLAY 
+    NTG_CELL_TYPE_OVERLAY,
+    NTG_CELL_TYPE_TRANSPARENT
 } ntg_cell_type;
 
 typedef struct ntg_cell
@@ -58,7 +59,8 @@ typedef struct ntg_cell
     ntg_cell_type _type;
 } ntg_cell;
 
-static inline ntg_cell ntg_cell_full(uint32_t codepoint, struct nt_gfx gfx) {
+static inline ntg_cell ntg_cell_full(uint32_t codepoint, struct nt_gfx gfx)
+{
     return (ntg_cell) {
         .__base = { .codepoint = codepoint, .gfx = gfx },
         ._type = NTG_CELL_TYPE_FULL
@@ -82,7 +84,7 @@ static inline ntg_cell ntg_cell_bg(nt_color bg_color)
     };
 
     return (ntg_cell) {
-        .__base = ntg_rcell(NTG_CELL_EMPTY, gfx),
+        .__base = ntg_rcell_new(NTG_CELL_EMPTY, gfx),
         ._type = NTG_CELL_TYPE_FULL
     };
 }
@@ -104,12 +106,90 @@ static inline ntg_cell ntg_cell_transparent()
     };
 }
 
-struct ntg_rcell ntg_cell_overwrite(ntg_cell overwriting,
-        struct ntg_rcell overwritten);
-
 static inline bool ntg_cell_are_equal(ntg_cell cell1, ntg_cell cell2)
 {
     return (memcmp(&cell1, &cell2, sizeof(struct ntg_rcell)) == 0);
+}
+
+struct ntg_rcell ntg_cell_overwrite(ntg_cell overwriting,
+        struct ntg_rcell overwritten);
+
+static inline bool ntg_cell_has_bg(ntg_cell cell)
+{
+    return (cell._type == NTG_CELL_TYPE_FULL);
+}
+
+static inline nt_color ntg_cell_get_bg(ntg_cell cell)
+{
+    assert(ntg_cell_has_bg(cell));
+
+    return cell.__base.gfx.bg;
+}
+
+static inline ntg_cell ntg_cell_set_bg(ntg_cell cell, nt_color bg)
+{
+    assert(ntg_cell_has_bg(cell));
+
+    ntg_cell copy = cell;
+    copy.__base.gfx.bg = bg;
+    
+    return copy;
+}
+
+static inline bool ntg_cell_has_fg(ntg_cell cell)
+{
+    return (cell._type != NTG_CELL_TYPE_TRANSPARENT);
+}
+
+static inline nt_color ntg_cell_get_fg(ntg_cell cell)
+{
+    assert(ntg_cell_has_fg(cell));
+
+    return cell.__base.gfx.fg;
+}
+
+static inline ntg_cell ntg_cell_set_fg(ntg_cell cell, nt_color fg)
+{
+    assert(ntg_cell_has_fg(cell));
+
+    ntg_cell copy = cell;
+    copy.__base.gfx.fg = fg;
+    
+    return copy;
+}
+
+static inline nt_style ntg_cell_get_style(ntg_cell cell)
+{
+    assert(ntg_cell_has_fg(cell));
+
+    return cell.__base.gfx.style;
+}
+
+static inline ntg_cell ntg_cell_set_style(ntg_cell cell, nt_style style)
+{
+    assert(ntg_cell_has_fg(cell));
+
+    ntg_cell copy = cell;
+    copy.__base.gfx.style = style;
+    
+    return copy;
+}
+
+static inline uint32_t ntg_cell_get_codepoint(ntg_cell cell)
+{
+    assert(ntg_cell_has_fg(cell));
+
+    return cell.__base.codepoint;
+}
+
+static inline ntg_cell ntg_cell_set_codepoint(ntg_cell cell, uint32_t codepoint)
+{
+    assert(ntg_cell_has_fg(cell));
+
+    ntg_cell copy = cell;
+    copy.__base.codepoint = codepoint;
+    
+    return copy;
 }
 
 /* -------------------------------------------------------------------------- */

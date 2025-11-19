@@ -13,6 +13,14 @@ static inline size_t _clamp_size(size_t min, size_t mid, size_t max)
     return mid;
 }
 
+static inline int _clamp_int(int min, int mid, int max)
+{
+    if(mid < min) mid = min;
+    else if(mid > max) mid = max;
+
+    return mid;
+}
+
 static inline bool _in_between(size_t min, size_t between, size_t max)
 {
     return ((between > min) && (between < max));

@@ -6,6 +6,7 @@
 typedef struct ntg_stage ntg_stage;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
+struct nt_key_event;
 
 typedef void (*ntg_stage_compose_fn)(
         ntg_stage* stage,
@@ -28,5 +29,8 @@ void __ntg_stage_deinit__(ntg_stage* stage);
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size);
 
 const ntg_stage_drawing* ntg_stage_get_drawing(const ntg_stage* stage);
+ntg_scene* ntg_stage_get_scene(ntg_stage* stage);
+
+bool ntg_stage_feed_key_event(ntg_stage* stage, struct nt_key_event key_event);
 
 #endif // _NTG_STAGE_H_

@@ -64,24 +64,29 @@ void __ntg_db_app_render_fn(
     assert(_renderer != NULL);
 
     ntg_db_app_renderer* renderer = (ntg_db_app_renderer*)_renderer;
+    
+    nt_buffer_enable(renderer->__charbuff);
 
     if(stage_drawing == NULL)
     {
         __full_empty_render(renderer, size);
-        return;
-    }
-
-    if(renderer->__resize)
-    {
-        __full_render(renderer, stage_drawing, size);
-        renderer->__resize = false; 
-        ntg_log_log("FULL RENDER");
     }
     else
     {
-        __optimized_render(renderer, stage_drawing, size);
-        ntg_log_log("OPTIMIZED RENDER");
+        if(renderer->__resize)
+        {
+            __full_render(renderer, stage_drawing, size);
+            renderer->__resize = false; 
+            // ntg_log_log("FULL RENDER");
+        }
+        else
+        {
+            __optimized_render(renderer, stage_drawing, size);
+            // ntg_log_log("OPTIMIZED RENDER");
+        }
     }
+
+    nt_buffer_disable(NT_BUFF_FLUSH);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -14,7 +14,10 @@ static void __init_default(ntg_border_box* box)
     box->__center = NULL;
 }
 
-void __ntg_border_box_init__(ntg_border_box* box)
+void __ntg_border_box_init__(
+        ntg_border_box* box,
+        ntg_process_key_fn process_key_fn,
+        ntg_on_focus_fn on_focus_fn)
 {
     assert(box != NULL);
 
@@ -22,7 +25,9 @@ void __ntg_border_box_init__(ntg_border_box* box)
             __ntg_border_box_measure_fn,
             __ntg_border_box_constrain_fn,
             __ntg_border_box_arrange_fn,
-            NULL, NULL, NULL);
+            NULL,
+            process_key_fn,
+            on_focus_fn);
 
     __init_default(box);
 }

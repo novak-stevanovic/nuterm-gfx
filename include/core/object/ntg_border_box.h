@@ -14,7 +14,10 @@ struct ntg_border_box
                *__west, *__center;
 };
 
-void __ntg_border_box_init__(ntg_border_box* box);
+void __ntg_border_box_init__(
+        ntg_border_box* box,
+        ntg_process_key_fn process_key_fn,
+        ntg_on_focus_fn on_focus_fn);
 void __ntg_border_box_deinit__(ntg_border_box* box);
 
 ntg_object* ntg_border_box_get_north(ntg_border_box* box);

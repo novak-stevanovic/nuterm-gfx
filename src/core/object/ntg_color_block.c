@@ -6,7 +6,11 @@
 
 #define NTG_COLOR_BLOCK_DEFAULT_SIZE 5
 
-void __ntg_color_block_init__(ntg_color_block* color_block, nt_color color)
+void __ntg_color_block_init__(
+        ntg_color_block* color_block,
+        nt_color color,
+        ntg_process_key_fn process_key_fn,
+        ntg_on_focus_fn on_focus_fn)
 {
     assert(color_block != NULL);
 
@@ -14,8 +18,11 @@ void __ntg_color_block_init__(ntg_color_block* color_block, nt_color color)
             NTG_OBJECT(color_block),
             NTG_OBJECT_WIDGET,
             __ntg_color_block_measure_fn,
-            NULL, NULL, __ntg_color_block_draw_fn,
-            NULL, NULL);
+            NULL,
+            NULL,
+            __ntg_color_block_draw_fn,
+            process_key_fn,
+            on_focus_fn);
 
     color_block->__color = color;
 }

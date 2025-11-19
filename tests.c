@@ -9,6 +9,7 @@
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_color_block.h"
 #include "core/object/ntg_label.h"
+#include "core/object/shared/ntg_object_fx.h"
 #include "core/stage/ntg_simple_stage.h"
 #include "ntg.h"
 #include "core/scene/ntg_simple_scene.h"
@@ -22,16 +23,41 @@ static ntg_app_status app_process_key_fn1(
         void* data)
 {
     if((key_event.type == NT_KEY_EVENT_UTF32) && (key_event.utf32_data.codepoint == 'q'))
+    {
         return NTG_APP_QUIT;
-    else
-        return NTG_APP_CONTINUE;
+    }
+    else if((key_event.type == NT_KEY_EVENT_UTF32) && (key_event.utf32_data.codepoint == 'b'))
+    {
+        ntg_scene* scene = ntg_stage_get_scene(context->stage);
+        ntg_drawable* root_drawable = ntg_scene_get_root(scene);
+        ntg_object* root = ntg_drawable_user_(root_drawable);
+        
+        struct ntg_object_fx brighten_fx = ntg_object_fx_brighten_bg(10);
+
+        ntg_object_add_fx(root, brighten_fx);
+    }
+
+    return NTG_APP_CONTINUE;
+}
+
+static ntg_app_status app_process_key_fn2(
+        struct nt_key_event key_event,
+        struct ntg_app_loop_context* context,
+        void* data)
+{
+    if((key_event.type == NT_KEY_EVENT_UTF32) && (key_event.utf32_data.codepoint == 'q'))
+    {
+        return NTG_APP_QUIT;
+    }
+
+    return NTG_APP_CONTINUE;
 }
 
 static void gui_fn1(void* data)
 {
     ntg_color_block root;
     ntg_object* _root = (ntg_object*)&root;
-    __ntg_color_block_init__(&root, nt_color_new(255, 0, 0));
+    __ntg_color_block_init__(&root, nt_color_new(255, 0, 0), NULL, NULL);
 
     ntg_simple_scene scene;
     ntg_scene* _scene = (ntg_scene*)&scene;
@@ -62,11 +88,11 @@ static void gui_fn2(void* data)
 {
     ntg_border_box root;
     ntg_object* _root = (ntg_object*)&root;
-    __ntg_border_box_init__(&root);
+    __ntg_border_box_init__(&root, NULL, NULL);
 
     ntg_label north;
     ntg_object* _north = (ntg_object*)&north;
-    __ntg_label_init__(&north, NTG_ORIENTATION_HORIZONTAL);
+    __ntg_label_init__(&north, NTG_ORIENTATION_HORIZONTAL, NULL, NULL);
     struct ntg_str_view top_text = ntg_str_view_from_cstr("Novak");
     ntg_label_set_text(&north, top_text);
     struct nt_gfx top_gfx = {
@@ -80,22 +106,23 @@ static void gui_fn2(void* data)
 
     ntg_color_block center;
     ntg_object* _center = (ntg_object*)&center;
-    __ntg_color_block_init__(&center, nt_color_new(255, 255, 255));
+    __ntg_color_block_init__(&center, nt_color_new(255, 255, 255), NULL, NULL);
     // TODO: setting min size messes up the size of the label?
     ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
 
     ntg_box south;
     ntg_object* _south = (ntg_object*)&south;
-    __ntg_box_init__(&south, NTG_ORIENTATION_HORIZONTAL, NTG_ALIGNMENT_2, NTG_ALIGNMENT_2);
+    __ntg_box_init__(&south, NTG_ORIENTATION_HORIZONTAL, NTG_ALIGNMENT_2,
+            NTG_ALIGNMENT_2, NULL, NULL);
 
     ntg_color_block south1;
     ntg_object* _south1 = (ntg_object*)&south1;
-    __ntg_color_block_init__(&south1, nt_color_new(0, 255, 0));
+    __ntg_color_block_init__(&south1, nt_color_new(0, 255, 0), NULL, NULL);
     // ntg_object_set_grow(_south1, ntg_xy(0, 0));
 
     ntg_color_block south2;
     ntg_object* _south2 = (ntg_object*)&south2;
-    __ntg_color_block_init__(&south2, nt_color_new(0, 0, 255));
+    __ntg_color_block_init__(&south2, nt_color_new(0, 0, 255), NULL, NULL);
     // ntg_object_set_grow(_south2, ntg_xy(0, 0));
 
     ntg_box_add_child(&south, _south1);
@@ -121,7 +148,7 @@ static void gui_fn2(void* data)
             _stage,
             NTG_APP_FRAMERATE_DEFAULT,
             (ntg_app_renderer*)&renderer,
-            app_process_key_fn1,
+            app_process_key_fn2,
             NULL);
 
     __ntg_border_box_deinit__(&root);
@@ -139,7 +166,7 @@ int main(int argc, char *argv[])
 {
     __ntg_app_init__();
 
-    ntg_app_launch(gui_fn2, NULL);
+    ntg_app_launch(gui_fn1, NULL);
 
     ntg_app_wait();
 

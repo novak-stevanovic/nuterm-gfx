@@ -97,16 +97,22 @@ static void __init_default_values(ntg_label* label)
     label->__autotrim = true;
 }
 
-void __ntg_label_init__(ntg_label* label, ntg_orientation orientation)
+void __ntg_label_init__(
+        ntg_label* label,
+        ntg_orientation orientation,
+        ntg_process_key_fn process_key_fn,
+        ntg_on_focus_fn on_focus_fn)
 {
     assert(label != NULL);
 
     __ntg_object_init__(NTG_OBJECT(label),
             NTG_OBJECT_WIDGET,
             __ntg_label_measure_fn,
-            NULL, NULL,
+            NULL,
+            NULL,
             __ntg_label_draw_fn,
-            NULL, NULL);
+            process_key_fn,
+            on_focus_fn);
 
     __init_default_values(label);
 

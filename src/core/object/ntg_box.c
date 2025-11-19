@@ -20,7 +20,9 @@ void __ntg_box_init__(
         ntg_box* box,
         ntg_orientation orientation,
         ntg_alignment primary_alignment,
-        ntg_alignment secondary_alignment)
+        ntg_alignment secondary_alignment,
+        ntg_process_key_fn process_key_fn,
+        ntg_on_focus_fn on_focus_fn)
 {
     assert(box != NULL);
 
@@ -28,7 +30,9 @@ void __ntg_box_init__(
             __ntg_box_measure_fn,
             __ntg_box_constrain_fn,
             __ntg_box_arrange_fn,
-            NULL, NULL, NULL);
+            NULL,
+            process_key_fn,
+            on_focus_fn);
 
     __init_default_values(box);
 

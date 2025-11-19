@@ -2,6 +2,7 @@
 #define _NTG_OBJECT_H_
 
 #include "base/ntg_cell.h"
+#include "core/object/shared/ntg_object_fx_vec.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/ntg_drawable.h"
 #include "shared/ntg_xy.h"
@@ -16,6 +17,8 @@ typedef struct ntg_object ntg_object;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_sub ntg_event_sub;
+struct ntg_object_fx;
+typedef struct ntg_object_fx_vec ntg_object_fx_vec;
 
 /* ---------------------------------------------------------------- */
 
@@ -77,6 +80,12 @@ ntg_listenable* ntg_object_get_listenable(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
+void ntg_object_add_fx(ntg_object* object, struct ntg_object_fx fx);
+void ntg_object_remove_fx(ntg_object* object, struct ntg_object_fx fx);
+ntg_object_fx_vec_view ntg_object_get_fx(const ntg_object* object);
+
+/* ---------------------------------------------------------------- */
+
 // void ntg_object_tree_perform(ntg_object* object,
 //         ntg_object_perform_mode mode,
 //         void (*perform_fn)(ntg_object* object, void* data),
@@ -85,8 +94,6 @@ ntg_listenable* ntg_object_get_listenable(ntg_object* object);
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------- */
 
 struct ntg_object
 {
@@ -98,6 +105,8 @@ struct ntg_object
         ntg_object* __parent;
         ntg_object_vec* __children;
         ntg_drawable_vec* __children_drawables;
+        // TODO: fx data(?)
+        ntg_object_fx_vec* __fx;
     };
 
     struct

@@ -1,7 +1,8 @@
+#include <stdlib.h>
+#include <assert.h>
+
 #include "core/object/shared/ntg_object_vec.h"
 #include "shared/_ntg_vector.h"
-#include <assert.h>
-#include <stdlib.h>
 
 void __ntg_object_vec_init__(ntg_object_vec* vec)
 {
@@ -69,19 +70,13 @@ bool ntg_object_vec_contains(const ntg_object_vec* vec,
     return ntg_vector_contains((ntg_vector*)vec, &object, NULL);
 }
 
-void __ntg_object_vec_view_init__(ntg_object_vec_view* view, ntg_object_vec* vec)
+ntg_object_vec_view ntg_object_vec_view_new(ntg_object_vec* vec)
 {
-    assert(view != NULL);
     assert(vec != NULL);
 
-    view->__vec = vec;
-}
-
-void __ntg_object_vec_view_deinit__(ntg_object_vec_view* view)
-{
-    assert(view != NULL);
-
-    view->__vec = NULL;
+    return (ntg_object_vec_view) {
+        .__vec = vec
+    };
 }
 
 size_t ntg_object_vec_view_count(ntg_object_vec_view* view)
