@@ -16,7 +16,7 @@
 
 struct ntg_rcell
 {
-    uint32_t codepoint;
+    uint32_t codepoint; /* UTF32 codepoint */
     struct nt_gfx gfx;
 };
 
@@ -75,11 +75,11 @@ static inline ntg_cell ntg_cell_default()
     };
 }
 
-static inline ntg_cell ntg_cell_bg(nt_color bg_color)
+static inline ntg_cell ntg_cell_bg(nt_color bg)
 {
     struct nt_gfx gfx = {
         .fg = NT_COLOR_DEFAULT,
-        .bg = bg_color,
+        .bg = bg,
         .style = NT_STYLE_DEFAULT
     };
 
@@ -89,12 +89,18 @@ static inline ntg_cell ntg_cell_bg(nt_color bg_color)
     };
 }
 
-static inline ntg_cell ntg_cell_overlay(uint32_t codepoint, nt_color fg,
-        nt_style style)
+static inline ntg_cell ntg_cell_overlay(uint32_t codepoint,
+        nt_color fg, nt_style style)
 {
+    struct nt_gfx gfx = {
+        .fg = fg,
+        .bg = NT_COLOR_DEFAULT,
+        .style = style
+    };
+
     return (ntg_cell) {
-        .__base = { .codepoint = codepoint, { fg, NT_COLOR_DEFAULT, style } },
-        ._type = NTG_CELL_TYPE_OVERLAY
+        .__base = ntg_rcell_new(codepoint, gfx),
+        ._type = NTG_CELL_TYPE_FULL
     };
 }
 

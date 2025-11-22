@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "core/object/ntg_color_block.h"
+#include "core/object/ntg_object_types.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 
 #define NTG_COLOR_BLOCK_DEFAULT_SIZE 5
@@ -16,13 +17,15 @@ void __ntg_color_block_init__(
 
     __ntg_object_init__(
             NTG_OBJECT(color_block),
-            NTG_OBJECT_WIDGET,
+            NTG_OBJECT_COLOR_BLOCK,
             __ntg_color_block_measure_fn,
             NULL,
             NULL,
             __ntg_color_block_draw_fn,
             process_key_fn,
-            on_focus_fn);
+            on_focus_fn,
+            NULL,
+            NULL);
 
     color_block->__color = color;
 }

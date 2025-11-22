@@ -106,7 +106,7 @@ static void __full_empty_render(ntg_db_app_renderer* renderer, struct ntg_xy siz
                     ntg_xy(j, i));
 
             (*it_back_buffer_rcell) = it_drawing_rcell;
-            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL, NULL);
+            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL);
         }
     }
 }
@@ -134,7 +134,7 @@ static void __optimized_render(ntg_db_app_renderer* renderer,
             }
 
             (*it_back_buffer_rcell) = it_drawing_rcell;
-            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL, NULL);
+            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL);
         }
     }
 }
@@ -155,7 +155,7 @@ static void __full_render(ntg_db_app_renderer* renderer,
                     ntg_xy(j, i));
 
             (*it_back_buffer_rcell) = it_drawing_rcell;
-            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL, NULL);
+            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL);
         }
     }
 }
@@ -167,7 +167,7 @@ static void __app_listenable_handler(void* _subscriber, const ntg_event* event)
 
     ntg_db_app_renderer* renderer = (ntg_db_app_renderer*)_subscriber;
 
-    if(event->_type == NT_EVENT_TYPE_RESIZE)
+    if(event->_type == NT_EVENT_RESIZE)
     {
         renderer->__resize = true;
     }

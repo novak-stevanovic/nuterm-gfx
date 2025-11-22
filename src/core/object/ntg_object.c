@@ -2,6 +2,7 @@
 
 #include "core/object/ntg_object.h"
 #include "base/event/ntg_event.h"
+#include "core/object/ntg_object_types.h"
 #include "core/object/shared/ntg_object_fx.h"
 #include "core/object/shared/ntg_object_fx_vec.h"
 #include "core/object/shared/ntg_object_fx.h"
@@ -60,14 +61,26 @@ static const ntg_drawable* __ntg_object_get_parent_fn(
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-ntg_object_type ntg_object_get_type(const ntg_object* object)
+unsigned int ntg_object_get_type(const ntg_object* object)
 {
     assert(object != NULL);
 
     return object->__type;
 }
 
-uint ntg_object_get_id(const ntg_object* object)
+bool ntg_object_is_widget(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return (object->__type < NTG_OBJECT_DECORATOR);
+}
+
+bool ntg_object_is_decorator(const ntg_object* object)
+{
+    return (object->__type >= NTG_OBJECT_DECORATOR);
+}
+
+unsigned int ntg_object_get_id(const ntg_object* object)
 {
     assert(object != NULL);
 
@@ -81,8 +94,7 @@ ntg_object* ntg_object_get_group_root(ntg_object* object)
     ntg_object* it_obj = object;
     while(true)
     {
-        if((it_obj->__parent == NULL) ||
-                (it_obj->__parent->__type == NTG_OBJECT_WIDGET))
+        if((it_obj->__parent == NULL) || ntg_object_is_widget(it_obj->__parent))
         {
             return it_obj;
         }
@@ -115,7 +127,7 @@ ntg_object* ntg_object_get_base_widget(ntg_object* object)
     assert(object != NULL);
 
     ntg_object* it_obj = object;
-    while(it_obj->__type == NTG_OBJECT_DECORATOR)
+    while(ntg_object_is_decorator(it_obj))
         it_obj = it_obj->__children->_data[0];
 
     return it_obj;
@@ -201,6 +213,61 @@ struct ntg_xy ntg_object_get_grow(const ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
+bool ntg_object_has_fx_capabilities(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return ((object->__reset_fx_fn != NULL) &&
+            (object->__get_fx_interface_fn != NULL));
+}
+
+void ntg_object_apply_fx(ntg_object* object, ntg_object_fx* fx)
+{
+    assert(object != NULL);
+    assert(fx != NULL);
+
+    assert(ntg_object_has_fx_capabilities(object));
+    assert(!ntg_object_fx_vec_contains(object->__fx, fx));
+    assert(object->__type == fx->_object_type);
+
+    ntg_object_fx_vec_append(object->__fx, fx);
+
+    void* fx_interface = object->__get_fx_interface_fn(object);
+
+    ntg_object_fx_apply(object, fx, fx_interface);
+}
+
+void ntg_object_remove_fx(ntg_object* object, ntg_object_fx* fx)
+{
+    assert(object != NULL);
+    assert(fx != NULL);
+
+    assert(ntg_object_has_fx_capabilities(object));
+    assert(ntg_object_fx_vec_contains(object->__fx, fx));
+    assert(object->__type == fx->_object_type);
+
+    ntg_object_fx_vec_remove(object->__fx, fx);
+
+    void* fx_interface = object->__get_fx_interface_fn(object);
+
+    object->__reset_fx_fn(object, fx_interface);
+
+    size_t i;
+    for(i = 0; i < object->__fx->_count; i++)
+    {
+        ntg_object_fx_apply(object, object->__fx->_data[i], fx_interface);
+    }
+}
+
+const ntg_object_fx_vec* ntg_object_get_fx(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__fx;
+}
+
+/* ---------------------------------------------------------------- */
+
 ntg_drawable* ntg_object_get_drawable_(ntg_object* object)
 {
     assert(object != NULL);
@@ -219,28 +286,7 @@ ntg_listenable* ntg_object_get_listenable(ntg_object* object)
 {
     assert(object != NULL);
 
-    return ntg_event_delegate_listenable(object->__del);
-}
-
-/* ---------------------------------------------------------------- */
-
-void ntg_object_add_fx(ntg_object* object, struct ntg_object_fx fx)
-{
-    assert(object != NULL);
-
-    ntg_object_fx_vec_append(object->__fx, fx);
-}
-
-void ntg_object_remove_fx(ntg_object* object, struct ntg_object_fx fx)
-{
-    assert(object != NULL);
-
-    ntg_object_fx_vec_remove(object->__fx, fx);
-}
-
-ntg_object_fx_vec_view ntg_object_get_fx(const ntg_object* object)
-{
-    return ntg_object_fx_vec_view_new(object->__fx);
+    return ntg_event_delegate_listenable(object->__delegate);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -249,16 +295,18 @@ ntg_object_fx_vec_view ntg_object_get_fx(const ntg_object* object)
 
 static void __init_default_values(ntg_object* object);
 
-static uint __id_generator = 0;
+static unsigned int __id_generator = 0;
 
 void __ntg_object_init__(ntg_object* object,
-        ntg_object_type type,
+        unsigned int type,
         ntg_measure_fn measure_fn,
         ntg_constrain_fn constrain_fn,
         ntg_arrange_fn arrange_fn,
         ntg_draw_fn draw_fn,
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn)
+        ntg_on_focus_fn on_focus_fn,
+        ntg_object_reset_fx_fn reset_fx_fn,
+        ntg_object_get_fx_interface_fn get_fx_interface_fn)
 {
     assert(object != NULL);
 
@@ -269,7 +317,6 @@ void __ntg_object_init__(ntg_object* object,
 
     object->__children = ntg_object_vec_new();
     object->__children_drawables = ntg_drawable_vec_new();
-    object->__fx = ntg_object_fx_vec_new();
 
     object->__wrapped_measure_fn = measure_fn;
     object->__wrapped_constrain_fn = constrain_fn;
@@ -277,6 +324,10 @@ void __ntg_object_init__(ntg_object* object,
     object->__wrapped_draw_fn = draw_fn;
     object->__wrapped_process_key_fn = process_key_fn;
     object->__wrapped_on_focus_fn = on_focus_fn;
+
+    object->__reset_fx_fn = reset_fx_fn;
+    object->__get_fx_interface_fn = get_fx_interface_fn;
+    object->__fx = ntg_object_fx_vec_new();
 
     __ntg_drawable_init__(
             &(object->__drawable),
@@ -292,7 +343,7 @@ void __ntg_object_init__(ntg_object* object,
             __ntg_object_process_key_fn,
             __ntg_object_on_focus_fn);
 
-    object->__del = ntg_event_delegate_new();
+    object->__delegate = ntg_event_delegate_new();
 }
 
 void __ntg_object_deinit__(ntg_object* object)
@@ -302,7 +353,7 @@ void __ntg_object_deinit__(ntg_object* object)
     ntg_object_vec_destroy(object->__children);
     ntg_drawable_vec_destroy(object->__children_drawables);
     ntg_object_fx_vec_destroy(object->__fx);
-    ntg_event_delegate_destroy(object->__del);
+    ntg_event_delegate_destroy(object->__delegate);
 
     __init_default_values(object);
 }
@@ -350,7 +401,6 @@ static void __init_default_values(ntg_object* object)
     object->__parent = NULL;
     object->__children = NULL;
     object->__children_drawables= NULL;
-    object->__fx = NULL;
 
     object->__background = ntg_cell_default();
 
@@ -365,8 +415,12 @@ static void __init_default_values(ntg_object* object)
     object->__wrapped_process_key_fn = NULL;
     object->__wrapped_on_focus_fn = NULL;
 
+    object->__reset_fx_fn = NULL;
+    object->__get_fx_interface_fn = NULL;
+    object->__fx = NULL;
+
     object->__drawable = (ntg_drawable) {0};
-    object->__del = NULL;
+    object->__delegate = NULL;
 }
 
 /* ---------------------------------------------------------------- */
@@ -512,13 +566,6 @@ static void __ntg_object_draw_fn(
 
     if(object->__wrapped_draw_fn != NULL)
         object->__wrapped_draw_fn(drawable, size, out_drawing);
-
-
-    ntg_object_fx_vec* fx = object->__fx;
-    for(i = 0; i < fx->_count; i++)
-    {
-        fx->_data[i].apply_fn(object, fx->_data[i], out_drawing);
-    }
 }
 
 static bool __ntg_object_process_key_fn(

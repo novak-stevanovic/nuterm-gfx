@@ -6,7 +6,7 @@
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
-#include "sarena.h"
+// #include "sarena.h"
 
 static void __measure1_fn(ntg_drawable* drawable, void* _layout_data);
 static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data);

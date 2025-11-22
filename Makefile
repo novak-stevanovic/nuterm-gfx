@@ -58,7 +58,7 @@ _PC_DESCRIPTION = Terminal event detection, function abstraction.
 _PC_VERSION = 1.0.0
 _PC_LIBS = -L$${libdir} -l$(LIB_NAME)
 _PC_CFLAGS = -I$${includedir}/$(LIB_NAME)
-_PC_REQUIRES = nuterm sarena
+_PC_REQUIRES = nuterm
 _PC_REQUIRES_PRIVATE =
 
 PC_DEPS = $(_PC_REQUIRES)
@@ -133,14 +133,14 @@ $(C_OBJ): build/%.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(SRC_CFLAGS) $< -o $@
 
-# test -----------------------------------------------------
+# demo -----------------------------------------------------
 
-test: $(C_OBJ) build/tests.o $(LIB_FILE)
-	$(CC) build/tests.o -o $@ $(TEST_LFLAGS)
+demo: $(C_OBJ) build/demo.o $(LIB_FILE)
+	$(CC) build/demo.o -o $@ $(TEST_LFLAGS)
 
-build/tests.o: tests.c
+build/demo.o: demo.c
 	@mkdir -p $(dir $@)
-	$(CC) $(TEST_CFLAGS) tests.c -o $@
+	$(CC) $(TEST_CFLAGS) demo.c -o $@
 
 # install --------------------------------------------------
 
@@ -179,6 +179,6 @@ clean:
 	rm -rf build
 	rm -f $(LIB_AR_FILE)
 	rm -f $(LIB_SO_FILE)
-	rm -f test
+	rm -f demo
 	rm -f $(LIB_PC)
 	rm -f compile_commands.json

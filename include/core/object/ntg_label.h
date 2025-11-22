@@ -15,7 +15,7 @@ struct ntg_label
 
     ntg_orientation __orientation;
     struct ntg_str __text;
-    struct nt_gfx __gfx;
+    struct nt_gfx __gfx_base, __gfx_adjusted;
     ntg_text_alignment __primary_alignment;
     ntg_alignment __secondary_alignment;
     ntg_text_wrap_mode __wrap_mode;

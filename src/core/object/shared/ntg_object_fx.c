@@ -2,60 +2,46 @@
 #include <stdlib.h>
 
 #include "core/object/shared/ntg_object_fx.h"
-#include "core/object/shared/ntg_object_fx_vec.h"
-#include "core/scene/shared/_ntg_drawing.h"
-#include "shared/_ntg_shared.h"
+#include "core/object/ntg_object.h"
 
-static bool __ntg_object_fx_brighten_bg_fn(
-        const ntg_object* object,
-        const struct ntg_object_fx fx,
-        ntg_drawing* drawing)
+void __ntg_object_fx_init__(
+        ntg_object_fx* fx, 
+        unsigned int object_type,
+        ntg_object_fx_apply_fn apply_fn,
+        ntg_object_fx_deinit_fn deinit_fn)
 {
-    struct ntg_xy size = ntg_drawing_get_size(drawing);
-    int brightness_adj = *(int*)fx.data;
+    assert(fx != NULL);
 
-    size_t i, j;
-    ntg_cell* it_cell;
-    nt_color it_old, it_new;
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            it_cell = ntg_drawing_at_(drawing, ntg_xy(j, i));
-
-            if(ntg_cell_has_bg(*it_cell))
-            {
-                it_old = ntg_cell_get_bg(*it_cell);
-
-                // TODO(?)
-                int new_r = ((int)it_old._rgb.r) + brightness_adj;
-                int new_g = ((int)it_old._rgb.g) + brightness_adj;
-                int new_b = ((int)it_old._rgb.b) + brightness_adj;
-
-                new_r = _clamp_int(0, new_r, 255);
-                new_g = _clamp_int(0, new_g, 255);
-                new_b = _clamp_int(0, new_b, 255);
-
-                it_new = nt_color_new(new_r, new_g, new_b);
-
-                (*it_cell) = ntg_cell_set_bg(*it_cell, it_new);
-            }
-        }
-    }
-
-    return true;
+    fx->_object_type = object_type;
+    fx->__apply_fn = apply_fn;
+    fx->__deinit_fn = deinit_fn;
 }
 
-struct ntg_object_fx ntg_object_fx_brighten_bg(int brightness_adj)
+void ntg_object_fx_destroy(ntg_object_fx* fx)
 {
-    int* data = (int*)malloc(sizeof(int));
-    assert(data != NULL);
-    assert((brightness_adj < 255) && (brightness_adj > (-255)));
+    assert(fx != NULL);
 
-    (*data) = brightness_adj;
+    if(fx->__deinit_fn != NULL)
+        fx->__deinit_fn(fx);
 
-    return (struct ntg_object_fx) {
-        .apply_fn = __ntg_object_fx_brighten_bg_fn,
-        .data = data
-    };
+    free(fx);
+}
+
+/* Returns if the effect has been applied successfully. */
+bool ntg_object_fx_apply(
+        const ntg_object* object,
+        const ntg_object_fx* fx,
+        void* object_fx_interface)
+{
+    assert(object != NULL);
+    assert(fx != NULL);
+    assert(object_fx_interface != NULL);
+
+    if(ntg_object_get_type(object) != fx->_object_type)
+        return false;
+
+    if(fx->__apply_fn != NULL)
+        return fx->__apply_fn(object, fx, object_fx_interface);
+    else
+        return true;
 }

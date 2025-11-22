@@ -28,13 +28,13 @@ static ntg_app_status app_process_key_fn1(
     }
     else if((key_event.type == NT_KEY_EVENT_UTF32) && (key_event.utf32_data.codepoint == 'b'))
     {
-        ntg_scene* scene = ntg_stage_get_scene(context->stage);
-        ntg_drawable* root_drawable = ntg_scene_get_root(scene);
-        ntg_object* root = ntg_drawable_user_(root_drawable);
-        
-        struct ntg_object_fx brighten_fx = ntg_object_fx_brighten_bg(10);
-
-        ntg_object_add_fx(root, brighten_fx);
+        // ntg_scene* scene = ntg_stage_get_scene(context->stage);
+        // ntg_drawable* root_drawable = ntg_scene_get_root(scene);
+        // ntg_object* root = ntg_drawable_user_(root_drawable);
+        //
+        // struct ntg_object_fx brighten_fx = ntg_object_fx_brighten_bg(10);
+        //
+        // ntg_object_add_fx(root, brighten_fx);
     }
 
     return NTG_APP_CONTINUE;
@@ -57,7 +57,8 @@ static void gui_fn1(void* data)
 {
     ntg_color_block root;
     ntg_object* _root = (ntg_object*)&root;
-    __ntg_color_block_init__(&root, nt_color_new(255, 0, 0), NULL, NULL);
+    __ntg_color_block_init__(&root, nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
+            NULL, NULL);
 
     ntg_simple_scene scene;
     ntg_scene* _scene = (ntg_scene*)&scene;
@@ -96,9 +97,9 @@ static void gui_fn2(void* data)
     struct ntg_str_view top_text = ntg_str_view_from_cstr("Novak");
     ntg_label_set_text(&north, top_text);
     struct nt_gfx top_gfx = {
-        .bg = nt_color_new(255, 0, 0),
-        .fg = nt_color_new(255, 255, 255),
-        .style = NT_STYLE_BOLD
+        .bg = nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
+        .fg = nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
+        .style = nt_style_new(NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD)
     };
     ntg_label_set_gfx(&north, top_gfx);
     // ntg_label_set_primary_alignment(&north, NTG_TEXT_ALIGNMENT_2);
@@ -106,7 +107,8 @@ static void gui_fn2(void* data)
 
     ntg_color_block center;
     ntg_object* _center = (ntg_object*)&center;
-    __ntg_color_block_init__(&center, nt_color_new(255, 255, 255), NULL, NULL);
+    __ntg_color_block_init__(&center, nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
+                NULL, NULL);
     // TODO: setting min size messes up the size of the label?
     ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
 
@@ -117,12 +119,12 @@ static void gui_fn2(void* data)
 
     ntg_color_block south1;
     ntg_object* _south1 = (ntg_object*)&south1;
-    __ntg_color_block_init__(&south1, nt_color_new(0, 255, 0), NULL, NULL);
+    __ntg_color_block_init__(&south1, nt_color_new_rgb(nt_rgb_new(0, 255, 0)), NULL, NULL);
     // ntg_object_set_grow(_south1, ntg_xy(0, 0));
 
     ntg_color_block south2;
     ntg_object* _south2 = (ntg_object*)&south2;
-    __ntg_color_block_init__(&south2, nt_color_new(0, 0, 255), NULL, NULL);
+    __ntg_color_block_init__(&south2, nt_color_new_rgb(nt_rgb_new(0, 0, 255)), NULL, NULL);
     // ntg_object_set_grow(_south2, ntg_xy(0, 0));
 
     ntg_box_add_child(&south, _south1);

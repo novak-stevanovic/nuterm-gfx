@@ -100,7 +100,7 @@ void __ntg_app_deinit__()
 
 void ntg_app_loop(
         ntg_stage* init_stage,
-        uint framerate,
+        unsigned int framerate,
         ntg_app_renderer* renderer,
         ntg_app_process_key_fn process_key_fn,
         void* data)
@@ -122,7 +122,7 @@ void ntg_app_loop(
 
     nt_status _status;
     struct nt_event event;
-    uint timeout = NTG_APP_WAIT_TIMEOUT(framerate); 
+    unsigned int timeout = NTG_APP_WAIT_TIMEOUT(framerate); 
     bool loop = true;
     while(loop)
     {
@@ -137,13 +137,13 @@ void ntg_app_loop(
         struct ntg_evt_app_resize_data resize_data;
         switch(event.type)
         {
-            case NT_EVENT_TYPE_KEY:
+            case NT_EVENT_KEY:
                 status = process_key_fn(event.key_data, &context, data);
                 if(status == NTG_APP_QUIT)
                     loop = false;
                 break;
 
-            case NT_EVENT_TYPE_RESIZE:
+            case NT_EVENT_RESIZE:
                 nt_get_term_size(&_width, &_height);
                 old_app_size = app_size;
                 app_size = ntg_xy(_width, _height);
@@ -163,7 +163,7 @@ void ntg_app_loop(
 
                 break;
 
-            case NT_EVENT_TYPE_TIMEOUT:
+            case NT_EVENT_TIMEOUT:
                 if(context.stage != NULL)
                 {
                     ntg_stage_compose(context.stage, app_size);

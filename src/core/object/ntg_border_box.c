@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "core/object/ntg_border_box.h"
+#include "core/object/ntg_object_types.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
@@ -21,13 +22,16 @@ void __ntg_border_box_init__(
 {
     assert(box != NULL);
 
-    __ntg_object_init__(NTG_OBJECT(box), NTG_OBJECT_WIDGET,
+    __ntg_object_init__(NTG_OBJECT(box),
+            NTG_OBJECT_BORDER_BOX,
             __ntg_border_box_measure_fn,
             __ntg_border_box_constrain_fn,
             __ntg_border_box_arrange_fn,
             NULL,
             process_key_fn,
-            on_focus_fn);
+            on_focus_fn,
+            NULL,
+            NULL);
 
     __init_default(box);
 }

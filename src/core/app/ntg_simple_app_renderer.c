@@ -31,7 +31,7 @@ void __ntg_simple_app_render_fn(
         for(j = 0; j < size.x; j++)
         {
             it_drawing_rcell = *(ntg_stage_drawing_at(stage_drawing, ntg_xy(j, i)));
-            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL, NULL);
+            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL);
         }
     }
 }

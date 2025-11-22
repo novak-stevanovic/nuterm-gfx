@@ -5,9 +5,10 @@
 #include "base/event/ntg_event.h"
 #include "base/event/_ntg_event_sub_vec.h"
 
-static uint __id_gen = 0;
+static unsigned int __id_gen = 0;
 
-void __ntg_event_init__(ntg_event* event, uint type, void* source, void* data)
+void __ntg_event_init__(ntg_event* event, unsigned int type,
+        void* source, void* data)
 {
     assert(event != NULL);
 

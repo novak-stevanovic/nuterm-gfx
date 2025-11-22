@@ -49,7 +49,7 @@ typedef ntg_app_status (*ntg_app_process_key_fn)(
 
 void ntg_app_loop(
         ntg_stage* init_stage,
-        uint framerate,
+        unsigned int framerate,
         ntg_app_renderer* renderer,
         ntg_app_process_key_fn process_key_fn,
         void* data);

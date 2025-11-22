@@ -16,6 +16,10 @@ void __ntg_object_fx_vec_deinit__(ntg_object_fx_vec* vec)
 {
     assert(vec != NULL);
 
+    size_t i;
+    for(i = 0; i < vec->_count; i++)
+        ntg_object_fx_destroy(vec->_data[i]);
+
     __ntg_vector_deinit__((ntg_vector*)vec);
 }
 
@@ -38,14 +42,14 @@ void ntg_object_fx_vec_destroy(ntg_object_fx_vec* vec)
     free(vec);
 }
 
-void ntg_object_fx_vec_append(ntg_object_fx_vec* vec, struct ntg_object_fx object_fx)
+void ntg_object_fx_vec_append(ntg_object_fx_vec* vec, ntg_object_fx* object_fx)
 {
     assert(vec != NULL);
 
     ntg_vector_append((ntg_vector*)vec, &object_fx);
 }
 
-void ntg_object_fx_vec_remove(ntg_object_fx_vec* vec, struct ntg_object_fx object_fx)
+void ntg_object_fx_vec_remove(ntg_object_fx_vec* vec, ntg_object_fx* object_fx)
 {
     assert(vec != NULL);
 
@@ -53,7 +57,7 @@ void ntg_object_fx_vec_remove(ntg_object_fx_vec* vec, struct ntg_object_fx objec
 }
 
 size_t ntg_object_fx_vec_find(const ntg_object_fx_vec* vec,
-        struct ntg_object_fx object_fx)
+        const ntg_object_fx* object_fx)
 {
     assert(vec != NULL);
 
@@ -61,7 +65,7 @@ size_t ntg_object_fx_vec_find(const ntg_object_fx_vec* vec,
 }
 
 bool ntg_object_fx_vec_contains(const ntg_object_fx_vec* vec,
-        struct ntg_object_fx object_fx)
+        const ntg_object_fx* object_fx)
 {
     assert(vec != NULL);
 
@@ -86,7 +90,7 @@ size_t ntg_object_fx_vec_view_count(ntg_object_fx_vec_view* view)
     return view->__vec->_count;
 }
 
-struct ntg_object_fx ntg_object_fx_vec_view_at(ntg_object_fx_vec_view* view, size_t pos)
+ntg_object_fx* ntg_object_fx_vec_view_at(ntg_object_fx_vec_view* view, size_t pos)
 {
     assert(view != NULL);
     assert(view->__vec != NULL);

@@ -2,6 +2,7 @@
 #include <math.h>
 
 #include "core/object/ntg_prog_bar.h"
+#include "core/object/ntg_object_types.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "shared/_ntg_shared.h"
 
@@ -17,13 +18,15 @@ void __ntg_prog_bar_init__(
     assert(prog_bar != NULL);
 
     __ntg_object_init__(NTG_OBJECT(prog_bar),
-            NTG_OBJECT_WIDGET,
+            NTG_OBJECT_PROG_BAR,
             __ntg_prog_bar_measure_fn,
             NULL,
             NULL,
             __ntg_prog_bar_arrange_drawing_fn,
             process_key_fn,
-            on_focus_fn);
+            on_focus_fn,
+            NULL,
+            NULL);
 
     prog_bar->__orientation = orientation;
     prog_bar->__complete_cell = complete_cell;

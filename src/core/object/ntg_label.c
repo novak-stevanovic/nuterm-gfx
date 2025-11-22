@@ -1,9 +1,10 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
-#include <uconv/uconv.h>
+#include <shared/_uconv.h>
 
 #include "core/object/ntg_label.h"
+#include "core/object/ntg_object_types.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_string.h"
@@ -89,7 +90,8 @@ static void __init_default_values(ntg_label* label)
 {
     label->__orientation = NTG_ORIENTATION_HORIZONTAL;
     label->__text = (struct ntg_str) {0};
-    label->__gfx = NT_GFX_DEFAULT;
+    label->__gfx_base = NT_GFX_DEFAULT;
+    label->__gfx_adjusted = NT_GFX_DEFAULT;
     label->__primary_alignment = NTG_TEXT_ALIGNMENT_1;
     label->__secondary_alignment = NTG_ALIGNMENT_1;
     label->__wrap_mode = NTG_TEXT_WRAP_NOWRAP;
@@ -106,13 +108,15 @@ void __ntg_label_init__(
     assert(label != NULL);
 
     __ntg_object_init__(NTG_OBJECT(label),
-            NTG_OBJECT_WIDGET,
+            NTG_OBJECT_LABEL,
             __ntg_label_measure_fn,
             NULL,
             NULL,
             __ntg_label_draw_fn,
             process_key_fn,
-            on_focus_fn);
+            on_focus_fn,
+            NULL,
+            NULL);
 
     __init_default_values(label);
 
@@ -158,7 +162,7 @@ void ntg_label_set_gfx(ntg_label* label, struct nt_gfx gfx)
 {
     assert(label != NULL);
 
-    label->__gfx = gfx;
+    label->__gfx_base = gfx;
 }
 
 void ntg_label_set_primary_alignment(ntg_label* label, ntg_text_alignment alignment)
@@ -222,7 +226,7 @@ struct nt_gfx ntg_label_get_gfx(const ntg_label* label)
 {
     assert(label != NULL);
 
-    return label->__gfx;
+    return label->__gfx_base;
 }
 
 ntg_text_alignment ntg_label_get_primary_alignment(const ntg_label* label)
@@ -276,7 +280,7 @@ struct ntg_measure_output __ntg_label_measure_fn(
     assert(text_utf32 != NULL);
 
     size_t _width;
-    uc_status_t _status;
+    uc_status _status;
     uc_utf8_to_utf32((uint8_t*)label->__text.data, utf32_cap, text_utf32,
             label->__text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
@@ -347,7 +351,7 @@ void __ntg_label_draw_fn(
     assert(text_utf32 != NULL);
 
     size_t _width;
-    uc_status_t _status;
+    uc_status _status;
     uc_utf8_to_utf32((uint8_t*)label->__text.data, utf32_cap, text_utf32,
             label->__text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
@@ -473,7 +477,7 @@ void __ntg_label_draw_fn(
                 it_cell = ntg_drawing_at_(out_drawing, ntg_xy(j, i));
                 it_content = __label_content_at(&_content, ntg_xy(j, i));
 
-                (*it_cell) = ntg_cell_full((*it_content), label->__gfx);
+                (*it_cell) = ntg_cell_full((*it_content), label->__gfx_base);
             }
         }
     }
@@ -486,7 +490,7 @@ void __ntg_label_draw_fn(
                 it_cell = ntg_drawing_at_(out_drawing, ntg_xy(i, j));
                 it_content = __label_content_at(&_content, ntg_xy(j, i));
 
-                (*it_cell) = ntg_cell_full((*it_content), label->__gfx);
+                (*it_cell) = ntg_cell_full((*it_content), label->__gfx_base);
             }
         }
     }

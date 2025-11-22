@@ -3,6 +3,7 @@
 
 #include "core/object/ntg_box.h"
 #include "base/ntg_sap.h"
+#include "core/object/ntg_object_types.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "shared/_ntg_shared.h"
@@ -26,13 +27,17 @@ void __ntg_box_init__(
 {
     assert(box != NULL);
 
-    __ntg_object_init__(NTG_OBJECT(box), NTG_OBJECT_WIDGET,
+    __ntg_object_init__(
+            NTG_OBJECT(box),
+            NTG_OBJECT_BOX,
             __ntg_box_measure_fn,
             __ntg_box_constrain_fn,
             __ntg_box_arrange_fn,
             NULL,
             process_key_fn,
-            on_focus_fn);
+            on_focus_fn,
+            NULL,
+            NULL);
 
     __init_default_values(box);
 

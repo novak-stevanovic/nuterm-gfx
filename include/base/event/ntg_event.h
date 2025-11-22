@@ -16,13 +16,14 @@ typedef void (*ntg_event_handler)(void* subscriber, const ntg_event* event);
 
 struct ntg_event
 {
-    uint _id;
-    uint _type;
+    unsigned int _id;
+    unsigned int _type;
     void* _source;
     void* _data;
 };
 
-void __ntg_event_init__(ntg_event* event, uint type, void* source, void* data);
+void __ntg_event_init__(ntg_event* event, unsigned int type,
+        void* source, void* data);
 
 /* ------------------------------------------------------ */
 
