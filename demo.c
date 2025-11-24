@@ -13,15 +13,15 @@
 #define COUNT 100
 
 static bool loop_process_key_fn1(
-        ntg_def_loop_provider* loop_provider,
+        ntg_def_loop* loop,
         struct nt_key_event key,
         void* data)
 {
-    ntg_loop_provider* _loop_provider = (ntg_loop_provider*)loop_provider;
+    ntg_loop* _loop = (ntg_loop*)loop;
 
     if(nt_key_event_utf32_check(key, 'q', false))
     {
-        ntg_loop_provider_stop(_loop_provider);
+        ntg_loop_stop(_loop);
         return true;
     }
     return false;
@@ -39,7 +39,7 @@ static void gui_fn1(void* data)
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
 
-    ntg_loop_provider_run(b._loop_provider);
+    ntg_loop_run(b._loop);
 
     __ntg_color_block_deinit__(&root);
 
@@ -100,7 +100,7 @@ static void gui_fn2(void* data)
             loop_process_key_fn1, NULL);
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
-    ntg_loop_provider_run(b._loop_provider);
+    ntg_loop_run(b._loop);
 
     __ntg_border_box_deinit__(&root);
     __ntg_label_deinit__(&north);

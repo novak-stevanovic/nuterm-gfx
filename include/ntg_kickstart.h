@@ -4,15 +4,15 @@
 /* Convenience includes & functions */
 
 #include "core/object/ntg_object.h"
-#include "core/loop_provider/ntg_def_loop_provider.h"
+#include "core/loop/ntg_def_loop.h"
 #include "core/renderer/ntg_db_renderer.h"
 #include "core/stage/ntg_def_stage.h"
 #include "core/scene/ntg_def_scene.h"
 
 struct ntg_kickstart_basic_obj
 {
-    ntg_def_loop_provider* loop_provider;
-    ntg_loop_provider* _loop_provider;
+    ntg_def_loop* loop;
+    ntg_loop* _loop;
 
     ntg_db_renderer* renderer;
     ntg_renderer* _renderer;
@@ -21,7 +21,7 @@ struct ntg_kickstart_basic_obj
 struct ntg_kickstart_basic_obj ntg_kickstart_basic(
         ntg_stage* loop_init_stage, /* non-NULL */
         unsigned int loop_framerate, /* non-zero */
-        ntg_dlp_process_key_fn loop_process_key_fn, /* non-NULL */
+        ntg_def_loop_process_key_fn loop_process_key_fn, /* non-NULL */
         void* loop_process_key_fn_data);
 void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj);
 
