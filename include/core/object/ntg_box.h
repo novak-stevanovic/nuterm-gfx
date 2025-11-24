@@ -17,7 +17,8 @@ void __ntg_box_init__(
         ntg_alignment primary_alignment,
         ntg_alignment secondary_alignment,
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn);
+        ntg_on_focus_fn on_focus_fn,
+        void* data);
 void __ntg_box_deinit__(ntg_box* box);
 
 ntg_orientation ntg_box_get_orientation(const ntg_box* box);

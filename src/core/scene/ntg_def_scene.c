@@ -17,7 +17,8 @@ static void __draw_fn(ntg_drawable* drawable, void* _layout_data);
 
 void __ntg_def_scene_init__(
         ntg_def_scene* scene,
-        ntg_scene_process_key_fn process_key_fn)
+        ntg_scene_process_key_fn process_key_fn,
+        void* data)
 {
     assert(scene != NULL);
 
@@ -25,7 +26,8 @@ void __ntg_def_scene_init__(
             __ntg_def_scene_layout_fn,
             NULL,
             NULL,
-            process_key_fn);
+            process_key_fn,
+            data);
 }
 
 void __ntg_def_scene_deinit__(ntg_def_scene* scene)

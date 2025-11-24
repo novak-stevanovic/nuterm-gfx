@@ -14,7 +14,8 @@ struct ntg_def_scene
 
 void __ntg_def_scene_init__(
         ntg_def_scene* scene,
-        ntg_scene_process_key_fn process_key_fn);
+        ntg_scene_process_key_fn process_key_fn,
+        void* data);
 void __ntg_def_scene_deinit__(ntg_def_scene* scene);
 
 void __ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);

@@ -5,7 +5,6 @@
 #include "nt_gfx.h"
 
 // TODO: implement border & padding as decorators
-// TODO: change project structure(?) - add core/loop
 // TODO: implement allocator wrapper
 // TODO: implement ntg_platform
 // TODO: implement scene multi-root system

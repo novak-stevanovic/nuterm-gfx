@@ -18,7 +18,8 @@ static void __init_default(ntg_border_box* box)
 void __ntg_border_box_init__(
         ntg_border_box* box,
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn)
+        ntg_on_focus_fn on_focus_fn,
+        void* data)
 {
     assert(box != NULL);
 
@@ -31,7 +32,8 @@ void __ntg_border_box_init__(
             process_key_fn,
             on_focus_fn,
             NULL,
-            NULL);
+            NULL,
+            data);
 
     __init_default(box);
 }

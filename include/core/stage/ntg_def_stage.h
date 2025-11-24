@@ -10,7 +10,7 @@ struct ntg_def_stage
     ntg_stage __base;
 };
 
-void __ntg_def_stage_init__(ntg_def_stage* stage, ntg_scene* scene);
+void __ntg_def_stage_init__(ntg_def_stage* stage, ntg_scene* scene, void* data);
 void __ntg_def_stage_deinit__(ntg_def_stage* stage);
 
 void __ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size);

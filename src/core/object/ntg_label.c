@@ -103,7 +103,8 @@ void __ntg_label_init__(
         ntg_label* label,
         ntg_orientation orientation,
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn)
+        ntg_on_focus_fn on_focus_fn,
+        void* data)
 {
     assert(label != NULL);
 
@@ -116,7 +117,8 @@ void __ntg_label_init__(
             process_key_fn,
             on_focus_fn,
             NULL,
-            NULL);
+            NULL,
+            data);
 
     __init_default_values(label);
 

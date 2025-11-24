@@ -27,7 +27,8 @@ void __ntg_label_init__(
         ntg_label* label,
         ntg_orientation orientation,
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn);
+        ntg_on_focus_fn on_focus_fn,
+        void* data);
 void __ntg_label_deinit__(ntg_label* label);
 
 void ntg_label_set_text(ntg_label* label, struct ntg_str_view text);

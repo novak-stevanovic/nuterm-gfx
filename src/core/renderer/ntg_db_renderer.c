@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "core/renderer/ntg_db_renderer.h"
 #include "base/ntg_cell.h"
+#include "core/loop/ntg_loop.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 #include "nt.h"
 #include "nt_charbuff.h"
@@ -23,14 +24,16 @@ static void __optimized_render(ntg_db_renderer* renderer,
 
 void __ntg_db_renderer_init__(
         ntg_db_renderer* renderer,
-        ntg_listenable* listenable)
+        ntg_loop* loop,
+        void* data)
 {
     assert(renderer != NULL);
-    assert(listenable != NULL);
+    assert(loop != NULL);
 
     __ntg_renderer_init__(
             (ntg_renderer*)renderer,
-            __ntg_db_render_fn);
+            __ntg_db_render_fn,
+            data);
 
     renderer->__backbuff = ntg_rcell_vgrid_new();
     assert(renderer->__backbuff != NULL);
@@ -39,8 +42,8 @@ void __ntg_db_renderer_init__(
 
     renderer->__resize = true;
 
-    ntg_listenable_listen(listenable, renderer, __listenable_handler);
-    renderer->__listenable = listenable;
+    ntg_listenable_listen(ntg_loop_get_listenable(loop), renderer, __listenable_handler);
+    renderer->__loop = loop;
 }
 
 void __ntg_db_renderer_deinit__(ntg_db_renderer* renderer)
@@ -56,7 +59,11 @@ void __ntg_db_renderer_deinit__(ntg_db_renderer* renderer)
 
     renderer->__resize = false;
 
-    ntg_listenable_stop_listening(renderer->__listenable, renderer, __listenable_handler);
+    ntg_listenable_stop_listening(
+            ntg_loop_get_listenable(renderer->__loop),
+            renderer,
+            __listenable_handler);
+    renderer->__loop = NULL;
 }
 
 void __ntg_db_render_fn(
@@ -109,9 +116,11 @@ static void __full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size)
                     ntg_xy(j, i));
 
             (*it_back_buffer_rcell) = it_drawing_rcell;
-            nt_write_char_at(it_drawing_rcell.codepoint, it_drawing_rcell.gfx, j, i, NULL);
         }
     }
+
+    nt_erase_screen(NULL);
+    nt_erase_scrollback(NULL);
 }
 
 static void __optimized_render(ntg_db_renderer* renderer,

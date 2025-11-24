@@ -2,13 +2,16 @@
 
 #include <assert.h>
 
-void __ntg_renderer_init__(ntg_renderer* renderer,
-        ntg_renderer_render_fn render_fn)
+void __ntg_renderer_init__(
+        ntg_renderer* renderer,
+        ntg_renderer_render_fn render_fn,
+        void* data)
 {
     assert(renderer != NULL);
     assert(render_fn != NULL);
 
     renderer->__render_fn = render_fn;
+    renderer->__data = data;
 }
 
 void __ntg_renderer_deinit__(ntg_renderer* renderer)

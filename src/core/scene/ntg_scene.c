@@ -25,7 +25,8 @@ void __ntg_scene_init__(
         ntg_scene_layout_fn layout_fn,
         ntg_scene_on_register_fn on_register_fn,
         ntg_scene_on_unregister_fn on_unregister_fn,
-        ntg_scene_process_key_fn process_key_fn)
+        ntg_scene_process_key_fn process_key_fn,
+        void* data)
 {
     assert(scene != NULL);
     assert(layout_fn != NULL);
@@ -39,6 +40,7 @@ void __ntg_scene_init__(
     scene->__on_register_fn = on_register_fn;
     scene->__on_unregister_fn = on_unregister_fn;
     scene->__process_key_fn = process_key_fn;
+    scene->__data = data;
 
     scene->__del = ntg_event_delegate_new();
     scene->__graph = ntg_scene_graph_new();
@@ -65,25 +67,21 @@ void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable)
 {
     assert(scene != NULL);
 
-    // TODO: What if a user adds an element to the tree, the scene doesnt get
-    // to register and then focuses the element?
-    // assert(ntg_drawable_vec_contains(scene->__registered, drawable));
-
-    scene->__focused = drawable;
+    scene->__pending_focused = drawable;
 }
 
-void ntg_scene_set_key_process_mode(ntg_scene* scene, ntg_scene_key_process_mode mode)
+ntg_scene_process_key_mode ntg_scene_get_process_key_mode(const ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    scene->__key_process_mode = mode;
+    return scene->__process_key_mode;
 }
 
-ntg_scene_key_process_mode ntg_scene_get_key_process_mode(const ntg_scene* scene)
+void ntg_scene_set_process_key_mode(ntg_scene* scene, ntg_scene_process_key_mode mode)
 {
     assert(scene != NULL);
 
-    return scene->__key_process_mode;
+    scene->__process_key_mode = mode;
 }
 
 struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
@@ -113,6 +111,19 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
     scene->__size = size;
 
     __scan_scene(scene);
+
+    if(scene->__pending_focused != NULL)
+    {
+        if(ntg_scene_graph_get(scene->__graph, scene->__pending_focused) != NULL)
+        {
+            scene->__focused = scene->__pending_focused;
+        }
+        else
+        {
+            assert(0);
+        }
+        scene->__pending_focused = NULL;
+    }
 
     scene->__layout_fn(scene, size);
 }
@@ -155,12 +166,7 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
     ntg_drawable_vec process_drawables;
     __ntg_drawable_vec_init__(&process_drawables);
 
-    if(scene->__key_process_mode == NTG_SCENE_KEY_PROCESS_FOCUSED_ONLY)
-    {
-        if(focused != NULL)
-            ntg_drawable_vec_append(&process_drawables, focused);
-    }
-    else if(scene->__key_process_mode == NTG_SCENE_KEY_PROCESS_FOCUSED_FIRST)
+    if(scene->__process_key_mode == NTG_SCENE_PROCESS_KEY_FOCUSED_FIRST)
     {
         ntg_drawable* it_drawable = focused;
 
@@ -172,11 +178,7 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
 
         ntg_drawable_vec_append(&process_drawables, (ntg_drawable*)scene);
     }
-    else if(scene->__key_process_mode == NTG_SCENE_KEY_PROCESS_SCENE_ONLY)
-    {
-        ntg_drawable_vec_append(&process_drawables, (ntg_drawable*)scene);
-    }
-    else if(scene->__key_process_mode == NTG_SCENE_KEY_PROCESS_SCENE_FIRST)
+    else // (scene->__key_process_mode == NTG_SCENE_KEY_PROCESS_SCENE_FIRST)
     {
         ntg_drawable_vec_append(&process_drawables, (ntg_drawable*)scene);
 
@@ -204,7 +206,6 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
             }
         }
     }
-    else assert(0);
 
     bool processed = false;
 

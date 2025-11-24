@@ -11,7 +11,8 @@ void __ntg_color_block_init__(
         ntg_color_block* color_block,
         nt_color color,
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn)
+        ntg_on_focus_fn on_focus_fn,
+        void* data)
 {
     assert(color_block != NULL);
 
@@ -25,7 +26,8 @@ void __ntg_color_block_init__(
             process_key_fn,
             on_focus_fn,
             NULL,
-            NULL);
+            NULL,
+            data);
 
     color_block->__color = color;
 }

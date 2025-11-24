@@ -10,11 +10,20 @@ typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_delegate ntg_event_delegate;
 struct nt_key_event;
 
-/* Returns if the key had been consumed */
+typedef enum ntg_def_loop_process_key_mode
+{
+    NTG_DEF_LOOP_PROCESS_KEY_STAGE_FIRST,
+    NTG_DEF_LOOP_PROCESS_KEY_LOOP_FIRST
+} ntg_def_loop_process_key_mode;
+
 typedef bool (*ntg_def_loop_process_key_fn)(
-        ntg_def_loop* loop,
-        struct nt_key_event key,
-        void* data);
+        ntg_loop_context* context,
+        struct nt_key_event key);
+typedef void (*ntg_def_loop_process_resize_fn)(
+        ntg_loop_context* context,
+        struct nt_resize_event resize);
+typedef void (*ntg_def_loop_process_timeout_fn)(
+        ntg_loop_context* context);
 
 struct ntg_def_loop
 {
@@ -22,10 +31,11 @@ struct ntg_def_loop
 
     unsigned int __framerate;
     ntg_renderer* __renderer;
-    ntg_def_loop_process_key_fn __process_key_fn;
-    void* __process_key_data;
 
-    ntg_event_delegate* __delegate;
+    ntg_def_loop_process_key_fn __process_key_fn;
+    ntg_def_loop_process_key_mode __process_key_mode;
+    ntg_def_loop_process_resize_fn __process_resize_fn;
+    ntg_def_loop_process_timeout_fn __process_timeout_fn;
 };
 
 void __ntg_def_loop_init__(
@@ -34,13 +44,19 @@ void __ntg_def_loop_init__(
         unsigned int framerate,
         ntg_renderer* renderer,
         ntg_def_loop_process_key_fn process_key_fn,
-        void* process_key_fn_data);
+        ntg_def_loop_process_resize_fn process_resize_fn,
+        ntg_def_loop_process_timeout_fn process_timeout_fn,
+        void* data);
 void __ntg_def_loop_deinit__(ntg_def_loop* loop);
 
-/* Raises NTG_EVT_APP_RESIZE */
-ntg_listenable* ntg_def_loop_get_listenable(
-        ntg_def_loop* loop);
+void ntg_def_loop_set_process_key_mode(ntg_def_loop* loop,
+        ntg_def_loop_process_key_mode mode);
+ntg_def_loop_process_key_mode ntg_def_loop_get_process_key_mode(
+        const ntg_def_loop* loop);
 
-void __ntg_def_loop_run_fn(ntg_loop* _loop);
+ntg_loop_context* __ntg_def_loop_create_context_fn(ntg_loop* _loop,
+        void* context_data);
+void __ntg_def_loop_destroy_context_fn(ntg_loop_context* _context);
+struct ntg_loop_status __ntg_def_loop_loop_fn(ntg_loop_context* _context);
 
 #endif // _NTG_DEF_LOOP_H_

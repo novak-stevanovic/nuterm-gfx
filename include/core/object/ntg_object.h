@@ -140,6 +140,8 @@ struct ntg_object
 
     struct ntg_drawable __drawable;
     ntg_event_delegate* __delegate;
+
+    void* __data;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -155,7 +157,8 @@ void __ntg_object_init__(ntg_object* object,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
         ntg_object_reset_fx_fn reset_fx_fn,
-        ntg_object_get_fx_interface_fn get_fx_interface_fn);
+        ntg_object_get_fx_interface_fn get_fx_interface_fn,
+        void* data);
 
 void __ntg_object_deinit__(ntg_object* object);
 

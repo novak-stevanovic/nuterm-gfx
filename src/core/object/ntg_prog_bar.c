@@ -13,7 +13,8 @@ void __ntg_prog_bar_init__(
         ntg_cell uncomplete_cell,
         ntg_cell threshold_cell,
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn)
+        ntg_on_focus_fn on_focus_fn,
+        void* data)
 {
     assert(prog_bar != NULL);
 
@@ -26,7 +27,8 @@ void __ntg_prog_bar_init__(
             process_key_fn,
             on_focus_fn,
             NULL,
-            NULL);
+            NULL,
+            data);
 
     prog_bar->__orientation = orientation;
     prog_bar->__complete_cell = complete_cell;

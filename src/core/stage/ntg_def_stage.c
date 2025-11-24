@@ -6,12 +6,12 @@
 #include "core/scene/shared/_ntg_drawing.h"
 
 
-void __ntg_def_stage_init__(ntg_def_stage* stage, ntg_scene* scene)
+void __ntg_def_stage_init__(ntg_def_stage* stage, ntg_scene* scene, void* data)
 {
     assert(stage != NULL);
     assert(scene != NULL);
 
-    __ntg_stage_init__((ntg_stage*)stage, scene, __ntg_def_stage_compose_fn);
+    __ntg_stage_init__((ntg_stage*)stage, scene, __ntg_def_stage_compose_fn, data);
 }
 
 void __ntg_def_stage_deinit__(ntg_def_stage* stage)

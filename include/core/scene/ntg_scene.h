@@ -14,13 +14,11 @@ struct ntg_event_sub;
 
 #define NTG_SCENE(scn_ptr) ((ntg_scene*)(scn_ptr))
 
-typedef enum ntg_scene_key_process_mode
+typedef enum ntg_scene_process_key_mode
 {
-    NTG_SCENE_KEY_PROCESS_FOCUSED_ONLY,
-    NTG_SCENE_KEY_PROCESS_SCENE_ONLY,
-    NTG_SCENE_KEY_PROCESS_FOCUSED_FIRST,
-    NTG_SCENE_KEY_PROCESS_SCENE_FIRST,
-} ntg_scene_key_process_mode;
+    NTG_SCENE_PROCESS_KEY_FOCUSED_FIRST,
+    NTG_SCENE_PROCESS_KEY_SCENE_FIRST,
+} ntg_scene_process_key_mode;
 
 /* Performs layout and updates the scene's drawing */
 typedef void (*ntg_scene_layout_fn)(
@@ -54,11 +52,13 @@ struct ntg_scene
     ntg_scene_on_unregister_fn __on_unregister_fn;
     ntg_scene_process_key_fn __process_key_fn;
 
-    ntg_scene_key_process_mode __key_process_mode;
+    ntg_scene_process_key_mode __process_key_mode;
 
-    ntg_drawable* __focused;
+    ntg_drawable *__focused, *__pending_focused;
 
     ntg_event_delegate* __del;
+
+    void* __data;
 };
 
 struct ntg_scene_node
@@ -80,7 +80,8 @@ void __ntg_scene_init__(
         ntg_scene_layout_fn layout_fn, /* non-NULL */
         ntg_scene_on_register_fn on_register_fn,
         ntg_scene_on_unregister_fn on_unregister_fn,
-        ntg_scene_process_key_fn process_key_fn);
+        ntg_scene_process_key_fn process_key_fn,
+        void* data);
 void __ntg_scene_deinit__(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
@@ -88,8 +89,8 @@ void __ntg_scene_deinit__(ntg_scene* scene);
 ntg_drawable* ntg_scene_get_focused(ntg_scene* scene);
 void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable);
 
-void ntg_scene_set_key_process_mode(ntg_scene* scene, ntg_scene_key_process_mode mode);
-ntg_scene_key_process_mode ntg_scene_get_key_process_mode(const ntg_scene* scene);
+void ntg_scene_set_process_key_mode(ntg_scene* scene, ntg_scene_process_key_mode mode);
+ntg_scene_process_key_mode ntg_scene_get_process_key_mode(const ntg_scene* scene);
 
 struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
         const ntg_drawable* drawable);

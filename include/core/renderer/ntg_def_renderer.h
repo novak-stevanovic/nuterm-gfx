@@ -12,7 +12,7 @@ struct ntg_def_renderer
     ntg_renderer __base;
 };
 
-void __ntg_def_renderer_init__(ntg_def_renderer* renderer);
+void __ntg_def_renderer_init__(ntg_def_renderer* renderer, void* data);
 void __ntg_def_renderer_deinit__(ntg_def_renderer* renderer);
 
 void __ntg_def_renderer_render_fn(
