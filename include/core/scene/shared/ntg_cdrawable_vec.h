@@ -6,6 +6,7 @@
 #include <sys/types.h>
 
 typedef struct ntg_drawable ntg_drawable;
+typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_cdrawable_vec_view ntg_cdrawable_vec_view;
 
 typedef struct ntg_cdrawable_vec

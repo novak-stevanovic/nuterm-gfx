@@ -46,14 +46,14 @@ struct ntg_layout_data
 void __ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
 {
     assert(_scene != NULL);
+
+    ntg_drawable* root = ntg_scene_get_root(_scene);
     if(_scene->__root == NULL) return;
 
     ntg_def_scene* scene = (ntg_def_scene*)_scene;
 
     // SArena* arena = sarena_create(100000, NULL);
     // assert(arena != NULL);
-
-    ntg_drawable* root = _scene->__root;
 
     struct ntg_layout_data data = {
         // .arena = arena,
