@@ -36,9 +36,10 @@ void ntg_listenable_listen(ntg_listenable* listenable,
     assert(subscriber != NULL);
     assert(handler != NULL);
 
-    assert(!ntg_listenable_has_sub(listenable, subscriber, handler));
-
-    ntg_event_sub_vec_append(listenable->__subs, subscriber, handler);
+    if(!ntg_listenable_has_sub(listenable, subscriber, handler))
+    {
+        ntg_event_sub_vec_append(listenable->__subs, subscriber, handler);
+    }
 }
 
 void ntg_listenable_stop_listening(ntg_listenable* listenable,
@@ -46,9 +47,10 @@ void ntg_listenable_stop_listening(ntg_listenable* listenable,
 {
     assert(listenable != NULL);
 
-    assert(ntg_listenable_has_sub(listenable, subscriber, handler));
-
-    ntg_event_sub_vec_remove(listenable->__subs, subscriber, handler);
+    if(ntg_listenable_has_sub(listenable, subscriber, handler))
+    {
+        ntg_event_sub_vec_remove(listenable->__subs, subscriber, handler);
+    }
 }
 
 bool ntg_listenable_is_listening(ntg_listenable* listenable, void* subscriber)

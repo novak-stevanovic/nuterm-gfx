@@ -318,7 +318,6 @@ struct ntg_xy ntg_cell_vgrid_get_size(const ntg_cell_vgrid* vgrid)
 void ntg_cell_vgrid_set_size(ntg_cell_vgrid* vgrid, struct ntg_xy size,
         ntg_status* out_status)
 {
-    // TODO
     ntg_xy_size_(&size);
 
     ntg_cell_grid_set_size(&vgrid->___data, size, NULL);

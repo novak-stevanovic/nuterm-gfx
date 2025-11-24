@@ -2,7 +2,7 @@
 #include <math.h>
 
 #include "core/object/ntg_prog_bar.h"
-#include "core/object/ntg_object_types.h"
+#include "core/object/shared/ntg_object_types.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "shared/_ntg_shared.h"
 

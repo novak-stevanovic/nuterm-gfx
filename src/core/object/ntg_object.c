@@ -2,7 +2,7 @@
 
 #include "core/object/ntg_object.h"
 #include "base/event/ntg_event.h"
-#include "core/object/ntg_object_types.h"
+#include "core/object/shared/ntg_object_types.h"
 #include "core/object/shared/ntg_object_fx.h"
 #include "core/object/shared/ntg_object_fx_vec.h"
 #include "core/object/shared/ntg_object_fx.h"

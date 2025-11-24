@@ -2,87 +2,49 @@
 #include <unistd.h>
 #include <assert.h>
 
-#include "base/event/ntg_event.h"
-#include "core/app/ntg_db_app_renderer.h"
-#include "core/app/ntg_simple_app_renderer.h"
+#include "ntg.h"
+#include "ntg_kickstart.h"
 #include "core/object/ntg_border_box.h"
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_color_block.h"
 #include "core/object/ntg_label.h"
 #include "core/object/shared/ntg_object_fx.h"
-#include "core/stage/ntg_simple_stage.h"
-#include "ntg.h"
-#include "core/scene/ntg_simple_scene.h"
-#include "shared/ntg_log.h"
 
 #define COUNT 100
 
-static ntg_app_status app_process_key_fn1(
-        struct nt_key_event key_event,
-        struct ntg_app_loop_context* context,
+static bool loop_process_key_fn1(
+        ntg_def_loop_provider* loop_provider,
+        struct nt_key_event key,
         void* data)
 {
-    if((key_event.type == NT_KEY_EVENT_UTF32) && (key_event.utf32_data.codepoint == 'q'))
-    {
-        return NTG_APP_QUIT;
-    }
-    else if((key_event.type == NT_KEY_EVENT_UTF32) && (key_event.utf32_data.codepoint == 'b'))
-    {
-        // ntg_scene* scene = ntg_stage_get_scene(context->stage);
-        // ntg_drawable* root_drawable = ntg_scene_get_root(scene);
-        // ntg_object* root = ntg_drawable_user_(root_drawable);
-        //
-        // struct ntg_object_fx brighten_fx = ntg_object_fx_brighten_bg(10);
-        //
-        // ntg_object_add_fx(root, brighten_fx);
-    }
+    ntg_loop_provider* _loop_provider = (ntg_loop_provider*)loop_provider;
 
-    return NTG_APP_CONTINUE;
-}
-
-static ntg_app_status app_process_key_fn2(
-        struct nt_key_event key_event,
-        struct ntg_app_loop_context* context,
-        void* data)
-{
-    if((key_event.type == NT_KEY_EVENT_UTF32) && (key_event.utf32_data.codepoint == 'q'))
+    if(nt_key_event_utf32_check(key, 'q', false))
     {
-        return NTG_APP_QUIT;
+        ntg_loop_provider_stop(_loop_provider);
+        return true;
     }
-
-    return NTG_APP_CONTINUE;
+    return false;
 }
 
 static void gui_fn1(void* data)
 {
+    struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(NULL);
+    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
+            loop_process_key_fn1, NULL);
+
     ntg_color_block root;
     ntg_object* _root = (ntg_object*)&root;
-    __ntg_color_block_init__(&root, nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
-            NULL, NULL);
+    __ntg_color_block_init__(&root, nt_color_new_rgb(nt_rgb_new(255, 0, 0)), NULL, NULL);
 
-    ntg_simple_scene scene;
-    ntg_scene* _scene = (ntg_scene*)&scene;
-    __ntg_simple_scene_init__(&scene, NULL);
-    ntg_scene_set_root(_scene, ntg_object_get_drawable_(_root));
+    ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
 
-    ntg_simple_stage stage;
-    ntg_stage* _stage = (ntg_stage*)&stage;
-    __ntg_simple_stage_init__(&stage, _scene);
-
-    ntg_db_app_renderer renderer;
-    __ntg_db_app_renderer_init__(&renderer);
-
-    ntg_app_loop(
-            _stage,
-            NTG_APP_FRAMERATE_DEFAULT,
-            (ntg_app_renderer*)&renderer,
-            app_process_key_fn1,
-            NULL);
+    ntg_loop_provider_run(b._loop_provider);
 
     __ntg_color_block_deinit__(&root);
-    __ntg_simple_scene_deinit__(&scene);
-    __ntg_simple_stage_deinit__(&stage);
-    __ntg_db_app_renderer_deinit__(&renderer);
+
+    ntg_kickstart_basic_end(&b);
+    ntg_kickstart_scene_end(&s);
 }
 
 static void gui_fn2(void* data)
@@ -109,7 +71,6 @@ static void gui_fn2(void* data)
     ntg_object* _center = (ntg_object*)&center;
     __ntg_color_block_init__(&center, nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
                 NULL, NULL);
-    // TODO: setting min size messes up the size of the label?
     ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
 
     ntg_box south;
@@ -134,24 +95,12 @@ static void gui_fn2(void* data)
     ntg_border_box_set_center(&root, _center);
     ntg_border_box_set_south(&root, _south);
 
-    ntg_simple_scene scene;
-    ntg_scene* _scene = (ntg_scene*)&scene;
-    __ntg_simple_scene_init__(&scene, NULL);
-    ntg_scene_set_root(_scene, ntg_object_get_drawable_(_root));
+    struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(NULL);
+    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
+            loop_process_key_fn1, NULL);
 
-    ntg_simple_stage stage;
-    ntg_stage* _stage = (ntg_stage*)&stage;
-    __ntg_simple_stage_init__(&stage, _scene);
-
-    ntg_db_app_renderer renderer;
-    __ntg_db_app_renderer_init__(&renderer);
-
-    ntg_app_loop(
-            _stage,
-            NTG_APP_FRAMERATE_DEFAULT,
-            (ntg_app_renderer*)&renderer,
-            app_process_key_fn2,
-            NULL);
+    ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
+    ntg_loop_provider_run(b._loop_provider);
 
     __ntg_border_box_deinit__(&root);
     __ntg_label_deinit__(&north);
@@ -159,20 +108,20 @@ static void gui_fn2(void* data)
     __ntg_color_block_deinit__(&south1);
     __ntg_color_block_deinit__(&south2);
     __ntg_box_deinit__(&south);
-    __ntg_simple_scene_deinit__(&scene);
-    __ntg_simple_stage_deinit__(&stage);
-    __ntg_db_app_renderer_deinit__(&renderer);
+
+    ntg_kickstart_scene_end(&s);
+    ntg_kickstart_basic_end(&b);
 }
 
 int main(int argc, char *argv[])
 {
-    __ntg_app_init__();
+    __ntg_init__();
 
-    ntg_app_launch(gui_fn1, NULL);
+    ntg_launch(gui_fn2, NULL);
 
-    ntg_app_wait();
+    ntg_wait();
 
-    __ntg_app_deinit__();
+    __ntg_deinit__();
 
     // size_t space_pool = 1;
     // size_t caps[COUNT];

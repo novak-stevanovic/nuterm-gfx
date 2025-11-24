@@ -1,24 +1,24 @@
 #include <assert.h>
 #include "nt.h"
-#include "core/app/ntg_simple_app_renderer.h"
+#include "core/renderer/ntg_def_renderer.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 
-void __ntg_simple_app_renderer_init__(ntg_simple_app_renderer* renderer)
+void __ntg_def_renderer_init__(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
 
-    __ntg_app_renderer_init__((ntg_app_renderer*)renderer, __ntg_simple_app_render_fn);
+    __ntg_renderer_init__((ntg_renderer*)renderer, __ntg_def_renderer_render_fn);
 }
 
-void __ntg_simple_app_renderer_deinit__(ntg_simple_app_renderer* renderer)
+void __ntg_def_renderer_deinit__(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
 
-    __ntg_app_renderer_deinit__((ntg_app_renderer*)renderer);
+    __ntg_renderer_deinit__((ntg_renderer*)renderer);
 }
 
-void __ntg_simple_app_render_fn(
-        ntg_app_renderer* _renderer,
+void __ntg_def_renderer_render_fn(
+        ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
         struct ntg_xy size)
 {

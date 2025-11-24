@@ -3,7 +3,7 @@
 
 #include "core/object/ntg_box.h"
 #include "base/ntg_sap.h"
-#include "core/object/ntg_object_types.h"
+#include "core/object/shared/ntg_object_types.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "shared/_ntg_shared.h"

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "core/scene/ntg_simple_scene.h"
+#include "core/scene/ntg_def_scene.h"
 #include "core/scene/_ntg_scene_graph.h"
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
@@ -15,22 +15,20 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data);
 static void __arrange_fn(ntg_drawable* drawable, void* _layout_data);
 static void __draw_fn(ntg_drawable* drawable, void* _layout_data);
 
-static void __ntg_simple_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);
-
-void __ntg_simple_scene_init__(
-        ntg_simple_scene* scene,
+void __ntg_def_scene_init__(
+        ntg_def_scene* scene,
         ntg_scene_process_key_fn process_key_fn)
 {
     assert(scene != NULL);
 
     __ntg_scene_init__((ntg_scene*)scene,
-            __ntg_simple_scene_layout_fn,
+            __ntg_def_scene_layout_fn,
             NULL,
             NULL,
             process_key_fn);
 }
 
-void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
+void __ntg_def_scene_deinit__(ntg_def_scene* scene)
 {
     assert(scene != NULL);
 
@@ -40,14 +38,15 @@ void __ntg_simple_scene_deinit__(ntg_simple_scene* scene)
 struct ntg_layout_data
 {
     // SArena* arena; 
-    ntg_simple_scene* scene;
+    ntg_def_scene* scene;
 };
 
-static void __ntg_simple_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
+void __ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
 {
     assert(_scene != NULL);
+    if(_scene->__root == NULL) return;
 
-    ntg_simple_scene* scene = (ntg_simple_scene*)_scene;
+    ntg_def_scene* scene = (ntg_def_scene*)_scene;
 
     // SArena* arena = sarena_create(100000, NULL);
     // assert(arena != NULL);
@@ -90,7 +89,7 @@ static void __ntg_simple_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
 static void __measure1_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
-    ntg_simple_scene* scene = data->scene; 
+    ntg_def_scene* scene = data->scene; 
     ntg_scene* _scene = (ntg_scene*)scene;
     ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
@@ -134,7 +133,7 @@ static void __measure1_fn(ntg_drawable* drawable, void* _layout_data)
 static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
-    ntg_simple_scene* scene = data->scene; 
+    ntg_def_scene* scene = data->scene; 
     ntg_scene* _scene = (ntg_scene*)scene;
     ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
@@ -191,7 +190,7 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
 static void __measure2_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
-    ntg_simple_scene* scene = data->scene; 
+    ntg_def_scene* scene = data->scene; 
     ntg_scene* _scene = (ntg_scene*)scene;
     ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
@@ -237,7 +236,7 @@ static void __measure2_fn(ntg_drawable* drawable, void* _layout_data)
 static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
-    ntg_simple_scene* scene = data->scene; 
+    ntg_def_scene* scene = data->scene; 
     ntg_scene* _scene = (ntg_scene*)scene;
     ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
@@ -295,7 +294,7 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
 static void __arrange_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
-    ntg_simple_scene* scene = data->scene; 
+    ntg_def_scene* scene = data->scene; 
     ntg_scene* _scene = (ntg_scene*)scene;
     ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
@@ -341,7 +340,7 @@ static void __arrange_fn(ntg_drawable* drawable, void* _layout_data)
 static void __draw_fn(ntg_drawable* drawable, void* _layout_data)
 {
     struct ntg_layout_data* data = (struct ntg_layout_data*)_layout_data;
-    ntg_simple_scene* scene = data->scene; 
+    ntg_def_scene* scene = data->scene; 
     ntg_scene* _scene = (ntg_scene*)scene;
     ntg_scene_graph* graph = _ntg_scene_get_graph(_scene);
 
