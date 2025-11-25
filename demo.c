@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <assert.h>
 
-#include "core/loop/ntg_loop_context.h"
 #include "ntg.h"
 #include "ntg_kickstart.h"
 #include "core/object/ntg_border_box.h"

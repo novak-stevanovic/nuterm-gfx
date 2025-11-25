@@ -43,7 +43,7 @@ void __ntg_scene_init__(
     scene->__data = data;
 
     scene->__del = ntg_event_delegate_new();
-    scene->__graph = ntg_scene_graph_new();
+    scene->_graph = ntg_scene_graph_new();
 }
 
 void __ntg_scene_deinit__(ntg_scene* scene)
@@ -51,7 +51,7 @@ void __ntg_scene_deinit__(ntg_scene* scene)
     assert(scene != NULL);
 
     ntg_event_delegate_destroy(scene->__del);
-    ntg_scene_graph_destroy(scene->__graph);
+    ntg_scene_graph_destroy(scene->_graph);
 
     __init_default_values(scene);
 }
@@ -90,7 +90,7 @@ struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
     assert(scene != NULL);
     assert(drawable != NULL);
 
-    struct _ntg_scene_node* _node = ntg_scene_graph_get(scene->__graph, drawable);
+    struct _ntg_scene_node* _node = ntg_scene_graph_get(scene->_graph, drawable);
     assert(_node != NULL);
 
     return (struct ntg_scene_node) {
@@ -114,7 +114,7 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 
     if(scene->__pending_focused != NULL)
     {
-        if(ntg_scene_graph_get(scene->__graph, scene->__pending_focused) != NULL)
+        if(ntg_scene_graph_get(scene->_graph, scene->__pending_focused) != NULL)
         {
             scene->__focused = scene->__pending_focused;
         }
@@ -273,7 +273,7 @@ static void __scan_scene(ntg_scene* scene)
     
     ntg_cdrawable_vec alr_registered; 
     __ntg_cdrawable_vec_init__(&alr_registered);
-    ntg_scene_graph_get_keys(scene->__graph, &alr_registered);
+    ntg_scene_graph_get_keys(scene->_graph, &alr_registered);
 
     size_t i;
     const ntg_drawable* it_drawable;
@@ -284,7 +284,7 @@ static void __scan_scene(ntg_scene* scene)
         // Drawable removed from the scene
         if(!(ntg_drawable_vec_contains(&current, it_drawable)))
         {
-            ntg_scene_graph_remove(scene->__graph, it_drawable);
+            ntg_scene_graph_remove(scene->_graph, it_drawable);
 
             if(scene->__on_unregister_fn != NULL)
                 scene->__on_unregister_fn(scene, it_drawable);
@@ -298,7 +298,7 @@ static void __scan_scene(ntg_scene* scene)
         // Drawable added to the scene
         if(!(ntg_cdrawable_vec_contains(&alr_registered, it_drawable)))
         {
-            ntg_scene_graph_add(scene->__graph, it_drawable);
+            ntg_scene_graph_add(scene->_graph, it_drawable);
 
             if(scene->__on_register_fn != NULL)
                 scene->__on_register_fn(scene, it_drawable);
@@ -307,13 +307,4 @@ static void __scan_scene(ntg_scene* scene)
 
     __ntg_drawable_vec_deinit__(&current);
     __ntg_cdrawable_vec_deinit__(&alr_registered);
-}
-
-/* -------------------------------------------------------------------------- */
-/* PROTECTED */
-/* -------------------------------------------------------------------------- */
-
-ntg_scene_graph* _ntg_scene_get_graph(ntg_scene* scene)
-{
-    return scene->__graph;
 }

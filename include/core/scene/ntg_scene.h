@@ -20,7 +20,7 @@ typedef enum ntg_scene_process_key_mode
     NTG_SCENE_PROCESS_KEY_SCENE_FIRST,
 } ntg_scene_process_key_mode;
 
-/* Performs layout and updates the scene's drawing */
+/* Performs logical layout of the scene. */
 typedef void (*ntg_scene_layout_fn)(
         ntg_scene* scene,
         struct ntg_xy size);
@@ -45,7 +45,7 @@ struct ntg_scene
     ntg_drawable* __root;
     struct ntg_xy __size;
 
-    ntg_scene_graph* __graph;
+    ntg_scene_graph* _graph;
 
     ntg_scene_layout_fn __layout_fn;
     ntg_scene_on_register_fn __on_register_fn;
@@ -105,9 +105,9 @@ struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
  * `ntg_scene_on_register_fn` for each new drawable and `ntg_scene_on_unregister_fn`
  * for each removed drawable from the graph.
  *
- * Third, it calls the scene's `ntg_scene_layout_fn` to perform the layout.
+ * Third, it updates the root if it was set beforehand(based on pending_root field).
  *
- * Finally, it draws all of the object's drawings onto the scene drawing. */
+ * Finally, it calls the scene's `ntg_scene_layout_fn` to perform the layout. */
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size);
 
 struct ntg_xy ntg_scene_get_size(const ntg_scene* scene);
@@ -125,11 +125,5 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event);
 /* -------------------------------------------------------------------------- */
 
 ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene);
-
-/* -------------------------------------------------------------------------- */
-/* PROTECTED */
-/* -------------------------------------------------------------------------- */
-
-ntg_scene_graph* _ntg_scene_get_graph(ntg_scene* scene);
 
 #endif // _NTG_SCENE_H_
