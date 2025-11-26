@@ -11,10 +11,11 @@ struct ntg_loop_context
     ntg_stage *stage, *pending_stage;
     bool loop;
     struct ntg_xy app_size;
+    void* data;
 };
 
-static void __ntg_loop_context_init__(ntg_loop_context* context,
-        ntg_stage* init_stage, struct ntg_xy app_size);
+void __ntg_loop_context_init__(ntg_loop_context* context,
+        ntg_stage* init_stage, struct ntg_xy app_size, void* data);
 static void __ntg_loop_context_deinit__(ntg_loop_context* context);
 
 /* -------------------------------------------------------------------------- */
@@ -47,6 +48,13 @@ struct ntg_xy ntg_loop_context_get_app_size(ntg_loop_context* context)
     return context->app_size;
 }
 
+void* ntg_loop_context_get_data(ntg_loop_context* context)
+{
+    assert(context != NULL);
+
+    return context->data;
+}
+
 /* -------------------------------------------------------------------------- */
 
 void __ntg_loop_init__(ntg_loop* loop,
@@ -70,7 +78,7 @@ void __ntg_loop_deinit__(ntg_loop* loop)
     loop->__delegate = NULL;
 }
 
-void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, unsigned int init_timeout)
+void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* context_data)
 {
     assert(loop != NULL);
 
@@ -78,11 +86,11 @@ void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, unsigned int init_timeo
     nt_get_term_size(&app_size.x, &app_size.y);
 
     ntg_loop_context context;
-    __ntg_loop_context_init__(&context, init_stage, app_size);
+    __ntg_loop_context_init__(&context, init_stage, app_size, context_data);
 
     /* loop */
     struct ntg_loop_status status;
-    unsigned int timeout = init_timeout;
+    unsigned int timeout = 0;
     struct nt_event _nt_event;
     ntg_event _ntg_event;
 
@@ -152,7 +160,7 @@ ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop)
 /* -------------------------------------------------------------------------- */
 
 void __ntg_loop_context_init__(ntg_loop_context* context,
-        ntg_stage* init_stage, struct ntg_xy app_size)
+        ntg_stage* init_stage, struct ntg_xy app_size, void* data)
 {
     assert(context != NULL);
     assert(init_stage != NULL);
@@ -160,6 +168,7 @@ void __ntg_loop_context_init__(ntg_loop_context* context,
     context->pending_stage = init_stage;
     context->loop = true;
     context->app_size = app_size;
+    context->data = data;
 }
 
 void __ntg_loop_context_deinit__(ntg_loop_context* context)
@@ -169,4 +178,5 @@ void __ntg_loop_context_deinit__(ntg_loop_context* context)
     context->pending_stage = NULL;
     context->loop = false;
     context->app_size = ntg_xy(0, 0);
+    context->data = NULL;
 }

@@ -19,11 +19,10 @@ struct ntg_kickstart_basic_obj
 };
 
 struct ntg_kickstart_basic_obj ntg_kickstart_basic(
-        ntg_stage* loop_init_stage, /* non-NULL */
         unsigned int loop_framerate, /* non-zero */
         ntg_def_loop_process_key_fn loop_process_key_fn, /* non-NULL */
-        ntg_def_loop_process_resize_fn loop_process_resize_fn,
-        ntg_def_loop_process_timeout_fn loop_process_timeout_fn,
+        ntg_def_loop_on_resize_fn loop_on_resize_fn,
+        ntg_def_loop_on_timeout_fn loop_on_timeout_fn,
         void* loop_data, void* renderer_data);
 void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj);
 

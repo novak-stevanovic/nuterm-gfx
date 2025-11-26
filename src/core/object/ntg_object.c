@@ -3,9 +3,7 @@
 #include "core/object/ntg_object.h"
 #include "base/event/ntg_event.h"
 #include "core/object/shared/ntg_object_types.h"
-#include "core/object/shared/ntg_object_fx.h"
 #include "core/object/shared/ntg_object_fx_vec.h"
-#include "core/object/shared/ntg_object_fx.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
@@ -221,30 +219,30 @@ bool ntg_object_has_fx_capabilities(const ntg_object* object)
             (object->__get_fx_interface_fn != NULL));
 }
 
-void ntg_object_apply_fx(ntg_object* object, ntg_object_fx* fx)
+void ntg_object_apply_fx(ntg_object* object, struct ntg_object_fx fx)
 {
     assert(object != NULL);
-    assert(fx != NULL);
+    assert(fx.apply_fn != NULL);
 
     assert(ntg_object_has_fx_capabilities(object));
     assert(!ntg_object_fx_vec_contains(object->__fx, fx));
-    assert(object->__type == fx->_object_type);
+    assert(object->__type == fx.object_type);
 
     ntg_object_fx_vec_append(object->__fx, fx);
 
     void* fx_interface = object->__get_fx_interface_fn(object);
 
-    ntg_object_fx_apply(object, fx, fx_interface);
+    fx.apply_fn(object, fx, fx_interface);
 }
 
-void ntg_object_remove_fx(ntg_object* object, ntg_object_fx* fx)
+void ntg_object_remove_fx(ntg_object* object, struct ntg_object_fx fx)
 {
     assert(object != NULL);
-    assert(fx != NULL);
+    assert(fx.apply_fn != NULL);
 
     assert(ntg_object_has_fx_capabilities(object));
     assert(ntg_object_fx_vec_contains(object->__fx, fx));
-    assert(object->__type == fx->_object_type);
+    assert(object->__type == fx.object_type);
 
     ntg_object_fx_vec_remove(object->__fx, fx);
 
@@ -253,9 +251,11 @@ void ntg_object_remove_fx(ntg_object* object, ntg_object_fx* fx)
     object->__reset_fx_fn(object, fx_interface);
 
     size_t i;
+    struct ntg_object_fx it_fx;
     for(i = 0; i < object->__fx->_count; i++)
     {
-        ntg_object_fx_apply(object, object->__fx->_data[i], fx_interface);
+        it_fx = object->__fx->_data[i];
+        it_fx.apply_fn(object, it_fx, fx_interface);
     }
 }
 

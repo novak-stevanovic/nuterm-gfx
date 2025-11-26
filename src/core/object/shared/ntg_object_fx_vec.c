@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "core/object/shared/ntg_object_fx_vec.h"
-#include "core/object/shared/ntg_object_fx.h"
+#include "core/object/ntg_object.h"
 #include "shared/_ntg_vector.h"
 
 void __ntg_object_fx_vec_init__(ntg_object_fx_vec* vec)
@@ -18,7 +18,10 @@ void __ntg_object_fx_vec_deinit__(ntg_object_fx_vec* vec)
 
     size_t i;
     for(i = 0; i < vec->_count; i++)
-        ntg_object_fx_destroy(vec->_data[i]);
+    {
+        if(vec->_data[i].data != NULL)
+            free(vec->_data[i].data);
+    }
 
     __ntg_vector_deinit__((ntg_vector*)vec);
 }
@@ -42,14 +45,14 @@ void ntg_object_fx_vec_destroy(ntg_object_fx_vec* vec)
     free(vec);
 }
 
-void ntg_object_fx_vec_append(ntg_object_fx_vec* vec, ntg_object_fx* object_fx)
+void ntg_object_fx_vec_append(ntg_object_fx_vec* vec, struct ntg_object_fx object_fx)
 {
     assert(vec != NULL);
 
     ntg_vector_append((ntg_vector*)vec, &object_fx);
 }
 
-void ntg_object_fx_vec_remove(ntg_object_fx_vec* vec, ntg_object_fx* object_fx)
+void ntg_object_fx_vec_remove(ntg_object_fx_vec* vec, struct ntg_object_fx object_fx)
 {
     assert(vec != NULL);
 
@@ -57,7 +60,7 @@ void ntg_object_fx_vec_remove(ntg_object_fx_vec* vec, ntg_object_fx* object_fx)
 }
 
 size_t ntg_object_fx_vec_find(const ntg_object_fx_vec* vec,
-        const ntg_object_fx* object_fx)
+        struct ntg_object_fx object_fx)
 {
     assert(vec != NULL);
 
@@ -65,7 +68,7 @@ size_t ntg_object_fx_vec_find(const ntg_object_fx_vec* vec,
 }
 
 bool ntg_object_fx_vec_contains(const ntg_object_fx_vec* vec,
-        const ntg_object_fx* object_fx)
+        struct ntg_object_fx object_fx)
 {
     assert(vec != NULL);
 
@@ -90,7 +93,7 @@ size_t ntg_object_fx_vec_view_count(ntg_object_fx_vec_view* view)
     return view->__vec->_count;
 }
 
-ntg_object_fx* ntg_object_fx_vec_view_at(ntg_object_fx_vec_view* view, size_t pos)
+struct ntg_object_fx ntg_object_fx_vec_view_at(ntg_object_fx_vec_view* view, size_t pos)
 {
     assert(view != NULL);
     assert(view->__vec != NULL);

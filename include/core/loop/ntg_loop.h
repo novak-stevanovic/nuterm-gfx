@@ -21,6 +21,7 @@ ntg_stage* ntg_loop_context_get_stage(ntg_loop_context* context);
 void ntg_loop_context_set_stage(ntg_loop_context* context, ntg_stage* stage);
 void ntg_loop_context_break(ntg_loop_context* context);
 struct ntg_xy ntg_loop_context_get_app_size(ntg_loop_context* context);
+void* ntg_loop_context_get_data(ntg_loop_context* context);
 
 typedef struct ntg_loop_status (*ntg_loop_process_event_fn)(
         ntg_loop* loop,
@@ -50,7 +51,7 @@ void __ntg_loop_init__(ntg_loop* loop,
         void* data);
 void __ntg_loop_deinit__(ntg_loop* loop);
 
-void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, unsigned int init_timeout);
+void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* context_data);
 
 /* Raises NTG_EVT_APP_RESIZE, NTG_EVT_APP_KEY */
 ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop);

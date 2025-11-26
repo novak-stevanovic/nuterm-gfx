@@ -4,14 +4,12 @@
 #include "core/renderer/ntg_def_renderer.h"
 
 struct ntg_kickstart_basic_obj ntg_kickstart_basic(
-        ntg_stage* loop_init_stage, /* non-NULL */
         unsigned int loop_framerate, /* non-zero */
         ntg_def_loop_process_key_fn loop_process_key_fn, /* non-NULL */
-        ntg_def_loop_process_resize_fn loop_process_resize_fn,
-        ntg_def_loop_process_timeout_fn loop_process_timeout_fn,
+        ntg_def_loop_on_resize_fn loop_on_resize_fn,
+        ntg_def_loop_on_timeout_fn loop_on_timeout_fn,
         void* loop_data, void* renderer_data)
 {
-    assert(loop_init_stage != NULL);
     assert(loop_framerate > 0);
     assert(loop_framerate < 1000);
     // assert(loop_process_key_fn != NULL);
@@ -26,12 +24,11 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
 
     __ntg_def_loop_init__(
             loop,
-            loop_init_stage,
             loop_framerate,
             (ntg_renderer*)renderer,
             loop_process_key_fn,
-            loop_process_resize_fn,
-            loop_process_timeout_fn,
+            loop_on_resize_fn,
+            loop_on_timeout_fn,
             loop_data);
 
     __ntg_db_renderer_init__(renderer, _loop, renderer_data);

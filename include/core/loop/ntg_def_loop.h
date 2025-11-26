@@ -19,10 +19,10 @@ typedef enum ntg_def_loop_process_key_mode
 typedef bool (*ntg_def_loop_process_key_fn)(
         ntg_loop_context* context,
         struct nt_key_event key);
-typedef void (*ntg_def_loop_process_resize_fn)(
+typedef void (*ntg_def_loop_on_resize_fn)(
         ntg_loop_context* context,
         struct nt_resize_event resize);
-typedef void (*ntg_def_loop_process_timeout_fn)(
+typedef void (*ntg_def_loop_on_timeout_fn)(
         ntg_loop_context* context);
 
 struct ntg_def_loop
@@ -30,22 +30,22 @@ struct ntg_def_loop
     ntg_loop __base;
 
     unsigned int __framerate;
+    unsigned int __it_elapsed;
     ntg_renderer* __renderer;
 
     ntg_def_loop_process_key_fn __process_key_fn;
     ntg_def_loop_process_key_mode __process_key_mode;
-    ntg_def_loop_process_resize_fn __process_resize_fn;
-    ntg_def_loop_process_timeout_fn __process_timeout_fn;
+    ntg_def_loop_on_resize_fn __on_resize_fn;
+    ntg_def_loop_on_timeout_fn __on_timeout_fn;
 };
 
 void __ntg_def_loop_init__(
         ntg_def_loop* loop,
-        ntg_stage* init_stage,
         unsigned int framerate,
         ntg_renderer* renderer,
         ntg_def_loop_process_key_fn process_key_fn,
-        ntg_def_loop_process_resize_fn process_resize_fn,
-        ntg_def_loop_process_timeout_fn process_timeout_fn,
+        ntg_def_loop_on_resize_fn on_resize_fn,
+        ntg_def_loop_on_timeout_fn on_timeout_fn,
         void* data);
 void __ntg_def_loop_deinit__(ntg_def_loop* loop);
 
@@ -54,9 +54,9 @@ void ntg_def_loop_set_process_key_mode(ntg_def_loop* loop,
 ntg_def_loop_process_key_mode ntg_def_loop_get_process_key_mode(
         const ntg_def_loop* loop);
 
-ntg_loop_context* __ntg_def_loop_create_context_fn(ntg_loop* _loop,
-        void* context_data);
-void __ntg_def_loop_destroy_context_fn(ntg_loop_context* _context);
-struct ntg_loop_status __ntg_def_loop_loop_fn(ntg_loop_context* _context);
+struct ntg_loop_status __ntg_def_loop_process_event_fn(
+        ntg_loop* _loop,
+        ntg_loop_context* context,
+        struct nt_event event);
 
 #endif // _NTG_DEF_LOOP_H_

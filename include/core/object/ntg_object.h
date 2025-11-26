@@ -28,17 +28,31 @@ typedef enum ntg_object_get_parent_opts
     NTG_OBJECT_GET_PARENT_EXCL_DECORATOR
 } ntg_object_get_parent_opts;
 
-typedef enum ntg_object_perform_mode
-{
-    NTG_OBJECT_PERFORM_TOP_DOWN,
-    NTG_OBJECT_PERFORM_BOTTOM_UP
-} ntg_object_perform_mode;
+// typedef enum ntg_object_perform_mode
+// {
+//     NTG_OBJECT_PERFORM_TOP_DOWN,
+//     NTG_OBJECT_PERFORM_BOTTOM_UP
+// } ntg_object_perform_mode;
 
 typedef void* (*ntg_object_get_fx_interface_fn)(ntg_object* object);
 
 typedef void (*ntg_object_reset_fx_fn)(
         const ntg_object* object,
         void* object_fx_interface);
+
+typedef void (*ntg_object_fx_apply_fn)(
+        const ntg_object* object,
+        struct ntg_object_fx fx,
+        void* object_fx_interface);
+
+struct ntg_object_fx
+{
+    unsigned int object_type;
+    ntg_object_fx_apply_fn apply_fn;
+
+    /* ptr to dynamically allocated data */
+    void* data;
+};
 
 /* ---------------------------------------------------------------- */
 
@@ -77,8 +91,8 @@ struct ntg_xy ntg_object_get_grow(const ntg_object* object);
 /* ---------------------------------------------------------------- */
 
 bool ntg_object_has_fx_capabilities(const ntg_object* object);
-void ntg_object_apply_fx(ntg_object* object, ntg_object_fx* fx);
-void ntg_object_remove_fx(ntg_object* object, ntg_object_fx* fx);
+void ntg_object_apply_fx(ntg_object* object, struct ntg_object_fx fx);
+void ntg_object_remove_fx(ntg_object* object, struct ntg_object_fx fx);
 const ntg_object_fx_vec* ntg_object_get_fx(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */

@@ -8,7 +8,6 @@
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_color_block.h"
 #include "core/object/ntg_label.h"
-#include "core/object/shared/ntg_object_fx.h"
 #include "shared/ntg_log.h"
 
 #define COUNT 100
@@ -17,10 +16,10 @@ bool def_loop_process_key_fn(
         ntg_loop_context* context,
         struct nt_key_event key)
 {
-    if(nt_key_event_utf32_check(key, 'q', false))
+    if(nt_key_event_utf32_check(key, 'Q', false))
     {
-        ntg_log_log("loop received q");
-        ntg_loop_context_exit(context);
+        ntg_log_log("loop received Q");
+        ntg_loop_context_break(context);
         return true;
     }
     return false;
@@ -33,7 +32,7 @@ bool scene_process_key_fn(
     if(nt_key_event_utf32_check(key, 'q', false))
     {
         ntg_log_log("scene received q");
-        return false;
+        return true;
     }
     return false;
 }
@@ -41,7 +40,7 @@ bool scene_process_key_fn(
 static void gui_fn1(void* data)
 {
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(NULL, NULL, NULL);
-    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60, NULL,
+    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(60, NULL,
             NULL, NULL, NULL, NULL);
 
     ntg_color_block root;
@@ -51,7 +50,7 @@ static void gui_fn1(void* data)
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
 
-    ntg_loop_run(b._loop, NULL);
+    ntg_loop_run(b._loop, s._stage, NULL);
 
     __ntg_color_block_deinit__(&root);
 
@@ -111,11 +110,11 @@ static void gui_fn2(void* data)
 
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
             NULL, NULL);
-    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
+    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(60,
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
-    ntg_loop_run(b._loop, NULL);
+    ntg_loop_run(b._loop, s._stage, NULL);
 
     __ntg_border_box_deinit__(&root);
     __ntg_label_deinit__(&north);

@@ -4,11 +4,11 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
+// TODO: test ntg scene process key order
 // TODO: implement border & padding as decorators
-// TODO: simplify ntg_loop
 // TODO: ntg_cdrawable_vec_view instead of const ntg_drawable_vec* (???)
 // TODO: implement allocator wrapper
-// TODO: implement ntg_platform
+// TODO: implement ntg_def_platform
 // TODO: implement scene multi-root system
 // TODO: implement object fx interfaces for objects
 
