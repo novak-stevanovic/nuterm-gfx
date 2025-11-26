@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "ntg_kickstart.h"
+#include "core/platform/ntg_platform.h"
 #include "core/renderer/ntg_def_renderer.h"
 
 struct ntg_kickstart_basic_obj ntg_kickstart_basic(
@@ -22,10 +23,13 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
     ntg_renderer* _renderer = (ntg_renderer*)renderer;
     assert(renderer != NULL);
 
+    ntg_platform* platform = ntg_platform_new();
+    
     __ntg_def_loop_init__(
             loop,
             loop_framerate,
-            (ntg_renderer*)renderer,
+            _renderer,
+            platform,
             loop_process_key_fn,
             loop_on_resize_fn,
             loop_on_timeout_fn,
@@ -36,6 +40,8 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
     return (struct ntg_kickstart_basic_obj) {
         .renderer = renderer,
         ._renderer = _renderer,
+
+        .platform = platform,
 
         .loop = loop,
         ._loop = _loop
@@ -48,6 +54,7 @@ void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj)
 
     __ntg_db_renderer_deinit__(obj->renderer);
     __ntg_def_loop_deinit__(obj->loop);
+    ntg_platform_destroy(obj->platform);
 
     (*obj) = (struct ntg_kickstart_basic_obj) {0};
 }

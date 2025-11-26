@@ -14,6 +14,7 @@ typedef struct ntg_arrange_context ntg_arrange_context;
 typedef struct ntg_arrange_output ntg_arrange_output;
 typedef struct ntg_draw_context ntg_draw_context;
 typedef struct ntg_drawing ntg_drawing;
+typedef struct ntg_loop_context ntg_loop_context;
 
 typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_drawable_vec_view ntg_drawable_vec_view;
@@ -61,6 +62,7 @@ typedef const ntg_drawable* (*ntg_get_parent_fn)(
 struct ntg_process_key_context
 {
     ntg_scene* scene;
+    ntg_loop_context* loop_context;
 };
 
 /* Returns if the key had been consumed. */

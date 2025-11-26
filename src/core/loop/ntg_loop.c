@@ -2,7 +2,6 @@
 
 #include "core/loop/ntg_loop.h"
 #include "base/event/ntg_event.h"
-#include "base/event/ntg_event_participants.h"
 #include "base/event/ntg_event_types.h"
 #include "nt.h"
 
@@ -11,11 +10,13 @@ struct ntg_loop_context
     ntg_stage *stage, *pending_stage;
     bool loop;
     struct ntg_xy app_size;
+    ntg_platform* platform;
     void* data;
 };
 
 void __ntg_loop_context_init__(ntg_loop_context* context,
-        ntg_stage* init_stage, struct ntg_xy app_size, void* data);
+        ntg_stage* init_stage, struct ntg_xy app_size,
+        ntg_platform* platform, void* data);
 static void __ntg_loop_context_deinit__(ntg_loop_context* context);
 
 /* -------------------------------------------------------------------------- */
@@ -48,6 +49,13 @@ struct ntg_xy ntg_loop_context_get_app_size(ntg_loop_context* context)
     return context->app_size;
 }
 
+ntg_platform* ntg_loop_context_get_platform(ntg_loop_context* context)
+{
+    assert(context != NULL);
+
+    return context->platform;
+}
+
 void* ntg_loop_context_get_data(ntg_loop_context* context)
 {
     assert(context != NULL);
@@ -78,7 +86,8 @@ void __ntg_loop_deinit__(ntg_loop* loop)
     loop->__delegate = NULL;
 }
 
-void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* context_data)
+void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage,
+        ntg_platform* platform, void* context_data)
 {
     assert(loop != NULL);
 
@@ -86,7 +95,8 @@ void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* context_data)
     nt_get_term_size(&app_size.x, &app_size.y);
 
     ntg_loop_context context;
-    __ntg_loop_context_init__(&context, init_stage, app_size, context_data);
+    __ntg_loop_context_init__(&context, init_stage, app_size,
+            platform, context_data);
 
     /* loop */
     struct ntg_loop_status status;
@@ -160,7 +170,8 @@ ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop)
 /* -------------------------------------------------------------------------- */
 
 void __ntg_loop_context_init__(ntg_loop_context* context,
-        ntg_stage* init_stage, struct ntg_xy app_size, void* data)
+        ntg_stage* init_stage, struct ntg_xy app_size,
+        ntg_platform* platform, void* data)
 {
     assert(context != NULL);
     assert(init_stage != NULL);
@@ -168,6 +179,7 @@ void __ntg_loop_context_init__(ntg_loop_context* context,
     context->pending_stage = init_stage;
     context->loop = true;
     context->app_size = app_size;
+    context->platform = platform;
     context->data = data;
 }
 
@@ -178,5 +190,6 @@ void __ntg_loop_context_deinit__(ntg_loop_context* context)
     context->pending_stage = NULL;
     context->loop = false;
     context->app_size = ntg_xy(0, 0);
+    context->platform = NULL;
     context->data = NULL;
 }

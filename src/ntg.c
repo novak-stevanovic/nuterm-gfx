@@ -6,10 +6,6 @@
 #include "nt.h"
 #include "shared/ntg_log.h"
 
-#define _UCONV_IMPLEMENTATION_
-#include "shared/_uconv.h"
-#undef _UCONV_IMPLEMENTATION_
-
 /* -------------------------------------------------------------------------- */
 
 static pthread_t __ntg_thread;

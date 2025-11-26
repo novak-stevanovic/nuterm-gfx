@@ -14,6 +14,8 @@ struct ntg_kickstart_basic_obj
     ntg_def_loop* loop;
     ntg_loop* _loop;
 
+    ntg_platform* platform;
+
     ntg_db_renderer* renderer;
     ntg_renderer* _renderer;
 };

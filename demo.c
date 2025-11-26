@@ -1,4 +1,6 @@
+#include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
 
@@ -16,24 +18,44 @@ bool def_loop_process_key_fn(
         ntg_loop_context* context,
         struct nt_key_event key)
 {
-    if(nt_key_event_utf32_check(key, 'Q', false))
+    if(nt_key_event_utf32_check(key, 'q', false))
     {
-        ntg_log_log("loop received Q");
+        ntg_log_log("loop received q");
         ntg_loop_context_break(context);
         return true;
     }
     return false;
 }
 
+struct routine_data
+{
+    ntg_scene* scene;
+    ntg_platform* platform;
+};
+
 bool scene_process_key_fn(
         ntg_scene* scene,
-        struct nt_key_event key)
+        struct nt_key_event key,
+        ntg_loop_context* loop_context)
 {
-    if(nt_key_event_utf32_check(key, 'q', false))
+    if(nt_key_event_utf32_check(key, 's', false))
     {
-        ntg_log_log("scene received q");
+        ntg_log_log("scene received s");
         return true;
     }
+    // if(nt_key_event_utf32_check(key, 'w', false))
+    // {
+    //     ntg_log_log("scene received w");
+    //
+    //     pthread_t t;
+    //     struct routine_data* data = malloc(sizeof(struct routine_data));
+    //     data->scene = scene;
+    //     data->platform = ntg_loop_context_get_platform(loop_context);
+    //     int status = pthread_create(&t, NULL, test_routine, &data);
+    //     assert(status == 0);
+    //
+    //     return true;
+    // }
     return false;
 }
 
@@ -50,7 +72,7 @@ static void gui_fn1(void* data)
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
 
-    ntg_loop_run(b._loop, s._stage, NULL);
+    ntg_loop_run(b._loop, s._stage, b.platform, NULL);
 
     __ntg_color_block_deinit__(&root);
 
@@ -114,7 +136,7 @@ static void gui_fn2(void* data)
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
-    ntg_loop_run(b._loop, s._stage, NULL);
+    ntg_loop_run(b._loop, s._stage, b.platform, NULL);
 
     __ntg_border_box_deinit__(&root);
     __ntg_label_deinit__(&north);

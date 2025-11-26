@@ -154,13 +154,17 @@ ntg_drawable* ntg_scene_get_root(ntg_scene* scene)
 /* -------------------------------------------------------------------------- */
 
 // TODO: TEST
-bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
+bool ntg_scene_feed_key_event(
+        ntg_scene* scene,
+        struct nt_key_event key_event,
+        ntg_loop_context* loop_context)
 {
     assert(scene != NULL);
 
     ntg_drawable* focused = scene->__focused;
     struct ntg_process_key_context context = {
-        .scene = scene
+        .scene = scene,
+        .loop_context = loop_context
     };
 
     ntg_drawable_vec process_drawables;
@@ -217,7 +221,7 @@ bool ntg_scene_feed_key_event(ntg_scene* scene, struct nt_key_event key_event)
         if(((ntg_scene*)it_drawable) == scene)
         {
             if(scene->__process_key_fn != NULL)
-                processed |= scene->__process_key_fn(scene, key_event);
+                processed |= scene->__process_key_fn(scene, key_event, loop_context);
         }
         else
         {
