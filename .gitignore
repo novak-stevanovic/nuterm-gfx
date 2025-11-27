@@ -1,3 +1,4 @@
 .cache/
 gdb.txt
 ntg_log.txt
+*.swp

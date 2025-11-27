@@ -182,3 +182,5 @@ clean:
 	rm -f demo
 	rm -f $(LIB_PC)
 	rm -f compile_commands.json
+	rm -f ntg_log.txt
+	rm -f gdb.txt
