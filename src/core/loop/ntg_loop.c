@@ -10,7 +10,6 @@ struct ntg_loop_context
     ntg_stage *stage, *pending_stage;
     bool loop;
     struct ntg_xy app_size;
-    ntg_platform* platform;
     void* data;
 };
 
@@ -47,13 +46,6 @@ struct ntg_xy ntg_loop_context_get_app_size(ntg_loop_context* context)
     assert(context != NULL);
 
     return context->app_size;
-}
-
-ntg_platform* ntg_loop_context_get_platform(ntg_loop_context* context)
-{
-    assert(context != NULL);
-
-    return context->platform;
 }
 
 void* ntg_loop_context_get_data(ntg_loop_context* context)
@@ -179,7 +171,6 @@ void __ntg_loop_context_init__(ntg_loop_context* context,
     context->pending_stage = init_stage;
     context->loop = true;
     context->app_size = app_size;
-    context->platform = platform;
     context->data = data;
 }
 
@@ -190,6 +181,5 @@ void __ntg_loop_context_deinit__(ntg_loop_context* context)
     context->pending_stage = NULL;
     context->loop = false;
     context->app_size = ntg_xy(0, 0);
-    context->platform = NULL;
     context->data = NULL;
 }
