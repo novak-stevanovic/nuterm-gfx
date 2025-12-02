@@ -27,11 +27,21 @@ bool def_loop_process_key_fn(
     return false;
 }
 
-struct routine_data
+void* __task_fn(void* data)
 {
-    ntg_scene* scene;
-    ntg_platform* platform;
-};
+    ntg_log_log("[!] EXECUTING TASK...");
+    sleep(5);
+    ntg_log_log("[!] TASK FINISHED");
+
+    return NULL;
+}
+
+void __callback_fn(void* data, void* task_result)
+{
+    ntg_log_log("[.] EXECUTING CALLBACK...");
+    ntg_log_log("%p", task_result);
+    ntg_log_log("[.] CALLBACK FINISHED...");
+}
 
 bool scene_process_key_fn(
         ntg_scene* scene,
@@ -43,26 +53,27 @@ bool scene_process_key_fn(
         ntg_log_log("scene received s");
         return true;
     }
-    // if(nt_key_event_utf32_check(key, 'w', false))
-    // {
-    //     ntg_log_log("scene received w");
-    //
-    //     pthread_t t;
-    //     struct routine_data* data = malloc(sizeof(struct routine_data));
-    //     data->scene = scene;
-    //     data->platform = ntg_loop_context_get_platform(loop_context);
-    //     int status = pthread_create(&t, NULL, test_routine, &data);
-    //     assert(status == 0);
-    //
-    //     return true;
-    // }
+    if(nt_key_event_utf32_check(key, 'w', false))
+    {
+        ntg_log_log("scene received w");
+
+        ntg_taskmaster_channel* taskmaster = ntg_loop_context_get_taskmaster(
+                loop_context);
+
+        ntg_log_log("calling ntg_taskmaster_execute_task");
+        ntg_taskmaster_execute_task(taskmaster,
+                __task_fn, NULL,
+                __callback_fn, NULL);
+
+        return true;
+    }
     return false;
 }
 
 static void gui_fn1(void* data)
 {
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(NULL, NULL, NULL);
-    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(60, NULL,
+    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60, NULL,
             NULL, NULL, NULL, NULL);
 
     ntg_color_block root;
@@ -72,7 +83,7 @@ static void gui_fn1(void* data)
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
 
-    ntg_loop_run(b._loop, s._stage, b.platform, NULL);
+    ntg_loop_run(b._loop, NULL);
 
     __ntg_color_block_deinit__(&root);
 
@@ -97,6 +108,7 @@ static void gui_fn2(void* data)
         .style = nt_style_new(NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD)
     };
     ntg_label_set_gfx(&north, top_gfx);
+    ntg_object_set_min_size(_north, ntg_xy(1000, 1000));
     // ntg_label_set_primary_alignment(&north, NTG_TEXT_ALIGNMENT_2);
     // ntg_object_set_max_size(_north, ntg_xy(0, 1));
 
@@ -104,12 +116,14 @@ static void gui_fn2(void* data)
     ntg_object* _center = (ntg_object*)&center;
     __ntg_color_block_init__(&center, nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
                 NULL, NULL, NULL);
-    ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
+    // ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
 
     ntg_box south;
     ntg_object* _south = (ntg_object*)&south;
     __ntg_box_init__(&south, NTG_ORIENTATION_HORIZONTAL, NTG_ALIGNMENT_2,
             NTG_ALIGNMENT_2, NULL, NULL, NULL);
+    // TODO: fix
+    ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
 
     ntg_color_block south1;
     ntg_object* _south1 = (ntg_object*)&south1;
@@ -132,11 +146,11 @@ static void gui_fn2(void* data)
 
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
             NULL, NULL);
-    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(60,
+    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
-    ntg_loop_run(b._loop, s._stage, b.platform, NULL);
+    ntg_loop_run(b._loop, NULL);
 
     __ntg_border_box_deinit__(&root);
     __ntg_label_deinit__(&north);

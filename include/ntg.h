@@ -4,15 +4,15 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: finish implementing task exec mechanism - EASY
-// TODO: test ntg scene process key order - EASY
-// TODO: ntg_cdrawable_vec_view instead of const ntg_drawable_vec* (???) - EASY
-// TODO: add arena allocator to in-loop functions - EASY
-// TODO: implement border & padding as decorators - MEDIUM
-// TODO: implement scene multi-root system - MEDIUM
-// TODO: implement ntg_table - MEDIUM
-// TODO: implement ntg_list - MEDIUM
-// TODO: implement ntg_fast_scene(performs full layout only when necessary) - MEDIUM
+// TODO: ntg_scene: test process key order - EASY
+// TODO: arena allocator: add to in-loop functions to improve performance - EASY
+// TODO: object decorators: implement border & padding - MEDIUM
+// TODO: ntg_scene: implement multi-root system - MEDIUM
+// TODO: ntg_table: implement - MEDIUM
+// TODO: ntg_list: implement - MEDIUM
+// TODO: ntg_scene: implement ntg_fast_scene(performs full layout only when necessary) - MEDIUM
+// TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished?
+// TODO: ntg_taskmaster: allow for abstract taskmaster?
 // TODO: implement object fx interfaces for objects - EASY
 // TODO: add proper error-handling - HARD
 

@@ -1,10 +1,11 @@
 #include <stdlib.h>
 
 #include "ntg_kickstart.h"
-#include "core/platform/ntg_platform.h"
+#include "core/loop/ntg_taskmaster.h"
 #include "core/renderer/ntg_def_renderer.h"
 
 struct ntg_kickstart_basic_obj ntg_kickstart_basic(
+        ntg_stage* init_stage,
         unsigned int loop_framerate, /* non-zero */
         ntg_def_loop_process_key_fn loop_process_key_fn, /* non-NULL */
         ntg_def_loop_on_resize_fn loop_on_resize_fn,
@@ -23,13 +24,14 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
     ntg_renderer* _renderer = (ntg_renderer*)renderer;
     assert(renderer != NULL);
 
-    ntg_platform* platform = ntg_platform_new();
+    ntg_taskmaster* taskmaster = ntg_taskmaster_new();
     
     __ntg_def_loop_init__(
             loop,
+            init_stage,
+            taskmaster,
             loop_framerate,
             _renderer,
-            platform,
             loop_process_key_fn,
             loop_on_resize_fn,
             loop_on_timeout_fn,
@@ -41,7 +43,7 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
         .renderer = renderer,
         ._renderer = _renderer,
 
-        .platform = platform,
+        .taskmaster = taskmaster,
 
         .loop = loop,
         ._loop = _loop
@@ -54,7 +56,7 @@ void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj)
 
     __ntg_db_renderer_deinit__(obj->renderer);
     __ntg_def_loop_deinit__(obj->loop);
-    ntg_platform_destroy(obj->platform);
+    ntg_taskmaster_destroy(obj->taskmaster);
 
     (*obj) = (struct ntg_kickstart_basic_obj) {0};
 }

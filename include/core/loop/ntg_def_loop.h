@@ -8,7 +8,6 @@ typedef struct ntg_def_loop ntg_def_loop;
 typedef struct ntg_renderer ntg_renderer;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_delegate ntg_event_delegate;
-typedef struct ntg_platform ntg_platform;
 struct nt_key_event;
 
 typedef enum ntg_def_loop_process_key_mode
@@ -33,7 +32,6 @@ struct ntg_def_loop
     unsigned int __framerate;
     unsigned int __it_elapsed;
     ntg_renderer* __renderer;
-    ntg_platform* __platform;
 
     ntg_def_loop_process_key_fn __process_key_fn;
     ntg_def_loop_process_key_mode __process_key_mode;
@@ -43,9 +41,10 @@ struct ntg_def_loop
 
 void __ntg_def_loop_init__(
         ntg_def_loop* loop,
+        ntg_stage* init_stage,
+        ntg_taskmaster* taskmaster,
         unsigned int framerate,
         ntg_renderer* renderer,
-        ntg_platform* platform,
         ntg_def_loop_process_key_fn process_key_fn,
         ntg_def_loop_on_resize_fn on_resize_fn,
         ntg_def_loop_on_timeout_fn on_timeout_fn,

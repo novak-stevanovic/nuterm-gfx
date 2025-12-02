@@ -6,6 +6,7 @@
 #include "core/object/ntg_object.h"
 #include "core/loop/ntg_def_loop.h"
 #include "core/renderer/ntg_db_renderer.h"
+#include "core/loop/ntg_taskmaster.h"
 #include "core/stage/ntg_def_stage.h"
 #include "core/scene/ntg_def_scene.h"
 
@@ -14,13 +15,14 @@ struct ntg_kickstart_basic_obj
     ntg_def_loop* loop;
     ntg_loop* _loop;
 
-    ntg_platform* platform;
+    ntg_taskmaster* taskmaster;
 
     ntg_db_renderer* renderer;
     ntg_renderer* _renderer;
 };
 
 struct ntg_kickstart_basic_obj ntg_kickstart_basic(
+        ntg_stage* init_stage,
         unsigned int loop_framerate, /* non-zero */
         ntg_def_loop_process_key_fn loop_process_key_fn, /* non-NULL */
         ntg_def_loop_on_resize_fn loop_on_resize_fn,
