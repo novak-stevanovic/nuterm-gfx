@@ -87,12 +87,10 @@ void __ntg_db_render_fn(
         {
             __full_render(renderer, stage_drawing, size);
             renderer->__resize = false; 
-            // ntg_log_log("FULL RENDER");
         }
         else
         {
             __optimized_render(renderer, stage_drawing, size);
-            // ntg_log_log("OPTIMIZED RENDER");
         }
     }
 

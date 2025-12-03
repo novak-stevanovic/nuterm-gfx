@@ -45,7 +45,7 @@ struct ntg_loop
     ntg_loop_process_event_fn __process_event_fn;
     ntg_stage* __init_stage;
     ntg_taskmaster* __taskmaster;
-    void* __data;
+    void* _data;
 
     ntg_event_delegate* __delegate;
 };

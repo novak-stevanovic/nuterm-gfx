@@ -3,7 +3,9 @@
 #include <assert.h>
 
 #include "core/scene/shared/_ntg_constrain_output.h"
+#include "shared/_ntg_shared.h"
 #include "shared/_ntg_vec_map.h"
+#include "shared/ntg_xy.h"
 
 struct ntg_constrain_output
 {
@@ -64,6 +66,8 @@ void ntg_constrain_output_set(
 {
     assert(output != NULL);
     assert(child != NULL);
+
+    data.size = _min2_size(data.size, NTG_SIZE_MAX);
 
     ntg_vec_map_add(&output->__base, &child, &data);
 }

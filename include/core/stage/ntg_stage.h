@@ -20,7 +20,7 @@ struct ntg_stage
     ntg_stage_drawing* __drawing;
     struct ntg_xy __size;
 
-    void* __data;
+    void* _data;
 };
 
 void __ntg_stage_init__(

@@ -11,7 +11,7 @@ void __ntg_renderer_init__(
     assert(render_fn != NULL);
 
     renderer->__render_fn = render_fn;
-    renderer->__data = data;
+    renderer->_data = data;
 }
 
 void __ntg_renderer_deinit__(ntg_renderer* renderer)

@@ -7,6 +7,7 @@
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_cdrawable_vec.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
+#include "shared/ntg_log.h"
 
 /* -------------------------------------------------------------------------- */
 /* STATIC DECLARATIONS */
@@ -40,7 +41,7 @@ void __ntg_scene_init__(
     scene->__on_register_fn = on_register_fn;
     scene->__on_unregister_fn = on_unregister_fn;
     scene->__process_key_fn = process_key_fn;
-    scene->__data = data;
+    scene->_data = data;
 
     scene->__del = ntg_event_delegate_new();
     scene->_graph = ntg_scene_graph_new();
@@ -112,17 +113,38 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 
     __scan_scene(scene);
 
-    if(scene->__pending_focused != NULL)
+    ntg_drawable* old = scene->__focused;
+    ntg_drawable* new = scene->__pending_focused;
+
+    if(new != NULL)
     {
-        if(ntg_scene_graph_get(scene->_graph, scene->__pending_focused) != NULL)
+        if(old != NULL)
         {
-            scene->__focused = scene->__pending_focused;
+            struct ntg_unfocus_context ctx = {
+                .new = new,
+                .scene = scene
+            };
+
+            old->_on_unfocus_fn(old, ctx);
         }
-        else
+
+        if(new != NULL)
         {
-            assert(0);
+            struct _ntg_scene_node* node = ntg_scene_graph_get(scene->_graph, new);
+            assert(node != NULL);
+
+            scene->__focused = new;
+
+            struct ntg_focus_context focus_ctx = {
+                .old = old,
+                .scene = scene
+            };
+
+            ntg_log_log("DADA");
+            new->_on_focus_fn(new, focus_ctx);
+
+            scene->__pending_focused = NULL;
         }
-        scene->__pending_focused = NULL;
     }
 
     scene->__layout_fn(scene, size);

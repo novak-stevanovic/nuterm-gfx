@@ -32,8 +32,8 @@ typedef void (*ntg_constrain_fn)(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_measure_output measure_output,
-        const ntg_constrain_context* context,
+        const ntg_constrain_context* constrain_context,
+        const ntg_measure_context* measure_context,
         ntg_constrain_output* output);
 
 /* Determines children positions. */
@@ -73,12 +73,23 @@ typedef bool (*ntg_process_key_fn)(
 
 struct ntg_focus_context
 {
+    ntg_drawable* old;
     ntg_scene* scene;
 };
 
 typedef void (*ntg_on_focus_fn)(
         ntg_drawable* drawable,
         struct ntg_focus_context context);
+
+struct ntg_unfocus_context
+{
+    ntg_drawable* new;
+    ntg_scene* scene;
+};
+
+typedef void (*ntg_on_unfocus_fn)(
+        ntg_drawable* drawable,
+        struct ntg_unfocus_context context);
 
 struct ntg_drawable
 {
@@ -92,6 +103,7 @@ struct ntg_drawable
     ntg_draw_fn _draw_fn;
     ntg_process_key_fn _process_key_fn;
     ntg_on_focus_fn _on_focus_fn;
+    ntg_on_unfocus_fn _on_unfocus_fn;
     ntg_get_children_fn_ _get_children_fn_;
     ntg_get_children_fn _get_children_fn;
     ntg_get_parent_fn_ _get_parent_fn_;
@@ -109,7 +121,8 @@ void __ntg_drawable_init__(ntg_drawable* drawable, /* non-NULL */
         ntg_get_parent_fn_ get_parent_fn_, /* non-NULL */
         ntg_get_parent_fn get_parent_fn, /* non-NULL */
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn);
+        ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn);
 void __ntg_drawable_deinit__(ntg_drawable* drawable);
 
 const void* ntg_drawable_user(const ntg_drawable* drawable);

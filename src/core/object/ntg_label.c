@@ -104,6 +104,7 @@ void __ntg_label_init__(
         ntg_orientation orientation,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn,
         void* data)
 {
     assert(label != NULL);
@@ -116,6 +117,7 @@ void __ntg_label_init__(
             __ntg_label_draw_fn,
             process_key_fn,
             on_focus_fn,
+            on_unfocus_fn,
             NULL,
             NULL,
             data);

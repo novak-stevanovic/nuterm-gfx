@@ -15,6 +15,7 @@ void __ntg_prog_bar_init__(
         ntg_cell threshold_cell,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn,
         void* data);
 void __ntg_prog_bar_deinit__(ntg_prog_bar* prog_bar);
 

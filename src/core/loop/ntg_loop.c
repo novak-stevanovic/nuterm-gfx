@@ -79,7 +79,7 @@ void __ntg_loop_init__(ntg_loop* loop,
     loop->__process_event_fn = process_event_fn;
     loop->__init_stage = init_stage;
     loop->__taskmaster = taskmaster;
-    loop->__data = data;
+    loop->_data = data;
     loop->__delegate = ntg_event_delegate_new();
 }
 

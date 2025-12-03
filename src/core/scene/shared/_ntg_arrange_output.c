@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "core/scene/shared/_ntg_arrange_output.h"
+#include "shared/_ntg_shared.h"
 #include "shared/_ntg_vec_map.h"
 
 struct ntg_arrange_output
@@ -64,6 +65,9 @@ void ntg_arrange_output_set(
 {
     assert(output != NULL);
     assert(child != NULL);
+
+    data.pos.x = _min2_size(data.pos.x, NTG_SIZE_MAX);
+    data.pos.y = _min2_size(data.pos.y, NTG_SIZE_MAX);
 
     ntg_vec_map_add(&output->__base, &child, &data);
 }

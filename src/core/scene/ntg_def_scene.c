@@ -143,11 +143,12 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
     ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
-    ntg_constrain_context* context = ntg_constrain_context_new();
+    ntg_constrain_context* constrain_context = ntg_constrain_context_new();
+    ntg_measure_context* measure_context = ntg_measure_context_new();
     ntg_constrain_output* output = ntg_constrain_output_new();
 
     ntg_drawable* it_drawable;
-    struct ntg_constrain_data it_data;
+    struct ntg_measure_data it_data;
     struct _ntg_scene_node* it_node;
     size_t i;
     for(i = 0; i < child_count; i++)
@@ -155,27 +156,20 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
         it_drawable = ntg_drawable_vec_view_at(&children, i);
         it_node = ntg_scene_graph_get(graph, it_drawable);
 
-        it_data = (struct ntg_constrain_data) {
+        it_data = (struct ntg_measure_data) {
             .min_size = it_node->min_size.x,
             .natural_size = it_node->natural_size.x,
             .max_size = it_node->max_size.x,
             .grow = it_node->grow.x
         };
 
-        ntg_constrain_context_set(context, it_drawable, it_data);
+        ntg_measure_context_set(measure_context, it_drawable, it_data);
     }
-
-    struct ntg_measure_output measure_output = {
-        .min_size = node->min_size.x,
-        .natural_size = node->natural_size.x,
-        .max_size = node->max_size.x,
-        .grow = node->grow.x
-    };
 
     drawable->_constrain_fn(drawable,
             NTG_ORIENTATION_HORIZONTAL,
-            node->size.x, measure_output,
-            context, output);
+            node->size.x, constrain_context,
+            measure_context, output);
 
     for(i = 0; i < child_count; i++)
     {
@@ -185,7 +179,8 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
         it_node->size.x = ntg_constrain_output_get(output, it_drawable).size;
     }
 
-    ntg_constrain_context_destroy(context);
+    ntg_constrain_context_destroy(constrain_context);
+    ntg_measure_context_destroy(measure_context);
     ntg_constrain_output_destroy(output);
 }
 
@@ -247,11 +242,12 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
     ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
-    ntg_constrain_context* context = ntg_constrain_context_new();
+    ntg_constrain_context* constrain_context = ntg_constrain_context_new();
+    ntg_measure_context* measure_context = ntg_measure_context_new();
     ntg_constrain_output* output = ntg_constrain_output_new();
 
     ntg_drawable* it_drawable;
-    struct ntg_constrain_data it_data;
+    struct ntg_measure_data it_data;
     struct _ntg_scene_node* it_node;
     size_t i;
     for(i = 0; i < child_count; i++)
@@ -259,27 +255,20 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
         it_drawable = ntg_drawable_vec_view_at(&children, i);
         it_node = ntg_scene_graph_get(graph, it_drawable);
 
-        it_data = (struct ntg_constrain_data) {
+        it_data = (struct ntg_measure_data) {
             .min_size = it_node->min_size.y,
             .natural_size = it_node->natural_size.y,
             .max_size = it_node->max_size.y,
             .grow = it_node->grow.y
         };
 
-        ntg_constrain_context_set(context, it_drawable, it_data);
+        ntg_measure_context_set(measure_context, it_drawable, it_data);
     }
-
-    struct ntg_measure_output measure_output = {
-        .min_size = node->min_size.y,
-        .natural_size = node->natural_size.y,
-        .max_size = node->max_size.y,
-        .grow = node->grow.y
-    };
 
     drawable->_constrain_fn(drawable,
             NTG_ORIENTATION_VERTICAL,
-            node->size.y, measure_output,
-            context, output);
+            node->size.y, constrain_context,
+            measure_context, output);
 
     for(i = 0; i < child_count; i++)
     {
@@ -289,7 +278,8 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
         it_node->size.y = ntg_constrain_output_get(output, it_drawable).size;
     }
 
-    ntg_constrain_context_destroy(context);
+    ntg_constrain_context_destroy(constrain_context);
+    ntg_measure_context_destroy(measure_context);
     ntg_constrain_output_destroy(output);
 }
 

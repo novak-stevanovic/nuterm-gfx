@@ -3,11 +3,12 @@
 
 #include <stddef.h>
 
+/* Reserved for future use */
+
 /* Child data */
 struct ntg_constrain_data
 {
-    size_t min_size, natural_size,
-           max_size, grow;
+    size_t __placeholder;
 };
 
 typedef struct ntg_drawable ntg_drawable;

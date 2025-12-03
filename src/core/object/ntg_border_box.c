@@ -19,6 +19,7 @@ void __ntg_border_box_init__(
         ntg_border_box* box,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn,
         void* data)
 {
     assert(box != NULL);
@@ -31,6 +32,7 @@ void __ntg_border_box_init__(
             NULL,
             process_key_fn,
             on_focus_fn,
+            on_unfocus_fn,
             NULL,
             NULL,
             data);
@@ -123,8 +125,8 @@ void __ntg_border_box_constrain_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_measure_output measure_output,
-        const ntg_constrain_context* context,
+        const ntg_constrain_context* constrain_context,
+        const ntg_measure_context* measure_context,
         ntg_constrain_output* out_sizes)
 {
     // const ntg_object* object = (const ntg_object*)user;
@@ -146,21 +148,21 @@ void __ntg_border_box_constrain_fn(
         ntg_object_get_drawable(box->__center) :
         NULL;
 
-    struct ntg_constrain_data north_data = (north_drawable != NULL) ?
-        ntg_constrain_context_get(context, north_drawable) :
-        (struct ntg_constrain_data) {0};
-    struct ntg_constrain_data east_data = (east_drawable != NULL) ?
-        ntg_constrain_context_get(context, east_drawable) :
-        (struct ntg_constrain_data) {0};
-    struct ntg_constrain_data south_data = (south_drawable != NULL) ?
-        ntg_constrain_context_get(context, south_drawable) :
-        (struct ntg_constrain_data) {0};
-    struct ntg_constrain_data west_data = (west_drawable != NULL) ?
-        ntg_constrain_context_get(context, west_drawable) :
-        (struct ntg_constrain_data) {0};
-    struct ntg_constrain_data center_data = (center_drawable != NULL) ?
-        ntg_constrain_context_get(context, center_drawable) :
-        (struct ntg_constrain_data) {0};
+    struct ntg_measure_data north_data = (north_drawable != NULL) ?
+        ntg_measure_context_get(measure_context, north_drawable) :
+        (struct ntg_measure_data) {0};
+    struct ntg_measure_data east_data = (east_drawable != NULL) ?
+        ntg_measure_context_get(measure_context, east_drawable) :
+        (struct ntg_measure_data) {0};
+    struct ntg_measure_data south_data = (south_drawable != NULL) ?
+        ntg_measure_context_get(measure_context, south_drawable) :
+        (struct ntg_measure_data) {0};
+    struct ntg_measure_data west_data = (west_drawable != NULL) ?
+        ntg_measure_context_get(measure_context, west_drawable) :
+        (struct ntg_measure_data) {0};
+    struct ntg_measure_data center_data = (center_drawable != NULL) ?
+        ntg_measure_context_get(measure_context, center_drawable) :
+        (struct ntg_measure_data) {0};
 
     // size_t min_size = ntg_constrain_context_get_min_size(context);
     // size_t natural_size = ntg_constrain_context_get_natural_size(context);
@@ -178,7 +180,7 @@ void __ntg_border_box_constrain_fn(
         north_result = (struct ntg_constrain_result) { .size = size };
         south_result = (struct ntg_constrain_result) { .size = size };
 
-        struct ntg_constrain_data wce_data = {
+        struct ntg_measure_data wce_data = {
             .min_size = west_data.min_size + center_data.min_size + east_data.min_size,
             .natural_size = west_data.natural_size + center_data.natural_size + east_data.natural_size,
             .max_size = west_data.max_size + center_data.max_size + east_data.max_size,
@@ -237,14 +239,14 @@ void __ntg_border_box_constrain_fn(
     }
     else // NTG_ORIENTATION_VERTICAL
     {
-        struct ntg_constrain_data wce_data = {
+        struct ntg_measure_data wce_data = {
             .min_size = _max3_size(west_data.min_size, center_data.min_size, east_data.min_size),
             .natural_size = _max3_size(west_data.natural_size, center_data.natural_size, east_data.natural_size),
             .max_size = _max3_size(west_data.max_size, center_data.max_size, east_data.max_size),
             .grow = _max3_size(west_data.grow, center_data.grow, east_data.grow)
         };
 
-        struct ntg_constrain_data total_data = {
+        struct ntg_measure_data total_data = {
             .min_size = wce_data.min_size + north_data.min_size + south_data.min_size,
             .natural_size = wce_data.natural_size + north_data.natural_size + south_data.natural_size,
             .max_size = wce_data.max_size + north_data.max_size + south_data.max_size,

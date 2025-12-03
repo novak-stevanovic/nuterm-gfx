@@ -15,7 +15,7 @@ typedef void (*ntg_renderer_render_fn)(
 struct ntg_renderer
 {
     ntg_renderer_render_fn __render_fn;
-    void* __data;
+    void* _data;
 };
 
 void __ntg_renderer_init__(

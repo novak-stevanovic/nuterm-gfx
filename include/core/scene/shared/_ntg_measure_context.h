@@ -10,7 +10,8 @@ typedef struct ntg_measure_context ntg_measure_context;
 
 struct ntg_measure_data
 {
-    size_t min_size, natural_size, max_size, grow;
+    size_t min_size, natural_size,
+           max_size, grow;
 };
 
 ntg_measure_context* ntg_measure_context_new();

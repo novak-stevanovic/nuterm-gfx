@@ -18,6 +18,7 @@ void __ntg_border_box_init__(
         ntg_border_box* box,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn,
         void* data);
 void __ntg_border_box_deinit__(ntg_border_box* box);
 
@@ -42,8 +43,8 @@ void __ntg_border_box_constrain_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_measure_output measure_output,
-        const ntg_constrain_context* context,
+        const ntg_constrain_context* constrain_context,
+        const ntg_measure_context* measure_context,
         ntg_constrain_output* out_sizes);
 
 void __ntg_border_box_arrange_fn(

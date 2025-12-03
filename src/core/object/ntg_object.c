@@ -21,8 +21,8 @@ static void __ntg_object_constrain_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_measure_output measure_output,
-        const ntg_constrain_context* context,
+        const ntg_constrain_context* constrain_context,
+        const ntg_measure_context* measure_context,
         ntg_constrain_output* output);
 
 static void __ntg_object_arrange_fn(
@@ -44,6 +44,10 @@ static bool __ntg_object_process_key_fn(
 static void __ntg_object_on_focus_fn(
         ntg_drawable* drawable,
         struct ntg_focus_context context);
+
+static void __ntg_object_on_unfocus_fn(
+        ntg_drawable* drawable,
+        struct ntg_unfocus_context context);
 
 static ntg_drawable_vec_view __ntg_object_get_children_fn_(
         ntg_drawable* drawable);
@@ -305,6 +309,7 @@ void __ntg_object_init__(ntg_object* object,
         ntg_draw_fn draw_fn,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn,
         ntg_object_reset_fx_fn reset_fx_fn,
         ntg_object_get_fx_interface_fn get_fx_interface_fn,
         void* data)
@@ -325,6 +330,7 @@ void __ntg_object_init__(ntg_object* object,
     object->__wrapped_draw_fn = draw_fn;
     object->__wrapped_process_key_fn = process_key_fn;
     object->__wrapped_on_focus_fn = on_focus_fn;
+    object->__wrapped_on_unfocus_fn = on_unfocus_fn;
 
     object->__reset_fx_fn = reset_fx_fn;
     object->__get_fx_interface_fn = get_fx_interface_fn;
@@ -342,10 +348,11 @@ void __ntg_object_init__(ntg_object* object,
             __ntg_object_get_parent_fn_,
             __ntg_object_get_parent_fn,
             __ntg_object_process_key_fn,
-            __ntg_object_on_focus_fn);
+            __ntg_object_on_focus_fn,
+            __ntg_object_on_unfocus_fn);
 
     object->__delegate = ntg_event_delegate_new();
-    object->__data = data;
+    object->_data = data;
 }
 
 void __ntg_object_deinit__(ntg_object* object)
@@ -416,6 +423,7 @@ static void __init_default_values(ntg_object* object)
     object->__wrapped_draw_fn = NULL;
     object->__wrapped_process_key_fn = NULL;
     object->__wrapped_on_focus_fn = NULL;
+    object->__wrapped_on_unfocus_fn = NULL;
 
     object->__reset_fx_fn = NULL;
     object->__get_fx_interface_fn = NULL;
@@ -482,12 +490,13 @@ static void __ntg_object_constrain_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_measure_output measure_output,
-        const ntg_constrain_context* context,
+        const ntg_constrain_context* constrain_context,
+        const ntg_measure_context* measure_context,
         ntg_constrain_output* output)
 {
     assert(drawable != NULL);
-    assert(context != NULL);
+    assert(measure_context != NULL);
+    assert(constrain_context != NULL);
     assert(output != NULL);
 
     const ntg_object* object = ntg_drawable_user(drawable);
@@ -507,8 +516,9 @@ static void __ntg_object_constrain_fn(
     }
     else
     {
-        object->__wrapped_constrain_fn(drawable, orientation, size,
-                measure_output, context, output);
+        object->__wrapped_constrain_fn(drawable, orientation,
+                size, constrain_context, measure_context,
+                output);
     }
 }
 
@@ -597,8 +607,22 @@ static void __ntg_object_on_focus_fn(
     ntg_object* object = ntg_drawable_user_(drawable);
     // ntg_drawable* drawable = &(object->__drawable);
 
-    if(object->__wrapped_process_key_fn != NULL)
+    if(object->__wrapped_on_focus_fn != NULL)
         object->__wrapped_on_focus_fn(drawable, context);
+}
+
+static void __ntg_object_on_unfocus_fn(
+        ntg_drawable* drawable,
+        struct ntg_unfocus_context context)
+{
+    assert(drawable != NULL);
+    assert(context.scene != NULL);
+
+    ntg_object* object = ntg_drawable_user_(drawable);
+    // ntg_drawable* drawable = &(object->__drawable);
+
+    if(object->__wrapped_on_unfocus_fn != NULL)
+        object->__wrapped_on_unfocus_fn(drawable, context);
 }
 
 static ntg_drawable_vec_view __ntg_object_get_children_fn_(

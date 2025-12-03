@@ -3,7 +3,9 @@
 #include <assert.h>
 
 #include "core/scene/shared/_ntg_measure_context.h"
+#include "shared/_ntg_shared.h"
 #include "shared/_ntg_vec_map.h"
+#include "shared/ntg_xy.h"
 
 struct ntg_measure_context
 {
@@ -64,6 +66,11 @@ void ntg_measure_context_set(
 {
     assert(context != NULL);
     assert(child != NULL);
+
+    data.min_size = _min2_size(data.min_size, NTG_SIZE_MAX);
+    data.max_size = _min2_size(data.max_size, NTG_SIZE_MAX);
+    data.natural_size = _min2_size(data.natural_size, NTG_SIZE_MAX);
+    data.grow = _min2_size(data.grow, NTG_SIZE_MAX);
 
     ntg_vec_map_add(&context->__base, &child, &data);
 }

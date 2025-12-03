@@ -124,7 +124,6 @@ struct ntg_loop_status __ntg_def_loop_process_event_fn(
             break;
 
         case NT_EVENT_TIMEOUT:
-            ntg_log_log("TIMEOUT");
             loop->__it_elapsed = 0;
             timeout = ((1.0 * 1000) / framerate);
 
@@ -135,7 +134,6 @@ struct ntg_loop_status __ntg_def_loop_process_event_fn(
             }
             else drawing = NULL;
 
-            ntg_log_log("Render");
             ntg_renderer_render(renderer, drawing, app_size);
 
             if(loop->__on_timeout_fn != NULL)

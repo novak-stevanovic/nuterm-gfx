@@ -14,7 +14,14 @@ static bool __ntg_process_key_fn_default(
 static void __ntg_on_focus_fn_default(
         ntg_drawable* drawable,
         struct ntg_focus_context context)
-{}
+{
+}
+
+static void __ntg_on_unfocus_fn_default(
+        ntg_drawable* drawable,
+        struct ntg_unfocus_context context)
+{
+}
 
 void __ntg_drawable_init__(ntg_drawable* drawable, /* non-NULL */
         void* user, /* non-NULL */
@@ -27,7 +34,8 @@ void __ntg_drawable_init__(ntg_drawable* drawable, /* non-NULL */
         ntg_get_parent_fn_ get_parent_fn_, /* non-NULL */
         ntg_get_parent_fn get_parent_fn, /* non-NULL */
         ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn)
+        ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn)
 {
     assert(drawable != NULL);
     assert(user != NULL);
@@ -56,6 +64,9 @@ void __ntg_drawable_init__(ntg_drawable* drawable, /* non-NULL */
     drawable->_on_focus_fn = (on_focus_fn != NULL) ?
         on_focus_fn :
         __ntg_on_focus_fn_default;
+    drawable->_on_unfocus_fn = (on_unfocus_fn != NULL) ?
+        on_unfocus_fn :
+        __ntg_on_unfocus_fn_default;
 }
 
 void __ntg_drawable_deinit__(ntg_drawable* drawable)

@@ -60,7 +60,7 @@ struct ntg_scene
 
     ntg_event_delegate* __del;
 
-    void* __data;
+    void* _data;
 };
 
 struct ntg_scene_node

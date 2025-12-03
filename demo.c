@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <assert.h>
 
+#include "nt_gfx.h"
 #include "ntg.h"
 #include "ntg_kickstart.h"
 #include "core/object/ntg_border_box.h"
@@ -29,18 +30,35 @@ bool def_loop_process_key_fn(
 
 void* __task_fn(void* data)
 {
-    ntg_log_log("[!] EXECUTING TASK...");
     sleep(5);
-    ntg_log_log("[!] TASK FINISHED");
 
     return NULL;
 }
 
 void __callback_fn(void* data, void* task_result)
 {
-    ntg_log_log("[.] EXECUTING CALLBACK...");
     ntg_log_log("%p", task_result);
-    ntg_log_log("[.] CALLBACK FINISHED...");
+}
+
+void test_on_focus_fn(
+        ntg_drawable* drawable,
+        struct ntg_focus_context context)
+{
+    ntg_color_block* cb = (ntg_color_block*)ntg_drawable_user_(drawable);
+
+    ntg_log_log("F");
+    // ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 120, 120)));
+    ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(255, 120, 120)));
+}
+
+void test_on_unfocus_fn(
+        ntg_drawable* drawable,
+        struct ntg_unfocus_context context)
+{
+    ntg_color_block* cb = (ntg_color_block*)ntg_drawable_user_(drawable);
+
+    ntg_log_log("UF");
+    ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 70, 70)));
 }
 
 bool scene_process_key_fn(
@@ -53,7 +71,7 @@ bool scene_process_key_fn(
         ntg_log_log("scene received s");
         return true;
     }
-    if(nt_key_event_utf32_check(key, 'w', false))
+    else if(nt_key_event_utf32_check(key, 'w', false))
     {
         ntg_log_log("scene received w");
 
@@ -67,6 +85,17 @@ bool scene_process_key_fn(
 
         return true;
     }
+    else if(nt_key_event_utf32_check(key, 'f', false))
+    {
+        ntg_object* scene_object = (ntg_object*)scene->_data;
+        ntg_scene_focus(scene, ntg_object_get_drawable_(scene_object));
+        ntg_log_log("Focused center middle child");
+    }
+    else if(nt_key_event_utf32_check(key, 'u', false))
+    {
+        ntg_log_log("Unfocused");
+        ntg_scene_focus(scene, NULL);
+    }
     return false;
 }
 
@@ -79,7 +108,7 @@ static void gui_fn1(void* data)
     ntg_color_block root;
     ntg_object* _root = (ntg_object*)&root;
     __ntg_color_block_init__(&root, nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
-            NULL, NULL, NULL);
+            NULL, NULL, NULL, NULL);
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
 
@@ -95,11 +124,11 @@ static void gui_fn2(void* data)
 {
     ntg_border_box root;
     ntg_object* _root = (ntg_object*)&root;
-    __ntg_border_box_init__(&root, NULL, NULL, NULL);
+    __ntg_border_box_init__(&root, NULL, NULL, NULL, NULL);
 
     ntg_label north;
     ntg_object* _north = (ntg_object*)&north;
-    __ntg_label_init__(&north, NTG_ORIENTATION_HORIZONTAL, NULL, NULL, NULL);
+    __ntg_label_init__(&north, NTG_ORIENTATION_HORIZONTAL, NULL, NULL, NULL, NULL);
     struct ntg_str_view top_text = ntg_str_view_from_cstr("Novak");
     ntg_label_set_text(&north, top_text);
     struct nt_gfx top_gfx = {
@@ -108,33 +137,45 @@ static void gui_fn2(void* data)
         .style = nt_style_new(NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD)
     };
     ntg_label_set_gfx(&north, top_gfx);
-    ntg_object_set_min_size(_north, ntg_xy(1000, 1000));
+    // ntg_object_set_min_size(_north, ntg_xy(1000, 1000));
     // ntg_label_set_primary_alignment(&north, NTG_TEXT_ALIGNMENT_2);
     // ntg_object_set_max_size(_north, ntg_xy(0, 1));
 
-    ntg_color_block center;
+    ntg_box center;
     ntg_object* _center = (ntg_object*)&center;
-    __ntg_color_block_init__(&center, nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
-                NULL, NULL, NULL);
-    // ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
+    __ntg_box_init__(&center, NTG_ORIENTATION_VERTICAL,
+            NTG_ALIGNMENT_2, NTG_ALIGNMENT_2, NULL, NULL, NULL, NULL);
+
+    ntg_color_block center1, center2, center3;
+    ntg_object* _center1 = (ntg_object*)&center1;
+    ntg_object* _center2 = (ntg_object*)&center2;
+    ntg_object* _center3 = (ntg_object*)&center3;
+    __ntg_color_block_init__(&center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)),
+            NULL, NULL, NULL, NULL);
+    __ntg_color_block_init__(&center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)),
+            NULL, test_on_focus_fn, test_on_unfocus_fn, NULL);
+    __ntg_color_block_init__(&center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)),
+            NULL, NULL, NULL, NULL);
+    ntg_box_add_child(&center, _center1);
+    ntg_box_add_child(&center, _center2);
+    ntg_box_add_child(&center, _center3);
 
     ntg_box south;
     ntg_object* _south = (ntg_object*)&south;
     __ntg_box_init__(&south, NTG_ORIENTATION_HORIZONTAL, NTG_ALIGNMENT_2,
-            NTG_ALIGNMENT_2, NULL, NULL, NULL);
-    // TODO: fix
-    ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
+            NTG_ALIGNMENT_2, NULL, NULL, NULL, NULL);
+    // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
 
     ntg_color_block south1;
     ntg_object* _south1 = (ntg_object*)&south1;
     __ntg_color_block_init__(&south1, nt_color_new_rgb(nt_rgb_new(0, 255, 0)),
-            NULL, NULL, NULL);
+            NULL, NULL, NULL, NULL);
     // ntg_object_set_grow(_south1, ntg_xy(0, 0));
 
     ntg_color_block south2;
     ntg_object* _south2 = (ntg_object*)&south2;
     __ntg_color_block_init__(&south2, nt_color_new_rgb(nt_rgb_new(0, 0, 255)),
-            NULL, NULL, NULL);
+            NULL, NULL, NULL, NULL);
     // ntg_object_set_grow(_south2, ntg_xy(0, 0));
 
     ntg_box_add_child(&south, _south1);
@@ -145,7 +186,7 @@ static void gui_fn2(void* data)
     ntg_border_box_set_south(&root, _south);
 
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
-            NULL, NULL);
+            _center1, NULL);
     struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);
 
@@ -154,7 +195,10 @@ static void gui_fn2(void* data)
 
     __ntg_border_box_deinit__(&root);
     __ntg_label_deinit__(&north);
-    __ntg_color_block_deinit__(&center);
+    __ntg_box_deinit__(&center);
+    __ntg_color_block_deinit__(&center1);
+    __ntg_color_block_deinit__(&center2);
+    __ntg_color_block_deinit__(&center3);
     __ntg_color_block_deinit__(&south1);
     __ntg_color_block_deinit__(&south2);
     __ntg_box_deinit__(&south);

@@ -16,6 +16,7 @@ void __ntg_color_block_init__(
         nt_color color,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn,
         void* data);
 void __ntg_color_block_deinit__(ntg_color_block* color_block);
 

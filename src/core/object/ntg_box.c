@@ -8,6 +8,11 @@
 #include "core/scene/shared/ntg_drawable_kit.h"
 #include "shared/_ntg_shared.h"
 
+static struct ntg_measure_output __ntg_box_measure_content(
+        const ntg_box* box,
+        ntg_orientation orientation,
+        const ntg_measure_context* context);
+
 /* -------------------------------------------------------------------------- */
 
 static void __init_default_values(ntg_box* box)
@@ -24,6 +29,7 @@ void __ntg_box_init__(
         ntg_alignment secondary_alignment,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn,
         void* data)
 {
     assert(box != NULL);
@@ -37,6 +43,7 @@ void __ntg_box_init__(
             NULL,
             process_key_fn,
             on_focus_fn,
+            on_unfocus_fn,
             NULL,
             NULL,
             data);
@@ -135,49 +142,16 @@ struct ntg_measure_output __ntg_box_measure_fn(
 {
     const ntg_object* object = ntg_drawable_user(drawable);
     const ntg_box* box = (const ntg_box*)object;
-    const ntg_object_vec* children = ntg_object_get_children(object);
 
-    if(children->_count == 0) return (struct ntg_measure_output) {0};
-
-    size_t min_size = 0, natural_size = 0, max_size;
-
-    size_t i;
-    struct ntg_measure_data it_data;
-    const ntg_object* it_child;
-    const ntg_drawable* it_drawable;
-    for(i = 0; i < children->_count; i++)
-    {
-        it_child = children->_data[i];
-        it_drawable = ntg_object_get_drawable(it_child);
-        it_data = ntg_measure_context_get(context, it_drawable);
-
-        if(orientation == box->__orientation)
-        {
-            min_size += it_data.min_size;
-            natural_size += it_data.natural_size;
-            max_size += it_data.max_size;
-        }
-        else
-        {
-            min_size = _max2_size(min_size, it_data.min_size);
-            natural_size = _max2_size(natural_size, it_data.natural_size);
-            max_size = _max2_size(max_size, it_data.max_size);
-        }
-    }
-
-    return (struct ntg_measure_output) {
-        .min_size = min_size,
-        .natural_size = natural_size,
-        .max_size = NTG_SIZE_MAX
-    };
+    return __ntg_box_measure_content(box, orientation, context);
 }
 
 void __ntg_box_constrain_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_measure_output measure_output,
-        const ntg_constrain_context* context,
+        const ntg_constrain_context* constrain_context,
+        const ntg_measure_context* measure_context,
         ntg_constrain_output* out_sizes)
 {
     const ntg_object* object = ntg_drawable_user(drawable);
@@ -186,8 +160,10 @@ void __ntg_box_constrain_fn(
 
     if(children->_count == 0) return;
 
-    size_t min_size = measure_output.min_size;
-    size_t natural_size = measure_output.natural_size;
+    struct ntg_measure_output content_size = __ntg_box_measure_content(
+            box, orientation, measure_context);
+    size_t min_size = content_size.min_size;
+    size_t natural_size = content_size.natural_size;
 
     size_t extra_size;
     size_t* block = malloc(children->_count * sizeof(size_t) * 3);
@@ -198,7 +174,7 @@ void __ntg_box_constrain_fn(
 
     const ntg_object* it_obj;
     const ntg_drawable* it_drawable;
-    struct ntg_constrain_data it_data;
+    struct ntg_measure_data it_data;
     struct ntg_constrain_result it_result;
     size_t i;
     if(orientation == box->__orientation)
@@ -211,7 +187,7 @@ void __ntg_box_constrain_fn(
             {
                 it_obj = children->_data[i];
                 it_drawable = ntg_object_get_drawable(it_obj);
-                it_data = ntg_constrain_context_get(context, it_drawable);
+                it_data = ntg_measure_context_get(measure_context, it_drawable);
 
                 caps[i] = it_data.max_size;
                 _sizes[i] = it_data.natural_size;
@@ -227,7 +203,7 @@ void __ntg_box_constrain_fn(
                 {
                     it_obj = children->_data[i];
                     it_drawable = ntg_object_get_drawable(it_obj);
-                    it_data = ntg_constrain_context_get(context, it_drawable);
+                    it_data = ntg_measure_context_get(measure_context, it_drawable);
 
                     caps[i] = it_data.natural_size;
                     _sizes[i] = it_data.min_size;
@@ -240,7 +216,7 @@ void __ntg_box_constrain_fn(
                 {
                     it_obj = children->_data[i];
                     it_drawable = ntg_object_get_drawable(it_obj);
-                    it_data = ntg_constrain_context_get(context, it_drawable);
+                    it_data = ntg_measure_context_get(measure_context, it_drawable);
 
                     caps[i] = it_data.min_size;
                     _sizes[i] = 0;
@@ -254,7 +230,7 @@ void __ntg_box_constrain_fn(
         {
             it_obj = children->_data[i];
             it_drawable = ntg_object_get_drawable(it_obj);
-            it_data = ntg_constrain_context_get(context, it_drawable);
+            it_data = ntg_measure_context_get(measure_context, it_drawable);
 
             it_result = (struct ntg_constrain_result) {
                 .size = _sizes[i]
@@ -268,7 +244,7 @@ void __ntg_box_constrain_fn(
         {
             it_obj = children->_data[i];
             it_drawable = ntg_object_get_drawable(it_obj);
-            it_data = ntg_constrain_context_get(context, it_drawable);
+            it_data = ntg_measure_context_get(measure_context, it_drawable);
 
             it_result = (struct ntg_constrain_result) {
                 .size = _min2_size(size, 
@@ -362,4 +338,47 @@ void __ntg_box_arrange_fn(
 
         _it_extra_offset.prim_val += _it_size.prim_val;
     }
+}
+
+static struct ntg_measure_output __ntg_box_measure_content(
+        const ntg_box* box,
+        ntg_orientation orientation,
+        const ntg_measure_context* context)
+{
+    const ntg_object* _box = (const ntg_object*)box;
+    const ntg_object_vec* children = ntg_object_get_children(_box);
+
+    if(children->_count == 0) return (struct ntg_measure_output) {0};
+
+    size_t min_size = 0, natural_size = 0, max_size;
+
+    size_t i;
+    struct ntg_measure_data it_data;
+    const ntg_object* it_child;
+    const ntg_drawable* it_drawable;
+    for(i = 0; i < children->_count; i++)
+    {
+        it_child = children->_data[i];
+        it_drawable = ntg_object_get_drawable(it_child);
+        it_data = ntg_measure_context_get(context, it_drawable);
+
+        if(orientation == box->__orientation)
+        {
+            min_size += it_data.min_size;
+            natural_size += it_data.natural_size;
+            max_size += it_data.max_size;
+        }
+        else
+        {
+            min_size = _max2_size(min_size, it_data.min_size);
+            natural_size = _max2_size(natural_size, it_data.natural_size);
+            max_size = _max2_size(max_size, it_data.max_size);
+        }
+    }
+
+    return (struct ntg_measure_output) {
+        .min_size = min_size,
+        .natural_size = natural_size,
+        .max_size = NTG_SIZE_MAX
+    };
 }

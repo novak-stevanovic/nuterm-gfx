@@ -69,7 +69,6 @@ void ntg_callback_queue_run(ntg_callback_queue* callback_queue)
         if(it->data.action_fn != NULL) 
             it->data.action_fn(it->data.data);
         it = it->next;
-        ntg_log_log("[!] Callback executed");
     }
 
     callback_queue->list = (struct ntg_callback_queue_req_list) {

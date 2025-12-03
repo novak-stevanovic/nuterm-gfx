@@ -143,6 +143,7 @@ struct ntg_object
         ntg_draw_fn __wrapped_draw_fn;
         ntg_process_key_fn __wrapped_process_key_fn;
         ntg_on_focus_fn __wrapped_on_focus_fn;
+        ntg_on_unfocus_fn __wrapped_on_unfocus_fn;
     };
 
     struct
@@ -155,7 +156,7 @@ struct ntg_object
     struct ntg_drawable __drawable;
     ntg_event_delegate* __delegate;
 
-    void* __data;
+    void* _data;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -170,6 +171,7 @@ void __ntg_object_init__(ntg_object* object,
         ntg_draw_fn draw_fn,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
+        ntg_on_unfocus_fn on_unfocus_fn,
         ntg_object_reset_fx_fn reset_fx_fn,
         ntg_object_get_fx_interface_fn get_fx_interface_fn,
         void* data);
