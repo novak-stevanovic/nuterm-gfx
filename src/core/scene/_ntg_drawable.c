@@ -2,6 +2,7 @@
 
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
+#include "shared/ntg_log.h"
 
 static bool __ntg_process_key_fn_default(
         ntg_drawable* drawable,
@@ -15,6 +16,7 @@ static void __ntg_on_focus_fn_default(
         ntg_drawable* drawable,
         struct ntg_focus_context context)
 {
+    ntg_log_log("?");
 }
 
 static void __ntg_on_unfocus_fn_default(

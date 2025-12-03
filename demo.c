@@ -48,7 +48,7 @@ void test_on_focus_fn(
 
     ntg_log_log("F");
     // ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 120, 120)));
-    ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(255, 120, 120)));
+    ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 120, 120)));
 }
 
 void test_on_unfocus_fn(
@@ -186,7 +186,7 @@ static void gui_fn2(void* data)
     ntg_border_box_set_south(&root, _south);
 
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
-            _center1, NULL);
+            _center2, NULL);
     struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);
 

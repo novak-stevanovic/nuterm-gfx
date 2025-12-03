@@ -69,6 +69,7 @@ void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable)
     assert(scene != NULL);
 
     scene->__pending_focused = drawable;
+    scene->__pending_focused_flag = true;
 }
 
 ntg_scene_process_key_mode ntg_scene_get_process_key_mode(const ntg_scene* scene)
@@ -116,7 +117,7 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
     ntg_drawable* old = scene->__focused;
     ntg_drawable* new = scene->__pending_focused;
 
-    if(new != NULL)
+    if(scene->__pending_focused_flag)
     {
         if(old != NULL)
         {
@@ -125,6 +126,7 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
                 .scene = scene
             };
 
+            // ntg_log_log("DADA %p", new->_on_focus_fn);
             old->_on_unfocus_fn(old, ctx);
         }
 
@@ -140,11 +142,12 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
                 .scene = scene
             };
 
-            ntg_log_log("DADA");
             new->_on_focus_fn(new, focus_ctx);
 
             scene->__pending_focused = NULL;
         }
+
+        scene->__pending_focused_flag = false;
     }
 
     scene->__layout_fn(scene, size);

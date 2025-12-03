@@ -57,6 +57,7 @@ struct ntg_scene
     ntg_scene_process_key_mode __process_key_mode;
 
     ntg_drawable *__focused, *__pending_focused;
+    bool __pending_focused_flag;
 
     ntg_event_delegate* __del;
 
