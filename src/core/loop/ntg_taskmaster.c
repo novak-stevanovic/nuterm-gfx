@@ -58,7 +58,7 @@ struct ntg_thread_fn_data
 
 struct ntg_callback_fn_data
 {
-    struct ntg_thread_fn_data* base;
+    struct ntg_thread_fn_data base;
     void* task_result;
 };
 
@@ -66,11 +66,11 @@ static void __callback_fn(void* _data)
 {
     struct ntg_callback_fn_data* data = (struct ntg_callback_fn_data*)_data;
 
-    if(data->base->callback_fn)
+    if(data->base.callback_fn)
     {
-        data->base->callback_fn(data->base->callback_data, data->task_result);
+        data->base.callback_fn(data->base.callback_data, data->task_result);
     }
-    free(data->base);
+    free(data);
 }
 
 static void* __thread_fn(void* _data)
@@ -84,16 +84,15 @@ static void* __thread_fn(void* _data)
     assert(new_data != NULL);
 
     (*new_data) = (struct ntg_callback_fn_data) {
-        .base = data,
+        .base = *data,
         .task_result = task_result
     };
 
-    if(data->callback_fn)
-    {
-        ntg_callback_queue_append(
-                data->taskmaster->__callbacks,
-                __callback_fn, new_data);
-    }
+    free(data);
+
+    ntg_callback_queue_append(
+            data->taskmaster->__callbacks,
+            __callback_fn, new_data);
 
     return NULL;
 }
@@ -113,7 +112,8 @@ void ntg_taskmaster_execute_task(
 
     pthread_mutex_lock(&taskmaster->__lock);
 
-    struct ntg_thread_fn_data* data = malloc(sizeof(struct ntg_thread_fn_data));
+    struct ntg_thread_fn_data* data = (struct ntg_thread_fn_data*)malloc(
+            sizeof(struct ntg_thread_fn_data));
     assert(data != NULL);
 
     (*data) = (struct ntg_thread_fn_data) {
@@ -125,7 +125,8 @@ void ntg_taskmaster_execute_task(
     };
 
     pthread_t thread;
-    pthread_create(&thread, NULL, __thread_fn, data);
+    int status = pthread_create(&thread, NULL, __thread_fn, data);
+    assert(status == 0);
     pthread_detach(thread);
 
     pthread_mutex_unlock(&taskmaster->__lock);
