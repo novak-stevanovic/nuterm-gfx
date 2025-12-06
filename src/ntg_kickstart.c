@@ -62,7 +62,7 @@ void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj)
 }
 
 struct ntg_kickstart_scene_obj ntg_kickstart_scene(
-        ntg_scene_process_key_fn scene_process_key_fn,
+        ntg_def_scene_process_key_fn scene_process_key_fn,
         void* scene_data, void* stage_data)
 {
     ntg_def_scene* scene = (ntg_def_scene*)malloc(sizeof(ntg_def_scene));

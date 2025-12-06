@@ -14,10 +14,12 @@ static void __measure2_fn(ntg_drawable* drawable, void* _layout_data);
 static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data);
 static void __arrange_fn(ntg_drawable* drawable, void* _layout_data);
 static void __draw_fn(ntg_drawable* drawable, void* _layout_data);
+static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,
+        ntg_loop_context* loop_context);
 
 void __ntg_def_scene_init__(
         ntg_def_scene* scene,
-        ntg_scene_process_key_fn process_key_fn,
+        ntg_def_scene_process_key_fn process_key_fn,
         void* data)
 {
     assert(scene != NULL);
@@ -26,8 +28,11 @@ void __ntg_def_scene_init__(
             __ntg_def_scene_layout_fn,
             NULL,
             NULL,
-            process_key_fn,
+            __process_key_fn,
             data);
+
+    scene->__process_key_mode = NTG_DEF_SCENE_PROCESS_KEY_FOCUSD_FIRST;
+    scene->__process_key_fn = process_key_fn;
 }
 
 void __ntg_def_scene_deinit__(ntg_def_scene* scene)
@@ -35,6 +40,22 @@ void __ntg_def_scene_deinit__(ntg_def_scene* scene)
     assert(scene != NULL);
 
     __ntg_scene_deinit__((ntg_scene*)scene);
+}
+
+void ntg_def_scene_set_process_key_mode(ntg_def_scene* scene,
+        ntg_def_scene_process_key_mode mode)
+{
+    assert(scene != NULL);
+
+    scene->__process_key_mode = mode;
+}
+
+ntg_def_scene_process_key_mode ntg_def_scene_get_process_key_mode(
+        const ntg_def_scene* scene)
+{
+    assert(scene != NULL);
+
+    return scene->__process_key_mode;
 }
 
 struct ntg_layout_data
@@ -48,7 +69,7 @@ void __ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
     assert(_scene != NULL);
 
     ntg_drawable* root = ntg_scene_get_root(_scene);
-    if(_scene->__root == NULL) return;
+    if(_scene->_root == NULL) return;
 
     ntg_def_scene* scene = (ntg_def_scene*)_scene;
 
@@ -340,4 +361,38 @@ static void __draw_fn(ntg_drawable* drawable, void* _layout_data)
     ntg_drawing_set_size(node->drawing, node->size);
     if(drawable->_draw_fn)
         drawable->_draw_fn(drawable, node->size, node->drawing);
+}
+
+static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,
+        ntg_loop_context* loop_context)
+{
+    assert(_scene != NULL);
+
+    ntg_def_scene* scene = (ntg_def_scene*)_scene;
+
+    ntg_drawable* focused = _scene->_focused;
+
+    struct ntg_process_key_context ctx = {
+        .scene = _scene,
+        .loop_context = loop_context
+    };
+
+    bool consumed = false;
+    if(scene->__process_key_mode == NTG_DEF_SCENE_PROCESS_KEY_SCENE_FIRST)
+    {
+        consumed = scene->__process_key_fn(scene, key, loop_context);
+
+        if((!consumed) && (focused != NULL))
+            consumed = focused->_process_key_fn(focused, key, ctx);
+    }
+    else
+    {
+        if(focused != NULL)
+            consumed = focused->_process_key_fn(focused, key, ctx);
+
+        if(!consumed)
+            consumed = scene->__process_key_fn(scene, key, loop_context);
+    }
+
+    return consumed;
 }

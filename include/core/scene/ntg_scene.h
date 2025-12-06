@@ -15,12 +15,6 @@ struct ntg_event_sub;
 
 #define NTG_SCENE(scn_ptr) ((ntg_scene*)(scn_ptr))
 
-typedef enum ntg_scene_process_key_mode
-{
-    NTG_SCENE_PROCESS_KEY_FOCUSED_FIRST,
-    NTG_SCENE_PROCESS_KEY_SCENE_FIRST,
-} ntg_scene_process_key_mode;
-
 /* Performs logical layout of the scene. */
 typedef void (*ntg_scene_layout_fn)(
         ntg_scene* scene,
@@ -29,7 +23,7 @@ typedef void (*ntg_scene_layout_fn)(
 /* Returns if the scene processed the key event. */
 typedef bool (*ntg_scene_process_key_fn)(
         ntg_scene* scene,
-        struct nt_key_event key_event,
+        struct nt_key_event key,
         ntg_loop_context* loop_context);
 
 typedef void (*ntg_scene_on_register_fn)(
@@ -44,8 +38,8 @@ typedef void (*ntg_scene_on_unregister_fn)(
 
 struct ntg_scene
 {
-    ntg_drawable* __root;
-    struct ntg_xy __size;
+    ntg_drawable* _root;
+    struct ntg_xy _size;
 
     ntg_scene_graph* _graph;
 
@@ -54,12 +48,10 @@ struct ntg_scene
     ntg_scene_on_unregister_fn __on_unregister_fn;
     ntg_scene_process_key_fn __process_key_fn;
 
-    ntg_scene_process_key_mode __process_key_mode;
-
-    ntg_drawable *__focused, *__pending_focused;
+    ntg_drawable *_focused, *__pending_focused;
     bool __pending_focused_flag;
 
-    ntg_event_delegate* __del;
+    ntg_event_delegate* _delegate;
 
     void* _data;
 };
@@ -92,9 +84,6 @@ void __ntg_scene_deinit__(ntg_scene* scene);
 ntg_drawable* ntg_scene_get_focused(ntg_scene* scene);
 void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable);
 
-void ntg_scene_set_process_key_mode(ntg_scene* scene, ntg_scene_process_key_mode mode);
-ntg_scene_process_key_mode ntg_scene_get_process_key_mode(const ntg_scene* scene);
-
 struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
         const ntg_drawable* drawable);
 
@@ -124,7 +113,7 @@ ntg_drawable* ntg_scene_get_root(ntg_scene* scene);
 
 bool ntg_scene_feed_key_event(
         ntg_scene* scene,
-        struct nt_key_event key_event,
+        struct nt_key_event key,
         ntg_loop_context* loop_context);
 
 /* -------------------------------------------------------------------------- */

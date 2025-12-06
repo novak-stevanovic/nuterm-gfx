@@ -28,6 +28,25 @@ bool def_loop_process_key_fn(
     return false;
 }
 
+bool center2_process_key_fn(
+        ntg_drawable* drawable,
+        struct nt_key_event key,
+        struct ntg_process_key_context context)
+{
+    // if(nt_key_event_utf32_check(key, 'f', false))
+    // {
+    //     ntg_log_log("c2 received f");
+    //     return true;
+    // }
+    // if(nt_key_event_utf32_check(key, 'u', false))
+    // {
+    //     ntg_log_log("c2 received u");
+    //     return true;
+    // }
+
+    return false;
+}
+
 void* __task_fn(void* data)
 {
     sleep(5);
@@ -40,32 +59,31 @@ void __callback_fn(void* data, void* task_result)
     ntg_log_log("%p", task_result);
 }
 
-void test_on_focus_fn(
+void center2_on_focus_fn(
         ntg_drawable* drawable,
         struct ntg_focus_context context)
 {
     ntg_color_block* cb = (ntg_color_block*)ntg_drawable_user_(drawable);
 
-    ntg_log_log("F");
-    // ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 120, 120)));
     ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 120, 120)));
 }
 
-void test_on_unfocus_fn(
+void center2_on_unfocus_fn(
         ntg_drawable* drawable,
         struct ntg_unfocus_context context)
 {
     ntg_color_block* cb = (ntg_color_block*)ntg_drawable_user_(drawable);
 
-    ntg_log_log("UF");
     ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 70, 70)));
 }
 
-bool scene_process_key_fn(
-        ntg_scene* scene,
+bool def_scene_process_key_fn(
+        ntg_def_scene* scene,
         struct nt_key_event key,
         ntg_loop_context* loop_context)
 {
+    ntg_scene* _scene = (ntg_scene*)scene;
+
     if(nt_key_event_utf32_check(key, 's', false))
     {
         ntg_log_log("scene received s");
@@ -87,15 +105,18 @@ bool scene_process_key_fn(
     }
     else if(nt_key_event_utf32_check(key, 'f', false))
     {
-        ntg_object* scene_object = (ntg_object*)scene->_data;
-        ntg_scene_focus(scene, ntg_object_get_drawable_(scene_object));
+        ntg_object* scene_object = (ntg_object*)_scene->_data;
+        ntg_scene_focus(_scene, ntg_object_get_drawable_(scene_object));
         ntg_log_log("Focused center middle child");
+        return true;
     }
     else if(nt_key_event_utf32_check(key, 'u', false))
     {
         ntg_log_log("Unfocused");
-        ntg_scene_focus(scene, NULL);
+        ntg_scene_focus(_scene, NULL);
+        return true;
     }
+
     return false;
 }
 
@@ -153,7 +174,7 @@ static void gui_fn2(void* data)
     __ntg_color_block_init__(&center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)),
             NULL, NULL, NULL, NULL);
     __ntg_color_block_init__(&center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)),
-            NULL, test_on_focus_fn, test_on_unfocus_fn, NULL);
+            center2_process_key_fn, center2_on_focus_fn, center2_on_unfocus_fn, NULL);
     __ntg_color_block_init__(&center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)),
             NULL, NULL, NULL, NULL);
     ntg_box_add_child(&center, _center1);
@@ -185,12 +206,13 @@ static void gui_fn2(void* data)
     ntg_border_box_set_center(&root, _center);
     ntg_border_box_set_south(&root, _south);
 
-    struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
+    struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(def_scene_process_key_fn,
             _center2, NULL);
     struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);
 
     ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
+    ntg_scene_focus(s._scene, ntg_object_get_drawable(_center2));
     ntg_loop_run(b._loop, NULL);
 
     __ntg_border_box_deinit__(&root);

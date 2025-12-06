@@ -15,6 +15,7 @@
 
 static void __init_default_values(ntg_scene* scene);
 static void __add_to_registered_fn(ntg_drawable* drawable, void* _registered);
+static void __update_focused(ntg_scene* scene);
 static void __scan_scene(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
@@ -34,8 +35,8 @@ void __ntg_scene_init__(
 
     __init_default_values(scene);
 
-    scene->__root = NULL;
-    scene->__focused = NULL;
+    scene->_root = NULL;
+    scene->_focused = NULL;
 
     scene->__layout_fn = layout_fn;
     scene->__on_register_fn = on_register_fn;
@@ -43,7 +44,7 @@ void __ntg_scene_init__(
     scene->__process_key_fn = process_key_fn;
     scene->_data = data;
 
-    scene->__del = ntg_event_delegate_new();
+    scene->_delegate = ntg_event_delegate_new();
     scene->_graph = ntg_scene_graph_new();
 }
 
@@ -51,7 +52,7 @@ void __ntg_scene_deinit__(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    ntg_event_delegate_destroy(scene->__del);
+    ntg_event_delegate_destroy(scene->_delegate);
     ntg_scene_graph_destroy(scene->_graph);
 
     __init_default_values(scene);
@@ -61,7 +62,7 @@ ntg_drawable* ntg_scene_get_focused(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    return scene->__focused;
+    return scene->_focused;
 }
 
 void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable)
@@ -70,20 +71,6 @@ void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable)
 
     scene->__pending_focused = drawable;
     scene->__pending_focused_flag = true;
-}
-
-ntg_scene_process_key_mode ntg_scene_get_process_key_mode(const ntg_scene* scene)
-{
-    assert(scene != NULL);
-
-    return scene->__process_key_mode;
-}
-
-void ntg_scene_set_process_key_mode(ntg_scene* scene, ntg_scene_process_key_mode mode)
-{
-    assert(scene != NULL);
-
-    scene->__process_key_mode = mode;
 }
 
 struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
@@ -110,11 +97,78 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
     assert(scene != NULL);
 
-    scene->__size = size;
+    scene->_size = size;
 
     __scan_scene(scene);
 
-    ntg_drawable* old = scene->__focused;
+    __update_focused(scene);
+
+    scene->__layout_fn(scene, size);
+}
+
+struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return scene->_size;
+}
+
+/* -------------------------------------------------------------------------- */
+
+void ntg_scene_set_root(ntg_scene* scene, ntg_drawable* root)
+{
+    assert(scene != NULL);
+
+    scene->_root = root;
+}
+
+ntg_drawable* ntg_scene_get_root(ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return scene->_root;
+}
+
+/* -------------------------------------------------------------------------- */
+
+bool ntg_scene_feed_key_event(
+        ntg_scene* scene,
+        struct nt_key_event key,
+        ntg_loop_context* loop_context)
+{
+    assert(scene != NULL);
+
+    return scene->__process_key_fn(scene, key, loop_context);
+}
+
+ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    return ntg_event_delegate_listenable(scene->_delegate);
+}
+
+/* -------------------------------------------------------------------------- */
+/* STATIC DEFINITIONS */
+/* -------------------------------------------------------------------------- */
+
+static void __init_default_values(ntg_scene* scene)
+{
+    (*scene) = (ntg_scene) {0};
+}
+
+static void __add_to_registered_fn(ntg_drawable* drawable, void* _registered)
+{
+    ntg_drawable_vec* registered = (ntg_drawable_vec*)_registered;
+
+    ntg_drawable_vec_append(registered, drawable);
+}
+
+static void __update_focused(ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    ntg_drawable* old = scene->_focused;
     ntg_drawable* new = scene->__pending_focused;
 
     if(scene->__pending_focused_flag)
@@ -135,7 +189,7 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
             struct _ntg_scene_node* node = ntg_scene_graph_get(scene->_graph, new);
             assert(node != NULL);
 
-            scene->__focused = new;
+            scene->_focused = new;
 
             struct ntg_focus_context focus_ctx = {
                 .old = old,
@@ -150,139 +204,6 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
         scene->__pending_focused_flag = false;
     }
 
-    scene->__layout_fn(scene, size);
-}
-
-struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)
-{
-    assert(scene != NULL);
-
-    return scene->__size;
-}
-
-/* -------------------------------------------------------------------------- */
-
-void ntg_scene_set_root(ntg_scene* scene, ntg_drawable* root)
-{
-    assert(scene != NULL);
-
-    scene->__root = root;
-}
-
-ntg_drawable* ntg_scene_get_root(ntg_scene* scene)
-{
-    assert(scene != NULL);
-
-    return scene->__root;
-}
-
-/* -------------------------------------------------------------------------- */
-
-// TODO: TEST
-bool ntg_scene_feed_key_event(
-        ntg_scene* scene,
-        struct nt_key_event key_event,
-        ntg_loop_context* loop_context)
-{
-    assert(scene != NULL);
-
-    ntg_drawable* focused = scene->__focused;
-    struct ntg_process_key_context context = {
-        .scene = scene,
-        .loop_context = loop_context
-    };
-
-    ntg_drawable_vec process_drawables;
-    __ntg_drawable_vec_init__(&process_drawables);
-
-    if(scene->__process_key_mode == NTG_SCENE_PROCESS_KEY_FOCUSED_FIRST)
-    {
-        ntg_drawable* it_drawable = focused;
-
-        while(it_drawable != NULL)
-        {
-            ntg_drawable_vec_append(&process_drawables, it_drawable);
-            it_drawable = it_drawable->_get_parent_fn_(it_drawable);
-        }
-
-        ntg_drawable_vec_append(&process_drawables, (ntg_drawable*)scene);
-    }
-    else // (scene->__key_process_mode == NTG_SCENE_KEY_PROCESS_SCENE_FIRST)
-    {
-        ntg_drawable_vec_append(&process_drawables, (ntg_drawable*)scene);
-
-        if(focused != NULL)
-        {
-            ntg_drawable* it_drawable = scene->__root;
-
-            size_t i;
-            ntg_drawable_vec_view it_children;
-            ntg_drawable* it_child;
-            while(it_drawable != NULL)
-            {
-                ntg_drawable_vec_append(&process_drawables, it_drawable);
-                it_children = it_drawable->_get_children_fn_(it_drawable);
-
-                for(i = 0; i < ntg_drawable_vec_view_count(&it_children); i++)
-                {
-                    it_child = ntg_drawable_vec_view_at(&it_children, i);
-
-                    if(ntg_drawable_is_descendant(it_child, scene->__root))
-                    {
-                        it_drawable = it_child;
-                    }
-                }
-            }
-        }
-    }
-
-    bool processed = false;
-
-    size_t i;
-    ntg_drawable* it_drawable;
-    for(i = 0; i < process_drawables._count; i++)
-    {
-        it_drawable = process_drawables._data[i];
-        if(((ntg_scene*)it_drawable) == scene)
-        {
-            if(scene->__process_key_fn != NULL)
-                processed |= scene->__process_key_fn(scene, key_event, loop_context);
-        }
-        else
-        {
-            processed |= it_drawable->_process_key_fn(it_drawable,
-                    key_event, context);
-        }
-
-        if(processed) break;
-    }
-
-    __ntg_drawable_vec_deinit__(&process_drawables);
-
-    return processed;
-}
-
-ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene)
-{
-    assert(scene != NULL);
-
-    return ntg_event_delegate_listenable(scene->__del);
-}
-
-/* -------------------------------------------------------------------------- */
-/* STATIC DEFINITIONS */
-/* -------------------------------------------------------------------------- */
-
-static void __init_default_values(ntg_scene* scene)
-{
-    (*scene) = (ntg_scene) {0};
-}
-
-static void __add_to_registered_fn(ntg_drawable* drawable, void* _registered)
-{
-    ntg_drawable_vec* registered = (ntg_drawable_vec*)_registered;
-
-    ntg_drawable_vec_append(registered, drawable);
 }
 
 static void __scan_scene(ntg_scene* scene)
@@ -291,10 +212,10 @@ static void __scan_scene(ntg_scene* scene)
 
     ntg_drawable_vec current;
     __ntg_drawable_vec_init__(&current);
-    if(scene->__root != NULL)
+    if(scene->_root != NULL)
     {
         ntg_drawable_tree_perform(
-                scene->__root,
+                scene->_root,
                 NTG_DRAWABLE_PERFORM_TOP_DOWN,
                 __add_to_registered_fn,
                 &current);

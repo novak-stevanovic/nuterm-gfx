@@ -88,11 +88,11 @@ static void* __thread_fn(void* _data)
         .task_result = task_result
     };
 
-    free(data);
-
     ntg_callback_queue_append(
             data->taskmaster->__callbacks,
             __callback_fn, new_data);
+
+    free(data);
 
     return NULL;
 }
