@@ -4,16 +4,15 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: implement ntg_box spacing
-// TODO: change ntg_oxy
+// TODO: ntg_object_fx: rethink design
+// TODO: ntg_box: implement spacing - EASY
+// TODO: ntg_object_fx: implement object fx interfaces for objects - EASY
 // TODO: object decorators: implement border & padding - MEDIUM
 // TODO: ntg_scene: implement multi-root system - MEDIUM
 // TODO: ntg_table: implement - MEDIUM
 // TODO: ntg_list: implement - MEDIUM
-// TODO: ntg_scene: implement ntg_fast_scene(performs full layout only when necessary) - MEDIUM
-// TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished?
-// TODO: ntg_taskmaster: allow for abstract taskmaster?
-// TODO: implement object fx interfaces for objects - EASY
+// TODO: ntg_scene: optimize ntg_scene(performs full layout only when necessary) - MEDIUM
+// TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? - MEDIUM
 // TODO: add proper error-handling - HARD
 
 /* -------------------------------------------------------------------------- */

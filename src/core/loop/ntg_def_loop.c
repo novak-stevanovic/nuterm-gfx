@@ -35,7 +35,7 @@ void __ntg_def_loop_init__(
     loop->__it_elapsed = 0;
     loop->__renderer = renderer;
     loop->__process_key_fn = process_key_fn;
-    loop->__process_key_mode = NTG_DEF_LOOP_PROCESS_KEY_STAGE_FIRST;
+    loop->__key_mode = NTG_DEF_LOOP_KEY_MODE_STAGE_FIRST;
     loop->__on_resize_fn = on_resize_fn;
     loop->__on_timeout_fn = on_timeout_fn;
 }
@@ -49,24 +49,22 @@ void __ntg_def_loop_deinit__(ntg_def_loop* loop)
     loop->__framerate = 0;
     loop->__renderer = NULL;
     loop->__process_key_fn = NULL;
-    loop->__process_key_mode = NTG_DEF_LOOP_PROCESS_KEY_STAGE_FIRST;
+    loop->__key_mode = NTG_DEF_LOOP_KEY_MODE_STAGE_FIRST;
     loop->__on_resize_fn = NULL;
     loop->__on_timeout_fn = NULL;
 }
 
-void ntg_def_loop_set_process_key_mode(ntg_def_loop* loop,
-        ntg_def_loop_process_key_mode mode)
+void ntg_def_loop_set_process_key_mode(ntg_def_loop* loop, ntg_def_loop_key_mode mode)
 {
     assert(loop != NULL);
 
-    loop->__process_key_mode = mode;
+    loop->__key_mode = mode;
 }
-ntg_def_loop_process_key_mode ntg_def_loop_get_process_key_mode(
-        const ntg_def_loop* loop)
+ntg_def_loop_key_mode ntg_def_loop_get_process_key_mode(const ntg_def_loop* loop)
 {
     assert(loop != NULL);
 
-    return loop->__process_key_mode;
+    return loop->__key_mode;
 }
 
 struct ntg_loop_status __ntg_def_loop_process_event_fn(
@@ -90,7 +88,7 @@ struct ntg_loop_status __ntg_def_loop_process_event_fn(
             loop->__it_elapsed += event.elapsed;
             timeout = ((1.0 * 1000) / framerate) - loop->__it_elapsed;
 
-            if(loop->__process_key_mode == NTG_DEF_LOOP_PROCESS_KEY_STAGE_FIRST)
+            if(loop->__key_mode == NTG_DEF_LOOP_KEY_MODE_STAGE_FIRST)
             {
                 bool consumed = false;
                 if(curr_stage != NULL)

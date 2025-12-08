@@ -31,7 +31,7 @@ void __ntg_def_scene_init__(
             __process_key_fn,
             data);
 
-    scene->__process_key_mode = NTG_DEF_SCENE_PROCESS_KEY_FOCUSD_FIRST;
+    scene->__key_mode = NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST;
     scene->__process_key_fn = process_key_fn;
 
     sa_err _err;
@@ -45,27 +45,27 @@ void __ntg_def_scene_deinit__(ntg_def_scene* scene)
 
     __ntg_scene_deinit__((ntg_scene*)scene);
 
-    scene->__process_key_mode = NTG_DEF_SCENE_PROCESS_KEY_FOCUSD_FIRST;
+    scene->__key_mode = NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST;
     scene->__process_key_fn = NULL;
 
     sarena_destroy(scene->_layout_arena);
     scene->_layout_arena = NULL;
 }
 
-void ntg_def_scene_set_process_key_mode(ntg_def_scene* scene,
-        ntg_def_scene_process_key_mode mode)
+void ntg_def_scene_set_key_mode(ntg_def_scene* scene,
+        ntg_def_scene_key_mode mode)
 {
     assert(scene != NULL);
 
-    scene->__process_key_mode = mode;
+    scene->__key_mode = mode;
 }
 
-ntg_def_scene_process_key_mode ntg_def_scene_get_process_key_mode(
+ntg_def_scene_key_mode ntg_def_scene_get_key_mode(
         const ntg_def_scene* scene)
 {
     assert(scene != NULL);
 
-    return scene->__process_key_mode;
+    return scene->__key_mode;
 }
 
 struct ntg_layout_data
@@ -367,7 +367,7 @@ static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,
     };
 
     bool consumed = false;
-    if(scene->__process_key_mode == NTG_DEF_SCENE_PROCESS_KEY_SCENE_FIRST)
+    if(scene->__key_mode == NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST)
     {
         consumed = scene->__process_key_fn(scene, key, loop_ctx);
 

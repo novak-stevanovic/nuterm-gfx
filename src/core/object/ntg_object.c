@@ -297,6 +297,43 @@ ntg_listenable* ntg_object_get_listenable(ntg_object* object)
     return ntg_event_delegate_listenable(object->__delegate);
 }
 
+/* ---------------------------------------------------------------- */
+
+void ntg_object_tree_perform(ntg_object* object,
+        ntg_object_perform_mode mode,
+        void (*perform_fn)(ntg_object* object, void* data),
+        void* data)
+{
+    assert(object != NULL);
+    assert(perform_fn != NULL);
+
+    ntg_object_vec* children = object->__children;
+    size_t count = children->_count;
+
+    ntg_object* it_child;
+    size_t i;
+    if(mode == NTG_OBJECT_PERFORM_TOP_DOWN)
+    {
+        perform_fn(object, data);
+
+        for(i = 0; i < count; i++)
+        {
+            it_child = children->_data[i];
+            ntg_object_tree_perform(it_child, mode, perform_fn, data);
+        }
+    }
+    else
+    {
+        for(i = 0; i < count; i++)
+        {
+            it_child = children->_data[i];
+            ntg_object_tree_perform(it_child, mode, perform_fn, data);
+        }
+
+        perform_fn(object, data);
+    }
+}
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED API */
 /* -------------------------------------------------------------------------- */

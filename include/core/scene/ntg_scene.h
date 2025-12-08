@@ -94,10 +94,10 @@ struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
  * First, updates the scene's size.
  *
  * Second, updates the scene graph calling scene's
- * `ntg_scene_on_register_fn` for each new drawable and `ntg_scene_on_unregister_fn`
- * for each removed drawable from the graph.
+ * `ntg_scene_on_register_fn` and `ntg_scene_on_unregister_fn` for each new and
+ * removed drawable from the graph, respectively.
  *
- * Third, it updates the root if it was set beforehand(based on pending_root field).
+ * Third, it updates the focused drawable based on pending_focused field.
  *
  * Finally, it calls the scene's `ntg_scene_layout_fn` to perform the layout. */
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size);

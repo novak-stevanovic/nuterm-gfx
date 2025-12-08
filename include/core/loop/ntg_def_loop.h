@@ -10,11 +10,11 @@ typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_delegate ntg_event_delegate;
 struct nt_key_event;
 
-typedef enum ntg_def_loop_process_key_mode
+typedef enum ntg_def_loop_key_mode
 {
-    NTG_DEF_LOOP_PROCESS_KEY_STAGE_FIRST,
-    NTG_DEF_LOOP_PROCESS_KEY_LOOP_FIRST
-} ntg_def_loop_process_key_mode;
+    NTG_DEF_LOOP_KEY_MODE_STAGE_FIRST,
+    NTG_DEF_LOOP_KEY_MODE_LOOP_FIRST
+} ntg_def_loop_key_mode;
 
 typedef bool (*ntg_def_loop_process_key_fn)(
         ntg_loop_ctx* ctx,
@@ -34,7 +34,7 @@ struct ntg_def_loop
     ntg_renderer* __renderer;
 
     ntg_def_loop_process_key_fn __process_key_fn;
-    ntg_def_loop_process_key_mode __process_key_mode;
+    ntg_def_loop_key_mode __key_mode;
     ntg_def_loop_on_resize_fn __on_resize_fn;
     ntg_def_loop_on_timeout_fn __on_timeout_fn;
 };
@@ -51,10 +51,8 @@ void __ntg_def_loop_init__(
         void* data);
 void __ntg_def_loop_deinit__(ntg_def_loop* loop);
 
-void ntg_def_loop_set_process_key_mode(ntg_def_loop* loop,
-        ntg_def_loop_process_key_mode mode);
-ntg_def_loop_process_key_mode ntg_def_loop_get_process_key_mode(
-        const ntg_def_loop* loop);
+void ntg_def_loop_set_key_mode(ntg_def_loop* loop, ntg_def_loop_key_mode mode);
+ntg_def_loop_key_mode ntg_def_loop_get_key_mode( const ntg_def_loop* loop);
 
 struct ntg_loop_status __ntg_def_loop_process_event_fn(
         ntg_loop* _loop,

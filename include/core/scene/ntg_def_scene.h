@@ -11,11 +11,11 @@ typedef bool (*ntg_def_scene_process_key_fn)(
         struct nt_key_event key,
         ntg_loop_ctx* loop_ctx);
 
-typedef enum ntg_def_scene_process_key_mode
+typedef enum ntg_def_scene_key_mode
 {
-    NTG_DEF_SCENE_PROCESS_KEY_FOCUSD_FIRST,
-    NTG_DEF_SCENE_PROCESS_KEY_SCENE_FIRST
-} ntg_def_scene_process_key_mode;
+    NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST,
+    NTG_DEF_SCENE_KEY_MODE_SCENE_FIRST
+} ntg_def_scene_key_mode;
 
 /* Default scene with implemented layout that allows for wrapping of elements.
  * Layout is always performed in full. */
@@ -23,7 +23,7 @@ struct ntg_def_scene
 {
     ntg_scene __base;
     
-    ntg_def_scene_process_key_mode __process_key_mode;
+    ntg_def_scene_key_mode __key_mode;
     ntg_def_scene_process_key_fn __process_key_fn;
 
     sarena* _layout_arena;
@@ -35,10 +35,8 @@ void __ntg_def_scene_init__(
         void* data);
 void __ntg_def_scene_deinit__(ntg_def_scene* scene);
 
-void ntg_def_scene_set_process_key_mode(ntg_def_scene* scene,
-        ntg_def_scene_process_key_mode mode);
-ntg_def_scene_process_key_mode ntg_def_scene_get_process_key_mode(
-        const ntg_def_scene* scene);
+void ntg_def_scene_set_key_mode(ntg_def_scene* scene, ntg_def_scene_key_mode mode);
+ntg_def_scene_key_mode ntg_def_scene_get_key_mode( const ntg_def_scene* scene);
 
 void __ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);
 
