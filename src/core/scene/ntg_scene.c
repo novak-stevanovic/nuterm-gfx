@@ -134,11 +134,11 @@ ntg_drawable* ntg_scene_get_root(ntg_scene* scene)
 bool ntg_scene_feed_key_event(
         ntg_scene* scene,
         struct nt_key_event key,
-        ntg_loop_context* loop_context)
+        ntg_loop_ctx* loop_ctx)
 {
     assert(scene != NULL);
 
-    return scene->__process_key_fn(scene, key, loop_context);
+    return scene->__process_key_fn(scene, key, loop_ctx);
 }
 
 ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene)
@@ -175,13 +175,13 @@ static void __update_focused(ntg_scene* scene)
     {
         if(old != NULL)
         {
-            struct ntg_unfocus_context ctx = {
+            struct ntg_unfocus_ctx ctx = {
                 .new = new,
                 .scene = scene
             };
 
             // ntg_log_log("DADA %p", new->_on_focus_fn);
-            old->_on_unfocus_fn(old, ctx);
+            old->_on_unfocus_fn_(old, ctx);
         }
 
         if(new != NULL)
@@ -191,12 +191,12 @@ static void __update_focused(ntg_scene* scene)
 
             scene->_focused = new;
 
-            struct ntg_focus_context focus_ctx = {
+            struct ntg_focus_ctx focus_ctx = {
                 .old = old,
                 .scene = scene
             };
 
-            new->_on_focus_fn(new, focus_ctx);
+            new->_on_focus_fn_(new, focus_ctx);
 
             scene->__pending_focused = NULL;
         }

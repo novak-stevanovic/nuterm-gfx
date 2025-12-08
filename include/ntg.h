@@ -4,8 +4,8 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: ntg_scene: test process key order - EASY
-// TODO: arena allocator: add to in-loop functions to improve performance - EASY
+// TODO: implement ntg_box spacing
+// TODO: change ntg_oxy
 // TODO: object decorators: implement border & padding - MEDIUM
 // TODO: ntg_scene: implement multi-root system - MEDIUM
 // TODO: ntg_table: implement - MEDIUM

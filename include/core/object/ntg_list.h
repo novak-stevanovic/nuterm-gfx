@@ -34,24 +34,24 @@
 //     ntg_orientation __orientation;
 // };
 //
-// struct ntg_measure_output __ntg_list_measure_fn(
+// struct ntg_measure_out __ntg_list_measure_fn(
 //         const ntg_drawable* drawable,
 //         ntg_orientation orientation,
 //         size_t for_size,
-//         const ntg_measure_context* context);
+//         const ntg_measure_ctx* ctx);
 //
 // void __ntg_list_constrain_fn(
 //         const ntg_drawable* drawable,
 //         ntg_orientation orientation,
 //         size_t size,
-//         struct ntg_measure_output measure_output,
-//         const ntg_constrain_context* context,
-//         ntg_constrain_output* output);
+//         struct ntg_measure_out measure_out,
+//         const ntg_constrain_ctx* ctx,
+//         ntg_constrain_out* out);
 //
 // void __ntg_list_arrange_fn(
 //         const ntg_drawable* drawable,
 //         struct ntg_xy size,
-//         const ntg_arrange_context* context,
-//         ntg_arrange_output* output);
+//         const ntg_arrange_ctx* ctx,
+//         ntg_arrange_out* out);
 //
 // #endif // _NTG_LIST_H_

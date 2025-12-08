@@ -46,24 +46,27 @@ struct ntg_box
                   __secondary_alignment;
 };
 
-struct ntg_measure_output __ntg_box_measure_fn(
+struct ntg_measure_out __ntg_box_measure_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_context* context);
+        const ntg_measure_ctx* ctx,
+        sarena* arena);
 
 void __ntg_box_constrain_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        const ntg_constrain_context* constrain_context,
-        const ntg_measure_context* measure_context,
-        ntg_constrain_output* out_sizes);
+        const ntg_constrain_ctx* constrain_ctx,
+        const ntg_measure_ctx* measure_ctx,
+        ntg_constrain_out* out_sizes,
+        sarena* arena);
 
 void __ntg_box_arrange_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        const ntg_arrange_context* context,
-        ntg_arrange_output* out_positions);
+        const ntg_arrange_ctx* ctx,
+        ntg_arrange_out* out_positions,
+        sarena* arena);
 
 #endif // _NTG_BOX_H_

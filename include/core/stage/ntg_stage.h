@@ -6,7 +6,7 @@
 typedef struct ntg_stage ntg_stage;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
-typedef struct ntg_loop_context ntg_loop_context;
+typedef struct ntg_loop_ctx ntg_loop_ctx;
 struct nt_key_event;
 
 typedef void (*ntg_stage_compose_fn)(
@@ -38,6 +38,6 @@ ntg_scene* ntg_stage_get_scene(ntg_stage* stage);
 bool ntg_stage_feed_key_event(
         ntg_stage* stage,
         struct nt_key_event key_event,
-        ntg_loop_context* loop_context);
+        ntg_loop_ctx* loop_ctx);
 
 #endif // _NTG_STAGE_H_

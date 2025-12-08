@@ -11,43 +11,47 @@
 #include "core/scene/shared/ntg_drawable_vec.h"
 #include "shared/_ntg_shared.h"
 
-static struct ntg_measure_output __ntg_object_measure_fn(
+static struct ntg_measure_out __ntg_object_measure_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_context* context);
+        const ntg_measure_ctx* ctx,
+        sarena* arena);
 
 static void __ntg_object_constrain_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        const ntg_constrain_context* constrain_context,
-        const ntg_measure_context* measure_context,
-        ntg_constrain_output* output);
+        const ntg_constrain_ctx* constrain_ctx,
+        const ntg_measure_ctx* measure_ctx,
+        ntg_constrain_out* out,
+        sarena* arena);
 
 static void __ntg_object_arrange_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        const ntg_arrange_context* context,
-        ntg_arrange_output* output);
+        const ntg_arrange_ctx* ctx,
+        ntg_arrange_out* out,
+        sarena* arena);
 
 static void __ntg_object_draw_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        ntg_drawing* out_drawing);
+        ntg_drawing* out_drawing,
+        sarena* arena);
 
 static bool __ntg_object_process_key_fn(
         ntg_drawable* drawable,
         struct nt_key_event key_event,
-        struct ntg_process_key_context context);
+        struct ntg_process_key_ctx ctx);
 
 static void __ntg_object_on_focus_fn(
         ntg_drawable* drawable,
-        struct ntg_focus_context context);
+        struct ntg_focus_ctx ctx);
 
 static void __ntg_object_on_unfocus_fn(
         ntg_drawable* drawable,
-        struct ntg_unfocus_context context);
+        struct ntg_unfocus_ctx ctx);
 
 static ntg_drawable_vec_view __ntg_object_get_children_fn_(
         ntg_drawable* drawable);
@@ -272,14 +276,14 @@ const ntg_object_fx_vec* ntg_object_get_fx(const ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
-ntg_drawable* ntg_object_get_drawable_(ntg_object* object)
+ntg_drawable* ntg_object_to_drawable_(ntg_object* object)
 {
     assert(object != NULL);
 
     return &(object->__drawable);
 }
 
-const ntg_drawable* ntg_object_get_drawable(const ntg_object* object)
+const ntg_drawable* ntg_object_to_drawable(const ntg_object* object)
 {
     assert(object != NULL);
 
@@ -435,26 +439,27 @@ static void __init_default_values(ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
-static struct ntg_measure_output __ntg_object_measure_fn(
+static struct ntg_measure_out __ntg_object_measure_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_context* context)
+        const ntg_measure_ctx* ctx,
+        sarena* arena)
 {
     assert(drawable != NULL);
-    assert(context != NULL);
+    assert(ctx != NULL);
     assert(for_size != 0);
-    // if(for_size == 0) return (struct ntg_measure_output) {0};
+    // if(for_size == 0) return (struct ntg_measure_out) {0};
 
     const ntg_object* object = ntg_drawable_user(drawable);
 
-    struct ntg_measure_output result;
+    struct ntg_measure_out result;
     if(object->__wrapped_measure_fn != NULL)
     {
         result = object->__wrapped_measure_fn(&(object->__drawable),
-                orientation, for_size, context);
+                orientation, for_size, ctx, arena);
     }
-    else result = (struct ntg_measure_output) {0};
+    else result = (struct ntg_measure_out) {0};
 
     size_t user_min_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
         object->__min_size.x :
@@ -490,72 +495,75 @@ static void __ntg_object_constrain_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        const ntg_constrain_context* constrain_context,
-        const ntg_measure_context* measure_context,
-        ntg_constrain_output* output)
+        const ntg_constrain_ctx* constrain_ctx,
+        const ntg_measure_ctx* measure_ctx,
+        ntg_constrain_out* out,
+        sarena* arena)
 {
     assert(drawable != NULL);
-    assert(measure_context != NULL);
-    assert(constrain_context != NULL);
-    assert(output != NULL);
+    assert(measure_ctx != NULL);
+    assert(constrain_ctx != NULL);
+    assert(out != NULL);
 
     const ntg_object* object = ntg_drawable_user(drawable);
 
     /* Check if to call wrapped constrain fn */
     if((size == 0) || (object->__wrapped_constrain_fn == NULL))
     {
-        const ntg_drawable_vec* children = drawable->_get_children_fn(drawable);
+        const ntg_drawable_vec* children = drawable->_get_children_fn_(drawable);
         if(children == NULL) return;
 
         size_t i;
         struct ntg_constrain_result result = {0};
         for(i = 0; i < children->_count; i++)
         {
-            ntg_constrain_output_set(output, children->_data[i], result);
+            ntg_constrain_out_set(out, children->_data[i], result);
         }
     }
     else
     {
         object->__wrapped_constrain_fn(drawable, orientation,
-                size, constrain_context, measure_context,
-                output);
+                size, constrain_ctx, measure_ctx,
+                out, arena);
     }
 }
 
 static void __ntg_object_arrange_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        const ntg_arrange_context* context,
-        ntg_arrange_output* output)
+        const ntg_arrange_ctx* ctx,
+        ntg_arrange_out* out,
+        sarena* arena)
 {
     assert(drawable != NULL);
-    assert(context != NULL);
-    assert(output != NULL);
+    assert(ctx != NULL);
+    assert(out != NULL);
 
     const ntg_object* object = ntg_drawable_user(drawable);
 
     if(ntg_xy_size_is_zero(size) || (object->__wrapped_arrange_fn == NULL))
     {
-        const ntg_drawable_vec* children = drawable->_get_children_fn(drawable);
+        const ntg_drawable_vec* children = drawable->_get_children_fn_(drawable);
         if(children == NULL) return;
 
         size_t i;
         struct ntg_arrange_result result = {0};
         for(i = 0; i < children->_count; i++)
         {
-            ntg_arrange_output_set(output, children->_data[i], result);
+            ntg_arrange_out_set(out, children->_data[i], result);
         }
     }
     else
     {
-        object->__wrapped_arrange_fn(drawable, size, context, output);
+        object->__wrapped_arrange_fn(drawable, size, ctx, out, arena);
     }
 }
 
 static void __ntg_object_draw_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        ntg_drawing* out_drawing)
+        ntg_drawing* out_drawing,
+        sarena* arena)
 {
     assert(drawable != NULL);
     assert(out_drawing != NULL);
@@ -577,52 +585,52 @@ static void __ntg_object_draw_fn(
     }
 
     if(object->__wrapped_draw_fn != NULL)
-        object->__wrapped_draw_fn(drawable, size, out_drawing);
+        object->__wrapped_draw_fn(drawable, size, out_drawing, arena);
 }
 
 static bool __ntg_object_process_key_fn(
         ntg_drawable* drawable,
         struct nt_key_event key_event,
-        struct ntg_process_key_context context)
+        struct ntg_process_key_ctx ctx)
 {
     assert(drawable != NULL);
-    assert(context.scene != NULL);
+    assert(ctx.scene != NULL);
 
     ntg_object* object = ntg_drawable_user_(drawable);
     // ntg_drawable* drawable = &(object->__drawable);
 
     if(object->__wrapped_process_key_fn != NULL)
-        return object->__wrapped_process_key_fn(drawable, key_event, context);
+        return object->__wrapped_process_key_fn(drawable, key_event, ctx);
     else
         return false;
 }
 
 static void __ntg_object_on_focus_fn(
         ntg_drawable* drawable,
-        struct ntg_focus_context context)
+        struct ntg_focus_ctx ctx)
 {
     assert(drawable != NULL);
-    assert(context.scene != NULL);
+    assert(ctx.scene != NULL);
 
     ntg_object* object = ntg_drawable_user_(drawable);
     // ntg_drawable* drawable = &(object->__drawable);
 
     if(object->__wrapped_on_focus_fn != NULL)
-        object->__wrapped_on_focus_fn(drawable, context);
+        object->__wrapped_on_focus_fn(drawable, ctx);
 }
 
 static void __ntg_object_on_unfocus_fn(
         ntg_drawable* drawable,
-        struct ntg_unfocus_context context)
+        struct ntg_unfocus_ctx ctx)
 {
     assert(drawable != NULL);
-    assert(context.scene != NULL);
+    assert(ctx.scene != NULL);
 
     ntg_object* object = ntg_drawable_user_(drawable);
     // ntg_drawable* drawable = &(object->__drawable);
 
     if(object->__wrapped_on_unfocus_fn != NULL)
-        object->__wrapped_on_unfocus_fn(drawable, context);
+        object->__wrapped_on_unfocus_fn(drawable, ctx);
 }
 
 static ntg_drawable_vec_view __ntg_object_get_children_fn_(

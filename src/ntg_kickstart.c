@@ -20,7 +20,7 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
     ntg_loop* _loop = (ntg_loop*)loop;
     assert(loop != NULL);
 
-    ntg_db_renderer* renderer = (ntg_db_renderer*)malloc(sizeof(ntg_db_renderer));
+    ntg_def_renderer* renderer = (ntg_def_renderer*)malloc(sizeof(ntg_def_renderer));
     ntg_renderer* _renderer = (ntg_renderer*)renderer;
     assert(renderer != NULL);
 
@@ -37,7 +37,7 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
             loop_on_timeout_fn,
             loop_data);
 
-    __ntg_db_renderer_init__(renderer, _loop, renderer_data);
+    __ntg_def_renderer_init__(renderer, _loop, renderer_data);
 
     return (struct ntg_kickstart_basic_obj) {
         .renderer = renderer,
@@ -54,7 +54,7 @@ void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj)
 {
     assert(obj != NULL);
 
-    __ntg_db_renderer_deinit__(obj->renderer);
+    __ntg_def_renderer_deinit__(obj->renderer);
     __ntg_def_loop_deinit__(obj->loop);
     ntg_taskmaster_destroy(obj->taskmaster);
 

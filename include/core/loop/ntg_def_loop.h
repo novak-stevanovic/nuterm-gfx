@@ -17,13 +17,13 @@ typedef enum ntg_def_loop_process_key_mode
 } ntg_def_loop_process_key_mode;
 
 typedef bool (*ntg_def_loop_process_key_fn)(
-        ntg_loop_context* context,
+        ntg_loop_ctx* ctx,
         struct nt_key_event key);
 typedef void (*ntg_def_loop_on_resize_fn)(
-        ntg_loop_context* context,
+        ntg_loop_ctx* ctx,
         struct nt_resize_event resize);
 typedef void (*ntg_def_loop_on_timeout_fn)(
-        ntg_loop_context* context);
+        ntg_loop_ctx* ctx);
 
 struct ntg_def_loop
 {
@@ -58,7 +58,7 @@ ntg_def_loop_process_key_mode ntg_def_loop_get_process_key_mode(
 
 struct ntg_loop_status __ntg_def_loop_process_event_fn(
         ntg_loop* _loop,
-        ntg_loop_context* context,
+        ntg_loop_ctx* ctx,
         struct nt_event event);
 
 #endif // _NTG_DEF_LOOP_H_

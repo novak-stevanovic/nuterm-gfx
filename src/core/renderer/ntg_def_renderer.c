@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "core/renderer/ntg_db_renderer.h"
+#include "core/renderer/ntg_def_renderer.h"
 #include "base/ntg_cell.h"
 #include "core/loop/ntg_loop.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
@@ -12,18 +12,18 @@
 
 static void __listenable_handler(void* subscriber, const ntg_event* event);
 
-static void __full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size);
+static void __full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
 
-static void __full_render(ntg_db_renderer* renderer,
+static void __full_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size);
 
-static void __optimized_render(ntg_db_renderer* renderer,
+static void __optimized_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size);
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_db_renderer_init__(
-        ntg_db_renderer* renderer,
+void __ntg_def_renderer_init__(
+        ntg_def_renderer* renderer,
         ntg_loop* loop,
         void* data)
 {
@@ -32,7 +32,7 @@ void __ntg_db_renderer_init__(
 
     __ntg_renderer_init__(
             (ntg_renderer*)renderer,
-            __ntg_db_render_fn,
+            __ntg_def_renderer_render_fn,
             data);
 
     renderer->__backbuff = ntg_rcell_vgrid_new();
@@ -46,7 +46,7 @@ void __ntg_db_renderer_init__(
     renderer->__loop = loop;
 }
 
-void __ntg_db_renderer_deinit__(ntg_db_renderer* renderer)
+void __ntg_def_renderer_deinit__(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
 
@@ -66,14 +66,14 @@ void __ntg_db_renderer_deinit__(ntg_db_renderer* renderer)
     renderer->__loop = NULL;
 }
 
-void __ntg_db_render_fn(
+void __ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
         struct ntg_xy size)
 {
     assert(_renderer != NULL);
 
-    ntg_db_renderer* renderer = (ntg_db_renderer*)_renderer;
+    ntg_def_renderer* renderer = (ntg_def_renderer*)_renderer;
     
     nt_buffer_enable(renderer->__charbuff);
 
@@ -99,7 +99,7 @@ void __ntg_db_render_fn(
 
 /* -------------------------------------------------------------------------- */
 
-static void __full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size)
+static void __full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
 {
     ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
 
@@ -121,7 +121,7 @@ static void __full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size)
     nt_erase_scrollback(NULL);
 }
 
-static void __optimized_render(ntg_db_renderer* renderer,
+static void __optimized_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size)
 {
     struct ntg_xy old_back_buffer_size = ntg_rcell_vgrid_get_size(renderer->__backbuff);
@@ -149,7 +149,7 @@ static void __optimized_render(ntg_db_renderer* renderer,
     }
 }
 
-static void __full_render(ntg_db_renderer* renderer,
+static void __full_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size)
 {
     ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
@@ -175,7 +175,7 @@ static void __listenable_handler(void* _subscriber, const ntg_event* event)
     assert(_subscriber != NULL);
     assert(event != NULL);
 
-    ntg_db_renderer* renderer = (ntg_db_renderer*)_subscriber;
+    ntg_def_renderer* renderer = (ntg_def_renderer*)_subscriber;
 
     if(event->_type == NT_EVENT_RESIZE)
     {

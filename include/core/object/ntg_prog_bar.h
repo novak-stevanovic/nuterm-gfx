@@ -33,15 +33,17 @@ struct ntg_prog_bar
              __threshold_cell;
 };
 
-struct ntg_measure_output __ntg_prog_bar_measure_fn(
+struct ntg_measure_out __ntg_prog_bar_measure_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_context* context);
+        const ntg_measure_ctx* ctx,
+        sarena* arena);
 
 void __ntg_prog_bar_arrange_drawing_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        ntg_drawing* out_drawing);
+        ntg_drawing* out_drawing,
+        sarena* arena);
 
 #endif // _NTG_PROG_BAR_H_

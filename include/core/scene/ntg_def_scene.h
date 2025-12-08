@@ -3,12 +3,13 @@
 
 #include "core/scene/ntg_scene.h"
 
+typedef struct sarena sarena;
 typedef struct ntg_def_scene ntg_def_scene;
 
 typedef bool (*ntg_def_scene_process_key_fn)(
         ntg_def_scene* scene,
         struct nt_key_event key,
-        ntg_loop_context* loop_context);
+        ntg_loop_ctx* loop_ctx);
 
 typedef enum ntg_def_scene_process_key_mode
 {
@@ -24,6 +25,8 @@ struct ntg_def_scene
     
     ntg_def_scene_process_key_mode __process_key_mode;
     ntg_def_scene_process_key_fn __process_key_fn;
+
+    sarena* _layout_arena;
 };
 
 void __ntg_def_scene_init__(

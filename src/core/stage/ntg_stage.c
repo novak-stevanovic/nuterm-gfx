@@ -58,9 +58,9 @@ ntg_scene* ntg_stage_get_scene(ntg_stage* stage)
 bool ntg_stage_feed_key_event(
         ntg_stage* stage,
         struct nt_key_event key_event,
-        ntg_loop_context* loop_context)
+        ntg_loop_ctx* loop_ctx)
 {
     assert(stage != NULL);
 
-    return ntg_scene_feed_key_event(stage->__scene, key_event, loop_context);
+    return ntg_scene_feed_key_event(stage->__scene, key_event, loop_ctx);
 }

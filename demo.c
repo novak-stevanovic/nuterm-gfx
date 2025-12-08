@@ -16,13 +16,13 @@
 #define COUNT 100
 
 bool def_loop_process_key_fn(
-        ntg_loop_context* context,
+        ntg_loop_ctx* ctx,
         struct nt_key_event key)
 {
     if(nt_key_event_utf32_check(key, 'q', false))
     {
         ntg_log_log("loop received q");
-        ntg_loop_context_break(context);
+        ntg_loop_ctx_break(ctx);
         return true;
     }
     return false;
@@ -31,7 +31,7 @@ bool def_loop_process_key_fn(
 bool center2_process_key_fn(
         ntg_drawable* drawable,
         struct nt_key_event key,
-        struct ntg_process_key_context context)
+        struct ntg_process_key_ctx ctx)
 {
     // if(nt_key_event_utf32_check(key, 'f', false))
     // {
@@ -61,7 +61,7 @@ void __callback_fn(void* data, void* task_result)
 
 void center2_on_focus_fn(
         ntg_drawable* drawable,
-        struct ntg_focus_context context)
+        struct ntg_focus_ctx ctx)
 {
     ntg_color_block* cb = (ntg_color_block*)ntg_drawable_user_(drawable);
 
@@ -70,7 +70,7 @@ void center2_on_focus_fn(
 
 void center2_on_unfocus_fn(
         ntg_drawable* drawable,
-        struct ntg_unfocus_context context)
+        struct ntg_unfocus_ctx ctx)
 {
     ntg_color_block* cb = (ntg_color_block*)ntg_drawable_user_(drawable);
 
@@ -80,7 +80,7 @@ void center2_on_unfocus_fn(
 bool def_scene_process_key_fn(
         ntg_def_scene* scene,
         struct nt_key_event key,
-        ntg_loop_context* loop_context)
+        ntg_loop_ctx* loop_ctx)
 {
     ntg_scene* _scene = (ntg_scene*)scene;
 
@@ -93,8 +93,8 @@ bool def_scene_process_key_fn(
     {
         ntg_log_log("scene received w");
 
-        ntg_taskmaster_channel* taskmaster = ntg_loop_context_get_taskmaster(
-                loop_context);
+        ntg_taskmaster_channel* taskmaster = ntg_loop_ctx_get_taskmaster(
+                loop_ctx);
 
         ntg_log_log("calling ntg_taskmaster_execute_task");
         ntg_taskmaster_execute_task(taskmaster,
@@ -106,7 +106,7 @@ bool def_scene_process_key_fn(
     else if(nt_key_event_utf32_check(key, 'f', false))
     {
         ntg_object* scene_object = (ntg_object*)_scene->_data;
-        ntg_scene_focus(_scene, ntg_object_get_drawable_(scene_object));
+        ntg_scene_focus(_scene, ntg_object_to_drawable_(scene_object));
         ntg_log_log("Focused center middle child");
         return true;
     }
@@ -131,7 +131,7 @@ static void gui_fn1(void* data)
     __ntg_color_block_init__(&root, nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
             NULL, NULL, NULL, NULL);
 
-    ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
+    ntg_scene_set_root(s._scene, ntg_object_to_drawable_(_root));
 
     ntg_loop_run(b._loop, NULL);
 
@@ -211,8 +211,8 @@ static void gui_fn2(void* data)
     struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);
 
-    ntg_scene_set_root(s._scene, ntg_object_get_drawable_(_root));
-    ntg_scene_focus(s._scene, ntg_object_get_drawable(_center2));
+    ntg_scene_set_root(s._scene, ntg_object_to_drawable_(_root));
+    ntg_scene_focus(s._scene, ntg_object_to_drawable_(_center2));
     ntg_loop_run(b._loop, NULL);
 
     __ntg_border_box_deinit__(&root);

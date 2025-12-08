@@ -57,13 +57,14 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
     color_block->__color = color;
 }
 
-struct ntg_measure_output __ntg_color_block_measure_fn(
+struct ntg_measure_out __ntg_color_block_measure_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_context* context)
+        const ntg_measure_ctx* ctx,
+        sarena* arena)
 {
-    return (struct ntg_measure_output) {
+    return (struct ntg_measure_out) {
         .min_size = NTG_COLOR_BLOCK_DEFAULT_SIZE,
         .natural_size = NTG_COLOR_BLOCK_DEFAULT_SIZE,
         .max_size = NTG_SIZE_MAX,
@@ -73,7 +74,8 @@ struct ntg_measure_output __ntg_color_block_measure_fn(
 void __ntg_color_block_draw_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        ntg_drawing* out_drawing)
+        ntg_drawing* out_drawing,
+        sarena* arena)
 {
     const ntg_color_block* block = ntg_drawable_user(drawable);
     size_t i, j;

@@ -10,7 +10,7 @@ typedef struct ntg_scene ntg_scene;
 typedef struct ntg_drawable ntg_drawable;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_delegate ntg_event_delegate;
-typedef struct ntg_loop_context ntg_loop_context;
+typedef struct ntg_loop_ctx ntg_loop_ctx;
 struct ntg_event_sub;
 
 #define NTG_SCENE(scn_ptr) ((ntg_scene*)(scn_ptr))
@@ -24,7 +24,7 @@ typedef void (*ntg_scene_layout_fn)(
 typedef bool (*ntg_scene_process_key_fn)(
         ntg_scene* scene,
         struct nt_key_event key,
-        ntg_loop_context* loop_context);
+        ntg_loop_ctx* loop_ctx);
 
 typedef void (*ntg_scene_on_register_fn)(
         ntg_scene* scene,
@@ -114,7 +114,7 @@ ntg_drawable* ntg_scene_get_root(ntg_scene* scene);
 bool ntg_scene_feed_key_event(
         ntg_scene* scene,
         struct nt_key_event key,
-        ntg_loop_context* loop_context);
+        ntg_loop_ctx* loop_ctx);
 
 /* -------------------------------------------------------------------------- */
 

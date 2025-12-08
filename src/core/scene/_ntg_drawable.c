@@ -2,26 +2,24 @@
 
 #include "core/scene/ntg_drawable.h"
 #include "core/scene/shared/ntg_drawable_vec.h"
-#include "shared/ntg_log.h"
 
 static bool __ntg_process_key_fn_default(
         ntg_drawable* drawable,
         struct nt_key_event key_event,
-        struct ntg_process_key_context context)
+        struct ntg_process_key_ctx ctx)
 {
     return false;
 }
 
 static void __ntg_on_focus_fn_default(
         ntg_drawable* drawable,
-        struct ntg_focus_context context)
+        struct ntg_focus_ctx ctx)
 {
-    ntg_log_log("?");
 }
 
 static void __ntg_on_unfocus_fn_default(
         ntg_drawable* drawable,
-        struct ntg_unfocus_context context)
+        struct ntg_unfocus_ctx ctx)
 {
 }
 
@@ -52,21 +50,21 @@ void __ntg_drawable_init__(ntg_drawable* drawable, /* non-NULL */
     assert(get_parent_fn != NULL);
 
     drawable->__user = user;
-    drawable->_measure_fn = measure_fn;
-    drawable->_constrain_fn = constrain_fn;
-    drawable->_arrange_fn = arrange_fn;
-    drawable->_draw_fn = draw_fn;
-    drawable->_get_children_fn_ = get_children_fn_;
-    drawable->_get_children_fn = get_children_fn;
-    drawable->_get_parent_fn_ = get_parent_fn_;
-    drawable->_get_parent_fn = get_parent_fn;
-    drawable->_process_key_fn = (process_key_fn != NULL) ?
+    drawable->_measure_fn_ = measure_fn;
+    drawable->_constrain_fn_ = constrain_fn;
+    drawable->_arrange_fn_ = arrange_fn;
+    drawable->_draw_fn_ = draw_fn;
+    drawable->_get_children_fn__ = get_children_fn_;
+    drawable->_get_children_fn_ = get_children_fn;
+    drawable->_get_parent_fn__ = get_parent_fn_;
+    drawable->_get_parent_fn_ = get_parent_fn;
+    drawable->_process_key_fn_ = (process_key_fn != NULL) ?
         process_key_fn :
         __ntg_process_key_fn_default;
-    drawable->_on_focus_fn = (on_focus_fn != NULL) ?
+    drawable->_on_focus_fn_ = (on_focus_fn != NULL) ?
         on_focus_fn :
         __ntg_on_focus_fn_default;
-    drawable->_on_unfocus_fn = (on_unfocus_fn != NULL) ?
+    drawable->_on_unfocus_fn_ = (on_unfocus_fn != NULL) ?
         on_unfocus_fn :
         __ntg_on_unfocus_fn_default;
 }
@@ -97,13 +95,13 @@ bool ntg_drawable_is_ancestor(const ntg_drawable* drawable, const ntg_drawable* 
     assert(drawable != NULL);
     assert(ancestor != NULL);
 
-    const ntg_drawable* it_drawable = drawable->_get_parent_fn(drawable);
+    const ntg_drawable* it_drawable = drawable->_get_parent_fn_(drawable);
 
     while(it_drawable != NULL)
     {
         if(it_drawable == ancestor) return true;
 
-        it_drawable = (const ntg_drawable*)(it_drawable->_get_parent_fn(drawable));
+        it_drawable = (const ntg_drawable*)(it_drawable->_get_parent_fn_(drawable));
     }
 
     return false;
@@ -125,8 +123,9 @@ void ntg_drawable_tree_perform(ntg_drawable* drawable,
     assert(drawable != NULL);
     assert(perform_fn != NULL);
 
-    ntg_drawable_vec_view children = drawable->_get_children_fn_(drawable);
+    ntg_drawable_vec_view children = drawable->_get_children_fn__(drawable);
     size_t count = ntg_drawable_vec_view_count(&children);
+    ntg_drawable* it_child;
 
     size_t i;
     if(mode == NTG_DRAWABLE_PERFORM_TOP_DOWN)
@@ -135,18 +134,16 @@ void ntg_drawable_tree_perform(ntg_drawable* drawable,
 
         for(i = 0; i < count; i++)
         {
-            ntg_drawable_tree_perform(
-                    ntg_drawable_vec_view_at(&children, i),
-                    mode, perform_fn, data);
+            it_child = ntg_drawable_vec_view_at(&children, i);
+            ntg_drawable_tree_perform(it_child, mode, perform_fn, data);
         }
     }
     else
     {
         for(i = 0; i < count; i++)
         {
-            ntg_drawable_tree_perform(
-                    ntg_drawable_vec_view_at(&children, i),
-                    mode, perform_fn, data);
+            it_child = ntg_drawable_vec_view_at(&children, i);
+            ntg_drawable_tree_perform(it_child, mode, perform_fn, data);
         }
 
         perform_fn(drawable, data);

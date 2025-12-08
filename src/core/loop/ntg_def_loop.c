@@ -71,7 +71,7 @@ ntg_def_loop_process_key_mode ntg_def_loop_get_process_key_mode(
 
 struct ntg_loop_status __ntg_def_loop_process_event_fn(
         ntg_loop* _loop,
-        ntg_loop_context* context,
+        ntg_loop_ctx* ctx,
         struct nt_event event)
 {
     assert(_loop != NULL);
@@ -79,8 +79,8 @@ struct ntg_loop_status __ntg_def_loop_process_event_fn(
     ntg_def_loop* loop = (ntg_def_loop*)_loop;
     ntg_renderer* renderer = loop->__renderer;
     unsigned int framerate = loop->__framerate;
-    ntg_stage* curr_stage = ntg_loop_context_get_stage(context);
-    struct ntg_xy app_size = ntg_loop_context_get_app_size(context);
+    ntg_stage* curr_stage = ntg_loop_ctx_get_stage(ctx);
+    struct ntg_xy app_size = ntg_loop_ctx_get_app_size(ctx);
 
     const ntg_stage_drawing* drawing;
     unsigned int timeout;
@@ -96,21 +96,21 @@ struct ntg_loop_status __ntg_def_loop_process_event_fn(
                 if(curr_stage != NULL)
                 {
                     consumed = ntg_stage_feed_key_event(curr_stage,
-                            event.key_data, context);
+                            event.key_data, ctx);
                 }
                 if((!consumed) && (loop->__process_key_fn != NULL))
-                    consumed = loop->__process_key_fn(context, event.key_data);
+                    consumed = loop->__process_key_fn(ctx, event.key_data);
             }
             else
             {
                 bool consumed = false;
                 if((loop->__process_key_fn != NULL))
-                    consumed = loop->__process_key_fn(context, event.key_data);
+                    consumed = loop->__process_key_fn(ctx, event.key_data);
 
                 if((!consumed) && (curr_stage != NULL))
                 {
                     consumed = ntg_stage_feed_key_event(curr_stage,
-                            event.key_data, context);
+                            event.key_data, ctx);
                 }
             }
             break;
@@ -120,7 +120,7 @@ struct ntg_loop_status __ntg_def_loop_process_event_fn(
             timeout = ((1.0 * 1000) / framerate) - loop->__it_elapsed;
 
             if(loop->__on_resize_fn != NULL)
-                loop->__on_resize_fn(context, event.resize_data);
+                loop->__on_resize_fn(ctx, event.resize_data);
             break;
 
         case NT_EVENT_TIMEOUT:
@@ -137,7 +137,7 @@ struct ntg_loop_status __ntg_def_loop_process_event_fn(
             ntg_renderer_render(renderer, drawing, app_size);
 
             if(loop->__on_timeout_fn != NULL)
-                loop->__on_timeout_fn(context);
+                loop->__on_timeout_fn(ctx);
 
             break;
     }

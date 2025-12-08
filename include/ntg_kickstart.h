@@ -5,7 +5,7 @@
 
 #include "core/object/ntg_object.h"
 #include "core/loop/ntg_def_loop.h"
-#include "core/renderer/ntg_db_renderer.h"
+#include "core/renderer/ntg_def_renderer.h"
 #include "core/loop/ntg_taskmaster.h"
 #include "core/stage/ntg_def_stage.h"
 #include "core/scene/ntg_def_scene.h"
@@ -17,7 +17,7 @@ struct ntg_kickstart_basic_obj
 
     ntg_taskmaster* taskmaster;
 
-    ntg_db_renderer* renderer;
+    ntg_def_renderer* renderer;
     ntg_renderer* _renderer;
 };
 

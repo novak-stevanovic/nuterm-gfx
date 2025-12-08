@@ -23,15 +23,17 @@ void __ntg_color_block_deinit__(ntg_color_block* color_block);
 nt_color ntg_color_block_get_color(ntg_color_block* color_block);
 void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
 
-struct ntg_measure_output __ntg_color_block_measure_fn(
+struct ntg_measure_out __ntg_color_block_measure_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_context* context);
+        const ntg_measure_ctx* ctx,
+        sarena* arena);
 
 void __ntg_color_block_draw_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        ntg_drawing* out_drawing);
+        ntg_drawing* out_drawing,
+        sarena* arena);
 
 #endif // _NTG_COLOR_BLOCK_H_

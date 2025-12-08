@@ -8,7 +8,7 @@
 #include "shared/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* DECLARATIONS */
 /* -------------------------------------------------------------------------- */
 
 #define NTG_OBJECT(obj_ptr) ((ntg_object*)(obj_ptr))
@@ -20,26 +20,20 @@ typedef struct ntg_event_sub ntg_event_sub;
 typedef struct ntg_object_fx ntg_object_fx;
 typedef struct ntg_object_fx_vec ntg_object_fx_vec;
 
-/* ---------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* NTG_OBJECT_FX */
+/* -------------------------------------------------------------------------- */
 
-typedef enum ntg_object_get_parent_opts
-{
-    NTG_OBJECT_GET_PARENT_INCL_DECORATOR,
-    NTG_OBJECT_GET_PARENT_EXCL_DECORATOR
-} ntg_object_get_parent_opts;
-
-// typedef enum ntg_object_perform_mode
-// {
-//     NTG_OBJECT_PERFORM_TOP_DOWN,
-//     NTG_OBJECT_PERFORM_BOTTOM_UP
-// } ntg_object_perform_mode;
-
+/* Each ntg_object defines its object fx interface - a part of it that is
+ * modifiable via object fx. */
 typedef void* (*ntg_object_get_fx_interface_fn)(ntg_object* object);
 
+/* Resets the object's fx to base values. */
 typedef void (*ntg_object_reset_fx_fn)(
         const ntg_object* object,
         void* object_fx_interface);
 
+/* Applies specified fx to object fx interface */
 typedef void (*ntg_object_fx_apply_fn)(
         const ntg_object* object,
         struct ntg_object_fx fx,
@@ -50,11 +44,14 @@ struct ntg_object_fx
     unsigned int object_type;
     ntg_object_fx_apply_fn apply_fn;
 
-    /* ptr to dynamically allocated data */
+    /* Pointer to dynamically allocated data.
+     * Freed when the object is deinitalized. */
     void* data;
 };
 
-/* ---------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* NTG_OBJECT PUBLIC */
+/* -------------------------------------------------------------------------- */
 
 unsigned int ntg_object_get_type(const ntg_object* object);
 bool ntg_object_is_widget(const ntg_object* object);
@@ -64,9 +61,15 @@ unsigned int ntg_object_get_id(const ntg_object* object);
 
 ntg_object* ntg_object_get_group_root(ntg_object* object);
 
+typedef enum ntg_object_get_parent_opts
+{
+    NTG_OBJECT_GET_PARENT_INCL_DECORATOR,
+    NTG_OBJECT_GET_PARENT_EXCL_DECORATOR
+} ntg_object_get_parent_opts;
+
 /* Gets object's parent node. */
 ntg_object* ntg_object_get_parent(ntg_object* object,
-        ntg_object_get_parent_opts mode);
+        ntg_object_get_parent_opts opts);
 
 /* Returns base widget for node group(non-decorator). */
 ntg_object* ntg_object_get_base_widget(ntg_object* object);
@@ -97,20 +100,26 @@ const ntg_object_fx_vec* ntg_object_get_fx(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-ntg_drawable* ntg_object_get_drawable_(ntg_object* object);
-const ntg_drawable* ntg_object_get_drawable(const ntg_object* object);
+ntg_drawable* ntg_object_to_drawable_(ntg_object* object);
+const ntg_drawable* ntg_object_to_drawable(const ntg_object* object);
 
 ntg_listenable* ntg_object_get_listenable(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-// void ntg_object_tree_perform(ntg_object* object,
-//         ntg_object_perform_mode mode,
-//         void (*perform_fn)(ntg_object* object, void* data),
-//         void* data);
+typedef enum ntg_object_perform_mode
+{
+    NTG_OBJECT_PERFORM_TOP_DOWN,
+    NTG_OBJECT_PERFORM_BOTTOM_UP
+} ntg_object_perform_mode;
+
+void ntg_object_tree_perform(ntg_object* object,
+        ntg_object_perform_mode mode,
+        void (*perform_fn)(ntg_object* object, void* data),
+        void* data);
 
 /* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED */
+/* NTG_OBJECT INTERNAL */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object
@@ -159,8 +168,6 @@ struct ntg_object
     void* _data;
 };
 
-/* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED API */
 /* -------------------------------------------------------------------------- */
 
 void __ntg_object_init__(ntg_object* object,

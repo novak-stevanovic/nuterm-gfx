@@ -66,11 +66,12 @@ double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar)
     return prog_bar->__percentage;
 }
 
-struct ntg_measure_output __ntg_prog_bar_measure_fn(
+struct ntg_measure_out __ntg_prog_bar_measure_fn(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_context* context)
+        const ntg_measure_ctx* ctx,
+        sarena* arena)
 {
     assert(drawable != NULL);
 
@@ -78,7 +79,7 @@ struct ntg_measure_output __ntg_prog_bar_measure_fn(
 
     if(orientation == prog_bar->__orientation)
     {
-        return (struct ntg_measure_output) {
+        return (struct ntg_measure_out) {
             .min_size = 10,
             .natural_size = 10,
             .max_size = SIZE_MAX 
@@ -86,7 +87,7 @@ struct ntg_measure_output __ntg_prog_bar_measure_fn(
     }
     else
     {
-        return (struct ntg_measure_output) {
+        return (struct ntg_measure_out) {
             .min_size = 1,
             .natural_size = 1,
             .max_size = SIZE_MAX 
@@ -97,7 +98,8 @@ struct ntg_measure_output __ntg_prog_bar_measure_fn(
 void __ntg_prog_bar_arrange_drawing_fn(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        ntg_drawing* out_drawing)
+        ntg_drawing* out_drawing,
+        sarena* arena)
 {
     assert(drawable != NULL);
 

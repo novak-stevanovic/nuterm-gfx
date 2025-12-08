@@ -6,7 +6,7 @@
 #include "core/loop/ntg_taskmaster.h"
 #include "nt.h"
 
-struct ntg_loop_context
+struct ntg_loop_ctx
 {
     ntg_stage *stage, *pending_stage;
     bool loop;
@@ -15,53 +15,53 @@ struct ntg_loop_context
     void* data;
 };
 
-void __ntg_loop_context_init__(ntg_loop_context* context,
+void __ntg_loop_ctx_init__(ntg_loop_ctx* ctx,
         ntg_stage* init_stage, struct ntg_xy app_size,
         ntg_taskmaster_channel* taskmaster, void* data);
-static void __ntg_loop_context_deinit__(ntg_loop_context* context);
+static void __ntg_loop_ctx_deinit__(ntg_loop_ctx* ctx);
 
 /* -------------------------------------------------------------------------- */
 
-ntg_stage* ntg_loop_context_get_stage(ntg_loop_context* context)
+ntg_stage* ntg_loop_ctx_get_stage(ntg_loop_ctx* ctx)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
 
-    return context->stage;
+    return ctx->stage;
 }
 
-void ntg_loop_context_set_stage(ntg_loop_context* context, ntg_stage* stage)
+void ntg_loop_ctx_set_stage(ntg_loop_ctx* ctx, ntg_stage* stage)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
 
-    context->pending_stage = stage;
+    ctx->pending_stage = stage;
 }
 
-void ntg_loop_context_break(ntg_loop_context* context)
+void ntg_loop_ctx_break(ntg_loop_ctx* ctx)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
 
-    context->loop = false;
+    ctx->loop = false;
 }
 
-struct ntg_xy ntg_loop_context_get_app_size(ntg_loop_context* context)
+struct ntg_xy ntg_loop_ctx_get_app_size(ntg_loop_ctx* ctx)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
 
-    return context->app_size;
+    return ctx->app_size;
 }
 
-ntg_taskmaster_channel* ntg_loop_context_get_taskmaster(ntg_loop_context* context)
+ntg_taskmaster_channel* ntg_loop_ctx_get_taskmaster(ntg_loop_ctx* ctx)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
 
-    return context->taskmaster;
+    return ctx->taskmaster;
 }
 
-void* ntg_loop_context_get_data(ntg_loop_context* context)
+void* ntg_loop_ctx_get_data(ntg_loop_ctx* ctx)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
 
-    return context->data;
+    return ctx->data;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -92,16 +92,19 @@ void __ntg_loop_deinit__(ntg_loop* loop)
     loop->__delegate = NULL;
 }
 
-void ntg_loop_run(ntg_loop* loop, void* context_data)
+void ntg_loop_run(ntg_loop* loop, void* ctx_data)
 {
     assert(loop != NULL);
 
     struct ntg_xy app_size;
     nt_get_term_size(&app_size.x, &app_size.y);
 
-    ntg_loop_context context;
-    __ntg_loop_context_init__(&context, loop->__init_stage, app_size,
-            ntg_taskmaster_get_channel(loop->__taskmaster), context_data);
+    ntg_loop_ctx ctx;
+    __ntg_loop_ctx_init__(&ctx,
+            loop->__init_stage,
+            app_size,
+            ntg_taskmaster_get_channel(loop->__taskmaster),
+            ctx_data);
 
     /* loop */
     struct ntg_loop_status status;
@@ -117,17 +120,17 @@ void ntg_loop_run(ntg_loop* loop, void* context_data)
     nt_status _status;
     while(true)
     {
-        if(!context.loop) break;
-        if(context.pending_stage != NULL)
+        if(!ctx.loop) break;
+        if(ctx.pending_stage != NULL)
         {
-            context.stage = context.pending_stage;
-            context.pending_stage = NULL;
+            ctx.stage = ctx.pending_stage;
+            ctx.pending_stage = NULL;
         }
 
         _nt_event = nt_wait_for_event(timeout, &_status);
         // if(_status == NT_ERR_UNEXPECTED) break;
 
-        status = loop->__process_event_fn(loop, &context, _nt_event);
+        status = loop->__process_event_fn(loop, &ctx, _nt_event);
         timeout = status.timeout;
 
         switch(_nt_event.type)
@@ -147,7 +150,7 @@ void ntg_loop_run(ntg_loop* loop, void* context_data)
                 app_size = ntg_xy(
                         _nt_event.resize_data.width,
                         _nt_event.resize_data.height);
-                context.app_size = app_size;
+                ctx.app_size = app_size;
                 resize_data.new = app_size;
                 __ntg_event_init__(
                         &_ntg_event,
@@ -163,7 +166,7 @@ void ntg_loop_run(ntg_loop* loop, void* context_data)
         }
     }
 
-    __ntg_loop_context_deinit__(&context);
+    __ntg_loop_ctx_deinit__(&ctx);
 }
 
 ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop)
@@ -175,27 +178,27 @@ ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop)
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_loop_context_init__(ntg_loop_context* context,
+void __ntg_loop_ctx_init__(ntg_loop_ctx* ctx,
         ntg_stage* init_stage, struct ntg_xy app_size,
         ntg_taskmaster_channel* taskmaster, void* data)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
     assert(init_stage != NULL);
-    
-    context->pending_stage = init_stage;
-    context->loop = true;
-    context->app_size = app_size;
-    context->taskmaster = taskmaster;
-    context->data = data;
+
+    ctx->pending_stage = init_stage;
+    ctx->loop = true;
+    ctx->app_size = app_size;
+    ctx->taskmaster = taskmaster;
+    ctx->data = data;
 }
 
-void __ntg_loop_context_deinit__(ntg_loop_context* context)
+void __ntg_loop_ctx_deinit__(ntg_loop_ctx* ctx)
 {
-    assert(context != NULL);
+    assert(ctx != NULL);
     
-    context->pending_stage = NULL;
-    context->loop = false;
-    context->app_size = ntg_xy(0, 0);
-    context->taskmaster = NULL;
-    context->data = NULL;
+    ctx->pending_stage = NULL;
+    ctx->loop = false;
+    ctx->app_size = ntg_xy(0, 0);
+    ctx->taskmaster = NULL;
+    ctx->data = NULL;
 }
