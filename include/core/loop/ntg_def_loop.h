@@ -52,7 +52,7 @@ void __ntg_def_loop_init__(
 void __ntg_def_loop_deinit__(ntg_def_loop* loop);
 
 void ntg_def_loop_set_key_mode(ntg_def_loop* loop, ntg_def_loop_key_mode mode);
-ntg_def_loop_key_mode ntg_def_loop_get_key_mode( const ntg_def_loop* loop);
+ntg_def_loop_key_mode ntg_def_loop_get_key_mode(const ntg_def_loop* loop);
 
 struct ntg_loop_status __ntg_def_loop_process_event_fn(
         ntg_loop* _loop,

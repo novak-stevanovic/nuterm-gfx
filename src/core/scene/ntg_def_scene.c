@@ -14,12 +14,10 @@ static void __measure2_fn(ntg_drawable* drawable, void* _layout_data);
 static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data);
 static void __arrange_fn(ntg_drawable* drawable, void* _layout_data);
 static void __draw_fn(ntg_drawable* drawable, void* _layout_data);
-static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,
-        ntg_loop_ctx* loop_ctx);
 
 void __ntg_def_scene_init__(
         ntg_def_scene* scene,
-        ntg_def_scene_process_key_fn process_key_fn,
+        ntg_scene_process_key_fn process_key_fn,
         void* data)
 {
     assert(scene != NULL);
@@ -28,11 +26,8 @@ void __ntg_def_scene_init__(
             __ntg_def_scene_layout_fn,
             NULL,
             NULL,
-            __process_key_fn,
+            process_key_fn,
             data);
-
-    scene->__key_mode = NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST;
-    scene->__process_key_fn = process_key_fn;
 
     sa_err _err;
     scene->_layout_arena = sarena_create(100000, &_err);
@@ -45,27 +40,8 @@ void __ntg_def_scene_deinit__(ntg_def_scene* scene)
 
     __ntg_scene_deinit__((ntg_scene*)scene);
 
-    scene->__key_mode = NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST;
-    scene->__process_key_fn = NULL;
-
     sarena_destroy(scene->_layout_arena);
     scene->_layout_arena = NULL;
-}
-
-void ntg_def_scene_set_key_mode(ntg_def_scene* scene,
-        ntg_def_scene_key_mode mode)
-{
-    assert(scene != NULL);
-
-    scene->__key_mode = mode;
-}
-
-ntg_def_scene_key_mode ntg_def_scene_get_key_mode(
-        const ntg_def_scene* scene)
-{
-    assert(scene != NULL);
-
-    return scene->__key_mode;
 }
 
 struct ntg_layout_data
@@ -352,36 +328,36 @@ static void __draw_fn(ntg_drawable* drawable, void* _layout_data)
         drawable->_draw_fn_(drawable, node->size, node->drawing, scene->_layout_arena);
 }
 
-static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,
-        ntg_loop_ctx* loop_ctx)
-{
-    assert(_scene != NULL);
-
-    ntg_def_scene* scene = (ntg_def_scene*)_scene;
-
-    ntg_drawable* focused = _scene->_focused;
-
-    struct ntg_process_key_ctx ctx = {
-        .scene = _scene,
-        .loop_ctx = loop_ctx
-    };
-
-    bool consumed = false;
-    if(scene->__key_mode == NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST)
-    {
-        consumed = scene->__process_key_fn(scene, key, loop_ctx);
-
-        if((!consumed) && (focused != NULL))
-            consumed = focused->_process_key_fn_(focused, key, ctx);
-    }
-    else
-    {
-        if(focused != NULL)
-            consumed = focused->_process_key_fn_(focused, key, ctx);
-
-        if(!consumed)
-            consumed = scene->__process_key_fn(scene, key, loop_ctx);
-    }
-
-    return consumed;
-}
+// static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,
+//         ntg_loop_ctx* loop_ctx)
+// {
+//     assert(_scene != NULL);
+//
+//     ntg_def_scene* scene = (ntg_def_scene*)_scene;
+//
+//     ntg_drawable* focused = _scene->_focused;
+//
+//     struct ntg_process_key_ctx ctx = {
+//         .scene = _scene,
+//         .loop_ctx = loop_ctx
+//     };
+//
+//     bool consumed = false;
+//     if(scene->__key_mode == NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST)
+//     {
+//         consumed = scene->__process_key_fn(scene, key, loop_ctx);
+//
+//         if((!consumed) && (focused != NULL))
+//             consumed = focused->_process_key_fn_(focused, key, ctx);
+//     }
+//     else
+//     {
+//         if(focused != NULL)
+//             consumed = focused->_process_key_fn_(focused, key, ctx);
+//
+//         if(!consumed)
+//             consumed = scene->__process_key_fn(scene, key, loop_ctx);
+//     }
+//
+//     return consumed;
+// }

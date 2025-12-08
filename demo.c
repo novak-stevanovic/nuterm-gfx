@@ -77,8 +77,8 @@ void center2_on_unfocus_fn(
     ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 70, 70)));
 }
 
-bool def_scene_process_key_fn(
-        ntg_def_scene* scene,
+bool scene_process_key_fn(
+        ntg_scene* scene,
         struct nt_key_event key,
         ntg_loop_ctx* loop_ctx)
 {
@@ -116,8 +116,16 @@ bool def_scene_process_key_fn(
         ntg_scene_focus(_scene, NULL);
         return true;
     }
-
-    return false;
+    else 
+    {
+        struct ntg_process_key_ctx ctx = {
+            .scene = _scene,
+            .loop_ctx = loop_ctx
+        };
+        if(scene->_focused != NULL)
+            return scene->_focused->_process_key_fn_(scene->_focused, key, ctx);
+        else return false;
+    }
 }
 
 static void gui_fn1(void* data)
@@ -206,7 +214,7 @@ static void gui_fn2(void* data)
     ntg_border_box_set_center(&root, _center);
     ntg_border_box_set_south(&root, _south);
 
-    struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(def_scene_process_key_fn,
+    struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
             _center2, NULL);
     struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);

@@ -20,7 +20,10 @@ typedef void (*ntg_scene_layout_fn)(
         ntg_scene* scene,
         struct ntg_xy size);
 
-/* Returns if the scene processed the key event. */
+/* Returns if the scene processed the key event.
+ *
+ * A default implementation of this fn exists - the scene will feed the key to
+ * the focused object. */
 typedef bool (*ntg_scene_process_key_fn)(
         ntg_scene* scene,
         struct nt_key_event key,

@@ -17,6 +17,8 @@ static void __init_default_values(ntg_scene* scene);
 static void __add_to_registered_fn(ntg_drawable* drawable, void* _registered);
 static void __update_focused(ntg_scene* scene);
 static void __scan_scene(ntg_scene* scene);
+static bool __process_key_fn_def(ntg_scene* scene,
+        struct nt_key_event key, ntg_loop_ctx* loop_ctx);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
@@ -41,7 +43,7 @@ void __ntg_scene_init__(
     scene->__layout_fn = layout_fn;
     scene->__on_register_fn = on_register_fn;
     scene->__on_unregister_fn = on_unregister_fn;
-    scene->__process_key_fn = process_key_fn;
+    scene->__process_key_fn = (process_key_fn != NULL) ? process_key_fn : __process_key_fn_def;
     scene->_data = data;
 
     scene->_delegate = ntg_event_delegate_new();
@@ -257,4 +259,17 @@ static void __scan_scene(ntg_scene* scene)
 
     __ntg_drawable_vec_deinit__(&current);
     __ntg_cdrawable_vec_deinit__(&alr_registered);
+}
+
+static bool __process_key_fn_def(ntg_scene* scene,
+        struct nt_key_event key, ntg_loop_ctx* loop_ctx)
+{
+    assert(scene != NULL);
+
+    struct ntg_process_key_ctx ctx = {
+        .scene = scene,
+        .loop_ctx = loop_ctx
+    };
+
+    return scene->_focused->_process_key_fn_(scene->_focused, key, ctx);
 }

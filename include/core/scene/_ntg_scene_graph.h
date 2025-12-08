@@ -16,6 +16,7 @@ struct _ntg_scene_node
     struct ntg_xy size;
     struct ntg_xy position;
     ntg_drawing* drawing;
+    void* data;
 };
 
 ntg_scene_graph* ntg_scene_graph_new();
