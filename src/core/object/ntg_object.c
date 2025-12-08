@@ -461,13 +461,13 @@ static struct ntg_measure_out __ntg_object_measure_fn(
     }
     else result = (struct ntg_measure_out) {0};
 
-    size_t user_min_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
+    size_t user_min_size = (orientation == NTG_ORIENTATION_H) ?
         object->__min_size.x :
         object->__min_size.y;
-    size_t user_max_size = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
+    size_t user_max_size = (orientation == NTG_ORIENTATION_H) ?
         object->__max_size.x :
         object->__max_size.y;
-    size_t user_grow = (orientation == NTG_ORIENTATION_HORIZONTAL) ?
+    size_t user_grow = (orientation == NTG_ORIENTATION_H) ?
         object->__grow.x :
         object->__grow.y;
 

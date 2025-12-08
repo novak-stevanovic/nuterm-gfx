@@ -149,7 +149,7 @@ static void gui_fn2(void* data)
 
     ntg_label north;
     ntg_object* _north = (ntg_object*)&north;
-    __ntg_label_init__(&north, NTG_ORIENTATION_HORIZONTAL, NULL, NULL, NULL, NULL);
+    __ntg_label_init__(&north, NTG_ORIENTATION_H, NULL, NULL, NULL, NULL);
     struct ntg_str_view top_text = ntg_str_view_from_cstr("Novak");
     ntg_label_set_text(&north, top_text);
     struct nt_gfx top_gfx = {
@@ -164,7 +164,7 @@ static void gui_fn2(void* data)
 
     ntg_box center;
     ntg_object* _center = (ntg_object*)&center;
-    __ntg_box_init__(&center, NTG_ORIENTATION_VERTICAL,
+    __ntg_box_init__(&center, NTG_ORIENTATION_V,
             NTG_ALIGNMENT_2, NTG_ALIGNMENT_2, NULL, NULL, NULL, NULL);
 
     ntg_color_block center1, center2, center3;
@@ -183,7 +183,7 @@ static void gui_fn2(void* data)
 
     ntg_box south;
     ntg_object* _south = (ntg_object*)&south;
-    __ntg_box_init__(&south, NTG_ORIENTATION_HORIZONTAL, NTG_ALIGNMENT_2,
+    __ntg_box_init__(&south, NTG_ORIENTATION_H, NTG_ALIGNMENT_2,
             NTG_ALIGNMENT_2, NULL, NULL, NULL, NULL);
     // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
 

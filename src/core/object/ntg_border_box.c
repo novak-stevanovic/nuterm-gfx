@@ -90,7 +90,7 @@ struct ntg_measure_out __ntg_border_box_measure_fn(
         (struct ntg_measure_data) {0};
 
     size_t min, natural, max;
-    if(orientation == NTG_ORIENTATION_HORIZONTAL)
+    if(orientation == NTG_ORIENTATION_H)
     {
         min = _max3_size(north_data.min_size,
                 east_data.min_size + center_data.min_size + west_data.min_size,
@@ -177,7 +177,7 @@ void __ntg_border_box_constrain_fn(
     struct ntg_constrain_result north_result, east_result, south_result,
                                 west_result, center_result;
 
-    if(orientation == NTG_ORIENTATION_HORIZONTAL)
+    if(orientation == NTG_ORIENTATION_H)
     {
         north_result = (struct ntg_constrain_result) { .size = size };
         south_result = (struct ntg_constrain_result) { .size = size };

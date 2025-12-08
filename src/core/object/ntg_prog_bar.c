@@ -45,7 +45,7 @@ void __ntg_prog_bar_deinit__(ntg_prog_bar* prog_bar)
 
     __ntg_object_deinit__(NTG_OBJECT(prog_bar));
 
-    prog_bar->__orientation = NTG_ORIENTATION_HORIZONTAL;
+    prog_bar->__orientation = NTG_ORIENTATION_H;
     prog_bar->__complete_cell = ntg_cell_default();
     prog_bar->__threshold_cell = ntg_cell_default();
     prog_bar->__uncomplete_cell = ntg_cell_default();
@@ -119,8 +119,8 @@ void __ntg_prog_bar_arrange_drawing_fn(
     {
         for(j = 0; j < _size.sec_val; j++)
         {
-            _it_xy = ntg_oxy(i, j);
-            it_xy = ntg_xy_from_oxy(_it_xy, prog_bar->__orientation);
+            _it_xy = ntg_oxy(i, j, prog_bar->__orientation);
+            it_xy = ntg_xy_from_oxy(_it_xy);
             it_cell = ntg_drawing_at_(out_drawing, it_xy);
             if(complete_count == _size.prim_val)
                 (*it_cell) = prog_bar->__complete_cell;

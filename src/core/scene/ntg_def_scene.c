@@ -147,7 +147,7 @@ static void __measure1_fn(ntg_drawable* drawable, void* _layout_data)
     }
 
     struct ntg_measure_out result = drawable->_measure_fn_(
-            drawable, NTG_ORIENTATION_HORIZONTAL,
+            drawable, NTG_ORIENTATION_H,
             NTG_SIZE_MAX, ctx, scene->_layout_arena);
 
     node->min_size.x = result.min_size;
@@ -191,7 +191,7 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
     }
 
     drawable->_constrain_fn_(drawable,
-            NTG_ORIENTATION_HORIZONTAL,
+            NTG_ORIENTATION_H,
             node->size.x, constrain_ctx,
             measure_ctx, out, scene->_layout_arena);
 
@@ -238,7 +238,7 @@ static void __measure2_fn(ntg_drawable* drawable, void* _layout_data)
     }
 
     struct ntg_measure_out result = drawable->_measure_fn_(
-            drawable, NTG_ORIENTATION_VERTICAL,
+            drawable, NTG_ORIENTATION_V,
             node->size.x, ctx, scene->_layout_arena);
 
     node->min_size.y = result.min_size;
@@ -283,7 +283,7 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
     }
 
     drawable->_constrain_fn_(drawable,
-            NTG_ORIENTATION_VERTICAL,
+            NTG_ORIENTATION_V,
             node->size.y, constrain_ctx,
             measure_ctx, out, scene->_layout_arena);
 

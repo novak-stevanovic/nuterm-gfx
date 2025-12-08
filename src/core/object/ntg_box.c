@@ -17,7 +17,7 @@ static struct ntg_measure_out __ntg_box_measure_content(
 
 static void __init_default_values(ntg_box* box)
 {
-    box->__orientation = NTG_ORIENTATION_HORIZONTAL;
+    box->__orientation = NTG_ORIENTATION_H;
     box->__primary_alignment = NTG_ALIGNMENT_1;
     box->__secondary_alignment = NTG_ALIGNMENT_1;
 }
@@ -285,7 +285,7 @@ void __ntg_box_arrange_fn(
     struct ntg_oxy _it_size;
 
     struct ntg_oxy _size = ntg_oxy_from_xy(size, orient);
-    struct ntg_oxy _content_size = ntg_oxy(0, 0);
+    struct ntg_oxy _content_size = ntg_oxy(0, 0, orient);
     for(i = 0; i < children->_count; i++)
     {
         it_obj = children->_data[i];
@@ -314,7 +314,7 @@ void __ntg_box_arrange_fn(
         _base_offset.sec_val = (_size.sec_val - _content_size.sec_val);
 
     struct ntg_arrange_result it_result;
-    struct ntg_oxy _it_extra_offset = ntg_oxy(0, 0);
+    struct ntg_oxy _it_extra_offset = ntg_oxy(0, 0, orient);
     struct ntg_xy _it_pos;
     for(i = 0; i < children->_count; i++)
     {
@@ -332,8 +332,8 @@ void __ntg_box_arrange_fn(
             _it_extra_offset.sec_val = (_content_size.sec_val - _it_size.sec_val);
 
         _it_pos = ntg_xy_add(
-                ntg_xy_from_oxy(_base_offset, orient),
-                ntg_xy_from_oxy(_it_extra_offset, orient));
+                ntg_xy_from_oxy(_base_offset),
+                ntg_xy_from_oxy(_it_extra_offset));
 
         it_result = (struct ntg_arrange_result) {
             .pos = _it_pos

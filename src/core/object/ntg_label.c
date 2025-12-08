@@ -113,7 +113,7 @@ static void __trim_text(ntg_label* label)
 
 static void __init_default_values(ntg_label* label)
 {
-    label->__orientation = NTG_ORIENTATION_HORIZONTAL;
+    label->__orientation = NTG_ORIENTATION_H;
     label->__text = (struct ntg_str) {0};
     label->__gfx_base = NT_GFX_DEFAULT;
     label->__gfx_adjusted = NT_GFX_DEFAULT;
@@ -374,7 +374,7 @@ void __ntg_label_draw_fn(
 
     /* Init content matrix */
     struct ntg_xy content_size = 
-        (label->__orientation == NTG_ORIENTATION_HORIZONTAL) ?
+        (label->__orientation == NTG_ORIENTATION_H) ?
         size :
         ntg_xy_transpose(size);
 
@@ -505,7 +505,7 @@ void __ntg_label_draw_fn(
     /* Transpose the content matrix if needed */
     ntg_cell* it_cell;
     uint32_t* it_content;
-    if(label->__orientation == NTG_ORIENTATION_HORIZONTAL)
+    if(label->__orientation == NTG_ORIENTATION_H)
     {
         for(i = 0; i < content_size.y; i++)
         {
