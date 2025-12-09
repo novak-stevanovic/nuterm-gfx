@@ -4,7 +4,6 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: ntg_box: implement spacing - EASY
 // TODO: object decorators: implement border & padding - MEDIUM
 // TODO: ntg_scene: implement multi-root system - MEDIUM
 // TODO: ntg_table: implement - MEDIUM
