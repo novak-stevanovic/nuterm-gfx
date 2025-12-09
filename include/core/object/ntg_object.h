@@ -101,6 +101,11 @@ struct ntg_object
 
     struct
     {
+        ntg_cell _background_;
+    };
+
+    struct
+    {
         ntg_measure_fn __wrapped_measure_fn;
         ntg_constrain_fn __wrapped_constrain_fn;
         ntg_arrange_fn __wrapped_arrange_fn;
@@ -130,6 +135,10 @@ void __ntg_object_init__(ntg_object* object,
         void* data);
 
 void __ntg_object_deinit__(ntg_object* object);
+
+/* ---------------------------------------------------------------- */
+
+void _ntg_object_set_background(ntg_object* object, ntg_cell background);
 
 /* ---------------------------------------------------------------- */
 

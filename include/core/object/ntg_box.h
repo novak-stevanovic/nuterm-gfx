@@ -23,10 +23,14 @@ void __ntg_box_deinit__(ntg_box* box);
 ntg_orientation ntg_box_get_orientation(const ntg_box* box);
 ntg_alignment ntg_box_get_primary_alignment(const ntg_box* box);
 ntg_alignment ntg_box_get_secondary_alignment(const ntg_box* box);
+size_t ntg_box_get_spacing(const ntg_box* box);
+void ntg_box_set_background(ntg_box* box, ntg_cell background);
 
 void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation);
 void ntg_box_set_primary_alignment(ntg_box* box, ntg_alignment alignment);
 void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment);
+void ntg_box_set_spacing(ntg_box* box, size_t spacing);
+ntg_cell ntg_box_get_background(const ntg_box* box);
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child);
 void ntg_box_rm_child(ntg_box* box, ntg_object* child);
@@ -42,6 +46,8 @@ struct ntg_box
     ntg_orientation __orientation;
     ntg_alignment __primary_alignment,
                   __secondary_alignment;
+
+    size_t __spacing;
 };
 
 struct ntg_measure_out __ntg_box_measure_fn(

@@ -204,6 +204,9 @@ static void gui_fn2(void* data)
     __ntg_box_init__(&south, NTG_ORIENTATION_H, NTG_ALIGNMENT_2,
             NTG_ALIGNMENT_2, NULL, NULL, NULL, NULL);
     // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
+    ntg_box_set_spacing(&south, 10);
+    struct nt_rgb rgb_white = nt_rgb_new(255, 255, 255);
+    ntg_box_set_background(&south, ntg_cell_bg(nt_color_new_rgb(rgb_white)));
 
     ntg_color_block south1;
     ntg_object* _south1 = (ntg_object*)&south1;

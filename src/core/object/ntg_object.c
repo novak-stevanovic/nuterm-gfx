@@ -305,6 +305,8 @@ void __ntg_object_init__(ntg_object* object,
     object->__children = ntg_object_vec_new();
     object->__children_drawables = ntg_drawable_vec_new();
 
+    object->_background_ = ntg_cell_default();
+
     object->__wrapped_measure_fn = measure_fn;
     object->__wrapped_constrain_fn = constrain_fn;
     object->__wrapped_arrange_fn = arrange_fn;
@@ -341,6 +343,13 @@ void __ntg_object_deinit__(ntg_object* object)
     ntg_event_delegate_destroy(object->_delegate);
 
     __init_default_values(object);
+}
+
+void _ntg_object_set_background(ntg_object* object, ntg_cell background)
+{
+    assert(object != NULL);
+
+    object->_background_ = background;
 }
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child)
@@ -532,16 +541,16 @@ static void __ntg_object_draw_fn(
     const ntg_object* object = ntg_drawable_user(drawable);
     // ntg_drawable* drawable = &(object->__drawable);
 
-    // size_t i, j;
-    // ntg_cell* it_cell;
-    // for(i = 0; i < size.y; i++)
-    // {
-    //     for(j = 0; j < size.x; j++)
-    //     {
-    //         it_cell = ntg_drawing_at_(out_drawing, ntg_xy(j, i));
-    //         (*it_cell) = object->__background;
-    //     }
-    // }
+    size_t i, j;
+    ntg_cell* it_cell;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            it_cell = ntg_drawing_at_(out_drawing, ntg_xy(j, i));
+            (*it_cell) = object->_background_;
+        }
+    }
 
     if(object->__wrapped_draw_fn != NULL)
         object->__wrapped_draw_fn(drawable, size, out_drawing, arena);
