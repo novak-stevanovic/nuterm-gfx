@@ -4,6 +4,7 @@
 #include "core/object/ntg_color_block.h"
 #include "core/object/shared/ntg_object_types.h"
 #include "core/scene/shared/ntg_drawable_kit.h"
+#include "shared/_ntg_shared.h"
 
 #define NTG_COLOR_BLOCK_DEFAULT_SIZE 5
 
@@ -18,7 +19,7 @@ void __ntg_color_block_init__(
     assert(color_block != NULL);
 
     __ntg_object_init__(
-            NTG_OBJECT(color_block),
+            (ntg_object*)color_block,
             NTG_OBJECT_COLOR_BLOCK,
             __ntg_color_block_measure_fn,
             NULL,
@@ -27,9 +28,8 @@ void __ntg_color_block_init__(
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            NULL,
-            NULL,
             data);
+
 
     color_block->__color = color;
 }
@@ -38,12 +38,10 @@ void __ntg_color_block_deinit__(ntg_color_block* color_block)
 {
     assert(color_block != NULL);
 
-    __ntg_object_deinit__(NTG_OBJECT(color_block));
-
-    color_block->__color = NT_COLOR_DEFAULT;
+    __ntg_object_deinit__((ntg_object*)color_block);
 }
 
-nt_color ntg_color_block_get_color(ntg_color_block* color_block)
+nt_color ntg_color_block_get_color(const ntg_color_block* color_block)
 {
     assert(color_block != NULL);
 
@@ -78,6 +76,7 @@ void __ntg_color_block_draw_fn(
         sarena* arena)
 {
     const ntg_color_block* block = ntg_drawable_user(drawable);
+
     size_t i, j;
     ntg_cell* it_cell;
     for(i = 0; i < size.y; i++)

@@ -3,8 +3,6 @@
 
 #include "core/object/ntg_object.h"
 
-#define NTG_PROG_BAR(prog_bar_ptr) ((ntg_prog_bar*)(prog_bar_ptr))
-
 typedef struct ntg_prog_bar ntg_prog_bar;
 
 void __ntg_prog_bar_init__(

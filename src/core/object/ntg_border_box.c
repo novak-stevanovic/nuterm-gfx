@@ -24,7 +24,7 @@ void __ntg_border_box_init__(
 {
     assert(box != NULL);
 
-    __ntg_object_init__(NTG_OBJECT(box),
+    __ntg_object_init__((ntg_object*)box,
             NTG_OBJECT_BORDER_BOX,
             __ntg_border_box_measure_fn,
             __ntg_border_box_constrain_fn,
@@ -33,8 +33,6 @@ void __ntg_border_box_init__(
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            NULL,
-            NULL,
             data);
 
     __init_default(box);
@@ -438,15 +436,14 @@ void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north)
 {
     assert(box != NULL);
 
-    ntg_object* _box = NTG_OBJECT(box);
+    ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(north,
-            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+    ntg_object* parent = ntg_object_get_parent(north, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
     if(box->__north != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->__north);
+        _ntg_object_rm_child((ntg_object*)box, box->__north);
 
     if(north != NULL)
     {
@@ -462,15 +459,14 @@ void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east)
 {
     assert(box != NULL);
 
-    ntg_object* _box = NTG_OBJECT(box);
+    ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(east,
-            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+    ntg_object* parent = ntg_object_get_parent(east, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
     if(box->__east != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->__east);
+        _ntg_object_rm_child((ntg_object*)box, box->__east);
 
     if(east != NULL)
     {
@@ -486,15 +482,14 @@ void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south)
 {
     assert(box != NULL);
 
-    ntg_object* _box = NTG_OBJECT(box);
+    ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(south,
-            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+    ntg_object* parent = ntg_object_get_parent(south, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
     if(box->__south != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->__south);
+        _ntg_object_rm_child((ntg_object*)box, box->__south);
 
     if(south)
     {
@@ -510,15 +505,14 @@ void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west)
 {
     assert(box != NULL);
 
-    ntg_object* _box = NTG_OBJECT(box);
+    ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(west,
-            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+    ntg_object* parent = ntg_object_get_parent(west, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
     if(box->__west != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->__west);
+        _ntg_object_rm_child((ntg_object*)box, box->__west);
 
     if(west)
     {
@@ -534,15 +528,14 @@ void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center)
 {
     assert(box != NULL);
 
-    ntg_object* _box = NTG_OBJECT(box);
+    ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(center,
-            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+    ntg_object* parent = ntg_object_get_parent(center, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
     if(box->__center != NULL)
-        _ntg_object_rm_child(NTG_OBJECT(box), box->__center);
+        _ntg_object_rm_child((ntg_object*)box, box->__center);
 
     if(center)
     {

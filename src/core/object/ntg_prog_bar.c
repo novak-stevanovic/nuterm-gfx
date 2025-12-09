@@ -19,7 +19,7 @@ void __ntg_prog_bar_init__(
 {
     assert(prog_bar != NULL);
 
-    __ntg_object_init__(NTG_OBJECT(prog_bar),
+    __ntg_object_init__((ntg_object*)prog_bar,
             NTG_OBJECT_PROG_BAR,
             __ntg_prog_bar_measure_fn,
             NULL,
@@ -28,8 +28,6 @@ void __ntg_prog_bar_init__(
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            NULL,
-            NULL,
             data);
 
     prog_bar->__orientation = orientation;
@@ -43,7 +41,7 @@ void __ntg_prog_bar_deinit__(ntg_prog_bar* prog_bar)
 {
     assert(prog_bar != NULL);
 
-    __ntg_object_deinit__(NTG_OBJECT(prog_bar));
+    __ntg_object_deinit__((ntg_object*)prog_bar);
 
     prog_bar->__orientation = NTG_ORIENTATION_H;
     prog_bar->__complete_cell = ntg_cell_default();

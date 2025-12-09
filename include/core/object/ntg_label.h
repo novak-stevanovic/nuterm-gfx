@@ -7,8 +7,6 @@
 
 typedef struct ntg_label ntg_label;
 
-#define NTG_LABEL(label_ptr) ((ntg_label*)(label_ptr))
-
 struct ntg_label
 {
     ntg_object __base;

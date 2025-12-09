@@ -134,7 +134,7 @@ void __ntg_label_init__(
 {
     assert(label != NULL);
 
-    __ntg_object_init__(NTG_OBJECT(label),
+    __ntg_object_init__((ntg_object*)label,
             NTG_OBJECT_LABEL,
             __ntg_label_measure_fn,
             NULL,
@@ -143,8 +143,6 @@ void __ntg_label_init__(
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            NULL,
-            NULL,
             data);
 
     __init_default_values(label);
@@ -156,7 +154,7 @@ void __ntg_label_deinit__(ntg_label* label)
 {
     assert(label != NULL);
 
-    __ntg_object_deinit__(NTG_OBJECT(label));
+    __ntg_object_deinit__((ntg_object*)label);
 
     if(label->__text.data != NULL)
         free(label->__text.data);

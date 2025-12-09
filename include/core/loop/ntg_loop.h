@@ -34,8 +34,8 @@ typedef struct ntg_loop_status (*ntg_loop_process_event_fn)(
 /* -------------------------------------------------------------------------- */
 
 /* The library doesn't support full custom-made loops. This is because some
- * objects rely on events raised by ntg_loop to work correctly(ntg_db_renderer,
- * for example). Also, many objects rely upon ntg_loop_ctx to interact
+ * types rely on events raised by ntg_loop to work correctly(ntg_db_renderer,
+ * for example). Also, many types rely upon ntg_loop_ctx to interact
  * with the loop.
  * 
  * This type represents an abstraction over the loop - `process_event_fn` will

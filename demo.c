@@ -59,22 +59,30 @@ void __callback_fn(void* data, void* task_result)
     ntg_log_log("%p", task_result);
 }
 
-void center2_on_focus_fn(
+void north_on_focus_fn(
         ntg_drawable* drawable,
         struct ntg_focus_ctx ctx)
 {
-    ntg_color_block* cb = (ntg_color_block*)ntg_drawable_user_(drawable);
+    ntg_label* label = (ntg_label*)ntg_drawable_user_(drawable);
 
-    ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 120, 120)));
+    struct nt_gfx gfx = ntg_label_get_gfx(label);
+    gfx.style._value_rgb |= NT_STYLE_VAL_REVERSE;
+    gfx.style._value_c8 |= NT_STYLE_VAL_REVERSE;
+    gfx.style._value_c256 |= NT_STYLE_VAL_REVERSE;
+    ntg_label_set_gfx(label, gfx);
 }
 
-void center2_on_unfocus_fn(
+void north_on_unfocus_fn(
         ntg_drawable* drawable,
         struct ntg_unfocus_ctx ctx)
 {
-    ntg_color_block* cb = (ntg_color_block*)ntg_drawable_user_(drawable);
+    ntg_label* label = (ntg_label*)ntg_drawable_user_(drawable);
 
-    ntg_color_block_set_color(cb, nt_color_new_rgb(nt_rgb_new(0, 70, 70)));
+    struct nt_gfx gfx = ntg_label_get_gfx(label);
+    gfx.style._value_rgb ^= NT_STYLE_VAL_REVERSE;
+    gfx.style._value_c8 ^= NT_STYLE_VAL_REVERSE;
+    gfx.style._value_c256 ^= NT_STYLE_VAL_REVERSE;
+    ntg_label_set_gfx(label, gfx);
 }
 
 bool scene_process_key_fn(
@@ -157,15 +165,16 @@ static void gui_fn2(void* data)
 
     ntg_label north;
     ntg_object* _north = (ntg_object*)&north;
-    __ntg_label_init__(&north, NTG_ORIENTATION_H, NULL, NULL, NULL, NULL);
-    struct ntg_str_view top_text = ntg_str_view_from_cstr("Novak");
-    ntg_label_set_text(&north, top_text);
-    struct nt_gfx top_gfx = {
+    __ntg_label_init__(&north, NTG_ORIENTATION_H, NULL,
+            north_on_focus_fn, north_on_unfocus_fn, NULL);
+    struct ntg_str_view north_text = ntg_str_view_from_cstr("Novak");
+    ntg_label_set_text(&north, north_text);
+    struct nt_gfx north_gfx = {
         .bg = nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
         .fg = nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
         .style = nt_style_new(NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD)
     };
-    ntg_label_set_gfx(&north, top_gfx);
+    ntg_label_set_gfx(&north, north_gfx);
     // ntg_object_set_min_size(_north, ntg_xy(1000, 1000));
     // ntg_label_set_primary_alignment(&north, NTG_TEXT_ALIGNMENT_2);
     // ntg_object_set_max_size(_north, ntg_xy(0, 1));
@@ -174,6 +183,7 @@ static void gui_fn2(void* data)
     ntg_object* _center = (ntg_object*)&center;
     __ntg_box_init__(&center, NTG_ORIENTATION_V,
             NTG_ALIGNMENT_2, NTG_ALIGNMENT_2, NULL, NULL, NULL, NULL);
+    ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
 
     ntg_color_block center1, center2, center3;
     ntg_object* _center1 = (ntg_object*)&center1;
@@ -182,7 +192,7 @@ static void gui_fn2(void* data)
     __ntg_color_block_init__(&center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)),
             NULL, NULL, NULL, NULL);
     __ntg_color_block_init__(&center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)),
-            center2_process_key_fn, center2_on_focus_fn, center2_on_unfocus_fn, NULL);
+            center2_process_key_fn, NULL, NULL, NULL);
     __ntg_color_block_init__(&center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)),
             NULL, NULL, NULL, NULL);
     ntg_box_add_child(&center, _center1);
@@ -215,12 +225,11 @@ static void gui_fn2(void* data)
     ntg_border_box_set_south(&root, _south);
 
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
-            _center2, NULL);
+            _north, NULL);
     struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
             def_loop_process_key_fn, NULL, NULL, NULL, NULL);
 
     ntg_scene_set_root(s._scene, ntg_object_to_drawable_(_root));
-    ntg_scene_focus(s._scene, ntg_object_to_drawable_(_center2));
     ntg_loop_run(b._loop, NULL);
 
     __ntg_border_box_deinit__(&root);

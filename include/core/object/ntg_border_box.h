@@ -5,8 +5,6 @@
 
 typedef struct ntg_border_box ntg_border_box;
 
-#define NTG_BORDER_BOX(box_ptr) ((ntg_border_box*)(box_ptr))
-
 struct ntg_border_box
 {
     ntg_object __base;

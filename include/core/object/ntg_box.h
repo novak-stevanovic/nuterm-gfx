@@ -9,8 +9,6 @@ typedef struct ntg_box ntg_box;
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-#define NTG_BOX(box_ptr) ((ntg_box*)(box_ptr))
-
 void __ntg_box_init__(
         ntg_box* box,
         ntg_orientation orientation,

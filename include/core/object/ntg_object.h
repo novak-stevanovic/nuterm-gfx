@@ -2,7 +2,6 @@
 #define _NTG_OBJECT_H_
 
 #include "base/ntg_cell.h"
-#include "core/object/shared/ntg_object_fx_vec.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/ntg_drawable.h"
 #include "shared/ntg_xy.h"
@@ -11,46 +10,14 @@
 /* DECLARATIONS */
 /* -------------------------------------------------------------------------- */
 
-#define NTG_OBJECT(obj_ptr) ((ntg_object*)(obj_ptr))
-
 typedef struct ntg_object ntg_object;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_sub ntg_event_sub;
-typedef struct ntg_object_fx ntg_object_fx;
 typedef struct ntg_object_fx_vec ntg_object_fx_vec;
 
 /* -------------------------------------------------------------------------- */
-/* NTG_OBJECT_FX */
-/* -------------------------------------------------------------------------- */
-
-/* Each ntg_object defines its object fx interface - a part of it that is
- * modifiable via object fx. */
-typedef void* (*ntg_object_get_fx_interface_fn)(ntg_object* object);
-
-/* Resets the object's fx to base values. */
-typedef void (*ntg_object_reset_fx_fn)(
-        const ntg_object* object,
-        void* object_fx_interface);
-
-/* Applies specified fx to object fx interface */
-typedef void (*ntg_object_fx_apply_fn)(
-        const ntg_object* object,
-        struct ntg_object_fx fx,
-        void* object_fx_interface);
-
-struct ntg_object_fx
-{
-    unsigned int object_type;
-    ntg_object_fx_apply_fn apply_fn;
-
-    /* Pointer to dynamically allocated data.
-     * Freed when the object is deinitalized. */
-    void* data;
-};
-
-/* -------------------------------------------------------------------------- */
-/* NTG_OBJECT PUBLIC */
+/* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
 unsigned int ntg_object_get_type(const ntg_object* object);
@@ -61,15 +28,15 @@ unsigned int ntg_object_get_id(const ntg_object* object);
 
 ntg_object* ntg_object_get_group_root(ntg_object* object);
 
-typedef enum ntg_object_get_parent_opts
+typedef enum ntg_object_parent_opts
 {
-    NTG_OBJECT_GET_PARENT_INCL_DECORATOR,
-    NTG_OBJECT_GET_PARENT_EXCL_DECORATOR
-} ntg_object_get_parent_opts;
+    NTG_OBJECT_PARENT_INCL_DECOR,
+    NTG_OBJECT_PARENT_EXCL_DECOR
+} ntg_object_parent_opts;
 
 /* Gets object's parent node. */
 ntg_object* ntg_object_get_parent(ntg_object* object,
-        ntg_object_get_parent_opts opts);
+        ntg_object_parent_opts opts);
 
 /* Returns base widget for node group(non-decorator). */
 ntg_object* ntg_object_get_base_widget(ntg_object* object);
@@ -93,13 +60,6 @@ struct ntg_xy ntg_object_get_grow(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-bool ntg_object_has_fx_capabilities(const ntg_object* object);
-void ntg_object_apply_fx(ntg_object* object, struct ntg_object_fx fx);
-void ntg_object_remove_fx(ntg_object* object, struct ntg_object_fx fx);
-const ntg_object_fx_vec* ntg_object_get_fx(const ntg_object* object);
-
-/* ---------------------------------------------------------------- */
-
 ntg_drawable* ntg_object_to_drawable_(ntg_object* object);
 const ntg_drawable* ntg_object_to_drawable(const ntg_object* object);
 
@@ -119,7 +79,7 @@ void ntg_object_tree_perform(ntg_object* object,
         void* data);
 
 /* -------------------------------------------------------------------------- */
-/* NTG_OBJECT INTERNAL */
+/* INTERNAL */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object
@@ -132,11 +92,6 @@ struct ntg_object
         ntg_object* __parent;
         ntg_object_vec* __children;
         ntg_drawable_vec* __children_drawables;
-    };
-
-    struct
-    {
-        ntg_cell __background;
     };
 
     struct
@@ -155,20 +110,13 @@ struct ntg_object
         ntg_on_unfocus_fn __wrapped_on_unfocus_fn;
     };
 
-    struct
-    {
-        ntg_object_get_fx_interface_fn __get_fx_interface_fn;
-        ntg_object_reset_fx_fn __reset_fx_fn;
-        ntg_object_fx_vec* __fx;
-    };
-
     struct ntg_drawable __drawable;
-    ntg_event_delegate* __delegate;
+    ntg_event_delegate* _delegate;
 
     void* _data;
 };
 
-/* -------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------- */
 
 void __ntg_object_init__(ntg_object* object,
         unsigned int type,
@@ -179,15 +127,9 @@ void __ntg_object_init__(ntg_object* object,
         ntg_process_key_fn process_key_fn,
         ntg_on_focus_fn on_focus_fn,
         ntg_on_unfocus_fn on_unfocus_fn,
-        ntg_object_reset_fx_fn reset_fx_fn,
-        ntg_object_get_fx_interface_fn get_fx_interface_fn,
         void* data);
 
 void __ntg_object_deinit__(ntg_object* object);
-
-/* ---------------------------------------------------------------- */
-
-void _ntg_object_set_background(ntg_object* object, ntg_cell background);
 
 /* ---------------------------------------------------------------- */
 

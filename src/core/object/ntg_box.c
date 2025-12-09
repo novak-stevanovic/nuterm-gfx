@@ -35,7 +35,7 @@ void __ntg_box_init__(
     assert(box != NULL);
 
     __ntg_object_init__(
-            NTG_OBJECT(box),
+            (ntg_object*)box,
             NTG_OBJECT_BOX,
             __ntg_box_measure_fn,
             __ntg_box_constrain_fn,
@@ -44,8 +44,6 @@ void __ntg_box_init__(
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            NULL,
-            NULL,
             data);
 
     __init_default_values(box);
@@ -110,12 +108,11 @@ void ntg_box_add_child(ntg_box* box, ntg_object* child)
     assert(child != NULL);
 
     ntg_object* group_root = ntg_object_get_group_root(child);
-    ntg_object* parent = ntg_object_get_parent(child,
-            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+    ntg_object* parent = ntg_object_get_parent(child, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
-    _ntg_object_add_child(NTG_OBJECT(box), group_root);
+    _ntg_object_add_child((ntg_object*)box, group_root);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_object* child)
@@ -124,10 +121,9 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
     assert(child != NULL);
 
     ntg_object* group_root = ntg_object_get_group_root(child);
-    ntg_object* parent = ntg_object_get_parent(child,
-            NTG_OBJECT_GET_PARENT_EXCL_DECORATOR);
+    ntg_object* parent = ntg_object_get_parent(child, NTG_OBJECT_PARENT_EXCL_DECOR);
 
-    assert(parent == NTG_OBJECT(box));
+    assert(parent == ((ntg_object*)box));
 
     _ntg_object_rm_child(parent, group_root);
 }
