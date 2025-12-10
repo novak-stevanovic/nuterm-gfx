@@ -310,7 +310,8 @@ static void __arrange_fn(ntg_drawable* drawable, void* _layout_data)
         it_drawable = ntg_drawable_vec_view_at(&children, i);
         it_node = ntg_scene_graph_get(graph, it_drawable);
 
-        it_node->position = ntg_xy_add(node->position,
+        it_node->position = ntg_xy_add(
+                node->position,
                 ntg_arrange_out_get(out, it_drawable).pos);
     }
 }

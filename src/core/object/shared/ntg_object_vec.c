@@ -52,6 +52,13 @@ void ntg_object_vec_remove(ntg_object_vec* vec, ntg_object* object)
     ntg_vector_remove((ntg_vector*)vec, &object, NULL);
 }
 
+void ntg_object_vec_empty(ntg_object_vec* vec)
+{
+    assert(vec != NULL);
+
+    ntg_vector_empty((ntg_vector*)vec);
+}
+
 size_t ntg_object_vec_find(const ntg_object_vec* vec,
         const ntg_object* object)
 {

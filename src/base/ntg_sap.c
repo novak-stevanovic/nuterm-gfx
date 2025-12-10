@@ -5,7 +5,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-// TODO: fix & test
+static inline bool __is_equal_double(double x, double y)
+{
+    return fabs(x - y) < 0.005;
+}
+
+// TODO: rethink
 size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
         size_t* out_sizes, size_t space_pool, size_t count)
 {
@@ -14,82 +19,84 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
     
     if((space_pool == 0) || (count == 0)) return 0;
 
-    size_t total_grow = 0;
-
-    double _space_pool = space_pool;
-
-    double* distributed = (double*)malloc(sizeof(double) * count);
-    assert(distributed != NULL);
-
     size_t i;
+    size_t total_grow = 0;
+    double _space_pool = (double)space_pool;
+    double distributed_total = 0;
+    double space_left = space_pool;
+    size_t it_grow;
 
+    /* Compute total grow */
     for(i = 0; i < count; i++)
     {
-        if(grows != NULL)
-            total_grow += grows[i];
-        distributed[i] = 0;
+        it_grow = (grows != NULL) ? grows[i] : 1;
+        total_grow += it_grow;
     }
 
+    if(total_grow == 0) return 0;
+
+    double* distributed = (double*)malloc(sizeof(double) * count);
+    for(i = 0; i < count; i++) distributed[i] = 0;
+
+    double it_grow_factor;
+    double it_to_distribute;
+    
+    /* Initial distribution */
     bool loop = true;
-    double it_amount;
     while(loop)
     {
         loop = false;
         for(i = 0; i < count; i++)
         {
-            if(caps[i] > (out_sizes[i] + distributed[i]))
-            {
-                // TODO: what if not max sizes?
-                if(grows != NULL)
-                {
-                    it_amount = _min2_double(_space_pool, (total_grow != 0) ?
-                            (1.0 * grows[i] / total_grow) : 0);
-                }
-                else
-                    it_amount = _min2_double(_space_pool, 1);
+            it_grow = (grows != NULL) ? grows[i] : 1;
+            it_grow_factor = (1.0 * it_grow) / total_grow;
+            if(it_grow_factor == 0) continue;
 
+            /* Make sure the distribution respects `space_pool`. */
+            it_to_distribute = _min2_double(space_left, it_grow_factor);
 
-                if(it_amount < 0.0005) continue;
+            /* Make sure the distribution respects `caps[i]`. */
+            if(out_sizes[i] + distributed[i] + it_to_distribute >= caps[i])
+                it_to_distribute = caps[i] - out_sizes[i] - distributed[i];
 
-                if((1.0 * caps[i]) >= ((1.0 * out_sizes[i]) +
-                            distributed[i] + it_amount))
-                {
-                    distributed[i] += it_amount;
-                    _space_pool -= it_amount;
+            distributed[i] += it_to_distribute;
+            distributed_total += it_to_distribute;
+            space_left = _space_pool - distributed_total;
 
-                    if(_space_pool <= 0.0005)
-                    {
-                        loop = false;
-                        break;
-                    }
-                    else loop = true;
-                }
-            }
+            if(__is_equal_double(space_left, 0))
+                break;
+
+            loop = true;
         }
     }
 
-    size_t distributed_total = 0;
+    size_t distributed_actual = 0;
+    size_t it_floored;
 
     for(i = 0; i < count; i++)
     {
-        out_sizes[i] += distributed[i];
-        distributed_total += floor(distributed[i]);
+        it_floored = floor(distributed[i]);
+        distributed_actual += (size_t)it_floored;
+        out_sizes[i] += (size_t)it_floored;
     }
 
-    space_pool -= distributed_total;
+    space_pool -= distributed_actual;
+
     for(i = 0; i < count; i++)
     {
+        it_grow = (grows != NULL) ? grows[i] : 1;
+
+        if(it_grow == 0) continue;
+        assert(out_sizes[i] <= caps[i]);
+        if(out_sizes[i] == caps[i]) continue;
         if(space_pool == 0) break;
 
-        if(caps[i] > (out_sizes[i] + floor(distributed[i])))
-        {
-            (out_sizes[i])++;
-            distributed_total++;
-            space_pool--;
-        }
+        out_sizes[i]++;
+        distributed_actual++;
+        space_pool--;
     }
 
     free(distributed);
 
-    return distributed_total;
+    return distributed_actual;
 }

@@ -102,6 +102,13 @@ void ntg_vector_remove(ntg_vector* vector, const void* key,
     ntg_vector_remove_at(vector, pos);
 }
 
+void ntg_vector_empty(ntg_vector* vector)
+{
+    assert(vector != NULL);
+
+    vector->_count = 0;
+}
+
 size_t ntg_vector_find(
         ntg_vector* vector,
         const void* key,

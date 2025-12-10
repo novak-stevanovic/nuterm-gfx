@@ -22,6 +22,7 @@ void ntg_vector_insert(ntg_vector* vector, size_t index, const void* data);
 void ntg_vector_remove_at(ntg_vector* vector, size_t index);
 void ntg_vector_remove(ntg_vector* vector, const void* key,
         int (*cmp_fn)(const void* data1, const void* data2));
+void ntg_vector_empty(ntg_vector* vector);
 
 /* Returns index in [0, count-1] if found, or SIZE_MAX if not found. Uses default memcpy to compare values. */
 size_t ntg_vector_find(

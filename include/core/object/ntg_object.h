@@ -15,6 +15,10 @@ typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_sub ntg_event_sub;
 typedef struct ntg_object_fx_vec ntg_object_fx_vec;
+typedef struct ntg_object_padding ntg_object_padding;
+typedef struct ntg_object_border ntg_object_border;
+
+typedef void (*ntg_object_deinit_fn)(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
@@ -57,6 +61,17 @@ struct ntg_xy ntg_object_get_max_size(ntg_object* object);
 
 void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow);
 struct ntg_xy ntg_object_get_grow(const ntg_object* object);
+
+/* ---------------------------------------------------------------- */
+
+ntg_object_padding* ntg_object_set_padding(ntg_object* object, ntg_object_padding* padding);
+ntg_object_padding* ntg_object_get_padding(ntg_object* object);
+
+ntg_object_border* ntg_object_set_border(ntg_object* object, ntg_object_border* border);
+ntg_object_border* ntg_object_get_border(ntg_object* object);
+
+void ntg_object_set_background(ntg_object* object, ntg_cell background);
+ntg_cell ntg_object_get_background(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
@@ -138,12 +153,14 @@ void __ntg_object_deinit__(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-void _ntg_object_set_background(ntg_object* object, ntg_cell background);
+void _ntg_object_add_child(ntg_object* object, ntg_object* child);
+void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
+void _ntg_object_rm_children(ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-void _ntg_object_add_child(ntg_object* object, ntg_object* child);
-void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
+/* Removes the node from tree. Connects the parent with children */
+void _ntg_object_rm_node_from_tree(ntg_object* node);
 
 /* ---------------------------------------------------------------- */
 

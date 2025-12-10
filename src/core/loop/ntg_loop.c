@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <time.h>
 
 #include "core/loop/ntg_loop.h"
 #include "base/event/ntg_event.h"
@@ -118,6 +119,9 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
     /* loop key */
     struct ntg_event_app_key_data key_data;
     nt_status _status;
+    struct timespec ts_start, ts_end;
+    int64_t elapsed_ns;
+    uint64_t elapsed_ms;
     while(true)
     {
         if(!ctx.loop) break;
@@ -128,11 +132,10 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
         }
 
         _nt_event = nt_wait_for_event(timeout, &_status);
+        clock_gettime(CLOCK_MONOTONIC, &ts_start);
         // if(_status == NT_ERR_UNEXPECTED) break;
 
         status = loop->__process_event_fn(loop, &ctx, _nt_event);
-        timeout = status.timeout;
-
         switch(_nt_event.type)
         {
             case NT_EVENT_KEY:
@@ -164,6 +167,15 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
                 ntg_taskmaster_execute_callbacks(loop->__taskmaster);
                 break;
         }
+
+        clock_gettime(CLOCK_MONOTONIC, &ts_end);
+
+        elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
+            + (int64_t)(ts_end.tv_nsec - ts_start.tv_nsec);
+        elapsed_ns = (elapsed_ns > 0) ? elapsed_ns : 0;
+
+        elapsed_ms = elapsed_ns / 1000000LL;
+        timeout = (status.timeout > elapsed_ms) ? status.timeout - elapsed_ms : 0;
     }
 
     __ntg_loop_ctx_deinit__(&ctx);

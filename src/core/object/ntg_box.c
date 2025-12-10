@@ -96,7 +96,7 @@ void ntg_box_set_background(ntg_box* box, ntg_cell background)
 
     ntg_object* _box = (ntg_object*)box;
 
-    _ntg_object_set_background(_box, background);
+    ntg_object_set_background(_box, background);
 }
 
 void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation)

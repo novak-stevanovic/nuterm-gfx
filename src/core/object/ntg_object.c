@@ -78,12 +78,12 @@ bool ntg_object_is_widget(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return (object->__type < NTG_OBJECT_DECORATOR);
+    return (object->__type < NTG_OBJECT_DECOR);
 }
 
 bool ntg_object_is_decorator(const ntg_object* object)
 {
-    return (object->__type >= NTG_OBJECT_DECORATOR);
+    return (object->__type >= NTG_OBJECT_DECOR);
 }
 
 unsigned int ntg_object_get_id(const ntg_object* object)
@@ -218,6 +218,128 @@ struct ntg_xy ntg_object_get_grow(const ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
+ntg_object_padding* ntg_object_set_padding(ntg_object* object, ntg_object_padding* padding)
+{
+    assert(object != NULL);
+
+    ntg_object* _padding = (ntg_object*)padding;
+    ntg_object* old_padding = (ntg_object*)ntg_object_get_padding(object);
+    ntg_object* border = (ntg_object*)ntg_object_get_border(object);
+    ntg_object* wparent = ntg_object_get_parent(object, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* old_padding_parent = (border != NULL) ? border : wparent;
+
+    if(old_padding == _padding) return NULL;
+
+    if(_padding != NULL)
+        assert((_padding->__children->_count == 0) && (_padding->__parent == NULL));
+
+    /* Remove old padding from the tree */
+    if(old_padding != NULL)
+    {
+        if(old_padding_parent != NULL)
+            _ntg_object_rm_child(old_padding_parent, old_padding);
+
+        _ntg_object_rm_child(old_padding, object);
+    }
+
+    /* Connect padding below */
+    if(_padding != NULL)
+    {
+        _ntg_object_add_child(_padding, object);
+    }
+
+    /* Connect old_padding_parent below */
+    if(old_padding_parent != NULL)
+    {
+        ntg_object* old_padding_parent_new_child = 
+            (border != NULL) ? border : _padding;
+
+        _ntg_object_add_child(old_padding_parent, old_padding_parent_new_child);
+    }
+
+    return ((ntg_object_padding*)old_padding);
+}
+
+ntg_object_padding* ntg_object_get_padding(ntg_object* object)
+{
+    assert(object != NULL);
+
+    ntg_object* parent = ntg_object_get_parent(object, NTG_OBJECT_PARENT_INCL_DECOR);
+    if((parent == NULL) || (parent->__type != NTG_OBJECT_PADDING))
+        return NULL;
+    else return (ntg_object_padding*)parent;
+}
+
+ntg_object_border* ntg_object_set_border(ntg_object* object, ntg_object_border* border)
+{
+    assert(object != NULL);
+
+    ntg_object* _border = (ntg_object*)border;
+    ntg_object* old_border = (ntg_object*)ntg_object_get_border(object);
+    ntg_object* wparent = ntg_object_get_parent(object, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* padding = (ntg_object*)ntg_object_get_padding(object);
+
+    if(old_border == _border) return NULL;
+
+    if(_border != NULL)
+        assert((_border->__children->_count == 0) && (_border->__parent == NULL));
+
+    /* Remove old_border from the tree */
+    if(old_border != NULL)
+    {
+        if(wparent != NULL)
+            _ntg_object_rm_child(wparent, old_border);
+
+        if(padding != NULL)
+            _ntg_object_rm_child(old_border, padding);
+    }
+
+    /* Connect new border below */
+    if(border != NULL)
+    {
+        ntg_object* border_new_child = (padding != NULL) ? padding : object;
+        _ntg_object_add_child(_border, border_new_child);
+    }
+
+    /* Connect wparent with new border */
+    if(wparent != NULL)
+    {
+        ntg_object* wparent_new_child = 
+            (border != NULL) ?
+            _border :
+            ((padding != NULL) ? padding : object);
+
+        _ntg_object_add_child(wparent, wparent_new_child);
+    }
+
+    return ((ntg_object_border*)old_border);
+}
+
+ntg_object_border* ntg_object_get_border(ntg_object* object)
+{
+    assert(object != NULL);
+
+    ntg_object* root = ntg_object_get_group_root(object);
+    if(root->__type != NTG_OBJECT_BORDER) return NULL;
+    else return (ntg_object_border*)root;
+}
+
+void ntg_object_set_background(ntg_object* object, ntg_cell background)
+{
+    assert(object != NULL);
+
+    object->_background_ = background;
+}
+
+ntg_cell ntg_object_get_background(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->_background_;
+}
+
+/* ---------------------------------------------------------------- */
+
 ntg_drawable* ntg_object_to_drawable_(ntg_object* object)
 {
     assert(object != NULL);
@@ -315,6 +437,20 @@ void __ntg_object_init__(ntg_object* object,
     object->__wrapped_on_focus_fn = on_focus_fn;
     object->__wrapped_on_unfocus_fn = on_unfocus_fn;
 
+    // __ntg_drawable_init__(
+    //         &(object->__drawable),
+    //         object,
+    //         __ntg_object_measure_fn,
+    //         __ntg_object_constrain_fn,
+    //         __ntg_object_arrange_fn,
+    //         __ntg_object_draw_fn,
+    //         __ntg_object_get_children_fn_,
+    //         __ntg_object_get_children_fn,
+    //         __ntg_object_get_parent_fn_,
+    //         __ntg_object_get_parent_fn,
+    //         __ntg_object_process_key_fn,
+    //         __ntg_object_on_focus_fn,
+    //         __ntg_object_on_unfocus_fn);
     __ntg_drawable_init__(
             &(object->__drawable),
             object,
@@ -326,9 +462,9 @@ void __ntg_object_init__(ntg_object* object,
             __ntg_object_get_children_fn,
             __ntg_object_get_parent_fn_,
             __ntg_object_get_parent_fn,
-            __ntg_object_process_key_fn,
-            __ntg_object_on_focus_fn,
-            __ntg_object_on_unfocus_fn);
+            process_key_fn,
+            on_focus_fn,
+            on_unfocus_fn);
 
     object->_delegate = ntg_event_delegate_new();
     object->_data = data;
@@ -343,13 +479,6 @@ void __ntg_object_deinit__(ntg_object* object)
     ntg_event_delegate_destroy(object->_delegate);
 
     __init_default_values(object);
-}
-
-void _ntg_object_set_background(ntg_object* object, ntg_cell background)
-{
-    assert(object != NULL);
-
-    object->_background_ = background;
 }
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child)
@@ -378,6 +507,19 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
     child->__parent = NULL;
 }
 
+void _ntg_object_rm_children(ntg_object* object)
+{
+    assert(object != NULL);
+
+    size_t i;
+    for(i = 0; i < object->__children->_count; i++)
+    {
+        object->__children->_data[i]->__parent = NULL;
+    }
+
+    ntg_object_vec_empty(object->__children);
+}
+
 /* ---------------------------------------------------------------- */
 
 static void __init_default_values(ntg_object* object)
@@ -403,6 +545,28 @@ static void __init_default_values(ntg_object* object)
 
     object->__drawable = (ntg_drawable) {0};
     object->_delegate = NULL;
+}
+
+void _ntg_object_rm_node_from_tree(ntg_object* node)
+{
+    assert(node != NULL);
+
+    ntg_object* parent = ntg_object_get_parent(node, NTG_OBJECT_PARENT_INCL_DECOR);
+    ntg_object_vec* children = node->__children;
+
+    if(parent != NULL)
+        _ntg_object_rm_child(parent, node);
+
+    if(children != NULL)
+    {
+        size_t i;
+        for(i = 0; i < children->_count; i++)
+        {
+            _ntg_object_rm_child(node, children->_data[i]);
+            if(parent != NULL)
+                _ntg_object_add_child(parent, children->_data[i]);
+        }
+    }
 }
 
 /* ---------------------------------------------------------------- */

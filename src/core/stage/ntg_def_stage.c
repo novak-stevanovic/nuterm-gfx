@@ -43,7 +43,7 @@ void __ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size)
 
     if(root != NULL)
     {
-        ntg_drawable_tree_perform( root,
+        ntg_drawable_tree_perform(root,
                 NTG_DRAWABLE_PERFORM_TOP_DOWN,
                 __draw_fn,
                 _stage);

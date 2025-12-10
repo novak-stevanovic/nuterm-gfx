@@ -23,6 +23,7 @@ void ntg_object_vec_destroy(ntg_object_vec* vec);
 
 void ntg_object_vec_append(ntg_object_vec* vec, ntg_object* object);
 void ntg_object_vec_remove(ntg_object_vec* vec, ntg_object* object);
+void ntg_object_vec_empty(ntg_object_vec* vec);
 
 size_t ntg_object_vec_find(const ntg_object_vec* vec,
         const ntg_object* object);
