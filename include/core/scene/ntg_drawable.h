@@ -101,18 +101,18 @@ struct ntg_drawable
     /* Private field */
     void* __user;
 
-    /* Protected, read-only fields */
-    ntg_measure_fn _measure_fn_;
-    ntg_constrain_fn _constrain_fn_;
-    ntg_arrange_fn _arrange_fn_;
-    ntg_draw_fn _draw_fn_;
-    ntg_process_key_fn _process_key_fn_;
-    ntg_on_focus_fn _on_focus_fn_;
-    ntg_on_unfocus_fn _on_unfocus_fn_;
-    ntg_get_children_fn_ _get_children_fn__;
-    ntg_get_children_fn _get_children_fn_;
-    ntg_get_parent_fn_ _get_parent_fn__;
-    ntg_get_parent_fn _get_parent_fn_;
+    /* read-only fields */
+    ntg_measure_fn measure_fn_;
+    ntg_constrain_fn constrain_fn_;
+    ntg_arrange_fn arrange_fn_;
+    ntg_draw_fn draw_fn_;
+    ntg_process_key_fn process_key_fn_;
+    ntg_on_focus_fn on_focus_fn_;
+    ntg_on_unfocus_fn on_unfocus_fn_;
+    ntg_get_children_fn_ get_children_fn__;
+    ntg_get_children_fn get_children_fn_;
+    ntg_get_parent_fn_ get_parent_fn__;
+    ntg_get_parent_fn get_parent_fn_;
 };
 
 void __ntg_drawable_init__(ntg_drawable* drawable, /* non-NULL */

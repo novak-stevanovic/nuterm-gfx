@@ -15,17 +15,19 @@
 
 #define COUNT 100
 
-bool def_loop_process_key_fn(
+void loop_process_event_fn(
+        ntg_loop* loop,
         ntg_loop_ctx* ctx,
-        struct nt_key_event key)
+        struct nt_event event)
 {
-    if(nt_key_event_utf32_check(key, 'q', false))
+    if(event.type == NT_EVENT_KEY)
     {
-        ntg_log_log("loop received q");
-        ntg_loop_ctx_break(ctx);
-        return true;
+        if(nt_key_event_utf32_check(event.key_data, 'q', false))
+        {
+            ntg_log_log("loop received q");
+            ntg_loop_ctx_break(ctx);
+        }
     }
-    return false;
 }
 
 bool center2_process_key_fn(
@@ -131,7 +133,7 @@ bool scene_process_key_fn(
             .loop_ctx = loop_ctx
         };
         if(scene->_focused != NULL)
-            return scene->_focused->_process_key_fn_(scene->_focused, key, ctx);
+            return scene->_focused->process_key_fn_(scene->_focused, key, ctx);
         else return false;
     }
 }
@@ -139,8 +141,8 @@ bool scene_process_key_fn(
 static void gui_fn1(void* data)
 {
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(NULL, NULL, NULL);
-    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60, NULL,
-            NULL, NULL, NULL, NULL);
+    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 30,
+            loop_process_event_fn, NULL, NULL);
 
     ntg_color_block root;
     ntg_object* _root = (ntg_object*)&root;
@@ -149,7 +151,7 @@ static void gui_fn1(void* data)
 
     ntg_scene_set_root(s._scene, ntg_object_to_drawable_(_root));
 
-    ntg_loop_run(b._loop, NULL);
+    ntg_loop_run(b.loop, NULL);
 
     __ntg_color_block_deinit__(&root);
 
@@ -229,11 +231,11 @@ static void gui_fn2(void* data)
 
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
             _north, NULL);
-    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 60,
-            def_loop_process_key_fn, NULL, NULL, NULL, NULL);
+    struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 30,
+            loop_process_event_fn, NULL, NULL);
 
     ntg_scene_set_root(s._scene, ntg_object_to_drawable_(_root));
-    ntg_loop_run(b._loop, NULL);
+    ntg_loop_run(b.loop, NULL);
 
     __ntg_border_box_deinit__(&root);
     __ntg_label_deinit__(&north);

@@ -98,7 +98,7 @@ static void __measure1_fn(ntg_drawable* drawable, void* _layout_data)
     ntg_scene_graph* graph = _scene->_graph;
 
     struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
-    ntg_drawable_vec_view children = drawable->_get_children_fn__(drawable);
+    ntg_drawable_vec_view children = drawable->get_children_fn__(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
     ntg_measure_ctx* ctx = ntg_measure_ctx_new(child_count, scene->_layout_arena);
@@ -122,7 +122,7 @@ static void __measure1_fn(ntg_drawable* drawable, void* _layout_data)
         ntg_measure_ctx_set(ctx, it_drawable, it_data);
     }
 
-    struct ntg_measure_out result = drawable->_measure_fn_(
+    struct ntg_measure_out result = drawable->measure_fn_(
             drawable, NTG_ORIENTATION_H,
             NTG_SIZE_MAX, ctx, scene->_layout_arena);
 
@@ -140,7 +140,7 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
     ntg_scene_graph* graph = _scene->_graph;
 
     struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
-    ntg_drawable_vec_view children = drawable->_get_children_fn__(drawable);
+    ntg_drawable_vec_view children = drawable->get_children_fn__(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
     ntg_constrain_ctx* constrain_ctx = ntg_constrain_ctx_new(child_count, scene->_layout_arena);
@@ -166,7 +166,7 @@ static void __constrain1_fn(ntg_drawable* drawable, void* _layout_data)
         ntg_measure_ctx_set(measure_ctx, it_drawable, it_data);
     }
 
-    drawable->_constrain_fn_(drawable,
+    drawable->constrain_fn_(drawable,
             NTG_ORIENTATION_H,
             node->size.x, constrain_ctx,
             measure_ctx, out, scene->_layout_arena);
@@ -189,7 +189,7 @@ static void __measure2_fn(ntg_drawable* drawable, void* _layout_data)
 
     struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
 
-    ntg_drawable_vec_view children = drawable->_get_children_fn__(drawable);
+    ntg_drawable_vec_view children = drawable->get_children_fn__(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
     ntg_measure_ctx* ctx = ntg_measure_ctx_new(child_count, scene->_layout_arena);
@@ -213,7 +213,7 @@ static void __measure2_fn(ntg_drawable* drawable, void* _layout_data)
         ntg_measure_ctx_set(ctx, it_drawable, it_data);
     }
 
-    struct ntg_measure_out result = drawable->_measure_fn_(
+    struct ntg_measure_out result = drawable->measure_fn_(
             drawable, NTG_ORIENTATION_V,
             node->size.x, ctx, scene->_layout_arena);
 
@@ -232,7 +232,7 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
 
     struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
 
-    ntg_drawable_vec_view children = drawable->_get_children_fn__(drawable);
+    ntg_drawable_vec_view children = drawable->get_children_fn__(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
     ntg_constrain_ctx* constrain_ctx = ntg_constrain_ctx_new(child_count, scene->_layout_arena);
@@ -258,7 +258,7 @@ static void __constrain2_fn(ntg_drawable* drawable, void* _layout_data)
         ntg_measure_ctx_set(measure_ctx, it_drawable, it_data);
     }
 
-    drawable->_constrain_fn_(drawable,
+    drawable->constrain_fn_(drawable,
             NTG_ORIENTATION_V,
             node->size.y, constrain_ctx,
             measure_ctx, out, scene->_layout_arena);
@@ -281,7 +281,7 @@ static void __arrange_fn(ntg_drawable* drawable, void* _layout_data)
 
     struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
 
-    ntg_drawable_vec_view children = drawable->_get_children_fn__(drawable);
+    ntg_drawable_vec_view children = drawable->get_children_fn__(drawable);
     size_t child_count = ntg_drawable_vec_view_count(&children);
 
     ntg_arrange_ctx* ctx = ntg_arrange_ctx_new(child_count, scene->_layout_arena);
@@ -303,7 +303,7 @@ static void __arrange_fn(ntg_drawable* drawable, void* _layout_data)
         ntg_arrange_ctx_set(ctx, it_drawable, it_data);
     }
 
-    drawable->_arrange_fn_(drawable, node->size, ctx, out, scene->_layout_arena);
+    drawable->arrange_fn_(drawable, node->size, ctx, out, scene->_layout_arena);
 
     for(i = 0; i < child_count; i++)
     {
@@ -325,8 +325,8 @@ static void __draw_fn(ntg_drawable* drawable, void* _layout_data)
 
     struct _ntg_scene_node* node = ntg_scene_graph_get(graph, drawable);
     ntg_drawing_set_size(node->drawing, node->size);
-    if(drawable->_draw_fn_)
-        drawable->_draw_fn_(drawable, node->size, node->drawing, scene->_layout_arena);
+    if(drawable->draw_fn_)
+        drawable->draw_fn_(drawable, node->size, node->drawing, scene->_layout_arena);
 }
 
 // static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,

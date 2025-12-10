@@ -14,9 +14,8 @@ typedef struct ntg_object ntg_object;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_sub ntg_event_sub;
-typedef struct ntg_object_fx_vec ntg_object_fx_vec;
-typedef struct ntg_object_padding ntg_object_padding;
-typedef struct ntg_object_border ntg_object_border;
+typedef struct ntg_padding ntg_padding;
+typedef struct ntg_border ntg_border;
 
 typedef void (*ntg_object_deinit_fn)(ntg_object* object);
 
@@ -64,11 +63,11 @@ struct ntg_xy ntg_object_get_grow(const ntg_object* object);
 
 /* ---------------------------------------------------------------- */
 
-ntg_object_padding* ntg_object_set_padding(ntg_object* object, ntg_object_padding* padding);
-ntg_object_padding* ntg_object_get_padding(ntg_object* object);
+ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding);
+ntg_padding* ntg_object_get_padding(ntg_object* object);
 
-ntg_object_border* ntg_object_set_border(ntg_object* object, ntg_object_border* border);
-ntg_object_border* ntg_object_get_border(ntg_object* object);
+ntg_border* ntg_object_set_border(ntg_object* object, ntg_border* border);
+ntg_border* ntg_object_get_border(ntg_object* object);
 
 void ntg_object_set_background(ntg_object* object, ntg_cell background);
 ntg_cell ntg_object_get_background(const ntg_object* object);

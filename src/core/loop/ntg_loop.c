@@ -5,6 +5,9 @@
 #include "base/event/ntg_event.h"
 #include "base/event/ntg_event_types.h"
 #include "core/loop/ntg_taskmaster.h"
+#include "core/renderer/ntg_renderer.h"
+#include "core/scene/shared/_ntg_drawing.h"
+#include "core/stage/ntg_stage.h"
 #include "nt.h"
 
 struct ntg_loop_ctx
@@ -67,19 +70,27 @@ void* ntg_loop_ctx_get_data(ntg_loop_ctx* ctx)
 
 /* -------------------------------------------------------------------------- */
 
+static void __process_event_fn_def(ntg_loop* loop,
+        ntg_loop_ctx* ctx, struct nt_event event);
+
 void __ntg_loop_init__(ntg_loop* loop,
         ntg_loop_process_event_fn process_event_fn,
         ntg_stage* init_stage,
+        ntg_renderer* renderer,
         ntg_taskmaster* taskmaster,
+        unsigned int framerate,
         void* data)
 {
     assert(loop != NULL);
     assert(init_stage != NULL);
     assert(taskmaster != NULL);
 
-    loop->__process_event_fn = process_event_fn;
+    loop->__process_event_fn = (process_event_fn != NULL) ?
+        process_event_fn : __process_event_fn_def;
     loop->__init_stage = init_stage;
+    loop->__renderer = renderer;
     loop->__taskmaster = taskmaster;
+    loop->__framerate = framerate;
     loop->_data = data;
     loop->__delegate = ntg_event_delegate_new();
 }
@@ -91,6 +102,9 @@ void __ntg_loop_deinit__(ntg_loop* loop)
     loop->__process_event_fn = NULL;
     ntg_event_delegate_destroy(loop->__delegate);
     loop->__delegate = NULL;
+    loop->__renderer = NULL;
+    loop->_data = NULL;
+    loop->__framerate = 0;
 }
 
 void ntg_loop_run(ntg_loop* loop, void* ctx_data)
@@ -108,8 +122,12 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
             ctx_data);
 
     /* loop */
-    struct ntg_loop_status status;
-    unsigned int timeout = 0;
+    unsigned int timeout = 1000 / loop->__framerate;
+    struct timespec ts_start, ts_end;
+    int64_t process_elapsed_ns;
+    uint64_t process_elapsed_ms;
+    const ntg_stage_drawing* drawing;
+
     struct nt_event _nt_event;
     ntg_event _ntg_event;
 
@@ -119,9 +137,6 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
     /* loop key */
     struct ntg_event_app_key_data key_data;
     nt_status _status;
-    struct timespec ts_start, ts_end;
-    int64_t elapsed_ns;
-    uint64_t elapsed_ms;
     while(true)
     {
         if(!ctx.loop) break;
@@ -135,47 +150,63 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
         clock_gettime(CLOCK_MONOTONIC, &ts_start);
         // if(_status == NT_ERR_UNEXPECTED) break;
 
-        status = loop->__process_event_fn(loop, &ctx, _nt_event);
-        switch(_nt_event.type)
+        loop->__process_event_fn(loop, &ctx, _nt_event);
+
+        if(_nt_event.type == NT_EVENT_TIMEOUT)
         {
-            case NT_EVENT_KEY:
-                key_data.key = _nt_event.key_data;
-                __ntg_event_init__(
-                        &_ntg_event,
-                        NTG_EVENT_APP_KEYPRESS,
-                        loop,
-                        &key_data);
-                ntg_event_delegate_raise(loop->__delegate, &_ntg_event);
-                break;
+            timeout = 1000 / loop->__framerate;
 
-            case NT_EVENT_RESIZE:
-                resize_data.old = app_size;
-                app_size = ntg_xy(
-                        _nt_event.resize_data.width,
-                        _nt_event.resize_data.height);
-                ctx.app_size = app_size;
-                resize_data.new = app_size;
-                __ntg_event_init__(
-                        &_ntg_event,
-                        NTG_EVENT_APP_RESIZE,
-                        loop,
-                        &resize_data);
-                ntg_event_delegate_raise(loop->__delegate, &_ntg_event);
-                break;
+            if(ctx.stage != NULL)
+            {
+                ntg_stage_compose(ctx.stage, app_size);
+                drawing = ntg_stage_get_drawing(ctx.stage);
+            }
+            else drawing = NULL;
 
-            case NT_EVENT_TIMEOUT: // frame end
-                ntg_taskmaster_execute_callbacks(loop->__taskmaster);
-                break;
+            ntg_renderer_render(loop->__renderer, drawing, app_size);
+            ntg_taskmaster_execute_callbacks(loop->__taskmaster);
+        }
+        else
+        {
+            timeout -= _nt_event.elapsed;
+            switch(_nt_event.type)
+            {
+                case NT_EVENT_KEY:
+                    key_data.key = _nt_event.key_data;
+                    __ntg_event_init__(
+                            &_ntg_event,
+                            NTG_EVENT_APP_KEYPRESS,
+                            loop,
+                            &key_data);
+                    ntg_event_delegate_raise(loop->__delegate, &_ntg_event);
+                    break;
+
+                case NT_EVENT_RESIZE:
+                    resize_data.old = app_size;
+                    app_size = ntg_xy(
+                            _nt_event.resize_data.width,
+                            _nt_event.resize_data.height);
+                    ctx.app_size = app_size;
+                    resize_data.new = app_size;
+                    __ntg_event_init__(
+                            &_ntg_event,
+                            NTG_EVENT_APP_RESIZE,
+                            loop,
+                            &resize_data);
+                    ntg_event_delegate_raise(loop->__delegate, &_ntg_event);
+                    break;
+                case NT_EVENT_TIMEOUT: assert(0);
+            }
         }
 
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
-        elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
+        process_elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
             + (int64_t)(ts_end.tv_nsec - ts_start.tv_nsec);
-        elapsed_ns = (elapsed_ns > 0) ? elapsed_ns : 0;
+        process_elapsed_ns = (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
 
-        elapsed_ms = elapsed_ns / 1000000LL;
-        timeout = (status.timeout > elapsed_ms) ? status.timeout - elapsed_ms : 0;
+        process_elapsed_ms = process_elapsed_ns / 1000000LL;
+        timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
 
     __ntg_loop_ctx_deinit__(&ctx);
@@ -213,4 +244,11 @@ void __ntg_loop_ctx_deinit__(ntg_loop_ctx* ctx)
     ctx->app_size = ntg_xy(0, 0);
     ctx->taskmaster = NULL;
     ctx->data = NULL;
+}
+
+static void __process_event_fn_def(ntg_loop* loop,
+        ntg_loop_ctx* ctx, struct nt_event event)
+{
+    if(event.type == NT_EVENT_KEY)
+        ntg_stage_feed_key_event(ctx->stage, event.key_data, ctx);
 }

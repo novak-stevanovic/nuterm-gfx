@@ -218,7 +218,7 @@ struct ntg_xy ntg_object_get_grow(const ntg_object* object)
 
 /* ---------------------------------------------------------------- */
 
-ntg_object_padding* ntg_object_set_padding(ntg_object* object, ntg_object_padding* padding)
+ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding)
 {
     assert(object != NULL);
 
@@ -257,20 +257,20 @@ ntg_object_padding* ntg_object_set_padding(ntg_object* object, ntg_object_paddin
         _ntg_object_add_child(old_padding_parent, old_padding_parent_new_child);
     }
 
-    return ((ntg_object_padding*)old_padding);
+    return ((ntg_padding*)old_padding);
 }
 
-ntg_object_padding* ntg_object_get_padding(ntg_object* object)
+ntg_padding* ntg_object_get_padding(ntg_object* object)
 {
     assert(object != NULL);
 
     ntg_object* parent = ntg_object_get_parent(object, NTG_OBJECT_PARENT_INCL_DECOR);
     if((parent == NULL) || (parent->__type != NTG_OBJECT_PADDING))
         return NULL;
-    else return (ntg_object_padding*)parent;
+    else return (ntg_padding*)parent;
 }
 
-ntg_object_border* ntg_object_set_border(ntg_object* object, ntg_object_border* border)
+ntg_border* ntg_object_set_border(ntg_object* object, ntg_border* border)
 {
     assert(object != NULL);
 
@@ -312,16 +312,16 @@ ntg_object_border* ntg_object_set_border(ntg_object* object, ntg_object_border* 
         _ntg_object_add_child(wparent, wparent_new_child);
     }
 
-    return ((ntg_object_border*)old_border);
+    return ((ntg_border*)old_border);
 }
 
-ntg_object_border* ntg_object_get_border(ntg_object* object)
+ntg_border* ntg_object_get_border(ntg_object* object)
 {
     assert(object != NULL);
 
     ntg_object* root = ntg_object_get_group_root(object);
     if(root->__type != NTG_OBJECT_BORDER) return NULL;
-    else return (ntg_object_border*)root;
+    else return (ntg_border*)root;
 }
 
 void ntg_object_set_background(ntg_object* object, ntg_cell background)
@@ -642,7 +642,7 @@ static void __ntg_object_constrain_fn(
     /* Check if to call wrapped constrain fn */
     if((size == 0) || (object->__wrapped_constrain_fn == NULL))
     {
-        const ntg_drawable_vec* children = drawable->_get_children_fn_(drawable);
+        const ntg_drawable_vec* children = drawable->get_children_fn_(drawable);
         if(children == NULL) return;
 
         size_t i;
@@ -675,7 +675,7 @@ static void __ntg_object_arrange_fn(
 
     if(ntg_xy_size_is_zero(size) || (object->__wrapped_arrange_fn == NULL))
     {
-        const ntg_drawable_vec* children = drawable->_get_children_fn_(drawable);
+        const ntg_drawable_vec* children = drawable->get_children_fn_(drawable);
         if(children == NULL) return;
 
         size_t i;

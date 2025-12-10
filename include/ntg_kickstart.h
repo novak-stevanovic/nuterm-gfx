@@ -4,7 +4,7 @@
 /* Convenience includes & functions */
 
 #include "core/object/ntg_object.h"
-#include "core/loop/ntg_def_loop.h"
+#include "core/loop/ntg_loop.h"
 #include "core/renderer/ntg_def_renderer.h"
 #include "core/loop/ntg_taskmaster.h"
 #include "core/stage/ntg_def_stage.h"
@@ -12,8 +12,7 @@
 
 struct ntg_kickstart_basic_obj
 {
-    ntg_def_loop* loop;
-    ntg_loop* _loop;
+    ntg_loop* loop;
 
     ntg_taskmaster* taskmaster;
 
@@ -24,9 +23,7 @@ struct ntg_kickstart_basic_obj
 struct ntg_kickstart_basic_obj ntg_kickstart_basic(
         ntg_stage* init_stage,
         unsigned int loop_framerate, /* non-zero */
-        ntg_def_loop_process_key_fn loop_process_key_fn, /* non-NULL */
-        ntg_def_loop_on_resize_fn loop_on_resize_fn,
-        ntg_def_loop_on_timeout_fn loop_on_timeout_fn,
+        ntg_loop_process_event_fn loop_process_event_fn,
         void* loop_data, void* renderer_data);
 void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj);
 

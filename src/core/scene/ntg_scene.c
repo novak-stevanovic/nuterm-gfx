@@ -183,7 +183,7 @@ static void __update_focused(ntg_scene* scene)
             };
 
             // ntg_log_log("DADA %p", new->_on_focus_fn);
-            old->_on_unfocus_fn_(old, ctx);
+            old->on_unfocus_fn_(old, ctx);
         }
 
         if(new != NULL)
@@ -198,7 +198,7 @@ static void __update_focused(ntg_scene* scene)
                 .scene = scene
             };
 
-            new->_on_focus_fn_(new, focus_ctx);
+            new->on_focus_fn_(new, focus_ctx);
 
             scene->__pending_focused = NULL;
         }
@@ -271,5 +271,5 @@ static bool __process_key_fn_def(ntg_scene* scene,
         .loop_ctx = loop_ctx
     };
 
-    return scene->_focused->_process_key_fn_(scene->_focused, key, ctx);
+    return scene->_focused->process_key_fn_(scene->_focused, key, ctx);
 }

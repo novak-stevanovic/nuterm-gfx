@@ -7,16 +7,14 @@
 struct ntg_kickstart_basic_obj ntg_kickstart_basic(
         ntg_stage* init_stage,
         unsigned int loop_framerate, /* non-zero */
-        ntg_def_loop_process_key_fn loop_process_key_fn, /* non-NULL */
-        ntg_def_loop_on_resize_fn loop_on_resize_fn,
-        ntg_def_loop_on_timeout_fn loop_on_timeout_fn,
+        ntg_loop_process_event_fn loop_process_event_fn,
         void* loop_data, void* renderer_data)
 {
     assert(loop_framerate > 0);
     assert(loop_framerate < 1000);
     // assert(loop_process_key_fn != NULL);
 
-    ntg_def_loop* loop = (ntg_def_loop*)malloc(sizeof(ntg_def_loop));
+    ntg_loop* loop = (ntg_loop*)malloc(sizeof(ntg_loop));
     ntg_loop* _loop = (ntg_loop*)loop;
     assert(loop != NULL);
 
@@ -26,15 +24,13 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
 
     ntg_taskmaster* taskmaster = ntg_taskmaster_new();
     
-    __ntg_def_loop_init__(
+    __ntg_loop_init__(
             loop,
+            loop_process_event_fn,
             init_stage,
+            _renderer,
             taskmaster,
             loop_framerate,
-            _renderer,
-            loop_process_key_fn,
-            loop_on_resize_fn,
-            loop_on_timeout_fn,
             loop_data);
 
     __ntg_def_renderer_init__(renderer, _loop, renderer_data);
@@ -46,7 +42,6 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
         .taskmaster = taskmaster,
 
         .loop = loop,
-        ._loop = _loop
     };
 }
 
@@ -55,7 +50,7 @@ void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj)
     assert(obj != NULL);
 
     __ntg_def_renderer_deinit__(obj->renderer);
-    __ntg_def_loop_deinit__(obj->loop);
+    __ntg_loop_deinit__(obj->loop);
     ntg_taskmaster_destroy(obj->taskmaster);
 
     (*obj) = (struct ntg_kickstart_basic_obj) {0};
