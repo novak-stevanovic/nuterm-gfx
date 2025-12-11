@@ -6,7 +6,7 @@
 
 typedef struct ntg_loop ntg_loop;
 typedef struct ntg_stage ntg_stage;
-typedef struct ntg_event_delegate ntg_event_delegate;
+typedef struct ntg_event_dlgt ntg_event_dlgt;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_taskmaster ntg_taskmaster;
 typedef struct ntg_renderer ntg_renderer;
@@ -45,7 +45,7 @@ struct ntg_loop
     unsigned int __framerate;
     void* _data;
 
-    ntg_event_delegate* __delegate;
+    ntg_event_dlgt* __delegate;
 };
 
 void __ntg_loop_init__(ntg_loop* loop,

@@ -9,7 +9,7 @@ typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_drawable ntg_drawable;
 typedef struct ntg_listenable ntg_listenable;
-typedef struct ntg_event_delegate ntg_event_delegate;
+typedef struct ntg_event_dlgt ntg_event_dlgt;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 struct ntg_event_sub;
 
@@ -54,7 +54,7 @@ struct ntg_scene
     ntg_drawable *_focused, *__pending_focused;
     bool __pending_focused_flag;
 
-    ntg_event_delegate* _delegate;
+    ntg_event_dlgt* _delegate;
 
     void* _data;
 };

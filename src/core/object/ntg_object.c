@@ -358,7 +358,7 @@ ntg_listenable* ntg_object_get_listenable(ntg_object* object)
 {
     assert(object != NULL);
 
-    return ntg_event_delegate_listenable(object->_delegate);
+    return ntg_event_dlgt_listenable(object->_delegate);
 }
 
 /* ---------------------------------------------------------------- */
@@ -466,7 +466,7 @@ void __ntg_object_init__(ntg_object* object,
             on_focus_fn,
             on_unfocus_fn);
 
-    object->_delegate = ntg_event_delegate_new();
+    object->_delegate = ntg_event_dlgt_new();
     object->_data = data;
 }
 
@@ -476,7 +476,7 @@ void __ntg_object_deinit__(ntg_object* object)
 
     ntg_object_vec_destroy(object->__children);
     ntg_drawable_vec_destroy(object->__children_drawables);
-    ntg_event_delegate_destroy(object->_delegate);
+    ntg_event_dlgt_destroy(object->_delegate);
 
     __init_default_values(object);
 }

@@ -7,24 +7,12 @@
 
 static unsigned int __id_gen = 0;
 
-void __ntg_event_init__(ntg_event* event, unsigned int type,
-        void* source, void* data)
-{
-    assert(event != NULL);
-
-    event->_type = type;
-    event->_source = source;
-    event->_data = data;
-    event->_id = __id_gen;
-    __id_gen++;
-}
-
 struct ntg_listenable
 {
     ntg_event_sub_vec* __subs;
 };
 
-struct ntg_event_delegate
+struct ntg_event_dlgt
 {
     ntg_event_sub_vec* __subs;
 };
@@ -70,9 +58,9 @@ bool ntg_listenable_has_sub(ntg_listenable* listenable,
     return ntg_event_sub_vec_contains_(listenable->__subs, subscriber, handler);
 }
 
-ntg_event_delegate* ntg_event_delegate_new()
+ntg_event_dlgt* ntg_event_dlgt_new()
 {
-    ntg_event_delegate* new = (ntg_event_delegate*)malloc(sizeof(ntg_event_delegate));
+    ntg_event_dlgt* new = (ntg_event_dlgt*)malloc(sizeof(ntg_event_dlgt));
     assert(new != NULL);
 
     new->__subs = ntg_event_sub_vec_new();
@@ -80,26 +68,36 @@ ntg_event_delegate* ntg_event_delegate_new()
     return new;
 }
 
-void ntg_event_delegate_destroy(ntg_event_delegate* del)
+void ntg_event_dlgt_destroy(ntg_event_dlgt* event_dlgt)
 {
-    assert(del != NULL);
+    assert(event_dlgt != NULL);
 
-    ntg_event_sub_vec_destroy(del->__subs);
-    free(del);
+    ntg_event_sub_vec_destroy(event_dlgt->__subs);
+    free(event_dlgt);
 }
 
-ntg_listenable* ntg_event_delegate_listenable(ntg_event_delegate* del)
+ntg_listenable* ntg_event_dlgt_listenable(ntg_event_dlgt* event_dlgt)
 {
-    assert(del != NULL);
+    assert(event_dlgt != NULL);
 
-    return (ntg_listenable*)del;
+    return (ntg_listenable*)event_dlgt;
 }
 
-void ntg_event_delegate_raise(ntg_event_delegate* del, ntg_event* event)
+void ntg_event_dlgt_raise(ntg_event_dlgt* event_dlgt, unsigned int type,
+        void* source, void* data)
 {
-    assert(del != NULL);
+    assert(event_dlgt != NULL);
+    assert(type != NTG_EVENT_TYPE_INVALID);
+    assert(source != NULL);
 
-    ntg_event_sub_vec* subs = del->__subs;
+    ntg_event_sub_vec* subs = event_dlgt->__subs;
+
+    struct ntg_event event = {
+        .id = __id_gen,
+        .type = type,
+        .source = source,
+        .data = data
+    };
 
     size_t i;
     for(i = 0; i < subs->_count; i++)

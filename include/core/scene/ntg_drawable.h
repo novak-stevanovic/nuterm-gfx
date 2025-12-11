@@ -7,12 +7,9 @@
 typedef struct ntg_drawable ntg_drawable;
 typedef struct ntg_scene ntg_scene;
 
-typedef struct ntg_measure_ctx ntg_measure_ctx;
-typedef struct ntg_constrain_ctx ntg_constrain_ctx;
-typedef struct ntg_constrain_out ntg_constrain_out;
-typedef struct ntg_arrange_ctx ntg_arrange_ctx;
-typedef struct ntg_arrange_out ntg_arrange_out;
-typedef struct ntg_draw_ctx ntg_draw_ctx;
+typedef struct ntg_dmeasure_map ntg_dmeasure_map;
+typedef struct ntg_dsize_map ntg_dsize_map;
+typedef struct ntg_dxy_map ntg_dxy_map;
 typedef struct ntg_drawing ntg_drawing;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 typedef struct sarena sarena;
@@ -20,39 +17,91 @@ typedef struct sarena sarena;
 typedef struct ntg_drawable_vec ntg_drawable_vec;
 typedef struct ntg_drawable_vec_view ntg_drawable_vec_view;
 
+/* ------------------------------------------------------ */
+
+struct ntg_measure_ctx
+{
+    const ntg_dmeasure_map* m;
+};
+
+struct ntg_measure_out
+{
+    size_t __placeholder;
+};
+
 /* Measures how much space the object would require along one axis,
  * if the size is constrained for the other axis. */
-typedef struct ntg_measure_out (*ntg_measure_fn)(
+typedef struct ntg_measurement (*ntg_measure_fn)(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_ctx* ctx,
+        struct ntg_measure_ctx ctx,
+        struct ntg_measure_out* out,
         sarena* arena);
+
+/* ------------------------------------------------------ */
+
+struct ntg_constrain_ctx
+{
+    const ntg_dmeasure_map* m;
+};
+
+struct ntg_constrain_out
+{
+    ntg_dsize_map* const out_sizes;
+};
 
 /* Determines the children's sizes. */
 typedef void (*ntg_constrain_fn)(
         const ntg_drawable* drawable,
         ntg_orientation orientation,
         size_t size,
-        const ntg_constrain_ctx* constrain_ctx,
-        const ntg_measure_ctx* measure_ctx,
-        ntg_constrain_out* out,
+        struct ntg_constrain_ctx ctx,
+        struct ntg_constrain_out* out,
         sarena* arena);
+
+/* ------------------------------------------------------ */
+
+struct ntg_arrange_ctx
+{
+    const ntg_dsize_map* sizes;
+};
+
+struct ntg_arrange_out
+{
+    ntg_dxy_map* const out_pos;
+};
 
 /* Determines children positions. */
 typedef void (*ntg_arrange_fn)(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        const ntg_arrange_ctx* ctx,
-        ntg_arrange_out* out,
+        struct ntg_arrange_ctx ctx,
+        struct ntg_arrange_out* out,
         sarena* arena);
+
+/* ------------------------------------------------------ */
+
+struct ntg_draw_ctx
+{
+    const ntg_dsize_map* sizes;
+    const ntg_dsize_map* pos;
+};
+
+struct ntg_draw_out
+{
+    ntg_drawing* const drawing;
+};
 
 /* Draws the `drawable` into `out_drawing` */
 typedef void (*ntg_draw_fn)(
         const ntg_drawable* drawable,
         struct ntg_xy size,
-        ntg_drawing* out_drawing,
+        struct ntg_draw_ctx ctx,
+        struct ntg_draw_out* out,
         sarena* arena);
+
+/* ------------------------------------------------------ */
 
 typedef ntg_drawable_vec_view (*ntg_get_children_fn_)(
         ntg_drawable* drawable);
@@ -63,6 +112,8 @@ typedef ntg_drawable* (*ntg_get_parent_fn_)(
         ntg_drawable* drawable);
 typedef const ntg_drawable* (*ntg_get_parent_fn)(
         const ntg_drawable* drawable);
+
+/* ------------------------------------------------------ */
 
 struct ntg_process_key_ctx
 {
@@ -75,6 +126,8 @@ typedef bool (*ntg_process_key_fn)(
         ntg_drawable* drawable,
         struct nt_key_event key_event,
         struct ntg_process_key_ctx ctx);
+
+/* ------------------------------------------------------ */
 
 struct ntg_focus_ctx
 {
@@ -95,6 +148,8 @@ struct ntg_unfocus_ctx
 typedef void (*ntg_on_unfocus_fn)(
         ntg_drawable* drawable,
         struct ntg_unfocus_ctx ctx);
+
+/* ------------------------------------------------------ */
 
 struct ntg_drawable
 {

@@ -46,7 +46,7 @@ void __ntg_scene_init__(
     scene->__process_key_fn = (process_key_fn != NULL) ? process_key_fn : __process_key_fn_def;
     scene->_data = data;
 
-    scene->_delegate = ntg_event_delegate_new();
+    scene->_delegate = ntg_event_dlgt_new();
     scene->_graph = ntg_scene_graph_new();
 }
 
@@ -54,7 +54,7 @@ void __ntg_scene_deinit__(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    ntg_event_delegate_destroy(scene->_delegate);
+    ntg_event_dlgt_destroy(scene->_delegate);
     ntg_scene_graph_destroy(scene->_graph);
 
     __init_default_values(scene);
@@ -147,7 +147,7 @@ ntg_listenable* ntg_scene_get_listenable(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    return ntg_event_delegate_listenable(scene->_delegate);
+    return ntg_event_dlgt_listenable(scene->_delegate);
 }
 
 /* -------------------------------------------------------------------------- */

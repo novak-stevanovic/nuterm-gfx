@@ -12,7 +12,7 @@
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_listenable ntg_listenable;
-typedef struct ntg_event_delegate ntg_event_delegate;
+typedef struct ntg_event_dlgt ntg_event_dlgt;
 typedef struct ntg_event_sub ntg_event_sub;
 typedef struct ntg_padding ntg_padding;
 typedef struct ntg_border ntg_border;
@@ -130,7 +130,7 @@ struct ntg_object
     };
 
     struct ntg_drawable __drawable;
-    ntg_event_delegate* _delegate;
+    ntg_event_dlgt* _delegate;
 
     void* _data;
 };

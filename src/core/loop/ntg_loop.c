@@ -92,7 +92,7 @@ void __ntg_loop_init__(ntg_loop* loop,
     loop->__taskmaster = taskmaster;
     loop->__framerate = framerate;
     loop->_data = data;
-    loop->__delegate = ntg_event_delegate_new();
+    loop->__delegate = ntg_event_dlgt_new();
 }
 
 void __ntg_loop_deinit__(ntg_loop* loop)
@@ -100,7 +100,7 @@ void __ntg_loop_deinit__(ntg_loop* loop)
     assert(loop != NULL);
 
     loop->__process_event_fn = NULL;
-    ntg_event_delegate_destroy(loop->__delegate);
+    ntg_event_dlgt_destroy(loop->__delegate);
     loop->__delegate = NULL;
     loop->__renderer = NULL;
     loop->_data = NULL;
@@ -178,7 +178,7 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
                             NTG_EVENT_APP_KEYPRESS,
                             loop,
                             &key_data);
-                    ntg_event_delegate_raise(loop->__delegate, &_ntg_event);
+                    ntg_event_dlgt_raise(loop->__delegate, &_ntg_event);
                     break;
 
                 case NT_EVENT_RESIZE:
@@ -193,7 +193,7 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
                             NTG_EVENT_APP_RESIZE,
                             loop,
                             &resize_data);
-                    ntg_event_delegate_raise(loop->__delegate, &_ntg_event);
+                    ntg_event_dlgt_raise(loop->__delegate, &_ntg_event);
                     break;
                 case NT_EVENT_TIMEOUT: assert(0);
             }
@@ -216,7 +216,7 @@ ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop)
 {
     assert(loop != NULL);
 
-    return ntg_event_delegate_listenable(loop->__delegate);
+    return ntg_event_dlgt_listenable(loop->__delegate);
 }
 
 /* -------------------------------------------------------------------------- */
