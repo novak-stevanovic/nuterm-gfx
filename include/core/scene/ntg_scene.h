@@ -66,7 +66,7 @@ struct ntg_scene_node
 
     struct ntg_xy size;
     struct ntg_xy position;
-    const ntg_drawing* drawing;
+    const ntg_object_drawing* drawing;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -12,7 +12,7 @@ struct ntg_def_scene
 {
     ntg_scene __base;
 
-    sarena* _layout_arena;
+    sarena* __layout_arena;
 };
 
 void __ntg_def_scene_init__(

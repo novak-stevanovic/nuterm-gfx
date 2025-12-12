@@ -2,8 +2,9 @@
 #include <stdlib.h>
 
 #include "core/object/ntg_color_block.h"
+#include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_types.h"
-#include "core/scene/shared/ntg_drawable_kit.h"
+#include "core/object/shared/ntg_object_measure.h"
 #include "shared/_ntg_shared.h"
 
 #define NTG_COLOR_BLOCK_DEFAULT_SIZE 5
@@ -11,9 +12,9 @@
 void __ntg_color_block_init__(
         ntg_color_block* color_block,
         nt_color color,
-        ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn,
-        ntg_on_unfocus_fn on_unfocus_fn,
+        ntg_object_process_key_fn process_key_fn,
+        ntg_object_focus_fn on_focus_fn,
+        ntg_object_unfocus_fn on_unfocus_fn,
         void* data)
 {
     assert(color_block != NULL);
@@ -28,6 +29,7 @@ void __ntg_color_block_init__(
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
+            __ntg_color_block_deinit_fn,
             data);
 
 
@@ -38,7 +40,7 @@ void __ntg_color_block_deinit__(ntg_color_block* color_block)
 {
     assert(color_block != NULL);
 
-    __ntg_object_deinit__((ntg_object*)color_block);
+    __ntg_color_block_deinit_fn((ntg_object*)color_block);
 }
 
 nt_color ntg_color_block_get_color(const ntg_color_block* color_block)
@@ -55,14 +57,26 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
     color_block->__color = color;
 }
 
-struct ntg_measure_out __ntg_color_block_measure_fn(
-        const ntg_drawable* drawable,
+void __ntg_color_block_deinit_fn(ntg_object* object)
+{
+    assert(object != NULL);
+
+    ntg_color_block* color_block = (ntg_color_block*)object;
+
+    __ntg_object_deinit__(object);
+
+    color_block->__color = NT_COLOR_DEFAULT;
+}
+
+struct ntg_object_measure __ntg_color_block_measure_fn(
+        const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
-        const ntg_measure_ctx* ctx,
+        struct ntg_object_measure_ctx ctx,
+        struct ntg_object_measure_out* out,
         sarena* arena)
 {
-    return (struct ntg_measure_out) {
+    return (struct ntg_object_measure) {
         .min_size = NTG_COLOR_BLOCK_DEFAULT_SIZE,
         .natural_size = NTG_COLOR_BLOCK_DEFAULT_SIZE,
         .max_size = NTG_SIZE_MAX,
@@ -70,12 +84,13 @@ struct ntg_measure_out __ntg_color_block_measure_fn(
 }
 
 void __ntg_color_block_draw_fn(
-        const ntg_drawable* drawable,
+        const ntg_object* object,
         struct ntg_xy size,
-        ntg_drawing* out_drawing,
+        struct ntg_object_draw_ctx ctx,
+        struct ntg_object_draw_out* out,
         sarena* arena)
 {
-    const ntg_color_block* block = ntg_drawable_user(drawable);
+    ntg_color_block* color_block = (ntg_color_block*)object;
 
     size_t i, j;
     ntg_cell* it_cell;
@@ -83,8 +98,8 @@ void __ntg_color_block_draw_fn(
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_drawing_at_(out_drawing, ntg_xy(j, i));
-            (*it_cell) = ntg_cell_bg(block->__color);
+            it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
+            (*it_cell) = ntg_cell_bg(color_block->__color);
         }
     }
 }

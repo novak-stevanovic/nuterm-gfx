@@ -7,26 +7,16 @@
 
 typedef struct ntg_label ntg_label;
 
-struct ntg_label
-{
-    ntg_object __base;
-
-    ntg_orientation __orientation;
-    struct ntg_str __text;
-    struct nt_gfx __gfx_base, __gfx_adjusted;
-    ntg_text_alignment __primary_alignment;
-    ntg_alignment __secondary_alignment;
-    ntg_text_wrap_mode __wrap_mode;
-    bool __autotrim;
-    size_t __indent;
-};
+/* -------------------------------------------------------------------------- */
+/* PUBLIC */
+/* -------------------------------------------------------------------------- */
 
 void __ntg_label_init__(
         ntg_label* label,
         ntg_orientation orientation,
-        ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn,
-        ntg_on_unfocus_fn on_unfocus_fn,
+        ntg_object_process_key_fn process_key_fn,
+        ntg_object_focus_fn on_focus_fn,
+        ntg_object_unfocus_fn on_unfocus_fn,
         void* data);
 void __ntg_label_deinit__(ntg_label* label);
 
@@ -46,15 +36,39 @@ ntg_text_wrap_mode ntg_label_get_wrap_mode(const ntg_label* label);
 size_t ntg_label_get_indent(const ntg_label* label);
 bool ntg_label_get_autotrim(const ntg_label* label);
 
-struct ntg_measure_out __ntg_label_measure_fn(
-        const ntg_drawable* drawable,
-        ntg_orientation orientation, size_t for_size,
-        const ntg_measure_ctx* ctx,
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_label
+{
+    ntg_object __base;
+
+    ntg_orientation __orientation;
+    struct ntg_str __text;
+    struct nt_gfx __gfx_base, __gfx_adjusted;
+    ntg_text_alignment __primary_alignment;
+    ntg_alignment __secondary_alignment;
+    ntg_text_wrap_mode __wrap_mode;
+    bool __autotrim;
+    size_t __indent;
+};
+
+void __ntg_label_deinit_fn(ntg_object* object);
+
+struct ntg_object_measure __ntg_label_measure_fn(
+        const ntg_object* object,
+        ntg_orientation orientation,
+        size_t for_size,
+        struct ntg_object_measure_ctx ctx,
+        struct ntg_object_measure_out* out,
         sarena* arena);
 
 void __ntg_label_draw_fn(
-        const ntg_drawable* drawable,
-        struct ntg_xy size, ntg_drawing* out_drawing,
+        const ntg_object* object,
+        struct ntg_xy size,
+        struct ntg_object_draw_ctx ctx,
+        struct ntg_object_draw_out* out,
         sarena* arena);
 
 #endif // _NTG_LABEL_H_

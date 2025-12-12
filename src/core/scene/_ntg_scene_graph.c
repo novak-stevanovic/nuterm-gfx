@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "core/scene/_ntg_scene_graph.h"
+#include "core/object/shared/ntg_cobject_vec.h"
 #include "core/object/shared/ntg_object_drawing.h"
 // #include "core/scene/shared/ntg_cobject_vec.h"
 #include "shared/_uthash.h"

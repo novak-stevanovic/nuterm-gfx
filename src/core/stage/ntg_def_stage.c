@@ -1,9 +1,9 @@
 #include <assert.h>
 
 #include "core/stage/ntg_def_stage.h"
-#include "core/scene/ntg_drawable.h"
+#include "core/object/ntg_object.h"
+#include "core/object/shared/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
-#include "core/scene/shared/_ntg_drawing.h"
 
 
 void __ntg_def_stage_init__(ntg_def_stage* stage, ntg_scene* scene, void* data)
@@ -21,13 +21,13 @@ void __ntg_def_stage_deinit__(ntg_def_stage* stage)
     __ntg_stage_deinit__((ntg_stage*)stage);
 }
 
-static void __draw_fn(ntg_drawable* drawable, void* _stage)
+static void __draw_fn(ntg_object* object, void* _stage)
 {
     ntg_stage* stage = (ntg_stage*)_stage;
 
-    struct ntg_scene_node node = ntg_scene_get_node(stage->__scene, drawable);
+    struct ntg_scene_node node = ntg_scene_get_node(stage->__scene, object);
 
-    ntg_drawing_place_(
+    ntg_object_drawing_place_(
             node.drawing,
             ntg_xy(0, 0),
             node.size,
@@ -39,12 +39,12 @@ void __ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size)
 {
     assert(_stage != NULL);
 
-    ntg_drawable* root = ntg_scene_get_root(ntg_stage_get_scene(_stage));
+    ntg_object* root = ntg_scene_get_root(ntg_stage_get_scene(_stage));
 
     if(root != NULL)
     {
-        ntg_drawable_tree_perform(root,
-                NTG_DRAWABLE_PERFORM_TOP_DOWN,
+        ntg_object_tree_perform(root,
+                NTG_OBJECT_PERFORM_TOP_DOWN,
                 __draw_fn,
                 _stage);
     }

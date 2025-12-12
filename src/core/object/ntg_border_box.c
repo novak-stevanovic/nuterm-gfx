@@ -474,10 +474,14 @@ void __ntg_border_box_arrange_fn(
 {
     const ntg_border_box* box = (const ntg_border_box*)object;
 
-    struct ntg_xy north_size = ntg_object_xys_get(ctx.sizes, box->__north);
-    struct ntg_xy east_size = ntg_object_xys_get(ctx.sizes, box->__east);
-    struct ntg_xy south_size = ntg_object_xys_get(ctx.sizes, box->__south);
-    struct ntg_xy west_size = ntg_object_xys_get(ctx.sizes, box->__west);
+    struct ntg_xy north_size = (box->__north != NULL) ?
+        ntg_object_xys_get(ctx.sizes, box->__north) : ntg_xy(0, 0);
+    struct ntg_xy east_size = (box->__east != NULL) ?
+        ntg_object_xys_get(ctx.sizes, box->__east) : ntg_xy(0, 0);
+    struct ntg_xy south_size = (box->__south != NULL) ?
+        ntg_object_xys_get(ctx.sizes, box->__south) : ntg_xy(0, 0);
+    struct ntg_xy west_size = (box->__west != NULL) ?
+        ntg_object_xys_get(ctx.sizes, box->__west) : ntg_xy(0, 0);
 
     size_t west_east_width = west_size.x + east_size.x;
     size_t north_south_height = north_size.y + south_size.y;

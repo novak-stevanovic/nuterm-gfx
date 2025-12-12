@@ -1,10 +1,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "core/object/shared/_ntg_map.h"
+#include "core/object/shared/_ntg_object_map.h"
 #include "shared/sarena.h"
 
-void __ntg_map_init__(ntg_map* ctx, size_t capacity, size_t data_size, sarena* arena)
+void __ntg_object_map_init__(ntg_object_map* ctx,
+        size_t capacity, size_t data_size, sarena* arena)
 {
     assert(ctx != NULL);
     assert(data_size > 0);
@@ -33,7 +34,7 @@ void __ntg_map_init__(ntg_map* ctx, size_t capacity, size_t data_size, sarena* a
     }
 }
 
-void ntg_map_set(ntg_map* ctx, const ntg_object* object, void* data)
+void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* data)
 {
     assert(ctx != NULL);
     assert(object != NULL);
@@ -64,7 +65,7 @@ void ntg_map_set(ntg_map* ctx, const ntg_object* object, void* data)
 
 }
 
-void* ntg_map_get(const ntg_map* ctx, const ntg_object* object)
+void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object)
 {
     assert(ctx != NULL);
     assert(object != NULL);

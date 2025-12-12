@@ -4,13 +4,16 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: remove ntg_drawable - ACTIVE
+// TODO: sarena: remove sa_err
+// TODO: Change out param in layout fns
+// TODO: Rename ntg_object maps(?)
+// TODO: Rename internal ntg_scene_node(?)
 // TODO: rename init/deinit fns(?)
 // TODO: object decorators: implement border & padding - MEDIUM, ACTIVE
 // TODO: nuterm: add signal event - EASY
 // TODO: add convenience macros - EASY
 // TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? - EASY
-// TODO: ntg_object: rethink how to store children with both ntg_object and ntg_drawable references - EASY
+// TODO: ntg_object: ntg_object_get_children() returns const ntg_object_vec* - EASY
 // TODO: ntg_scene: implement multi-root system - MEDIUM
 // TODO: ntg_list and/or ntg_table: implement - MEDIUM
 // TODO: ntg_scene: optimize ntg_scene(performs full layout only when necessary) - MEDIUM

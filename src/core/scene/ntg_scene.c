@@ -6,6 +6,7 @@
 #include "base/event/ntg_event.h"
 #include "core/object/ntg_object.h"
 // #include "core/object/shared/ntg_cobject_vec.h"
+#include "core/object/shared/ntg_cobject_vec.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "shared/ntg_log.h"
 
@@ -266,10 +267,10 @@ static bool __process_key_fn_def(ntg_scene* scene,
 {
     assert(scene != NULL);
 
-    struct ntg_object_process_key_ctx ctx = {
+    struct ntg_object_key_ctx ctx = {
         .scene = scene,
         .loop_ctx = loop_ctx
     };
 
-    return ntg_object_process_key(scene->_focused, key, ctx);
+    return ntg_object_feed_key(scene->_focused, key, ctx);
 }

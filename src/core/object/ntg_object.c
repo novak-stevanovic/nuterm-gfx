@@ -18,6 +18,13 @@
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
+void ntg_object_deinit(ntg_object* object)
+{
+    assert(object != NULL);
+
+    object->__deinit_fn(object);
+}
+
 /* ---------------------------------------------------------------- */
 /* IDENTITY */
 /* ---------------------------------------------------------------- */
@@ -473,16 +480,19 @@ void ntg_object_draw(
             (*it_cell) = object->__background;
         }
     }
+
+    if(object->__draw_fn != NULL)
+        object->__draw_fn(object, size, ctx, out, arena);
 }
 
 /* ---------------------------------------------------------------- */
 /* EVENT */
 /* ---------------------------------------------------------------- */
 
-bool ntg_object_process_key(
+bool ntg_object_feed_key(
         ntg_object* object,
         struct nt_key_event key_event,
-        struct ntg_object_process_key_ctx ctx)
+        struct ntg_object_key_ctx ctx)
 {
     assert(object != NULL);
 
@@ -520,7 +530,7 @@ static void __init_default_values(ntg_object* object);
 
 static bool __process_key_fn_def(ntg_object* object,
         struct nt_key_event key_event,
-        struct ntg_object_process_key_ctx ctx)
+        struct ntg_object_key_ctx ctx)
 {
     return false;
 }

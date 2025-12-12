@@ -34,7 +34,7 @@ struct ntg_object_arrange_ctx;
 struct ntg_object_arrange_out;
 struct ntg_object_draw_ctx;
 struct ntg_object_draw_out;
-struct ntg_object_process_key_ctx;
+struct ntg_object_key_ctx;
 struct ntg_object_focus_ctx;
 struct ntg_object_unfocus_ctx;
 
@@ -107,8 +107,8 @@ typedef void (*ntg_object_arrange_fn)(
 
 struct ntg_object_draw_ctx
 {
-    const ntg_object_sizes* sizes;
-    const ntg_object_sizes* pos;
+    const ntg_object_xys* sizes;
+    const ntg_object_xys* pos;
 };
 
 struct ntg_object_draw_out
@@ -126,7 +126,7 @@ typedef void (*ntg_object_draw_fn)(
 
 /* ------------------------------------------------------ */
 
-struct ntg_object_process_key_ctx
+struct ntg_object_key_ctx
 {
     ntg_scene* scene;
     ntg_loop_ctx* loop_ctx;
@@ -135,7 +135,7 @@ struct ntg_object_process_key_ctx
 /* Returns if the key had been consumed. */
 typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event,
-        struct ntg_object_process_key_ctx ctx);
+        struct ntg_object_key_ctx ctx);
 
 /* ------------------------------------------------------ */
 
@@ -165,6 +165,8 @@ typedef void (*ntg_object_deinit_fn)(ntg_object* object);
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
+
+void ntg_object_deinit(ntg_object* object);
 
 /* ------------------------------------------------------ */
 /* IDENTITY */
@@ -276,9 +278,9 @@ void ntg_object_draw(
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_object_process_key(ntg_object* object,
+bool ntg_object_feed_key(ntg_object* object,
         struct nt_key_event key_event,
-        struct ntg_object_process_key_ctx ctx);
+        struct ntg_object_key_ctx ctx);
 
 void ntg_object_on_focus(ntg_object* object, struct ntg_object_focus_ctx ctx);
 

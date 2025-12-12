@@ -10,7 +10,7 @@
 
 #define CHARBUFF_CAP 100000
 
-static void __listenable_handler(void* subscriber, const ntg_event* event);
+static void __listenable_handler(void* subscriber, struct ntg_event event);
 
 static void __full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
 
@@ -170,14 +170,13 @@ static void __full_render(ntg_def_renderer* renderer,
     }
 }
 
-static void __listenable_handler(void* _subscriber, const ntg_event* event)
+static void __listenable_handler(void* _subscriber, struct ntg_event event)
 {
     assert(_subscriber != NULL);
-    assert(event != NULL);
 
     ntg_def_renderer* renderer = (ntg_def_renderer*)_subscriber;
 
-    if(event->_type == NT_EVENT_RESIZE)
+    if(event.type == NT_EVENT_RESIZE)
     {
         renderer->__resize = true;
     }

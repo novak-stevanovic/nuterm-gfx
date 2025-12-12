@@ -15,40 +15,6 @@
 
 #define COUNT 100
 
-void loop_process_event_fn(
-        ntg_loop* loop,
-        ntg_loop_ctx* ctx,
-        struct nt_event event)
-{
-    if(event.type == NT_EVENT_KEY)
-    {
-        if(nt_key_event_utf32_check(event.key_data, 'q', false))
-        {
-            ntg_log_log("loop received q");
-            ntg_loop_ctx_break(ctx);
-        }
-    }
-}
-
-bool center2_process_key_fn(
-        ntg_drawable* drawable,
-        struct nt_key_event key,
-        struct ntg_process_key_ctx ctx)
-{
-    // if(nt_key_event_utf32_check(key, 'f', false))
-    // {
-    //     ntg_log_log("c2 received f");
-    //     return true;
-    // }
-    // if(nt_key_event_utf32_check(key, 'u', false))
-    // {
-    //     ntg_log_log("c2 received u");
-    //     return true;
-    // }
-
-    return false;
-}
-
 void* __task_fn(void* data)
 {
     sleep(5);
@@ -62,10 +28,10 @@ void __callback_fn(void* data, void* task_result)
 }
 
 void north_on_focus_fn(
-        ntg_drawable* drawable,
-        struct ntg_focus_ctx ctx)
+        ntg_object* object,
+        struct ntg_object_focus_ctx ctx)
 {
-    ntg_label* label = (ntg_label*)ntg_drawable_user_(drawable);
+    ntg_label* label = (ntg_label*)object;
 
     struct nt_gfx gfx = ntg_label_get_gfx(label);
     gfx.style._value_rgb |= NT_STYLE_VAL_REVERSE;
@@ -75,10 +41,10 @@ void north_on_focus_fn(
 }
 
 void north_on_unfocus_fn(
-        ntg_drawable* drawable,
-        struct ntg_unfocus_ctx ctx)
+        ntg_object* object,
+        struct ntg_object_unfocus_ctx ctx)
 {
-    ntg_label* label = (ntg_label*)ntg_drawable_user_(drawable);
+    ntg_label* label = (ntg_label*)object;
 
     struct nt_gfx gfx = ntg_label_get_gfx(label);
     gfx.style._value_rgb ^= NT_STYLE_VAL_REVERSE;
@@ -116,7 +82,7 @@ bool scene_process_key_fn(
     else if(nt_key_event_utf32_check(key, 'f', false))
     {
         ntg_object* scene_object = (ntg_object*)_scene->_data;
-        ntg_scene_focus(_scene, ntg_object_to_drawable_(scene_object));
+        ntg_scene_focus(_scene, scene_object);
         ntg_log_log("Focused center middle child");
         return true;
     }
@@ -126,14 +92,19 @@ bool scene_process_key_fn(
         ntg_scene_focus(_scene, NULL);
         return true;
     }
+    else if(nt_key_event_utf32_check(key, 'q', false))
+    {
+        ntg_loop_ctx_break(loop_ctx);
+        return true;
+    }
     else 
     {
-        struct ntg_process_key_ctx ctx = {
+        struct ntg_object_key_ctx ctx = {
             .scene = _scene,
             .loop_ctx = loop_ctx
         };
         if(scene->_focused != NULL)
-            return scene->_focused->process_key_fn_(scene->_focused, key, ctx);
+            return ntg_object_feed_key(scene->_focused, key, ctx);
         else return false;
     }
 }
@@ -142,14 +113,14 @@ static void gui_fn1(void* data)
 {
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(NULL, NULL, NULL);
     struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 30,
-            loop_process_event_fn, NULL, NULL);
+            NULL, NULL, NULL);
 
     ntg_color_block root;
     ntg_object* _root = (ntg_object*)&root;
     __ntg_color_block_init__(&root, nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
             NULL, NULL, NULL, NULL);
 
-    ntg_scene_set_root(s._scene, ntg_object_to_drawable_(_root));
+    ntg_scene_set_root(s._scene, _root);
 
     ntg_loop_run(b.loop, NULL);
 
@@ -194,7 +165,7 @@ static void gui_fn2(void* data)
     __ntg_color_block_init__(&center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)),
             NULL, NULL, NULL, NULL);
     __ntg_color_block_init__(&center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)),
-            center2_process_key_fn, NULL, NULL, NULL);
+            NULL, NULL, NULL, NULL);
     __ntg_color_block_init__(&center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)),
             NULL, NULL, NULL, NULL);
     ntg_box_add_child(&center, _center1);
@@ -208,7 +179,7 @@ static void gui_fn2(void* data)
     // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
     ntg_box_set_spacing(&south, 10);
     struct nt_rgb rgb_white = nt_rgb_new(255, 255, 255);
-    ntg_box_set_background(&south, ntg_cell_bg(nt_color_new_rgb(rgb_white)));
+    ntg_object_set_background(_south, ntg_cell_bg(nt_color_new_rgb(rgb_white)));
 
     ntg_color_block south1;
     ntg_object* _south1 = (ntg_object*)&south1;
@@ -232,9 +203,9 @@ static void gui_fn2(void* data)
     struct ntg_kickstart_scene_obj s = ntg_kickstart_scene(scene_process_key_fn,
             _north, NULL);
     struct ntg_kickstart_basic_obj b = ntg_kickstart_basic(s._stage, 30,
-            loop_process_event_fn, NULL, NULL);
+            NULL, NULL, NULL);
 
-    ntg_scene_set_root(s._scene, ntg_object_to_drawable_(_root));
+    ntg_scene_set_root(s._scene, _root);
     ntg_loop_run(b.loop, NULL);
 
     __ntg_border_box_deinit__(&root);
