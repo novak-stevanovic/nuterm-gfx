@@ -5,9 +5,9 @@
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
 
-typedef struct ntg_drawable_vec ntg_drawable_vec;
+typedef struct ntg_object_vec ntg_object_vec;
 typedef struct ntg_scene ntg_scene;
-typedef struct ntg_drawable ntg_drawable;
+typedef struct ntg_object ntg_object;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_dlgt ntg_event_dlgt;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
@@ -31,17 +31,17 @@ typedef bool (*ntg_scene_process_key_fn)(
 
 typedef void (*ntg_scene_on_register_fn)(
         ntg_scene* scene,
-        const ntg_drawable* drawable);
+        const ntg_object* object);
 
 typedef void (*ntg_scene_on_unregister_fn)(
         ntg_scene* scene,
-        const ntg_drawable* drawable);
+        const ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
 struct ntg_scene
 {
-    ntg_drawable* _root;
+    ntg_object* _root;
     struct ntg_xy _size;
 
     ntg_scene_graph* _graph;
@@ -51,7 +51,7 @@ struct ntg_scene
     ntg_scene_on_unregister_fn __on_unregister_fn;
     ntg_scene_process_key_fn __process_key_fn;
 
-    ntg_drawable *_focused, *__pending_focused;
+    ntg_object *_focused, *__pending_focused;
     bool __pending_focused_flag;
 
     ntg_event_dlgt* _delegate;
@@ -84,11 +84,11 @@ void __ntg_scene_deinit__(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 
-ntg_drawable* ntg_scene_get_focused(ntg_scene* scene);
-void ntg_scene_focus(ntg_scene* scene, ntg_drawable* drawable);
+ntg_object* ntg_scene_get_focused(ntg_scene* scene);
+void ntg_scene_focus(ntg_scene* scene, ntg_object* object);
 
 struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
-        const ntg_drawable* drawable);
+        const ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
@@ -98,9 +98,9 @@ struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
  *
  * Second, updates the scene graph calling scene's
  * `ntg_scene_on_register_fn` and `ntg_scene_on_unregister_fn` for each new and
- * removed drawable from the graph, respectively.
+ * removed object from the graph, respectively.
  *
- * Third, it updates the focused drawable based on pending_focused field.
+ * Third, it updates the focused object based on pending_focused field.
  *
  * Finally, it calls the scene's `ntg_scene_layout_fn` to perform the layout. */
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size);
@@ -109,8 +109,8 @@ struct ntg_xy ntg_scene_get_size(const ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_set_root(ntg_scene* scene, ntg_drawable* root);
-ntg_drawable* ntg_scene_get_root(ntg_scene* scene);
+void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
+ntg_object* ntg_scene_get_root(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 

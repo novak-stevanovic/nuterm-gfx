@@ -1,40 +1,50 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
+#include <stdbool.h>
+#include <stddef.h>
 #include "base/ntg_cell.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "shared/ntg_xy.h"
-#include "core/object/shared/ntg_measure_map.h"
-#include "core/object/shared/ntg_size_map.h"
-#include "core/object/shared/ntg_xy_map.h"
-#include "core/object/shared/ntg_drawing.h"
 
 /* -------------------------------------------------------------------------- */
 /* DECLARATIONS */
 /* -------------------------------------------------------------------------- */
 
 typedef struct ntg_object ntg_object;
+
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_dlgt ntg_event_dlgt;
 typedef struct ntg_event_sub ntg_event_sub;
 typedef struct ntg_padding ntg_padding;
 typedef struct ntg_border ntg_border;
-// typedef struct ntg_measure_map ntg_measure_map;
-// typedef struct ntg_size_map ntg_size_map;
-// typedef struct ntg_xy_map ntg_xy_map;
-// typedef struct ntg_drawing ntg_drawing;
+typedef struct ntg_object_measures ntg_object_measures;
+typedef struct ntg_object_sizes ntg_object_sizes;
+typedef struct ntg_object_xys ntg_object_xys;
+typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 typedef struct sarena sarena;
-typedef struct nt_key_event nt_key_event;
+struct nt_key_event;
+struct ntg_object_measure_ctx;
+struct ntg_object_measure_out;
+struct ntg_object_constrain_ctx;
+struct ntg_object_constrain_out;
+struct ntg_object_arrange_ctx;
+struct ntg_object_arrange_out;
+struct ntg_object_draw_ctx;
+struct ntg_object_draw_out;
+struct ntg_object_process_key_ctx;
+struct ntg_object_focus_ctx;
+struct ntg_object_unfocus_ctx;
 
 /* -------------------------------------------------------------------------- */
-/* ABSTRACT FUNCTIONS */
+/* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object_measure_ctx
 {
-    const ntg_measure_map* m;
+    const ntg_object_measures* measures;
 };
 
 struct ntg_object_measure_out
@@ -44,7 +54,7 @@ struct ntg_object_measure_out
 
 /* Measures how much space the object would require along one axis,
  * if the size is constrained for the other axis. */
-typedef struct ntg_measurement (*ntg_object_measure_fn)(
+typedef struct ntg_object_measure (*ntg_object_measure_fn)(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -56,12 +66,12 @@ typedef struct ntg_measurement (*ntg_object_measure_fn)(
 
 struct ntg_object_constrain_ctx
 {
-    const ntg_measure_map* m;
+    const ntg_object_measures* measures;
 };
 
 struct ntg_object_constrain_out
 {
-    ntg_size_map* const out_sizes;
+    ntg_object_sizes* const sizes;
 };
 
 /* Determines the children's sizes. */
@@ -77,12 +87,12 @@ typedef void (*ntg_object_constrain_fn)(
 
 struct ntg_object_arrange_ctx
 {
-    const ntg_size_map* sizes;
+    const ntg_object_xys* sizes;
 };
 
 struct ntg_object_arrange_out
 {
-    ntg_xy_map* const out_pos;
+    ntg_object_xys* const pos;
 };
 
 /* Determines children positions. */
@@ -97,16 +107,16 @@ typedef void (*ntg_object_arrange_fn)(
 
 struct ntg_object_draw_ctx
 {
-    const ntg_size_map* sizes;
-    const ntg_size_map* pos;
+    const ntg_object_sizes* sizes;
+    const ntg_object_sizes* pos;
 };
 
 struct ntg_object_draw_out
 {
-    ntg_drawing* const drawing;
+    ntg_object_drawing* const drawing;
 };
 
-/* Draws the `object` into `out_drawing` */
+/* Draws the `object` into `out_object_drawing` */
 typedef void (*ntg_object_draw_fn)(
         const ntg_object* object,
         struct ntg_xy size,
@@ -123,8 +133,7 @@ struct ntg_object_process_key_ctx
 };
 
 /* Returns if the key had been consumed. */
-typedef bool (*ntg_object_process_key_fn)(
-        ntg_object* object,
+typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event,
         struct ntg_object_process_key_ctx ctx);
 
@@ -139,6 +148,7 @@ struct ntg_object_focus_ctx
 typedef void (*ntg_object_focus_fn)(
         ntg_object* object,
         struct ntg_object_focus_ctx ctx);
+/* ------------------------------------------------------ */
 
 struct ntg_object_unfocus_ctx
 {
@@ -156,11 +166,18 @@ typedef void (*ntg_object_deinit_fn)(ntg_object* object);
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------ */
+/* IDENTITY */
+/* ------------------------------------------------------ */
+
 unsigned int ntg_object_get_type(const ntg_object* object);
 bool ntg_object_is_widget(const ntg_object* object);
 bool ntg_object_is_decorator(const ntg_object* object);
-
 unsigned int ntg_object_get_id(const ntg_object* object);
+
+/* ------------------------------------------------------ */
+/* OBJECT TREE */
+/* ------------------------------------------------------ */
 
 ntg_object* ntg_object_get_group_root(ntg_object* object);
 
@@ -183,33 +200,47 @@ const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
 bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant);
 
-/* ---------------------------------------------------------------- */
+typedef enum ntg_object_perform_mode
+{
+    NTG_OBJECT_PERFORM_TOP_DOWN,
+    NTG_OBJECT_PERFORM_BOTTOM_UP
+} ntg_object_perform_mode;
 
-void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size);
-void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size);
+void ntg_object_tree_perform(
+        ntg_object* object,
+        ntg_object_perform_mode mode,
+        void (*perform_fn)(ntg_object* object, void* data),
+        void* data);
+
+/* ------------------------------------------------------ */
+/* SIZE CONTROL */
+/* ------------------------------------------------------ */
 
 struct ntg_xy ntg_object_get_min_size(ntg_object* object);
+void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size);
+
 struct ntg_xy ntg_object_get_max_size(ntg_object* object);
+void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size);
 
-void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow);
 struct ntg_xy ntg_object_get_grow(const ntg_object* object);
+void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow);
 
-/* ---------------------------------------------------------------- */
+/* ------------------------------------------------------ */
+/* PADDING & BORDER */
+/* ------------------------------------------------------ */
 
-ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding);
 ntg_padding* ntg_object_get_padding(ntg_object* object);
+ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding);
 
-ntg_border* ntg_object_set_border(ntg_object* object, ntg_border* border);
 ntg_border* ntg_object_get_border(ntg_object* object);
+ntg_border* ntg_object_set_border(ntg_object* object, ntg_border* border);
 
-void ntg_object_set_background(ntg_object* object, ntg_cell background);
 ntg_cell ntg_object_get_background(const ntg_object* object);
+void ntg_object_set_background(ntg_object* object, ntg_cell background);
 
-/* ---------------------------------------------------------------- */
-
-ntg_listenable* ntg_object_get_listenable(ntg_object* object);
-
-/* ---------------------------------------------------------------- */
+/* ------------------------------------------------------ */
+/* LAYOUT */
+/* ------------------------------------------------------ */
 
 struct ntg_object_measure ntg_object_measure(
         const ntg_object* object,
@@ -241,39 +272,22 @@ void ntg_object_draw(
         struct ntg_object_draw_out* out,
         sarena* arena);
 
-/* ---------------------------------------------------------------- */
+/* ------------------------------------------------------ */
+/* EVENT */
+/* ------------------------------------------------------ */
 
-bool ntg_object_process_key(
-        ntg_object* object,
+bool ntg_object_process_key(ntg_object* object,
         struct nt_key_event key_event,
         struct ntg_object_process_key_ctx ctx);
 
-/* ---------------------------------------------------------------- */
+void ntg_object_on_focus(ntg_object* object, struct ntg_object_focus_ctx ctx);
 
-ntg_object_focus_fn ntg_object_get_on_focus(
-        ntg_object* object,
-        struct ntg_object_focus_ctx ctx);
+void ntg_object_on_unfocus(ntg_object* object, struct ntg_object_unfocus_ctx ctx);
 
-ntg_object_unfocus_fn ntg_object_get_on_unfocus(
-        ntg_object* object,
-        struct ntg_object_unfocus_ctx ctx);
-
-/* ---------------------------------------------------------------- */
-
-typedef enum ntg_object_perform_mode
-{
-    NTG_OBJECT_PERFORM_TOP_DOWN,
-    NTG_OBJECT_PERFORM_BOTTOM_UP
-} ntg_object_perform_mode;
-
-void ntg_object_tree_perform(
-        ntg_object* object,
-        ntg_object_perform_mode mode,
-        void (*perform_fn)(ntg_object* object, void* data),
-        void* data);
+ntg_listenable* ntg_object_get_listenable(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
-/* INTERNAL */
+/* PROTECTED DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object
@@ -294,7 +308,7 @@ struct ntg_object
 
     struct
     {
-        ntg_cell _background_;
+        ntg_cell __background;
     };
 
     struct
@@ -306,14 +320,18 @@ struct ntg_object
         ntg_object_process_key_fn __process_key_fn;
         ntg_object_focus_fn __on_focus_fn;
         ntg_object_unfocus_fn __on_unfocus_fn;
+        ntg_object_deinit_fn __deinit_fn;
     };
 
-    ntg_event_dlgt* _delegate_;
+    ntg_event_dlgt* _delegate;
 
     void* _data;
 };
 
-/* ---------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/* PROTECTED API */
+/* -------------------------------------------------------------------------- */
 
 void __ntg_object_init__(ntg_object* object,
         unsigned int type,
@@ -324,21 +342,11 @@ void __ntg_object_init__(ntg_object* object,
         ntg_object_process_key_fn process_key_fn,
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
+        ntg_object_deinit_fn deinit_fn,
         void* data);
-
 void __ntg_object_deinit__(ntg_object* object);
-
-/* ---------------------------------------------------------------- */
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
-void _ntg_object_rm_children(ntg_object* object);
-
-/* ---------------------------------------------------------------- */
-
-/* Removes the node from tree. Connects the parent with children */
-void _ntg_object_rm_node_from_tree(ntg_object* node);
-
-/* ---------------------------------------------------------------- */
 
 #endif // _NTG_OBJECT_H_

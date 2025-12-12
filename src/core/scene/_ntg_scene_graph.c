@@ -1,29 +1,29 @@
 #include <assert.h>
 
 #include "core/scene/_ntg_scene_graph.h"
-#include "core/scene/shared/_ntg_drawing.h"
-#include "core/scene/shared/ntg_cdrawable_vec.h"
+#include "core/object/shared/ntg_object_drawing.h"
+// #include "core/scene/shared/ntg_cobject_vec.h"
 #include "shared/_uthash.h"
 
 struct ntg_scene_data_hh
 {
-    const ntg_drawable* key;
+    const ntg_object* key;
     struct _ntg_scene_node data;
     UT_hash_handle hh;
 };
 
 static void __ntg_scene_data_hh_init__(struct ntg_scene_data_hh* data_hh,
-        const ntg_drawable* key)
+        const ntg_object* key)
 {
     data_hh->key = key;
     data_hh->data = (struct _ntg_scene_node) {0};
-    data_hh->data.drawing = ntg_drawing_new();
+    data_hh->data.drawing = ntg_object_drawing_new();
 }
 
 static void __ntg_scene_data_hh_deinit__(struct ntg_scene_data_hh* data_hh)
 {
     data_hh->key = NULL;
-    ntg_drawing_destroy(data_hh->data.drawing);
+    ntg_object_drawing_destroy(data_hh->data.drawing);
     data_hh->data = (struct _ntg_scene_node) {0};
 }
 
@@ -34,7 +34,7 @@ struct ntg_scene_graph
 
 static struct ntg_scene_data_hh* __ntg_scene_graph_get(
         ntg_scene_graph* scene_graph,
-        const ntg_drawable* drawable);
+        const ntg_object* object);
 
 ntg_scene_graph* ntg_scene_graph_new()
 {
@@ -61,27 +61,27 @@ void ntg_scene_graph_destroy(ntg_scene_graph* scene_graph)
     free(scene_graph);
 }
 
-void ntg_scene_graph_add(ntg_scene_graph* scene_graph, const ntg_drawable* drawable)
+void ntg_scene_graph_add(ntg_scene_graph* scene_graph, const ntg_object* object)
 {
     assert(scene_graph != NULL);
 
-    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, drawable);
+    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, object);
     assert(found == NULL);
 
     struct ntg_scene_data_hh* new = (struct ntg_scene_data_hh*)malloc(
             sizeof(struct ntg_scene_data_hh));
     assert(new != NULL);
 
-    __ntg_scene_data_hh_init__(new, drawable);
+    __ntg_scene_data_hh_init__(new, object);
 
     HASH_ADD_PTR(scene_graph->head, key, new);
 }
 
-void ntg_scene_graph_remove(ntg_scene_graph* scene_graph, const ntg_drawable* drawable)
+void ntg_scene_graph_remove(ntg_scene_graph* scene_graph, const ntg_object* object)
 {
     assert(scene_graph != NULL);
 
-    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, drawable);
+    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, object);
     assert(found != NULL);
 
     HASH_DEL(scene_graph->head, found);
@@ -91,29 +91,29 @@ void ntg_scene_graph_remove(ntg_scene_graph* scene_graph, const ntg_drawable* dr
 
 static struct ntg_scene_data_hh* __ntg_scene_graph_get(
         ntg_scene_graph* scene_graph,
-        const ntg_drawable* drawable)
+        const ntg_object* object)
 {
     assert(scene_graph != NULL);
 
     struct ntg_scene_data_hh* found = NULL;
 
-    HASH_FIND_PTR(scene_graph->head, &drawable, found);
+    HASH_FIND_PTR(scene_graph->head, &object, found);
 
     return found;
 }
 
 struct _ntg_scene_node* ntg_scene_graph_get(
         ntg_scene_graph* scene_graph,
-        const ntg_drawable* drawable)
+        const ntg_object* object)
 {
-    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, drawable);
+    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, object);
 
     return ((found != NULL) ? &(found->data) : NULL);
 }
 
 void ntg_scene_graph_get_keys(
         const ntg_scene_graph* scene_graph,
-        ntg_cdrawable_vec* out_vec)
+        ntg_cobject_vec* out_vec)
 {
     assert(scene_graph != NULL);
     assert(out_vec != NULL);
@@ -121,6 +121,6 @@ void ntg_scene_graph_get_keys(
     struct ntg_scene_data_hh *current, *tmp;
 
     HASH_ITER(hh, scene_graph->head, current, tmp) {
-        ntg_cdrawable_vec_append(out_vec, current->key);
+        ntg_cobject_vec_append(out_vec, current->key);
     }
 }

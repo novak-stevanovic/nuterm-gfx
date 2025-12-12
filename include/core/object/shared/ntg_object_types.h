@@ -1,5 +1,5 @@
-#ifndef _NTG_OBJECT_TYPES_H
-#define _NTG_OBJECT_TYPES_H
+#ifndef _NTG_OBJECT_TYPES_H_
+#define _NTG_OBJECT_TYPES_H_
 
 #include <stdbool.h>
 
@@ -14,4 +14,4 @@
 #define NTG_OBJECT_PADDING (NTG_OBJECT_DECOR + 1001)
 #define NTG_OBJECT_BORDER (NTG_OBJECT_DECOR + 1002)
 
-#endif // _NTG_OBJECT_TYPES_H
+#endif // _NTG_OBJECT_TYPES_H_

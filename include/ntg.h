@@ -4,8 +4,8 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: remove ntg_drawable?
-// TODO: refactor draw fns for ntg_objects - MEDIUM, ACTIVE
+// TODO: remove ntg_drawable - ACTIVE
+// TODO: rename init/deinit fns(?)
 // TODO: object decorators: implement border & padding - MEDIUM, ACTIVE
 // TODO: nuterm: add signal event - EASY
 // TODO: add convenience macros - EASY

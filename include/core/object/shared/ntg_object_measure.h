@@ -1,5 +1,5 @@
-#ifndef __NTG_OBJECT_MEASURE_H__
-#define __NTG_OBJECT_MEASURE_H__
+#ifndef _NTG_OBJECT_MEASURE_H_
+#define _NTG_OBJECT_MEASURE_H_
 
 #include <stddef.h>
 

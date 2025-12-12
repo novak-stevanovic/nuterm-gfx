@@ -5,18 +5,15 @@
 
 typedef struct ntg_border_box ntg_border_box;
 
-struct ntg_border_box
-{
-    ntg_object __base;
-    ntg_object *__north, *__east, *__south,
-               *__west, *__center;
-};
+/* -------------------------------------------------------------------------- */
+/* PUBLIC */
+/* -------------------------------------------------------------------------- */
 
 void __ntg_border_box_init__(
         ntg_border_box* box,
-        ntg_process_key_fn process_key_fn,
-        ntg_on_focus_fn on_focus_fn,
-        ntg_on_unfocus_fn on_unfocus_fn,
+        ntg_object_process_key_fn process_key_fn,
+        ntg_object_focus_fn on_focus_fn,
+        ntg_object_unfocus_fn on_unfocus_fn,
         void* data);
 void __ntg_border_box_deinit__(ntg_border_box* box);
 
@@ -32,26 +29,40 @@ void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south);
 void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west);
 void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center);
 
-struct ntg_measure_out __ntg_border_box_measure_fn(
-        const ntg_drawable* drawable,
-        ntg_orientation orientation, size_t for_size,
-        const ntg_measure_ctx* ctx,
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_border_box
+{
+    ntg_object __base;
+    ntg_object *__north, *__east, *__south,
+               *__west, *__center;
+};
+
+void __ntg_border_box_deinit_fn(ntg_object* _border_box);
+
+struct ntg_object_measure __ntg_border_box_measure_fn(
+        const ntg_object* object,
+        ntg_orientation orientation,
+        size_t for_size,
+        struct ntg_object_measure_ctx ctx,
+        struct ntg_object_measure_out* out,
         sarena* arena);
 
 void __ntg_border_box_constrain_fn(
-        const ntg_drawable* drawable,
+        const ntg_object* object,
         ntg_orientation orientation,
         size_t size,
-        const ntg_constrain_ctx* constrain_ctx,
-        const ntg_measure_ctx* measure_ctx,
-        ntg_constrain_out* out_sizes,
+        struct ntg_object_constrain_ctx ctx,
+        struct ntg_object_constrain_out* out,
         sarena* arena);
 
 void __ntg_border_box_arrange_fn(
-        const ntg_drawable* drawable,
+        const ntg_object* object,
         struct ntg_xy size,
-        const ntg_arrange_ctx* ctx,
-        ntg_arrange_out* out_positions,
+        struct ntg_object_arrange_ctx ctx,
+        struct ntg_object_arrange_out* out,
         sarena* arena);
 
 #endif // _NTG_BORDER_BOX_H_

@@ -1,52 +1,52 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "core/scene/shared/_ntg_drawing.h"
+#include "core/object/shared/ntg_object_drawing.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 
-void __ntg_drawing_init__(ntg_drawing* drawing)
+void __ntg_object_drawing_init__(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
     __ntg_cell_vgrid_init__(&drawing->___data);
 }
 
-void __ntg_drawing_deinit__(ntg_drawing* drawing)
+void __ntg_object_drawing_deinit__(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
     __ntg_cell_vgrid_deinit__(&drawing->___data);
 }
 
-ntg_drawing* ntg_drawing_new()
+ntg_object_drawing* ntg_object_drawing_new()
 {
-    ntg_drawing* new = (ntg_drawing*)malloc(
-            sizeof(struct ntg_drawing));
+    ntg_object_drawing* new = (ntg_object_drawing*)malloc(
+            sizeof(struct ntg_object_drawing));
 
     if(new == NULL) return NULL;
 
-    __ntg_drawing_init__(new);
+    __ntg_object_drawing_init__(new);
 
     return new;
 }
 
-void ntg_drawing_destroy(ntg_drawing* drawing)
+void ntg_object_drawing_destroy(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    __ntg_drawing_deinit__(drawing);
+    __ntg_object_drawing_deinit__(drawing);
 
     free(drawing);
 }
 
-struct ntg_xy ntg_drawing_get_size(const ntg_drawing* drawing)
+struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 {
     return (drawing != NULL) ?
         ntg_cell_vgrid_get_size(&drawing->___data) :
         NTG_XY_UNSET;
 }
 
-void ntg_drawing_set_size(ntg_drawing* drawing,
+void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
         struct ntg_xy size)
 {
     if(drawing == NULL) return;
@@ -56,9 +56,9 @@ void ntg_drawing_set_size(ntg_drawing* drawing,
     assert(_status == NTG_SUCCESS);
 }
 
-void ntg_drawing_place(const ntg_drawing* src_drawing,
+void ntg_object_drawing_place(const ntg_object_drawing* src_drawing,
         struct ntg_xy src_start_pos, struct ntg_xy src_box_size,
-        ntg_drawing* dest_drawing, struct ntg_xy dest_start_pos)
+        ntg_object_drawing* dest_drawing, struct ntg_xy dest_start_pos)
 {
     assert(src_drawing != NULL);
     assert(dest_drawing != NULL);
@@ -67,8 +67,8 @@ void ntg_drawing_place(const ntg_drawing* src_drawing,
     src_box_size = ntg_xy_size(src_box_size);
     if(ntg_xy_is_zero(src_box_size)) return;
 
-    struct ntg_xy dest_size = ntg_drawing_get_size(dest_drawing);
-    struct ntg_xy src_size = ntg_drawing_get_size(src_drawing);
+    struct ntg_xy dest_size = ntg_object_drawing_get_size(dest_drawing);
+    struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
     struct ntg_xy src_end_pos = ntg_xy_add(src_start_pos, src_box_size);
 
@@ -93,15 +93,15 @@ void ntg_drawing_place(const ntg_drawing* src_drawing,
             it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
             it_src_pos = ntg_xy_add(src_start_pos, ntg_xy(j, i));
 
-            it_dest_cell = ntg_drawing_at_(dest_drawing, it_dest_pos);
-            it_src_cell = ntg_drawing_at(src_drawing, it_src_pos);
+            it_dest_cell = ntg_object_drawing_at_(dest_drawing, it_dest_pos);
+            it_src_cell = ntg_object_drawing_at(src_drawing, it_src_pos);
 
             (*it_dest_cell) = *it_src_cell;
         }
     }
 }
 
-void ntg_drawing_place_(const ntg_drawing* src_drawing,
+void ntg_object_drawing_place_(const ntg_object_drawing* src_drawing,
         struct ntg_xy src_start_pos, struct ntg_xy src_box_size,
         ntg_stage_drawing* dest_drawing, struct ntg_xy dest_start_pos)
 {
@@ -112,7 +112,7 @@ void ntg_drawing_place_(const ntg_drawing* src_drawing,
     if(ntg_xy_is_zero(src_box_size)) return;
 
     struct ntg_xy dest_size = ntg_stage_drawing_get_size(dest_drawing);
-    struct ntg_xy src_size = ntg_drawing_get_size(src_drawing);
+    struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
     struct ntg_xy src_end_pos = ntg_xy_add(src_start_pos, src_box_size);
 
@@ -138,7 +138,7 @@ void ntg_drawing_place_(const ntg_drawing* src_drawing,
             it_src_pos = ntg_xy_add(src_start_pos, ntg_xy(j, i));
 
             it_dest_cell = ntg_stage_drawing_at_(dest_drawing, it_dest_pos);
-            it_src_cell = ntg_drawing_at(src_drawing, it_src_pos);
+            it_src_cell = ntg_object_drawing_at(src_drawing, it_src_pos);
 
             (*it_dest_cell) = ntg_cell_overwrite(*it_src_cell, *it_dest_cell);
         }

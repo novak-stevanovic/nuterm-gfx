@@ -1,8 +1,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "core/scene/shared/_ntg_map.h"
-#include "shared/_ntg_shared.h"
+#include "core/object/shared/_ntg_map.h"
 #include "shared/sarena.h"
 
 void __ntg_map_init__(ntg_map* ctx, size_t capacity, size_t data_size, sarena* arena)
@@ -19,7 +18,7 @@ void __ntg_map_init__(ntg_map* ctx, size_t capacity, size_t data_size, sarena* a
 
     if(capacity > 0)
     {
-        ctx->__keys = (const ntg_drawable**)sarena_calloc(arena,
+        ctx->__keys = (const ntg_object**)sarena_calloc(arena,
                 capacity * sizeof(void*), &_err);
         assert(ctx->__keys != NULL);
 
@@ -34,16 +33,16 @@ void __ntg_map_init__(ntg_map* ctx, size_t capacity, size_t data_size, sarena* a
     }
 }
 
-void ntg_map_set(ntg_map* ctx, const ntg_drawable* drawable, void* data)
+void ntg_map_set(ntg_map* ctx, const ntg_object* object, void* data)
 {
     assert(ctx != NULL);
-    assert(drawable != NULL);
+    assert(object != NULL);
     assert(ctx->__keys != NULL);
 
     size_t i;
     for(i = 0; i < ctx->__count; i++)
     {
-        if(ctx->__keys[i] == drawable) break;
+        if(ctx->__keys[i] == object) break;
     }
 
     if(i < ctx->__count)
@@ -54,7 +53,7 @@ void ntg_map_set(ntg_map* ctx, const ntg_drawable* drawable, void* data)
     {
         assert(ctx->__count < ctx->__capacity);
 
-        ctx->__keys[ctx->__count] = drawable;
+        ctx->__keys[ctx->__count] = object;
 
         memcpy(ctx->__values + (ctx->__data_size * ctx->__count),
                 data,
@@ -65,16 +64,16 @@ void ntg_map_set(ntg_map* ctx, const ntg_drawable* drawable, void* data)
 
 }
 
-void* ntg_map_get(const ntg_map* ctx, const ntg_drawable* drawable)
+void* ntg_map_get(const ntg_map* ctx, const ntg_object* object)
 {
     assert(ctx != NULL);
-    assert(drawable != NULL);
+    assert(object != NULL);
     assert(ctx->__keys != NULL);
 
     size_t i;
     for(i = 0; i < ctx->__count; i++)
     {
-        if(ctx->__keys[i] == drawable)
+        if(ctx->__keys[i] == object)
             return (ctx->__values + (i * ctx->__data_size));
     }
 
