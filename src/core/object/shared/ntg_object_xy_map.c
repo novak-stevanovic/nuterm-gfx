@@ -1,19 +1,19 @@
 #include <assert.h>
 
-#include "core/object/shared/ntg_object_xys.h"
+#include "core/object/shared/ntg_object_xy_map.h"
 #include "core/object/shared/_ntg_object_map.h"
 #include "shared/sarena.h"
 
-struct ntg_object_xys
+struct ntg_object_xy_map
 {
     ntg_object_map __base;
 };
 
-ntg_object_xys* ntg_object_xys_new(size_t child_count, sarena* arena)
+ntg_object_xy_map* ntg_object_xy_map_new(size_t child_count, sarena* arena)
 {
     sa_err err;
-    ntg_object_xys* new = (ntg_object_xys*)sarena_malloc(arena,
-            sizeof(ntg_object_xys), &err);
+    ntg_object_xy_map* new = (ntg_object_xy_map*)sarena_malloc(arena,
+            sizeof(ntg_object_xy_map), &err);
     assert(new != NULL);
 
     __ntg_object_map_init__(&new->__base, child_count,
@@ -22,7 +22,7 @@ ntg_object_xys* ntg_object_xys_new(size_t child_count, sarena* arena)
     return new;
 }
 
-void ntg_object_xys_set(ntg_object_xys* map,
+void ntg_object_xy_map_set(ntg_object_xy_map* map,
         const ntg_object* object,
         struct ntg_xy measure)
 {
@@ -32,8 +32,8 @@ void ntg_object_xys_set(ntg_object_xys* map,
     ntg_object_map_set(&map->__base, object, &measure);
 }
 
-struct ntg_xy ntg_object_xys_get(
-        const ntg_object_xys* map,
+struct ntg_xy ntg_object_xy_map_get(
+        const ntg_object_xy_map* map,
         const ntg_object* object)
 {
     assert(map != NULL);

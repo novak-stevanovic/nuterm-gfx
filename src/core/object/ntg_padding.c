@@ -1,10 +1,10 @@
 #include "core/object/ntg_padding.h"
 #include "base/ntg_sap.h"
 #include "core/object/shared/ntg_object_measure.h"
-#include "core/object/shared/ntg_object_measures.h"
-#include "core/object/shared/ntg_object_sizes.h"
+#include "core/object/shared/ntg_object_measure_map.h"
+#include "core/object/shared/ntg_object_size_map.h"
 #include "core/object/shared/ntg_object_types.h"
-#include "core/object/shared/ntg_object_xys.h"
+#include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
 
 void __ntg_padding_init__(
@@ -73,7 +73,8 @@ struct ntg_object_measure __ntg_padding_measure_fn(
 {
     const ntg_padding* padding = (ntg_padding*)object;
     const ntg_object* child = ntg_object_get_children(object)->_data[0];
-    struct ntg_object_measure child_data = ntg_object_measures_get(ctx.measures, child);
+    struct ntg_object_measure child_data = ntg_object_measure_map_get(
+            ctx.measures, child);
 
     if(orientation == NTG_ORIENTATION_H)
     {
@@ -111,7 +112,8 @@ void __ntg_padding_constrain_fn(
 {
     const ntg_padding* padding = (ntg_padding*)object;
     const ntg_object* child = ntg_object_get_children(object)->_data[0];
-    struct ntg_object_measure child_data = ntg_object_measures_get(ctx.measures, child);
+    struct ntg_object_measure child_data = ntg_object_measure_map_get(
+            ctx.measures, child);
 
     size_t extra_space = _ssub_size(child_data.natural_size, size);
 
@@ -132,7 +134,7 @@ void __ntg_padding_constrain_fn(
 
     size_t child_size = size - _sizes[0] - _sizes[1];
 
-    ntg_object_sizes_set(out->sizes, child, child_size);
+    ntg_object_size_map_set(out->sizes, child, child_size);
 }
 
 void __ntg_padding_arrange_fn(
@@ -142,11 +144,11 @@ void __ntg_padding_arrange_fn(
         struct ntg_object_arrange_out* out,
         sarena* arena)
 {
-    const ntg_padding* padding = (ntg_padding*)object;
+    // const ntg_padding* padding = (ntg_padding*)object;
     const ntg_object* child = ntg_object_get_children(object)->_data[0];
-    struct ntg_xy child_size = ntg_object_xys_get(ctx.sizes, child);
+    struct ntg_xy child_size = ntg_object_xy_map_get(ctx.sizes, child);
 
     struct ntg_xy offset = ntg_xy_sub(size, child_size);
 
-    ntg_object_xys_set(out->pos, child, offset);
+    ntg_object_xy_map_set(out->pos, child, offset);
 }

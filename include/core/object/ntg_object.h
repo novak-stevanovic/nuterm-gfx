@@ -19,9 +19,9 @@ typedef struct ntg_event_dlgt ntg_event_dlgt;
 typedef struct ntg_event_sub ntg_event_sub;
 typedef struct ntg_padding ntg_padding;
 typedef struct ntg_border ntg_border;
-typedef struct ntg_object_measures ntg_object_measures;
-typedef struct ntg_object_sizes ntg_object_sizes;
-typedef struct ntg_object_xys ntg_object_xys;
+typedef struct ntg_object_measure_map ntg_object_measure_map;
+typedef struct ntg_object_size_map ntg_object_size_map;
+typedef struct ntg_object_xy_map ntg_object_xy_map;
 typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 typedef struct sarena sarena;
@@ -44,7 +44,7 @@ struct ntg_object_unfocus_ctx;
 
 struct ntg_object_measure_ctx
 {
-    const ntg_object_measures* measures;
+    const ntg_object_measure_map* measures;
 };
 
 struct ntg_object_measure_out
@@ -66,12 +66,12 @@ typedef struct ntg_object_measure (*ntg_object_measure_fn)(
 
 struct ntg_object_constrain_ctx
 {
-    const ntg_object_measures* measures;
+    const ntg_object_measure_map* measures;
 };
 
 struct ntg_object_constrain_out
 {
-    ntg_object_sizes* const sizes;
+    ntg_object_size_map* const sizes;
 };
 
 /* Determines the children's sizes. */
@@ -87,12 +87,12 @@ typedef void (*ntg_object_constrain_fn)(
 
 struct ntg_object_arrange_ctx
 {
-    const ntg_object_xys* sizes;
+    const ntg_object_xy_map* sizes;
 };
 
 struct ntg_object_arrange_out
 {
-    ntg_object_xys* const pos;
+    ntg_object_xy_map* const pos;
 };
 
 /* Determines children positions. */
@@ -107,8 +107,8 @@ typedef void (*ntg_object_arrange_fn)(
 
 struct ntg_object_draw_ctx
 {
-    const ntg_object_xys* sizes;
-    const ntg_object_xys* pos;
+    const ntg_object_xy_map* sizes;
+    const ntg_object_xy_map* pos;
 };
 
 struct ntg_object_draw_out

@@ -1,5 +1,5 @@
-#include <assert.h>
 #include <time.h>
+#include <assert.h>
 
 #include "core/loop/ntg_loop.h"
 #include "base/event/ntg_event.h"
@@ -172,7 +172,8 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
             {
                 case NT_EVENT_KEY:
                     key_data.key = _nt_event.key_data;
-                    ntg_event_dlgt_raise(loop->__delegate, NTG_EVENT_APP_KEYPRESS, loop, &key_data);
+                    ntg_event_dlgt_raise(loop->__delegate,
+                            NTG_EVENT_APP_KEYPRESS, loop, &key_data);
                     break;
 
                 case NT_EVENT_RESIZE:
@@ -182,7 +183,8 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
                             _nt_event.resize_data.height);
                     ctx.app_size = app_size;
                     resize_data.new = app_size;
-                    ntg_event_dlgt_raise(loop->__delegate, NTG_EVENT_APP_RESIZE, loop, &resize_data);
+                    ntg_event_dlgt_raise(loop->__delegate,
+                            NTG_EVENT_APP_RESIZE, loop, &resize_data);
                     break;
                 case NT_EVENT_TIMEOUT: assert(0);
             }

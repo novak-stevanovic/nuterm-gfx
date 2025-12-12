@@ -4,19 +4,19 @@
 #include "core/scene/ntg_def_scene.h"
 #include "core/object/ntg_object.h"
 #include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_measures.h"
-#include "core/object/shared/ntg_object_sizes.h"
-#include "core/object/shared/ntg_object_xys.h"
+#include "core/object/shared/ntg_object_measure_map.h"
+#include "core/object/shared/ntg_object_size_map.h"
+#include "core/object/shared/ntg_object_xy_map.h"
 #include "core/scene/_ntg_scene_graph.h"
 #include "shared/sarena.h"
 
-static ntg_object_measures* __get_object_measures(ntg_object* object,
+static ntg_object_measure_map* __get_object_measure_map(ntg_object* object,
         ntg_def_scene* scene, ntg_orientation orientation);
-// static ntg_object_sizes* __get_object_sizes_size(ntg_object* object,
+// static ntg_object_size_map* __get_object_size_map_size(ntg_object* object,
 //         ntg_def_scene* scene, ntg_orientation orientation);
-static ntg_object_xys* __get_object_sizes_xy(ntg_object* object,
+static ntg_object_xy_map* __get_object_size_map_xy(ntg_object* object,
         ntg_def_scene* scene);
-static ntg_object_xys* __get_object_pos(ntg_object* object,
+static ntg_object_xy_map* __get_object_pos(ntg_object* object,
         ntg_def_scene* scene);
 
 static void __measure1_fn(ntg_object* object, void* _layout_data);
@@ -101,7 +101,7 @@ void __ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
 
 /* -------------------------------------------------------------------------- */
 
-static ntg_object_measures* __get_object_measures(ntg_object* object,
+static ntg_object_measure_map* __get_object_measure_map(ntg_object* object,
         ntg_def_scene* scene, ntg_orientation orientation)
 {
     ntg_scene* _scene = (ntg_scene*)scene;
@@ -111,7 +111,7 @@ static ntg_object_measures* __get_object_measures(ntg_object* object,
     const ntg_object_vec* children = ntg_object_get_children(object);
     size_t child_count = children->_count;
 
-    ntg_object_measures* measures = ntg_object_measures_new(
+    ntg_object_measure_map* measures = ntg_object_measure_map_new(
             child_count, scene->__layout_arena);
 
     ntg_object* it_child;
@@ -134,13 +134,13 @@ static ntg_object_measures* __get_object_measures(ntg_object* object,
                 it_node->grow.x : it_node->grow.y
         };
 
-        ntg_object_measures_set(measures, it_child, it_measure);
+        ntg_object_measure_map_set(measures, it_child, it_measure);
     }
 
     return measures;
 }
 
-// static ntg_object_sizes* __get_object_sizes_size(ntg_object* object,
+// static ntg_object_size_map* __get_object_size_map_size(ntg_object* object,
 //         ntg_def_scene* scene, ntg_orientation orientation)
 // {
 //     ntg_scene* _scene = (ntg_scene*)scene;
@@ -150,7 +150,7 @@ static ntg_object_measures* __get_object_measures(ntg_object* object,
 //     const ntg_object_vec* children = ntg_object_get_children(object);
 //     size_t child_count = children->_count;
 //
-//     ntg_object_sizes* sizes = ntg_object_sizes_new(
+//     ntg_object_size_map* sizes = ntg_object_size_map_new(
 //             child_count, scene->__layout_arena);
 //
 //     ntg_object* it_child;
@@ -165,13 +165,13 @@ static ntg_object_measures* __get_object_measures(ntg_object* object,
 //         it_size = (orientation == NTG_ORIENTATION_H) ?
 //             it_node->size.x : it_node->size.y;
 //
-//         ntg_object_sizes_set(sizes, it_child, it_size);
+//         ntg_object_size_map_set(sizes, it_child, it_size);
 //     }
 //
 //     return sizes;
 // }
 
-static ntg_object_xys* __get_object_sizes_xy(ntg_object* object,
+static ntg_object_xy_map* __get_object_size_map_xy(ntg_object* object,
         ntg_def_scene* scene)
 {
     ntg_scene* _scene = (ntg_scene*)scene;
@@ -181,7 +181,7 @@ static ntg_object_xys* __get_object_sizes_xy(ntg_object* object,
     const ntg_object_vec* children = ntg_object_get_children(object);
     size_t child_count = children->_count;
 
-    ntg_object_xys* sizes = ntg_object_xys_new(
+    ntg_object_xy_map* sizes = ntg_object_xy_map_new(
             child_count, scene->__layout_arena);
 
     ntg_object* it_child;
@@ -192,13 +192,13 @@ static ntg_object_xys* __get_object_sizes_xy(ntg_object* object,
         it_child = children->_data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
 
-        ntg_object_xys_set(sizes, it_child, it_node->size);
+        ntg_object_xy_map_set(sizes, it_child, it_node->size);
     }
 
     return sizes;
 }
 
-static ntg_object_xys* __get_object_pos(ntg_object* object,
+static ntg_object_xy_map* __get_object_pos(ntg_object* object,
         ntg_def_scene* scene)
 {
     ntg_scene* _scene = (ntg_scene*)scene;
@@ -208,7 +208,7 @@ static ntg_object_xys* __get_object_pos(ntg_object* object,
     const ntg_object_vec* children = ntg_object_get_children(object);
     size_t child_count = children->_count;
 
-    ntg_object_xys* positions = ntg_object_xys_new(
+    ntg_object_xy_map* positions = ntg_object_xy_map_new(
             child_count, scene->__layout_arena);
 
     ntg_object* it_child;
@@ -219,7 +219,7 @@ static ntg_object_xys* __get_object_pos(ntg_object* object,
         it_child = children->_data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
 
-        ntg_object_xys_set(positions, it_child, it_node->position);
+        ntg_object_xy_map_set(positions, it_child, it_node->position);
     }
 
     return positions;
@@ -236,7 +236,7 @@ static void __measure1_fn(ntg_object* object, void* _layout_data)
     // const ntg_object_vec* children = ntg_object_get_children(object);
     // size_t child_count = children->_count;
 
-    ntg_object_measures* measures = __get_object_measures(object,
+    ntg_object_measure_map* measures = __get_object_measure_map(object,
             scene, NTG_ORIENTATION_H);
 
     struct ntg_object_measure_ctx ctx = { .measures = measures };
@@ -263,9 +263,9 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
     const ntg_object_vec* children = ntg_object_get_children(object);
     size_t child_count = children->_count;
 
-    ntg_object_measures* measures = __get_object_measures(object,
+    ntg_object_measure_map* measures = __get_object_measure_map(object,
             scene, NTG_ORIENTATION_H);
-    ntg_object_sizes* _sizes = ntg_object_sizes_new(child_count,
+    ntg_object_size_map* _sizes = ntg_object_size_map_new(child_count,
             scene->__layout_arena);
 
     struct ntg_object_constrain_ctx ctx = { .measures = measures };
@@ -284,7 +284,7 @@ static void __constrain1_fn(ntg_object* object, void* _layout_data)
         it_child = children->_data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
 
-        it_node->size.x = ntg_object_sizes_get(out.sizes, it_child);
+        it_node->size.x = ntg_object_size_map_get(out.sizes, it_child);
     }
 }
 
@@ -299,7 +299,7 @@ static void __measure2_fn(ntg_object* object, void* _layout_data)
     // const ntg_object_vec* children = ntg_object_get_children(object);
     // size_t child_count = children->_count;
 
-    ntg_object_measures* measures = __get_object_measures(object,
+    ntg_object_measure_map* measures = __get_object_measure_map(object,
             scene, NTG_ORIENTATION_V);
 
     struct ntg_object_measure_ctx ctx = { .measures = measures };
@@ -326,9 +326,9 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
     const ntg_object_vec* children = ntg_object_get_children(object);
     size_t child_count = children->_count;
 
-    ntg_object_measures* measures = __get_object_measures(object,
+    ntg_object_measure_map* measures = __get_object_measure_map(object,
             scene, NTG_ORIENTATION_V);
-    ntg_object_sizes* _sizes = ntg_object_sizes_new(child_count,
+    ntg_object_size_map* _sizes = ntg_object_size_map_new(child_count,
             scene->__layout_arena);
 
     struct ntg_object_constrain_ctx ctx = { .measures = measures };
@@ -347,7 +347,7 @@ static void __constrain2_fn(ntg_object* object, void* _layout_data)
         it_child = children->_data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
 
-        it_node->size.y = ntg_object_sizes_get(out.sizes, it_child);
+        it_node->size.y = ntg_object_size_map_get(out.sizes, it_child);
     }
 }
 
@@ -362,8 +362,8 @@ static void __arrange_fn(ntg_object* object, void* _layout_data)
     const ntg_object_vec* children = ntg_object_get_children(object);
     size_t child_count = children->_count;
 
-    ntg_object_xys* sizes = __get_object_sizes_xy(object, scene);
-    ntg_object_xys* _positions = ntg_object_xys_new(child_count, scene->__layout_arena);
+    ntg_object_xy_map* sizes = __get_object_size_map_xy(object, scene);
+    ntg_object_xy_map* _positions = ntg_object_xy_map_new(child_count, scene->__layout_arena);
 
     size_t i;
     struct _ntg_scene_node* it_node;
@@ -373,7 +373,7 @@ static void __arrange_fn(ntg_object* object, void* _layout_data)
         it_child = children->_data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
 
-        ntg_object_xys_set(sizes, it_child, it_node->size);
+        ntg_object_xy_map_set(sizes, it_child, it_node->size);
     }
 
     struct ntg_object_arrange_ctx ctx = { .sizes = sizes };
@@ -388,7 +388,7 @@ static void __arrange_fn(ntg_object* object, void* _layout_data)
 
         it_node->position = ntg_xy_add(
                 node->position,
-                ntg_object_xys_get(_positions, it_child));
+                ntg_object_xy_map_get(_positions, it_child));
     }
 }
 
@@ -402,8 +402,8 @@ static void __draw_fn(ntg_object* object, void* _layout_data)
     struct _ntg_scene_node* node = ntg_scene_graph_get(graph, object);
     ntg_object_drawing_set_size(node->drawing, node->size);
 
-    ntg_object_xys* sizes = __get_object_sizes_xy(object, scene);
-    ntg_object_xys* positions = __get_object_pos(object, scene);
+    ntg_object_xy_map* sizes = __get_object_size_map_xy(object, scene);
+    ntg_object_xy_map* positions = __get_object_pos(object, scene);
 
     struct ntg_object_draw_ctx ctx = { .sizes = sizes, .pos = positions };
     struct ntg_object_draw_out out = { .drawing = node->drawing };

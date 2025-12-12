@@ -1,7 +1,7 @@
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_measure.h"
-#include "core/object/shared/ntg_object_sizes.h"
-#include "core/object/shared/ntg_object_xys.h"
+#include "core/object/shared/ntg_object_size_map.h"
+#include "core/object/shared/ntg_object_xy_map.h"
 #include <stdlib.h>
 #include <assert.h>
 
@@ -424,7 +424,7 @@ void ntg_object_constrain(
 
         size_t i;
         for(i = 0; i < children->_count; i++)
-            ntg_object_sizes_set(out->sizes, children->_data[i], 0);
+            ntg_object_size_map_set(out->sizes, children->_data[i], 0);
     }
     else
     {
@@ -450,7 +450,7 @@ void ntg_object_arrange(
 
         size_t i;
         for(i = 0; i < children->_count; i++)
-            ntg_object_xys_set(out->pos, children->_data[i], ntg_xy(0, 0));
+            ntg_object_xy_map_set(out->pos, children->_data[i], ntg_xy(0, 0));
     }
     else
     {
