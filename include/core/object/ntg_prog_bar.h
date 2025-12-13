@@ -18,6 +18,7 @@ void _ntg_prog_bar_init_(
         ntg_object_process_key_fn process_key_fn,
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
+        ntg_object_deinit_fn deinit_fn,
         void* data);
 void _ntg_prog_bar_deinit_(ntg_prog_bar* prog_bar);
 

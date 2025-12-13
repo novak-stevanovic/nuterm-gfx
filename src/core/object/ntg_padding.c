@@ -24,7 +24,7 @@ void _ntg_padding_init_(
             _ntg_padding_arrange_fn,
             draw_fn,
             NULL, NULL, NULL,
-            deinit_fn,
+            (deinit_fn != NULL) ? deinit_fn : _ntg_padding_deinit_fn,
             data);
 
     padding->__width = init_width;

@@ -18,9 +18,11 @@ struct ntg_def_scene
 void _ntg_def_scene_init_(
         ntg_def_scene* scene,
         ntg_scene_process_key_fn process_key_fn,
+        ntg_scene_deinit_fn deinit_fn,
         void* data);
 void _ntg_def_scene_deinit_(ntg_def_scene* scene);
 
+void _ntg_def_scene_deinit_fn(ntg_scene* scene);
 void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);
 
 #endif // _NTG_DEF_SCENE_H_

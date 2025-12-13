@@ -27,6 +27,7 @@ void _ntg_border_box_init_(
         ntg_object_process_key_fn process_key_fn,
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
+        ntg_object_deinit_fn deinit_fn,
         void* data)
 {
     assert(box != NULL);
@@ -40,7 +41,7 @@ void _ntg_border_box_init_(
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            _ntg_border_box_deinit_fn,
+            (deinit_fn != NULL) ? deinit_fn : _ntg_border_box_deinit_fn,
             data);
 
     init_default(box);

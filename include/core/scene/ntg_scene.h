@@ -43,6 +43,8 @@ typedef void (*ntg_scene_on_unregister_fn)(
         ntg_scene* scene,
         const ntg_object* object);
 
+typedef void (*ntg_scene_deinit_fn)(ntg_scene* scene);
+
 struct ntg_scene_node
 {
     struct ntg_xy min_size, natural_size, max_size, grow;
@@ -62,8 +64,11 @@ void _ntg_scene_init_(
         ntg_scene_on_register_fn on_register_fn,
         ntg_scene_on_unregister_fn on_unregister_fn,
         ntg_scene_process_key_fn process_key_fn,
+        ntg_scene_deinit_fn deinit_fn,
         void* data);
 void _ntg_scene_deinit_(ntg_scene* scene);
+
+void _ntg_scene_vdeinit_(ntg_scene* scene);
 
 /* ------------------------------------------------------ */
 
@@ -117,6 +122,7 @@ struct ntg_scene
     ntg_scene_on_register_fn __on_register_fn;
     ntg_scene_on_unregister_fn __on_unregister_fn;
     ntg_scene_process_key_fn __process_key_fn;
+    ntg_scene_deinit_fn __deinit_fn;
 
     ntg_object *_focused, *__pending_focused;
     bool __pending_focused_flag;

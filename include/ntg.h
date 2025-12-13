@@ -4,7 +4,6 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: ntg_scene: virtual destructors? - EASY, ACTIVE
 // TODO: object decorators: implement border & padding - MEDIUM, ACTIVE
 // TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? - EASY
 // TODO: ntg_object: ntg_object_get_children() returns const ntg_object_vec* - EASY
