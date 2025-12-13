@@ -40,8 +40,7 @@ void __ntg_def_scene_init__(
             process_key_fn,
             data);
 
-    sa_err _err;
-    scene->__layout_arena = sarena_create(100000, &_err);
+    scene->__layout_arena = sarena_create(100000);
     assert(scene->__layout_arena != NULL);
 }
 

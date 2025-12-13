@@ -317,12 +317,10 @@ struct ntg_object_measure __ntg_label_measure_fn(
     
     if(label->__text.len == 0) return (struct ntg_object_measure) {0};
 
-    sa_err _saerr;
-
     /* Get UTF-32 text */
     size_t utf32_cap = label->__text.len;
     uint32_t* text_utf32 = (uint32_t*)sarena_malloc(arena,
-            sizeof(uint32_t) * utf32_cap, &_saerr);
+            sizeof(uint32_t) * utf32_cap);
     assert(text_utf32 != NULL);
 
     size_t _width;
@@ -382,8 +380,6 @@ void __ntg_label_draw_fn(
 
     const ntg_label* label = (const ntg_label*)object;
 
-    sa_err _saerr;
-
     if((label->__text.len == 0) || (label->__text.data == NULL)) return;
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
@@ -399,7 +395,7 @@ void __ntg_label_draw_fn(
     /* Get UTF-32 text */
     size_t utf32_cap = label->__text.len;
     uint32_t* text_utf32 = (uint32_t*)sarena_malloc(arena,
-            sizeof(uint32_t) * utf32_cap, &_saerr);
+            sizeof(uint32_t) * utf32_cap);
     assert(text_utf32 != NULL);
 
     size_t _width;
@@ -559,15 +555,12 @@ static void __label_content_init__(
 {
     assert(content != NULL);
 
-    sa_err _saerr;
-
     content->__data = NULL;
     content->_size = ntg_xy(0, 0);
 
     size_t count = size.x * size.y;
 
-    content->__data = (uint32_t*)sarena_malloc(arena,
-            sizeof(uint32_t) * count, &_saerr);
+    content->__data = (uint32_t*)sarena_malloc(arena, sizeof(uint32_t) * count);
     assert(content->__data != NULL);
     size_t i;
     for(i = 0; i < count; i++)
@@ -744,12 +737,11 @@ static void __get_wrap_rows_nowrap(
     assert(out_wrap_row_count != NULL);
     assert(for_size != 0);
 
-    sa_err _saerr;
 
     if((row.count == 0) || (row.data == NULL))
     {
-        (*out_wrap_rows) = (struct ntg_str_utf32_view*)sarena_malloc(arena,
-                sizeof(struct ntg_str_utf32_view), &_saerr);
+        (*out_wrap_rows) = (struct ntg_str_utf32_view*)sarena_malloc(
+                arena, sizeof(struct ntg_str_utf32_view));
         assert(out_wrap_rows != NULL);
         (*out_wrap_rows)[0] = (struct ntg_str_utf32_view) {
             .data = row.data,
@@ -759,8 +751,8 @@ static void __get_wrap_rows_nowrap(
         return; 
     }
 
-    (*out_wrap_rows) = (struct ntg_str_utf32_view*)sarena_malloc(arena,
-            sizeof(struct ntg_str_utf32_view), &_saerr);
+    (*out_wrap_rows) = (struct ntg_str_utf32_view*)sarena_malloc(
+            arena, sizeof(struct ntg_str_utf32_view));
     assert(out_wrap_rows != NULL);
     (*out_wrap_rows)[0] = (struct ntg_str_utf32_view) {
         .data = row.data,
@@ -779,12 +771,10 @@ static void __get_wrap_rows_wrap(
     assert(out_wrap_row_count != NULL);
     assert(for_size != 0);
 
-    sa_err _saerr;
-
     if((row.count == 0) || (row.data == NULL))
     {
         (*out_wrap_rows) = (struct ntg_str_utf32_view*)sarena_malloc(arena,
-                sizeof(struct ntg_str_utf32_view), &_saerr);
+                sizeof(struct ntg_str_utf32_view));
         assert(out_wrap_rows != NULL);
         (*out_wrap_rows)[0] = (struct ntg_str_utf32_view) {
             .data = row.data,
@@ -796,7 +786,7 @@ static void __get_wrap_rows_wrap(
 
     size_t wrap_row_count = ceil((1.0 * row.count) / for_size);
     struct ntg_str_utf32_view* wrap_rows = (struct ntg_str_utf32_view*)sarena_malloc(arena,
-            wrap_row_count * sizeof(struct ntg_str_utf32_view), &_saerr);
+            wrap_row_count * sizeof(struct ntg_str_utf32_view));
     assert(wrap_rows != NULL);
 
     size_t i;
@@ -827,12 +817,10 @@ static void __get_wrap_rows_wwrap(
     assert(out_wwrap_row_count != NULL);
     assert(for_size != 0);
 
-    sa_err _saerr;
-
     if((row.count == 0) || (row.data == NULL))
     {
-        (*out_wwrap_rows) = (struct ntg_str_utf32_view*)sarena_malloc(arena,
-                sizeof(struct ntg_str_utf32_view), &_saerr);
+        (*out_wwrap_rows) = (struct ntg_str_utf32_view*)sarena_malloc(
+                arena, sizeof(struct ntg_str_utf32_view));
         assert(out_wwrap_rows != NULL);
         (*out_wwrap_rows)[0] = (struct ntg_str_utf32_view) {
             .data = row.data,
@@ -845,8 +833,8 @@ static void __get_wrap_rows_wwrap(
     struct ntg_str_utf32_split_result words = ntg_str_utf32_split(row, ' ');
     size_t wwrap_row_max_count = words.count;
 
-    struct ntg_str_utf32_view* wwrap_rows = (struct ntg_str_utf32_view*)sarena_malloc(arena,
-            wwrap_row_max_count * sizeof(struct ntg_str_utf32_view), &_saerr);
+    struct ntg_str_utf32_view* wwrap_rows = (struct ntg_str_utf32_view*)sarena_malloc(
+            arena, wwrap_row_max_count * sizeof(struct ntg_str_utf32_view));
     assert(wwrap_rows != NULL);
     size_t i;
     struct ntg_str_utf32_view it_word;

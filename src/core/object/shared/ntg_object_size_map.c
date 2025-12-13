@@ -11,9 +11,8 @@ struct ntg_object_size_map
 
 ntg_object_size_map* ntg_object_size_map_new(size_t child_count, sarena* arena)
 {
-    sa_err err;
-    ntg_object_size_map* new = (ntg_object_size_map*)sarena_malloc(arena,
-            sizeof(ntg_object_size_map), &err);
+    ntg_object_size_map* new = (ntg_object_size_map*)sarena_malloc(
+            arena, sizeof(ntg_object_size_map));
     assert(new != NULL);
 
     __ntg_object_map_init__(&new->__base, child_count,

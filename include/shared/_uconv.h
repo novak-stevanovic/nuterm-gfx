@@ -118,7 +118,7 @@ size_t uc_utf8_unit_len(uint8_t utf8_sbyte);
  *
  * This function reads up to `len` bytes from the input UTF-8 sequence and decodes
  * it into UTF-32 code points, storing the result in `out_utf32_seq`. The conversion
- * stops either when the input is fully consumed or when the out buffer reaches
+ * stops either when the input is fully consumed or when the output buffer reaches
  * its capacity(or when an error occurs).
  *
  * If `out_utf32_seq` is NULL, the function will perform the decoding but will not
@@ -132,7 +132,7 @@ size_t uc_utf8_unit_len(uint8_t utf8_sbyte);
  * @param utf8_eq        Pointer to the input UTF-8 sequence.
  * @param len            Number of bytes in `utf8_seq` to process.
  * @param out_utf32_seq  Output buffer for the resulting UTF-32 code points.
- * @param capacity       Maximum number of UTF-32 code points the out buffer can hold.
+ * @param capacity       Maximum number of UTF-32 code points the output buffer can hold.
  * @param flags          Optional flags.
  * @param out_width      Number of successfully processed UTF-8 characters.
  * @param out_status     Indicates success or a specific error condition. 
@@ -172,7 +172,7 @@ void uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
  *
  * This function reads up to `width` UTF-32 code points from the input `utf32_seq`
  * and encodes them into UTF-8, storing the result in `out_utf8_seq`. The conversion
- * stops either when all input code points are processed or when the out buffer
+ * stops either when all input code points are processed or when the output buffer
  * reaches `capacity` bytes (or when an error occurs).
  *
  * If `out_utf32_seq` is NULL, the function will perform the encoding but will not
@@ -187,7 +187,7 @@ void uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
  * @param utf32_seq      Pointer to the input UTF-32 sequence.
  * @param width          Number of UTF-32 code points.
  * @param out_utf8_seq   Output buffer for the resulting UTF-8 byte sequence.
- * @param capacity       Maximum number of bytes the out buffer can hold.
+ * @param capacity       Maximum number of bytes the output buffer can hold.
  * @param flags          Optional flags.
  * @param out_width      Number of successfully encoded UTF-32 code points.
  * @param out_len        Number of bytes successfully written to `out_utf8_seq`.
@@ -201,7 +201,7 @@ void uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
  * 1) UC_SUCCESS - Encoding completed successfully.
  * 2) UC_ERR_INVALID_ARG - `utf32_seq` is NULL.
  * 3) UC_ERR_NOT_ENOUGH_CAPACITY - `out_utf8_seq` is not NULL and the encoding
- * would exceed the `capacity` of the out buffer.
+ * would exceed the `capacity` of the output buffer.
  * 4) UC_ERR_SURROGATE - Flag UC_FLAG_ALLOW_SURROGATE was not set and a surrogate
  * code point was encountered.
  * 5) UC_ERR_INVALID_CODEPOINT - A code point is outside the valid Unicode

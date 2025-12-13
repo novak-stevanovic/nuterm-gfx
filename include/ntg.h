@@ -4,7 +4,6 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: sarena: remove sa_err - EASY
 // TODO: rename & rethink init/deinit fns(?) - EASY
 // TODO: object decorators: implement border & padding - MEDIUM, ACTIVE
 // TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? - EASY

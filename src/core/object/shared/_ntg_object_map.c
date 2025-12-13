@@ -11,20 +11,16 @@ void __ntg_object_map_init__(ntg_object_map* ctx,
     assert(data_size > 0);
     assert(arena != NULL);
 
-    sa_err _err;
-
     ctx->__count = 0;
     ctx->__data_size = data_size;
     ctx->__capacity = capacity;
 
     if(capacity > 0)
     {
-        ctx->__keys = (const ntg_object**)sarena_calloc(arena,
-                capacity * sizeof(void*), &_err);
+        ctx->__keys = (const ntg_object**)sarena_calloc(arena, capacity * sizeof(void*));
         assert(ctx->__keys != NULL);
 
-        ctx->__values = (char*)sarena_calloc(arena,
-                capacity * data_size, &_err);
+        ctx->__values = (char*)sarena_calloc(arena, capacity * data_size);
         assert(ctx->__values != NULL);
     }
     else
