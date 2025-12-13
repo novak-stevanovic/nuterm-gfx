@@ -9,14 +9,14 @@ typedef struct ntg_color_block ntg_color_block;
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-void __ntg_color_block_init__(
+void _ntg_color_block_init_(
         ntg_color_block* color_block,
         nt_color color,
         ntg_object_process_key_fn process_key_fn,
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         void* data);
-void __ntg_color_block_deinit__(ntg_color_block* color_block);
+void _ntg_color_block_deinit_(ntg_color_block* color_block);
 
 nt_color ntg_color_block_get_color(const ntg_color_block* color_block);
 void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
@@ -31,9 +31,9 @@ struct ntg_color_block
     nt_color __color;
 };
 
-void __ntg_color_block_deinit_fn(ntg_object* object);
+void _ntg_color_block_deinit_fn(ntg_object* object);
 
-struct ntg_object_measure __ntg_color_block_measure_fn(
+struct ntg_object_measure _ntg_color_block_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -41,7 +41,7 @@ struct ntg_object_measure __ntg_color_block_measure_fn(
         struct ntg_object_measure_out* out,
         sarena* arena);
 
-void __ntg_color_block_draw_fn(
+void _ntg_color_block_draw_fn(
         const ntg_object* object,
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,

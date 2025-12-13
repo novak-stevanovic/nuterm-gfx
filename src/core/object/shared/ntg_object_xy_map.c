@@ -15,7 +15,7 @@ ntg_object_xy_map* ntg_object_xy_map_new(size_t child_count, sarena* arena)
             arena, sizeof(ntg_object_xy_map));
     assert(new != NULL);
 
-    __ntg_object_map_init__(&new->__base, child_count,
+    _ntg_object_map_init_(&new->__base, child_count,
             sizeof(struct ntg_xy), arena);
 
     return new;

@@ -1,7 +1,7 @@
 #include "shared/ntg_allocator.h"
 #include <assert.h>
 
-void __ntg_allocator_init__(ntg_allocator* allocator,
+void _ntg_allocator_init_(ntg_allocator* allocator,
         void* (*malloc_fn)(size_t size),
         void  (*free_fn)(void* ptr),
         void* (*calloc_fn)(size_t nmemb, size_t size),
@@ -18,7 +18,7 @@ void __ntg_allocator_init__(ntg_allocator* allocator,
     allocator->__free_fn = free_fn;
 }
 
-void __ntg_allocator_deinit__(ntg_allocator* allocator)
+void _ntg_allocator_deinit_(ntg_allocator* allocator)
 {
     assert(allocator != NULL);
 

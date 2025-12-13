@@ -4,7 +4,7 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: rename & rethink init/deinit fns(?) - EASY
+// TODO: ntg_scene: virtual destructors? - EASY, ACTIVE
 // TODO: object decorators: implement border & padding - MEDIUM, ACTIVE
 // TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? - EASY
 // TODO: ntg_object: ntg_object_get_children() returns const ntg_object_vec* - EASY
@@ -18,8 +18,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_init__();
-void __ntg_deinit__();
+void _ntg_init_();
+void _ntg_deinit_();
 
 /* -------------------------------------------------------------------------- */
 

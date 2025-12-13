@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-void __ntg_renderer_init__(
+void _ntg_renderer_init_(
         ntg_renderer* renderer,
         ntg_renderer_render_fn render_fn,
         void* data)
@@ -14,7 +14,7 @@ void __ntg_renderer_init__(
     renderer->_data = data;
 }
 
-void __ntg_renderer_deinit__(ntg_renderer* renderer)
+void _ntg_renderer_deinit_(ntg_renderer* renderer)
 {
     assert(renderer != NULL);
 

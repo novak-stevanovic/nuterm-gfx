@@ -7,7 +7,7 @@
 #include "core/object/shared/ntg_object_types.h"
 #include "shared/_ntg_shared.h"
 
-void __ntg_prog_bar_init__(
+void _ntg_prog_bar_init_(
         ntg_prog_bar* prog_bar,
         ntg_orientation orientation,
         ntg_cell complete_cell,
@@ -20,16 +20,16 @@ void __ntg_prog_bar_init__(
 {
     assert(prog_bar != NULL);
 
-    __ntg_object_init__((ntg_object*)prog_bar,
+    _ntg_object_init_((ntg_object*)prog_bar,
             NTG_OBJECT_PROG_BAR,
-            __ntg_prog_bar_measure_fn,
+            _ntg_prog_bar_measure_fn,
             NULL,
             NULL,
-            __ntg_prog_bar_draw_fn,
+            _ntg_prog_bar_draw_fn,
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            __ntg_prog_bar_deinit_fn,
+            _ntg_prog_bar_deinit_fn,
             data);
 
     prog_bar->__orientation = orientation;
@@ -39,11 +39,11 @@ void __ntg_prog_bar_init__(
     prog_bar->__percentage = 0;
 }
 
-void __ntg_prog_bar_deinit__(ntg_prog_bar* prog_bar)
+void _ntg_prog_bar_deinit_(ntg_prog_bar* prog_bar)
 {
     assert(prog_bar != NULL);
 
-    __ntg_prog_bar_deinit_fn((ntg_object*)prog_bar);
+    _ntg_prog_bar_deinit_fn((ntg_object*)prog_bar);
 }
 
 void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage)
@@ -60,13 +60,13 @@ double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar)
     return prog_bar->__percentage;
 }
 
-void __ntg_prog_bar_deinit_fn(ntg_object* object)
+void _ntg_prog_bar_deinit_fn(ntg_object* object)
 {
     assert(object != NULL);
 
     ntg_prog_bar* prog_bar = (ntg_prog_bar*)object;
 
-    __ntg_object_deinit__((ntg_object*)prog_bar);
+    _ntg_object_deinit_((ntg_object*)prog_bar);
 
     prog_bar->__orientation = NTG_ORIENTATION_H;
     prog_bar->__complete_cell = ntg_cell_default();
@@ -75,7 +75,7 @@ void __ntg_prog_bar_deinit_fn(ntg_object* object)
     prog_bar->__percentage = 0;
 }
 
-struct ntg_object_measure __ntg_prog_bar_measure_fn(
+struct ntg_object_measure _ntg_prog_bar_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -103,7 +103,7 @@ struct ntg_object_measure __ntg_prog_bar_measure_fn(
     }
 }
 
-void __ntg_prog_bar_draw_fn(
+void _ntg_prog_bar_draw_fn(
         const ntg_object* object,
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,

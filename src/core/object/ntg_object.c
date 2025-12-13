@@ -18,11 +18,93 @@
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_deinit(ntg_object* object)
+static void __init_default_values(ntg_object* object);
+static bool __process_key_fn_def(ntg_object* object,
+        struct nt_key_event key_event,
+        struct ntg_object_key_ctx ctx) { return false; }
+static void __focus_fn_def(ntg_object* object, struct ntg_object_focus_ctx ctx) {}
+static void __unfocus_fn_def(ntg_object* object, struct ntg_object_unfocus_ctx ctx) {}
+
+static unsigned int __id_generator = 0;
+
+void _ntg_object_init_(ntg_object* object,
+        unsigned int type,
+        ntg_object_measure_fn measure_fn,
+        ntg_object_constrain_fn constrain_fn,
+        ntg_object_arrange_fn arrange_fn,
+        ntg_object_draw_fn draw_fn,
+        ntg_object_process_key_fn process_key_fn,
+        ntg_object_focus_fn on_focus_fn,
+        ntg_object_unfocus_fn on_unfocus_fn,
+        ntg_object_deinit_fn deinit_fn,
+        void* data)
+{
+    assert(object != NULL);
+
+    __init_default_values(object);
+
+    object->__id = __id_generator++;
+    object->__type = type;
+
+    object->__children = ntg_object_vec_new();
+
+    object->__background = ntg_cell_default();
+
+    object->__measure_fn = measure_fn;
+    object->__constrain_fn = constrain_fn;
+    object->__arrange_fn = arrange_fn;
+    object->__draw_fn = draw_fn;
+    object->__process_key_fn = (process_key_fn != NULL) ?
+        process_key_fn : __process_key_fn_def;
+    object->__on_focus_fn = (on_focus_fn != NULL) ?
+        on_focus_fn : __focus_fn_def;
+    object->__on_unfocus_fn = (on_unfocus_fn != NULL) ?
+        on_unfocus_fn : __unfocus_fn_def;
+    object->__deinit_fn = (deinit_fn != NULL) ? deinit_fn : _ntg_object_deinit_;
+
+    object->_delegate = ntg_event_dlgt_new();
+    object->_data = data;
+}
+
+void _ntg_object_deinit_(ntg_object* object)
+{
+    assert(object != NULL);
+
+    ntg_object_vec_destroy(object->__children);
+    ntg_event_dlgt_destroy(object->_delegate);
+
+    __init_default_values(object);
+}
+
+void _ntg_object_vdeinit_(ntg_object* object)
 {
     assert(object != NULL);
 
     object->__deinit_fn(object);
+}
+
+static void __init_default_values(ntg_object* object)
+{
+    object->__id = UINT_MAX;
+    object->__type = NTG_OBJECT_WIDGET;
+
+    object->__parent = NULL;
+    object->__children = NULL;
+
+    object->__grow = ntg_xy(1, 1);
+    object->__min_size = ntg_xy(0, 0);
+    object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
+
+    object->__measure_fn = NULL;
+    object->__constrain_fn = NULL;
+    object->__arrange_fn = NULL;
+    object->__draw_fn = NULL;
+    object->__process_key_fn = NULL;
+    object->__on_focus_fn = NULL;
+    object->__on_unfocus_fn = NULL;
+    object->__deinit_fn = NULL;
+
+    object->_delegate = NULL;
 }
 
 /* ---------------------------------------------------------------- */
@@ -526,69 +608,6 @@ ntg_listenable* ntg_object_get_listenable(ntg_object* object)
 /* INTERNAL/PROTECTED API */
 /* -------------------------------------------------------------------------- */
 
-static void __init_default_values(ntg_object* object);
-
-static bool __process_key_fn_def(ntg_object* object,
-        struct nt_key_event key_event,
-        struct ntg_object_key_ctx ctx)
-{
-    return false;
-}
-
-static void __focus_fn_def(ntg_object* object, struct ntg_object_focus_ctx ctx) {}
-static void __unfocus_fn_def(ntg_object* object, struct ntg_object_unfocus_ctx ctx) {}
-
-static unsigned int __id_generator = 0;
-
-void __ntg_object_init__(ntg_object* object,
-        unsigned int type,
-        ntg_object_measure_fn measure_fn,
-        ntg_object_constrain_fn constrain_fn,
-        ntg_object_arrange_fn arrange_fn,
-        ntg_object_draw_fn draw_fn,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_object_focus_fn on_focus_fn,
-        ntg_object_unfocus_fn on_unfocus_fn,
-        ntg_object_deinit_fn deinit_fn,
-        void* data)
-{
-    assert(object != NULL);
-
-    __init_default_values(object);
-
-    object->__id = __id_generator++;
-    object->__type = type;
-
-    object->__children = ntg_object_vec_new();
-
-    object->__background = ntg_cell_default();
-
-    object->__measure_fn = measure_fn;
-    object->__constrain_fn = constrain_fn;
-    object->__arrange_fn = arrange_fn;
-    object->__draw_fn = draw_fn;
-    object->__process_key_fn = (process_key_fn != NULL) ?
-        process_key_fn : __process_key_fn_def;
-    object->__on_focus_fn = (on_focus_fn != NULL) ?
-        on_focus_fn : __focus_fn_def;
-    object->__on_unfocus_fn = (on_unfocus_fn != NULL) ?
-        on_unfocus_fn : __unfocus_fn_def;
-    object->__deinit_fn = (deinit_fn != NULL) ? deinit_fn : __ntg_object_deinit__;
-
-    object->_delegate = ntg_event_dlgt_new();
-    object->_data = data;
-}
-
-void __ntg_object_deinit__(ntg_object* object)
-{
-    assert(object != NULL);
-
-    ntg_object_vec_destroy(object->__children);
-    ntg_event_dlgt_destroy(object->_delegate);
-
-    __init_default_values(object);
-}
-
 void _ntg_object_add_child(ntg_object* object, ntg_object* child)
 {
     assert(object != NULL);
@@ -611,29 +630,4 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
     ntg_object_vec_remove(object->__children, child);
 
     child->__parent = NULL;
-}
-
-/* ---------------------------------------------------------------- */
-
-static void __init_default_values(ntg_object* object)
-{
-    object->__id = UINT_MAX;
-    object->__type = NTG_OBJECT_WIDGET;
-
-    object->__parent = NULL;
-    object->__children = NULL;
-
-    object->__grow = ntg_xy(1, 1);
-    object->__min_size = ntg_xy(0, 0);
-    object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
-
-    object->__measure_fn = NULL;
-    object->__constrain_fn = NULL;
-    object->__arrange_fn = NULL;
-    object->__draw_fn = NULL;
-    object->__process_key_fn = NULL;
-    object->__on_focus_fn = NULL;
-    object->__on_unfocus_fn = NULL;
-
-    object->_delegate = NULL;
 }

@@ -15,12 +15,12 @@ struct ntg_def_scene
     sarena* __layout_arena;
 };
 
-void __ntg_def_scene_init__(
+void _ntg_def_scene_init_(
         ntg_def_scene* scene,
         ntg_scene_process_key_fn process_key_fn,
         void* data);
-void __ntg_def_scene_deinit__(ntg_def_scene* scene);
+void _ntg_def_scene_deinit_(ntg_def_scene* scene);
 
-void __ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);
+void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);
 
 #endif // _NTG_DEF_SCENE_H_

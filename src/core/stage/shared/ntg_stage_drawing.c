@@ -3,14 +3,14 @@
 
 #include "core/stage/shared/ntg_stage_drawing.h"
 
-void __ntg_stage_drawing_init__(ntg_stage_drawing* drawing)
+void _ntg_stage_drawing_init_(ntg_stage_drawing* drawing)
 {
     if(drawing == NULL) return;
 
     __ntg_rcell_vgrid_init__(&drawing->___data);
 }
 
-void __ntg_stage_drawing_deinit__(ntg_stage_drawing* drawing)
+void _ntg_stage_drawing_deinit_(ntg_stage_drawing* drawing)
 {
     if(drawing == NULL) return;
 
@@ -24,7 +24,7 @@ ntg_stage_drawing* ntg_stage_drawing_new()
 
     if(new == NULL) return NULL;
 
-    __ntg_stage_drawing_init__(new);
+    _ntg_stage_drawing_init_(new);
 
     return new;
 }
@@ -33,7 +33,7 @@ void ntg_stage_drawing_destroy(ntg_stage_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    __ntg_stage_drawing_deinit__(drawing);
+    _ntg_stage_drawing_deinit_(drawing);
 
     free(drawing);
 }

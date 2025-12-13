@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <stdint.h> 
 
-static void __ntg_vector_grow_if_needed(ntg_vector* vector)
+static void ntg_vector_grow_if_needed(ntg_vector* vector)
 {
     assert(vector != NULL);
     if (vector->_count < vector->__capacity) return;
@@ -17,7 +17,7 @@ static void __ntg_vector_grow_if_needed(ntg_vector* vector)
     vector->__capacity = new_cap;
 }
 
-void __ntg_vector_init__(ntg_vector* vector, size_t data_size, size_t init_cap)
+void _ntg_vector_init_(ntg_vector* vector, size_t data_size, size_t init_cap)
 {
     assert(vector != NULL);
     assert(data_size > 0);
@@ -30,7 +30,7 @@ void __ntg_vector_init__(ntg_vector* vector, size_t data_size, size_t init_cap)
     assert(vector->__data != NULL);
 }
 
-void __ntg_vector_deinit__(ntg_vector* vector)
+void _ntg_vector_deinit_(ntg_vector* vector)
 {
     assert(vector != NULL);
     free(vector->__data);
@@ -45,7 +45,7 @@ void ntg_vector_append(ntg_vector* vector, const void* data)
     assert(vector != NULL);
     assert(data != NULL);
 
-    __ntg_vector_grow_if_needed(vector);
+    ntg_vector_grow_if_needed(vector);
 
     char* base = (char*)vector->__data;
     memcpy(base + vector->_count * vector->__data_size, data, vector->__data_size);
@@ -59,7 +59,7 @@ void ntg_vector_insert(ntg_vector* vector, size_t index, const void* data)
     /* inserting at count is allowed (append) */
     assert(index <= vector->_count);
 
-    __ntg_vector_grow_if_needed(vector);
+    ntg_vector_grow_if_needed(vector);
 
     char* base = (char*)vector->__data;
     size_t trailing = vector->_count - index;

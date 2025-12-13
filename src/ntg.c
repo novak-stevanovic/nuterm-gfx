@@ -11,13 +11,13 @@
 static pthread_t __ntg_thread;
 static bool __launched = false;
 
-static void* __ntg_thread_fn(void* _thread_fn_data);
+static void* ntg_thread_fn(void* _thread_fn_data);
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_init__()
+void _ntg_init_()
 {
-    __ntg_log_init__("ntg_log.txt");
+    _ntg_log_init_("ntg_log.txt");
 
     nt_status _status;
     __nt_init__(&_status);
@@ -53,7 +53,7 @@ void ntg_launch(ntg_gui_fn gui_fn, void* data)
     thread_fn_data->gui_fn_data = data;
 
     int status = pthread_create(&__ntg_thread, NULL,
-            __ntg_thread_fn, thread_fn_data);
+            ntg_thread_fn, thread_fn_data);
 
     assert(status == 0);
 
@@ -70,16 +70,16 @@ void* ntg_wait()
     return _data;
 }
 
-void __ntg_deinit__()
+void _ntg_deinit_()
 {
     nt_cursor_show(NULL);
     nt_alt_screen_disable(NULL);
     __nt_deinit__();
 
-   __ntg_log_deinit__();
+   _ntg_log_deinit_();
 }
 
-static void* __ntg_thread_fn(void* _thread_fn_data)
+static void* ntg_thread_fn(void* _thread_fn_data)
 {
     struct ntg_app_thread_fn_data* data =
         (struct ntg_app_thread_fn_data*)_thread_fn_data;

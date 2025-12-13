@@ -26,14 +26,14 @@ void __ntg_event_sub_vec_init__(ntg_event_sub_vec* vec)
 {
     assert(vec != NULL);
 
-    __ntg_vector_init__((ntg_vector*)vec, sizeof(struct ntg_event_sub), 5);
+    _ntg_vector_init_((ntg_vector*)vec, sizeof(struct ntg_event_sub), 5);
 }
 
 void __ntg_event_sub_vec_deinit__(ntg_event_sub_vec* vec)
 {
     assert(vec != NULL);
 
-    __ntg_vector_deinit__((ntg_vector*)vec);
+    _ntg_vector_deinit_((ntg_vector*)vec);
 }
 
 ntg_event_sub_vec* ntg_event_sub_vec_new()

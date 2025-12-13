@@ -10,19 +10,19 @@
 
 #define CHARBUFF_CAP 100000
 
-static void __listenable_handler(void* subscriber, struct ntg_event event);
+static void listenable_handler(void* subscriber, struct ntg_event event);
 
-static void __full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
+static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
 
-static void __full_render(ntg_def_renderer* renderer,
+static void full_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size);
 
-static void __optimized_render(ntg_def_renderer* renderer,
+static void optimized_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size);
 
 /* -------------------------------------------------------------------------- */
 
-void __ntg_def_renderer_init__(
+void _ntg_def_renderer_init_(
         ntg_def_renderer* renderer,
         ntg_loop* loop,
         void* data)
@@ -30,7 +30,7 @@ void __ntg_def_renderer_init__(
     assert(renderer != NULL);
     assert(loop != NULL);
 
-    __ntg_renderer_init__(
+    _ntg_renderer_init_(
             (ntg_renderer*)renderer,
             __ntg_def_renderer_render_fn,
             data);
@@ -42,15 +42,15 @@ void __ntg_def_renderer_init__(
 
     renderer->__resize = true;
 
-    ntg_listenable_listen(ntg_loop_get_listenable(loop), renderer, __listenable_handler);
+    ntg_listenable_listen(ntg_loop_get_listenable(loop), renderer, listenable_handler);
     renderer->__loop = loop;
 }
 
-void __ntg_def_renderer_deinit__(ntg_def_renderer* renderer)
+void _ntg_def_renderer_deinit_(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
 
-    __ntg_renderer_deinit__((ntg_renderer*)renderer);
+    _ntg_renderer_deinit_((ntg_renderer*)renderer);
 
     ntg_rcell_vgrid_destroy(renderer->__backbuff);
     renderer->__backbuff = NULL;
@@ -62,7 +62,7 @@ void __ntg_def_renderer_deinit__(ntg_def_renderer* renderer)
     ntg_listenable_stop_listening(
             ntg_loop_get_listenable(renderer->__loop),
             renderer,
-            __listenable_handler);
+            listenable_handler);
     renderer->__loop = NULL;
 }
 
@@ -79,18 +79,18 @@ void __ntg_def_renderer_render_fn(
 
     if(stage_drawing == NULL)
     {
-        __full_empty_render(renderer, size);
+        full_empty_render(renderer, size);
     }
     else
     {
         if(renderer->__resize)
         {
-            __full_render(renderer, stage_drawing, size);
+            full_render(renderer, stage_drawing, size);
             renderer->__resize = false; 
         }
         else
         {
-            __optimized_render(renderer, stage_drawing, size);
+            optimized_render(renderer, stage_drawing, size);
         }
     }
 
@@ -99,7 +99,7 @@ void __ntg_def_renderer_render_fn(
 
 /* -------------------------------------------------------------------------- */
 
-static void __full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
+static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
 {
     ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
 
@@ -121,7 +121,7 @@ static void __full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
     nt_erase_scrollback(NULL);
 }
 
-static void __optimized_render(ntg_def_renderer* renderer,
+static void optimized_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size)
 {
     struct ntg_xy old_back_buffer_size = ntg_rcell_vgrid_get_size(renderer->__backbuff);
@@ -149,7 +149,7 @@ static void __optimized_render(ntg_def_renderer* renderer,
     }
 }
 
-static void __full_render(ntg_def_renderer* renderer,
+static void full_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size)
 {
     ntg_rcell_vgrid_set_size(renderer->__backbuff, size, NULL);
@@ -170,7 +170,7 @@ static void __full_render(ntg_def_renderer* renderer,
     }
 }
 
-static void __listenable_handler(void* _subscriber, struct ntg_event event)
+static void listenable_handler(void* _subscriber, struct ntg_event event)
 {
     assert(_subscriber != NULL);
 

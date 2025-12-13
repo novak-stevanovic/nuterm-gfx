@@ -16,7 +16,7 @@
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-static void __init_default_values(ntg_box* box)
+static void init_default_values(ntg_box* box)
 {
     box->__orientation = NTG_ORIENTATION_H;
     box->__primary_alignment = NTG_ALIGNMENT_1;
@@ -24,7 +24,7 @@ static void __init_default_values(ntg_box* box)
     box->__spacing = 0;
 }
 
-void __ntg_box_init__(
+void _ntg_box_init_(
         ntg_box* box,
         ntg_orientation orientation,
         ntg_alignment primary_alignment,
@@ -36,31 +36,31 @@ void __ntg_box_init__(
 {
     assert(box != NULL);
 
-    __ntg_object_init__(
+    _ntg_object_init_(
             (ntg_object*)box,
             NTG_OBJECT_BOX,
-            __ntg_box_measure_fn,
-            __ntg_box_constrain_fn,
+            _ntg_box_measure_fn,
+            _ntg_box_constrain_fn,
             __ntg_box_arrange_fn,
             NULL,
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            __ntg_box_deinit_fn,
+            _ntg_box_deinit_fn,
             data);
 
-    __init_default_values(box);
+    init_default_values(box);
 
     box->__orientation = orientation;
     box->__primary_alignment = primary_alignment;
     box->__secondary_alignment = secondary_alignment;
 }
 
-void __ntg_box_deinit__(ntg_box* box)
+void _ntg_box_deinit_(ntg_box* box)
 {
     assert(box != NULL);
 
-    __ntg_box_deinit_fn((ntg_object*)box);
+    _ntg_box_deinit_fn((ntg_object*)box);
 }
 
 ntg_orientation ntg_box_get_orientation(const ntg_box* box)
@@ -149,20 +149,20 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-static inline size_t __calculate_total_spacing(size_t spacing, size_t child_count);
-static struct ntg_object_measure __measure_content(
+static inline size_t calculate_total_spacing(size_t spacing, size_t child_count);
+static struct ntg_object_measure measure_content(
         const ntg_box* box,
         ntg_orientation orientation,
         const ntg_object_measure_map* measures);
 
-void __ntg_box_deinit_fn(ntg_object* _box)
+void _ntg_box_deinit_fn(ntg_object* _box)
 {
     assert(_box != NULL);
 
-    __init_default_values((ntg_box*)_box);
+    init_default_values((ntg_box*)_box);
 }
 
-struct ntg_object_measure __ntg_box_measure_fn(
+struct ntg_object_measure _ntg_box_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -172,10 +172,10 @@ struct ntg_object_measure __ntg_box_measure_fn(
 {
     const ntg_box* box = (const ntg_box*)object;
 
-    return __measure_content(box, orientation, ctx.measures);
+    return measure_content(box, orientation, ctx.measures);
 }
 
-void __ntg_box_constrain_fn(
+void _ntg_box_constrain_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t size,
@@ -188,7 +188,7 @@ void __ntg_box_constrain_fn(
 
     if(children->_count == 0) return;
 
-    struct ntg_object_measure content_size = __measure_content(
+    struct ntg_object_measure content_size = measure_content(
             box, orientation, ctx.measures);
     size_t min_size = content_size.min_size;
     size_t natural_size = content_size.natural_size;
@@ -225,7 +225,7 @@ void __ntg_box_constrain_fn(
         {
             if(size >= min_size) // redistribute extra, capped with natural_size
             {
-                size_t pref_spacing = __calculate_total_spacing(
+                size_t pref_spacing = calculate_total_spacing(
                         box->__spacing, children->_count);
                 extra_size = _ssub_size(size - min_size, pref_spacing);
 
@@ -322,7 +322,7 @@ void __ntg_box_arrange_fn(
     }
 
     /* Calculate spacing */
-    size_t pref_spacing = __calculate_total_spacing(
+    size_t pref_spacing = calculate_total_spacing(
             box->__spacing, children->_count);
     size_t total_spacing = _min2_size(pref_spacing, _size.prim_val - _children_size.prim_val);
 
@@ -390,12 +390,12 @@ void __ntg_box_arrange_fn(
     }
 }
 
-static inline size_t __calculate_total_spacing(size_t spacing, size_t child_count)
+static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 {
     return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
 }
 
-static struct ntg_object_measure __measure_content(
+static struct ntg_object_measure measure_content(
         const ntg_box* box,
         ntg_orientation orientation,
         const ntg_object_measure_map* measures)
@@ -433,7 +433,7 @@ static struct ntg_object_measure __measure_content(
         }
     }
 
-    size_t spacing = __calculate_total_spacing(box->__spacing, children->_count);
+    size_t spacing = calculate_total_spacing(box->__spacing, children->_count);
 
     return (struct ntg_object_measure) {
         .min_size = min_size,

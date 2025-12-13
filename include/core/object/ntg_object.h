@@ -166,7 +166,20 @@ typedef void (*ntg_object_deinit_fn)(ntg_object* object);
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_deinit(ntg_object* object);
+void _ntg_object_init_(ntg_object* object,
+        unsigned int type,
+        ntg_object_measure_fn measure_fn,
+        ntg_object_constrain_fn constrain_fn,
+        ntg_object_arrange_fn arrange_fn,
+        ntg_object_draw_fn draw_fn,
+        ntg_object_process_key_fn process_key_fn,
+        ntg_object_focus_fn on_focus_fn,
+        ntg_object_unfocus_fn on_unfocus_fn,
+        ntg_object_deinit_fn deinit_fn,
+        void* data);
+void _ntg_object_deinit_(ntg_object* object);
+
+void _ntg_object_vdeinit_(ntg_object* object);
 
 /* ------------------------------------------------------ */
 /* IDENTITY */
@@ -334,19 +347,6 @@ struct ntg_object
 /* -------------------------------------------------------------------------- */
 /* PROTECTED API */
 /* -------------------------------------------------------------------------- */
-
-void __ntg_object_init__(ntg_object* object,
-        unsigned int type,
-        ntg_object_measure_fn measure_fn,
-        ntg_object_constrain_fn constrain_fn,
-        ntg_object_arrange_fn arrange_fn,
-        ntg_object_draw_fn draw_fn,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_object_focus_fn on_focus_fn,
-        ntg_object_unfocus_fn on_unfocus_fn,
-        ntg_object_deinit_fn deinit_fn,
-        void* data);
-void __ntg_object_deinit__(ntg_object* object);
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child);

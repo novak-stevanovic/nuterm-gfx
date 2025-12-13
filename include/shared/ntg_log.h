@@ -1,8 +1,8 @@
 #ifndef _NTG_LOG_H_
 #define _NTG_LOG_H_
 
-void __ntg_log_init__(const char* filepath);
-void __ntg_log_deinit__();
+void _ntg_log_init_(const char* filepath);
+void _ntg_log_deinit_();
 
 void ntg_log_log(const char* fmt, ...);
 

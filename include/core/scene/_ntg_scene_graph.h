@@ -8,7 +8,7 @@ typedef struct ntg_object ntg_object;
 typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_cobject_vec ntg_cobject_vec;
 
-struct _ntg_scene_node
+struct ntg_scene_node_protect
 {
     struct ntg_xy min_size, natural_size,
                   max_size, grow;
@@ -24,7 +24,7 @@ void ntg_scene_graph_destroy(ntg_scene_graph* scene_graph);
 
 void ntg_scene_graph_add(ntg_scene_graph* scene_graph, const ntg_object* object);
 void ntg_scene_graph_remove(ntg_scene_graph* scene_graph, const ntg_object* object);
-struct _ntg_scene_node* ntg_scene_graph_get(ntg_scene_graph* scene_graph,
+struct ntg_scene_node_protect* ntg_scene_graph_get(ntg_scene_graph* scene_graph,
         const ntg_object* object);
 
 /* Expects an initialized, empty vector. */

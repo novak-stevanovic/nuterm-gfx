@@ -15,8 +15,8 @@ typedef struct ntg_object_vec
     size_t __data_size;
 } ntg_object_vec;
 
-void __ntg_object_vec_init__(ntg_object_vec* vec);
-void __ntg_object_vec_deinit__(ntg_object_vec* vec);
+void _ntg_object_vec_init_(ntg_object_vec* vec);
+void _ntg_object_vec_deinit_(ntg_object_vec* vec);
 
 ntg_object_vec* ntg_object_vec_new();
 void ntg_object_vec_destroy(ntg_object_vec* vec);

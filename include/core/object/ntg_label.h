@@ -11,14 +11,14 @@ typedef struct ntg_label ntg_label;
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-void __ntg_label_init__(
+void _ntg_label_init_(
         ntg_label* label,
         ntg_orientation orientation,
         ntg_object_process_key_fn process_key_fn,
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         void* data);
-void __ntg_label_deinit__(ntg_label* label);
+void _ntg_label_deinit_(ntg_label* label);
 
 void ntg_label_set_text(ntg_label* label, struct ntg_str_view text);
 void ntg_label_set_gfx(ntg_label* label, struct nt_gfx gfx);
@@ -54,9 +54,9 @@ struct ntg_label
     size_t __indent;
 };
 
-void __ntg_label_deinit_fn(ntg_object* object);
+void _ntg_label_deinit_fn(ntg_object* object);
 
-struct ntg_object_measure __ntg_label_measure_fn(
+struct ntg_object_measure _ntg_label_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -64,7 +64,7 @@ struct ntg_object_measure __ntg_label_measure_fn(
         struct ntg_object_measure_out* out,
         sarena* arena);
 
-void __ntg_label_draw_fn(
+void _ntg_label_draw_fn(
         const ntg_object* object,
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,

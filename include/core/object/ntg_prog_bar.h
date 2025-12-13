@@ -9,7 +9,7 @@ typedef struct ntg_prog_bar ntg_prog_bar;
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-void __ntg_prog_bar_init__(
+void _ntg_prog_bar_init_(
         ntg_prog_bar* prog_bar,
         ntg_orientation orientation,
         ntg_cell complete_cell,
@@ -19,7 +19,7 @@ void __ntg_prog_bar_init__(
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         void* data);
-void __ntg_prog_bar_deinit__(ntg_prog_bar* prog_bar);
+void _ntg_prog_bar_deinit_(ntg_prog_bar* prog_bar);
 
 void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage);
 double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar);
@@ -39,9 +39,9 @@ struct ntg_prog_bar
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void __ntg_prog_bar_deinit_fn(ntg_object* object);
+void _ntg_prog_bar_deinit_fn(ntg_object* object);
 
-struct ntg_object_measure __ntg_prog_bar_measure_fn(
+struct ntg_object_measure _ntg_prog_bar_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -49,7 +49,7 @@ struct ntg_object_measure __ntg_prog_bar_measure_fn(
         struct ntg_object_measure_out* out,
         sarena* arena);
 
-void __ntg_prog_bar_draw_fn(
+void _ntg_prog_bar_draw_fn(
         const ntg_object* object,
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,

@@ -2,18 +2,40 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#define _NTG_TASKMASTER_PRIVATE_
 #include "core/loop/ntg_taskmaster.h"
-#undef _NTG_TASKMASTER_PRIVATE_
 
 #include "core/loop/_ntg_callback_queue.h"
+#include <pthread.h>
+
+struct ntg_taskmaster
+{
+    ntg_callback_queue* __callbacks;
+    pthread_mutex_t __lock;
+};
+
+void _ntg_taskmaster_init_(ntg_taskmaster* taskmaster)
+{
+    assert(taskmaster != NULL);
+
+    pthread_mutex_init(&taskmaster->__lock, NULL);
+    taskmaster->__callbacks = ntg_callback_queue_new();
+}
+
+void _ntg_taskmaster_deinit_(ntg_taskmaster* taskmaster)
+{
+    assert(taskmaster != NULL);
+
+    pthread_mutex_destroy(&taskmaster->__lock);
+    ntg_callback_queue_destroy(taskmaster->__callbacks);
+    taskmaster->__callbacks = NULL;
+}
 
 ntg_taskmaster* ntg_taskmaster_new()
 {
     ntg_taskmaster* new = (ntg_taskmaster*)malloc(sizeof(ntg_taskmaster));
     assert(new != NULL);
 
-    __ntg_taskmaster_init__(new);
+    _ntg_taskmaster_init_(new);
 
     return new;
 }
@@ -22,29 +44,9 @@ void ntg_taskmaster_destroy(ntg_taskmaster* taskmaster)
 {
     assert(taskmaster != NULL);
 
-    __ntg_taskmaster_deinit__(taskmaster);
+    _ntg_taskmaster_deinit_(taskmaster);
 
     free(taskmaster);
-}
-
-void __ntg_taskmaster_init__(ntg_taskmaster* taskmaster)
-{
-    assert(taskmaster != NULL);
-
-    pthread_mutex_init(&taskmaster->__lock, NULL);
-    taskmaster->__callbacks = ntg_callback_queue_new();
-
-    taskmaster->__channel.__taskmaster = taskmaster;
-}
-
-void __ntg_taskmaster_deinit__(ntg_taskmaster* taskmaster)
-{
-    assert(taskmaster != NULL);
-
-    pthread_mutex_destroy(&taskmaster->__lock);
-    ntg_callback_queue_destroy(taskmaster->__callbacks);
-    taskmaster->__callbacks = NULL;
-    taskmaster->__channel.__taskmaster = NULL;
 }
 
 struct ntg_thread_fn_data
@@ -62,7 +64,7 @@ struct ntg_callback_fn_data
     void* task_result;
 };
 
-static void __callback_fn(void* _data)
+static void callback_fn(void* _data)
 {
     struct ntg_callback_fn_data* data = (struct ntg_callback_fn_data*)_data;
 
@@ -73,7 +75,7 @@ static void __callback_fn(void* _data)
     free(data);
 }
 
-static void* __thread_fn(void* _data)
+static void* thread_fn(void* _data)
 {
     struct ntg_thread_fn_data* data = (struct ntg_thread_fn_data*)_data;
 
@@ -90,7 +92,7 @@ static void* __thread_fn(void* _data)
 
     ntg_callback_queue_append(
             data->taskmaster->__callbacks,
-            __callback_fn, new_data);
+            callback_fn, new_data);
 
     free(data);
 
@@ -125,18 +127,20 @@ void ntg_taskmaster_execute_task(
     };
 
     pthread_t thread;
-    int status = pthread_create(&thread, NULL, __thread_fn, data);
+    int status = pthread_create(&thread, NULL, thread_fn, data);
     assert(status == 0);
     pthread_detach(thread);
 
     pthread_mutex_unlock(&taskmaster->__lock);
 }
 
-ntg_taskmaster_channel* ntg_taskmaster_get_channel(ntg_taskmaster* taskmaster)
+ntg_taskmaster_channel ntg_taskmaster_get_channel(ntg_taskmaster* taskmaster)
 {
     assert(taskmaster != NULL);
 
-    return &taskmaster->__channel;
+    return (ntg_taskmaster_channel) {
+        .__taskmaster = taskmaster
+    };
 }
 
 void ntg_taskmaster_execute_callbacks(ntg_taskmaster* taskmaster)

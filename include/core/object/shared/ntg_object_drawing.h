@@ -11,8 +11,8 @@ typedef struct ntg_object_drawing
     ntg_cell_vgrid ___data;
 } ntg_object_drawing;
 
-void __ntg_object_drawing_init__(ntg_object_drawing* object_drawing);
-void __ntg_object_drawing_deinit__(ntg_object_drawing* object_drawing);
+void _ntg_object_drawing_init_(ntg_object_drawing* object_drawing);
+void _ntg_object_drawing_deinit_(ntg_object_drawing* object_drawing);
 
 ntg_object_drawing* ntg_object_drawing_new();
 void ntg_object_drawing_destroy(ntg_object_drawing* object_drawing);

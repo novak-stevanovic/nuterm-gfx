@@ -15,7 +15,7 @@ ntg_object_measure_map* ntg_object_measure_map_new(size_t child_count, sarena* a
             arena, sizeof(ntg_object_measure_map));
     assert(new != NULL);
 
-    __ntg_object_map_init__(&new->__base, child_count,
+    _ntg_object_map_init_(&new->__base, child_count,
             sizeof(struct ntg_object_measure), arena);
 
     return new;

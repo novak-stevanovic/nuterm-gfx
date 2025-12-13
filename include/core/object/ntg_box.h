@@ -9,7 +9,7 @@ typedef struct ntg_box ntg_box;
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-void __ntg_box_init__(
+void _ntg_box_init_(
         ntg_box* box,
         ntg_orientation orientation,
         ntg_alignment primary_alignment,
@@ -18,7 +18,7 @@ void __ntg_box_init__(
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         void* data);
-void __ntg_box_deinit__(ntg_box* box);
+void _ntg_box_deinit_(ntg_box* box);
 
 ntg_orientation ntg_box_get_orientation(const ntg_box* box);
 ntg_alignment ntg_box_get_primary_alignment(const ntg_box* box);
@@ -48,9 +48,9 @@ struct ntg_box
     size_t __spacing;
 };
 
-void __ntg_box_deinit_fn(ntg_object* _box);
+void _ntg_box_deinit_fn(ntg_object* _box);
 
-struct ntg_object_measure __ntg_box_measure_fn(
+struct ntg_object_measure _ntg_box_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -58,7 +58,7 @@ struct ntg_object_measure __ntg_box_measure_fn(
         struct ntg_object_measure_out* out,
         sarena* arena);
 
-void __ntg_box_constrain_fn(
+void _ntg_box_constrain_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t size,

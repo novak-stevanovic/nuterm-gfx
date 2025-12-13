@@ -5,20 +5,19 @@
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
 
-
-void __ntg_def_stage_init__(ntg_def_stage* stage, ntg_scene* scene, void* data)
+void _ntg_def_stage_init_(ntg_def_stage* stage, ntg_scene* scene, void* data)
 {
     assert(stage != NULL);
     assert(scene != NULL);
 
-    __ntg_stage_init__((ntg_stage*)stage, scene, __ntg_def_stage_compose_fn, data);
+    _ntg_stage_init_((ntg_stage*)stage, scene, _ntg_def_stage_compose_fn, data);
 }
 
-void __ntg_def_stage_deinit__(ntg_def_stage* stage)
+void _ntg_def_stage_deinit_(ntg_def_stage* stage)
 {
     assert(stage != NULL);
 
-    __ntg_stage_deinit__((ntg_stage*)stage);
+    _ntg_stage_deinit_((ntg_stage*)stage);
 }
 
 static void __draw_fn(ntg_object* object, void* _stage)
@@ -35,7 +34,7 @@ static void __draw_fn(ntg_object* object, void* _stage)
             node.position);
 }
 
-void __ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size)
+void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size)
 {
     assert(_stage != NULL);
 

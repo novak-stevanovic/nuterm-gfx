@@ -9,8 +9,8 @@ typedef struct ntg_stage_drawing
     ntg_rcell_vgrid ___data;
 } ntg_stage_drawing;
 
-void __ntg_stage_drawing_init__(ntg_stage_drawing* drawing);
-void __ntg_stage_drawing_deinit__(ntg_stage_drawing* drawing);
+void _ntg_stage_drawing_init_(ntg_stage_drawing* drawing);
+void _ntg_stage_drawing_deinit_(ntg_stage_drawing* drawing);
 
 ntg_stage_drawing* ntg_stage_drawing_new();
 void ntg_stage_drawing_destroy(ntg_stage_drawing* drawing);

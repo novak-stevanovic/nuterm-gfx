@@ -4,7 +4,7 @@
 #include "core/scene/ntg_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 
-void __ntg_stage_init__(
+void _ntg_stage_init_(
         ntg_stage* stage,
         ntg_scene* scene,
         ntg_stage_compose_fn compose_fn,
@@ -21,7 +21,7 @@ void __ntg_stage_init__(
     stage->_data = data;
 }
 
-void __ntg_stage_deinit__(ntg_stage* stage)
+void _ntg_stage_deinit_(ntg_stage* stage)
 {
     assert(stage != NULL);
 

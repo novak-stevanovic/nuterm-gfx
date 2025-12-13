@@ -6,7 +6,7 @@
 
 static FILE *log_file = NULL;
 
-void __ntg_log_init__(const char* filepath) {
+void _ntg_log_init_(const char* filepath) {
     if (log_file) {
         /* Already initialized: close previous file first */
         fclose(log_file);
@@ -21,7 +21,7 @@ void __ntg_log_init__(const char* filepath) {
     ntg_log_log("NTG LOG BEGINNING");
 }
 
-void __ntg_log_deinit__() {
+void _ntg_log_deinit_() {
 
     if (log_file) {
         ntg_log_log("NTG LOG END");

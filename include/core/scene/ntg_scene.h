@@ -56,6 +56,17 @@ struct ntg_scene_node
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
+void _ntg_scene_init_(
+        ntg_scene* scene, /* non-NULL */
+        ntg_scene_layout_fn layout_fn, /* non-NULL */
+        ntg_scene_on_register_fn on_register_fn,
+        ntg_scene_on_unregister_fn on_unregister_fn,
+        ntg_scene_process_key_fn process_key_fn,
+        void* data);
+void _ntg_scene_deinit_(ntg_scene* scene);
+
+/* ------------------------------------------------------ */
+
 ntg_object* ntg_scene_get_focused(ntg_scene* scene);
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object);
 
@@ -114,14 +125,5 @@ struct ntg_scene
 
     void* _data;
 };
-
-void __ntg_scene_init__(
-        ntg_scene* scene, /* non-NULL */
-        ntg_scene_layout_fn layout_fn, /* non-NULL */
-        ntg_scene_on_register_fn on_register_fn,
-        ntg_scene_on_unregister_fn on_unregister_fn,
-        ntg_scene_process_key_fn process_key_fn,
-        void* data);
-void __ntg_scene_deinit__(ntg_scene* scene);
 
 #endif // _NTG_SCENE_H_

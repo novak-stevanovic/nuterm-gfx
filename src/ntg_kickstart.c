@@ -24,7 +24,7 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
 
     ntg_taskmaster* taskmaster = ntg_taskmaster_new();
     
-    __ntg_loop_init__(
+    _ntg_loop_init_(
             loop,
             loop_process_event_fn,
             init_stage,
@@ -33,7 +33,7 @@ struct ntg_kickstart_basic_obj ntg_kickstart_basic(
             loop_framerate,
             loop_data);
 
-    __ntg_def_renderer_init__(renderer, _loop, renderer_data);
+    _ntg_def_renderer_init_(renderer, _loop, renderer_data);
 
     return (struct ntg_kickstart_basic_obj) {
         .renderer = renderer,
@@ -49,8 +49,8 @@ void ntg_kickstart_basic_end(struct ntg_kickstart_basic_obj* obj)
 {
     assert(obj != NULL);
 
-    __ntg_def_renderer_deinit__(obj->renderer);
-    __ntg_loop_deinit__(obj->loop);
+    _ntg_def_renderer_deinit_(obj->renderer);
+    _ntg_loop_deinit_(obj->loop);
     ntg_taskmaster_destroy(obj->taskmaster);
 
     (*obj) = (struct ntg_kickstart_basic_obj) {0};
@@ -66,8 +66,8 @@ struct ntg_kickstart_scene_obj ntg_kickstart_scene(
     ntg_def_stage* stage = (ntg_def_stage*)malloc(sizeof(ntg_def_stage));
     assert(stage != NULL);
 
-    __ntg_def_scene_init__(scene, scene_process_key_fn, scene_data);
-    __ntg_def_stage_init__(stage, (ntg_scene*)scene, stage_data);
+    _ntg_def_scene_init_(scene, scene_process_key_fn, scene_data);
+    _ntg_def_stage_init_(stage, (ntg_scene*)scene, stage_data);
 
     return (struct ntg_kickstart_scene_obj) {
         .scene = scene,
@@ -81,8 +81,8 @@ void ntg_kickstart_scene_end(struct ntg_kickstart_scene_obj* obj)
 {
     assert(obj != NULL);
 
-    __ntg_def_scene_deinit__(obj->scene);
-    __ntg_def_stage_deinit__(obj->stage);
+    _ntg_def_scene_deinit_(obj->scene);
+    _ntg_def_stage_deinit_(obj->stage);
 
     (*obj) = (struct ntg_kickstart_scene_obj) {0};
 }

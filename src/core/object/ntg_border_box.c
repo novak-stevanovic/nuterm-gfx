@@ -13,7 +13,7 @@
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-static void __init_default(ntg_border_box* box)
+static void init_default(ntg_border_box* box)
 {
     box->__north = NULL;
     box->__east = NULL;
@@ -22,7 +22,7 @@ static void __init_default(ntg_border_box* box)
     box->__center = NULL;
 }
 
-void __ntg_border_box_init__(
+void _ntg_border_box_init_(
         ntg_border_box* box,
         ntg_object_process_key_fn process_key_fn,
         ntg_object_focus_fn on_focus_fn,
@@ -31,26 +31,26 @@ void __ntg_border_box_init__(
 {
     assert(box != NULL);
 
-    __ntg_object_init__((ntg_object*)box,
+    _ntg_object_init_((ntg_object*)box,
             NTG_OBJECT_BORDER_BOX,
-            __ntg_border_box_measure_fn,
-            __ntg_border_box_constrain_fn,
-            __ntg_border_box_arrange_fn,
+            _ntg_border_box_measure_fn,
+            _ntg_border_box_constrain_fn,
+            _ntg_border_box_arrange_fn,
             NULL,
             process_key_fn,
             on_focus_fn,
             on_unfocus_fn,
-            __ntg_border_box_deinit_fn,
+            _ntg_border_box_deinit_fn,
             data);
 
-    __init_default(box);
+    init_default(box);
 }
 
-void __ntg_border_box_deinit__(ntg_border_box* box)
+void _ntg_border_box_deinit_(ntg_border_box* box)
 {
     assert(box != NULL);
 
-    __ntg_border_box_deinit_fn((ntg_object*)box);
+    _ntg_border_box_deinit_fn((ntg_object*)box);
 }
 
 ntg_object* ntg_border_box_get_north(ntg_border_box* box)
@@ -207,15 +207,15 @@ void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void __ntg_border_box_deinit_fn(ntg_object* _border_box)
+void _ntg_border_box_deinit_fn(ntg_object* _border_box)
 {
     assert(_border_box != NULL);
 
-    __ntg_object_deinit__(_border_box);
-    __init_default((ntg_border_box*)_border_box);
+    _ntg_object_deinit_(_border_box);
+    init_default((ntg_border_box*)_border_box);
 }
 
-struct ntg_object_measure __ntg_border_box_measure_fn(
+struct ntg_object_measure _ntg_border_box_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -282,7 +282,7 @@ struct ntg_object_measure __ntg_border_box_measure_fn(
     };
 }
 
-void __ntg_border_box_constrain_fn(
+void _ntg_border_box_constrain_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t size,
@@ -465,7 +465,7 @@ void __ntg_border_box_constrain_fn(
         ntg_object_size_map_set(out->sizes, box->__center, center_size);
 }
 
-void __ntg_border_box_arrange_fn(
+void _ntg_border_box_arrange_fn(
         const ntg_object* object,
         struct ntg_xy size,
         struct ntg_object_arrange_ctx ctx,

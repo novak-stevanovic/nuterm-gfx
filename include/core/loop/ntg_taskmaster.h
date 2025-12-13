@@ -14,7 +14,7 @@ void ntg_taskmaster_destroy(ntg_taskmaster* taskmaster);
 
 void ntg_taskmaster_execute_callbacks(ntg_taskmaster* taskmaster);
 
-ntg_taskmaster_channel* ntg_taskmaster_get_channel(ntg_taskmaster* taskmaster);
+ntg_taskmaster_channel ntg_taskmaster_get_channel(ntg_taskmaster* taskmaster);
 
 /* Tells task manager to execute task on a different thread.
  *
@@ -29,29 +29,9 @@ void ntg_taskmaster_execute_task(
         void (*callback_fn)(void* callback_data, void* task_result),
         void* callback_data);
 
-/* -------------------------------------------------------------------------- */
-/* PRIVATE */
-/* -------------------------------------------------------------------------- */
-
-#ifdef _NTG_TASKMASTER_PRIVATE_
-
-#include <pthread.h>
-
 struct ntg_taskmaster_channel
 {
     ntg_taskmaster* __taskmaster;
 };
-
-struct ntg_taskmaster
-{
-    ntg_callback_queue* __callbacks;
-    ntg_taskmaster_channel __channel;
-    pthread_mutex_t __lock;
-};
-
-void __ntg_taskmaster_init__(ntg_taskmaster* taskmaster);
-void __ntg_taskmaster_deinit__(ntg_taskmaster* taskmaster);
-
-#endif // _NTG_TASKMASTER_PRIVATE_
 
 #endif // _NTG_TASKMASTER_H_

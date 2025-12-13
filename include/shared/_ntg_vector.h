@@ -13,8 +13,8 @@ typedef struct ntg_vector
     size_t __data_size;
 } ntg_vector;
 
-void __ntg_vector_init__(ntg_vector* v, size_t data_size, size_t init_cap);
-void __ntg_vector_deinit__(ntg_vector* vector);
+void _ntg_vector_init_(ntg_vector* v, size_t data_size, size_t init_cap);
+void _ntg_vector_deinit_(ntg_vector* vector);
 
 void ntg_vector_append(ntg_vector* vector, const void* data);
 void ntg_vector_insert(ntg_vector* vector, size_t index, const void* data);

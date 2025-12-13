@@ -9,31 +9,33 @@
 struct ntg_scene_data_hh
 {
     const ntg_object* key;
-    struct _ntg_scene_node data;
+    struct ntg_scene_node_protect data;
     UT_hash_handle hh;
 };
 
-static void __ntg_scene_data_hh_init__(struct ntg_scene_data_hh* data_hh,
+static void _ntg_scene_data_hh_init_(struct ntg_scene_data_hh* data_hh,
         const ntg_object* key)
 {
     data_hh->key = key;
-    data_hh->data = (struct _ntg_scene_node) {0};
+    data_hh->data = (struct ntg_scene_node_protect) {0};
     data_hh->data.drawing = ntg_object_drawing_new();
 }
 
-static void __ntg_scene_data_hh_deinit__(struct ntg_scene_data_hh* data_hh)
+static void _ntg_scene_data_hh_deinit_(struct ntg_scene_data_hh* data_hh)
 {
     data_hh->key = NULL;
     ntg_object_drawing_destroy(data_hh->data.drawing);
-    data_hh->data = (struct _ntg_scene_node) {0};
+    data_hh->data = (struct ntg_scene_node_protect) {0};
 }
+
+/* -------------------------------------------------------------------------- */
 
 struct ntg_scene_graph
 {
     struct ntg_scene_data_hh* head;
 };
 
-static struct ntg_scene_data_hh* __ntg_scene_graph_get(
+static struct ntg_scene_data_hh* graph_get(
         ntg_scene_graph* scene_graph,
         const ntg_object* object);
 
@@ -55,7 +57,7 @@ void ntg_scene_graph_destroy(ntg_scene_graph* scene_graph)
 
     HASH_ITER(hh, scene_graph->head, current, tmp) {
         HASH_DEL(scene_graph->head, current);  /* delete; users advances to next */
-        __ntg_scene_data_hh_deinit__(current);
+        _ntg_scene_data_hh_deinit_(current);
         free(current);
     }
 
@@ -66,14 +68,14 @@ void ntg_scene_graph_add(ntg_scene_graph* scene_graph, const ntg_object* object)
 {
     assert(scene_graph != NULL);
 
-    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, object);
+    struct ntg_scene_data_hh* found = graph_get(scene_graph, object);
     assert(found == NULL);
 
     struct ntg_scene_data_hh* new = (struct ntg_scene_data_hh*)malloc(
             sizeof(struct ntg_scene_data_hh));
     assert(new != NULL);
 
-    __ntg_scene_data_hh_init__(new, object);
+    _ntg_scene_data_hh_init_(new, object);
 
     HASH_ADD_PTR(scene_graph->head, key, new);
 }
@@ -82,32 +84,19 @@ void ntg_scene_graph_remove(ntg_scene_graph* scene_graph, const ntg_object* obje
 {
     assert(scene_graph != NULL);
 
-    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, object);
+    struct ntg_scene_data_hh* found = graph_get(scene_graph, object);
     assert(found != NULL);
 
     HASH_DEL(scene_graph->head, found);
-    __ntg_scene_data_hh_deinit__(found);
+    _ntg_scene_data_hh_deinit_(found);
     free(found);
 }
 
-static struct ntg_scene_data_hh* __ntg_scene_graph_get(
+struct ntg_scene_node_protect* ntg_scene_graph_get(
         ntg_scene_graph* scene_graph,
         const ntg_object* object)
 {
-    assert(scene_graph != NULL);
-
-    struct ntg_scene_data_hh* found = NULL;
-
-    HASH_FIND_PTR(scene_graph->head, &object, found);
-
-    return found;
-}
-
-struct _ntg_scene_node* ntg_scene_graph_get(
-        ntg_scene_graph* scene_graph,
-        const ntg_object* object)
-{
-    struct ntg_scene_data_hh* found = __ntg_scene_graph_get(scene_graph, object);
+    struct ntg_scene_data_hh* found = graph_get(scene_graph, object);
 
     return ((found != NULL) ? &(found->data) : NULL);
 }
@@ -124,4 +113,19 @@ void ntg_scene_graph_get_keys(
     HASH_ITER(hh, scene_graph->head, current, tmp) {
         ntg_cobject_vec_append(out_vec, current->key);
     }
+}
+
+/* -------------------------------------------------------------------------- */
+
+static struct ntg_scene_data_hh* graph_get(
+        ntg_scene_graph* scene_graph,
+        const ntg_object* object)
+{
+    assert(scene_graph != NULL);
+
+    struct ntg_scene_data_hh* found = NULL;
+
+    HASH_FIND_PTR(scene_graph->head, &object, found);
+
+    return found;
 }

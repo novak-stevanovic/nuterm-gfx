@@ -23,12 +23,12 @@ struct ntg_stage
     void* _data;
 };
 
-void __ntg_stage_init__(
+void _ntg_stage_init_(
         ntg_stage* stage,
         ntg_scene* scene,
         ntg_stage_compose_fn compose_fn,
         void* data);
-void __ntg_stage_deinit__(ntg_stage* stage);
+void _ntg_stage_deinit_(ntg_stage* stage);
 
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size);
 

@@ -4,17 +4,17 @@
 #include "core/object/shared/ntg_cobject_vec.h"
 #include "shared/_ntg_vector.h"
 
-void __ntg_cobject_vec_init__(ntg_cobject_vec* vec)
+void _ntg_cobject_vec_init_(ntg_cobject_vec* vec)
 {
     assert(vec != NULL);
 
-    __ntg_vector_init__((ntg_vector*)vec, sizeof(const ntg_object*), 5);
+    _ntg_vector_init_((ntg_vector*)vec, sizeof(const ntg_object*), 5);
 }
 
-void __ntg_cobject_vec_deinit__(ntg_cobject_vec* vec)
+void _ntg_cobject_vec_deinit_(ntg_cobject_vec* vec)
 {
     assert(vec != NULL);
-    __ntg_vector_deinit__((ntg_vector*)vec);
+    _ntg_vector_deinit_((ntg_vector*)vec);
 }
 
 ntg_cobject_vec* ntg_cobject_vec_new()
@@ -22,7 +22,7 @@ ntg_cobject_vec* ntg_cobject_vec_new()
     ntg_cobject_vec* new = (ntg_cobject_vec*)malloc(sizeof(ntg_cobject_vec));
     assert(new != NULL);
 
-    __ntg_cobject_vec_init__(new);
+    _ntg_cobject_vec_init_(new);
 
     return new;
 }
@@ -31,7 +31,7 @@ void ntg_cobject_vec_destroy(ntg_cobject_vec* vec)
 {
     assert(vec != NULL);
 
-    __ntg_cobject_vec_deinit__(vec);
+    _ntg_cobject_vec_deinit_(vec);
 
     free(vec);
 }

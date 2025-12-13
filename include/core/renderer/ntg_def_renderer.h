@@ -23,11 +23,11 @@ struct ntg_def_renderer
 };
 
 /* Listenable must raise NTG_EVT_APP_RESIZE for the renderer to work correctly */
-void __ntg_def_renderer_init__(
+void _ntg_def_renderer_init_(
         ntg_def_renderer* renderer,
         ntg_loop* loop,
         void* data);
-void __ntg_def_renderer_deinit__(ntg_def_renderer* renderer);
+void _ntg_def_renderer_deinit_(ntg_def_renderer* renderer);
 
 void __ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,

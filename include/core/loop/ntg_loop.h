@@ -19,7 +19,7 @@ ntg_stage* ntg_loop_ctx_get_stage(ntg_loop_ctx* ctx);
 void ntg_loop_ctx_set_stage(ntg_loop_ctx* ctx, ntg_stage* stage);
 void ntg_loop_ctx_break(ntg_loop_ctx* ctx);
 struct ntg_xy ntg_loop_ctx_get_app_size(ntg_loop_ctx* ctx);
-ntg_taskmaster_channel* ntg_loop_ctx_get_taskmaster(ntg_loop_ctx* ctx);
+ntg_taskmaster_channel ntg_loop_ctx_get_taskmaster(ntg_loop_ctx* ctx);
 void* ntg_loop_ctx_get_data(ntg_loop_ctx* ctx);
 
 typedef void (*ntg_loop_process_event_fn)(
@@ -48,14 +48,14 @@ struct ntg_loop
     ntg_event_dlgt* __delegate;
 };
 
-void __ntg_loop_init__(ntg_loop* loop,
+void _ntg_loop_init_(ntg_loop* loop,
         ntg_loop_process_event_fn process_event_fn,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
         ntg_taskmaster* taskmaster,
         unsigned int framerate,
         void* data);
-void __ntg_loop_deinit__(ntg_loop* loop);
+void _ntg_loop_deinit_(ntg_loop* loop);
 
 void ntg_loop_run(ntg_loop* loop, void* ctx_data);
 

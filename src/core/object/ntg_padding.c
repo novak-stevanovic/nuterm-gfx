@@ -7,7 +7,7 @@
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
 
-void __ntg_padding_init__(
+void _ntg_padding_init_(
         ntg_padding* padding,
         struct ntg_padding_width init_width,
         ntg_object_draw_fn draw_fn,
@@ -17,11 +17,11 @@ void __ntg_padding_init__(
     assert(padding != NULL);
     assert(draw_fn != NULL);
 
-    __ntg_object_init__((ntg_object*)padding,
+    _ntg_object_init_((ntg_object*)padding,
             NTG_OBJECT_PADDING,
-            __ntg_padding_measure_fn,
-            __ntg_padding_constrain_fn,
-            __ntg_padding_arrange_fn,
+            _ntg_padding_measure_fn,
+            _ntg_padding_constrain_fn,
+            _ntg_padding_arrange_fn,
             draw_fn,
             NULL, NULL, NULL,
             deinit_fn,
@@ -32,10 +32,9 @@ void __ntg_padding_init__(
     // ntg_object_set_grow((ntg_object*)padding, ntg_xy(0, 0));
 }
 
-void __ntg_padding_deinit__(ntg_padding* padding)
+void _ntg_padding_deinit_(ntg_padding* padding)
 {
     assert(padding != NULL);
-
 }
 
 void ntg_padding_set_width(ntg_padding* padding, struct ntg_padding_width width)
@@ -52,18 +51,18 @@ struct ntg_padding_width ntg_padding_get_width(const ntg_padding* padding)
     return padding->__width;
 }
 
-void __ntg_padding_deinit_fn(ntg_object* object)
+void _ntg_padding_deinit_fn(ntg_object* object)
 {
     assert(object != NULL);
 
     ntg_padding* padding = (ntg_padding*)object;
 
-    __ntg_object_deinit__(object);
+    _ntg_object_deinit_(object);
 
     padding->__width = (struct ntg_padding_width) {0};
 }
 
-struct ntg_object_measure __ntg_padding_measure_fn(
+struct ntg_object_measure _ntg_padding_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
@@ -102,7 +101,7 @@ struct ntg_object_measure __ntg_padding_measure_fn(
     }
 }
 
-void __ntg_padding_constrain_fn(
+void _ntg_padding_constrain_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t size,
@@ -137,7 +136,7 @@ void __ntg_padding_constrain_fn(
     ntg_object_size_map_set(out->sizes, child, child_size);
 }
 
-void __ntg_padding_arrange_fn(
+void _ntg_padding_arrange_fn(
         const ntg_object* object,
         struct ntg_xy size,
         struct ntg_object_arrange_ctx ctx,
