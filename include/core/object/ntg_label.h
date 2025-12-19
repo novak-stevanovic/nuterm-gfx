@@ -18,8 +18,8 @@ void _ntg_label_init_(
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data);
-void _ntg_label_deinit_(ntg_label* label);
+        void* data,
+        ntg_object_container* container);
 
 void ntg_label_set_text(ntg_label* label, struct ntg_str_view text);
 void ntg_label_set_gfx(ntg_label* label, struct nt_gfx gfx);
@@ -63,6 +63,7 @@ struct ntg_object_measure _ntg_label_measure_fn(
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena);
 
 void _ntg_label_draw_fn(
@@ -70,6 +71,7 @@ void _ntg_label_draw_fn(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* layout_data,
         sarena* arena);
 
 #endif // _NTG_LABEL_H_

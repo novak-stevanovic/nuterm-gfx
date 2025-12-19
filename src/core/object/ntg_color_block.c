@@ -16,13 +16,16 @@ void _ntg_color_block_init_(
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data)
+        void* data,
+        ntg_object_container* container)
 {
     assert(color_block != NULL);
 
     _ntg_object_init_(
             (ntg_object*)color_block,
             NTG_OBJECT_COLOR_BLOCK,
+            NULL,
+            NULL,
             _ntg_color_block_measure_fn,
             NULL,
             NULL,
@@ -31,17 +34,11 @@ void _ntg_color_block_init_(
             on_focus_fn,
             on_unfocus_fn,
             (deinit_fn != NULL) ? deinit_fn : _ntg_color_block_deinit_fn,
-            data);
+            data,
+            container);
 
 
     color_block->__color = color;
-}
-
-void _ntg_color_block_deinit_(ntg_color_block* color_block)
-{
-    assert(color_block != NULL);
-
-    _ntg_color_block_deinit_fn((ntg_object*)color_block);
 }
 
 nt_color ntg_color_block_get_color(const ntg_color_block* color_block)
@@ -64,7 +61,7 @@ void _ntg_color_block_deinit_fn(ntg_object* object)
 
     ntg_color_block* color_block = (ntg_color_block*)object;
 
-    _ntg_object_deinit_(object);
+    _ntg_object_deinit_fn(object);
 
     color_block->__color = NT_COLOR_DEFAULT;
 }
@@ -75,6 +72,7 @@ struct ntg_object_measure _ntg_color_block_measure_fn(
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena)
 {
     return (struct ntg_object_measure) {
@@ -89,6 +87,7 @@ void _ntg_color_block_draw_fn(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* layout_data,
         sarena* arena)
 {
     ntg_color_block* color_block = (ntg_color_block*)object;

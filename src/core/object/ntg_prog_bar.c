@@ -10,19 +10,19 @@
 void _ntg_prog_bar_init_(
         ntg_prog_bar* prog_bar,
         ntg_orientation orientation,
-        ntg_cell complete_cell,
-        ntg_cell uncomplete_cell,
-        ntg_cell threshold_cell,
+        struct ntg_prog_bar_style style,
         ntg_object_process_key_fn process_key_fn,
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data)
+        void* data,
+        ntg_object_container* container)
 {
     assert(prog_bar != NULL);
 
     _ntg_object_init_((ntg_object*)prog_bar,
             NTG_OBJECT_PROG_BAR,
+            NULL, NULL,
             _ntg_prog_bar_measure_fn,
             NULL,
             NULL,
@@ -31,20 +31,12 @@ void _ntg_prog_bar_init_(
             on_focus_fn,
             on_unfocus_fn,
             (deinit_fn != NULL) ? deinit_fn : _ntg_prog_bar_deinit_fn,
-            data);
+            data,
+            container);
 
     prog_bar->__orientation = orientation;
-    prog_bar->__complete_cell = complete_cell;
-    prog_bar->__threshold_cell = threshold_cell;
-    prog_bar->__uncomplete_cell = uncomplete_cell;
+    prog_bar->__style = style;
     prog_bar->__percentage = 0;
-}
-
-void _ntg_prog_bar_deinit_(ntg_prog_bar* prog_bar)
-{
-    assert(prog_bar != NULL);
-
-    _ntg_prog_bar_deinit_fn((ntg_object*)prog_bar);
 }
 
 void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage)
@@ -67,12 +59,12 @@ void _ntg_prog_bar_deinit_fn(ntg_object* object)
 
     ntg_prog_bar* prog_bar = (ntg_prog_bar*)object;
 
-    _ntg_object_deinit_((ntg_object*)prog_bar);
+    _ntg_object_deinit_fn((ntg_object*)prog_bar);
 
     prog_bar->__orientation = NTG_ORIENTATION_H;
-    prog_bar->__complete_cell = ntg_cell_default();
-    prog_bar->__threshold_cell = ntg_cell_default();
-    prog_bar->__uncomplete_cell = ntg_cell_default();
+    prog_bar->__style.complete_cell = ntg_cell_default();
+    prog_bar->__style.threshold_cell = ntg_cell_default();
+    prog_bar->__style.uncomplete_cell = ntg_cell_default();
     prog_bar->__percentage = 0;
 }
 
@@ -82,6 +74,7 @@ struct ntg_object_measure _ntg_prog_bar_measure_fn(
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)object;
@@ -109,6 +102,7 @@ void _ntg_prog_bar_draw_fn(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* layout_data,
         sarena* arena)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)object;
@@ -131,17 +125,17 @@ void _ntg_prog_bar_draw_fn(
             it_xy = ntg_xy_from_oxy(_it_xy);
             it_cell = ntg_object_drawing_at_(out->drawing, it_xy);
             if(complete_count == _size.prim_val)
-                (*it_cell) = prog_bar->__complete_cell;
+                (*it_cell) = prog_bar->__style.complete_cell;
             else if(complete_count == 0)
-                (*it_cell) = prog_bar->__uncomplete_cell;
+                (*it_cell) = prog_bar->__style.uncomplete_cell;
             else
             {
                 if(i < (complete_count - 1))
-                    (*it_cell) = prog_bar->__complete_cell;
+                    (*it_cell) = prog_bar->__style.complete_cell;
                 else if(i == (complete_count - 1))
-                    (*it_cell) = prog_bar->__threshold_cell;
+                    (*it_cell) = prog_bar->__style.threshold_cell;
                 else
-                    (*it_cell) = prog_bar->__uncomplete_cell;
+                    (*it_cell) = prog_bar->__style.uncomplete_cell;
             }
         }
     }

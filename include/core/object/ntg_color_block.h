@@ -16,8 +16,8 @@ void _ntg_color_block_init_(
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data);
-void _ntg_color_block_deinit_(ntg_color_block* color_block);
+        void* data,
+        ntg_object_container* container);
 
 nt_color ntg_color_block_get_color(const ntg_color_block* color_block);
 void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
@@ -40,6 +40,7 @@ struct ntg_object_measure _ntg_color_block_measure_fn(
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena);
 
 void _ntg_color_block_draw_fn(
@@ -47,6 +48,7 @@ void _ntg_color_block_draw_fn(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* layout_data,
         sarena* arena);
 
 #endif // _NTG_COLOR_BLOCK_H_

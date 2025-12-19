@@ -40,6 +40,7 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
 
     double it_grow_factor;
     double it_to_distribute;
+    double it_distribute_cap;
     
     /* Initial distribution */
     bool loop = true;
@@ -52,19 +53,20 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
             it_grow_factor = (1.0 * it_grow) / total_grow;
             if(it_grow_factor == 0) continue;
 
-            /* Make sure the distribution respects `space_pool`. */
-            it_to_distribute = _min2_double(space_left, it_grow_factor);
+            /* Test space_left */
+            if(__is_equal_double(space_left, 0)) break;
+            /* Test caps[i] */
+            if(out_sizes[i] + distributed[i] >= caps[i]) continue;
 
-            /* Make sure the distribution respects `caps[i]`. */
-            if(out_sizes[i] + distributed[i] + it_to_distribute >= caps[i])
-                it_to_distribute = caps[i] - out_sizes[i] - distributed[i];
+            it_to_distribute = _min2_double(space_left, it_grow_factor);
+            it_to_distribute = _min2_double(
+                    it_to_distribute,
+                    caps[i] - out_sizes[i] - distributed[i]);
+            if(__is_equal_double(it_to_distribute, 0)) continue;
 
             distributed[i] += it_to_distribute;
             distributed_total += it_to_distribute;
             space_left = _space_pool - distributed_total;
-
-            if(__is_equal_double(space_left, 0))
-                break;
 
             loop = true;
         }

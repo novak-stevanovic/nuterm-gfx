@@ -33,13 +33,15 @@ void _ntg_box_init_(
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data)
+        void* data,
+        ntg_object_container* container)
 {
     assert(box != NULL);
 
     _ntg_object_init_(
             (ntg_object*)box,
             NTG_OBJECT_BOX,
+            NULL, NULL,
             _ntg_box_measure_fn,
             _ntg_box_constrain_fn,
             __ntg_box_arrange_fn,
@@ -48,20 +50,14 @@ void _ntg_box_init_(
             on_focus_fn,
             on_unfocus_fn,
             (deinit_fn != NULL) ? deinit_fn : _ntg_box_deinit_fn,
-            data);
+            data,
+            container);
 
     init_default_values(box);
 
     box->__orientation = orientation;
     box->__primary_alignment = primary_alignment;
     box->__secondary_alignment = secondary_alignment;
-}
-
-void _ntg_box_deinit_(ntg_box* box)
-{
-    assert(box != NULL);
-
-    _ntg_box_deinit_fn((ntg_object*)box);
 }
 
 ntg_orientation ntg_box_get_orientation(const ntg_box* box)
@@ -169,6 +165,7 @@ struct ntg_object_measure _ntg_box_measure_fn(
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)object;
@@ -182,6 +179,7 @@ void _ntg_box_constrain_fn(
         size_t size,
         struct ntg_object_constrain_ctx ctx,
         struct ntg_object_constrain_out* out,
+        void* layout_data,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)object;
@@ -291,6 +289,7 @@ void __ntg_box_arrange_fn(
         struct ntg_xy size,
         struct ntg_object_arrange_ctx ctx,
         struct ntg_object_arrange_out* out,
+        void* layout_data,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)object;

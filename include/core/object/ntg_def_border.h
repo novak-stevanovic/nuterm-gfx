@@ -1,5 +1,5 @@
-#ifndef _NTG_BORDER_H_
-#define _NTG_BORDER_H_
+#ifndef _NTG_DEF_BORDER_H_
+#define _NTG_DEF_BORDER_H_
 
 #include "core/object/ntg_padding.h"
 
@@ -9,7 +9,7 @@ typedef struct ntg_def_border ntg_def_border;
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_def_border_opts
+struct ntg_def_border_style
 {
     ntg_cell top_left, top, top_right,
              right, bottom_right, bottom,
@@ -20,14 +20,24 @@ struct ntg_def_border
 {
     ntg_padding __base;
 
-    struct ntg_def_border_opts __opts;
+    struct ntg_def_border_style __style;
 };
 
 void _ntg_def_border_init_(
         ntg_def_border* def_border,
-        struct ntg_def_border_opts opts,
-        struct ntg_padding_width init_width);
-void _ntg_def_border_deinit_(ntg_def_border* def_border);
+        struct ntg_def_border_style opts,
+        struct ntg_padding_width init_width,
+        ntg_object_container* container);
+
+/* ------------------------------------------------------ */
+/* PRESETS */
+/* ------------------------------------------------------ */
+
+void _ntg_def_border_init_monochrome_(
+        ntg_def_border* def_border,
+        nt_color color,
+        struct ntg_padding_width init_width,
+        ntg_object_container* container);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
@@ -40,6 +50,7 @@ void _ntg_def_border_draw_fn(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* _layout_data,
         sarena* arena);
 
-#endif // _NTG_BORDER_H_
+#endif // _NTG_DEF_BORDER_H_

@@ -38,7 +38,6 @@ void __ntg_event_sub_vec_deinit__(ntg_event_sub_vec* vec)
 
 ntg_event_sub_vec* ntg_event_sub_vec_new()
 {
-
     ntg_event_sub_vec* new = (ntg_event_sub_vec*)malloc(
             sizeof(ntg_event_sub_vec));
     assert(new != NULL);

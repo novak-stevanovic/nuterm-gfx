@@ -90,3 +90,59 @@ static void* ntg_thread_fn(void* _thread_fn_data)
 
     return NULL;
 }
+
+struct ntg_kickstart_obj ntg_kickstart(
+        ntg_stage* init_stage,
+        unsigned int loop_framerate, /* non-zero */
+        ntg_loop_process_event_fn loop_process_event_fn,
+        void* loop_data, void* renderer_data)
+{
+    assert(loop_framerate > 0);
+    assert(loop_framerate < 1000);
+    // assert(loop_process_key_fn != NULL);
+
+    ntg_loop* loop = (ntg_loop*)malloc(sizeof(ntg_loop));
+    ntg_loop* _loop = (ntg_loop*)loop;
+    assert(loop != NULL);
+
+    ntg_def_renderer* renderer = (ntg_def_renderer*)malloc(sizeof(ntg_def_renderer));
+    ntg_renderer* _renderer = (ntg_renderer*)renderer;
+    assert(renderer != NULL);
+
+    ntg_taskmaster* taskmaster = ntg_taskmaster_new();
+    
+    _ntg_loop_init_(
+            loop,
+            loop_process_event_fn,
+            init_stage,
+            _renderer,
+            taskmaster,
+            loop_framerate,
+            loop_data);
+
+    _ntg_def_renderer_init_(renderer, _loop, renderer_data);
+
+    return (struct ntg_kickstart_obj) {
+        .renderer = renderer,
+        ._renderer = _renderer,
+
+        .taskmaster = taskmaster,
+
+        .loop = loop,
+    };
+}
+
+void ntg_kickstart_end(struct ntg_kickstart_obj* obj)
+{
+    assert(obj != NULL);
+
+    _ntg_loop_deinit_(obj->loop);
+    free(obj->loop);
+
+    _ntg_def_renderer_deinit_(obj->renderer);
+    free(obj->renderer);
+
+    ntg_taskmaster_destroy(obj->taskmaster);
+
+    (*obj) = (struct ntg_kickstart_obj) {0};
+}

@@ -12,13 +12,14 @@
 /* -------------------------------------------------------------------------- */
 
 typedef struct ntg_object ntg_object;
+typedef struct ntg_object_container ntg_object_container;
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_event_dlgt ntg_event_dlgt;
 typedef struct ntg_event_sub ntg_event_sub;
 typedef struct ntg_padding ntg_padding;
-typedef struct ntg_border ntg_border;
+typedef struct ntg_padding ntg_padding;
 typedef struct ntg_object_measure_map ntg_object_measure_map;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_xy_map ntg_object_xy_map;
@@ -42,6 +43,10 @@ struct ntg_object_unfocus_ctx;
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
+typedef void* (*ntg_object_layout_init_fn)(const ntg_object* object);
+typedef void (*ntg_object_layout_deinit_fn)(const ntg_object* object,
+        void* layout_data);
+
 struct ntg_object_measure_ctx
 {
     const ntg_object_measure_map* measures;
@@ -60,6 +65,7 @@ typedef struct ntg_object_measure (*ntg_object_measure_fn)(
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena);
 
 /* ------------------------------------------------------ */
@@ -81,6 +87,7 @@ typedef void (*ntg_object_constrain_fn)(
         size_t size,
         struct ntg_object_constrain_ctx ctx,
         struct ntg_object_constrain_out* out,
+        void* layout_data,
         sarena* arena);
 
 /* ------------------------------------------------------ */
@@ -101,6 +108,7 @@ typedef void (*ntg_object_arrange_fn)(
         struct ntg_xy size,
         struct ntg_object_arrange_ctx ctx,
         struct ntg_object_arrange_out* out,
+        void* layout_data,
         sarena* arena);
 
 /* ------------------------------------------------------ */
@@ -122,6 +130,7 @@ typedef void (*ntg_object_draw_fn)(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* layout_data,
         sarena* arena);
 
 /* ------------------------------------------------------ */
@@ -168,6 +177,8 @@ typedef void (*ntg_object_deinit_fn)(ntg_object* object);
 
 void _ntg_object_init_(ntg_object* object,
         unsigned int type,
+        ntg_object_layout_init_fn layout_init_fn,
+        ntg_object_layout_deinit_fn layout_deinit_fn,
         ntg_object_measure_fn measure_fn,
         ntg_object_constrain_fn constrain_fn,
         ntg_object_arrange_fn arrange_fn,
@@ -176,10 +187,14 @@ void _ntg_object_init_(ntg_object* object,
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data);
+        void* data,
+        ntg_object_container* container);
 void _ntg_object_deinit_(ntg_object* object);
 
-void _ntg_object_vdeinit_(ntg_object* object);
+void _ntg_object_deinit_fn(ntg_object* object);
+
+ntg_object_container* ntg_object_container_new();
+void ntg_object_container_destroy(ntg_object_container* container);
 
 /* ------------------------------------------------------ */
 /* IDENTITY */
@@ -247,8 +262,8 @@ void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow);
 ntg_padding* ntg_object_get_padding(ntg_object* object);
 ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding);
 
-ntg_border* ntg_object_get_border(ntg_object* object);
-ntg_border* ntg_object_set_border(ntg_object* object, ntg_border* border);
+ntg_padding* ntg_object_get_border(ntg_object* object);
+ntg_padding* ntg_object_set_border(ntg_object* object, ntg_padding* border);
 
 ntg_cell ntg_object_get_background(const ntg_object* object);
 void ntg_object_set_background(ntg_object* object, ntg_cell background);
@@ -257,12 +272,16 @@ void ntg_object_set_background(ntg_object* object, ntg_cell background);
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
+void* ntg_object_layout_init(const ntg_object* object);
+void ntg_object_layout_deinit(const ntg_object* object, void* layout_data);
+
 struct ntg_object_measure ntg_object_measure(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena);
 
 void ntg_object_constrain(
@@ -271,6 +290,7 @@ void ntg_object_constrain(
         size_t size,
         struct ntg_object_constrain_ctx ctx,
         struct ntg_object_constrain_out* out,
+        void* layout_data,
         sarena* arena);
 
 void ntg_object_arrange(
@@ -278,6 +298,7 @@ void ntg_object_arrange(
         struct ntg_xy size,
         struct ntg_object_arrange_ctx ctx,
         struct ntg_object_arrange_out* out,
+        void* layout_data,
         sarena* arena);
 
 void ntg_object_draw(
@@ -285,6 +306,7 @@ void ntg_object_draw(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* layout_data,
         sarena* arena);
 
 /* ------------------------------------------------------ */
@@ -328,6 +350,8 @@ struct ntg_object
 
     struct
     {
+        ntg_object_layout_init_fn __layout_init_fn;
+        ntg_object_layout_deinit_fn __layout_deinit_fn;
         ntg_object_measure_fn __measure_fn;
         ntg_object_constrain_fn __constrain_fn;
         ntg_object_arrange_fn __arrange_fn;

@@ -133,12 +133,14 @@ void _ntg_label_init_(
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data)
+        void* data,
+        ntg_object_container* container)
 {
     assert(label != NULL);
 
     _ntg_object_init_((ntg_object*)label,
             NTG_OBJECT_LABEL,
+            NULL, NULL,
             _ntg_label_measure_fn,
             NULL,
             NULL,
@@ -147,18 +149,12 @@ void _ntg_label_init_(
             on_focus_fn,
             on_unfocus_fn,
             (deinit_fn != NULL) ? deinit_fn : _ntg_label_deinit_fn,
-            data);
+            data,
+            container);
 
     init_default_values(label);
 
     label->__orientation = orientation;
-}
-
-void _ntg_label_deinit_(ntg_label* label)
-{
-    assert(label != NULL);
-
-    _ntg_label_deinit_fn((ntg_object*)label);
 }
 
 void ntg_label_set_text(ntg_label* label, struct ntg_str_view text)
@@ -296,7 +292,7 @@ void _ntg_label_deinit_fn(ntg_object* object)
 
     ntg_label* label = (ntg_label*)object;
 
-    _ntg_object_deinit_((ntg_object*)label);
+    _ntg_object_deinit_fn((ntg_object*)label);
 
     if(label->__text.data != NULL)
         free(label->__text.data);
@@ -310,6 +306,7 @@ struct ntg_object_measure _ntg_label_measure_fn(
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena)
 {
     assert(object != NULL);
@@ -375,6 +372,7 @@ void _ntg_label_draw_fn(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* layout_data,
         sarena* arena)
 {
     assert(object != NULL);

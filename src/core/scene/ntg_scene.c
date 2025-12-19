@@ -140,11 +140,15 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
     assert(scene != NULL);
 
+    ntg_log_log("Layout begin");
+
     scene->_size = size;
 
     scan_scene(scene);
 
     update_focused(scene);
+
+    ntg_log_log("Layout fn");
 
     scene->__layout_fn(scene, size);
 }
@@ -254,6 +258,13 @@ static void scan_scene(ntg_scene* scene)
         // Drawable removed from the scene
         if(!(ntg_object_vec_contains(&current, it_object)))
         {
+            struct ntg_scene_node_protect* node = ntg_scene_graph_get(
+                    scene->_graph, it_object);
+            assert(node != NULL);
+
+            ntg_object_layout_deinit(it_object, node->object_layout_data);
+            node->object_layout_data = NULL;
+
             ntg_scene_graph_remove(scene->_graph, it_object);
 
             if(scene->__on_unregister_fn != NULL)
@@ -269,6 +280,12 @@ static void scan_scene(ntg_scene* scene)
         if(!(ntg_cobject_vec_contains(&alr_registered, it_object)))
         {
             ntg_scene_graph_add(scene->_graph, it_object);
+
+            struct ntg_scene_node_protect* node = ntg_scene_graph_get(
+                    scene->_graph, it_object);
+            assert(node != NULL);
+
+            node->object_layout_data = ntg_object_layout_init(it_object);
 
             if(scene->__on_register_fn != NULL)
                 scene->__on_register_fn(scene, it_object);

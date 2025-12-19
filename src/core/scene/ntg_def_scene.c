@@ -8,6 +8,7 @@
 #include "core/object/shared/ntg_object_size_map.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "core/scene/_ntg_scene_graph.h"
+#include "shared/ntg_log.h"
 #include "shared/sarena.h"
 
 static ntg_object_measure_map* get_object_measure_map(ntg_object* object,
@@ -85,23 +86,29 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
     root_data->size = size;
     root_data->position = ntg_xy(0, 0);
 
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP,
-            measure1_fn, &data);
+    ntg_log_log("Measure 1");
 
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-            constrain1_fn, &data);
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP, measure1_fn, &data);
 
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP,
-            measure2_fn, &data);
+    ntg_log_log("Constrain 1");
 
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-            constrain2_fn, &data);
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, constrain1_fn, &data);
 
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-            arrange_fn, &data);
+    ntg_log_log("Measure 2");
 
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
-            draw_fn, &data);
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP, measure2_fn, &data);
+
+    ntg_log_log("Constrain 2");
+
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, constrain2_fn, &data);
+
+    ntg_log_log("Arrange");
+
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, arrange_fn, &data);
+
+    ntg_log_log("Draw");
+
+    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, draw_fn, &data);
 
     sarena_rewind(scene->__layout_arena);
 }
@@ -251,7 +258,8 @@ static void measure1_fn(ntg_object* object, void* _layout_data)
 
     struct ntg_object_measure result = ntg_object_measure(
             object, NTG_ORIENTATION_H,
-            NTG_SIZE_MAX, ctx, &out, scene->__layout_arena);
+            NTG_SIZE_MAX, ctx, &out, node->object_layout_data,
+            scene->__layout_arena);
 
     node->min_size.x = result.min_size;
     node->natural_size.x = result.natural_size;
@@ -281,7 +289,9 @@ static void constrain1_fn(ntg_object* object, void* _layout_data)
     ntg_object_constrain(object,
             NTG_ORIENTATION_H,
             node->size.x, ctx,
-            &out, scene->__layout_arena);
+            &out,
+            node->object_layout_data,
+            scene->__layout_arena);
 
     size_t i;
     const ntg_object* it_child;
@@ -314,7 +324,9 @@ static void measure2_fn(ntg_object* object, void* _layout_data)
 
     struct ntg_object_measure result = ntg_object_measure(
             object, NTG_ORIENTATION_V,
-            node->size.x, ctx, &out, scene->__layout_arena);
+            node->size.x, ctx, &out,
+            node->object_layout_data,
+            scene->__layout_arena);
 
     node->min_size.y = result.min_size;
     node->natural_size.y = result.natural_size;
@@ -344,7 +356,9 @@ static void constrain2_fn(ntg_object* object, void* _layout_data)
     ntg_object_constrain(object,
             NTG_ORIENTATION_V,
             node->size.y, ctx,
-            &out, scene->__layout_arena);
+            &out,
+            node->object_layout_data,
+            scene->__layout_arena);
 
     size_t i;
     const ntg_object* it_child;
@@ -386,7 +400,9 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     struct ntg_object_arrange_ctx ctx = { .sizes = sizes };
     struct ntg_object_arrange_out out = { .pos = _positions };
 
-    ntg_object_arrange(object, node->size, ctx, &out, scene->__layout_arena);
+    ntg_object_arrange(object, node->size, ctx, &out,
+            node->object_layout_data,
+            scene->__layout_arena);
 
     for(i = 0; i < child_count; i++)
     {
@@ -415,7 +431,8 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     struct ntg_object_draw_ctx ctx = { .sizes = sizes, .pos = positions };
     struct ntg_object_draw_out out = { .drawing = node->drawing };
 
-    ntg_object_draw(object, node->size, ctx, &out, scene->__layout_arena);
+    ntg_object_draw(object, node->size, ctx, &out,
+            node->object_layout_data, scene->__layout_arena);
 }
 
 // static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,

@@ -14,6 +14,11 @@
 #include "nt_event.h"
 #include "shared/_ntg_shared.h"
 
+struct ntg_object_container
+{
+    ntg_object_vec vec;
+};
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -29,6 +34,8 @@ static unsigned int __id_generator = 0;
 
 void _ntg_object_init_(ntg_object* object,
         unsigned int type,
+        ntg_object_layout_init_fn layout_init_fn,
+        ntg_object_layout_deinit_fn layout_deinit_fn,
         ntg_object_measure_fn measure_fn,
         ntg_object_constrain_fn constrain_fn,
         ntg_object_arrange_fn arrange_fn,
@@ -37,7 +44,8 @@ void _ntg_object_init_(ntg_object* object,
         ntg_object_focus_fn on_focus_fn,
         ntg_object_unfocus_fn on_unfocus_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data)
+        void* data,
+        ntg_object_container* container)
 {
     assert(object != NULL);
 
@@ -50,6 +58,8 @@ void _ntg_object_init_(ntg_object* object,
 
     object->__background = ntg_cell_default();
 
+    object->__layout_init_fn = layout_init_fn;
+    object->__layout_deinit_fn = layout_deinit_fn;
     object->__measure_fn = measure_fn;
     object->__constrain_fn = constrain_fn;
     object->__arrange_fn = arrange_fn;
@@ -60,15 +70,26 @@ void _ntg_object_init_(ntg_object* object,
         on_focus_fn : __focus_fn_def;
     object->__on_unfocus_fn = (on_unfocus_fn != NULL) ?
         on_unfocus_fn : __unfocus_fn_def;
-    object->__deinit_fn = (deinit_fn != NULL) ? deinit_fn : _ntg_object_deinit_;
+    object->__deinit_fn = (deinit_fn != NULL) ?
+        deinit_fn : _ntg_object_deinit_fn;
 
     object->_delegate = ntg_event_dlgt_new();
     object->_data = data;
+
+    if(container != NULL)
+        ntg_object_vec_append(&container->vec, object);
 }
 
-void _ntg_object_deinit_(ntg_object* object)
+void _ntg_object_deinit_fn(ntg_object* object)
 {
     assert(object != NULL);
+
+    // ntg_object* it_object = object->__parent;
+    // while((it_object != NULL) && (ntg_object_is_decorator(it_object)))
+    // {
+    //     _ntg_object_vdeinit_(it_object);
+    //     it_object = it_object->__parent;
+    // }
 
     ntg_object_vec_destroy(object->__children);
     ntg_event_dlgt_destroy(object->_delegate);
@@ -76,11 +97,35 @@ void _ntg_object_deinit_(ntg_object* object)
     __init_default_values(object);
 }
 
-void _ntg_object_vdeinit_(ntg_object* object)
+void _ntg_object_deinit_(ntg_object* object)
 {
     assert(object != NULL);
 
     object->__deinit_fn(object);
+}
+
+ntg_object_container* ntg_object_container_new()
+{
+    ntg_object_container* new = (ntg_object_container*)malloc(
+            sizeof(ntg_object_container));
+    assert(new != NULL);
+
+    _ntg_object_vec_init_(&new->vec);
+
+    return new;
+}
+
+void ntg_object_container_destroy(ntg_object_container* container)
+{
+    assert(container != NULL);
+
+    size_t i;
+    for(i = 0; i < container->vec._count; i++)
+    {
+        _ntg_object_deinit_(container->vec._data[i]);
+    }
+
+    free(container);
 }
 
 static void __init_default_values(ntg_object* object)
@@ -309,6 +354,93 @@ void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow)
 /* PADDING & BORDER */
 /* ---------------------------------------------------------------- */
 
+/* Assumes that widget exists in the object group */
+static void separate_object_group(ntg_object* group_root, ntg_object** border,
+        ntg_object** padding, ntg_object** widget)
+{
+    assert(group_root != NULL);
+    assert(border != NULL);
+    assert(padding != NULL);
+    assert(widget != NULL);
+
+    ntg_object* _border;
+    ntg_object* _padding;
+    ntg_object* _widget;
+
+    if(group_root->__type == NTG_OBJECT_BORDER)
+    {
+        _border = group_root;
+
+        if(!ntg_object_is_widget(group_root->__children->_data[0])) // padding
+        {
+            _padding = _border->__children->_data[0];
+            _widget = _padding->__children->_data[0];
+
+            _ntg_object_rm_child(_border, _padding);
+            _ntg_object_rm_child(_padding, _widget);
+        }
+        else // widget
+        {
+            _padding = NULL;
+            _widget = _border->__children->_data[0];
+
+            _ntg_object_rm_child(_border, _widget);
+        }
+    }
+    else if(group_root->__type == NTG_OBJECT_PADDING)
+    {
+        _border = NULL;
+        _padding = group_root;
+        _widget = _padding->__children->_data[0];
+
+        _ntg_object_rm_child(_padding, _widget);
+    }
+    else // group_root->__type is widget
+    {
+        _border = NULL;
+        _padding = NULL;
+        _widget = group_root;
+    }
+
+    (*border) = _border;
+    (*padding) = _padding;
+    (*widget) = _widget;
+}
+
+// returns group root
+static ntg_object* join_object_group(ntg_object* border,
+        ntg_object* padding, ntg_object* widget)
+{
+    assert(widget != NULL);
+
+    if(border != NULL)
+    {
+        if(padding != NULL)
+        {
+            _ntg_object_add_child(border, padding);
+            _ntg_object_add_child(padding, widget);
+            return border;
+        }
+        else // border == NULL
+        {
+            _ntg_object_add_child(border, widget);
+            return border;
+        }
+    }
+    else
+    {
+        if(padding != NULL)
+        {
+            _ntg_object_add_child(padding, widget);
+            return padding;
+        }
+        else // padding == NULL
+        {
+            return widget;
+        }
+    }
+}
+
 ntg_padding* ntg_object_get_padding(ntg_object* object)
 {
     assert(object != NULL);
@@ -323,96 +455,35 @@ ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding)
 {
     assert(object != NULL);
 
-    ntg_object* _padding = (ntg_object*)padding;
-    ntg_object* old_padding = (ntg_object*)ntg_object_get_padding(object);
-    ntg_object* border = (ntg_object*)ntg_object_get_border(object);
-    ntg_object* wparent = ntg_object_get_parent(object, NTG_OBJECT_PARENT_EXCL_DECOR);
-    ntg_object* old_padding_parent = (border != NULL) ? border : wparent;
+    ntg_object* root = ntg_object_get_group_root(object);
 
-    if(old_padding == _padding) return NULL;
+    ntg_object *_border, *_padding, *_widget;
+    separate_object_group(root, &_border, &_padding, &_widget);
+    join_object_group(_border, (ntg_object*)padding, _widget);
 
-    if(_padding != NULL)
-        assert((_padding->__children->_count == 0) && (_padding->__parent == NULL));
-
-    /* Remove old padding from the tree */
-    if(old_padding != NULL)
-    {
-        if(old_padding_parent != NULL)
-            _ntg_object_rm_child(old_padding_parent, old_padding);
-
-        _ntg_object_rm_child(old_padding, object);
-    }
-
-    /* Connect padding below */
-    if(_padding != NULL)
-    {
-        _ntg_object_add_child(_padding, object);
-    }
-
-    /* Connect old_padding_parent below */
-    if(old_padding_parent != NULL)
-    {
-        ntg_object* old_padding_parent_new_child = 
-            (border != NULL) ? border : _padding;
-
-        _ntg_object_add_child(old_padding_parent, old_padding_parent_new_child);
-    }
-
-    return ((ntg_padding*)old_padding);
+    return (ntg_padding*)_padding;
 }
 
-ntg_border* ntg_object_get_border(ntg_object* object)
+ntg_padding* ntg_object_get_border(ntg_object* object)
 {
     assert(object != NULL);
 
     ntg_object* root = ntg_object_get_group_root(object);
     if(root->__type != NTG_OBJECT_BORDER) return NULL;
-    else return (ntg_border*)root;
+    else return (ntg_padding*)root;
 }
 
-ntg_border* ntg_object_set_border(ntg_object* object, ntg_border* border)
+ntg_padding* ntg_object_set_border(ntg_object* object, ntg_padding* border)
 {
     assert(object != NULL);
 
-    ntg_object* _border = (ntg_object*)border;
-    ntg_object* old_border = (ntg_object*)ntg_object_get_border(object);
-    ntg_object* wparent = ntg_object_get_parent(object, NTG_OBJECT_PARENT_EXCL_DECOR);
-    ntg_object* padding = (ntg_object*)ntg_object_get_padding(object);
+    ntg_object* root = ntg_object_get_group_root(object);
 
-    if(old_border == _border) return NULL;
+    ntg_object *_border, *_padding, *_widget;
+    separate_object_group(root, &_border, &_padding, &_widget);
+    join_object_group((ntg_object*)border, _padding, _widget);
 
-    if(_border != NULL)
-        assert((_border->__children->_count == 0) && (_border->__parent == NULL));
-
-    /* Remove old_border from the tree */
-    if(old_border != NULL)
-    {
-        if(wparent != NULL)
-            _ntg_object_rm_child(wparent, old_border);
-
-        if(padding != NULL)
-            _ntg_object_rm_child(old_border, padding);
-    }
-
-    /* Connect new border below */
-    if(border != NULL)
-    {
-        ntg_object* border_new_child = (padding != NULL) ? padding : object;
-        _ntg_object_add_child(_border, border_new_child);
-    }
-
-    /* Connect wparent with new border */
-    if(wparent != NULL)
-    {
-        ntg_object* wparent_new_child = 
-            (border != NULL) ?
-            _border :
-            ((padding != NULL) ? padding : object);
-
-        _ntg_object_add_child(wparent, wparent_new_child);
-    }
-
-    return ((ntg_border*)old_border);
+    return (ntg_padding*)_border;
 }
 
 ntg_cell ntg_object_get_background(const ntg_object* object)
@@ -433,25 +504,51 @@ void ntg_object_set_background(ntg_object* object, ntg_cell background)
 /* LAYOUT */
 /* ---------------------------------------------------------------- */
 
+void* ntg_object_layout_init(const ntg_object* object)
+{
+    assert(object != NULL);
+
+    return (object->__layout_init_fn != NULL) ?
+        object->__layout_init_fn(object) : NULL;
+}
+
+void ntg_object_layout_deinit(const ntg_object* object, void* layout_data)
+{
+    assert(object != NULL);
+
+    if(object->__layout_deinit_fn != NULL)
+        object->__layout_deinit_fn(object, layout_data);
+}
+
 struct ntg_object_measure ntg_object_measure(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
+        void* layout_data,
         sarena* arena)
 {
     assert(object != NULL);
-    assert(for_size != 0);
     assert(out != NULL);
     assert(arena != NULL);
-    // if(for_size == 0) return (struct ntg_measure_out) {0};
+
+    size_t user_grow = (orientation == NTG_ORIENTATION_H) ?
+        object->__grow.x :
+        object->__grow.y;
+
+    if(for_size == 0) return (struct ntg_object_measure) {
+        .min_size = 0,
+        .natural_size = 0,
+        .max_size = 0,
+        .grow = user_grow
+    };
 
     struct ntg_object_measure result;
     if(object->__measure_fn != NULL)
     {
         result = object->__measure_fn(object, orientation, for_size,
-                ctx, out, arena);
+                ctx, out, layout_data, arena);
     }
     else result = (struct ntg_object_measure) {0};
 
@@ -461,9 +558,6 @@ struct ntg_object_measure ntg_object_measure(
     size_t user_max_size = (orientation == NTG_ORIENTATION_H) ?
         object->__max_size.x :
         object->__max_size.y;
-    size_t user_grow = (orientation == NTG_ORIENTATION_H) ?
-        object->__grow.x :
-        object->__grow.y;
 
     user_min_size = _min2_size(user_min_size, user_max_size);
 
@@ -491,10 +585,10 @@ void ntg_object_constrain(
         size_t size,
         struct ntg_object_constrain_ctx ctx,
         struct ntg_object_constrain_out* out,
+        void* layout_data,
         sarena* arena)
 {
     assert(object != NULL);
-    assert(size != 0);
     assert(out != NULL);
     assert(arena != NULL);
 
@@ -510,7 +604,8 @@ void ntg_object_constrain(
     }
     else
     {
-        object->__constrain_fn(object, orientation, size, ctx, out, arena);
+        object->__constrain_fn(object, orientation, size,
+                ctx, out, layout_data, arena);
     }
 }
 
@@ -519,6 +614,7 @@ void ntg_object_arrange(
         struct ntg_xy size,
         struct ntg_object_arrange_ctx ctx,
         struct ntg_object_arrange_out* out,
+        void* layout_data,
         sarena* arena)
 {
     assert(object != NULL);
@@ -536,7 +632,7 @@ void ntg_object_arrange(
     }
     else
     {
-        object->__arrange_fn(object, size, ctx, out, arena);
+        object->__arrange_fn(object, size, ctx, out, layout_data, arena);
     }
 }
 
@@ -545,6 +641,7 @@ void ntg_object_draw(
         struct ntg_xy size,
         struct ntg_object_draw_ctx ctx,
         struct ntg_object_draw_out* out,
+        void* layout_data,
         sarena* arena)
 {
     assert(object != NULL);
@@ -564,7 +661,7 @@ void ntg_object_draw(
     }
 
     if(object->__draw_fn != NULL)
-        object->__draw_fn(object, size, ctx, out, arena);
+        object->__draw_fn(object, size, ctx, out, layout_data, arena);
 }
 
 /* ---------------------------------------------------------------- */

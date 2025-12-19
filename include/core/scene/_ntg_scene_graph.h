@@ -16,6 +16,8 @@ struct ntg_scene_node_protect
     struct ntg_xy size;
     struct ntg_xy position;
     ntg_object_drawing* drawing;
+    bool layout_init;
+    void* object_layout_data;
     void* data;
 };
 
