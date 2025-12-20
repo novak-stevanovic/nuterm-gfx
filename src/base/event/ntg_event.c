@@ -7,14 +7,15 @@
 
 static unsigned int __id_gen = 0;
 
-struct ntg_listenable
-{
-    ntg_event_sub_vec* __subs;
-};
-
 struct ntg_event_dlgt
 {
     ntg_event_sub_vec* __subs;
+    bool __init;
+};
+
+struct ntg_listenable
+{
+    ntg_event_dlgt dlgt;
 };
 
 void ntg_listenable_listen(ntg_listenable* listenable,
@@ -26,7 +27,7 @@ void ntg_listenable_listen(ntg_listenable* listenable,
 
     if(!ntg_listenable_has_sub(listenable, subscriber, handler))
     {
-        ntg_event_sub_vec_append(listenable->__subs, subscriber, handler);
+        ntg_event_sub_vec_append(listenable->dlgt.__subs, subscriber, handler);
     }
 }
 
@@ -37,7 +38,7 @@ void ntg_listenable_stop_listening(ntg_listenable* listenable,
 
     if(ntg_listenable_has_sub(listenable, subscriber, handler))
     {
-        ntg_event_sub_vec_remove(listenable->__subs, subscriber, handler);
+        ntg_event_sub_vec_remove(listenable->dlgt.__subs, subscriber, handler);
     }
 }
 
@@ -46,7 +47,7 @@ bool ntg_listenable_is_listening(ntg_listenable* listenable, void* subscriber)
     assert(listenable != NULL);
     assert(subscriber != NULL);
 
-    return ntg_event_sub_vec_find(listenable->__subs, subscriber);
+    return ntg_event_sub_vec_find(listenable->dlgt.__subs, subscriber);
 }
 
 bool ntg_listenable_has_sub(ntg_listenable* listenable,
@@ -55,7 +56,7 @@ bool ntg_listenable_has_sub(ntg_listenable* listenable,
     assert(listenable != NULL);
     assert(subscriber != NULL);
 
-    return ntg_event_sub_vec_contains_(listenable->__subs, subscriber, handler);
+    return ntg_event_sub_vec_contains_(listenable->dlgt.__subs, subscriber, handler);
 }
 
 ntg_event_dlgt* ntg_event_dlgt_new()
@@ -64,6 +65,7 @@ ntg_event_dlgt* ntg_event_dlgt_new()
     assert(new != NULL);
 
     new->__subs = ntg_event_sub_vec_new();
+    new->__init = true;
     
     return new;
 }

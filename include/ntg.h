@@ -4,7 +4,9 @@
 #include "nt_event.h"
 #include "nt_gfx.h"
 
-// TODO: ntg_event_dlgt: unsubscribe then destroy | *
+// TODO: ntg_event_dlgt: unsubscribe then destroy? | *
+// TODO: ntg_object: refactor init fn | *
+// TODO: ntg_object_container: rethink - object register? | *
 // TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? | *
 // TODO: ntg_object: ntg_object_get_children() returns const ntg_object_vec* | *
 // TODO: global: add ntg_allocator for faster object initialization? | *
