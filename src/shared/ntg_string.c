@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "shared/ntg_string.h"
+#include "shared/sarena.h"
 
 size_t _ntg_str_count(const char* str, size_t len, const char* sep, size_t data_size)
 {
@@ -76,32 +77,35 @@ void _ntg_str_split(const char* str, size_t len, const char* sep, size_t sep_cou
     out_lens[sep_count] = i - it_str_start;
 }
 
-size_t ntg_str_count(struct ntg_str_view str, char sep)
+size_t ntg_str_count(struct ntg_strv str, char sep)
 {
     return _ntg_str_count(str.data, str.len, &sep, 1);
 }
 
-size_t ntg_str_utf32_count(struct ntg_str_utf32_view str, uint32_t sep)
+size_t ntg_str_utf32_count(struct ntg_strv_utf32 str, uint32_t sep)
 {
     return _ntg_str_count((char*)str.data, str.count, (char*)(&sep),
             sizeof(uint32_t));
 }
 
-struct ntg_str_split_result ntg_str_split(struct ntg_str_view str, char sep)
+struct ntg_str_split_out ntg_str_split(struct ntg_strv str,
+        char sep, sarena* arena)
 {
+    assert(arena != NULL);
+
     size_t sep_count = ntg_str_count(str, sep);
     size_t str_count = sep_count + 1;
 
-    const char** _strs = (const char**)malloc(sizeof(char*) * str_count);
+    const char** _strs = (const char**)sarena_malloc(arena, (sizeof(char*) * str_count));
     assert(_strs != NULL);
-    size_t* _lens = (size_t*)malloc(sizeof(size_t) * str_count);
+    size_t* _lens = (size_t*)sarena_malloc(arena, sizeof(size_t) * str_count);
     assert(_lens != NULL);
 
     _ntg_str_split(str.data, str.len, &sep, sep_count, _strs, _lens, sizeof(char));
 
-    struct ntg_str_split_result result;
-    result.views = (struct ntg_str_view*)malloc(sizeof(struct ntg_str_view) *
-            str_count);
+    struct ntg_str_split_out result;
+    result.views = (struct ntg_strv*)sarena_malloc(arena,
+            sizeof(struct ntg_strv) * str_count);
     result.count = str_count;
     assert(result.views != NULL);
 
@@ -115,23 +119,25 @@ struct ntg_str_split_result ntg_str_split(struct ntg_str_view str, char sep)
     return result;
 }
 
-struct ntg_str_utf32_split_result ntg_str_utf32_split(struct ntg_str_utf32_view str,
-        uint32_t sep)
+struct ntg_str_utf32_split_out ntg_str_utf32_split(struct ntg_strv_utf32 str,
+        uint32_t sep, sarena* arena)
 {
+    assert(arena != NULL);
+
     size_t sep_count = ntg_str_utf32_count(str, sep);
     size_t str_count = sep_count + 1;
 
-    const uint32_t** _strs = (const uint32_t**)malloc(sizeof(uint32_t*) * str_count);
+    const uint32_t** _strs = (const uint32_t**)sarena_malloc(arena, sizeof(uint32_t*) * str_count);
     assert(_strs != NULL);
-    size_t* _counts = (size_t*)malloc(sizeof(size_t) * str_count);
+    size_t* _counts = (size_t*)sarena_malloc(arena, sizeof(size_t) * str_count);
     assert(_counts != NULL);
 
     _ntg_str_split((const char*)str.data, str.count, (char*)(&sep), sep_count,
             (const char**)_strs, _counts, sizeof(uint32_t));
 
-    struct ntg_str_utf32_split_result result;
-    result.views = (struct ntg_str_utf32_view*)malloc(
-            sizeof(struct ntg_str_utf32_view) * str_count);
+    struct ntg_str_utf32_split_out result;
+    result.views = (struct ntg_strv_utf32*)sarena_malloc(arena,
+            sizeof(struct ntg_strv_utf32) * str_count);
     result.count = str_count;
     assert(result.views != NULL);
 

@@ -8,8 +8,8 @@ typedef struct ntg_rcell_vgrid ntg_rcell_vgrid;
 typedef struct nt_charbuff nt_charbuff;
 typedef struct ntg_loop ntg_loop;
 
-/* Double-buffered app renderer that listens to ntg_app for resizes. When
- * a resize happens, the next render will not be optimized. */
+/* Double-buffered app renderer that listens to ntg_loop for resizes. When
+ * a resize happens, the next render will be a full render. */
 struct ntg_def_renderer
 {
     ntg_renderer __base;
@@ -22,7 +22,6 @@ struct ntg_def_renderer
     bool __resize;
 };
 
-/* Listenable must raise NTG_EVT_APP_RESIZE for the renderer to work correctly */
 void _ntg_def_renderer_init_(
         ntg_def_renderer* renderer,
         ntg_loop* loop,

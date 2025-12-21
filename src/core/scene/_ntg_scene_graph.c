@@ -1,9 +1,9 @@
 #include <assert.h>
 
 #include "core/scene/_ntg_scene_graph.h"
-#include "core/object/shared/ntg_cobject_vec.h"
 #include "core/object/shared/ntg_object_drawing.h"
-// #include "core/scene/shared/ntg_cobject_vec.h"
+// #include "core/scene/shared/ntg_const_object_vec.h"
+#include "core/object/shared/ntg_object_vec.h"
 #include "shared/_uthash.h"
 
 struct ntg_scene_data_hh
@@ -103,7 +103,7 @@ struct ntg_scene_node_protect* ntg_scene_graph_get(
 
 void ntg_scene_graph_get_keys(
         const ntg_scene_graph* scene_graph,
-        ntg_cobject_vec* out_vec)
+        ntg_const_object_vec* out_vec)
 {
     assert(scene_graph != NULL);
     assert(out_vec != NULL);
@@ -111,7 +111,7 @@ void ntg_scene_graph_get_keys(
     struct ntg_scene_data_hh *current, *tmp;
 
     HASH_ITER(hh, scene_graph->head, current, tmp) {
-        ntg_cobject_vec_append(out_vec, current->key);
+        ntg_const_object_vec_append(out_vec, current->key);
     }
 }
 

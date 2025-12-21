@@ -136,11 +136,11 @@ void ntg_kickstart_end(struct ntg_kickstart_obj* obj)
 {
     assert(obj != NULL);
 
-    _ntg_loop_deinit_(obj->loop);
-    free(obj->loop);
-
     _ntg_def_renderer_deinit_(obj->renderer);
     free(obj->renderer);
+
+    _ntg_loop_deinit_(obj->loop);
+    free(obj->loop);
 
     ntg_taskmaster_destroy(obj->taskmaster);
 

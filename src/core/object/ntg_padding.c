@@ -36,15 +36,21 @@ void _ntg_padding_init_(
     unsigned int type = (padding_type == NTG_PADDING_PADDING) ?
         NTG_OBJECT_PADDING : NTG_OBJECT_BORDER;
 
+    struct ntg_object_layout_ops layout_ops = {
+        .layout_init_fn = _ntg_padding_layout_init_fn,
+        .layout_deinit_fn = _ntg_padding_layout_deinit_fn,
+        .measure_fn = _ntg_padding_measure_fn,
+        .constrain_fn = _ntg_padding_constrain_fn,
+        .arrange_fn = _ntg_padding_arrange_fn,
+        .draw_fn = draw_fn
+    };
+
+    struct ntg_object_event_ops event_ops = {0};
+
     _ntg_object_init_((ntg_object*)padding,
             type,
-            _ntg_padding_layout_init_fn,
-            _ntg_padding_layout_deinit_fn,
-            _ntg_padding_measure_fn,
-            _ntg_padding_constrain_fn,
-            _ntg_padding_arrange_fn,
-            draw_fn,
-            NULL, NULL, NULL,
+            layout_ops,
+            event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_padding_deinit_fn,
             data,
             container);
@@ -105,7 +111,7 @@ struct ntg_object_measure _ntg_padding_measure_fn(
         sarena* arena)
 {
     const ntg_padding* padding = (ntg_padding*)object;
-    const ntg_object* child = ntg_object_get_children(object)->_data[0];
+    const ntg_object* child = ntg_object_get_children(object).data[0];
     struct ntg_object_measure child_data = ntg_object_measure_map_get(
             ctx.measures, child);
 
@@ -145,7 +151,7 @@ void _ntg_padding_constrain_fn(
         sarena* arena)
 {
     const ntg_padding* padding = (ntg_padding*)object;
-    const ntg_object* child = ntg_object_get_children(object)->_data[0];
+    const ntg_object* child = ntg_object_get_children(object).data[0];
     struct ntg_object_measure child_data = ntg_object_measure_map_get(
             ctx.measures, child);
     struct ntg_padding_ldata* layout_data = (struct ntg_padding_ldata*)_layout_data;
@@ -192,7 +198,7 @@ void _ntg_padding_arrange_fn(
         sarena* arena)
 {
     // const ntg_padding* padding = (ntg_padding*)object;
-    const ntg_object* child = ntg_object_get_children(object)->_data[0];
+    const ntg_object* child = ntg_object_get_children(object).data[0];
     // struct ntg_xy child_size = ntg_object_xy_map_get(ctx.sizes, child);
     struct ntg_padding_ldata* layout_data = (struct ntg_padding_ldata*)_layout_data;
     struct ntg_xy offset = ntg_xy(

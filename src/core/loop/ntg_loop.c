@@ -15,13 +15,13 @@ struct ntg_loop_ctx
     ntg_stage *stage, *pending_stage;
     bool loop;
     struct ntg_xy app_size;
-    ntg_taskmaster_channel taskmaster;
+    ntg_taskmaster* taskmaster;
     void* data;
 };
 
 void _ntg_loop_ctx_init_(ntg_loop_ctx* ctx,
         ntg_stage* init_stage, struct ntg_xy app_size,
-        ntg_taskmaster_channel taskmaster, void* data);
+        ntg_taskmaster* taskmaster, void* data);
 static void _ntg_loop_ctx_deinit_(ntg_loop_ctx* ctx);
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +54,7 @@ struct ntg_xy ntg_loop_ctx_get_app_size(ntg_loop_ctx* ctx)
     return ctx->app_size;
 }
 
-ntg_taskmaster_channel ntg_loop_ctx_get_taskmaster(ntg_loop_ctx* ctx)
+ntg_taskmaster* ntg_loop_ctx_get_taskmaster(ntg_loop_ctx* ctx)
 {
     assert(ctx != NULL);
 
@@ -118,7 +118,7 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
     _ntg_loop_ctx_init_(&ctx,
             loop->__init_stage,
             app_size,
-            ntg_taskmaster_get_channel(loop->__taskmaster),
+            loop->__taskmaster,
             ctx_data);
 
     /* loop */
@@ -214,7 +214,7 @@ ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop)
 
 void _ntg_loop_ctx_init_(ntg_loop_ctx* ctx,
         ntg_stage* init_stage, struct ntg_xy app_size,
-        ntg_taskmaster_channel taskmaster, void* data)
+        ntg_taskmaster* taskmaster, void* data)
 {
     assert(ctx != NULL);
     assert(init_stage != NULL);
@@ -233,7 +233,7 @@ void _ntg_loop_ctx_deinit_(ntg_loop_ctx* ctx)
     ctx->pending_stage = NULL;
     ctx->loop = false;
     ctx->app_size = ntg_xy(0, 0);
-    ctx->taskmaster = (ntg_taskmaster_channel) {0};
+    ctx->taskmaster = NULL;
     ctx->data = NULL;
 }
 

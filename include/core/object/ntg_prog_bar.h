@@ -20,9 +20,7 @@ void _ntg_prog_bar_init_(
         ntg_prog_bar* prog_bar,
         ntg_orientation orientation,
         struct ntg_prog_bar_style style,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_object_focus_fn on_focus_fn,
-        ntg_object_unfocus_fn on_unfocus_fn,
+        struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
         ntg_object_container* container);

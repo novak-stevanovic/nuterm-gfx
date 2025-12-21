@@ -92,7 +92,7 @@ void _ntg_def_border_draw_fn(
         sarena* arena)
 {
     const ntg_def_border* border = (const ntg_def_border*)object;
-    const ntg_object* child = (ntg_object_get_children(object))->_data[0];
+    const ntg_object* child = ntg_object_get_children(object).data[0];
 
     struct ntg_xy child_start = ntg_object_xy_map_get(ctx.pos, child);
     struct ntg_xy child_size = ntg_object_xy_map_get(ctx.sizes, child);

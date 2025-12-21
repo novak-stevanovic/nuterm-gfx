@@ -6,7 +6,7 @@
 typedef struct ntg_scene_graph ntg_scene_graph;
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_drawing ntg_object_drawing;
-typedef struct ntg_cobject_vec ntg_cobject_vec;
+typedef struct ntg_const_object_vec ntg_const_object_vec;
 
 struct ntg_scene_node_protect
 {
@@ -32,6 +32,6 @@ struct ntg_scene_node_protect* ntg_scene_graph_get(ntg_scene_graph* scene_graph,
 /* Expects an initialized, empty vector. */
 void ntg_scene_graph_get_keys(
         const ntg_scene_graph* scene_graph,
-        ntg_cobject_vec* out_vec);
+        ntg_const_object_vec* out_vec);
 
 #endif // _NTG_SCENE_GRAPH_H_

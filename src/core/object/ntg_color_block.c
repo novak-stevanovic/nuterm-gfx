@@ -12,27 +12,27 @@
 void _ntg_color_block_init_(
         ntg_color_block* color_block,
         nt_color color,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_object_focus_fn on_focus_fn,
-        ntg_object_unfocus_fn on_unfocus_fn,
+        struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
         ntg_object_container* container)
 {
     assert(color_block != NULL);
 
+    struct ntg_object_layout_ops layout_ops = {
+        .layout_init_fn = NULL,
+        .layout_deinit_fn = NULL,
+        .measure_fn = _ntg_color_block_measure_fn,
+        .constrain_fn = NULL,
+        .arrange_fn = NULL,
+        .draw_fn = _ntg_color_block_draw_fn
+    };
+
     _ntg_object_init_(
             (ntg_object*)color_block,
             NTG_OBJECT_COLOR_BLOCK,
-            NULL,
-            NULL,
-            _ntg_color_block_measure_fn,
-            NULL,
-            NULL,
-            _ntg_color_block_draw_fn,
-            process_key_fn,
-            on_focus_fn,
-            on_unfocus_fn,
+            layout_ops,
+            event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_color_block_deinit_fn,
             data,
             container);

@@ -14,14 +14,12 @@ typedef struct ntg_label ntg_label;
 void _ntg_label_init_(
         ntg_label* label,
         ntg_orientation orientation,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_object_focus_fn on_focus_fn,
-        ntg_object_unfocus_fn on_unfocus_fn,
+        struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
         ntg_object_container* container);
 
-void ntg_label_set_text(ntg_label* label, struct ntg_str_view text);
+void ntg_label_set_text(ntg_label* label, struct ntg_strv text);
 void ntg_label_set_gfx(ntg_label* label, struct nt_gfx gfx);
 void ntg_label_set_primary_alignment(ntg_label* label, ntg_text_alignment alignment);
 void ntg_label_set_secondary_alignment(ntg_label* label, ntg_alignment alignment);
@@ -29,7 +27,7 @@ void ntg_label_set_wrap_mode(ntg_label* label, ntg_text_wrap_mode wrap_mode);
 void ntg_label_set_indent(ntg_label* label, size_t indent);
 void ntg_label_set_autotrim(ntg_label* label, bool autotrim);
 
-struct ntg_str_view ntg_label_get_text(const ntg_label* label);
+struct ntg_strv ntg_label_get_text(const ntg_label* label);
 struct nt_gfx ntg_label_get_gfx(const ntg_label* label);
 ntg_text_alignment ntg_label_get_primary_alignment(const ntg_label* label);
 ntg_alignment ntg_label_get_secondary_alignment(const ntg_label* label);

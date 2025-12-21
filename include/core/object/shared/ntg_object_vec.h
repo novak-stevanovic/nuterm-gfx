@@ -1,11 +1,13 @@
-#ifndef _NTG_OBJECT_VECTOR_H_
-#define _NTG_OBJECT_VECTOR_H_
+#ifndef _NTG_OBJECT_VEC_H_
+#define _NTG_OBJECT_VEC_H_
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <sys/types.h>
 
 typedef struct ntg_object ntg_object;
+
+/* -------------------------------------------------------------------------- */
 
 typedef struct ntg_object_vec
 {
@@ -25,19 +27,55 @@ void ntg_object_vec_append(ntg_object_vec* vec, ntg_object* object);
 void ntg_object_vec_remove(ntg_object_vec* vec, ntg_object* object);
 void ntg_object_vec_empty(ntg_object_vec* vec);
 
-size_t ntg_object_vec_find(const ntg_object_vec* vec,
+size_t ntg_object_vec_find(
+        const ntg_object_vec* vec,
         const ntg_object* object);
-bool ntg_object_vec_contains(const ntg_object_vec* vec,
+bool ntg_object_vec_contains(
+        const ntg_object_vec* vec,
         const ntg_object* object);
 
-typedef struct ntg_object_vec_view
+struct ntg_object_vecv
 {
-    ntg_object_vec* __vec;
-} ntg_object_vec_view;
+    ntg_object* const * const data;
+    const size_t count;
+};
 
-ntg_object_vec_view ntg_object_vec_view_new(ntg_object_vec* vec);
+struct ntg_object_vecv ntg_object_vecv_new(ntg_object_vec* vec);
 
-size_t ntg_object_vec_view_count(ntg_object_vec_view* view);
-ntg_object* ntg_object_vec_view_at(ntg_object_vec_view* view, size_t pos);
+/* -------------------------------------------------------------------------- */
 
-#endif // _NTG_OBJECT_VECTOR_H_
+typedef struct ntg_const_object_vec
+{
+    const ntg_object** _data;
+    size_t _count;
+    size_t __capacity;
+    size_t __data_size;
+} ntg_const_object_vec;
+
+void _ntg_const_object_vec_init_(ntg_const_object_vec* vec);
+void _ntg_const_object_vec_deinit_(ntg_const_object_vec* vec);
+
+ntg_const_object_vec* ntg_const_object_vec_new();
+void ntg_const_object_vec_destroy(ntg_const_object_vec* vec);
+
+void ntg_const_object_vec_append(ntg_const_object_vec* vec, const ntg_object* object);
+void ntg_const_object_vec_remove(ntg_const_object_vec* vec, const ntg_object* object);
+void ntg_const_object_vec_empty(ntg_const_object_vec* vec);
+
+size_t ntg_const_object_vec_find(
+        const ntg_const_object_vec* vec,
+        const ntg_object* object);
+bool ntg_const_object_vec_contains(
+        const ntg_const_object_vec* vec,
+        const ntg_object* object);
+
+struct ntg_const_object_vecv
+{
+    const ntg_object* const * const data;
+    const size_t count;
+};
+
+struct ntg_const_object_vecv ntg_const_object_vecv_new(ntg_const_object_vec* vec);
+struct ntg_const_object_vecv ntg_const_object_vecv_new_(ntg_object_vec* vec);
+
+#endif // _NTG_OBJECT_VEC_H_

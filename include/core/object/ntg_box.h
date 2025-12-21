@@ -14,9 +14,7 @@ void _ntg_box_init_(
         ntg_orientation orientation,
         ntg_alignment primary_alignment,
         ntg_alignment secondary_alignment,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_object_focus_fn on_focus_fn,
-        ntg_object_unfocus_fn on_unfocus_fn,
+        struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
         ntg_object_container* container);

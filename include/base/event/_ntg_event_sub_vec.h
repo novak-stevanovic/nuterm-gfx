@@ -15,7 +15,7 @@ struct ntg_event_sub
 typedef struct ntg_event_sub_vec
 {
     struct ntg_event_sub* _data;
-    size_t _count;
+    const size_t _count;
     size_t __capacity;
     size_t __data_size;
 } ntg_event_sub_vec;

@@ -5,8 +5,6 @@
 
 #include "base/event/ntg_event.h"
 #include "core/object/ntg_object.h"
-// #include "core/object/shared/ntg_cobject_vec.h"
-#include "core/object/shared/ntg_cobject_vec.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "shared/ntg_log.h"
 
@@ -245,8 +243,8 @@ static void scan_scene(ntg_scene* scene)
                 &current);
     }
     
-    ntg_cobject_vec alr_registered; 
-    _ntg_cobject_vec_init_(&alr_registered);
+    ntg_const_object_vec alr_registered; 
+    _ntg_const_object_vec_init_(&alr_registered);
     ntg_scene_graph_get_keys(scene->_graph, &alr_registered);
 
     size_t i;
@@ -277,7 +275,7 @@ static void scan_scene(ntg_scene* scene)
         it_object = current._data[i];
 
         // Drawable added to the scene
-        if(!(ntg_cobject_vec_contains(&alr_registered, it_object)))
+        if(!(ntg_const_object_vec_contains(&alr_registered, it_object)))
         {
             ntg_scene_graph_add(scene->_graph, it_object);
 
@@ -293,5 +291,5 @@ static void scan_scene(ntg_scene* scene)
     }
 
     _ntg_object_vec_deinit_(&current);
-    _ntg_cobject_vec_deinit_(&alr_registered);
+    _ntg_const_object_vec_deinit_(&alr_registered);
 }

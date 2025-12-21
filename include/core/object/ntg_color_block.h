@@ -12,9 +12,7 @@ typedef struct ntg_color_block ntg_color_block;
 void _ntg_color_block_init_(
         ntg_color_block* color_block,
         nt_color color,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_object_focus_fn on_focus_fn,
-        ntg_object_unfocus_fn on_unfocus_fn,
+        struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
         ntg_object_container* container);

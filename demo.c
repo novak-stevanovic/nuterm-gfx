@@ -70,13 +70,10 @@ bool scene_process_key_fn(
     {
         ntg_log_log("scene received w");
 
-        ntg_taskmaster_channel taskmaster = ntg_loop_ctx_get_taskmaster(
-                loop_ctx);
+        ntg_taskmaster* taskmaster = ntg_loop_ctx_get_taskmaster(loop_ctx);
 
         ntg_log_log("calling ntg_taskmaster_execute_task");
-        ntg_taskmaster_execute_task(&taskmaster,
-                __task_fn, NULL,
-                __callback_fn, NULL);
+        ntg_taskmaster_execute_task(taskmaster, __task_fn, NULL, __callback_fn, NULL);
 
         return true;
     }
@@ -125,7 +122,7 @@ static void gui_fn1(void* data)
     ntg_color_block root;
     ntg_object* _root = (ntg_object*)&root;
     _ntg_color_block_init_(&root, nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
-            NULL, NULL, NULL, NULL, NULL, NULL);
+            NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, NULL);
 
     ntg_scene_set_root(_scene, _root);
 
@@ -142,13 +139,17 @@ static void gui_fn2(void* data)
 
     ntg_border_box root;
     ntg_object* _root = (ntg_object*)&root;
-    _ntg_border_box_init_(&root, NULL, NULL, NULL, NULL, NULL, container);
+    _ntg_border_box_init_(&root, NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, container);
 
     ntg_label north;
     ntg_object* _north = (ntg_object*)&north;
-    _ntg_label_init_(&north, NTG_ORIENTATION_H, NULL,
-            north_on_focus_fn, north_on_unfocus_fn, NULL, NULL, container);
-    struct ntg_str_view north_text = ntg_str_view_from_cstr("Novak");
+    struct ntg_object_event_ops north_event_ops = {
+        .on_focus_fn = north_on_focus_fn,
+        .on_unfocus_fn = north_on_unfocus_fn,
+        .process_key_fn = NULL
+    };
+    _ntg_label_init_(&north, NTG_ORIENTATION_H, north_event_ops, NULL, NULL, container);
+    struct ntg_strv north_text = ntg_strv_from_cstr("Novak");
     ntg_label_set_text(&north, north_text);
     struct nt_gfx north_gfx = {
         .bg = nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
@@ -173,8 +174,8 @@ static void gui_fn2(void* data)
 
     ntg_box center;
     ntg_object* _center = (ntg_object*)&center;
-    _ntg_box_init_(&center, NTG_ORIENTATION_V,
-            NTG_ALIGNMENT_2, NTG_ALIGNMENT_2, NULL, NULL, NULL, NULL, NULL, container);
+    _ntg_box_init_(&center, NTG_ORIENTATION_V, NTG_ALIGNMENT_2, NTG_ALIGNMENT_2,
+            NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, container);
     ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
 
     ntg_color_block center1, center2, center3;
@@ -182,11 +183,11 @@ static void gui_fn2(void* data)
     ntg_object* _center2 = (ntg_object*)&center2;
     ntg_object* _center3 = (ntg_object*)&center3;
     _ntg_color_block_init_(&center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)),
-            NULL, NULL, NULL, NULL, NULL, container);
+            NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, container);
     _ntg_color_block_init_(&center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)),
-            NULL, NULL, NULL, NULL, NULL, container);
+            NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, container);
     _ntg_color_block_init_(&center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)),
-            NULL, NULL, NULL, NULL, NULL, container);
+            NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, container);
     ntg_box_add_child(&center, _center1);
     ntg_box_add_child(&center, _center2);
     ntg_box_add_child(&center, _center3);
@@ -194,7 +195,7 @@ static void gui_fn2(void* data)
     ntg_box south;
     ntg_object* _south = (ntg_object*)&south;
     _ntg_box_init_(&south, NTG_ORIENTATION_H, NTG_ALIGNMENT_2,
-            NTG_ALIGNMENT_2, NULL, NULL, NULL, NULL, NULL, container);
+            NTG_ALIGNMENT_2, NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, container);
     // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
     ntg_box_set_spacing(&south, 10);
     struct nt_rgb rgb_white = nt_rgb_new(255, 255, 255);
@@ -203,13 +204,13 @@ static void gui_fn2(void* data)
     ntg_color_block south1;
     ntg_object* _south1 = (ntg_object*)&south1;
     _ntg_color_block_init_(&south1, nt_color_new_rgb(nt_rgb_new(0, 255, 0)),
-            NULL, NULL, NULL, NULL, NULL, container);
+            NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, container);
     // ntg_object_set_grow(_south1, ntg_xy(0, 0));
 
     ntg_color_block south2;
     ntg_object* _south2 = (ntg_object*)&south2;
     _ntg_color_block_init_(&south2, nt_color_new_rgb(nt_rgb_new(0, 0, 255)),
-            NULL, NULL, NULL, NULL, NULL, container);
+            NTG_OBJECT_EVENT_OPS_DEFAULT, NULL, NULL, container);
     // ntg_object_set_grow(_south2, ntg_xy(0, 0));
 
     ntg_box_add_child(&south, _south1);
@@ -230,7 +231,7 @@ static void gui_fn2(void* data)
     struct ntg_kickstart_obj k = ntg_kickstart(_stage, 30, NULL, NULL, NULL);
 
     ntg_scene_set_root(_scene, _root);
-    // ntg_loop_run(k.loop, NULL);
+    ntg_loop_run(k.loop, NULL);
 
     _ntg_def_scene_deinit_(&scene);
     _ntg_def_stage_deinit_(&stage);

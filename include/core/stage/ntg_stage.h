@@ -3,25 +3,28 @@
 
 #include "shared/ntg_xy.h"
 
+/* -------------------------------------------------------------------------- */
+/* DECLARATIONS */
+/* -------------------------------------------------------------------------- */
+
 typedef struct ntg_stage ntg_stage;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 struct nt_key_event;
 
+/* -------------------------------------------------------------------------- */
+/* PUBLIC DEFINITIONS */
+/* -------------------------------------------------------------------------- */
+
+/* Composes the scene's logical drawing into an ntg_stage_drawing */
 typedef void (*ntg_stage_compose_fn)(
         ntg_stage* stage,
         struct ntg_xy size);
 
-struct ntg_stage
-{
-    ntg_scene* __scene;
-    ntg_stage_compose_fn __compose_fn;
-    ntg_stage_drawing* __drawing;
-    struct ntg_xy __size;
-
-    void* _data;
-};
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
 
 void _ntg_stage_init_(
         ntg_stage* stage,
@@ -39,5 +42,19 @@ bool ntg_stage_feed_key_event(
         ntg_stage* stage,
         struct nt_key_event key_event,
         ntg_loop_ctx* loop_ctx);
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_stage
+{
+    ntg_scene* __scene;
+    ntg_stage_compose_fn __compose_fn;
+    ntg_stage_drawing* __drawing;
+    struct ntg_xy __size;
+
+    void* _data;
+};
 
 #endif // _NTG_STAGE_H_

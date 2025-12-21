@@ -24,25 +24,26 @@ static void init_default(ntg_border_box* box)
 
 void _ntg_border_box_init_(
         ntg_border_box* box,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_object_focus_fn on_focus_fn,
-        ntg_object_unfocus_fn on_unfocus_fn,
+        struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
         ntg_object_container* container)
 {
     assert(box != NULL);
 
+    struct ntg_object_layout_ops layout_ops = {
+        .layout_init_fn = NULL,
+        .layout_deinit_fn = NULL,
+        .measure_fn = _ntg_border_box_measure_fn,
+        .constrain_fn = _ntg_border_box_constrain_fn,
+        .arrange_fn = _ntg_border_box_arrange_fn,
+        .draw_fn = NULL
+    };
+
     _ntg_object_init_((ntg_object*)box,
             NTG_OBJECT_BORDER_BOX,
-            NULL, NULL,
-            _ntg_border_box_measure_fn,
-            _ntg_border_box_constrain_fn,
-            _ntg_border_box_arrange_fn,
-            NULL,
-            process_key_fn,
-            on_focus_fn,
-            on_unfocus_fn,
+            layout_ops,
+            event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_border_box_deinit_fn,
             data,
             container);
@@ -91,7 +92,7 @@ void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north)
 
     ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(north, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* parent = ntg_object_get_parent_(north, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
@@ -100,7 +101,7 @@ void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north)
 
     if(north != NULL)
     {
-        ntg_object* group_root = ntg_object_get_group_root(north);
+        ntg_object* group_root = ntg_object_get_group_root_(north);
 
         _ntg_object_add_child(_box, group_root);
     }
@@ -114,7 +115,7 @@ void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east)
 
     ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(east, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* parent = ntg_object_get_parent_(east, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
@@ -123,7 +124,7 @@ void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east)
 
     if(east != NULL)
     {
-        ntg_object* group_root = ntg_object_get_group_root(east);
+        ntg_object* group_root = ntg_object_get_group_root_(east);
 
         _ntg_object_add_child(_box, group_root);
     }
@@ -137,7 +138,7 @@ void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south)
 
     ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(south, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* parent = ntg_object_get_parent_(south, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
@@ -146,7 +147,7 @@ void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south)
 
     if(south)
     {
-        ntg_object* group_root = ntg_object_get_group_root(south);
+        ntg_object* group_root = ntg_object_get_group_root_(south);
 
         _ntg_object_add_child(_box, group_root);
     }
@@ -160,7 +161,7 @@ void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west)
 
     ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(west, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* parent = ntg_object_get_parent_(west, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
@@ -169,7 +170,7 @@ void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west)
 
     if(west)
     {
-        ntg_object* group_root = ntg_object_get_group_root(west);
+        ntg_object* group_root = ntg_object_get_group_root_(west);
 
         _ntg_object_add_child(_box, group_root);
     }
@@ -183,7 +184,7 @@ void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center)
 
     ntg_object* _box = (ntg_object*)box;
 
-    ntg_object* parent = ntg_object_get_parent(center, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* parent = ntg_object_get_parent_(center, NTG_OBJECT_PARENT_EXCL_DECOR);
 
     assert(parent == NULL);
 
@@ -192,7 +193,7 @@ void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center)
 
     if(center)
     {
-        ntg_object* group_root = ntg_object_get_group_root(center);
+        ntg_object* group_root = ntg_object_get_group_root_(center);
 
         _ntg_object_add_child(_box, group_root);
     }

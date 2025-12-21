@@ -40,7 +40,6 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
 
     double it_grow_factor;
     double it_to_distribute;
-    double it_distribute_cap;
     
     /* Initial distribution */
     bool loop = true;
