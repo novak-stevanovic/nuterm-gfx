@@ -22,7 +22,6 @@ void _ntg_prog_bar_init_(
         struct ntg_prog_bar_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container)
 {
     assert(prog_bar != NULL);
@@ -41,7 +40,6 @@ void _ntg_prog_bar_init_(
             layout_ops,
             event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_prog_bar_deinit_fn,
-            data,
             container);
 
     prog_bar->__opts = opts;

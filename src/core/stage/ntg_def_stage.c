@@ -5,12 +5,12 @@
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
 
-void _ntg_def_stage_init_(ntg_def_stage* stage, ntg_scene* scene, void* data)
+void _ntg_def_stage_init_(ntg_def_stage* stage, ntg_scene* scene)
 {
     assert(stage != NULL);
     assert(scene != NULL);
 
-    _ntg_stage_init_((ntg_stage*)stage, scene, _ntg_def_stage_compose_fn, data);
+    _ntg_stage_init_((ntg_stage*)stage, scene, _ntg_def_stage_compose_fn);
 }
 
 void _ntg_def_stage_deinit_(ntg_def_stage* stage)

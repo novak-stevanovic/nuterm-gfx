@@ -14,7 +14,6 @@ void _ntg_color_block_init_(
         nt_color color,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container)
 {
     assert(color_block != NULL);
@@ -34,7 +33,6 @@ void _ntg_color_block_init_(
             layout_ops,
             event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_color_block_deinit_fn,
-            data,
             container);
 
 

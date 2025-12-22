@@ -36,7 +36,6 @@ void _ntg_box_init_(
         struct ntg_box_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container)
 {
     assert(box != NULL);
@@ -56,7 +55,6 @@ void _ntg_box_init_(
             layout_ops,
             event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_box_deinit_fn,
-            data,
             container);
 
     box->__opts = opts;

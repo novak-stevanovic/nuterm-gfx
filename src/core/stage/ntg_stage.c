@@ -7,8 +7,7 @@
 void _ntg_stage_init_(
         ntg_stage* stage,
         ntg_scene* scene,
-        ntg_stage_compose_fn compose_fn,
-        void* data)
+        ntg_stage_compose_fn compose_fn)
 {
     assert(stage != NULL);
     assert(scene != NULL);
@@ -18,7 +17,7 @@ void _ntg_stage_init_(
     stage->__drawing = ntg_stage_drawing_new();
     stage->__compose_fn = compose_fn;
     stage->__size = ntg_xy(0, 0);
-    stage->_data = data;
+    stage->data = NULL;
 }
 
 void _ntg_stage_deinit_(ntg_stage* stage)

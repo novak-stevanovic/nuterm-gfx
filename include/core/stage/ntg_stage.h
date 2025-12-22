@@ -29,8 +29,7 @@ typedef void (*ntg_stage_compose_fn)(
 void _ntg_stage_init_(
         ntg_stage* stage,
         ntg_scene* scene,
-        ntg_stage_compose_fn compose_fn,
-        void* data);
+        ntg_stage_compose_fn compose_fn);
 void _ntg_stage_deinit_(ntg_stage* stage);
 
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size);
@@ -54,7 +53,7 @@ struct ntg_stage
     ntg_stage_drawing* __drawing;
     struct ntg_xy __size;
 
-    void* _data;
+    void* data;
 };
 
 #endif // _NTG_STAGE_H_

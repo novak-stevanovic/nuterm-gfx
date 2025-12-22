@@ -41,8 +41,7 @@ void _ntg_loop_init_(ntg_loop* loop,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
         ntg_taskmaster* taskmaster,
-        unsigned int framerate,
-        void* data);
+        unsigned int framerate);
 void _ntg_loop_deinit_(ntg_loop* loop);
 
 void ntg_loop_run(ntg_loop* loop, void* ctx_data);
@@ -79,7 +78,7 @@ struct ntg_loop
     ntg_renderer* __renderer;
     ntg_taskmaster* __taskmaster;
     unsigned int __framerate;
-    void* _data;
+    void* data;
 
     ntg_event_dlgt* __delegate;
 };

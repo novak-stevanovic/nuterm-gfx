@@ -4,14 +4,13 @@
 
 void _ntg_renderer_init_(
         ntg_renderer* renderer,
-        ntg_renderer_render_fn render_fn,
-        void* data)
+        ntg_renderer_render_fn render_fn)
 {
     assert(renderer != NULL);
     assert(render_fn != NULL);
 
     renderer->__render_fn = render_fn;
-    renderer->_data = data;
+    renderer->data = NULL;
 }
 
 void _ntg_renderer_deinit_(ntg_renderer* renderer)

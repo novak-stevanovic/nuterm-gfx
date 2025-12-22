@@ -36,7 +36,6 @@ void _ntg_padding_init_(
         struct ntg_padding_width init_width,
         ntg_object_draw_fn draw_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container);
 
 void ntg_padding_set_width(ntg_padding* padding, struct ntg_padding_width width);

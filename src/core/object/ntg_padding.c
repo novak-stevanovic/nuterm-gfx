@@ -27,7 +27,6 @@ void _ntg_padding_init_(
         struct ntg_padding_width init_width,
         ntg_object_draw_fn draw_fn,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container)
 {
     assert(padding != NULL);
@@ -52,7 +51,6 @@ void _ntg_padding_init_(
             layout_ops,
             event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_padding_deinit_fn,
-            data,
             container);
 
     padding->__width = init_width;

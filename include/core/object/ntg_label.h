@@ -33,7 +33,6 @@ void _ntg_label_init_(
         struct ntg_label_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container);
 
 struct ntg_label_opts ntg_label_get_opts(const ntg_label* label);

@@ -25,8 +25,7 @@ void _ntg_scene_init_(
         ntg_scene_on_register_fn on_register_fn,
         ntg_scene_on_unregister_fn on_unregister_fn,
         ntg_scene_process_key_fn process_key_fn,
-        ntg_scene_deinit_fn deinit_fn,
-        void* data)
+        ntg_scene_deinit_fn deinit_fn)
 {
     assert(scene != NULL);
     assert(layout_fn != NULL);
@@ -42,7 +41,6 @@ void _ntg_scene_init_(
     scene->__process_key_fn = (process_key_fn != NULL) ?
         process_key_fn : process_key_fn_def;
     scene->__deinit_fn = (deinit_fn != NULL) ? deinit_fn : _ntg_scene_deinit_;
-    scene->_data = data;
 
     scene->_delegate = ntg_event_dlgt_new();
     scene->_graph = ntg_scene_graph_new();

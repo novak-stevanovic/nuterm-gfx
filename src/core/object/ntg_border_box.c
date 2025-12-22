@@ -26,7 +26,6 @@ void _ntg_border_box_init_(
         ntg_border_box* box,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container)
 {
     assert(box != NULL);
@@ -45,7 +44,6 @@ void _ntg_border_box_init_(
             layout_ops,
             event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_border_box_deinit_fn,
-            data,
             container);
 
     init_default(box);

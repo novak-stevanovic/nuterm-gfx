@@ -22,18 +22,12 @@ static void optimized_render(ntg_def_renderer* renderer,
 
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_renderer_init_(
-        ntg_def_renderer* renderer,
-        ntg_loop* loop,
-        void* data)
+void _ntg_def_renderer_init_(ntg_def_renderer* renderer, ntg_loop* loop)
 {
     assert(renderer != NULL);
     assert(loop != NULL);
 
-    _ntg_renderer_init_(
-            (ntg_renderer*)renderer,
-            __ntg_def_renderer_render_fn,
-            data);
+    _ntg_renderer_init_((ntg_renderer*)renderer, __ntg_def_renderer_render_fn);
 
     renderer->__backbuff = ntg_rcell_vgrid_new();
     assert(renderer->__backbuff != NULL);

@@ -13,7 +13,7 @@ void _ntg_def_padding_init_(
             NTG_PADDING_PADDING,
             init_width,
             _ntg_def_padding_draw_fn,
-            _ntg_def_padding_deinit_fn, NULL,
+            _ntg_def_padding_deinit_fn,
             container);
 
     def_padding->__cell = cell;

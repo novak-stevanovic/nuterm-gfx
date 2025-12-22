@@ -26,8 +26,7 @@ typedef void (*ntg_renderer_render_fn)(
 
 void _ntg_renderer_init_(
         ntg_renderer* renderer,
-        ntg_renderer_render_fn render_fn,
-        void* data);
+        ntg_renderer_render_fn render_fn);
 void _ntg_renderer_deinit_(ntg_renderer* renderer);
 
 /* If `stage_drawing` is NULL, render empty */
@@ -43,7 +42,7 @@ void ntg_renderer_render(
 struct ntg_renderer
 {
     ntg_renderer_render_fn __render_fn;
-    void* _data;
+    void* data;
 };
 
 #endif // _NTG_RENDERER_H_

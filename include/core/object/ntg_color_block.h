@@ -14,7 +14,6 @@ void _ntg_color_block_init_(
         nt_color color,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container);
 
 nt_color ntg_color_block_get_color(const ntg_color_block* color_block);

@@ -49,7 +49,6 @@ void _ntg_def_border_init_(
             init_width,
             _ntg_def_border_draw_fn,
             _ntg_def_border_deinit_fn,
-            NULL,
             container);
 
     def_border->__style = style;

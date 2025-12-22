@@ -28,7 +28,6 @@ void _ntg_prog_bar_init_(
         struct ntg_prog_bar_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container);
 
 void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage);

@@ -13,7 +13,6 @@ void _ntg_border_box_init_(
         ntg_border_box* box,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container);
 
 ntg_object* ntg_border_box_get_north(ntg_border_box* box);

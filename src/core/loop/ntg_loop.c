@@ -78,8 +78,7 @@ void _ntg_loop_init_(ntg_loop* loop,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
         ntg_taskmaster* taskmaster,
-        unsigned int framerate,
-        void* data)
+        unsigned int framerate)
 {
     assert(loop != NULL);
     assert(init_stage != NULL);
@@ -91,7 +90,7 @@ void _ntg_loop_init_(ntg_loop* loop,
     loop->__renderer = renderer;
     loop->__taskmaster = taskmaster;
     loop->__framerate = framerate;
-    loop->_data = data;
+    loop->data = NULL;
     loop->__delegate = ntg_event_dlgt_new();
 }
 
@@ -103,7 +102,7 @@ void _ntg_loop_deinit_(ntg_loop* loop)
     ntg_event_dlgt_destroy(loop->__delegate);
     loop->__delegate = NULL;
     loop->__renderer = NULL;
-    loop->_data = NULL;
+    loop->data = NULL;
     loop->__framerate = 0;
 }
 

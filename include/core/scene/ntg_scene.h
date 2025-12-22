@@ -64,8 +64,7 @@ void _ntg_scene_init_(
         ntg_scene_on_register_fn on_register_fn,
         ntg_scene_on_unregister_fn on_unregister_fn,
         ntg_scene_process_key_fn process_key_fn,
-        ntg_scene_deinit_fn deinit_fn,
-        void* data);
+        ntg_scene_deinit_fn deinit_fn);
 void _ntg_scene_deinit_(ntg_scene* scene);
 
 void _ntg_scene_vdeinit_(ntg_scene* scene);
@@ -129,7 +128,7 @@ struct ntg_scene
 
     ntg_event_dlgt* _delegate;
 
-    void* _data;
+    void* data;
 };
 
 #endif // _NTG_SCENE_H_

@@ -117,10 +117,12 @@ struct ntg_kickstart_obj ntg_kickstart(
             init_stage,
             _renderer,
             taskmaster,
-            loop_framerate,
-            loop_data);
+            loop_framerate);
 
-    _ntg_def_renderer_init_(renderer, _loop, renderer_data);
+    _loop->data = loop_data;
+
+    _ntg_def_renderer_init_(renderer, _loop);
+    _renderer->data = renderer_data;
 
     return (struct ntg_kickstart_obj) {
         .renderer = renderer,

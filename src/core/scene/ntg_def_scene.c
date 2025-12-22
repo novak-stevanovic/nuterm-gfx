@@ -30,8 +30,7 @@ static void draw_fn(ntg_object* object, void* _layout_data);
 void _ntg_def_scene_init_(
         ntg_def_scene* scene,
         ntg_scene_process_key_fn process_key_fn,
-        ntg_scene_deinit_fn deinit_fn,
-        void* data)
+        ntg_scene_deinit_fn deinit_fn)
 {
     assert(scene != NULL);
 
@@ -40,8 +39,7 @@ void _ntg_def_scene_init_(
             NULL,
             NULL,
             process_key_fn,
-            (deinit_fn != NULL) ? deinit_fn : _ntg_def_scene_deinit_fn,
-            data);
+            (deinit_fn != NULL) ? deinit_fn : _ntg_def_scene_deinit_fn);
 
     scene->__layout_arena = sarena_create(100000);
     assert(scene->__layout_arena != NULL);

@@ -29,7 +29,6 @@ void _ntg_box_init_(
         struct ntg_box_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container);
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box);

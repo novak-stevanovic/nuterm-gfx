@@ -140,7 +140,6 @@ void _ntg_label_init_(
         struct ntg_label_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container)
 {
     assert(label != NULL);
@@ -159,7 +158,6 @@ void _ntg_label_init_(
             layout_ops,
             event_ops,
             (deinit_fn != NULL) ? deinit_fn : _ntg_label_deinit_fn,
-            data,
             container);
 
     label->__opts = opts;

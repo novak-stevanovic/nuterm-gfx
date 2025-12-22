@@ -180,7 +180,6 @@ void _ntg_object_init_(ntg_object* object,
         struct ntg_object_layout_ops layout_ops,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
-        void* data,
         ntg_object_container* container);
 void _ntg_object_deinit_(ntg_object* object);
 
@@ -350,7 +349,7 @@ struct ntg_object
 
     ntg_event_dlgt* _delegate;
 
-    void* _data;
+    void* data;
 };
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);

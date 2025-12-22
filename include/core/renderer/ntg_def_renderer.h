@@ -24,8 +24,7 @@ struct ntg_def_renderer
 
 void _ntg_def_renderer_init_(
         ntg_def_renderer* renderer,
-        ntg_loop* loop,
-        void* data);
+        ntg_loop* loop);
 void _ntg_def_renderer_deinit_(ntg_def_renderer* renderer);
 
 void __ntg_def_renderer_render_fn(
