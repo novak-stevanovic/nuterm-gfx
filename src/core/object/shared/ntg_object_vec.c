@@ -181,7 +181,7 @@ struct ntg_const_object_vecv ntg_const_object_vecv_new_(ntg_object_vec* vec)
     assert(vec != NULL);
 
     return (struct ntg_const_object_vecv) {
-        .data  = (const ntg_object * const * const)vec->_data,
+        .data  = (const ntg_object * const *)vec->_data,
         .count = vec->_count
     };
 }

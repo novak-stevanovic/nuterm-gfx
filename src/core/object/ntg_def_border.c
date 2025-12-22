@@ -38,7 +38,7 @@ static void draw_west(const ntg_def_border* border,
 
 void _ntg_def_border_init_(
         ntg_def_border* def_border,
-        struct ntg_def_border_style opts,
+        struct ntg_def_border_style style,
         struct ntg_padding_width init_width,
         ntg_object_container* container)
 {
@@ -52,7 +52,7 @@ void _ntg_def_border_init_(
             NULL,
             container);
 
-    def_border->__style = opts;
+    def_border->__style = style;
 }
 
 /* ------------------------------------------------------ */
@@ -65,7 +65,7 @@ void _ntg_def_border_init_monochrome_(
         struct ntg_padding_width init_width,
         ntg_object_container* container)
 {
-    struct ntg_def_border_style opts = {
+    struct ntg_def_border_style style = {
         .top_left = ntg_cell_bg(color),
         .top = ntg_cell_bg(color),
         .top_right = ntg_cell_bg(color),
@@ -76,7 +76,7 @@ void _ntg_def_border_init_monochrome_(
         .left = ntg_cell_bg(color),
         .padding = ntg_cell_bg(color),
     };
-    _ntg_def_border_init_(def_border, opts, init_width, container);
+    _ntg_def_border_init_(def_border, style, init_width, container);
 }
 
 /* -------------------------------------------------------------------------- */

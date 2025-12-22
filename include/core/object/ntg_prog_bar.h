@@ -6,20 +6,26 @@
 typedef struct ntg_prog_bar ntg_prog_bar;
 
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_prog_bar_style
+struct ntg_prog_bar_opts
 {
-    ntg_cell complete_cell;
-    ntg_cell uncomplete_cell;
-    ntg_cell threshold_cell;
+    ntg_orientation orientation;
+    ntg_cell complete_style;
+    ntg_cell uncomplete_style;
+    ntg_cell threshold_style;
 };
+
+struct ntg_prog_bar_opts ntg_prog_bar_opts_default();
+
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
 
 void _ntg_prog_bar_init_(
         ntg_prog_bar* prog_bar,
-        ntg_orientation orientation,
-        struct ntg_prog_bar_style style,
+        struct ntg_prog_bar_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
@@ -32,10 +38,8 @@ struct ntg_prog_bar
 {
     ntg_object __base;
 
-    ntg_orientation __orientation;
     double __percentage; // [0, 1]
-
-    struct ntg_prog_bar_style __style;
+    struct ntg_prog_bar_opts __opts;
 };
 
 /* -------------------------------------------------------------------------- */

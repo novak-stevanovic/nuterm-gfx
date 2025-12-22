@@ -27,7 +27,12 @@ static void __init_default_values(ntg_object* object);
 
 static unsigned int __id_generator = 0;
 
-const struct ntg_object_event_ops NTG_OBJECT_EVENT_OPS_DEFAULT = {0};
+struct ntg_object_event_ops ntg_object_event_ops_default()
+{
+    return (struct ntg_object_event_ops) {
+        .process_key_fn = NULL
+    };
+}
 
 void _ntg_object_init_(ntg_object* object,
         unsigned int type,
@@ -479,6 +484,7 @@ ntg_padding* ntg_object_get_padding_(ntg_object* object)
 ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding)
 {
     assert(object != NULL);
+    assert(padding != ntg_object_get_border(object));
 
     ntg_object* root = ntg_object_get_group_root_(object);
 
@@ -510,6 +516,7 @@ ntg_padding* ntg_object_get_border_(ntg_object* object)
 ntg_padding* ntg_object_set_border(ntg_object* object, ntg_padding* border)
 {
     assert(object != NULL);
+    assert(border != ntg_object_get_padding(object));
 
     ntg_object* root = ntg_object_get_group_root_(object);
 
@@ -713,22 +720,6 @@ bool ntg_object_feed_key(
         return object->__event_ops.process_key_fn(object, key_event, ctx);
     else
         return false;
-}
-
-void ntg_object_on_focus(ntg_object* object, struct ntg_object_focus_ctx ctx)
-{
-    assert(object != NULL);
-
-    if(object->__event_ops.on_focus_fn != NULL)
-        object->__event_ops.on_focus_fn(object, ctx);
-}
-
-void ntg_object_on_unfocus(ntg_object* object, struct ntg_object_unfocus_ctx ctx)
-{
-    assert(object != NULL);
-
-    if(object->__event_ops.on_unfocus_fn != NULL)
-        object->__event_ops.on_unfocus_fn(object, ctx);
 }
 
 ntg_listenable* ntg_object_get_listenable(ntg_object* object)

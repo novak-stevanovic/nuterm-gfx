@@ -7,10 +7,19 @@
 #include "core/object/shared/ntg_object_types.h"
 #include "shared/_ntg_shared.h"
 
+struct ntg_prog_bar_opts ntg_prog_bar_opts_default()
+{
+    return (struct ntg_prog_bar_opts) {
+        .orientation = NTG_ORIENTATION_H,
+        .complete_style = ntg_cell_bg(nt_color_new_rgb(nt_rgb_new(0, 255, 0))),
+        .uncomplete_style = ntg_cell_bg(nt_color_new_rgb(nt_rgb_new(255, 0, 0))),
+        .threshold_style = ntg_cell_bg(nt_color_new_rgb(nt_rgb_new(0, 255, 0))),
+    };
+}
+
 void _ntg_prog_bar_init_(
         ntg_prog_bar* prog_bar,
-        ntg_orientation orientation,
-        struct ntg_prog_bar_style style,
+        struct ntg_prog_bar_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
@@ -35,9 +44,7 @@ void _ntg_prog_bar_init_(
             data,
             container);
 
-    prog_bar->__orientation = orientation;
-    prog_bar->__style = style;
-    prog_bar->__percentage = 0;
+    prog_bar->__opts = opts;
 }
 
 void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage)
@@ -62,11 +69,7 @@ void _ntg_prog_bar_deinit_fn(ntg_object* object)
 
     _ntg_object_deinit_fn((ntg_object*)prog_bar);
 
-    prog_bar->__orientation = NTG_ORIENTATION_H;
-    prog_bar->__style.complete_cell = ntg_cell_default();
-    prog_bar->__style.threshold_cell = ntg_cell_default();
-    prog_bar->__style.uncomplete_cell = ntg_cell_default();
-    prog_bar->__percentage = 0;
+    prog_bar->__opts = ntg_prog_bar_opts_default();
 }
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(
@@ -80,7 +83,7 @@ struct ntg_object_measure _ntg_prog_bar_measure_fn(
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)object;
 
-    if(orientation == prog_bar->__orientation)
+    if(orientation == prog_bar->__opts.orientation)
     {
         return (struct ntg_object_measure) {
             .min_size = 10,
@@ -110,7 +113,7 @@ void _ntg_prog_bar_draw_fn(
 
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
-    struct ntg_oxy _size = ntg_oxy_from_xy(size, prog_bar->__orientation);
+    struct ntg_oxy _size = ntg_oxy_from_xy(size, prog_bar->__opts.orientation);
 
     size_t complete_count = round(_size.prim_val * prog_bar->__percentage);
 
@@ -122,21 +125,21 @@ void _ntg_prog_bar_draw_fn(
     {
         for(j = 0; j < _size.sec_val; j++)
         {
-            _it_xy = ntg_oxy(i, j, prog_bar->__orientation);
+            _it_xy = ntg_oxy(i, j, prog_bar->__opts.orientation);
             it_xy = ntg_xy_from_oxy(_it_xy);
             it_cell = ntg_object_drawing_at_(out->drawing, it_xy);
             if(complete_count == _size.prim_val)
-                (*it_cell) = prog_bar->__style.complete_cell;
+                (*it_cell) = prog_bar->__opts.complete_style;
             else if(complete_count == 0)
-                (*it_cell) = prog_bar->__style.uncomplete_cell;
+                (*it_cell) = prog_bar->__opts.uncomplete_style;
             else
             {
                 if(i < (complete_count - 1))
-                    (*it_cell) = prog_bar->__style.complete_cell;
+                    (*it_cell) = prog_bar->__opts.complete_style;
                 else if(i == (complete_count - 1))
-                    (*it_cell) = prog_bar->__style.threshold_cell;
+                    (*it_cell) = prog_bar->__opts.threshold_style;
                 else
-                    (*it_cell) = prog_bar->__style.uncomplete_cell;
+                    (*it_cell) = prog_bar->__opts.uncomplete_style;
             }
         }
     }

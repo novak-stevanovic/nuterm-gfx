@@ -18,17 +18,22 @@
 
 static void init_default_values(ntg_box* box)
 {
-    box->__orientation = NTG_ORIENTATION_H;
-    box->__primary_alignment = NTG_ALIGNMENT_1;
-    box->__secondary_alignment = NTG_ALIGNMENT_1;
-    box->__spacing = 0;
+    box->__opts = ntg_box_opts_default();
+}
+
+struct ntg_box_opts ntg_box_opts_default()
+{
+    return (struct ntg_box_opts) {
+        .orientation = NTG_ORIENTATION_H,
+        .palignment = NTG_ALIGNMENT_1,
+        .salignment = NTG_ALIGNMENT_1,
+        .spacing = 0
+    };
 }
 
 void _ntg_box_init_(
         ntg_box* box,
-        ntg_orientation orientation,
-        ntg_alignment primary_alignment,
-        ntg_alignment secondary_alignment,
+        struct ntg_box_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
@@ -37,8 +42,8 @@ void _ntg_box_init_(
     assert(box != NULL);
 
     struct ntg_object_layout_ops layout_ops = {
-            .layout_init_fn = NULL,
-            .layout_deinit_fn = NULL,
+            .layout_init_fn = _ntg_box_layout_init_fn,
+            .layout_deinit_fn = _ntg_box_layout_deinit_fn,
             .measure_fn = _ntg_box_measure_fn,
             .constrain_fn = _ntg_box_constrain_fn,
             .arrange_fn = __ntg_box_arrange_fn,
@@ -54,67 +59,21 @@ void _ntg_box_init_(
             data,
             container);
 
-    init_default_values(box);
-
-    box->__orientation = orientation;
-    box->__primary_alignment = primary_alignment;
-    box->__secondary_alignment = secondary_alignment;
+    box->__opts = opts;
 }
 
-ntg_orientation ntg_box_get_orientation(const ntg_box* box)
+struct ntg_box_opts ntg_box_get_opts(const ntg_box* box)
 {
     assert(box != NULL);
 
-    return box->__orientation;
+    return box->__opts;
 }
 
-ntg_alignment ntg_box_get_primary_alignment(const ntg_box* box)
-{
-    assert(box != NULL);
-
-    return box->__primary_alignment;
-}
-
-ntg_alignment ntg_box_get_secondary_alignment(const ntg_box* box)
+void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
 {
     assert(box != NULL);
     
-    return box->__secondary_alignment;
-}
-
-size_t ntg_box_get_spacing(const ntg_box* box)
-{
-    assert(box != NULL);
-    
-    return box->__spacing;
-}
-
-void ntg_box_set_orientation(ntg_box* box, ntg_orientation orientation)
-{
-    assert(box != NULL);
-
-    box->__orientation = orientation;
-}
-
-void ntg_box_set_primary_alignment(ntg_box* box, ntg_alignment alignment)
-{
-    assert(box != NULL);
-
-    box->__primary_alignment = alignment;
-}
-
-void ntg_box_set_secondary_alignment(ntg_box* box, ntg_alignment alignment)
-{
-    assert(box != NULL);
-
-    box->__secondary_alignment = alignment;
-}
-
-void ntg_box_set_spacing(ntg_box* box, size_t spacing)
-{
-    assert(box != NULL);
-
-    box->__spacing = spacing;
+    box->__opts = opts;
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child)
@@ -148,10 +107,6 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 /* -------------------------------------------------------------------------- */
 
 static inline size_t calculate_total_spacing(size_t spacing, size_t child_count);
-static struct ntg_object_measure measure_content(
-        const ntg_box* box,
-        ntg_orientation orientation,
-        const ntg_object_measure_map* measures);
 
 void _ntg_box_deinit_fn(ntg_object* _box)
 {
@@ -160,18 +115,81 @@ void _ntg_box_deinit_fn(ntg_object* _box)
     init_default_values((ntg_box*)_box);
 }
 
+void* _ntg_box_layout_init_fn(const ntg_object* object)
+{
+    struct ntg_box_ldata* new = (struct ntg_box_ldata*)malloc(
+            sizeof(struct ntg_box_ldata));
+    assert(new != NULL);
+
+    (*new) = (struct ntg_box_ldata) {0};
+
+    return new;
+}
+
+void _ntg_box_layout_deinit_fn(const ntg_object* object, void* layout_data)
+{
+    free(layout_data);
+}
+
 struct ntg_object_measure _ntg_box_measure_fn(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
         struct ntg_object_measure_ctx ctx,
         struct ntg_object_measure_out* out,
-        void* layout_data,
+        void* _layout_data,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)object;
+    struct ntg_box_ldata* layout_data = (struct ntg_box_ldata*)_layout_data;
+    const ntg_object* _box = (const ntg_object*)box;
+    struct ntg_const_object_vecv children = ntg_object_get_children(_box);
 
-    return measure_content(box, orientation, ctx.measures);
+    if(children.count == 0) return (struct ntg_object_measure) {0};
+
+    size_t min_size = 0, natural_size = 0, max_size = 0;
+
+    size_t i;
+    struct ntg_object_measure it_measure;
+    const ntg_object* it_child;
+    for(i = 0; i < children.count; i++)
+    {
+        it_child = children.data[i];
+        it_measure = ntg_object_measure_map_get(ctx.measures, it_child);
+
+        /* Make sure all are drawn */
+        it_measure.natural_size = _max2_size(it_measure.natural_size, 1);
+        it_measure.max_size = _max2_size(it_measure.max_size, 1);
+
+        if(orientation == box->__opts.orientation)
+        {
+            min_size += it_measure.min_size;
+            natural_size += it_measure.natural_size;
+            max_size += it_measure.max_size;
+        }
+        else
+        {
+            min_size = _max2_size(min_size, it_measure.min_size);
+            natural_size = _max2_size(natural_size, it_measure.natural_size);
+            max_size = _max2_size(max_size, it_measure.max_size);
+        }
+    }
+
+    size_t spacing = calculate_total_spacing(box->__opts.spacing, children.count);
+
+     struct ntg_object_measure measure = {
+        .min_size = min_size,
+        .natural_size = natural_size + spacing,
+        .max_size = NTG_SIZE_MAX,
+        .grow = 1
+    };
+
+     if(orientation == NTG_ORIENTATION_H)
+         layout_data->hmeasure = measure;
+     else
+         layout_data->vmeasure = measure;
+
+     return measure;
 }
 
 void _ntg_box_constrain_fn(
@@ -180,16 +198,17 @@ void _ntg_box_constrain_fn(
         size_t size,
         struct ntg_object_constrain_ctx ctx,
         struct ntg_object_constrain_out* out,
-        void* layout_data,
+        void* _layout_data,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)object;
     struct ntg_const_object_vecv children = ntg_object_get_children(object);
+    struct ntg_box_ldata* layout_data = (struct ntg_box_ldata*)_layout_data;
 
     if(children.count == 0) return;
 
-    struct ntg_object_measure content_size = measure_content(
-            box, orientation, ctx.measures);
+    struct ntg_object_measure content_size = (orientation == NTG_ORIENTATION_H) ?
+        layout_data->hmeasure : layout_data->vmeasure;
     size_t min_size = content_size.min_size;
     size_t natural_size = content_size.natural_size;
 
@@ -203,7 +222,7 @@ void _ntg_box_constrain_fn(
     const ntg_object* it_child;
     struct ntg_object_measure it_measure;
     size_t i;
-    if(orientation == box->__orientation)
+    if(orientation == box->__opts.orientation)
     {
         if(size >= natural_size) // redistribute extra, capped with max_size
         {
@@ -225,7 +244,7 @@ void _ntg_box_constrain_fn(
         {
             if(size >= min_size) // redistribute extra, capped with natural_size
             {
-                size_t pref_spacing = calculate_total_spacing(box->__spacing, children.count);
+                size_t pref_spacing = calculate_total_spacing(box->__opts.spacing, children.count);
                 extra_size = _ssub_size(size - min_size, pref_spacing);
 
                 for(i = 0; i < children.count; i++)
@@ -298,9 +317,9 @@ void __ntg_box_arrange_fn(
     if(children.count == 0) return;
 
     /* Init */
-    ntg_orientation orient = box->__orientation;
-    ntg_alignment prim_align = box->__primary_alignment;
-    ntg_alignment sec_align = box->__secondary_alignment;
+    ntg_orientation orient = box->__opts.orientation;
+    ntg_alignment prim_align = box->__opts.palignment;
+    ntg_alignment sec_align = box->__opts.salignment;
 
     size_t i;
     const ntg_object* it_child;
@@ -322,7 +341,7 @@ void __ntg_box_arrange_fn(
     }
 
     /* Calculate spacing */
-    size_t pref_spacing = calculate_total_spacing(box->__spacing, children.count);
+    size_t pref_spacing = calculate_total_spacing(box->__opts.spacing, children.count);
     size_t total_spacing = _min2_size(pref_spacing, _size.prim_val - _children_size.prim_val);
 
     /* Distribute padding space */
@@ -391,52 +410,4 @@ void __ntg_box_arrange_fn(
 static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 {
     return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
-}
-
-static struct ntg_object_measure measure_content(
-        const ntg_box* box,
-        ntg_orientation orientation,
-        const ntg_object_measure_map* measures)
-{
-    const ntg_object* _box = (const ntg_object*)box;
-    struct ntg_const_object_vecv children = ntg_object_get_children(_box);
-
-    if(children.count == 0) return (struct ntg_object_measure) {0};
-
-    size_t min_size = 0, natural_size = 0, max_size = 0;
-
-    size_t i;
-    struct ntg_object_measure it_measure;
-    const ntg_object* it_child;
-    for(i = 0; i < children.count; i++)
-    {
-        it_child = children.data[i];
-        it_measure = ntg_object_measure_map_get(measures, it_child);
-
-        /* Make sure all are drawn */
-        it_measure.natural_size = _max2_size(it_measure.natural_size, 1);
-        it_measure.max_size = _max2_size(it_measure.max_size, 1);
-
-        if(orientation == box->__orientation)
-        {
-            min_size += it_measure.min_size;
-            natural_size += it_measure.natural_size;
-            max_size += it_measure.max_size;
-        }
-        else
-        {
-            min_size = _max2_size(min_size, it_measure.min_size);
-            natural_size = _max2_size(natural_size, it_measure.natural_size);
-            max_size = _max2_size(max_size, it_measure.max_size);
-        }
-    }
-
-    size_t spacing = calculate_total_spacing(box->__spacing, children.count);
-
-    return (struct ntg_object_measure) {
-        .min_size = min_size,
-        .natural_size = natural_size + spacing,
-        .max_size = NTG_SIZE_MAX,
-        .grow = 1
-    };
 }

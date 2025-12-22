@@ -36,8 +36,6 @@ struct ntg_object_arrange_out;
 struct ntg_object_draw_ctx;
 struct ntg_object_draw_out;
 struct ntg_object_key_ctx;
-struct ntg_object_focus_ctx;
-struct ntg_object_unfocus_ctx;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -49,7 +47,8 @@ typedef void* (*ntg_object_layout_init_fn)(const ntg_object* object);
 
 
 /* Frees the resources associated with `layout_data` object. */
-typedef void (*ntg_object_layout_deinit_fn)(const ntg_object* object,
+typedef void (*ntg_object_layout_deinit_fn)(
+        const ntg_object* object,
         void* layout_data);
 
 struct ntg_object_measure_ctx
@@ -153,30 +152,6 @@ typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
 
 /* ------------------------------------------------------ */
 
-struct ntg_object_focus_ctx
-{
-    ntg_object* old;
-    ntg_scene* scene;
-};
-
-/* Defines the behavior of `object` when focused by the scene */
-typedef void (*ntg_object_focus_fn)(
-        ntg_object* object,
-        struct ntg_object_focus_ctx ctx);
-
-/* ------------------------------------------------------ */
-
-struct ntg_object_unfocus_ctx
-{
-    ntg_object* new;
-    ntg_scene* scene;
-};
-
-/* Defines the behavior of `object` when unfocused by the scene */
-typedef void (*ntg_object_unfocus_fn)(
-        ntg_object* object,
-        struct ntg_object_unfocus_ctx ctx);
-
 typedef void (*ntg_object_deinit_fn)(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
@@ -196,11 +171,9 @@ struct ntg_object_layout_ops
 struct ntg_object_event_ops
 {
     ntg_object_process_key_fn process_key_fn;
-    ntg_object_focus_fn on_focus_fn;
-    ntg_object_unfocus_fn on_unfocus_fn;
 };
 
-extern const struct ntg_object_event_ops NTG_OBJECT_EVENT_OPS_DEFAULT;
+struct ntg_object_event_ops ntg_object_event_ops_default();
 
 void _ntg_object_init_(ntg_object* object,
         unsigned int type,
@@ -340,8 +313,6 @@ void ntg_object_draw(
 bool ntg_object_feed_key(ntg_object* object,
         struct nt_key_event key_event,
         struct ntg_object_key_ctx ctx);
-void ntg_object_on_focus(ntg_object* object, struct ntg_object_focus_ctx ctx);
-void ntg_object_on_unfocus(ntg_object* object, struct ntg_object_unfocus_ctx ctx);
 
 ntg_listenable* ntg_object_get_listenable(ntg_object* object);
 

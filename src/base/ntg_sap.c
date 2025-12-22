@@ -10,7 +10,6 @@ static inline bool __is_equal_double(double x, double y)
     return fabs(x - y) < 0.005;
 }
 
-// TODO: rethink
 size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
         size_t* out_sizes, size_t space_pool, size_t count)
 {

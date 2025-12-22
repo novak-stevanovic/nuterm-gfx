@@ -36,8 +36,8 @@ bool ntg_object_vec_contains(
 
 struct ntg_object_vecv
 {
-    ntg_object* const * const data;
-    const size_t count;
+    ntg_object* const * data;
+    size_t count;
 };
 
 struct ntg_object_vecv ntg_object_vecv_new(ntg_object_vec* vec);
@@ -71,8 +71,8 @@ bool ntg_const_object_vec_contains(
 
 struct ntg_const_object_vecv
 {
-    const ntg_object* const * const data;
-    const size_t count;
+    const ntg_object* const * data;
+    size_t count;
 };
 
 struct ntg_const_object_vecv ntg_const_object_vecv_new(ntg_const_object_vec* vec);

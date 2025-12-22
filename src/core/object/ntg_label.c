@@ -118,20 +118,26 @@ static void trim_text(ntg_label* label)
 
 static void init_default_values(ntg_label* label)
 {
-    label->__orientation = NTG_ORIENTATION_H;
     label->__text = (struct ntg_str) {0};
-    label->__gfx_base = NT_GFX_DEFAULT;
-    label->__gfx_adjusted = NT_GFX_DEFAULT;
-    label->__primary_alignment = NTG_TEXT_ALIGNMENT_1;
-    label->__secondary_alignment = NTG_ALIGNMENT_1;
-    label->__wrap_mode = NTG_TEXT_WRAP_NOWRAP;
-    label->__indent = 0;
-    label->__autotrim = true;
+    label->__opts = ntg_label_opts_default();
+}
+
+struct ntg_label_opts ntg_label_opts_default()
+{
+    return (struct ntg_label_opts) {
+        .orientation = NTG_ORIENTATION_H,
+        .gfx = NT_GFX_DEFAULT,
+        .palignment = NTG_TEXT_ALIGNMENT_1,
+        .salignment = NTG_ALIGNMENT_1,
+        .wrap = NTG_TEXT_WRAP_NOWRAP,
+        .autotrim = true,
+        .indent = false
+    };
 }
 
 void _ntg_label_init_(
         ntg_label* label,
-        ntg_orientation orientation,
+        struct ntg_label_opts opts,
         struct ntg_object_event_ops event_ops,
         ntg_object_deinit_fn deinit_fn,
         void* data,
@@ -156,9 +162,21 @@ void _ntg_label_init_(
             data,
             container);
 
-    init_default_values(label);
+    label->__opts = opts;
+}
 
-    label->__orientation = orientation;
+struct ntg_label_opts ntg_label_get_opts(const ntg_label* label)
+{
+    assert(label != NULL);
+
+    return label->__opts;
+}
+
+void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
+{
+    assert(label != NULL);
+
+    label->__opts = opts;
 }
 
 void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
@@ -171,6 +189,8 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
         return;
     }
 
+    assert(text.len < 1000000);
+
     char* text_copy = (char*)malloc(text.len);
     assert(text_copy != NULL);
 
@@ -181,51 +201,7 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
         .len = text.len
     };
 
-    if(label->__autotrim) trim_text(label);
-}
-
-void ntg_label_set_gfx(ntg_label* label, struct nt_gfx gfx)
-{
-    assert(label != NULL);
-
-    label->__gfx_base = gfx;
-}
-
-void ntg_label_set_primary_alignment(ntg_label* label, ntg_text_alignment alignment)
-{
-    assert(label != NULL);
-
-    label->__primary_alignment = alignment;
-}
-
-void ntg_label_set_secondary_alignment(ntg_label* label, ntg_alignment alignment)
-{
-    assert(label != NULL);
-
-    label->__secondary_alignment = alignment;
-}
-
-void ntg_label_set_wrap_mode(ntg_label* label, ntg_text_wrap_mode wrap_mode)
-{
-    assert(label != NULL);
-
-    label->__wrap_mode = wrap_mode;
-}
-
-void ntg_label_set_indent(ntg_label* label, size_t indent)
-{
-    assert(label != NULL);
-
-    label->__indent = indent;
-}
-
-void ntg_label_set_autotrim(ntg_label* label, bool autotrim)
-{
-    assert(label != NULL);
-
-    label->__autotrim = autotrim;
-
-    if(autotrim) trim_text(label);
+    if(label->__opts.autotrim) trim_text(label);
 }
 
 struct ntg_strv ntg_label_get_text(const ntg_label* label)
@@ -246,48 +222,6 @@ struct ntg_strv ntg_label_get_text(const ntg_label* label)
             .len = label->__text.len
         };
     }
-}
-
-struct nt_gfx ntg_label_get_gfx(const ntg_label* label)
-{
-    assert(label != NULL);
-
-    return label->__gfx_base;
-}
-
-ntg_text_alignment ntg_label_get_primary_alignment(const ntg_label* label)
-{
-    assert(label != NULL);
-
-    return label->__primary_alignment;
-}
-
-ntg_alignment ntg_label_get_secondary_alignment(const ntg_label* label)
-{
-    assert(label != NULL);
-
-    return label->__secondary_alignment;
-}
-
-ntg_text_wrap_mode ntg_label_get_wrap_mode(const ntg_label* label)
-{
-    assert(label != NULL);
-
-    return label->__wrap_mode;
-}
-
-size_t ntg_label_get_indent(const ntg_label* label)
-{
-    assert(label != NULL);
-
-    return label->__indent;
-}
-
-bool ntg_label_get_autotrim(const ntg_label* label)
-{
-    assert(label != NULL);
-
-    return label->__autotrim;
 }
 
 void _ntg_label_deinit_fn(ntg_object* object)
@@ -343,21 +277,21 @@ struct ntg_object_measure _ntg_label_measure_fn(
     if(rows.count == 0) return (struct ntg_object_measure) {0};
 
     struct ntg_object_measure result;
-    switch(label->__wrap_mode)
+    switch(label->__opts.wrap)
     {
         case NTG_TEXT_WRAP_NOWRAP:
             result = measure_nowrap_fn(rows.views, rows.count, 
-                    label->__orientation, label->__indent,
+                    label->__opts.orientation, label->__opts.indent,
                     orientation, for_size, arena);
             break;
         case NTG_TEXT_WRAP_WRAP:
             result = measure_wrap_fn(rows.views, rows.count,
-                    label->__orientation, label->__indent, orientation,
+                    label->__opts.orientation, label->__opts.indent, orientation,
                     for_size, arena);
             break;
         case NTG_TEXT_WRAP_WORD_WRAP:
             result = measure_wwrap_fn(rows.views, rows.count,
-                    label->__orientation, label->__indent, orientation,
+                    label->__opts.orientation, label->__opts.indent, orientation,
                     for_size, arena);
             break;
 
@@ -388,7 +322,7 @@ void _ntg_label_draw_fn(
 
     /* Init content matrix */
     struct ntg_xy content_size = 
-        (label->__orientation == NTG_ORIENTATION_H) ?
+        (label->__opts.orientation == NTG_ORIENTATION_H) ?
         size :
         ntg_xy_transpose(size);
 
@@ -417,7 +351,7 @@ void _ntg_label_draw_fn(
     assert(rows.views != NULL);
     if(rows.count == 0) return;
 
-    size_t capped_indent = _min2_size(label->__indent, content_size.x);
+    size_t capped_indent = _min2_size(label->__opts.indent, content_size.x);
 
     /* Create content matrix */
     size_t i, j, k;
@@ -435,7 +369,7 @@ void _ntg_label_draw_fn(
     {
         _it_wrap_rows = NULL;
         _it_wrap_rows_count = 0;
-        switch(label->__wrap_mode)
+        switch(label->__opts.wrap)
         {
             case NTG_TEXT_WRAP_NOWRAP:
                get_wrap_rows_nowrap(rows.views[i], content_size.x, &_it_wrap_rows,
@@ -459,7 +393,7 @@ void _ntg_label_draw_fn(
             /* Avoid overflow in switch statement */
             _it_wrap_rows[j].count = _min2_size(_it_wrap_rows[j].count, content_size.x);
 
-            switch(label->__primary_alignment)
+            switch(label->__opts.palignment)
             {
                 case NTG_TEXT_ALIGNMENT_1:
                     it_row_align_indent = 0;
@@ -490,7 +424,7 @@ void _ntg_label_draw_fn(
             {
                 if(_it_wrap_rows[j].data[k] == ' ')
                 {
-                    if(label->__primary_alignment == NTG_TEXT_ALIGNMENT_JUSTIFY)
+                    if(label->__opts.palignment == NTG_TEXT_ALIGNMENT_JUSTIFY)
                     {
                         size_t space_justified_count = (it_wrap_row_extra_space / it_wrap_row_space_count) +
                             (it_wrap_row_space_counter < (it_wrap_row_extra_space % it_wrap_row_space_count)); 
@@ -519,7 +453,7 @@ void _ntg_label_draw_fn(
     /* Transpose the content matrix if needed */
     ntg_cell* it_cell;
     uint32_t* it_content;
-    if(label->__orientation == NTG_ORIENTATION_H)
+    if(label->__opts.orientation == NTG_ORIENTATION_H)
     {
         for(i = 0; i < content_size.y; i++)
         {
@@ -528,7 +462,7 @@ void _ntg_label_draw_fn(
                 it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
                 it_content = label_content_at(&_content, ntg_xy(j, i));
 
-                (*it_cell) = ntg_cell_full((*it_content), label->__gfx_base);
+                (*it_cell) = ntg_cell_full((*it_content), label->__opts.gfx);
             }
         }
     }
@@ -541,7 +475,7 @@ void _ntg_label_draw_fn(
                 it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(i, j));
                 it_content = label_content_at(&_content, ntg_xy(j, i));
 
-                (*it_cell) = ntg_cell_full((*it_content), label->__gfx_base);
+                (*it_cell) = ntg_cell_full((*it_content), label->__opts.gfx);
             }
         }
     }

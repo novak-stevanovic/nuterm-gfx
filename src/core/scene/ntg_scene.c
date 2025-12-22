@@ -197,13 +197,12 @@ static void update_focused(ntg_scene* scene)
     {
         if(old != NULL)
         {
-            struct ntg_object_unfocus_ctx ctx = {
-                .new = new,
-                .scene = scene
-            };
-
-            // ntg_log_log("DADA %p", new->_on_focus_fn);
-            ntg_object_on_unfocus(old, ctx);
+            // struct ntg_object_unfocus_ctx ctx = {
+            //     .new = new,
+            //     .scene = scene
+            // };
+            //
+            // ntg_object_on_unfocus(old, ctx);
         }
 
         if(new != NULL)
@@ -213,12 +212,12 @@ static void update_focused(ntg_scene* scene)
 
             scene->_focused = new;
 
-            struct ntg_object_focus_ctx focus_ctx = {
-                .old = old,
-                .scene = scene
-            };
+            // struct ntg_object_focus_ctx focus_ctx = {
+            //     .old = old,
+            //     .scene = scene
+            // };
 
-            ntg_object_on_focus(new, focus_ctx);
+            // ntg_object_on_focus(new, focus_ctx);
 
             scene->__pending_focused = NULL;
         }

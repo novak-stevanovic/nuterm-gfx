@@ -49,6 +49,7 @@ struct ntg_padding_width ntg_padding_get_width(const ntg_padding* padding);
 struct ntg_padding_ldata
 {
     struct ntg_padding_width final_width;
+    void* data;
 };
 
 void _ntg_padding_deinit_fn(ntg_object* object);

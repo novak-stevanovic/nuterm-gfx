@@ -25,7 +25,7 @@ struct ntg_def_border
 
 void _ntg_def_border_init_(
         ntg_def_border* def_border,
-        struct ntg_def_border_style opts,
+        struct ntg_def_border_style style,
         struct ntg_padding_width init_width,
         ntg_object_container* container);
 

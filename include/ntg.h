@@ -55,9 +55,6 @@ void ntg_kickstart_end(struct ntg_kickstart_obj* obj);
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: ntg_object: ntg_on_object_(un)focus_fn necessary? process_key_event_fn necessary?
-// TODO: put cap on ntg_label text? | *
-// --------------------------------------------------------------
 // TODO: ntg_event_dlgt: unsub, destroy order? }------------------------|
 // TODO: ntg_object_container: rethink - object register? }-------------|
 // TODO: global: add ntg_allocator for faster object initialization? }--| **
@@ -66,7 +63,7 @@ void ntg_kickstart_end(struct ntg_kickstart_obj* obj);
 // --------------------------------------------------------------
 // TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? | *
 // TODO: ntg_list and/or ntg_table: implement | **
-// TODO: ntg_scene: implement multi-root system | **
+// TODO: ntg_scene: implement multi-root, multifocused? system | **
 // TODO: ntg_scene: optimize ntg_def_scene layout fn | **
 // TODO: nuterm: add signal event, maybe more event types - allow user to define events? | *
 // TODO: add convenience macros | *
