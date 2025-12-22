@@ -6,7 +6,6 @@
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_measure_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_object_types.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
@@ -34,28 +33,30 @@ struct ntg_box_opts ntg_box_opts_default()
 void _ntg_box_init_(
         ntg_box* box,
         struct ntg_box_opts opts,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container)
+        ntg_object_process_key_fn process_key_fn,
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(box != NULL);
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_init_data object_data = {
             .layout_init_fn = _ntg_box_layout_init_fn,
             .layout_deinit_fn = _ntg_box_layout_deinit_fn,
             .measure_fn = _ntg_box_measure_fn,
             .constrain_fn = _ntg_box_constrain_fn,
             .arrange_fn = __ntg_box_arrange_fn,
-            .draw_fn = NULL
+            .draw_fn = NULL,
+            .process_key_fn = process_key_fn
     };
 
-    _ntg_object_init_(
-            (ntg_object*)box,
-            NTG_OBJECT_BOX,
-            layout_ops,
-            event_ops,
-            (deinit_fn != NULL) ? deinit_fn : _ntg_box_deinit_fn,
-            container);
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_BOX,
+        .deinit_fn = _ntg_box_deinit_fn,
+        .group = group,
+        .system = system
+    };
+
+    _ntg_object_init_((ntg_object*)box, object_data, entity_data);
 
     box->__opts = opts;
 }
@@ -106,11 +107,13 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 
 static inline size_t calculate_total_spacing(size_t spacing, size_t child_count);
 
-void _ntg_box_deinit_fn(ntg_object* _box)
+void _ntg_box_deinit_fn(ntg_entity* entity)
 {
-    assert(_box != NULL);
+    assert(entity != NULL);
 
-    init_default_values((ntg_box*)_box);
+    _ntg_object_deinit_fn(entity);
+
+    init_default_values((ntg_box*)entity);
 }
 
 void* _ntg_box_layout_init_fn(const ntg_object* object)

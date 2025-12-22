@@ -27,9 +27,9 @@ struct ntg_box_opts ntg_box_opts_default();
 void _ntg_box_init_(
         ntg_box* box,
         struct ntg_box_opts opts,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container);
+        ntg_object_process_key_fn process_key_fn,
+        ntg_entity_group* group,
+        ntg_entity_system* system);
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box);
 void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts);
@@ -48,7 +48,7 @@ struct ntg_box
     struct ntg_box_opts __opts;
 };
 
-void _ntg_box_deinit_fn(ntg_object* _box);
+void _ntg_box_deinit_fn(ntg_entity* entity);
 
 struct ntg_box_ldata
 {

@@ -30,26 +30,29 @@ static void draw_fn(ntg_object* object, void* _layout_data);
 void _ntg_def_scene_init_(
         ntg_def_scene* scene,
         ntg_scene_process_key_fn process_key_fn,
-        ntg_scene_deinit_fn deinit_fn)
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(scene != NULL);
+    
+    struct ntg_entity_init_data entity_data = {
+        .deinit_fn = _ntg_def_scene_deinit_fn,
+        .type = &NTG_ENTITY_TYPE_DEF_SCENE,
+        .group = group,
+        .system = system
+    };
 
-    _ntg_scene_init_((ntg_scene*)scene,
-            _ntg_def_scene_layout_fn,
-            NULL,
-            NULL,
-            process_key_fn,
-            (deinit_fn != NULL) ? deinit_fn : _ntg_def_scene_deinit_fn);
+    struct ntg_scene_init_data scene_data = {
+        .layout_fn = _ntg_def_scene_layout_fn,
+        .on_register_fn = NULL,
+        .on_unregister_fn = NULL,
+        .process_key_fn = process_key_fn
+    };
+
+    _ntg_scene_init_((ntg_scene*)scene, scene_data, entity_data);
 
     scene->__layout_arena = sarena_create(100000);
     assert(scene->__layout_arena != NULL);
-}
-
-void _ntg_def_scene_deinit_(ntg_def_scene* scene)
-{
-    assert(scene != NULL);
-
-    _ntg_def_scene_deinit_fn((ntg_scene*)scene);
 }
 
 struct ntg_layout_data
@@ -57,13 +60,14 @@ struct ntg_layout_data
     ntg_def_scene* scene;
 };
 
-void _ntg_def_scene_deinit_fn(ntg_scene* _scene)
+void _ntg_def_scene_deinit_fn(ntg_entity* entity)
 {
-    ntg_def_scene* scene = (ntg_def_scene*)_scene;
-    _ntg_scene_deinit_(_scene);
+    _ntg_scene_deinit_fn(entity);
 
-    sarena_destroy(scene->__layout_arena);
-    scene->__layout_arena = NULL;
+    ntg_def_scene* def_scene = (ntg_def_scene*)entity;
+
+    sarena_destroy(def_scene->__layout_arena);
+    def_scene->__layout_arena = NULL;
 }
 
 void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)

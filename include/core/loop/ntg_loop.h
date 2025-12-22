@@ -2,6 +2,7 @@
 #define _NTG_LOOP_H_
 
 #include <stdbool.h>
+#include "base/entity/ntg_entity.h"
 #include "nt_event.h"
 
 /* -------------------------------------------------------------------------- */
@@ -14,8 +15,6 @@ typedef struct ntg_loop ntg_loop;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 
 typedef struct ntg_stage ntg_stage;
-typedef struct ntg_event_dlgt ntg_event_dlgt;
-typedef struct ntg_listenable ntg_listenable;
 typedef struct ntg_taskmaster ntg_taskmaster;
 typedef struct ntg_renderer ntg_renderer;
 
@@ -36,18 +35,23 @@ typedef void (*ntg_loop_process_event_fn)(
 /* LOOP */
 /* ------------------------------------------------------ */
 
+struct ntg_loop_init_data
+{
+    ntg_loop_process_event_fn process_event_fn;
+    ntg_stage* init_stage; // non-NULL
+    ntg_renderer* renderer; // non-NULL
+    ntg_taskmaster* taskmaster; // non-NULL
+    unsigned int framerate;
+};
+
+/* Not inheritable */
 void _ntg_loop_init_(ntg_loop* loop,
-        ntg_loop_process_event_fn process_event_fn,
-        ntg_stage* init_stage,
-        ntg_renderer* renderer,
-        ntg_taskmaster* taskmaster,
-        unsigned int framerate);
-void _ntg_loop_deinit_(ntg_loop* loop);
+        struct ntg_loop_init_data loop_data,
+        ntg_entity_group* group,
+        ntg_entity_system* system);
+void _ntg_loop_deinit_fn(ntg_entity* entity);
 
 void ntg_loop_run(ntg_loop* loop, void* ctx_data);
-
-/* Raises NTG_EVT_APP_RESIZE, NTG_EVT_APP_KEY */
-ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop);
 
 /* ------------------------------------------------------ */
 /* LOOP_CTX */
@@ -79,8 +83,6 @@ struct ntg_loop
     ntg_taskmaster* __taskmaster;
     unsigned int __framerate;
     void* data;
-
-    ntg_event_dlgt* __delegate;
 };
 
 #endif // _NTG_LOOP_H_

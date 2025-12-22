@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "base/entity/ntg_entity.h"
 #include "base/ntg_cell.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "shared/ntg_xy.h"
@@ -12,13 +13,8 @@
 /* -------------------------------------------------------------------------- */
 
 typedef struct ntg_object ntg_object;
-typedef struct ntg_object_container ntg_object_container;
 
 typedef struct ntg_scene ntg_scene;
-typedef struct ntg_listenable ntg_listenable;
-typedef struct ntg_event_dlgt ntg_event_dlgt;
-typedef struct ntg_event_sub ntg_event_sub;
-typedef struct ntg_padding ntg_padding;
 typedef struct ntg_padding ntg_padding;
 typedef struct ntg_object_measure_map ntg_object_measure_map;
 typedef struct ntg_object_size_map ntg_object_size_map;
@@ -44,7 +40,6 @@ struct ntg_object_key_ctx;
 /* Dynamically allocates and initializes an object that will be used in the
  * layout process for `object`. */
 typedef void* (*ntg_object_layout_init_fn)(const ntg_object* object);
-
 
 /* Frees the resources associated with `layout_data` object. */
 typedef void (*ntg_object_layout_deinit_fn)(
@@ -150,15 +145,15 @@ typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event,
         struct ntg_object_key_ctx ctx);
 
-/* ------------------------------------------------------ */
-
-typedef void (*ntg_object_deinit_fn)(ntg_object* object);
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_object_layout_ops
+/* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
+
+struct ntg_object_init_data
 {
     ntg_object_layout_init_fn layout_init_fn;
     ntg_object_layout_deinit_fn layout_deinit_fn;
@@ -166,36 +161,24 @@ struct ntg_object_layout_ops
     ntg_object_constrain_fn constrain_fn;
     ntg_object_arrange_fn arrange_fn;
     ntg_object_draw_fn draw_fn;
-};
 
-struct ntg_object_event_ops
-{
     ntg_object_process_key_fn process_key_fn;
 };
 
-struct ntg_object_event_ops ntg_object_event_ops_default();
-
 void _ntg_object_init_(ntg_object* object,
-        unsigned int type,
-        struct ntg_object_layout_ops layout_ops,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container);
-void _ntg_object_deinit_(ntg_object* object);
+        struct ntg_object_init_data object_data,
+        struct ntg_entity_init_data entity_data);
 
-void _ntg_object_deinit_fn(ntg_object* object);
-
-ntg_object_container* ntg_object_container_new();
-void ntg_object_container_destroy(ntg_object_container* container);
+void _ntg_object_deinit_fn(ntg_entity* entity);
 
 /* ------------------------------------------------------ */
 /* IDENTITY */
 /* ------------------------------------------------------ */
 
-unsigned int ntg_object_get_type(const ntg_object* object);
 bool ntg_object_is_widget(const ntg_object* object);
 bool ntg_object_is_decorator(const ntg_object* object);
-unsigned int ntg_object_get_id(const ntg_object* object);
+bool ntg_object_is_border(const ntg_object* object);
+bool ntg_object_is_padding(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 /* OBJECT TREE */
@@ -313,16 +296,13 @@ bool ntg_object_feed_key(ntg_object* object,
         struct nt_key_event key_event,
         struct ntg_object_key_ctx ctx);
 
-ntg_listenable* ntg_object_get_listenable(ntg_object* object);
-
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object
 {
-    unsigned int __type;
-    unsigned int __id;
+    ntg_entity __base;
 
     struct
     {
@@ -342,12 +322,19 @@ struct ntg_object
 
     struct
     {
-        struct ntg_object_layout_ops __layout_ops;
-        struct ntg_object_event_ops __event_ops;
-        ntg_object_deinit_fn __deinit_fn;
+        ntg_object_layout_init_fn __layout_init_fn;
+        ntg_object_layout_deinit_fn __layout_deinit_fn;
+        ntg_object_measure_fn __measure_fn;
+        ntg_object_constrain_fn __constrain_fn;
+        ntg_object_arrange_fn __arrange_fn;
+        ntg_object_draw_fn __draw_fn;
+
     };
 
-    ntg_event_dlgt* _delegate;
+    struct
+    {
+        ntg_object_process_key_fn __process_key_fn;
+    };
 
     void* data;
 };

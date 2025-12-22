@@ -5,6 +5,7 @@
 #include "ntg.h"
 #include "nt.h"
 #include "shared/ntg_log.h"
+#include "shared/sarena.h"
 
 /* -------------------------------------------------------------------------- */
 
@@ -95,11 +96,16 @@ struct ntg_kickstart_obj ntg_kickstart(
         ntg_stage* init_stage,
         unsigned int loop_framerate, /* non-zero */
         ntg_loop_process_event_fn loop_process_event_fn,
-        void* loop_data, void* renderer_data)
+        void* loop_data, void* renderer_data,
+        ntg_entity_system* system)
 {
     assert(loop_framerate > 0);
     assert(loop_framerate < 1000);
-    // assert(loop_process_key_fn != NULL);
+
+    sarena* arena = sarena_create(20000);
+    assert(arena != NULL);
+
+    ntg_entity_group* group = ntg_entity_group_new(arena);
 
     ntg_loop* loop = (ntg_loop*)malloc(sizeof(ntg_loop));
     ntg_loop* _loop = (ntg_loop*)loop;
@@ -110,23 +116,24 @@ struct ntg_kickstart_obj ntg_kickstart(
     assert(renderer != NULL);
 
     ntg_taskmaster* taskmaster = ntg_taskmaster_new();
+
+    struct ntg_loop_init_data loop_init_data = {
+        .taskmaster = taskmaster,
+        .renderer = _renderer,
+        .framerate = loop_framerate,
+        .process_event_fn = loop_process_event_fn,
+        .init_stage = init_stage
+    };
     
-    _ntg_loop_init_(
-            loop,
-            loop_process_event_fn,
-            init_stage,
-            _renderer,
-            taskmaster,
-            loop_framerate);
+    _ntg_loop_init_(loop, loop_init_data, group, system);
 
     _loop->data = loop_data;
 
-    _ntg_def_renderer_init_(renderer, _loop);
+    _ntg_def_renderer_init_(renderer, _loop, group, system);
     _renderer->data = renderer_data;
 
     return (struct ntg_kickstart_obj) {
         .renderer = renderer,
-        ._renderer = _renderer,
 
         .taskmaster = taskmaster,
 
@@ -138,11 +145,9 @@ void ntg_kickstart_end(struct ntg_kickstart_obj* obj)
 {
     assert(obj != NULL);
 
-    _ntg_def_renderer_deinit_(obj->renderer);
-    free(obj->renderer);
-
-    _ntg_loop_deinit_(obj->loop);
-    free(obj->loop);
+    sarena* arena = ntg_entity_group_get_arena(obj->group);
+    ntg_entity_group_destroy(obj->group);
+    sarena_destroy(arena);
 
     ntg_taskmaster_destroy(obj->taskmaster);
 

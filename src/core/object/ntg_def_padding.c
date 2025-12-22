@@ -5,25 +5,29 @@ void _ntg_def_padding_init_(
         ntg_def_padding* def_padding,
         ntg_cell cell,
         struct ntg_padding_width init_width,
-        ntg_object_container* container)
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(def_padding != NULL);
 
-    _ntg_padding_init_((ntg_padding*)def_padding,
-            NTG_PADDING_PADDING,
-            init_width,
-            _ntg_def_padding_draw_fn,
-            _ntg_def_padding_deinit_fn,
-            container);
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_DEF_PADDING,
+        .deinit_fn = _ntg_def_padding_deinit_fn,
+        .group = group,
+        .system = system
+    };
+
+    _ntg_padding_init_((ntg_padding*)def_padding, init_width,
+            _ntg_def_padding_draw_fn, entity_data);
 
     def_padding->__cell = cell;
 }
 
-void _ntg_def_padding_deinit_fn(ntg_object* object)
+void _ntg_def_padding_deinit_fn(ntg_entity* entity)
 {
-    ntg_def_padding* def_padding = (ntg_def_padding*)object;
+    ntg_def_padding* def_padding = (ntg_def_padding*)entity;
 
-    _ntg_padding_deinit_fn(object);
+    _ntg_padding_deinit_fn(entity);
 
     def_padding->__cell = ntg_cell_default();
 }

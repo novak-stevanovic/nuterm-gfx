@@ -12,9 +12,9 @@ typedef struct ntg_color_block ntg_color_block;
 void _ntg_color_block_init_(
         ntg_color_block* color_block,
         nt_color color,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container);
+        ntg_object_process_key_fn process_key_fn,
+        ntg_entity_group* group,
+        ntg_entity_system* system);
 
 nt_color ntg_color_block_get_color(const ntg_color_block* color_block);
 void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
@@ -29,7 +29,7 @@ struct ntg_color_block
     nt_color __color;
 };
 
-void _ntg_color_block_deinit_fn(ntg_object* object);
+void _ntg_color_block_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_color_block_measure_fn(
         const ntg_object* object,

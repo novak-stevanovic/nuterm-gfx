@@ -31,9 +31,9 @@ struct ntg_label_opts ntg_label_opts_default();
 void _ntg_label_init_(
         ntg_label* label,
         struct ntg_label_opts opts,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container);
+        ntg_object_process_key_fn process_key_fn,
+        ntg_entity_group* group,
+        ntg_entity_system* system);
 
 struct ntg_label_opts ntg_label_get_opts(const ntg_label* label);
 void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts);
@@ -53,7 +53,7 @@ struct ntg_label
     struct ntg_label_opts __opts;
 };
 
-void _ntg_label_deinit_fn(ntg_object* object);
+void _ntg_label_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_label_measure_fn(
         const ntg_object* object,

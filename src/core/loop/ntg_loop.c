@@ -2,8 +2,8 @@
 #include <assert.h>
 
 #include "core/loop/ntg_loop.h"
-#include "base/event/ntg_event.h"
-#include "base/event/ntg_event_types.h"
+#include "base/entity/ntg_event.h"
+#include "base/entity/ntg_event_types.h"
 #include "core/loop/ntg_taskmaster.h"
 #include "core/renderer/ntg_renderer.h"
 #include "core/object/shared/ntg_object_drawing.h"
@@ -74,36 +74,46 @@ static void _process_event_fn_def(ntg_loop* loop,
         ntg_loop_ctx* ctx, struct nt_event event);
 
 void _ntg_loop_init_(ntg_loop* loop,
-        ntg_loop_process_event_fn process_event_fn,
-        ntg_stage* init_stage,
-        ntg_renderer* renderer,
-        ntg_taskmaster* taskmaster,
-        unsigned int framerate)
+        struct ntg_loop_init_data loop_data,
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(loop != NULL);
-    assert(init_stage != NULL);
-    assert(taskmaster != NULL);
+    assert(loop_data.init_stage != NULL);
+    assert(loop_data.taskmaster != NULL);
+    assert(loop_data.renderer != NULL);
 
-    loop->__process_event_fn = (process_event_fn != NULL) ?
-        process_event_fn : _process_event_fn_def;
-    loop->__init_stage = init_stage;
-    loop->__renderer = renderer;
-    loop->__taskmaster = taskmaster;
-    loop->__framerate = framerate;
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_LOOP,
+        .deinit_fn = _ntg_loop_deinit_fn,
+        .group = group,
+        .system = system
+    };
+    _ntg_entity_init_((ntg_entity*)loop, entity_data);
+
+    if(loop_data.process_event_fn == NULL)
+        loop->__process_event_fn = _process_event_fn_def;
+    loop->__init_stage = loop_data.init_stage;
+    loop->__renderer = loop_data.renderer;
+    loop->__taskmaster = loop_data.taskmaster;
+    loop->__framerate = loop_data.framerate;
     loop->data = NULL;
-    loop->__delegate = ntg_event_dlgt_new();
 }
 
-void _ntg_loop_deinit_(ntg_loop* loop)
+void _ntg_loop_deinit_fn(ntg_entity* entity)
 {
-    assert(loop != NULL);
+    assert(entity != NULL);
+
+    _ntg_entity_deinit_fn(entity);
+
+    ntg_loop* loop = (ntg_loop*)entity;
 
     loop->__process_event_fn = NULL;
-    ntg_event_dlgt_destroy(loop->__delegate);
-    loop->__delegate = NULL;
     loop->__renderer = NULL;
     loop->data = NULL;
     loop->__framerate = 0;
+    loop->__init_stage = NULL;
+    loop->__taskmaster = NULL;
 }
 
 void ntg_loop_run(ntg_loop* loop, void* ctx_data)
@@ -171,8 +181,9 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
             {
                 case NT_EVENT_KEY:
                     key_data.key = _nt_event.key_data;
-                    ntg_event_dlgt_raise(loop->__delegate,
-                            NTG_EVENT_APP_KEYPRESS, loop, &key_data);
+                    // TODO:
+                    // ntg_event_dlgt_raise(loop->__delegate,
+                    //         NTG_EVENT_APP_KEYPRESS, loop, &key_data);
                     break;
 
                 case NT_EVENT_RESIZE:
@@ -182,8 +193,9 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
                             _nt_event.resize_data.height);
                     ctx.app_size = app_size;
                     resize_data.new = app_size;
-                    ntg_event_dlgt_raise(loop->__delegate,
-                            NTG_EVENT_APP_RESIZE, loop, &resize_data);
+                    // TODO:
+                    // ntg_event_dlgt_raise(loop->__delegate,
+                    //         NTG_EVENT_APP_RESIZE, loop, &resize_data);
                     break;
                 case NT_EVENT_TIMEOUT: assert(0);
             }
@@ -200,13 +212,6 @@ void ntg_loop_run(ntg_loop* loop, void* ctx_data)
     }
 
     _ntg_loop_ctx_deinit_(&ctx);
-}
-
-ntg_listenable* ntg_loop_get_listenable(ntg_loop* loop)
-{
-    assert(loop != NULL);
-
-    return ntg_event_dlgt_listenable(loop->__delegate);
 }
 
 /* -------------------------------------------------------------------------- */

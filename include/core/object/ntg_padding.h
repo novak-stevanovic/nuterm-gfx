@@ -13,12 +13,6 @@ struct ntg_padding_width
 struct ntg_padding_width ntg_padding_width(size_t north,
         size_t east, size_t south, size_t west);
 
-typedef enum ntg_padding_type
-{
-    NTG_PADDING_PADDING,
-    NTG_PADDING_BORDER
-} ntg_padding_type;
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
@@ -32,11 +26,9 @@ struct ntg_padding
 
 void _ntg_padding_init_(
         ntg_padding* padding,
-        ntg_padding_type padding_type,
         struct ntg_padding_width init_width,
         ntg_object_draw_fn draw_fn,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container);
+        struct ntg_entity_init_data entity_data);
 
 void ntg_padding_set_width(ntg_padding* padding, struct ntg_padding_width width);
 struct ntg_padding_width ntg_padding_get_width(const ntg_padding* padding);
@@ -51,7 +43,7 @@ struct ntg_padding_ldata
     void* data;
 };
 
-void _ntg_padding_deinit_fn(ntg_object* object);
+void _ntg_padding_deinit_fn(ntg_entity* object);
 
 void* _ntg_padding_layout_init_fn(const ntg_object* object);
 void _ntg_padding_layout_deinit_fn(const ntg_object* object, void* layout_data);

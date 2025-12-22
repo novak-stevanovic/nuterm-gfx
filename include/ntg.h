@@ -36,24 +36,31 @@ void* ntg_wait();
 
 struct ntg_kickstart_obj
 {
+    ntg_entity_group* group;
+
     ntg_loop* loop;
 
     ntg_taskmaster* taskmaster;
 
     ntg_def_renderer* renderer;
-    ntg_renderer* _renderer;
 };
 
 struct ntg_kickstart_obj ntg_kickstart(
         ntg_stage* init_stage,
         unsigned int loop_framerate, /* non-zero */
         ntg_loop_process_event_fn loop_process_event_fn,
-        void* loop_data, void* renderer_data);
+        void* loop_data, void* renderer_data,
+        ntg_entity_system* system);
 void ntg_kickstart_end(struct ntg_kickstart_obj* obj);
 
 /* -------------------------------------------------------------------------- */
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
+
+// TODO: include ntg_entity_type.h in ntg_entity.h ?
+// TODO: Rethink protected/internal/read-only API(including void* data field)
+// TODO: Rethink nullable argument in fns
+// TODO: ntg_border_box: ntg_object_get_group_root()...
 
 // TODO: ntg_event_dlgt: unsub, destroy order? }------------------------|
 // TODO: ntg_object_container: rethink - object register? }-------------|
@@ -67,6 +74,7 @@ void ntg_kickstart_end(struct ntg_kickstart_obj* obj);
 // TODO: ntg_scene: optimize ntg_def_scene layout fn | **
 // TODO: nuterm: add signal event, maybe more event types - allow user to define events? | *
 // TODO: add convenience macros | *
+// TODO: add inheritable constructors | *
 // TODO: add proper error-handling | ***
 
 #endif // _NTG_H_

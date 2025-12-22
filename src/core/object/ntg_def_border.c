@@ -40,16 +40,20 @@ void _ntg_def_border_init_(
         ntg_def_border* def_border,
         struct ntg_def_border_style style,
         struct ntg_padding_width init_width,
-        ntg_object_container* container)
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(def_border != NULL);
 
-    _ntg_padding_init_((ntg_padding*)def_border,
-            NTG_PADDING_BORDER,
-            init_width,
-            _ntg_def_border_draw_fn,
-            _ntg_def_border_deinit_fn,
-            container);
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_DEF_BORDER,
+        .deinit_fn = _ntg_def_border_deinit_fn,
+        .group = group,
+        .system = system
+    };
+
+    _ntg_padding_init_((ntg_padding*)def_border, init_width,
+            _ntg_def_border_draw_fn, entity_data);
 
     def_border->__style = style;
 }
@@ -62,7 +66,8 @@ void _ntg_def_border_init_monochrome_(
         ntg_def_border* def_border,
         nt_color color,
         struct ntg_padding_width init_width,
-        ntg_object_container* container)
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     struct ntg_def_border_style style = {
         .top_left = ntg_cell_bg(color),
@@ -75,7 +80,7 @@ void _ntg_def_border_init_monochrome_(
         .left = ntg_cell_bg(color),
         .padding = ntg_cell_bg(color),
     };
-    _ntg_def_border_init_(def_border, style, init_width, container);
+    _ntg_def_border_init_(def_border, style, init_width, group, system);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,11 +109,11 @@ void _ntg_def_border_draw_fn(
     draw_south(border, size, child_start, child_size, child_end, out->drawing);
 }
 
-void _ntg_def_border_deinit_fn(ntg_object* object)
+void _ntg_def_border_deinit_fn(ntg_entity* entity)
 {
-    _ntg_padding_deinit_fn(object);
+    _ntg_padding_deinit_fn(entity);
 
-    ntg_def_border* border = (ntg_def_border*)object;
+    ntg_def_border* border = (ntg_def_border*)entity;
 
     border->__style = (struct ntg_def_border_style) {0};
 }

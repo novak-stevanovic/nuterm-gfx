@@ -3,38 +3,37 @@
 
 #include "core/object/ntg_color_block.h"
 #include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_types.h"
 #include "core/object/shared/ntg_object_measure.h"
-#include "shared/_ntg_shared.h"
 
 #define NTG_COLOR_BLOCK_DEFAULT_SIZE 5
 
 void _ntg_color_block_init_(
         ntg_color_block* color_block,
         nt_color color,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container)
+        ntg_object_process_key_fn process_key_fn,
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(color_block != NULL);
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_init_data object_data = {
         .layout_init_fn = NULL,
         .layout_deinit_fn = NULL,
         .measure_fn = _ntg_color_block_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
-        .draw_fn = _ntg_color_block_draw_fn
+        .draw_fn = _ntg_color_block_draw_fn,
+        .process_key_fn = process_key_fn
     };
 
-    _ntg_object_init_(
-            (ntg_object*)color_block,
-            NTG_OBJECT_COLOR_BLOCK,
-            layout_ops,
-            event_ops,
-            (deinit_fn != NULL) ? deinit_fn : _ntg_color_block_deinit_fn,
-            container);
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_COLOR_BLOCK,
+        .deinit_fn = _ntg_color_block_deinit_fn,
+        .group = group,
+        .system = system
+    };
 
+    _ntg_object_init_((ntg_object*)color_block, object_data, entity_data);
 
     color_block->__color = color;
 }
@@ -53,13 +52,13 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
     color_block->__color = color;
 }
 
-void _ntg_color_block_deinit_fn(ntg_object* object)
+void _ntg_color_block_deinit_fn(ntg_entity* entity)
 {
-    assert(object != NULL);
+    assert(entity != NULL);
 
-    ntg_color_block* color_block = (ntg_color_block*)object;
+    ntg_color_block* color_block = (ntg_color_block*)entity;
 
-    _ntg_object_deinit_fn(object);
+    _ntg_object_deinit_fn(entity);
 
     color_block->__color = NT_COLOR_DEFAULT;
 }

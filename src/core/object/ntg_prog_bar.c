@@ -4,7 +4,6 @@
 #include "core/object/ntg_prog_bar.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_measure.h"
-#include "core/object/shared/ntg_object_types.h"
 #include "shared/_ntg_shared.h"
 
 struct ntg_prog_bar_opts ntg_prog_bar_opts_default()
@@ -20,27 +19,30 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_default()
 void _ntg_prog_bar_init_(
         ntg_prog_bar* prog_bar,
         struct ntg_prog_bar_opts opts,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container)
+        ntg_object_process_key_fn process_key_fn,
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(prog_bar != NULL);
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_init_data object_data = {
         .layout_init_fn = NULL,
         .layout_deinit_fn = NULL,
         .measure_fn = _ntg_prog_bar_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
-        .draw_fn = _ntg_prog_bar_draw_fn
+        .draw_fn = _ntg_prog_bar_draw_fn,
+        .process_key_fn = NULL
     };
 
-    _ntg_object_init_((ntg_object*)prog_bar,
-            NTG_OBJECT_PROG_BAR,
-            layout_ops,
-            event_ops,
-            (deinit_fn != NULL) ? deinit_fn : _ntg_prog_bar_deinit_fn,
-            container);
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_PROG_BAR,
+        .deinit_fn = _ntg_prog_bar_deinit_fn,
+        .group = group,
+        .system = system
+    };
+
+    _ntg_object_init_((ntg_object*)prog_bar, object_data, entity_data);
 
     prog_bar->__opts = opts;
 }
@@ -59,13 +61,11 @@ double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar)
     return prog_bar->__percentage;
 }
 
-void _ntg_prog_bar_deinit_fn(ntg_object* object)
+void _ntg_prog_bar_deinit_fn(ntg_entity* entity)
 {
-    assert(object != NULL);
+    ntg_prog_bar* prog_bar = (ntg_prog_bar*)entity;
 
-    ntg_prog_bar* prog_bar = (ntg_prog_bar*)object;
-
-    _ntg_object_deinit_fn((ntg_object*)prog_bar);
+    _ntg_object_deinit_fn(entity);
 
     prog_bar->__opts = ntg_prog_bar_opts_default();
 }

@@ -27,7 +27,8 @@ void _ntg_def_border_init_(
         ntg_def_border* def_border,
         struct ntg_def_border_style style,
         struct ntg_padding_width init_width,
-        ntg_object_container* container);
+        ntg_entity_group* group,
+        ntg_entity_system* system);
 
 /* ------------------------------------------------------ */
 /* PRESETS */
@@ -37,13 +38,14 @@ void _ntg_def_border_init_monochrome_(
         ntg_def_border* def_border,
         nt_color color,
         struct ntg_padding_width init_width,
-        ntg_object_container* container);
+        ntg_entity_group* group,
+        ntg_entity_system* system);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_border_deinit_fn(ntg_object* object);
+void _ntg_def_border_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_border_draw_fn(
         const ntg_object* object,

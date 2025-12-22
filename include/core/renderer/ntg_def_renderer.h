@@ -24,8 +24,10 @@ struct ntg_def_renderer
 
 void _ntg_def_renderer_init_(
         ntg_def_renderer* renderer,
-        ntg_loop* loop);
-void _ntg_def_renderer_deinit_(ntg_def_renderer* renderer);
+        ntg_loop* loop,
+        ntg_entity_group* group,
+        ntg_entity_system* system);
+void _ntg_def_renderer_deinit_fn(ntg_entity* entity);
 
 void __ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,

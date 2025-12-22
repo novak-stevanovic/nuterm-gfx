@@ -5,7 +5,6 @@
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_measure_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_object_types.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
 #include "shared/ntg_log.h"
@@ -23,35 +22,28 @@ struct ntg_padding_width ntg_padding_width(size_t north,
 
 void _ntg_padding_init_(
         ntg_padding* padding,
-        ntg_padding_type padding_type,
         struct ntg_padding_width init_width,
         ntg_object_draw_fn draw_fn,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container)
+        struct ntg_entity_init_data entity_data)
 {
     assert(padding != NULL);
     assert(draw_fn != NULL);
-    
-    unsigned int type = (padding_type == NTG_PADDING_PADDING) ?
-        NTG_OBJECT_PADDING : NTG_OBJECT_BORDER;
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_init_data object_data = {
         .layout_init_fn = _ntg_padding_layout_init_fn,
         .layout_deinit_fn = _ntg_padding_layout_deinit_fn,
         .measure_fn = _ntg_padding_measure_fn,
         .constrain_fn = _ntg_padding_constrain_fn,
         .arrange_fn = _ntg_padding_arrange_fn,
-        .draw_fn = draw_fn
+        .draw_fn = draw_fn,
+        .process_key_fn = NULL
     };
 
-    struct ntg_object_event_ops event_ops = {0};
+    assert(ntg_entity_instanceof(entity_data.type, &NTG_ENTITY_TYPE_PADDING));
+    if(entity_data.deinit_fn == NULL)
+        entity_data.deinit_fn = _ntg_padding_deinit_fn;
 
-    _ntg_object_init_((ntg_object*)padding,
-            type,
-            layout_ops,
-            event_ops,
-            (deinit_fn != NULL) ? deinit_fn : _ntg_padding_deinit_fn,
-            container);
+    _ntg_object_init_((ntg_object*)padding, object_data, entity_data);
 
     padding->__width = init_width;
 
@@ -72,13 +64,13 @@ struct ntg_padding_width ntg_padding_get_width(const ntg_padding* padding)
     return padding->__width;
 }
 
-void _ntg_padding_deinit_fn(ntg_object* object)
+void _ntg_padding_deinit_fn(ntg_entity* entity)
 {
-    assert(object != NULL);
+    assert(entity != NULL);
 
-    ntg_padding* padding = (ntg_padding*)object;
+    ntg_padding* padding = (ntg_padding*)entity;
 
-    _ntg_object_deinit_fn(object);
+    _ntg_object_deinit_fn(entity);
 
     padding->__width = (struct ntg_padding_width) {0};
 }

@@ -26,9 +26,9 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_default();
 void _ntg_prog_bar_init_(
         ntg_prog_bar* prog_bar,
         struct ntg_prog_bar_opts opts,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container);
+        ntg_object_process_key_fn process_key_fn,
+        ntg_entity_group* group,
+        ntg_entity_system* system);
 
 void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage);
 double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar);
@@ -45,7 +45,7 @@ struct ntg_prog_bar
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_prog_bar_deinit_fn(ntg_object* object);
+void _ntg_prog_bar_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(
         const ntg_object* object,

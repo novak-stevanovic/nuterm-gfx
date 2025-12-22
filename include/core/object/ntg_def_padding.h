@@ -20,13 +20,14 @@ void _ntg_def_padding_init_(
         ntg_def_padding* def_padding,
         ntg_cell cell,
         struct ntg_padding_width init_width,
-        ntg_object_container* container);
+        ntg_entity_group* group,
+        ntg_entity_system* system);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_padding_deinit_fn(ntg_object* object);
+void _ntg_def_padding_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_padding_draw_fn(
         const ntg_object* object,

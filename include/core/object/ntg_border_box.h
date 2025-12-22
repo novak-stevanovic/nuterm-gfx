@@ -11,9 +11,9 @@ typedef struct ntg_border_box ntg_border_box;
 
 void _ntg_border_box_init_(
         ntg_border_box* box,
-        struct ntg_object_event_ops event_ops,
-        ntg_object_deinit_fn deinit_fn,
-        ntg_object_container* container);
+        ntg_object_process_key_fn process_key_fn,
+        ntg_entity_group* group,
+        ntg_entity_system* system);
 
 ntg_object* ntg_border_box_get_north(ntg_border_box* box);
 ntg_object* ntg_border_box_get_east(ntg_border_box* box);
@@ -38,7 +38,7 @@ struct ntg_border_box
                *__west, *__center;
 };
 
-void _ntg_border_box_deinit_fn(ntg_object* _border_box);
+void _ntg_border_box_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_border_box_measure_fn(
         const ntg_object* object,

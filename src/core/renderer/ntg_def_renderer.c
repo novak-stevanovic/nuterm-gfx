@@ -5,12 +5,12 @@
 #include "core/stage/shared/ntg_stage_drawing.h"
 #include "nt.h"
 #include "nt_charbuff.h"
-#include "base/event/ntg_event.h"
+#include "base/entity/ntg_event.h"
 #include "shared/ntg_log.h"
 
 #define CHARBUFF_CAP 100000
 
-static void listenable_handler(void* subscriber, struct ntg_event event);
+static void listenable_handler(ntg_entity* _subscriber, struct ntg_event event);
 
 static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
 
@@ -22,12 +22,27 @@ static void optimized_render(ntg_def_renderer* renderer,
 
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_renderer_init_(ntg_def_renderer* renderer, ntg_loop* loop)
+void _ntg_def_renderer_init_(
+        ntg_def_renderer* renderer,
+        ntg_loop* loop,
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(renderer != NULL);
     assert(loop != NULL);
 
-    _ntg_renderer_init_((ntg_renderer*)renderer, __ntg_def_renderer_render_fn);
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_DEF_RENDERER,
+        .deinit_fn = _ntg_def_renderer_deinit_fn,
+        .group = group,
+        .system = system,
+    };
+
+    struct ntg_renderer_init_data renderer_data = {
+        .render_fn = __ntg_def_renderer_render_fn
+    };
+
+    _ntg_renderer_init_((ntg_renderer*)renderer, renderer_data, entity_data);
 
     renderer->__backbuff = ntg_rcell_vgrid_new();
     assert(renderer->__backbuff != NULL);
@@ -36,15 +51,17 @@ void _ntg_def_renderer_init_(ntg_def_renderer* renderer, ntg_loop* loop)
 
     renderer->__resize = true;
 
-    ntg_listenable_listen(ntg_loop_get_listenable(loop), renderer, listenable_handler);
+    ntg_entity_observe((ntg_entity*)renderer, (ntg_entity*)loop, listenable_handler);
     renderer->__loop = loop;
 }
 
-void _ntg_def_renderer_deinit_(ntg_def_renderer* renderer)
+void _ntg_def_renderer_deinit_fn(ntg_entity* entity)
 {
-    assert(renderer != NULL);
+    assert(entity != NULL);
 
-    _ntg_renderer_deinit_((ntg_renderer*)renderer);
+    ntg_def_renderer* renderer = (ntg_def_renderer*)entity;
+
+    _ntg_renderer_deinit_fn(entity);
 
     ntg_rcell_vgrid_destroy(renderer->__backbuff);
     renderer->__backbuff = NULL;
@@ -53,9 +70,9 @@ void _ntg_def_renderer_deinit_(ntg_def_renderer* renderer)
 
     renderer->__resize = false;
 
-    ntg_listenable_stop_listening(
-            ntg_loop_get_listenable(renderer->__loop),
-            renderer,
+    ntg_entity_stop_observing(
+            (ntg_entity*)renderer,
+            (ntg_entity*)renderer->__loop,
             listenable_handler);
     renderer->__loop = NULL;
 }
@@ -164,7 +181,7 @@ static void full_render(ntg_def_renderer* renderer,
     }
 }
 
-static void listenable_handler(void* _subscriber, struct ntg_event event)
+static void listenable_handler(ntg_entity* _subscriber, struct ntg_event event)
 {
     assert(_subscriber != NULL);
 

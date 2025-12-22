@@ -96,7 +96,7 @@ static void gui_fn1(void* data)
     ntg_color_block root;
     ntg_object* _root = (ntg_object*)&root;
     _ntg_color_block_init_(&root, nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
-            ntg_object_event_ops_default(), NULL, NULL);
+            ntg_object_event_ops_def(), NULL, NULL);
 
     ntg_scene_set_root(_scene, _root);
 
@@ -114,7 +114,7 @@ static void gui_fn2(void* data)
     // Root
     ntg_border_box root;
     ntg_object* _root = (ntg_object*)&root;
-    _ntg_border_box_init_(&root, ntg_object_event_ops_default(), NULL, container);
+    _ntg_border_box_init_(&root, ntg_object_event_ops_def(), NULL, container);
 
     // North
     ntg_label north;
@@ -138,7 +138,7 @@ static void gui_fn2(void* data)
             ntg_cell_bg(nt_color_new_rgb(nt_rgb_new(0, 0, 0))),
             ntg_padding_width(1, 1, 2, 1),
             container);
-    _ntg_label_init_(&north, north_opts, ntg_object_event_ops_default(),
+    _ntg_label_init_(&north, north_opts, ntg_object_event_ops_def(),
             NULL, container);
     struct ntg_strv north_text = ntg_strv_from_cstr("Novak");
     ntg_label_set_text(&north, north_text);
@@ -152,7 +152,7 @@ static void gui_fn2(void* data)
     center_opts.orientation = NTG_ORIENTATION_V;
     center_opts.palignment = NTG_ALIGNMENT_2;
     center_opts.salignment = NTG_ALIGNMENT_2;
-    _ntg_box_init_(&center, center_opts, ntg_object_event_ops_default(), NULL, container);
+    _ntg_box_init_(&center, center_opts, ntg_object_event_ops_def(), NULL, container);
     ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
 
     // Center children
@@ -161,11 +161,11 @@ static void gui_fn2(void* data)
     ntg_object* _center2 = (ntg_object*)&center2;
     ntg_object* _center3 = (ntg_object*)&center3;
     _ntg_color_block_init_(&center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)),
-            ntg_object_event_ops_default(), NULL, container);
+            ntg_object_event_ops_def(), NULL, container);
     _ntg_color_block_init_(&center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)),
-            ntg_object_event_ops_default(), NULL, container);
+            ntg_object_event_ops_def(), NULL, container);
     _ntg_color_block_init_(&center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)),
-            ntg_object_event_ops_default(), NULL, container);
+            ntg_object_event_ops_def(), NULL, container);
     ntg_box_add_child(&center, _center1);
     ntg_box_add_child(&center, _center2);
     ntg_box_add_child(&center, _center3);
@@ -178,7 +178,7 @@ static void gui_fn2(void* data)
     south_opts.palignment = NTG_ALIGNMENT_2;
     south_opts.salignment = NTG_ALIGNMENT_2;
     south_opts.spacing = 10;
-    _ntg_box_init_(&south, south_opts, ntg_object_event_ops_default(), NULL, container);
+    _ntg_box_init_(&south, south_opts, ntg_object_event_ops_def(), NULL, container);
     // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
     struct nt_rgb rgb_white = nt_rgb_new(255, 255, 255);
     ntg_object_set_background(_south, ntg_cell_bg(nt_color_new_rgb(rgb_white)));
@@ -187,12 +187,12 @@ static void gui_fn2(void* data)
     ntg_color_block south1;
     ntg_object* _south1 = (ntg_object*)&south1;
     _ntg_color_block_init_(&south1, nt_color_new_rgb(nt_rgb_new(0, 255, 0)),
-            ntg_object_event_ops_default(), NULL, container);
+            ntg_object_event_ops_def(), NULL, container);
     // ntg_object_set_grow(_south1, ntg_xy(0, 0));
     ntg_color_block south2;
     ntg_object* _south2 = (ntg_object*)&south2;
     _ntg_color_block_init_(&south2, nt_color_new_rgb(nt_rgb_new(0, 0, 255)),
-            ntg_object_event_ops_default(), NULL, container);
+            ntg_object_event_ops_def(), NULL, container);
     // ntg_object_set_grow(_south2, ntg_xy(0, 0));
 
     // Connect south

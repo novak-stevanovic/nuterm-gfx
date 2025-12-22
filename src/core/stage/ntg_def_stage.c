@@ -5,32 +5,43 @@
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
 
-void _ntg_def_stage_init_(ntg_def_stage* stage, ntg_scene* scene)
+void _ntg_def_stage_init_(
+        ntg_def_stage* stage,
+        ntg_entity_group* group,
+        ntg_entity_system* system)
 {
     assert(stage != NULL);
-    assert(scene != NULL);
 
-    _ntg_stage_init_((ntg_stage*)stage, scene, _ntg_def_stage_compose_fn);
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_DEF_STAGE,
+        .deinit_fn = _ntg_def_stage_deinit_fn,
+        .group = group,
+        .system = system
+    };
+
+    struct ntg_stage_init_data stage_data = { .compose_fn = _ntg_def_stage_compose_fn };
+
+    _ntg_stage_init_((ntg_stage*)stage, stage_data, entity_data);
 }
 
-void _ntg_def_stage_deinit_(ntg_def_stage* stage)
+void _ntg_def_stage_deinit_fn(ntg_entity* entity)
 {
-    assert(stage != NULL);
+    assert(entity != NULL);
 
-    _ntg_stage_deinit_((ntg_stage*)stage);
+    _ntg_stage_deinit_fn(entity);
 }
 
 static void __draw_fn(ntg_object* object, void* _stage)
 {
     ntg_stage* stage = (ntg_stage*)_stage;
 
-    struct ntg_scene_node node = ntg_scene_get_node(stage->__scene, object);
+    struct ntg_scene_node node = ntg_scene_get_node(stage->_scene, object);
 
     ntg_object_drawing_place_(
             node.drawing,
             ntg_xy(0, 0),
             node.size,
-            stage->__drawing,
+            stage->_drawing,
             node.position);
 }
 
