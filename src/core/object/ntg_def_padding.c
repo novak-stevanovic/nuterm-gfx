@@ -27,9 +27,8 @@ void _ntg_def_padding_deinit_fn(ntg_entity* entity)
 {
     ntg_def_padding* def_padding = (ntg_def_padding*)entity;
 
-    _ntg_padding_deinit_fn(entity);
-
     def_padding->__cell = ntg_cell_default();
+    _ntg_padding_deinit_fn(entity);
 }
 
 void _ntg_def_padding_draw_fn(

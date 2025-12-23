@@ -39,7 +39,10 @@ void _ntg_padding_init_(
         .process_key_fn = NULL
     };
 
-    assert(ntg_entity_instanceof(entity_data.type, &NTG_ENTITY_TYPE_PADDING));
+    bool typecheck = ntg_entity_instanceof(entity_data.type, &NTG_ENTITY_TYPE_PADDING) ||
+        ntg_entity_instanceof(entity_data.type, &NTG_ENTITY_TYPE_BORDER);
+    assert(typecheck);
+
     if(entity_data.deinit_fn == NULL)
         entity_data.deinit_fn = _ntg_padding_deinit_fn;
 
@@ -69,10 +72,9 @@ void _ntg_padding_deinit_fn(ntg_entity* entity)
     assert(entity != NULL);
 
     ntg_padding* padding = (ntg_padding*)entity;
+    padding->__width = (struct ntg_padding_width) {0};
 
     _ntg_object_deinit_fn(entity);
-
-    padding->__width = (struct ntg_padding_width) {0};
 }
 
 void* _ntg_padding_layout_init_fn(const ntg_object* object)

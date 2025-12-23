@@ -5,12 +5,11 @@
 #include "core/stage/shared/ntg_stage_drawing.h"
 #include "nt.h"
 #include "nt_charbuff.h"
-#include "base/entity/ntg_event.h"
 #include "shared/ntg_log.h"
 
 #define CHARBUFF_CAP 100000
 
-static void listenable_handler(ntg_entity* _subscriber, struct ntg_event event);
+static void event_handler(ntg_entity* _subscriber, struct ntg_event event);
 
 static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
 
@@ -51,7 +50,7 @@ void _ntg_def_renderer_init_(
 
     renderer->__resize = true;
 
-    ntg_entity_observe((ntg_entity*)renderer, (ntg_entity*)loop, listenable_handler);
+    ntg_entity_observe((ntg_entity*)renderer, (ntg_entity*)loop, event_handler);
     renderer->__loop = loop;
 }
 
@@ -60,8 +59,6 @@ void _ntg_def_renderer_deinit_fn(ntg_entity* entity)
     assert(entity != NULL);
 
     ntg_def_renderer* renderer = (ntg_def_renderer*)entity;
-
-    _ntg_renderer_deinit_fn(entity);
 
     ntg_rcell_vgrid_destroy(renderer->__backbuff);
     renderer->__backbuff = NULL;
@@ -73,8 +70,11 @@ void _ntg_def_renderer_deinit_fn(ntg_entity* entity)
     ntg_entity_stop_observing(
             (ntg_entity*)renderer,
             (ntg_entity*)renderer->__loop,
-            listenable_handler);
+            event_handler);
+
     renderer->__loop = NULL;
+
+    _ntg_renderer_deinit_fn(entity);
 }
 
 void __ntg_def_renderer_render_fn(
@@ -96,11 +96,13 @@ void __ntg_def_renderer_render_fn(
     {
         if(renderer->__resize)
         {
+            ntg_log_log("full");
             full_render(renderer, stage_drawing, size);
             renderer->__resize = false; 
         }
         else
         {
+            ntg_log_log("optimized");
             optimized_render(renderer, stage_drawing, size);
         }
     }
@@ -145,8 +147,7 @@ static void optimized_render(ntg_def_renderer* renderer,
         for(j = 0; j < size.x; j++)
         {
             it_drawing_rcell = *(ntg_stage_drawing_at(drawing, ntg_xy(j, i)));
-            it_back_buffer_rcell = ntg_rcell_vgrid_at_(renderer->__backbuff,
-                    ntg_xy(j, i));
+            it_back_buffer_rcell = ntg_rcell_vgrid_at_(renderer->__backbuff, ntg_xy(j, i));
 
             if((i < old_back_buffer_size.y) || (j < old_back_buffer_size.x))
             {
@@ -181,13 +182,15 @@ static void full_render(ntg_def_renderer* renderer,
     }
 }
 
-static void listenable_handler(ntg_entity* _subscriber, struct ntg_event event)
+static void event_handler(ntg_entity* _subscriber, struct ntg_event event)
 {
     assert(_subscriber != NULL);
 
+    ntg_log_log("Handler");
+
     ntg_def_renderer* renderer = (ntg_def_renderer*)_subscriber;
 
-    if(event.type == NT_EVENT_RESIZE)
+    if(event.type == NTG_EVENT_APP_RESIZE)
     {
         renderer->__resize = true;
     }

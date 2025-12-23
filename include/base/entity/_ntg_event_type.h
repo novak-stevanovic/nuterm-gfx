@@ -1,5 +1,5 @@
-#ifndef _NTG_EVENT_TYPES_H_
-#define _NTG_EVENT_TYPES_H_
+#ifndef __NTG_EVENT_TYPE_H__
+#define __NTG_EVENT_TYPE_H__
 
 #include "nt_event.h"
 #include "shared/ntg_xy.h"
@@ -16,4 +16,4 @@ struct ntg_event_app_key_data
     struct nt_key_event key;
 };
 
-#endif // _NTG_EVENT_TYPES_H_
+#endif // __NTG_EVENT_TYPE_H__

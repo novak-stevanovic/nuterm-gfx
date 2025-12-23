@@ -17,10 +17,10 @@
 
 static void init_default_values(ntg_box* box)
 {
-    box->__opts = ntg_box_opts_default();
+    box->__opts = ntg_box_opts_def();
 }
 
-struct ntg_box_opts ntg_box_opts_default()
+struct ntg_box_opts ntg_box_opts_def()
 {
     return (struct ntg_box_opts) {
         .orientation = NTG_ORIENTATION_H,
@@ -111,9 +111,8 @@ void _ntg_box_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    _ntg_object_deinit_fn(entity);
-
     init_default_values((ntg_box*)entity);
+    _ntg_object_deinit_fn(entity);
 }
 
 void* _ntg_box_layout_init_fn(const ntg_object* object)

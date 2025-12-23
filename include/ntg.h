@@ -22,7 +22,7 @@ void _ntg_deinit_();
 /* LAUNCH */
 /* -------------------------------------------------------------------------- */
 
-typedef void (*ntg_gui_fn)(void* data);
+typedef void (*ntg_gui_fn)(ntg_entity_system* system, void* data);
 
 void ntg_launch(ntg_gui_fn gui_fn, void* data);
 
@@ -36,38 +36,28 @@ void* ntg_wait();
 
 struct ntg_kickstart_obj
 {
-    ntg_entity_group* group;
+    ntg_loop loop;
 
-    ntg_loop* loop;
+    ntg_taskmaster taskmaster;
 
-    ntg_taskmaster* taskmaster;
-
-    ntg_def_renderer* renderer;
+    ntg_def_renderer renderer;
 };
 
-struct ntg_kickstart_obj ntg_kickstart(
-        ntg_stage* init_stage,
+void ntg_kickstart(ntg_stage* init_stage,
         unsigned int loop_framerate, /* non-zero */
         ntg_loop_process_event_fn loop_process_event_fn,
-        void* loop_data, void* renderer_data,
-        ntg_entity_system* system);
-void ntg_kickstart_end(struct ntg_kickstart_obj* obj);
+        ntg_entity_group* group,
+        ntg_entity_system* system,
+        struct ntg_kickstart_obj* out_obj);
 
 /* -------------------------------------------------------------------------- */
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: include ntg_entity_type.h in ntg_entity.h ?
-// TODO: Rethink protected/internal/read-only API(including void* data field)
-// TODO: Rethink nullable argument in fns
-// TODO: ntg_border_box: ntg_object_get_group_root()...
-
-// TODO: ntg_event_dlgt: unsub, destroy order? }------------------------|
-// TODO: ntg_object_container: rethink - object register? }-------------|
-// TODO: global: add ntg_allocator for faster object initialization? }--| **
-// TODO: ntg_object -> ntg_element, ntg_entity? }-----------------------|
-// TODO: ntg_event - listenable, delegate rework? }---------------------|
-// --------------------------------------------------------------
+// TODO: ntg_taskmaster: needs to update gui not only on task finished | *
+// TODO: Rethink nullable argument names in fns | *
+// TODO: sarena: incorporate sarena into entity allocation | *
+// TODO: Rethink protected/internal/read-only fields/documentation, etc.(including void* data field) | *
 // TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? | *
 // TODO: ntg_list and/or ntg_table: implement | **
 // TODO: ntg_scene: implement multi-root, multifocused? system | **

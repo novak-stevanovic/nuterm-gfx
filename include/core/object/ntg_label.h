@@ -22,7 +22,7 @@ struct ntg_label_opts
     size_t indent;
 };
 
-struct ntg_label_opts ntg_label_opts_default();
+struct ntg_label_opts ntg_label_opts_def();
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */

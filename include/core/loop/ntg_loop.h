@@ -77,6 +77,7 @@ void* ntg_loop_ctx_get_data(ntg_loop_ctx* ctx);
  * be called each time an event occurs. */
 struct ntg_loop
 {
+    ntg_entity __base;
     ntg_loop_process_event_fn __process_event_fn;
     ntg_stage* __init_stage;
     ntg_renderer* __renderer;

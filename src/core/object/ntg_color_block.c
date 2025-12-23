@@ -58,9 +58,8 @@ void _ntg_color_block_deinit_fn(ntg_entity* entity)
 
     ntg_color_block* color_block = (ntg_color_block*)entity;
 
-    _ntg_object_deinit_fn(entity);
-
     color_block->__color = NT_COLOR_DEFAULT;
+    _ntg_object_deinit_fn(entity);
 }
 
 struct ntg_object_measure _ntg_color_block_measure_fn(

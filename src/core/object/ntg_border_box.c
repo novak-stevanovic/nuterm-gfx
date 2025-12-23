@@ -8,6 +8,27 @@
 #include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
 
+static void get_true_children(const ntg_border_box* box, ntg_object** out_north,
+        ntg_object** out_east, ntg_object** out_south,
+        ntg_object** out_west, ntg_object** out_center)
+{
+    (*out_north) = (box->__north != NULL) ?
+        ntg_object_get_group_root_(box->__north) :
+        NULL;
+    (*out_east) = (box->__east != NULL) ?
+        ntg_object_get_group_root_(box->__east) :
+        NULL;
+    (*out_south) = (box->__south != NULL) ?
+        ntg_object_get_group_root_(box->__south) :
+        NULL;
+    (*out_west) = (box->__west != NULL) ?
+        ntg_object_get_group_root_(box->__west) :
+        NULL;
+    (*out_center) = (box->__center != NULL) ?
+        ntg_object_get_group_root_(box->__center) :
+        NULL;
+}
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
@@ -21,8 +42,14 @@ static void init_default(ntg_border_box* box)
     box->__center = NULL;
 }
 
+struct ntg_border_box_opts ntg_border_box_opts_def()
+{
+    return (struct ntg_border_box_opts) {0};
+}
+
 void _ntg_border_box_init_(
         ntg_border_box* box,
+        struct ntg_border_box_opts opts,
         ntg_object_process_key_fn process_key_fn,
         ntg_entity_group* group,
         ntg_entity_system* system)
@@ -209,8 +236,8 @@ void _ntg_border_box_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    _ntg_object_deinit_fn(entity);
     init_default((ntg_border_box*)entity);
+    _ntg_object_deinit_fn(entity);
 }
 
 struct ntg_object_measure _ntg_border_box_measure_fn(
@@ -225,20 +252,23 @@ struct ntg_object_measure _ntg_border_box_measure_fn(
     // const ntg_object* object = (const ntg_object*)user;
     const ntg_border_box* box = (const ntg_border_box*)object;
 
-    struct ntg_object_measure north_measure = (box->__north != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__north)) :
+    ntg_object *north, *east, *south, *west, *center;
+    get_true_children(box, &north, &east, &south, &west, &center);
+
+    struct ntg_object_measure north_measure = (north != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, north) :
         (struct ntg_object_measure) {0};
-    struct ntg_object_measure east_measure = (box->__east != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__east)) :
+    struct ntg_object_measure east_measure = (east != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, east) :
         (struct ntg_object_measure) {0};
-    struct ntg_object_measure south_measure = (box->__south != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__south)) :
+    struct ntg_object_measure south_measure = (south != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, south) :
         (struct ntg_object_measure) {0};
-    struct ntg_object_measure west_measure = (box->__west != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__west)) :
+    struct ntg_object_measure west_measure = (west != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, west) :
         (struct ntg_object_measure) {0};
-    struct ntg_object_measure center_measure = (box->__center != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__center)) :
+    struct ntg_object_measure center_measure = (center != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, center) :
         (struct ntg_object_measure) {0};
 
     size_t min, natural, max;
@@ -293,20 +323,23 @@ void _ntg_border_box_constrain_fn(
     // const ntg_object* object = (const ntg_object*)user;
     const ntg_border_box* box = (const ntg_border_box*)object;
 
-    struct ntg_object_measure north_measure = (box->__north != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__north)) :
+    ntg_object *north, *east, *south, *west, *center;
+    get_true_children(box, &north, &east, &south, &west, &center);
+
+    struct ntg_object_measure north_measure = (north != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, north) :
         (struct ntg_object_measure) {0};
-    struct ntg_object_measure east_measure = (box->__east != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__east)) :
+    struct ntg_object_measure east_measure = (east != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, east) :
         (struct ntg_object_measure) {0};
-    struct ntg_object_measure south_measure = (box->__south != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__south)) :
+    struct ntg_object_measure south_measure = (south != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, south) :
         (struct ntg_object_measure) {0};
-    struct ntg_object_measure west_measure = (box->__west != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__west)) :
+    struct ntg_object_measure west_measure = (west != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, west) :
         (struct ntg_object_measure) {0};
-    struct ntg_object_measure center_measure = (box->__center != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, ntg_object_get_group_root(box->__center)) :
+    struct ntg_object_measure center_measure = (center != NULL) ?
+        ntg_object_measure_map_get(ctx.measures, center) :
         (struct ntg_object_measure) {0};
 
     // size_t min_size = ntg_constrain_ctx_get_min_size(ctx);
@@ -453,16 +486,16 @@ void _ntg_border_box_constrain_fn(
         center_size =  _sizes[1];
     }
 
-    if(box->__north != NULL)
-        ntg_object_size_map_set(out->sizes, ntg_object_get_group_root(box->__north), north_size);
-    if(box->__east != NULL)
-        ntg_object_size_map_set(out->sizes, ntg_object_get_group_root(box->__east), east_size);
-    if(box->__south != NULL)
-        ntg_object_size_map_set(out->sizes, ntg_object_get_group_root(box->__south), south_size);
-    if(box->__west != NULL)
-        ntg_object_size_map_set(out->sizes, ntg_object_get_group_root(box->__west), west_size);
-    if(box->__center != NULL)
-        ntg_object_size_map_set(out->sizes, ntg_object_get_group_root(box->__center), center_size);
+    if(north != NULL)
+        ntg_object_size_map_set(out->sizes, north, north_size);
+    if(east != NULL)
+        ntg_object_size_map_set(out->sizes, east, east_size);
+    if(south != NULL)
+        ntg_object_size_map_set(out->sizes, south, south_size);
+    if(west != NULL)
+        ntg_object_size_map_set(out->sizes, west, west_size);
+    if(center != NULL)
+        ntg_object_size_map_set(out->sizes, center, center_size);
 }
 
 void _ntg_border_box_arrange_fn(
@@ -475,14 +508,17 @@ void _ntg_border_box_arrange_fn(
 {
     const ntg_border_box* box = (const ntg_border_box*)object;
 
-    struct ntg_xy north_size = (box->__north != NULL) ?
-        ntg_object_xy_map_get(ctx.sizes, ntg_object_get_group_root(box->__north)) : ntg_xy(0, 0);
-    struct ntg_xy east_size = (box->__east != NULL) ?
-        ntg_object_xy_map_get(ctx.sizes, ntg_object_get_group_root(box->__east)) : ntg_xy(0, 0);
-    struct ntg_xy south_size = (box->__south != NULL) ?
-        ntg_object_xy_map_get(ctx.sizes, ntg_object_get_group_root(box->__south)) : ntg_xy(0, 0);
-    struct ntg_xy west_size = (box->__west != NULL) ?
-        ntg_object_xy_map_get(ctx.sizes, ntg_object_get_group_root(box->__west)) : ntg_xy(0, 0);
+    ntg_object *north, *east, *south, *west, *center;
+    get_true_children(box, &north, &east, &south, &west, &center);
+
+    struct ntg_xy north_size = (north != NULL) ?
+        ntg_object_xy_map_get(ctx.sizes, north) : ntg_xy(0, 0);
+    struct ntg_xy east_size = (east != NULL) ?
+        ntg_object_xy_map_get(ctx.sizes, east) : ntg_xy(0, 0);
+    struct ntg_xy south_size = (south != NULL) ?
+        ntg_object_xy_map_get(ctx.sizes, south) : ntg_xy(0, 0);
+    struct ntg_xy west_size = (west != NULL) ?
+        ntg_object_xy_map_get(ctx.sizes, west) : ntg_xy(0, 0);
 
     size_t west_east_width = west_size.x + east_size.x;
     size_t north_south_height = north_size.y + south_size.y;
@@ -496,15 +532,15 @@ void _ntg_border_box_arrange_fn(
     struct ntg_xy west_pos = ntg_xy(0, north_size.y);
     struct ntg_xy center_pos = ntg_xy(west_size.x, north_size.y);
 
-    if(box->__north != NULL)
-        ntg_object_xy_map_set(out->pos, ntg_object_get_group_root(box->__north), north_pos);
-    if(box->__east != NULL)
-        ntg_object_xy_map_set(out->pos, ntg_object_get_group_root(box->__east), east_pos);
-    if(box->__south != NULL)
-        ntg_object_xy_map_set(out->pos, ntg_object_get_group_root(box->__south), south_pos);
-    if(box->__west != NULL)
-        ntg_object_xy_map_set(out->pos, ntg_object_get_group_root(box->__west), west_pos);
-    if(box->__center != NULL)
-        ntg_object_xy_map_set(out->pos, ntg_object_get_group_root(box->__center), center_pos);
+    if(north != NULL)
+        ntg_object_xy_map_set(out->pos, north, north_pos);
+    if(east != NULL)
+        ntg_object_xy_map_set(out->pos, east, east_pos);
+    if(south != NULL)
+        ntg_object_xy_map_set(out->pos, south, south_pos);
+    if(west != NULL)
+        ntg_object_xy_map_set(out->pos, west, west_pos);
+    if(center != NULL)
+        ntg_object_xy_map_set(out->pos, center, center_pos);
 }
 

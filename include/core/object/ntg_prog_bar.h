@@ -17,7 +17,7 @@ struct ntg_prog_bar_opts
     ntg_cell threshold_style;
 };
 
-struct ntg_prog_bar_opts ntg_prog_bar_opts_default();
+struct ntg_prog_bar_opts ntg_prog_bar_opts_def();
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */

@@ -36,8 +36,7 @@ static inline struct ntg_rcell ntg_rcell_default()
     };
 }
 
-static inline bool ntg_rcell_are_equal(struct ntg_rcell cell1,
-        struct ntg_rcell cell2)
+static inline bool ntg_rcell_are_equal(struct ntg_rcell cell1, struct ntg_rcell cell2)
 {
     return (memcmp(&cell1, &cell2, sizeof(struct ntg_rcell)) == 0);
 }

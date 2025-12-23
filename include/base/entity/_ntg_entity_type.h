@@ -1,5 +1,5 @@
-#ifndef _NTG_ENTITY_TYPE_H_
-#define _NTG_ENTITY_TYPE_H_
+#ifndef __NTG_ENTITY_TYPE_H__
+#define __NTG_ENTITY_TYPE_H__
 
 #include <stdbool.h>
 
@@ -39,4 +39,8 @@ extern const ntg_entity_type NTG_ENTITY_TYPE_RENDERER, NTG_ENTITY_TYPE_DEF_RENDE
 
 extern const ntg_entity_type NTG_ENTITY_TYPE_LOOP;
 
-#endif // _NTG_ENTITY_TYPE_H_
+/* NTG_TASKMASTER */
+
+extern const ntg_entity_type NTG_ENTITY_TYPE_TASKMASTER;
+
+#endif // __NTG_ENTITY_TYPE_H__

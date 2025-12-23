@@ -4,49 +4,42 @@
 
 #include "core/loop/ntg_taskmaster.h"
 
+#include "base/entity/ntg_entity.h"
 #include "core/loop/_ntg_callback_queue.h"
 #include <pthread.h>
 
-struct ntg_taskmaster
-{
-    ntg_callback_queue* __callbacks;
-    pthread_mutex_t __lock;
-};
-
-void _ntg_taskmaster_init_(ntg_taskmaster* taskmaster)
+void _ntg_taskmaster_init_(ntg_taskmaster* taskmaster,
+        ntg_entity_group* group, ntg_entity_system* system)
 {
     assert(taskmaster != NULL);
 
-    pthread_mutex_init(&taskmaster->__lock, NULL);
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_TYPE_TASKMASTER,
+        .deinit_fn = _ntg_taskmaster_deinit_fn,
+        .group = group,
+        .system = system
+    };
+    _ntg_entity_init_((ntg_entity*)taskmaster, entity_data);
+
+    taskmaster->__data = malloc(sizeof(pthread_mutex_t));
+
+    pthread_mutex_init(taskmaster->__data, NULL);
     taskmaster->__callbacks = ntg_callback_queue_new();
 }
 
-void _ntg_taskmaster_deinit_(ntg_taskmaster* taskmaster)
+void _ntg_taskmaster_deinit_fn(ntg_entity* entity)
 {
-    assert(taskmaster != NULL);
+    assert(entity != NULL);
 
-    pthread_mutex_destroy(&taskmaster->__lock);
+    ntg_taskmaster* taskmaster = (ntg_taskmaster*)entity;
+
+    pthread_mutex_destroy((pthread_mutex_t*)taskmaster->__data);
     ntg_callback_queue_destroy(taskmaster->__callbacks);
     taskmaster->__callbacks = NULL;
-}
 
-ntg_taskmaster* ntg_taskmaster_new()
-{
-    ntg_taskmaster* new = (ntg_taskmaster*)malloc(sizeof(ntg_taskmaster));
-    assert(new != NULL);
+    free(taskmaster->__data);
 
-    _ntg_taskmaster_init_(new);
-
-    return new;
-}
-
-void ntg_taskmaster_destroy(ntg_taskmaster* taskmaster)
-{
-    assert(taskmaster != NULL);
-
-    _ntg_taskmaster_deinit_(taskmaster);
-
-    free(taskmaster);
+    _ntg_entity_deinit_fn(entity);
 }
 
 struct ntg_thread_fn_data
@@ -110,7 +103,7 @@ void ntg_taskmaster_execute_task(
 
     if(task_fn == NULL) return;
 
-    pthread_mutex_lock(&taskmaster->__lock);
+    pthread_mutex_lock((pthread_mutex_t*)taskmaster->__data);
 
     struct ntg_thread_fn_data* data = (struct ntg_thread_fn_data*)malloc(
             sizeof(struct ntg_thread_fn_data));
@@ -129,7 +122,7 @@ void ntg_taskmaster_execute_task(
     assert(status == 0);
     pthread_detach(thread);
 
-    pthread_mutex_unlock(&taskmaster->__lock);
+    pthread_mutex_unlock((pthread_mutex_t*)taskmaster->__data);
 }
 
 void ntg_taskmaster_execute_callbacks(ntg_taskmaster* taskmaster)

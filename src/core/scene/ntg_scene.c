@@ -65,11 +65,11 @@ void _ntg_scene_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    _ntg_entity_deinit_fn(entity);
-
     ntg_scene* scene = (ntg_scene*)entity;
     ntg_scene_graph_destroy(scene->_graph);
     __init_default_values(scene);
+
+    _ntg_entity_deinit_fn(entity);
 }
 
 static bool process_key_fn_def(ntg_scene* scene,
@@ -140,15 +140,11 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
     assert(scene != NULL);
 
-    ntg_log_log("Layout begin");
-
     scene->_size = size;
 
     scan_scene(scene);
 
     update_focused(scene);
-
-    ntg_log_log("Layout fn");
 
     scene->__layout_fn(scene, size);
 }

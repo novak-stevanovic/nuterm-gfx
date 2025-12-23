@@ -18,7 +18,7 @@ struct ntg_box_opts
     size_t spacing;
 };
 
-struct ntg_box_opts ntg_box_opts_default();
+struct ntg_box_opts ntg_box_opts_def();
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */

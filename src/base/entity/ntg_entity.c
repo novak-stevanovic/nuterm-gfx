@@ -5,6 +5,8 @@
 #include "base/entity/_ntg_entity_system.h"
 #include "base/entity/shared/ntg_entity_vec.h"
 
+static void group_append(ntg_entity_group* group, ntg_entity* entity);
+
 void _ntg_entity_init_(ntg_entity* entity, struct ntg_entity_init_data init_data)
 {
     assert(entity != NULL);
@@ -17,12 +19,17 @@ void _ntg_entity_init_(ntg_entity* entity, struct ntg_entity_init_data init_data
     entity->_arena = (init_data.group != NULL) ?
         ntg_entity_group_get_arena(init_data.group) : NULL;
 
+    if(init_data.group != NULL)
+        group_append(init_data.group, entity);
+
     ntg_entity_system_register(init_data.system, entity);
 }
 
 void _ntg_entity_deinit_(ntg_entity* entity)
 {
-    _ntg_entity_deinit_fn(entity);
+    assert(entity != NULL);
+
+    entity->__deinit_fn(entity);
 }
 
 void _ntg_entity_deinit_fn(ntg_entity* entity)
@@ -48,8 +55,6 @@ void ntg_entity_observe(
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn)
 {
-    assert(observer->__system == observed->__system);
-
     ntg_entity_system_add_observe(observer->__system, observer, observed, handler_fn);
 }
 
@@ -103,4 +108,16 @@ void ntg_entity_group_destroy(ntg_entity_group* group)
     _ntg_entity_vec_deinit_(&group->entities);
 
     free(group);
+}
+
+sarena* ntg_entity_group_get_arena(ntg_entity_group* group)
+{
+    assert(group != NULL);
+
+    return group->arena;
+}
+
+static void group_append(ntg_entity_group* group, ntg_entity* entity)
+{
+    ntg_entity_vec_append(&group->entities, entity);
 }

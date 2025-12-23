@@ -45,6 +45,8 @@ void ntg_scene_graph_destroy(ntg_scene_graph* scene_graph)
 
         current->key = NULL;
         ntg_object_drawing_destroy(current->data.drawing);
+        free(current->data.object_layout_data);
+        free(current->data.data);
         current->data = (struct ntg_scene_node_protect) {0};
 
         free(current);

@@ -113,9 +113,15 @@ void ntg_entity_system_add_observe(
     struct ntg_entity_data* observer_data = ntg_entity_map_get(system->map, observer);
 
     if(observed_data == NULL)
+    {
         ntg_entity_system_register(system, observed);
+        observed_data = ntg_entity_map_get(system->map, observed);
+    }
     if(observer_data == NULL)
+    {
         ntg_entity_system_register(system, observer);
+        observer_data = ntg_entity_map_get(system->map, observer);
+    }
 
     ntg_event_sub_vec_append(observed_data->subs, observer, handler_fn);
 }
@@ -135,9 +141,15 @@ void ntg_entity_system_rm_observe(
     struct ntg_entity_data* observer_data = ntg_entity_map_get(system->map, observer);
 
     if(observed_data == NULL)
+    {
         ntg_entity_system_register(system, observed);
+        observed_data = ntg_entity_map_get(system->map, observed);
+    }
     if(observer_data == NULL)
+    {
         ntg_entity_system_register(system, observer);
+        observer_data = ntg_entity_map_get(system->map, observer);
+    }
 
     if(ntg_event_sub_vec_contains(observed_data->subs, observer, handler_fn))
         ntg_event_sub_vec_remove(observed_data->subs, observer, handler_fn);
@@ -158,9 +170,15 @@ bool ntg_entity_system_has_observe(
     struct ntg_entity_data* observer_data = ntg_entity_map_get(system->map, observer);
 
     if(observed_data == NULL)
+    {
         ntg_entity_system_register(system, observed);
+        observed_data = ntg_entity_map_get(system->map, observed);
+    }
     if(observer_data == NULL)
+    {
         ntg_entity_system_register(system, observer);
+        observer_data = ntg_entity_map_get(system->map, observer);
+    }
 
     return ntg_event_sub_vec_contains(observed_data->subs, observer, handler_fn);
 }

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "ntg.h"
+#include "base/entity/_ntg_entity_system.h"
 #include "nt.h"
 #include "shared/ntg_log.h"
 #include "shared/sarena.h"
@@ -42,6 +43,7 @@ struct ntg_app_thread_fn_data
 void ntg_launch(ntg_gui_fn gui_fn, void* data)
 {
     assert(__launched == false);
+    if(gui_fn == NULL) return;
 
     nt_alt_screen_enable(NULL);
     nt_cursor_hide(NULL);
@@ -85,71 +87,45 @@ static void* ntg_thread_fn(void* _thread_fn_data)
     struct ntg_app_thread_fn_data* data =
         (struct ntg_app_thread_fn_data*)_thread_fn_data;
 
-    if(data->gui_fn != NULL) data->gui_fn(data->gui_fn_data);
+    ntg_entity_system* es = ntg_entity_system_new();
+
+    data->gui_fn(es, data->gui_fn_data);
+
+    ntg_entity_system_destroy(es);
 
     free(data);
 
     return NULL;
 }
 
-struct ntg_kickstart_obj ntg_kickstart(
-        ntg_stage* init_stage,
+void ntg_kickstart(ntg_stage* init_stage,
         unsigned int loop_framerate, /* non-zero */
         ntg_loop_process_event_fn loop_process_event_fn,
-        void* loop_data, void* renderer_data,
-        ntg_entity_system* system)
+        ntg_entity_group* group,
+        ntg_entity_system* system,
+        struct ntg_kickstart_obj* out_obj)
 {
     assert(loop_framerate > 0);
     assert(loop_framerate < 1000);
+    assert(group != NULL);
+    assert(system != NULL);
+    assert(out_obj != NULL);
 
-    sarena* arena = sarena_create(20000);
-    assert(arena != NULL);
+    ntg_loop* loop = &out_obj->loop;
+    ntg_def_renderer* renderer = &out_obj->renderer;
+    ntg_taskmaster* taskmaster = &out_obj->taskmaster;
 
-    ntg_entity_group* group = ntg_entity_group_new(arena);
+    _ntg_taskmaster_init_(taskmaster, group, system);
 
-    ntg_loop* loop = (ntg_loop*)malloc(sizeof(ntg_loop));
-    ntg_loop* _loop = (ntg_loop*)loop;
-    assert(loop != NULL);
-
-    ntg_def_renderer* renderer = (ntg_def_renderer*)malloc(sizeof(ntg_def_renderer));
-    ntg_renderer* _renderer = (ntg_renderer*)renderer;
-    assert(renderer != NULL);
-
-    ntg_taskmaster* taskmaster = ntg_taskmaster_new();
+    _ntg_def_renderer_init_(renderer, loop, group, system);
 
     struct ntg_loop_init_data loop_init_data = {
         .taskmaster = taskmaster,
-        .renderer = _renderer,
+        .renderer = (ntg_renderer*)renderer,
         .framerate = loop_framerate,
         .process_event_fn = loop_process_event_fn,
         .init_stage = init_stage
     };
-    
+
     _ntg_loop_init_(loop, loop_init_data, group, system);
-
-    _loop->data = loop_data;
-
-    _ntg_def_renderer_init_(renderer, _loop, group, system);
-    _renderer->data = renderer_data;
-
-    return (struct ntg_kickstart_obj) {
-        .renderer = renderer,
-
-        .taskmaster = taskmaster,
-
-        .loop = loop,
-    };
-}
-
-void ntg_kickstart_end(struct ntg_kickstart_obj* obj)
-{
-    assert(obj != NULL);
-
-    sarena* arena = ntg_entity_group_get_arena(obj->group);
-    ntg_entity_group_destroy(obj->group);
-    sarena_destroy(arena);
-
-    ntg_taskmaster_destroy(obj->taskmaster);
-
-    (*obj) = (struct ntg_kickstart_obj) {0};
 }

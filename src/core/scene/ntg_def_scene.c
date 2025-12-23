@@ -62,12 +62,12 @@ struct ntg_layout_data
 
 void _ntg_def_scene_deinit_fn(ntg_entity* entity)
 {
-    _ntg_scene_deinit_fn(entity);
-
     ntg_def_scene* def_scene = (ntg_def_scene*)entity;
 
     sarena_destroy(def_scene->__layout_arena);
     def_scene->__layout_arena = NULL;
+
+    _ntg_scene_deinit_fn(entity);
 }
 
 void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
@@ -88,27 +88,15 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
     root_data->size = size;
     root_data->position = ntg_xy(0, 0);
 
-    ntg_log_log("Measure 1");
-
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP, measure1_fn, &data);
-
-    ntg_log_log("Constrain 1");
 
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, constrain1_fn, &data);
 
-    ntg_log_log("Measure 2");
-
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP, measure2_fn, &data);
-
-    ntg_log_log("Constrain 2");
 
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, constrain2_fn, &data);
 
-    ntg_log_log("Arrange");
-
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, arrange_fn, &data);
-
-    ntg_log_log("Draw");
 
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, draw_fn, &data);
 

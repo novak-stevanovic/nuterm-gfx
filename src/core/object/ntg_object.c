@@ -49,18 +49,15 @@ void _ntg_object_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    _ntg_entity_deinit_fn(entity);
-
     ntg_object* object = (ntg_object*)entity;
-
     ntg_object_vec_destroy(object->__children);
-
     __init_default_values(object);
+
+    _ntg_entity_deinit_fn(entity);
 }
 
 static void __init_default_values(ntg_object* object)
 {
-    object->__base = (ntg_entity) {0};
     object->__parent = NULL;
     object->__children = NULL;
 
@@ -134,6 +131,7 @@ ntg_object* ntg_object_get_group_root_(ntg_object* object)
     assert(object != NULL);
 
     ntg_object* it_obj = object;
+
     while(true)
     {
         if((it_obj->__parent == NULL) || ntg_object_is_widget(it_obj->__parent))
@@ -436,9 +434,16 @@ ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding)
 
     ntg_object* root = ntg_object_get_group_root_(object);
 
+    ntg_object* root_parent = root->__parent;
+    if(root_parent != NULL)
+        _ntg_object_rm_child(root_parent, root);
+
     ntg_object *_border, *_padding, *_widget;
     separate_object_group(root, &_border, &_padding, &_widget);
-    join_object_group(_border, (ntg_object*)padding, _widget);
+    ntg_object* new_root = join_object_group(_border, (ntg_object*)padding, _widget);
+
+    if(root_parent != NULL)
+        _ntg_object_add_child(root_parent, new_root);
 
     return (ntg_padding*)_padding;
 }
@@ -468,9 +473,16 @@ ntg_padding* ntg_object_set_border(ntg_object* object, ntg_padding* border)
 
     ntg_object* root = ntg_object_get_group_root_(object);
 
+    ntg_object* root_parent = root->__parent;
+    if(root_parent != NULL)
+        _ntg_object_rm_child(root_parent, root);
+
     ntg_object *_border, *_padding, *_widget;
     separate_object_group(root, &_border, &_padding, &_widget);
-    join_object_group((ntg_object*)border, _padding, _widget);
+    ntg_object* new_root = join_object_group((ntg_object*)border, _padding, _widget);
+
+    if(root_parent != NULL)
+        _ntg_object_add_child(root_parent, new_root);
 
     return (ntg_padding*)_border;
 }

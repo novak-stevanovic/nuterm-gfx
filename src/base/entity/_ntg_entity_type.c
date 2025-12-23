@@ -1,5 +1,5 @@
-#include "base/entity/ntg_entity_type.h"
 #include <stdlib.h>
+#include "base/entity/_ntg_entity_type.h"
 
 bool ntg_entity_instanceof(const ntg_entity_type* type, const ntg_entity_type* ancestor)
 {
@@ -40,7 +40,7 @@ const ntg_entity_type NTG_ENTITY_TYPE_BOX = {
 };
 
 const ntg_entity_type NTG_ENTITY_TYPE_BORDER_BOX = {
-    .__parent = &NTG_ENTITY_TYPE_BOX
+    .__parent = &NTG_ENTITY_TYPE_WIDGET
 };
 
 const ntg_entity_type NTG_ENTITY_TYPE_LABEL = {
@@ -56,7 +56,7 @@ const ntg_entity_type NTG_ENTITY_TYPE_PROG_BAR = {
 };
 
 const ntg_entity_type NTG_ENTITY_TYPE_DECORATOR = {
-    .__parent = &NTG_ENTITY_TYPE_WIDGET
+    .__parent = &NTG_ENTITY_TYPE_OBJECT
 };
 
 const ntg_entity_type NTG_ENTITY_TYPE_PADDING = {
@@ -116,5 +116,14 @@ const ntg_entity_type NTG_ENTITY_TYPE_DEF_RENDERER = {
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_TYPE_LOOP = {
+    .__parent = &NTG_ENTITY_TYPE_DEFAULT
+};
+
+/* -------------------------------------------------------------------------- */
+/* NTG_TASKMASTER                                                             */
+/* -------------------------------------------------------------------------- */
+
+
+const ntg_entity_type NTG_ENTITY_TYPE_TASKMASTER = {
     .__parent = &NTG_ENTITY_TYPE_DEFAULT
 };

@@ -40,6 +40,7 @@ void ntg_entity_map_destroy(ntg_entity_map* map)
         HASH_DEL(map->head, current);  /* delete; users advances to next */
 
         current->key = NULL;
+        ntg_event_sub_vec_destroy(current->data.subs);
         current->data = (struct ntg_entity_data) {0};
 
         free(current);

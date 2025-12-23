@@ -9,8 +9,16 @@ typedef struct ntg_border_box ntg_border_box;
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 
+struct ntg_border_box_opts
+{
+    size_t placeholder;
+};
+
+struct ntg_border_box_opts ntg_border_box_opts_def();
+
 void _ntg_border_box_init_(
         ntg_border_box* box,
+        struct ntg_border_box_opts opts,
         ntg_object_process_key_fn process_key_fn,
         ntg_entity_group* group,
         ntg_entity_system* system);

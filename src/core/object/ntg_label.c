@@ -97,9 +97,14 @@ static void trim_text(ntg_label* label)
                     words.views[i].data,
                     words.views[i].len);
 
-            label->__text.data[space_needed + words.views[i].len] = ' ';
+            if(i < (words.count - 1))
+            {
+                label->__text.data[space_needed + words.views[i].len] = ' ';
+                space_needed += (1 + words.views[i].len);
+            }
+            else
+                space_needed += words.views[i].len;
             
-            space_needed += (1 + words.views[i].len);
         }
     }
 
@@ -118,10 +123,10 @@ static void trim_text(ntg_label* label)
 static void init_default_values(ntg_label* label)
 {
     label->__text = (struct ntg_str) {0};
-    label->__opts = ntg_label_opts_default();
+    label->__opts = ntg_label_opts_def();
 }
 
-struct ntg_label_opts ntg_label_opts_default()
+struct ntg_label_opts ntg_label_opts_def()
 {
     return (struct ntg_label_opts) {
         .orientation = NTG_ORIENTATION_H,
@@ -230,12 +235,12 @@ void _ntg_label_deinit_fn(ntg_entity* entity)
 
     ntg_label* label = (ntg_label*)entity;
 
-    _ntg_object_deinit_fn(entity);
-
     if(label->__text.data != NULL)
         free(label->__text.data);
 
     init_default_values(label);
+
+    _ntg_object_deinit_fn(entity);
 }
 
 struct ntg_object_measure _ntg_label_measure_fn(

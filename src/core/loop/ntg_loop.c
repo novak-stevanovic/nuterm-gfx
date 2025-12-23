@@ -2,8 +2,6 @@
 #include <assert.h>
 
 #include "core/loop/ntg_loop.h"
-#include "base/entity/ntg_event.h"
-#include "base/entity/ntg_event_types.h"
 #include "core/loop/ntg_taskmaster.h"
 #include "core/renderer/ntg_renderer.h"
 #include "core/object/shared/ntg_object_drawing.h"
@@ -104,8 +102,6 @@ void _ntg_loop_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    _ntg_entity_deinit_fn(entity);
-
     ntg_loop* loop = (ntg_loop*)entity;
 
     loop->__process_event_fn = NULL;
@@ -114,6 +110,7 @@ void _ntg_loop_deinit_fn(ntg_entity* entity)
     loop->__framerate = 0;
     loop->__init_stage = NULL;
     loop->__taskmaster = NULL;
+    _ntg_entity_deinit_fn(entity);
 }
 
 void ntg_loop_run(ntg_loop* loop, void* ctx_data)

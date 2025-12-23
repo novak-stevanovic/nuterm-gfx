@@ -64,10 +64,9 @@ double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar)
 void _ntg_prog_bar_deinit_fn(ntg_entity* entity)
 {
     ntg_prog_bar* prog_bar = (ntg_prog_bar*)entity;
+    prog_bar->__opts = ntg_prog_bar_opts_default();
 
     _ntg_object_deinit_fn(entity);
-
-    prog_bar->__opts = ntg_prog_bar_opts_default();
 }
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(

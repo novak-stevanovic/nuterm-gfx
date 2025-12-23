@@ -23,11 +23,11 @@ void _ntg_renderer_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    _ntg_entity_deinit_fn(entity);
-
     ntg_renderer* renderer = (ntg_renderer*)entity;
     renderer->__render_fn = NULL;
     renderer->data = NULL;
+
+    _ntg_entity_deinit_fn(entity);
 }
 
 void ntg_renderer_render(
