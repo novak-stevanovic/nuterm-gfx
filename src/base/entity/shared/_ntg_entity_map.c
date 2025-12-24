@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "base/entity/shared/_ntg_entity_map.h"
 #include "base/entity/shared/_ntg_event_sub_vec.h"
+#include "base/entity/shared/ntg_entity_vec.h"
 #include "shared/_uthash.h"
 
 struct ntg_entity_data_hh
@@ -40,7 +41,7 @@ void ntg_entity_map_destroy(ntg_entity_map* map)
         HASH_DEL(map->head, current);  /* delete; users advances to next */
 
         current->key = NULL;
-        ntg_event_sub_vec_destroy(current->data.subs);
+        ntg_event_sub_vec_destroy(current->data.subscribers);
         current->data = (struct ntg_entity_data) {0};
 
         free(current);
@@ -52,6 +53,7 @@ void ntg_entity_map_destroy(ntg_entity_map* map)
 void ntg_entity_map_add(ntg_entity_map* map, ntg_entity* object, unsigned int id)
 {
     assert(map != NULL);
+    assert(object != NULL);
 
     struct ntg_entity_data_hh* found = map_get(map, object);
     assert(found == NULL);
@@ -62,23 +64,23 @@ void ntg_entity_map_add(ntg_entity_map* map, ntg_entity* object, unsigned int id
 
     new->key = object;
     new->data = (struct ntg_entity_data) {0};
-    new->data.subs = ntg_event_sub_vec_new();
+    new->data.subscribers = ntg_event_sub_vec_new();
     new->data.id = id;
 
     HASH_ADD_PTR(map->head, key, new);
 }
 
-void ntg_entity_map_remove(ntg_entity_map* map, ntg_entity* object)
+void ntg_entity_map_remove(ntg_entity_map* map, ntg_entity* entity)
 {
     assert(map != NULL);
 
-    struct ntg_entity_data_hh* found = map_get(map, object);
+    struct ntg_entity_data_hh* found = map_get(map, entity);
     assert(found != NULL);
 
     HASH_DEL(map->head, found);
 
     found->key = NULL;
-    ntg_event_sub_vec_destroy(found->data.subs);
+    ntg_event_sub_vec_destroy(found->data.subscribers);
     found->data = (struct ntg_entity_data) {0};
 
     free(found);
@@ -93,19 +95,17 @@ struct ntg_entity_data* ntg_entity_map_get(
     return ((found != NULL) ? &(found->data) : NULL);
 }
 
-// void ntg_entity_map_get_keys(
-//         const ntg_entity_map* map,
-//         ntg_entity_vec* out_vec)
-// {
-//     assert(map != NULL);
-//     assert(out_vec != NULL);
-//
-//     struct ntg_entity_data_hh *current, *tmp;
-//
-//     HASH_ITER(hh, map->head, current, tmp) {
-//         ntg_entity_vec_append(out_vec, current->key);
-//     }
-// }
+void ntg_entity_map_get_keys(const ntg_entity_map* map, ntg_entity_vec* out_vec)
+{
+    assert(map != NULL);
+    assert(out_vec != NULL);
+
+    struct ntg_entity_data_hh *current, *tmp;
+
+    HASH_ITER(hh, map->head, current, tmp) {
+        ntg_entity_vec_append(out_vec, current->key);
+    }
+}
 
 /* -------------------------------------------------------------------------- */
 

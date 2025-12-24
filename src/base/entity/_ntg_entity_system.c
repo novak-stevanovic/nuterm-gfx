@@ -4,6 +4,7 @@
 #include "base/entity/_ntg_entity_system.h"
 #include "base/entity/shared/_ntg_entity_map.h"
 #include "base/entity/shared/_ntg_event_sub_vec.h"
+#include "base/entity/shared/ntg_entity_vec.h"
 
 struct ntg_entity_system
 {
@@ -18,6 +19,7 @@ ntg_entity_system* ntg_entity_system_new()
     assert(new != NULL);
 
     new->entity_id_gen = 0;
+    new->event_id_gen = 0;
     new->map = ntg_entity_map_new();
 
     return new;
@@ -26,6 +28,15 @@ ntg_entity_system* ntg_entity_system_new()
 void ntg_entity_system_destroy(ntg_entity_system* system)
 {
     assert(system != NULL);
+
+    /* destroy entities */
+    ntg_entity_vec _vec;
+    _ntg_entity_vec_init_(&_vec);
+    ntg_entity_map_get_keys(system->map, &_vec);
+    size_t i;
+    for(i = 0; i < _vec._count; i++)
+        ntg_entity_destroy(_vec._data[i]);
+    _ntg_entity_vec_deinit_(&_vec);
 
     ntg_entity_map_destroy(system->map);
 
@@ -38,9 +49,20 @@ void ntg_entity_system_register(ntg_entity_system* system, ntg_entity* entity)
     assert(entity != NULL);
 
     struct ntg_entity_data* map_data = ntg_entity_map_get(system->map, entity);
-    if(map_data != NULL) return;
+    assert(map_data == NULL);
 
     ntg_entity_map_add(system->map, entity, (++system->entity_id_gen));
+}
+
+void ntg_entity_system_unregister(ntg_entity_system* system, ntg_entity* entity)
+{
+    assert(system != NULL);
+    assert(entity != NULL);
+
+    struct ntg_entity_data* map_data = ntg_entity_map_get(system->map, entity);
+    assert(map_data != NULL);
+
+    ntg_entity_map_remove(system->map, entity);
 }
 
 unsigned int ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity)
@@ -52,17 +74,6 @@ unsigned int ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entit
     assert(map_data != NULL);
 
     return map_data->id;
-}
-
-void ntg_entity_system_mark_deinit(ntg_entity_system* system, const ntg_entity* entity)
-{
-    assert(system != NULL);
-    assert(entity != NULL);
-
-    struct ntg_entity_data* map_data = ntg_entity_map_get(system->map, entity);
-    assert(map_data != NULL);
-
-    map_data->deinit = true;
 }
 
 void ntg_entity_system_raise_event(
@@ -83,18 +94,17 @@ void ntg_entity_system_raise_event(
     struct ntg_entity_data* map_data = ntg_entity_map_get(system->map, source);
     assert(map_data != NULL);
 
-    ntg_event_sub_vec* subs = map_data->subs;
+    ntg_event_sub_vec* subs = map_data->subscribers;
 
     size_t i;
-    struct ntg_entity_data* it_map_data;
     struct ntg_event_sub it_sub;
     for(i = 0; i < subs->_count; i++)
     {
         it_sub = subs->_data[i];
-        it_map_data = ntg_entity_map_get(system->map, it_sub.observer);
+        struct ntg_entity_data* it_map_data = ntg_entity_map_get(system->map, it_sub.entity);
 
-        if(!it_map_data->deinit)
-            it_sub.handler(it_sub.observer, event);
+        if(it_map_data != NULL) // not deinited
+            it_sub.handler(it_sub.entity, event);
     }
 }
 
@@ -111,19 +121,10 @@ void ntg_entity_system_add_observe(
 
     struct ntg_entity_data* observed_data = ntg_entity_map_get(system->map, observed);
     struct ntg_entity_data* observer_data = ntg_entity_map_get(system->map, observer);
+    assert(observer_data != NULL);
+    assert(observed_data != NULL);
 
-    if(observed_data == NULL)
-    {
-        ntg_entity_system_register(system, observed);
-        observed_data = ntg_entity_map_get(system->map, observed);
-    }
-    if(observer_data == NULL)
-    {
-        ntg_entity_system_register(system, observer);
-        observer_data = ntg_entity_map_get(system->map, observer);
-    }
-
-    ntg_event_sub_vec_append(observed_data->subs, observer, handler_fn);
+    ntg_event_sub_vec_append(observed_data->subscribers, observer, handler_fn);
 }
 
 void ntg_entity_system_rm_observe(
@@ -139,20 +140,13 @@ void ntg_entity_system_rm_observe(
 
     struct ntg_entity_data* observed_data = ntg_entity_map_get(system->map, observed);
     struct ntg_entity_data* observer_data = ntg_entity_map_get(system->map, observer);
+    assert(observer_data != NULL);
 
-    if(observed_data == NULL)
+    if(observed_data != NULL)
     {
-        ntg_entity_system_register(system, observed);
-        observed_data = ntg_entity_map_get(system->map, observed);
+        if(ntg_event_sub_vec_contains(observed_data->subscribers, observer, handler_fn))
+            ntg_event_sub_vec_remove(observed_data->subscribers, observer, handler_fn);
     }
-    if(observer_data == NULL)
-    {
-        ntg_entity_system_register(system, observer);
-        observer_data = ntg_entity_map_get(system->map, observer);
-    }
-
-    if(ntg_event_sub_vec_contains(observed_data->subs, observer, handler_fn))
-        ntg_event_sub_vec_remove(observed_data->subs, observer, handler_fn);
 }
 
 bool ntg_entity_system_has_observe(
@@ -168,17 +162,11 @@ bool ntg_entity_system_has_observe(
 
     struct ntg_entity_data* observed_data = ntg_entity_map_get(system->map, observed);
     struct ntg_entity_data* observer_data = ntg_entity_map_get(system->map, observer);
+    assert(observer_data != NULL);
+    assert(observed_data != NULL);
 
-    if(observed_data == NULL)
-    {
-        ntg_entity_system_register(system, observed);
-        observed_data = ntg_entity_map_get(system->map, observed);
-    }
-    if(observer_data == NULL)
-    {
-        ntg_entity_system_register(system, observer);
-        observer_data = ntg_entity_map_get(system->map, observer);
-    }
-
-    return ntg_event_sub_vec_contains(observed_data->subs, observer, handler_fn);
+    if(observed_data != NULL)
+        return ntg_event_sub_vec_contains(observer_data->subscribers, observer, handler_fn);
+    else
+        return false;
 }

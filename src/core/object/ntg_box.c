@@ -11,15 +11,6 @@
 #include "shared/_ntg_shared.h"
 #include "shared/sarena.h"
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC */
-/* -------------------------------------------------------------------------- */
-
-static void init_default_values(ntg_box* box)
-{
-    box->__opts = ntg_box_opts_def();
-}
-
 struct ntg_box_opts ntg_box_opts_def()
 {
     return (struct ntg_box_opts) {
@@ -30,35 +21,41 @@ struct ntg_box_opts ntg_box_opts_def()
     };
 }
 
-void _ntg_box_init_(
-        ntg_box* box,
-        struct ntg_box_opts opts,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system)
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_box* ntg_box_new(ntg_entity_system* system)
+{
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_BOX,
+        .deinit_fn = _ntg_box_deinit_fn,
+        .system = system
+    };
+
+    ntg_box* new = (ntg_box*)ntg_entity_create(entity_data);
+    assert(new != NULL);
+
+    return new;
+}
+
+void _ntg_box_init_(ntg_box* box, ntg_object_process_key_fn process_key_fn)
 {
     assert(box != NULL);
 
     struct ntg_object_init_data object_data = {
-            .layout_init_fn = _ntg_box_layout_init_fn,
-            .layout_deinit_fn = _ntg_box_layout_deinit_fn,
-            .measure_fn = _ntg_box_measure_fn,
-            .constrain_fn = _ntg_box_constrain_fn,
-            .arrange_fn = __ntg_box_arrange_fn,
-            .draw_fn = NULL,
-            .process_key_fn = process_key_fn
+        .layout_init_fn = _ntg_box_layout_init_fn,
+        .layout_deinit_fn = _ntg_box_layout_deinit_fn,
+        .measure_fn = _ntg_box_measure_fn,
+        .constrain_fn = _ntg_box_constrain_fn,
+        .arrange_fn = __ntg_box_arrange_fn,
+        .draw_fn = NULL,
+        .process_key_fn = process_key_fn
     };
 
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_TYPE_BOX,
-        .deinit_fn = _ntg_box_deinit_fn,
-        .group = group,
-        .system = system
-    };
+    _ntg_object_init_((ntg_object*)box, object_data);
 
-    _ntg_object_init_((ntg_object*)box, object_data, entity_data);
-
-    box->__opts = opts;
+    box->__opts = ntg_box_opts_def();
 }
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box)
@@ -111,7 +108,7 @@ void _ntg_box_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    init_default_values((ntg_box*)entity);
+    ((ntg_box*)entity)->__opts = ntg_box_opts_def();
     _ntg_object_deinit_fn(entity);
 }
 
@@ -271,7 +268,7 @@ void _ntg_box_constrain_fn(
             }
         }
 
-        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children.count);
+        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children.count, arena);
 
         for(i = 0; i < children.count; i++)
         {
@@ -355,7 +352,8 @@ void __ntg_box_arrange_fn(
     size_t* _spacing_after = (size_t*)sarena_calloc(arena, array_size);
     assert(_spacing_after != NULL);
 
-    ntg_sap_cap_round_robin(spacing_caps, NULL, _spacing_after, total_spacing, children.count - 1);
+    ntg_sap_cap_round_robin(spacing_caps, NULL, _spacing_after,
+            total_spacing, children.count - 1, arena);
 
     /* Calculate content size */
     struct ntg_oxy _content_size = ntg_oxy(

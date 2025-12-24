@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 
 #include "core/stage/ntg_def_stage.h"
 #include "core/object/ntg_object.h"
@@ -6,24 +7,34 @@
 #include "core/scene/ntg_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 
-void _ntg_def_stage_init_(
-        ntg_def_stage* stage,
-        ntg_entity_group* group,
-        ntg_entity_system* system)
-{
-    assert(stage != NULL);
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
 
+ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system)
+{
     struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_TYPE_DEF_STAGE,
+        .type = &NTG_ENTITY_DEF_STAGE,
         .deinit_fn = _ntg_def_stage_deinit_fn,
-        .group = group,
         .system = system
     };
 
-    struct ntg_stage_init_data stage_data = { .compose_fn = _ntg_def_stage_compose_fn };
+    ntg_def_stage* new = (ntg_def_stage*)ntg_entity_create(entity_data);
+    assert(new != NULL);
 
-    _ntg_stage_init_((ntg_stage*)stage, stage_data, entity_data);
+    return new;
 }
+
+void _ntg_def_stage_init_(ntg_def_stage* stage)
+{
+    assert(stage != NULL);
+
+    _ntg_stage_init_((ntg_stage*)stage, _ntg_def_stage_compose_fn);
+}
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
 
 void _ntg_def_stage_deinit_fn(ntg_entity* entity)
 {

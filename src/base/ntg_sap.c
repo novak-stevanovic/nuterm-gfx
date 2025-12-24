@@ -5,6 +5,7 @@
 
 #include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
+#include "shared/sarena.h"
 
 static inline bool __is_equal_double(double x, double y)
 {
@@ -12,7 +13,7 @@ static inline bool __is_equal_double(double x, double y)
 }
 
 size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
-        size_t* out_sizes, size_t space_pool, size_t count)
+        size_t* out_sizes, size_t space_pool, size_t count, sarena* arena)
 {
     assert(caps != NULL);
     assert(out_sizes != NULL);
@@ -35,7 +36,8 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
 
     if(total_grow == 0) return 0;
 
-    double* distributed = (double*)malloc(sizeof(double) * count);
+    double* distributed = (double*)sarena_malloc(arena, sizeof(double) * count);
+    assert(distributed != NULL);
     for(i = 0; i < count; i++) distributed[i] = 0;
 
     double it_grow_factor;
@@ -96,8 +98,6 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
         distributed_actual++;
         space_pool--;
     }
-
-    free(distributed);
 
     return distributed_actual;
 }

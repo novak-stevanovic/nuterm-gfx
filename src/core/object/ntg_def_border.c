@@ -1,6 +1,7 @@
 #include "core/object/ntg_def_border.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_xy_map.h"
+#include <stdlib.h>
 
 static struct ntg_padding_width get_border_width(
         struct ntg_xy size,
@@ -35,41 +36,68 @@ static void draw_west(const ntg_def_border* border,
         ntg_object_drawing* out_drawing);
 
 /* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
 
-void _ntg_def_border_init_(
-        ntg_def_border* def_border,
-        struct ntg_def_border_style style,
-        struct ntg_padding_width init_width,
-        ntg_entity_group* group,
-        ntg_entity_system* system)
+ntg_def_border* ntg_def_border_new(ntg_entity_system* system)
+{
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_DEF_BORDER,
+        .deinit_fn = _ntg_def_border_deinit_fn,
+        .system = system,
+    };
+
+    ntg_def_border* new = (ntg_def_border*)ntg_entity_create(entity_data);
+    assert(new != NULL);
+
+    return new;
+}
+
+void _ntg_def_border_init_(ntg_def_border* def_border)
 {
     assert(def_border != NULL);
 
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_TYPE_DEF_BORDER,
-        .deinit_fn = _ntg_def_border_deinit_fn,
-        .group = group,
-        .system = system
-    };
+    _ntg_padding_init_((ntg_padding*)def_border, _ntg_def_border_draw_fn);
 
-    _ntg_padding_init_((ntg_padding*)def_border, init_width,
-            _ntg_def_border_draw_fn, entity_data);
+    def_border->__style = ntg_def_border_style_def();
+}
 
-    def_border->__style = style;
+struct ntg_def_border_style ntg_def_border_get_style(const ntg_def_border* border)
+{
+    assert(border != NULL);
+
+    return border->__style;
+}
+
+void ntg_def_border_set_style(ntg_def_border* border, struct ntg_def_border_style style)
+{
+    assert(border != NULL);
+
+    border->__style = style;
 }
 
 /* ------------------------------------------------------ */
 /* PRESETS */
 /* ------------------------------------------------------ */
 
-void _ntg_def_border_init_monochrome_(
-        ntg_def_border* def_border,
-        nt_color color,
-        struct ntg_padding_width init_width,
-        ntg_entity_group* group,
-        ntg_entity_system* system)
+struct ntg_def_border_style ntg_def_border_style_def()
 {
-    struct ntg_def_border_style style = {
+    return (struct ntg_def_border_style) {
+        .top_left = ntg_cell_default(),
+        .top = ntg_cell_default(),
+        .top_right = ntg_cell_default(),
+        .right = ntg_cell_default(),
+        .bottom_right = ntg_cell_default(),
+        .bottom = ntg_cell_default(),
+        .bottom_left = ntg_cell_default(),
+        .left = ntg_cell_default(),
+        .padding = ntg_cell_default()
+    };
+}
+
+struct ntg_def_border_style ntg_def_border_style_monochrome(nt_color color)
+{
+    return (struct ntg_def_border_style) {
         .top_left = ntg_cell_bg(color),
         .top = ntg_cell_bg(color),
         .top_right = ntg_cell_bg(color),
@@ -80,12 +108,19 @@ void _ntg_def_border_init_monochrome_(
         .left = ntg_cell_bg(color),
         .padding = ntg_cell_bg(color),
     };
-    _ntg_def_border_init_(def_border, style, init_width, group, system);
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
+
+void _ntg_def_border_deinit_fn(ntg_entity* entity)
+{
+    ntg_def_border* border = (ntg_def_border*)entity;
+
+    border->__style = (struct ntg_def_border_style) {0};
+    _ntg_padding_deinit_fn(entity);
+}
 
 void _ntg_def_border_draw_fn(
         const ntg_object* object,
@@ -107,14 +142,6 @@ void _ntg_def_border_draw_fn(
     draw_east(border, size, child_start, child_size, child_end, out->drawing);
     draw_north(border, size, child_start, child_size, child_end, out->drawing);
     draw_south(border, size, child_start, child_size, child_end, out->drawing);
-}
-
-void _ntg_def_border_deinit_fn(ntg_entity* entity)
-{
-    ntg_def_border* border = (ntg_def_border*)entity;
-
-    border->__style = (struct ntg_def_border_style) {0};
-    _ntg_padding_deinit_fn(entity);
 }
 
 /* -------------------------------------------------------------------------- */

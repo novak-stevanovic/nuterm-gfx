@@ -7,11 +7,10 @@ typedef struct ntg_entity_system ntg_entity_system;
 typedef struct ntg_entity ntg_entity;
 
 ntg_entity_system* ntg_entity_system_new();
-// TODO: deinit entities
 void ntg_entity_system_destroy(ntg_entity_system* system);
 
 void ntg_entity_system_register(ntg_entity_system* system, ntg_entity* entity);
-void ntg_entity_system_mark_deinit(ntg_entity_system* system, const ntg_entity* entity);
+void ntg_entity_system_unregister(ntg_entity_system* system, ntg_entity* entity);
 unsigned int ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity);
 
 void ntg_entity_system_raise_event(

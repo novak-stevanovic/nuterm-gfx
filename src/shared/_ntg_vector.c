@@ -9,7 +9,7 @@ static void ntg_vector_grow_if_needed(ntg_vector* vector)
     assert(vector != NULL);
     if (vector->_count < vector->__capacity) return;
 
-    size_t new_cap = vector->__capacity ? vector->__capacity * 2 : 4;
+    size_t new_cap = vector->__capacity ? vector->__capacity * 3 : 4;
     void* p = realloc(vector->__data, new_cap * vector->__data_size);
     /* assert on allocation failure per your request */
     assert(p != NULL);
@@ -21,11 +21,11 @@ void _ntg_vector_init_(ntg_vector* vector, size_t data_size, size_t init_cap)
 {
     assert(vector != NULL);
     assert(data_size > 0);
-    assert(init_cap > 0 );
+    assert(init_cap > 0);
 
     vector->_count = 0;
     vector->__data_size = data_size;
-    vector->__capacity = init_cap ? init_cap : 4;
+    vector->__capacity = init_cap; 
     vector->__data = malloc(vector->__capacity * vector->__data_size);
     assert(vector->__data != NULL);
 }

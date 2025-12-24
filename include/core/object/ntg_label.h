@@ -11,6 +11,12 @@ typedef struct ntg_label ntg_label;
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
+typedef void (*ntg_label_post_draw_fn)(
+        ntg_label* label,
+        ntg_object_drawing* out_drawing,
+        struct ntg_xy size,
+        sarena* arena);
+
 struct ntg_label_opts
 {
     ntg_orientation orientation;
@@ -24,16 +30,24 @@ struct ntg_label_opts
 
 struct ntg_label_opts ntg_label_opts_def();
 
+struct ntg_label
+{
+    ntg_object __base;
+
+    ntg_label_post_draw_fn __post_draw_fn;
+
+    struct ntg_str __text;
+    struct ntg_label_opts __opts;
+};
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_label_init_(
-        ntg_label* label,
-        struct ntg_label_opts opts,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+ntg_label* ntg_label_new(ntg_entity_system* system);
+void _ntg_label_init_(ntg_label* label,
+        ntg_label_post_draw_fn post_draw_fn,
+        ntg_object_process_key_fn process_key_fn);
 
 struct ntg_label_opts ntg_label_get_opts(const ntg_label* label);
 void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts);
@@ -44,14 +58,6 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text);
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
-
-struct ntg_label
-{
-    ntg_object __base;
-
-    struct ntg_str __text;
-    struct ntg_label_opts __opts;
-};
 
 void _ntg_label_deinit_fn(ntg_entity* entity);
 

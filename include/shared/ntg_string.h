@@ -76,9 +76,7 @@ struct ntg_str_utf32_split_out
     size_t count;
 };
 
-/* If `sarena` is NULL, malloc() is used */
-struct ntg_str_split_out ntg_str_split(struct ntg_strv str,
-        char sep, sarena* arena);
+struct ntg_str_split_out ntg_str_split(struct ntg_strv str, char sep, sarena* arena);
 struct ntg_str_utf32_split_out ntg_str_utf32_split(struct ntg_strv_utf32 str,
         uint32_t sep, sarena* arena);
 

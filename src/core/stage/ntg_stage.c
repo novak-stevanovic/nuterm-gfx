@@ -4,46 +4,10 @@
 #include "core/scene/ntg_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 
-void _ntg_stage_init_(
-        ntg_stage* stage,
-        struct ntg_stage_init_data stage_data,
-        struct ntg_entity_init_data entity_data)
-{
-    assert(stage != NULL);
-    assert(stage_data.compose_fn != NULL);
-
-    assert(ntg_entity_instanceof(entity_data.type, &NTG_ENTITY_TYPE_STAGE));
-    if(entity_data.deinit_fn == NULL) entity_data.deinit_fn = _ntg_stage_deinit_fn;
-    _ntg_entity_init_((ntg_entity*)stage, entity_data);
-
-    stage->_scene = NULL;
-    stage->_drawing = ntg_stage_drawing_new();
-    stage->__compose_fn = stage_data.compose_fn;
-    stage->_size = ntg_xy(0, 0);
-    stage->data = NULL;
-}
-
-void _ntg_stage_deinit_fn(ntg_entity* entity)
-{
-    assert(entity != NULL);
-
-    ntg_stage* stage = (ntg_stage*)entity;
-    ntg_stage_drawing_destroy(stage->_drawing);
-
-    stage->_scene = NULL;
-    stage->_drawing = NULL;
-    stage->__compose_fn = NULL;
-    stage->_size = ntg_xy(0, 0);
-    stage->data = NULL;
-
-    _ntg_entity_deinit_fn(entity);
-}
-
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size)
 {
     assert(stage != NULL);
 
-    stage->_size = size;
     ntg_stage_drawing_set_size(stage->_drawing, size);
 
     if(stage->_scene != NULL)
@@ -84,3 +48,34 @@ bool ntg_stage_feed_key_event(
     else
         return false;
 }
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+void _ntg_stage_init_(ntg_stage* stage, ntg_stage_compose_fn compose_fn)
+{
+    assert(stage != NULL);
+    assert(compose_fn != NULL);
+
+    stage->_scene = NULL;
+    stage->_drawing = ntg_stage_drawing_new();
+    stage->__compose_fn = compose_fn;
+    stage->data = NULL;
+}
+
+void _ntg_stage_deinit_fn(ntg_entity* entity)
+{
+    assert(entity != NULL);
+
+    ntg_stage* stage = (ntg_stage*)entity;
+    ntg_stage_drawing_destroy(stage->_drawing);
+
+    stage->_scene = NULL;
+    stage->_drawing = NULL;
+    stage->__compose_fn = NULL;
+    stage->data = NULL;
+
+    _ntg_entity_deinit_fn(entity);
+}
+

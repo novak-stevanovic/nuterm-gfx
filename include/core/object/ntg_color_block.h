@@ -6,21 +6,7 @@
 typedef struct ntg_color_block ntg_color_block;
 
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
-/* -------------------------------------------------------------------------- */
-
-void _ntg_color_block_init_(
-        ntg_color_block* color_block,
-        nt_color color,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
-
-nt_color ntg_color_block_get_color(const ntg_color_block* color_block);
-void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
-
-/* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED */
+/* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_color_block
@@ -28,6 +14,21 @@ struct ntg_color_block
     ntg_object __base;
     nt_color __color;
 };
+
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_color_block* ntg_color_block_new(ntg_entity_system* system);
+void _ntg_color_block_init_(ntg_color_block* color_block,
+        ntg_object_process_key_fn process_key_fn);
+
+nt_color ntg_color_block_get_color(const ntg_color_block* color_block);
+void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
 
 void _ntg_color_block_deinit_fn(ntg_entity* entity);
 

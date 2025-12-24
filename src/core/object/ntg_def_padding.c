@@ -1,33 +1,37 @@
 #include "core/object/ntg_def_padding.h"
 #include "core/object/shared/ntg_object_drawing.h"
+#include <stdlib.h>
 
-void _ntg_def_padding_init_(
-        ntg_def_padding* def_padding,
-        ntg_cell cell,
-        struct ntg_padding_width init_width,
-        ntg_entity_group* group,
-        ntg_entity_system* system)
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_def_padding* ntg_def_padding_new(ntg_entity_system* system)
+{
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_DEF_PADDING,
+        .deinit_fn = _ntg_def_padding_deinit_fn,
+        .system = system
+    };
+    ntg_def_padding* new = (ntg_def_padding*)ntg_entity_create(entity_data);
+    assert(new != NULL);
+
+    return new;
+}
+
+void _ntg_def_padding_init_(ntg_def_padding* def_padding)
 {
     assert(def_padding != NULL);
 
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_TYPE_DEF_PADDING,
-        .deinit_fn = _ntg_def_padding_deinit_fn,
-        .group = group,
-        .system = system
-    };
-
-    _ntg_padding_init_((ntg_padding*)def_padding, init_width,
-            _ntg_def_padding_draw_fn, entity_data);
-
-    def_padding->__cell = cell;
+    _ntg_padding_init_((ntg_padding*)def_padding, _ntg_def_padding_draw_fn);
 }
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
 
 void _ntg_def_padding_deinit_fn(ntg_entity* entity)
 {
-    ntg_def_padding* def_padding = (ntg_def_padding*)entity;
-
-    def_padding->__cell = ntg_cell_default();
     _ntg_padding_deinit_fn(entity);
 }
 
@@ -39,7 +43,17 @@ void _ntg_def_padding_draw_fn(
         void* _layout_data,
         sarena* arena)
 {
-    ntg_def_padding* def_padding = (ntg_def_padding*)object;
+    ntg_cell cell;
+
+    if(ntg_object_get_children(object).count == 0)
+    {
+        cell = ntg_cell_default();
+    }
+    else
+    {
+        const ntg_object* child = ntg_object_get_children(object).data[0];
+        cell = ntg_object_get_bg(child);
+    }
 
     size_t i, j;
     ntg_cell* it_cell;
@@ -48,7 +62,7 @@ void _ntg_def_padding_draw_fn(
         for(j = 0; j < size.x; j++)
         {
             it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
-            (*it_cell) = def_padding->__cell;
+            (*it_cell) = cell;
         }
     }
 }

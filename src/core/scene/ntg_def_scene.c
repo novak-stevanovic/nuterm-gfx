@@ -11,6 +11,38 @@
 #include "shared/ntg_log.h"
 #include "shared/sarena.h"
 
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system)
+{
+    struct ntg_entity_init_data entity_data = {
+        .deinit_fn = _ntg_def_scene_deinit_fn,
+        .type = &NTG_ENTITY_DEF_SCENE,
+        .system = system
+    };
+
+    ntg_def_scene* new = (ntg_def_scene*)ntg_entity_create(entity_data);
+
+    return new;
+}
+
+void _ntg_def_scene_init_(ntg_def_scene* scene,
+        ntg_scene_process_key_fn process_key_fn)
+{
+    assert(scene != NULL);
+
+    _ntg_scene_init_((ntg_scene*)scene, _ntg_def_scene_layout_fn, process_key_fn);
+
+    scene->__layout_arena = sarena_create(30000);
+    assert(scene->__layout_arena != NULL);
+}
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
 static ntg_object_measure_map* get_object_measure_map(ntg_object* object,
         ntg_def_scene* scene, ntg_orientation orientation);
 // static ntg_object_size_map* get_object_size_map(ntg_object* object,
@@ -26,34 +58,6 @@ static void measure2_fn(ntg_object* object, void* _layout_data);
 static void constrain2_fn(ntg_object* object, void* _layout_data);
 static void arrange_fn(ntg_object* object, void* _layout_data);
 static void draw_fn(ntg_object* object, void* _layout_data);
-
-void _ntg_def_scene_init_(
-        ntg_def_scene* scene,
-        ntg_scene_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system)
-{
-    assert(scene != NULL);
-    
-    struct ntg_entity_init_data entity_data = {
-        .deinit_fn = _ntg_def_scene_deinit_fn,
-        .type = &NTG_ENTITY_TYPE_DEF_SCENE,
-        .group = group,
-        .system = system
-    };
-
-    struct ntg_scene_init_data scene_data = {
-        .layout_fn = _ntg_def_scene_layout_fn,
-        .on_register_fn = NULL,
-        .on_unregister_fn = NULL,
-        .process_key_fn = process_key_fn
-    };
-
-    _ntg_scene_init_((ntg_scene*)scene, scene_data, entity_data);
-
-    scene->__layout_arena = sarena_create(100000);
-    assert(scene->__layout_arena != NULL);
-}
 
 struct ntg_layout_data
 {

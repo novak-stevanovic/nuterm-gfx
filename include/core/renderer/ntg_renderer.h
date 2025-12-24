@@ -4,10 +4,6 @@
 #include "base/entity/ntg_entity.h"
 #include "shared/ntg_xy.h"
 
-/* -------------------------------------------------------------------------- */
-/* DECLARATIONS */
-/* -------------------------------------------------------------------------- */
-
 typedef struct ntg_renderer ntg_renderer;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
 
@@ -21,20 +17,16 @@ typedef void (*ntg_renderer_render_fn)(
         const ntg_stage_drawing* stage_drawing,
         struct ntg_xy size);
 
+struct ntg_renderer
+{
+    ntg_entity __base;
+    ntg_renderer_render_fn __render_fn;
+    void* data;
+};
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
-
-struct ntg_renderer_init_data 
-{
-    ntg_renderer_render_fn render_fn;
-};
-
-void _ntg_renderer_init_(
-        ntg_renderer* renderer,
-        struct ntg_renderer_init_data renderer_data,
-        struct ntg_entity_init_data entity_data);
-void _ntg_renderer_deinit_fn(ntg_entity* entity);
 
 /* If `stage_drawing` is NULL, render empty */
 void ntg_renderer_render(
@@ -46,11 +38,8 @@ void ntg_renderer_render(
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_renderer
-{
-    ntg_entity __base;
-    ntg_renderer_render_fn __render_fn;
-    void* data;
-};
+void _ntg_renderer_init_(ntg_renderer* renderer, ntg_renderer_render_fn render_fn);
+
+void _ntg_renderer_deinit_fn(ntg_entity* entity);
 
 #endif // _NTG_RENDERER_H_

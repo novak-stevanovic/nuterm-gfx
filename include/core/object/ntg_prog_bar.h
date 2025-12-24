@@ -23,12 +23,10 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_def();
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_prog_bar_init_(
-        ntg_prog_bar* prog_bar,
-        struct ntg_prog_bar_opts opts,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+ntg_prog_bar* ntg_prog_bar_new(ntg_entity_system* system);
+
+void _ntg_prog_bar_init_(ntg_prog_bar* prog_bar,
+        ntg_object_process_key_fn process_key_fn);
 
 void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage);
 double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar);

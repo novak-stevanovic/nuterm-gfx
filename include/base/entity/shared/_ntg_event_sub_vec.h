@@ -7,7 +7,7 @@
 
 struct ntg_event_sub
 {
-    ntg_entity* observer;
+    ntg_entity* entity;
     ntg_event_handler_fn handler;
 };
 

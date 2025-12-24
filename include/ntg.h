@@ -7,9 +7,10 @@
 #include "core/loop/ntg_loop.h"
 #include "core/loop/ntg_taskmaster.h"
 #include "core/renderer/ntg_def_renderer.h"
-#include "core/stage/ntg_def_stage.h"
-#include "core/scene/ntg_def_scene.h"
 #include "core/object/ntg_object.h"
+#include "core/scene/ntg_def_scene.h"
+#include "core/stage/ntg_def_stage.h"
+#include "shared/ntg_shared.h"
 
 /* -------------------------------------------------------------------------- */
 /* INIT/DEINIT */
@@ -31,40 +32,17 @@ void ntg_launch(ntg_gui_fn gui_fn, void* data);
 void* ntg_wait();
 
 /* -------------------------------------------------------------------------- */
-/* KICKSTART */
-/* -------------------------------------------------------------------------- */
-
-struct ntg_kickstart_obj
-{
-    ntg_loop loop;
-
-    ntg_taskmaster taskmaster;
-
-    ntg_def_renderer renderer;
-};
-
-void ntg_kickstart(ntg_stage* init_stage,
-        unsigned int loop_framerate, /* non-zero */
-        ntg_loop_process_event_fn loop_process_event_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system,
-        struct ntg_kickstart_obj* out_obj);
-
-/* -------------------------------------------------------------------------- */
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: ntg_taskmaster: needs to update gui not only on task finished | *
-// TODO: Rethink nullable argument names in fns | *
-// TODO: sarena: incorporate sarena into entity allocation | *
-// TODO: Rethink protected/internal/read-only fields/documentation, etc.(including void* data field) | *
-// TODO: ntg_taskmaster: what if a task gets stuck, what if deinit func is called before a task is finished? | *
+// TODO: ntg_padding: rethink measure_fn | *
+// TODO: ntg_object/ntg_scene: rework scan_scene() fn, more event types, remove process_key_fn, add ntg_entity_feed_event()? | *
+// TODO: nuterm: add signal event, maybe more event types - allow user to define and post events to loop? | **
+// TODO: ntg_taskmaster: full rework | **
 // TODO: ntg_list and/or ntg_table: implement | **
 // TODO: ntg_scene: implement multi-root, multifocused? system | **
 // TODO: ntg_scene: optimize ntg_def_scene layout fn | **
-// TODO: nuterm: add signal event, maybe more event types - allow user to define events? | *
-// TODO: add convenience macros | *
-// TODO: add inheritable constructors | *
-// TODO: add proper error-handling | ***
+// TODO: nuterm-gfx: add convenience macros | *
+// TODO: nuterm-gfx: add proper error-handling, names of nullable parameters in fns | ***
 
 #endif // _NTG_H_

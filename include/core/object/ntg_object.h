@@ -9,7 +9,7 @@
 #include "shared/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
-/* DECLARATIONS */
+/* FORWARD DECLARATIONS */
 /* -------------------------------------------------------------------------- */
 
 typedef struct ntg_object ntg_object;
@@ -45,6 +45,8 @@ typedef void* (*ntg_object_layout_init_fn)(const ntg_object* object);
 typedef void (*ntg_object_layout_deinit_fn)(
         const ntg_object* object,
         void* layout_data);
+
+/* ------------------------------------------------------ */
 
 struct ntg_object_measure_ctx
 {
@@ -145,31 +147,45 @@ typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
         struct nt_key_event key_event,
         struct ntg_object_key_ctx ctx);
 
+/* ------------------------------------------------------ */
+
+struct ntg_object
+{
+    ntg_entity __base;
+
+    struct
+    {
+        ntg_object* __parent;
+        ntg_object_vec* __children;
+    };
+
+    struct
+    {
+        struct ntg_xy __min_size, __max_size, __grow;
+    };
+
+    struct
+    {
+        ntg_object_layout_init_fn __layout_init_fn;
+        ntg_object_layout_deinit_fn __layout_deinit_fn;
+        ntg_object_measure_fn __measure_fn;
+        ntg_object_constrain_fn __constrain_fn;
+        ntg_object_arrange_fn __arrange_fn;
+        ntg_object_draw_fn __draw_fn;
+        ntg_cell __background;
+    };
+
+    struct
+    {
+        ntg_object_process_key_fn __process_key_fn;
+    };
+
+    void* data;
+};
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
-struct ntg_object_init_data
-{
-    ntg_object_layout_init_fn layout_init_fn;
-    ntg_object_layout_deinit_fn layout_deinit_fn;
-    ntg_object_measure_fn measure_fn;
-    ntg_object_constrain_fn constrain_fn;
-    ntg_object_arrange_fn arrange_fn;
-    ntg_object_draw_fn draw_fn;
-
-    ntg_object_process_key_fn process_key_fn;
-};
-
-void _ntg_object_init_(ntg_object* object,
-        struct ntg_object_init_data object_data,
-        struct ntg_entity_init_data entity_data);
-
-void _ntg_object_deinit_fn(ntg_entity* entity);
 
 /* ------------------------------------------------------ */
 /* IDENTITY */
@@ -244,8 +260,8 @@ const ntg_padding* ntg_object_get_border(const ntg_object* object);
 ntg_padding* ntg_object_get_border_(ntg_object* object);
 ntg_padding* ntg_object_set_border(ntg_object* object, ntg_padding* border);
 
-ntg_cell ntg_object_get_background(const ntg_object* object);
-void ntg_object_set_background(ntg_object* object, ntg_cell background);
+ntg_cell ntg_object_get_bg(const ntg_object* object);
+void ntg_object_set_bg(ntg_object* object, ntg_cell background);
 
 /* ------------------------------------------------------ */
 /* LAYOUT */
@@ -300,44 +316,21 @@ bool ntg_object_feed_key(ntg_object* object,
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_object
+struct ntg_object_init_data
 {
-    ntg_entity __base;
+    ntg_object_layout_init_fn layout_init_fn;
+    ntg_object_layout_deinit_fn layout_deinit_fn;
+    ntg_object_measure_fn measure_fn;
+    ntg_object_constrain_fn constrain_fn;
+    ntg_object_arrange_fn arrange_fn;
+    ntg_object_draw_fn draw_fn;
 
-    struct
-    {
-        ntg_object* __parent;
-        ntg_object_vec* __children;
-    };
-
-    struct
-    {
-        struct ntg_xy __min_size, __max_size, __grow;
-    };
-
-    struct
-    {
-        ntg_cell __background;
-    };
-
-    struct
-    {
-        ntg_object_layout_init_fn __layout_init_fn;
-        ntg_object_layout_deinit_fn __layout_deinit_fn;
-        ntg_object_measure_fn __measure_fn;
-        ntg_object_constrain_fn __constrain_fn;
-        ntg_object_arrange_fn __arrange_fn;
-        ntg_object_draw_fn __draw_fn;
-
-    };
-
-    struct
-    {
-        ntg_object_process_key_fn __process_key_fn;
-    };
-
-    void* data;
+    ntg_object_process_key_fn process_key_fn;
 };
+
+void _ntg_object_init_(ntg_object* object, struct ntg_object_init_data object_data);
+
+void _ntg_object_deinit_fn(ntg_entity* entity);
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child);

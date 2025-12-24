@@ -10,10 +10,8 @@
 /* -------------------------------------------------------------------------- */
 
 typedef struct ntg_entity ntg_entity;
-typedef struct ntg_entity_group ntg_entity_group;
 typedef struct ntg_entity_register ntg_entity_register;
 typedef struct ntg_entity_system ntg_entity_system;
-typedef struct sarena sarena;
 struct ntg_event;
 
 /* -------------------------------------------------------------------------- */
@@ -26,10 +24,11 @@ typedef void (*ntg_event_handler_fn)(
         ntg_entity* observer,
         struct ntg_event event);
 
+/* Base class for GUI objects. Entities must be dynamically allocated. */
+
 struct ntg_entity
 {
-    const ntg_entity_type* type;
-    sarena* _arena;
+    const ntg_entity_type* _type;
 
     ntg_entity_deinit_fn __deinit_fn;
     ntg_entity_system* __system;
@@ -55,13 +54,13 @@ struct ntg_entity_init_data
 {
     const ntg_entity_type* type;
     ntg_entity_deinit_fn deinit_fn;
-    ntg_entity_group* group;
     ntg_entity_system* system;
 };
 
-void _ntg_entity_init_(ntg_entity* entity, struct ntg_entity_init_data init_data);
-void _ntg_entity_deinit_(ntg_entity* entity);
+ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data);
+void ntg_entity_destroy(ntg_entity* entity);
 
+/* Call last in overriden deinit_fn */
 void _ntg_entity_deinit_fn(ntg_entity* entity);
 
 /* ------------------------------------------------------ */
@@ -82,13 +81,5 @@ bool ntg_entity_is_observing(
         ntg_entity* observer,
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
-
-/* ------------------------------------------------------ */
-/* ENTITY GROUP */
-/* ------------------------------------------------------ */
-
-ntg_entity_group* ntg_entity_group_new(sarena* arena);
-void ntg_entity_group_destroy(ntg_entity_group* group);
-sarena* ntg_entity_group_get_arena(ntg_entity_group* group);
 
 #endif // _NTG_ENTITY_H_

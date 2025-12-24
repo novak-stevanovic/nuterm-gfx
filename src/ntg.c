@@ -34,7 +34,7 @@ void _ntg_init_()
     }
 }
 
-struct ntg_app_thread_fn_data
+struct thread_fn_data
 {
     ntg_gui_fn gui_fn;
     void* gui_fn_data;
@@ -48,8 +48,7 @@ void ntg_launch(ntg_gui_fn gui_fn, void* data)
     nt_alt_screen_enable(NULL);
     nt_cursor_hide(NULL);
 
-    struct ntg_app_thread_fn_data* thread_fn_data = malloc(
-            sizeof(struct ntg_app_thread_fn_data));
+    struct thread_fn_data* thread_fn_data = malloc(sizeof(struct thread_fn_data));
     assert(thread_fn_data != NULL);
 
     thread_fn_data->gui_fn = gui_fn;
@@ -84,8 +83,8 @@ void _ntg_deinit_()
 
 static void* ntg_thread_fn(void* _thread_fn_data)
 {
-    struct ntg_app_thread_fn_data* data =
-        (struct ntg_app_thread_fn_data*)_thread_fn_data;
+    struct thread_fn_data* data =
+        (struct thread_fn_data*)_thread_fn_data;
 
     ntg_entity_system* es = ntg_entity_system_new();
 
@@ -96,36 +95,4 @@ static void* ntg_thread_fn(void* _thread_fn_data)
     free(data);
 
     return NULL;
-}
-
-void ntg_kickstart(ntg_stage* init_stage,
-        unsigned int loop_framerate, /* non-zero */
-        ntg_loop_process_event_fn loop_process_event_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system,
-        struct ntg_kickstart_obj* out_obj)
-{
-    assert(loop_framerate > 0);
-    assert(loop_framerate < 1000);
-    assert(group != NULL);
-    assert(system != NULL);
-    assert(out_obj != NULL);
-
-    ntg_loop* loop = &out_obj->loop;
-    ntg_def_renderer* renderer = &out_obj->renderer;
-    ntg_taskmaster* taskmaster = &out_obj->taskmaster;
-
-    _ntg_taskmaster_init_(taskmaster, group, system);
-
-    _ntg_def_renderer_init_(renderer, loop, group, system);
-
-    struct ntg_loop_init_data loop_init_data = {
-        .taskmaster = taskmaster,
-        .renderer = (ntg_renderer*)renderer,
-        .framerate = loop_framerate,
-        .process_event_fn = loop_process_event_fn,
-        .init_stage = init_stage
-    };
-
-    _ntg_loop_init_(loop, loop_init_data, group, system);
 }

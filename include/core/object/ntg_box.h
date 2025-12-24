@@ -17,19 +17,21 @@ struct ntg_box_opts
     ntg_alignment salignment;
     size_t spacing;
 };
-
 struct ntg_box_opts ntg_box_opts_def();
+
+struct ntg_box
+{
+    ntg_object __base;
+
+    struct ntg_box_opts __opts;
+};
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_box_init_(
-        ntg_box* box,
-        struct ntg_box_opts opts,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+ntg_box* ntg_box_new(ntg_entity_system* system);
+void _ntg_box_init_(ntg_box* box, ntg_object_process_key_fn process_key_fn);
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box);
 void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts);
@@ -40,13 +42,6 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child);
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
-
-struct ntg_box
-{
-    ntg_object __base;
-
-    struct ntg_box_opts __opts;
-};
 
 void _ntg_box_deinit_fn(ntg_entity* entity);
 

@@ -16,64 +16,6 @@ struct ntg_object_container
     ntg_object_vec vec;
 };
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC API */
-/* -------------------------------------------------------------------------- */
-
-static void __init_default_values(ntg_object* object);
-
-void _ntg_object_init_(ntg_object* object,
-        struct ntg_object_init_data object_data,
-        struct ntg_entity_init_data entity_data)
-{
-    assert(object != NULL);
-
-    __init_default_values(object);
-
-    assert(ntg_entity_instanceof(entity_data.type, &NTG_ENTITY_TYPE_OBJECT));
-    if(entity_data.deinit_fn == NULL) entity_data.deinit_fn = _ntg_object_deinit_fn;
-    _ntg_entity_init_((ntg_entity*)object, entity_data);
-    
-    object->__children = ntg_object_vec_new();
-    object->__background = ntg_cell_default();
-    object->__layout_init_fn = object_data.layout_init_fn;
-    object->__layout_deinit_fn = object_data.layout_deinit_fn;
-    object->__measure_fn = object_data.measure_fn;
-    object->__constrain_fn = object_data.constrain_fn;
-    object->__arrange_fn = object_data.arrange_fn;
-    object->__draw_fn = object_data.draw_fn;
-    object->__process_key_fn = object_data.process_key_fn;
-}
-
-void _ntg_object_deinit_fn(ntg_entity* entity)
-{
-    assert(entity != NULL);
-
-    ntg_object* object = (ntg_object*)entity;
-    ntg_object_vec_destroy(object->__children);
-    __init_default_values(object);
-
-    _ntg_entity_deinit_fn(entity);
-}
-
-static void __init_default_values(ntg_object* object)
-{
-    object->__parent = NULL;
-    object->__children = NULL;
-
-    object->__min_size = ntg_xy(0, 0);
-    object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
-    object->__grow = ntg_xy(1, 1);
-
-    object->__layout_init_fn = NULL;
-    object->__layout_deinit_fn = NULL;
-    object->__measure_fn = NULL;
-    object->__constrain_fn = NULL;
-    object->__arrange_fn = NULL;
-    object->__draw_fn = NULL;
-    object->__process_key_fn = NULL;
-}
-
 /* ---------------------------------------------------------------- */
 /* IDENTITY */
 /* ---------------------------------------------------------------- */
@@ -82,28 +24,28 @@ bool ntg_object_is_widget(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return ntg_entity_instanceof(((const ntg_entity*)object)->type, &NTG_ENTITY_TYPE_WIDGET);
+    return ntg_entity_instanceof(((const ntg_entity*)object)->_type, &NTG_ENTITY_WIDGET);
 }
 
 bool ntg_object_is_decorator(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return ntg_entity_instanceof(((const ntg_entity*)object)->type, &NTG_ENTITY_TYPE_DECORATOR);
+    return ntg_entity_instanceof(((const ntg_entity*)object)->_type, &NTG_ENTITY_DECORATOR);
 }
 
 bool ntg_object_is_border(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return ntg_entity_instanceof(((const ntg_entity*)object)->type, &NTG_ENTITY_TYPE_BORDER);
+    return ntg_entity_instanceof(((const ntg_entity*)object)->_type, &NTG_ENTITY_BORDER);
 }
 
 bool ntg_object_is_padding(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return ntg_entity_instanceof(((const ntg_entity*)object)->type, &NTG_ENTITY_TYPE_PADDING);
+    return ntg_entity_instanceof(((const ntg_entity*)object)->_type, &NTG_ENTITY_PADDING);
 }
 
 /* ---------------------------------------------------------------- */
@@ -487,14 +429,14 @@ ntg_padding* ntg_object_set_border(ntg_object* object, ntg_padding* border)
     return (ntg_padding*)_border;
 }
 
-ntg_cell ntg_object_get_background(const ntg_object* object)
+ntg_cell ntg_object_get_bg(const ntg_object* object)
 {
     assert(object != NULL);
 
     return object->__background;
 }
 
-void ntg_object_set_background(ntg_object* object, ntg_cell background)
+void ntg_object_set_bg(ntg_object* object, ntg_cell background)
 {
     assert(object != NULL);
 
@@ -685,6 +627,55 @@ bool ntg_object_feed_key(
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
+
+static void __init_default_values(ntg_object* object);
+
+void _ntg_object_init_(ntg_object* object, struct ntg_object_init_data object_data)
+{
+    assert(object != NULL);
+
+    __init_default_values(object);
+
+    object->__children = ntg_object_vec_new();
+    object->__background = ntg_cell_default();
+    object->__layout_init_fn = object_data.layout_init_fn;
+    object->__layout_deinit_fn = object_data.layout_deinit_fn;
+    object->__measure_fn = object_data.measure_fn;
+    object->__constrain_fn = object_data.constrain_fn;
+    object->__arrange_fn = object_data.arrange_fn;
+    object->__draw_fn = object_data.draw_fn;
+    object->__process_key_fn = object_data.process_key_fn;
+}
+
+static void __init_default_values(ntg_object* object)
+{
+    object->__parent = NULL;
+    object->__children = NULL;
+
+    object->__min_size = ntg_xy(0, 0);
+    object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
+    object->__grow = ntg_xy(1, 1);
+
+    object->__layout_init_fn = NULL;
+    object->__layout_deinit_fn = NULL;
+    object->__measure_fn = NULL;
+    object->__constrain_fn = NULL;
+    object->__arrange_fn = NULL;
+    object->__draw_fn = NULL;
+    object->__process_key_fn = NULL;
+}
+
+
+void _ntg_object_deinit_fn(ntg_entity* entity)
+{
+    assert(entity != NULL);
+
+    ntg_object* object = (ntg_object*)entity;
+    ntg_object_vec_destroy(object->__children);
+    __init_default_values(object);
+
+    _ntg_entity_deinit_fn(entity);
+}
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child)
 {

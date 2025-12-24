@@ -68,14 +68,16 @@ void ntg_rcell_grid_set_size(ntg_rcell_grid* grid, struct ntg_xy size,
         if(new_data == NULL)
             _vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
+        struct ntg_xy old_size = grid->_size;
+
         grid->__data = new_data;
         grid->_size = size;
 
         size_t i, j;
         struct ntg_rcell* it_cell;
-        for(i = 0; i < size.y; i++)
+        for(i = old_size.y; i < size.y; i++)
         {
-            for(j = 0; j < size.x; j++)
+            for(j = old_size.x; j < size.x; j++)
             {
                 it_cell = ntg_rcell_grid_at_(grid, ntg_xy(j, i));
                 (*it_cell) = ntg_rcell_default();
@@ -189,14 +191,16 @@ void ntg_cell_grid_set_size(ntg_cell_grid* grid, struct ntg_xy size,
         if(new_data == NULL)
             _vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
+        struct ntg_xy old_size = grid->_size;
+
         grid->__data = new_data;
         grid->_size = size;
 
         size_t i, j;
         ntg_cell* it_cell;
-        for(i = 0; i < size.y; i++)
+        for(i = old_size.y; i < size.y; i++)
         {
-            for(j = 0; j < size.x; j++)
+            for(j = old_size.x; j < size.x; j++)
             {
                 it_cell = ntg_cell_grid_at_(grid, ntg_xy(j, i));
                 (*it_cell) = ntg_cell_default();

@@ -7,7 +7,7 @@
 
 struct _ntg_event_sub
 {
-    const ntg_entity* observer;
+    const ntg_entity* entity;
     ntg_event_handler_fn handler;
 };
 
@@ -54,7 +54,7 @@ void ntg_event_sub_vec_append(
     assert(handler != NULL);
 
     struct ntg_event_sub sub = {
-        .observer = observer,
+        .entity = observer,
         .handler = handler
     };
 
@@ -71,7 +71,7 @@ void ntg_event_sub_vec_remove(
     assert(handler != NULL);
 
     struct ntg_event_sub sub = {
-        .observer = observer,
+        .entity = observer,
         .handler = handler
     };
 
@@ -88,7 +88,7 @@ size_t ntg_event_sub_vec_find(
     assert(handler != NULL);
 
     struct _ntg_event_sub sub = {
-        .observer = observer,
+        .entity = observer,
         .handler = handler
     };
 
@@ -105,7 +105,7 @@ bool ntg_event_sub_vec_contains(
     assert(handler != NULL);
 
     struct _ntg_event_sub sub = {
-        .observer = observer,
+        .entity = observer,
         .handler = handler
     };
 

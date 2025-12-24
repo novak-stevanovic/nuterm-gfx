@@ -6,22 +6,20 @@
 typedef struct ntg_def_padding ntg_def_padding;
 
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_def_padding
 {
     ntg_padding __base;
-
-    ntg_cell __cell;
 };
 
-void _ntg_def_padding_init_(
-        ntg_def_padding* def_padding,
-        ntg_cell cell,
-        struct ntg_padding_width init_width,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_def_padding* ntg_def_padding_new(ntg_entity_system* system);
+void _ntg_def_padding_init_(ntg_def_padding* def_padding);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

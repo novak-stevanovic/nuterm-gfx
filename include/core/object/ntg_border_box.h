@@ -6,7 +6,7 @@
 typedef struct ntg_border_box ntg_border_box;
 
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_border_box_opts
@@ -16,12 +16,21 @@ struct ntg_border_box_opts
 
 struct ntg_border_box_opts ntg_border_box_opts_def();
 
-void _ntg_border_box_init_(
-        ntg_border_box* box,
-        struct ntg_border_box_opts opts,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+struct ntg_border_box
+{
+    ntg_object __base;
+    ntg_object *__north, *__east, *__south,
+               *__west, *__center;
+};
+
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_border_box* ntg_border_box_new(ntg_entity_system* system);
+
+void _ntg_border_box_init_(ntg_border_box* box,
+        ntg_object_process_key_fn process_key_fn);
 
 ntg_object* ntg_border_box_get_north(ntg_border_box* box);
 ntg_object* ntg_border_box_get_east(ntg_border_box* box);
@@ -38,13 +47,6 @@ void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center);
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
-
-struct ntg_border_box
-{
-    ntg_object __base;
-    ntg_object *__north, *__east, *__south,
-               *__west, *__center;
-};
 
 void _ntg_border_box_deinit_fn(ntg_entity* entity);
 

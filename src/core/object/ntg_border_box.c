@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 
 #include "core/object/ntg_border_box.h"
 #include "core/object/shared/ntg_object_measure.h"
@@ -29,8 +30,13 @@ static void get_true_children(const ntg_border_box* box, ntg_object** out_north,
         NULL;
 }
 
+struct ntg_border_box_opts ntg_border_box_opts_def()
+{
+    return (struct ntg_border_box_opts) {0};
+}
+
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
 static void init_default(ntg_border_box* box)
@@ -42,17 +48,22 @@ static void init_default(ntg_border_box* box)
     box->__center = NULL;
 }
 
-struct ntg_border_box_opts ntg_border_box_opts_def()
+ntg_border_box* ntg_border_box_new(ntg_entity_system* system)
 {
-    return (struct ntg_border_box_opts) {0};
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_BORDER_BOX,
+        .deinit_fn = _ntg_border_box_deinit_fn,
+        .system = system
+    };
+
+    ntg_border_box* new = (ntg_border_box*)ntg_entity_create(entity_data);
+    assert(new != NULL);
+
+    return new;
 }
 
-void _ntg_border_box_init_(
-        ntg_border_box* box,
-        struct ntg_border_box_opts opts,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system)
+void _ntg_border_box_init_(ntg_border_box* box,
+        ntg_object_process_key_fn process_key_fn)
 {
     assert(box != NULL);
 
@@ -66,14 +77,7 @@ void _ntg_border_box_init_(
         .process_key_fn = process_key_fn
     };
 
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_TYPE_BORDER_BOX,
-        .deinit_fn = _ntg_border_box_deinit_fn,
-        .group = group,
-        .system = system
-    };
-
-    _ntg_object_init_((ntg_object*)box, object_data, entity_data);
+    _ntg_object_init_((ntg_object*)box, object_data);
 
     init_default(box);
 }
@@ -380,7 +384,7 @@ void _ntg_border_box_constrain_fn(
             grows[1] = center_measure.grow;
             grows[2] = east_measure.grow;
 
-            ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3);
+            ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3, arena);
         }
         else if(size > wce_measure.min_size)
         {
@@ -392,7 +396,7 @@ void _ntg_border_box_constrain_fn(
             _sizes[2] = east_measure.min_size;
             extra_size = size - wce_measure.min_size;
 
-            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3);
+            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena);
         }
         else // size < wce_measure.min-size
         {
@@ -404,7 +408,7 @@ void _ntg_border_box_constrain_fn(
             _sizes[2] = 0;
             extra_size = size;
 
-            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3);
+            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena);
         }
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
@@ -446,7 +450,7 @@ void _ntg_border_box_constrain_fn(
             grows[1] = wce_measure.grow;
             grows[2] = south_measure.grow;
 
-            ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3);
+            ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3, arena);
 
         }
         else if(size >= total_measure.min_size)
@@ -459,7 +463,7 @@ void _ntg_border_box_constrain_fn(
             _sizes[2] = south_measure.min_size;
             extra_size = size - total_measure.min_size;
 
-            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3);
+            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena);
         }
         else
         {
@@ -471,7 +475,7 @@ void _ntg_border_box_constrain_fn(
             _sizes[2] = 0;
             extra_size = size;
 
-            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3);
+            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena);
         }
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];

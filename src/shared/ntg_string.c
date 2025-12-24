@@ -88,8 +88,7 @@ size_t ntg_str_utf32_count(struct ntg_strv_utf32 str, uint32_t sep)
             sizeof(uint32_t));
 }
 
-struct ntg_str_split_out ntg_str_split(struct ntg_strv str,
-        char sep, sarena* arena)
+struct ntg_str_split_out ntg_str_split(struct ntg_strv str, char sep, sarena* arena)
 {
     assert(arena != NULL);
 

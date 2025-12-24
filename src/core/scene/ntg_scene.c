@@ -14,77 +14,6 @@ static void scan_scene(ntg_scene* scene);
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-static void __init_default_values(ntg_scene* scene);
-static bool process_key_fn_def(ntg_scene* scene,
-        struct nt_key_event key, ntg_loop_ctx* loop_ctx);
-
-void _ntg_scene_init_(
-        ntg_scene* scene, /* non-NULL */
-        struct ntg_scene_init_data scene_data,
-        struct ntg_entity_init_data entity_data)
-{
-    assert(scene != NULL);
-    assert(scene_data.layout_fn != NULL);
-
-    __init_default_values(scene);
-
-    assert(ntg_entity_instanceof(entity_data.type, &NTG_ENTITY_TYPE_SCENE));
-    if(entity_data.deinit_fn == NULL) entity_data.deinit_fn = _ntg_scene_deinit_fn;
-    _ntg_entity_init_((ntg_entity*)scene, entity_data);
-
-    scene->_root = NULL;
-    scene->_focused = NULL;
-
-    scene->__layout_fn = scene_data.layout_fn;
-    scene->__on_register_fn = scene_data.on_register_fn;
-    scene->__on_unregister_fn = scene_data.on_unregister_fn;
-    scene->__process_key_fn = (scene_data.process_key_fn != NULL) ?
-        scene_data.process_key_fn : process_key_fn_def;
-
-    scene->_graph = ntg_scene_graph_new();
-}
-
-static void __init_default_values(ntg_scene* scene)
-{
-    scene->_root = NULL;
-    scene->_size = ntg_xy(0, 0);
-    scene->_graph = NULL;
-    
-    scene->__layout_fn = NULL;
-    scene->__on_register_fn = NULL;
-    scene->__on_unregister_fn = NULL;
-    scene->__process_key_fn = NULL;
-
-    scene->_focused = NULL;
-    scene->__pending_focused = NULL;
-    scene->__pending_focused_flag = false;
-    scene->data = NULL;
-}
-
-void _ntg_scene_deinit_fn(ntg_entity* entity)
-{
-    assert(entity != NULL);
-
-    ntg_scene* scene = (ntg_scene*)entity;
-    ntg_scene_graph_destroy(scene->_graph);
-    __init_default_values(scene);
-
-    _ntg_entity_deinit_fn(entity);
-}
-
-static bool process_key_fn_def(ntg_scene* scene,
-        struct nt_key_event key, ntg_loop_ctx* loop_ctx)
-{
-    assert(scene != NULL);
-
-    struct ntg_object_key_ctx ctx = {
-        .scene = scene,
-        .loop_ctx = loop_ctx
-    };
-
-    return ntg_object_feed_key(scene->_focused, key, ctx);
-}
-
 ntg_object* ntg_scene_get_focused(ntg_scene* scene)
 {
     assert(scene != NULL);
@@ -140,20 +69,11 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
     assert(scene != NULL);
 
-    scene->_size = size;
-
     scan_scene(scene);
 
     update_focused(scene);
 
     scene->__layout_fn(scene, size);
-}
-
-struct ntg_xy ntg_scene_get_size(const ntg_scene* scene)
-{
-    assert(scene != NULL);
-
-    return scene->_size;
 }
 
 /* ------------------------------------------------------ */
@@ -168,7 +88,70 @@ bool ntg_scene_feed_key_event(
     return scene->__process_key_fn(scene, key, loop_ctx);
 }
 
-/* ------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+static void __init_default_values(ntg_scene* scene);
+static bool process_key_fn_def(ntg_scene* scene,
+        struct nt_key_event key, ntg_loop_ctx* loop_ctx);
+
+void _ntg_scene_init_(ntg_scene* scene,
+        ntg_scene_layout_fn layout_fn, 
+        ntg_scene_process_key_fn process_key_fn)
+{
+    assert(scene != NULL);
+    assert(layout_fn != NULL);
+
+    __init_default_values(scene);
+
+    scene->_root = NULL;
+    scene->_focused = NULL;
+
+    scene->__layout_fn = layout_fn;
+    scene->__process_key_fn = (process_key_fn != NULL) ?
+        process_key_fn : process_key_fn_def;
+
+    scene->_graph = ntg_scene_graph_new();
+}
+
+static void __init_default_values(ntg_scene* scene)
+{
+    scene->_root = NULL;
+    scene->_graph = NULL;
+    
+    scene->__layout_fn = NULL;
+    scene->__process_key_fn = NULL;
+
+    scene->_focused = NULL;
+    scene->__pending_focused = NULL;
+    scene->__pending_focused_flag = false;
+    scene->data = NULL;
+}
+
+static bool process_key_fn_def(ntg_scene* scene,
+        struct nt_key_event key, ntg_loop_ctx* loop_ctx)
+{
+    assert(scene != NULL);
+
+    struct ntg_object_key_ctx ctx = {
+        .scene = scene,
+        .loop_ctx = loop_ctx
+    };
+
+    return ntg_object_feed_key(scene->_focused, key, ctx);
+}
+
+void _ntg_scene_deinit_fn(ntg_entity* entity)
+{
+    assert(entity != NULL);
+
+    ntg_scene* scene = (ntg_scene*)entity;
+    ntg_scene_graph_destroy(scene->_graph);
+    __init_default_values(scene);
+
+    _ntg_entity_deinit_fn(entity);
+}
 
 static void add_to_registered_fn(ntg_object* object, void* _registered)
 {
@@ -254,9 +237,6 @@ static void scan_scene(ntg_scene* scene)
             node->object_layout_data = NULL;
 
             ntg_scene_graph_remove(scene->_graph, it_object);
-
-            if(scene->__on_unregister_fn != NULL)
-                scene->__on_unregister_fn(scene, it_object);
         }
     }
 
@@ -274,9 +254,6 @@ static void scan_scene(ntg_scene* scene)
             assert(node != NULL);
 
             node->object_layout_data = ntg_object_layout_init(it_object);
-
-            if(scene->__on_register_fn != NULL)
-                scene->__on_register_fn(scene, it_object);
         }
     }
 

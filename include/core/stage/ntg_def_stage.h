@@ -5,15 +5,26 @@
 
 typedef struct ntg_def_stage ntg_def_stage;
 
+/* -------------------------------------------------------------------------- */
+/* PUBLIC DEFINITIONS */
+/* -------------------------------------------------------------------------- */
+
 struct ntg_def_stage
 {
     ntg_stage __base;
 };
 
-void _ntg_def_stage_init_(
-        ntg_def_stage* stage,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system);
+void _ntg_def_stage_init_(ntg_def_stage* stage);
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
 void _ntg_def_stage_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size);

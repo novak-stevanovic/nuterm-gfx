@@ -1,46 +1,49 @@
-#ifndef __NTG_ENTITY_TYPE_H__
-#define __NTG_ENTITY_TYPE_H__
+#ifndef __NTG_ENTITY_H__
+#define __NTG_ENTITY_H__
 
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef struct ntg_entity_type ntg_entity_type;
 
 struct ntg_entity_type
 {
     const ntg_entity_type* __parent;
+    size_t _size;
 };
 
 bool ntg_entity_instanceof(const ntg_entity_type* type, const ntg_entity_type* ancestor);
+bool ntg_entity_is(const ntg_entity_type* type, const ntg_entity_type* ancestor);
 
-extern const ntg_entity_type NTG_ENTITY_TYPE_DEFAULT;
+extern const ntg_entity_type NTG_ENTITY_DEFAULT;
 
 /* NTG_OBJECT */
 
-extern const ntg_entity_type NTG_ENTITY_TYPE_OBJECT, NTG_ENTITY_TYPE_WIDGET,
-       NTG_ENTITY_TYPE_PROG_BAR, NTG_ENTITY_TYPE_COLOR_BLOCK, NTG_ENTITY_TYPE_LABEL,
-       NTG_ENTITY_TYPE_BOX, NTG_ENTITY_TYPE_BORDER_BOX,
-       NTG_ENTITY_TYPE_DECORATOR, NTG_ENTITY_TYPE_PADDING,
-       NTG_ENTITY_TYPE_DEF_PADDING, NTG_ENTITY_TYPE_BORDER,
-       NTG_ENTITY_TYPE_DEF_BORDER;
+extern const ntg_entity_type NTG_ENTITY_OBJECT, NTG_ENTITY_WIDGET,
+       NTG_ENTITY_PROG_BAR, NTG_ENTITY_COLOR_BLOCK, NTG_ENTITY_LABEL,
+       NTG_ENTITY_BOX, NTG_ENTITY_BORDER_BOX,
+       NTG_ENTITY_DECORATOR, NTG_ENTITY_PADDING,
+       NTG_ENTITY_DEF_PADDING, NTG_ENTITY_BORDER,
+       NTG_ENTITY_DEF_BORDER;
 
 /* NTG_SCENE */
 
-extern const ntg_entity_type NTG_ENTITY_TYPE_SCENE, NTG_ENTITY_TYPE_DEF_SCENE;
+extern const ntg_entity_type NTG_ENTITY_SCENE, NTG_ENTITY_DEF_SCENE;
 
 /* NTG_STAGE */
 
-extern const ntg_entity_type NTG_ENTITY_TYPE_STAGE, NTG_ENTITY_TYPE_DEF_STAGE;
+extern const ntg_entity_type NTG_ENTITY_STAGE, NTG_ENTITY_DEF_STAGE;
 
 /* NTG_RENDERER */
 
-extern const ntg_entity_type NTG_ENTITY_TYPE_RENDERER, NTG_ENTITY_TYPE_DEF_RENDERER;
+extern const ntg_entity_type NTG_ENTITY_RENDERER, NTG_ENTITY_DEF_RENDERER;
 
 /* NTG_LOOP */
 
-extern const ntg_entity_type NTG_ENTITY_TYPE_LOOP;
+extern const ntg_entity_type NTG_ENTITY_LOOP;
 
 /* NTG_TASKMASTER */
 
-extern const ntg_entity_type NTG_ENTITY_TYPE_TASKMASTER;
+extern const ntg_entity_type NTG_ENTITY_TASKMASTER;
 
-#endif // __NTG_ENTITY_TYPE_H__
+#endif // __NTG_ENTITY_H__

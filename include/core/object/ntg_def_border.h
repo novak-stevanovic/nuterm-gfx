@@ -6,7 +6,7 @@
 typedef struct ntg_def_border ntg_def_border;
 
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_def_border_style
@@ -23,23 +23,22 @@ struct ntg_def_border
     struct ntg_def_border_style __style;
 };
 
-void _ntg_def_border_init_(
-        ntg_def_border* def_border,
-        struct ntg_def_border_style style,
-        struct ntg_padding_width init_width,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_def_border* ntg_def_border_new(ntg_entity_system* system);
+void _ntg_def_border_init_(ntg_def_border* def_border);
+
+struct ntg_def_border_style ntg_def_border_get_style(const ntg_def_border* border);
+void ntg_def_border_set_style(ntg_def_border* border, struct ntg_def_border_style style);
 
 /* ------------------------------------------------------ */
 /* PRESETS */
 /* ------------------------------------------------------ */
 
-void _ntg_def_border_init_monochrome_(
-        ntg_def_border* def_border,
-        nt_color color,
-        struct ntg_padding_width init_width,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+struct ntg_def_border_style ntg_def_border_style_def();
+struct ntg_def_border_style ntg_def_border_style_monochrome(nt_color color);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

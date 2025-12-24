@@ -6,6 +6,10 @@
 typedef struct sarena sarena;
 typedef struct ntg_def_scene ntg_def_scene;
 
+/* -------------------------------------------------------------------------- */
+/* PUBLIC DEFINITIONS */
+/* -------------------------------------------------------------------------- */
+
 /* Default scene with implemented layout that allows for wrapping of elements.
  * Layout is always performed in full. */
 struct ntg_def_scene
@@ -15,11 +19,19 @@ struct ntg_def_scene
     sarena* __layout_arena;
 };
 
-void _ntg_def_scene_init_(
-        ntg_def_scene* scene,
-        ntg_scene_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system);
+
+void _ntg_def_scene_init_(ntg_def_scene* scene,
+        ntg_scene_process_key_fn process_key_fn);
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
 void _ntg_def_scene_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);

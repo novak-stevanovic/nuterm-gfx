@@ -8,13 +8,17 @@ typedef struct ntg_rcell_vgrid ntg_rcell_vgrid;
 typedef struct nt_charbuff nt_charbuff;
 typedef struct ntg_loop ntg_loop;
 
+/* -------------------------------------------------------------------------- */
+/* PUBLIC DEFINITIONS */
+/* -------------------------------------------------------------------------- */
+
 /* Double-buffered app renderer that listens to ntg_loop for resizes. When
  * a resize happens, the next render will be a full render. */
 struct ntg_def_renderer
 {
     ntg_renderer __base;
 
-    ntg_rcell_vgrid* __backbuff;
+    ntg_stage_drawing* __backbuff;
     nt_charbuff* __charbuff;
 
     ntg_loop* __loop;
@@ -22,14 +26,20 @@ struct ntg_def_renderer
     bool __resize;
 };
 
-void _ntg_def_renderer_init_(
-        ntg_def_renderer* renderer,
-        ntg_loop* loop,
-        ntg_entity_group* group,
-        ntg_entity_system* system);
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system);
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+void _ntg_def_renderer_init_(ntg_def_renderer* renderer, ntg_loop* loop);
 void _ntg_def_renderer_deinit_fn(ntg_entity* entity);
 
-void __ntg_def_renderer_render_fn(
+void _ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
         struct ntg_xy size);

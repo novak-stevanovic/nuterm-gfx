@@ -9,12 +9,23 @@ typedef struct ntg_taskmaster ntg_taskmaster;
 typedef struct ntg_callback_queue ntg_callback_queue;
 
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_taskmaster_init_(ntg_taskmaster* taskmaster,
-        ntg_entity_group* group, ntg_entity_system* system);
-void _ntg_taskmaster_deinit_fn(ntg_entity* entity);
+struct ntg_taskmaster
+{
+    ntg_entity __base;
+
+    ntg_callback_queue* __callbacks;
+    void* data;
+};
+
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
+
+ntg_taskmaster* ntg_taskmaster_new(ntg_entity_system* system);
+void _ntg_taskmaster_init_(ntg_taskmaster* taskmaster);
 
 void ntg_taskmaster_execute_callbacks(ntg_taskmaster* taskmaster);
 
@@ -35,12 +46,6 @@ void ntg_taskmaster_execute_task(
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_taskmaster
-{
-    ntg_entity __base;
-
-    ntg_callback_queue* __callbacks;
-    void* __data;
-};
+void _ntg_taskmaster_deinit_fn(ntg_entity* entity);
 
 #endif // _NTG_TASKMASTER_H_

@@ -3,6 +3,4 @@
 
 #include <stddef.h>
 
-void* ntg_alloc(size_t size);
-
 #endif // _NTG_SHARED_H_

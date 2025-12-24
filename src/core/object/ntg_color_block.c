@@ -5,38 +5,11 @@
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_measure.h"
 
-#define NTG_COLOR_BLOCK_DEFAULT_SIZE 5
+#define DEFAULT_SIZE 1
 
-void _ntg_color_block_init_(
-        ntg_color_block* color_block,
-        nt_color color,
-        ntg_object_process_key_fn process_key_fn,
-        ntg_entity_group* group,
-        ntg_entity_system* system)
-{
-    assert(color_block != NULL);
-
-    struct ntg_object_init_data object_data = {
-        .layout_init_fn = NULL,
-        .layout_deinit_fn = NULL,
-        .measure_fn = _ntg_color_block_measure_fn,
-        .constrain_fn = NULL,
-        .arrange_fn = NULL,
-        .draw_fn = _ntg_color_block_draw_fn,
-        .process_key_fn = process_key_fn
-    };
-
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_TYPE_COLOR_BLOCK,
-        .deinit_fn = _ntg_color_block_deinit_fn,
-        .group = group,
-        .system = system
-    };
-
-    _ntg_object_init_((ntg_object*)color_block, object_data, entity_data);
-
-    color_block->__color = color;
-}
+/* -------------------------------------------------------------------------- */
+/* PUBLIC API */
+/* -------------------------------------------------------------------------- */
 
 nt_color ntg_color_block_get_color(const ntg_color_block* color_block)
 {
@@ -51,6 +24,45 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
 
     color_block->__color = color;
 }
+
+ntg_color_block* ntg_color_block_new(ntg_entity_system* system)
+{
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_COLOR_BLOCK,
+        .deinit_fn = _ntg_color_block_deinit_fn,
+        .system = system
+    };
+
+    ntg_color_block* new = (ntg_color_block*)ntg_entity_create(entity_data);
+    assert(new != NULL);
+
+    return new;
+}
+
+void _ntg_color_block_init_(ntg_color_block* color_block,
+        ntg_object_process_key_fn process_key_fn)
+{
+    assert(color_block != NULL);
+
+    struct ntg_object_init_data object_data = {
+        .layout_init_fn = NULL,
+        .layout_deinit_fn = NULL,
+        .measure_fn = _ntg_color_block_measure_fn,
+        .constrain_fn = NULL,
+        .arrange_fn = NULL,
+        .draw_fn = _ntg_color_block_draw_fn,
+        .process_key_fn = process_key_fn
+    };
+
+    _ntg_object_init_((ntg_object*)color_block, object_data);
+
+    color_block->__color = NT_COLOR_DEFAULT;
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
 
 void _ntg_color_block_deinit_fn(ntg_entity* entity)
 {
@@ -72,8 +84,8 @@ struct ntg_object_measure _ntg_color_block_measure_fn(
         sarena* arena)
 {
     return (struct ntg_object_measure) {
-        .min_size = NTG_COLOR_BLOCK_DEFAULT_SIZE,
-        .natural_size = NTG_COLOR_BLOCK_DEFAULT_SIZE,
+        .min_size = DEFAULT_SIZE,
+        .natural_size = DEFAULT_SIZE,
         .max_size = NTG_SIZE_MAX,
     };
 }

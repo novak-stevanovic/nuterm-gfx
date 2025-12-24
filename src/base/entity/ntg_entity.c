@@ -5,38 +5,37 @@
 #include "base/entity/_ntg_entity_system.h"
 #include "base/entity/shared/ntg_entity_vec.h"
 
-static void group_append(ntg_entity_group* group, ntg_entity* entity);
-
-void _ntg_entity_init_(ntg_entity* entity, struct ntg_entity_init_data init_data)
+ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data)
 {
+    ntg_entity* entity = (ntg_entity*)malloc(init_data.type->_size);
     assert(entity != NULL);
-    assert(init_data.system != NULL);
+    memset(entity, 0, init_data.type->_size);
 
-    entity->type = init_data.type;
+    entity->_type = init_data.type;
     entity->__deinit_fn = (init_data.deinit_fn != NULL) ?
         init_data.deinit_fn : _ntg_entity_deinit_fn;
     entity->__system = init_data.system;
-    entity->_arena = (init_data.group != NULL) ?
-        ntg_entity_group_get_arena(init_data.group) : NULL;
-
-    if(init_data.group != NULL)
-        group_append(init_data.group, entity);
 
     ntg_entity_system_register(init_data.system, entity);
+
+    return entity;
 }
 
-void _ntg_entity_deinit_(ntg_entity* entity)
+void ntg_entity_destroy(ntg_entity* entity)
 {
     assert(entity != NULL);
 
     entity->__deinit_fn(entity);
+    
+    free(entity);
 }
 
 void _ntg_entity_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
     
-    ntg_entity_system_mark_deinit(entity->__system, entity);
+    ntg_entity_system_unregister(entity->__system, entity);
+
     (*entity) = (ntg_entity) {0};
 }
 
@@ -73,51 +72,4 @@ bool ntg_entity_is_observing(
 {
     return ntg_entity_system_has_observe(observer->__system,
             observer, observed, handler_fn);
-}
-
-/* ------------------------------------------------------ */
-/* ENTITY GROUP */
-/* ------------------------------------------------------ */
-
-struct ntg_entity_group
-{
-    ntg_entity_vec entities;
-    sarena* arena;
-};
-
-ntg_entity_group* ntg_entity_group_new(sarena* arena)
-{
-    assert(arena != NULL);
-
-    ntg_entity_group* new = (ntg_entity_group*)malloc(sizeof(ntg_entity_group));
-
-    _ntg_entity_vec_init_(&new->entities);
-    new->arena = arena;
-
-    return new;
-}
-
-void ntg_entity_group_destroy(ntg_entity_group* group)
-{
-    assert(group != NULL);
-
-    size_t i;
-    for(i = 0; i < group->entities._count; i++)
-        _ntg_entity_deinit_(group->entities._data[i]);
-
-    _ntg_entity_vec_deinit_(&group->entities);
-
-    free(group);
-}
-
-sarena* ntg_entity_group_get_arena(ntg_entity_group* group)
-{
-    assert(group != NULL);
-
-    return group->arena;
-}
-
-static void group_append(ntg_entity_group* group, ntg_entity* entity)
-{
-    ntg_entity_vec_append(&group->entities, entity);
 }

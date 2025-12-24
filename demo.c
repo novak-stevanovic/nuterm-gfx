@@ -84,109 +84,125 @@ bool scene_process_key_fn(
 
 static void gui_fn2(ntg_entity_system* es, void* data)
 {
-    sarena* arena = sarena_create(100000);
-    assert(arena != NULL);
-
-    ntg_entity_group* eg = ntg_entity_group_new(arena);
-
-    ntg_def_stage stage;
-    _ntg_def_stage_init_(&stage, eg, es);
-
-    ntg_def_scene scene;
-    _ntg_def_scene_init_(&scene, scene_process_key_fn, eg, es);
-
-    struct ntg_kickstart_obj k;
-    ntg_kickstart((ntg_stage*)&stage, 30, NULL, eg, es, &k);
-
     // Root
-    ntg_border_box root;
-    _ntg_border_box_init_(&root, ntg_border_box_opts_def(), NULL, eg, es);
+    ntg_border_box* root = ntg_border_box_new(es);
+    _ntg_border_box_init_(root, NULL);
 
     // North
-    ntg_label north;
+    ntg_label* north = ntg_label_new( es);
+    _ntg_label_init_(north, NULL, NULL);
     struct nt_gfx north_gfx = {
         .bg = nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
         .fg = nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
         .style = nt_style_new(NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD)
     };
+    struct ntg_strv north_text = ntg_strv_from_cstr("Novak");
+    ntg_label_set_text(north, north_text);
     struct ntg_label_opts north_opts = ntg_label_opts_def();
     north_opts.gfx = north_gfx;
     north_opts.palignment = NTG_TEXT_ALIGNMENT_1;
-    ntg_def_border north_border;
-    ntg_def_padding north_padding;
-    _ntg_def_border_init_monochrome_(
-            &north_border,
-            nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
-            ntg_padding_width(2, 1, 1, 1), eg, es);
-    _ntg_def_padding_init_(&north_padding,
-            ntg_cell_bg(nt_color_new_rgb(nt_rgb_new(0, 0, 0))),
-            ntg_padding_width(1, 1, 2, 1), eg, es);
-    _ntg_label_init_(&north, north_opts, NULL, eg, es);
-    struct ntg_strv north_text = ntg_strv_from_cstr("Novak");
-    ntg_label_set_text(&north, north_text);
-    ntg_object_set_padding((ntg_object*)&north, (ntg_padding*)&north_padding);
-    ntg_object_set_border((ntg_object*)&north, (ntg_padding*)&north_border);
+    ntg_label_set_opts(north, north_opts);
+
+    // North border
+    ntg_def_border* north_border = ntg_def_border_new(es);
+    _ntg_def_border_init_(north_border);
+    struct ntg_def_border_style north_border_style = ntg_def_border_style_monochrome(
+            nt_color_new_rgb(nt_rgb_new(255, 255, 255)));
+    ntg_def_border_set_style(north_border, north_border_style);
+    ntg_padding_set_width((ntg_padding*)north_border, ntg_padding_width(1, 1, 1, 1));
+    ntg_object_set_border((ntg_object*)north, (ntg_padding*)north_border);
+
+    // North padding
+    ntg_def_padding* north_padding = ntg_def_padding_new(es);
+    _ntg_def_padding_init_(north_padding);
+    ntg_padding_set_width((ntg_padding*)north_padding, ntg_padding_width(2, 1, 1, 1));
+    // ntg_object_set_padding((ntg_object*)north, (ntg_padding*)north_padding);
 
     // Center
-    ntg_box center;
-    ntg_object* _center = (ntg_object*)&center;
+    ntg_box* center = ntg_box_new(es);
+    _ntg_box_init_(center, NULL);
     struct ntg_box_opts center_opts = ntg_box_opts_def();
     center_opts.orientation = NTG_ORIENTATION_V;
     center_opts.palignment = NTG_ALIGNMENT_2;
     center_opts.salignment = NTG_ALIGNMENT_2;
-    _ntg_box_init_(&center, center_opts, NULL, eg, es);
-    ntg_object_set_min_size(_center, ntg_xy(1000, 1000));
+    ntg_box_set_opts(center, center_opts);
+    ntg_object_set_min_size((ntg_object*)center, ntg_xy(1000, 1000));
 
     // Center children
-    ntg_color_block center1, center2, center3;
-    _ntg_color_block_init_(&center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)),
-            NULL, eg, es);
-    _ntg_color_block_init_(&center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)),
-            NULL, eg, es);
-    _ntg_color_block_init_(&center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)),
-            NULL, eg, es);
-    ntg_box_add_child(&center, (ntg_object*)&center1);
-    ntg_box_add_child(&center, (ntg_object*)&center2);
-    ntg_box_add_child(&center, (ntg_object*)&center3);
+    ntg_color_block* center1 = ntg_color_block_new(es);
+    _ntg_color_block_init_(center1, NULL);
+    ntg_color_block_set_color(center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)));
+    ntg_color_block* center2 = ntg_color_block_new(es);
+    _ntg_color_block_init_(center2, NULL);
+    ntg_color_block_set_color(center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)));
+    ntg_color_block* center3 = ntg_color_block_new(es);
+    _ntg_color_block_init_(center3, NULL);
+    ntg_color_block_set_color(center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)));
 
     // South
-    ntg_box south;
+    ntg_box* south = ntg_box_new(es);
+    _ntg_box_init_(south, NULL);
     struct ntg_box_opts south_opts = ntg_box_opts_def();
     south_opts.orientation = NTG_ORIENTATION_H;
     south_opts.palignment = NTG_ALIGNMENT_2;
     south_opts.salignment = NTG_ALIGNMENT_2;
     south_opts.spacing = 10;
-    _ntg_box_init_(&south, south_opts, NULL, eg, es);
+    ntg_box_set_opts(south, south_opts);
     // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
     struct nt_rgb rgb_white = nt_rgb_new(255, 255, 255);
-    ntg_object_set_background((ntg_object*)&south, ntg_cell_bg(nt_color_new_rgb(rgb_white)));
+    ntg_object_set_bg((ntg_object*)south, ntg_cell_bg(nt_color_new_rgb(rgb_white)));
 
     // South children
-    ntg_color_block south1;
-    _ntg_color_block_init_(&south1, nt_color_new_rgb(nt_rgb_new(0, 255, 0)),
-            NULL, eg, es);
-    // ntg_object_set_grow(_south1, ntg_xy(0, 0));
-    ntg_color_block south2;
-    _ntg_color_block_init_(&south2, nt_color_new_rgb(nt_rgb_new(0, 0, 255)),
-            NULL, eg, es);
-    // ntg_object_set_grow(_south2, ntg_xy(0, 0));
+    ntg_color_block* south1 = ntg_color_block_new(es);
+    _ntg_color_block_init_(south1, NULL);
+    ntg_color_block_set_color(south1, nt_color_new_rgb(nt_rgb_new(0, 255, 0)));
+    ntg_color_block* south2 = ntg_color_block_new(es);
+    _ntg_color_block_init_(south2, NULL);
+    ntg_color_block_set_color(south2, nt_color_new_rgb(nt_rgb_new(0, 0, 255)));
+
+    // Connect center
+    ntg_box_add_child(center, (ntg_object*)center1);
+    ntg_box_add_child(center, (ntg_object*)center2);
+    ntg_box_add_child(center, (ntg_object*)center3);
 
     // Connect south
-    ntg_box_add_child(&south, (ntg_object*)&south1);
-    ntg_box_add_child(&south, (ntg_object*)&south2);
+    ntg_box_add_child(south, (ntg_object*)south1);
+    ntg_box_add_child(south, (ntg_object*)south2);
     
     // Connect root
-    ntg_border_box_set_north(&root, (ntg_object*)&north);
-    ntg_border_box_set_center(&root, (ntg_object*)&center);
-    ntg_border_box_set_south(&root, (ntg_object*)&south);
+    ntg_border_box_set_north(root, (ntg_object*)north);
+    ntg_border_box_set_center(root, (ntg_object*)center);
+    ntg_border_box_set_south(root, (ntg_object*)south);
+
+    // Stage
+    ntg_def_stage* stage = ntg_def_stage_new(es);
+    _ntg_def_stage_init_(stage);
+
+    // Scene
+    ntg_def_scene* scene = ntg_def_scene_new(es);
+    _ntg_def_scene_init_(scene, scene_process_key_fn);
+
+    // Connect root-scene-stage
+    ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
+    ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
+
+    // Loop, renderer, taskmaster
+    ntg_loop* loop = ntg_loop_new(es);
+    ntg_def_renderer* renderer = ntg_def_renderer_new(es);
+    ntg_taskmaster* taskmaster = ntg_taskmaster_new(es);
+
+    _ntg_def_renderer_init_(renderer, loop);
+    _ntg_taskmaster_init_(taskmaster);
+    struct ntg_loop_init_data loop_data = {
+        .process_event_fn = NULL,
+        .renderer = (ntg_renderer*)renderer,
+        .taskmaster = taskmaster,
+        .framerate = 30
+    };
+    _ntg_loop_init_(loop, loop_data);
 
     // Run
-    ntg_scene_set_root((ntg_scene*)&scene, (ntg_object*)&root);
-    ntg_stage_set_scene((ntg_stage*)&stage, (ntg_scene*)&scene);
-    ntg_loop_run(&k.loop, NULL);
-
-    ntg_entity_group_destroy(eg);
-    sarena_destroy(arena);
+    ntg_loop_run(loop, (ntg_stage*)stage, NULL);
 }
 
 int main(int argc, char *argv[])

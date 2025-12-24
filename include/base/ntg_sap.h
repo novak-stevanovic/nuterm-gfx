@@ -5,6 +5,8 @@
 
 #include <stddef.h>
 
+typedef struct sarena sarena;
+
 /* Distributes `space_pool` space into `out_sizes`.
  * Distribution takes place depending on `caps` - if a size in `out_sizes`
  * reaches the capacity - it won't be awarded any more space.
@@ -16,6 +18,6 @@
  * 
  * RETURN VALUE: Total amount of distributed space. */
 size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
-        size_t* out_sizes, size_t space_pool, size_t count);
+        size_t* out_sizes, size_t space_pool, size_t count, sarena* arena);
 
 #endif // _NTG_SAP_H_
