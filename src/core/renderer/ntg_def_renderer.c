@@ -14,8 +14,6 @@
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-static void event_handler(ntg_entity* _subscriber, struct ntg_event event);
-
 ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
@@ -30,10 +28,9 @@ ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_renderer_init_(ntg_def_renderer* renderer, ntg_loop* loop)
+void _ntg_def_renderer_init_(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
-    assert(loop != NULL);
 
     _ntg_renderer_init_((ntg_renderer*)renderer, _ntg_def_renderer_render_fn);
 
@@ -42,24 +39,7 @@ void _ntg_def_renderer_init_(ntg_def_renderer* renderer, ntg_loop* loop)
     renderer->__charbuff = nt_charbuff_new(CHARBUFF_CAP);
     assert(renderer->__charbuff != NULL);
 
-    renderer->__resize = true;
-
-    ntg_entity_observe((ntg_entity*)renderer, (ntg_entity*)loop, event_handler);
-    renderer->__loop = loop;
-}
-
-static void event_handler(ntg_entity* _subscriber, struct ntg_event event)
-{
-    assert(_subscriber != NULL);
-
-    ntg_log_log("Handler");
-
-    ntg_def_renderer* renderer = (ntg_def_renderer*)_subscriber;
-
-    if(event.type == NTG_EVENT_LOOPRSZ)
-    {
-        renderer->__resize = true;
-    }
+    renderer->__old_size = ntg_xy(0, 0);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -85,26 +65,20 @@ void _ntg_def_renderer_deinit_fn(ntg_entity* entity)
     nt_charbuff_destroy(renderer->__charbuff);
     renderer->__charbuff = NULL;
 
-    renderer->__resize = false;
-
-    ntg_entity_stop_observing(
-            (ntg_entity*)renderer,
-            (ntg_entity*)renderer->__loop,
-            event_handler);
-
-    renderer->__loop = NULL;
+    renderer->__old_size = ntg_xy(0, 0);
 
     _ntg_renderer_deinit_fn(entity);
 }
 
 void _ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,
-        const ntg_stage_drawing* stage_drawing,
-        struct ntg_xy size)
+        const ntg_stage_drawing* stage_drawing)
 {
     assert(_renderer != NULL);
 
     ntg_def_renderer* renderer = (ntg_def_renderer*)_renderer;
+    struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
+    bool resize = !(ntg_xy_are_equal(renderer->__old_size, size));
     
     nt_buffer_enable(renderer->__charbuff);
 
@@ -114,17 +88,10 @@ void _ntg_def_renderer_render_fn(
     }
     else
     {
-        if(renderer->__resize)
-        {
-            ntg_log_log("full");
+        if(resize)
             full_render(renderer, stage_drawing, size);
-            renderer->__resize = false; 
-        }
         else
-        {
-            ntg_log_log("optimized");
             optimized_render(renderer, stage_drawing, size);
-        }
     }
 
     nt_buffer_disable(NT_BUFF_FLUSH);
@@ -210,4 +177,3 @@ static void full_render(ntg_def_renderer* renderer,
     }
     ntg_log_log("NTG_DEF_RENDERER | full_render | counter - %ld", counter);
 }
-

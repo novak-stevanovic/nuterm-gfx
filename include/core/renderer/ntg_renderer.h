@@ -14,8 +14,7 @@ typedef struct ntg_stage_drawing ntg_stage_drawing;
 /* If `stage_drawing` is NULL, render empty */
 typedef void (*ntg_renderer_render_fn)(
         ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing,
-        struct ntg_xy size);
+        const ntg_stage_drawing* stage_drawing);
 
 struct ntg_renderer
 {
@@ -31,8 +30,7 @@ struct ntg_renderer
 /* If `stage_drawing` is NULL, render empty */
 void ntg_renderer_render(
         ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing,
-        struct ntg_xy size);
+        const ntg_stage_drawing* stage_drawing);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

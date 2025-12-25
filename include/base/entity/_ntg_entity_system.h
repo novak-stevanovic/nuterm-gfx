@@ -16,6 +16,7 @@ unsigned int ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entit
 void ntg_entity_system_raise_event(
         ntg_entity_system* system,
         ntg_entity* source, 
+        ntg_entity* target,
         unsigned int type, void* data);
 void ntg_entity_system_add_observe(
         ntg_entity_system* system,

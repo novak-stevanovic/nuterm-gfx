@@ -10,72 +10,34 @@
 #include "nt.h"
 #include "shared/ntg_log.h"
 
-struct ntg_loop_ctx
-{
-    ntg_stage *stage, *pending_stage;
-    bool loop;
-    struct ntg_xy app_size;
-    ntg_taskmaster* taskmaster;
-    void* data;
-};
-
-void _ntg_loop_ctx_init_(ntg_loop_ctx* ctx,
-        ntg_stage* init_stage, struct ntg_xy app_size,
-        ntg_taskmaster* taskmaster, void* data);
-static void _ntg_loop_ctx_deinit_(ntg_loop_ctx* ctx);
-static void _process_event_fn_def(ntg_loop* loop,
-        ntg_loop_ctx* ctx, struct nt_event event);
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------ */
-/* LOOP */
-/* ------------------------------------------------------ */
-
-ntg_loop* ntg_loop_new(ntg_entity_system* system)
-{
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_LOOP,
-        .deinit_fn = _ntg_loop_deinit_fn,
-        .system = system
-    };
-
-    ntg_loop* new = (ntg_loop*)ntg_entity_create(entity_data);
-    assert(new != NULL);
-
-    return new;
-}
-
-void _ntg_loop_init_(ntg_loop* loop, struct ntg_loop_init_data init_data)
+void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 {
     assert(loop != NULL);
 
-    assert(init_data.taskmaster != NULL);
-    assert(init_data.renderer != NULL);
-    if(init_data.framerate > 500) init_data.framerate = 500;
-    if(init_data.process_event_fn == NULL)
-        init_data.process_event_fn = _process_event_fn_def;
-
-    loop->_taskmaster = init_data.taskmaster;
-    loop->_renderer = init_data.renderer;
-    loop->_framerate = init_data.framerate;
-    loop->__process_event_fn = init_data.process_event_fn;
-}
-
-void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* ctx_data)
-{
-    assert(loop != NULL);
+    assert(data.taskmaster != NULL);
+    assert(data.renderer != NULL);
+    assert(data.stage != NULL);
+    if(data.framerate > 300) data.framerate = 300;
+    // if(data.process_event_fn == NULL)
+    //     data.process_event_fn = process_event_fn_def;
 
     struct ntg_xy app_size;
     nt_get_term_size(&app_size.x, &app_size.y);
 
     ntg_loop_ctx ctx;
-    _ntg_loop_ctx_init_(&ctx, init_stage, app_size, loop->_taskmaster, ctx_data);
+    ctx._stage = data.stage;
+    ctx._taskmaster = data.taskmaster;
+    ctx._app_size = app_size;
+    ctx.__loop = true;
+    ctx._elapsed = 0;
+    ctx.data = data.ctx_data;
 
     /* loop */
-    unsigned int timeout = 1000 / loop->_framerate;
+    unsigned int timeout = 1000 / data.framerate;
     struct timespec ts_start, ts_end;
     int64_t process_elapsed_ns;
     uint64_t process_elapsed_ms;
@@ -91,32 +53,27 @@ void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* ctx_data)
     nt_status _status;
     while(true)
     {
-        if(!ctx.loop) break;
-        if(ctx.pending_stage != NULL)
-        {
-            ctx.stage = ctx.pending_stage;
-            ctx.pending_stage = NULL;
-        }
+        if(!ctx.__loop) break;
 
         _nt_event = nt_wait_for_event(timeout, &_status);
         clock_gettime(CLOCK_MONOTONIC, &ts_start);
         // if(_status == NT_ERR_UNEXPECTED) break;
 
-        loop->__process_event_fn(loop, &ctx, _nt_event);
+        data.process_event_fn(&ctx, _nt_event);
 
         if(_nt_event.type == NT_EVENT_TIMEOUT)
         {
-            timeout = 1000 / loop->_framerate;
+            timeout = 1000 / data.framerate;
 
-            if(ctx.stage != NULL)
+            if(ctx._stage != NULL)
             {
-                ntg_stage_compose(ctx.stage, app_size);
-                drawing = ntg_stage_get_drawing(ctx.stage);
+                ntg_stage_compose(ctx._stage, app_size);
+                drawing = ntg_stage_get_drawing(ctx._stage);
             }
             else drawing = NULL;
 
-            ntg_renderer_render(loop->_renderer, drawing, app_size);
-            ntg_taskmaster_execute_callbacks(loop->_taskmaster);
+            ntg_renderer_render(data.renderer, drawing);
+            ntg_taskmaster_execute_callbacks(data.taskmaster);
         }
         else
         {
@@ -125,7 +82,7 @@ void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* ctx_data)
             {
                 case NT_EVENT_KEY:
                     key_data.key = _nt_event.key_data;
-                    ntg_entity_raise_event((ntg_entity*)loop, NTG_EVENT_LOOPKEYPRS, &key_data);
+                    ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOPKEYPRS, &key_data);
                     break;
 
                 case NT_EVENT_RESIZE:
@@ -133,9 +90,9 @@ void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* ctx_data)
                     app_size = ntg_xy(
                             _nt_event.resize_data.width,
                             _nt_event.resize_data.height);
-                    ctx.app_size = app_size;
+                    ctx._app_size = app_size;
                     resize_data.new = app_size;
-                    ntg_entity_raise_event((ntg_entity*)loop, NTG_EVENT_LOOPRSZ, &resize_data);
+                    ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOPRSZ, &resize_data);
                     break;
                 case NT_EVENT_TIMEOUT: assert(0);
             }
@@ -152,101 +109,12 @@ void ntg_loop_run(ntg_loop* loop, ntg_stage* init_stage, void* ctx_data)
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
 
-    _ntg_loop_ctx_deinit_(&ctx);
-}
-
-/* ------------------------------------------------------ */
-/* LOOP_CTX */
-/* ------------------------------------------------------ */
-
-ntg_stage* ntg_loop_ctx_get_stage(ntg_loop_ctx* ctx)
-{
-    assert(ctx != NULL);
-
-    return ctx->stage;
-}
-
-void ntg_loop_ctx_set_stage(ntg_loop_ctx* ctx, ntg_stage* stage)
-{
-    assert(ctx != NULL);
-
-    ctx->pending_stage = stage;
+    ctx = (struct ntg_loop_ctx) {0};
 }
 
 void ntg_loop_ctx_break(ntg_loop_ctx* ctx)
 {
     assert(ctx != NULL);
 
-    ctx->loop = false;
-}
-
-struct ntg_xy ntg_loop_ctx_get_app_size(ntg_loop_ctx* ctx)
-{
-    assert(ctx != NULL);
-
-    return ctx->app_size;
-}
-
-ntg_taskmaster* ntg_loop_ctx_get_taskmaster(ntg_loop_ctx* ctx)
-{
-    assert(ctx != NULL);
-
-    return ctx->taskmaster;
-}
-
-void* ntg_loop_ctx_get_data(ntg_loop_ctx* ctx)
-{
-    assert(ctx != NULL);
-
-    return ctx->data;
-}
-
-/* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED */
-/* -------------------------------------------------------------------------- */
-
-void _ntg_loop_deinit_fn(ntg_entity* entity)
-{
-    assert(entity != NULL);
-
-    ntg_loop* loop = (ntg_loop*)entity;
-
-    loop->_framerate = 0;
-    loop->_renderer = NULL;
-    loop->_taskmaster = NULL;
-    loop->__process_event_fn = NULL;
-
-    _ntg_entity_deinit_fn(entity);
-}
-
-void _ntg_loop_ctx_init_(ntg_loop_ctx* ctx,
-        ntg_stage* init_stage, struct ntg_xy app_size,
-        ntg_taskmaster* taskmaster, void* data)
-{
-    assert(ctx != NULL);
-    assert(init_stage != NULL);
-
-    ctx->pending_stage = init_stage;
-    ctx->loop = true;
-    ctx->app_size = app_size;
-    ctx->taskmaster = taskmaster;
-    ctx->data = data;
-}
-
-void _ntg_loop_ctx_deinit_(ntg_loop_ctx* ctx)
-{
-    assert(ctx != NULL);
-    
-    ctx->pending_stage = NULL;
-    ctx->loop = false;
-    ctx->app_size = ntg_xy(0, 0);
-    ctx->taskmaster = NULL;
-    ctx->data = NULL;
-}
-
-static void _process_event_fn_def(ntg_loop* loop,
-        ntg_loop_ctx* ctx, struct nt_event event)
-{
-    if(event.type == NT_EVENT_KEY)
-        ntg_stage_feed_key_event(ctx->stage, event.key_data, ctx);
+    ctx->__loop = false;
 }

@@ -62,19 +62,17 @@ ntg_border_box* ntg_border_box_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_border_box_init_(ntg_border_box* box,
-        ntg_object_process_key_fn process_key_fn)
+void _ntg_border_box_init_(ntg_border_box* box)
 {
     assert(box != NULL);
 
-    struct ntg_object_init_data object_data = {
+    struct ntg_object_layout_ops object_data = {
         .layout_init_fn = NULL,
         .layout_deinit_fn = NULL,
         .measure_fn = _ntg_border_box_measure_fn,
         .constrain_fn = _ntg_border_box_constrain_fn,
         .arrange_fn = _ntg_border_box_arrange_fn,
         .draw_fn = NULL,
-        .process_key_fn = process_key_fn
     };
 
     _ntg_object_init_((ntg_object*)box, object_data);

@@ -1,3 +1,4 @@
+#include "core/loop/ntg_loop.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_size_map.h"
@@ -15,6 +16,11 @@ struct ntg_object_container
 {
     ntg_object_vec vec;
 };
+
+static void update_scene_fn(ntg_object* object, void* scene)
+{
+    object->__scene = (ntg_scene*)scene;
+}
 
 /* ---------------------------------------------------------------- */
 /* IDENTITY */
@@ -52,6 +58,13 @@ bool ntg_object_is_padding(const ntg_object* object)
 /* OBJECT TREE */
 /* ---------------------------------------------------------------- */
 
+ntg_scene* ntg_object_get_scene(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return object->__scene;
+}
+
 const ntg_object* ntg_object_get_group_root(const ntg_object* object)
 {
     assert(object != NULL);
@@ -83,6 +96,40 @@ ntg_object* ntg_object_get_group_root_(ntg_object* object)
 
         it_obj = it_obj->__parent;
     }
+}
+
+const ntg_object* ntg_object_get_root(const ntg_object* object, ntg_object_parent_opts opts)
+{
+    assert(object != NULL);
+
+    const ntg_object* it_obj = object;
+    const ntg_object* prev = NULL;
+    while(true)
+    {
+        prev = it_obj;
+        it_obj = ntg_object_get_parent(object, opts);
+        
+        if(it_obj == NULL) return prev;
+    }
+
+    return NULL;
+}
+
+ntg_object* ntg_object_get_root_(ntg_object* object, ntg_object_parent_opts opts)
+{
+    assert(object != NULL);
+
+    ntg_object* it_obj = object;
+    ntg_object* prev = NULL;
+    while(true)
+    {
+        prev = it_obj;
+        it_obj = ntg_object_get_parent_(object, opts);
+        
+        if(it_obj == NULL) return prev;
+    }
+
+    return NULL;
 }
 
 const ntg_object* ntg_object_get_parent(const ntg_object* object, ntg_object_parent_opts opts)
@@ -607,30 +654,13 @@ void ntg_object_draw(
         object->__draw_fn(object, size, ctx, out, layout_data, arena);
 }
 
-/* ---------------------------------------------------------------- */
-/* EVENT */
-/* ---------------------------------------------------------------- */
-
-bool ntg_object_feed_key(
-        ntg_object* object,
-        struct nt_key_event key_event,
-        struct ntg_object_key_ctx ctx)
-{
-    assert(object != NULL);
-
-    if(object->__process_key_fn != NULL)
-        return object->__process_key_fn(object, key_event, ctx);
-    else
-        return false;
-}
-
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
 static void __init_default_values(ntg_object* object);
 
-void _ntg_object_init_(ntg_object* object, struct ntg_object_init_data object_data)
+void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops object_data)
 {
     assert(object != NULL);
 
@@ -638,19 +668,20 @@ void _ntg_object_init_(ntg_object* object, struct ntg_object_init_data object_da
 
     object->__children = ntg_object_vec_new();
     object->__background = ntg_cell_default();
+    object->__scene = NULL;
     object->__layout_init_fn = object_data.layout_init_fn;
     object->__layout_deinit_fn = object_data.layout_deinit_fn;
     object->__measure_fn = object_data.measure_fn;
     object->__constrain_fn = object_data.constrain_fn;
     object->__arrange_fn = object_data.arrange_fn;
     object->__draw_fn = object_data.draw_fn;
-    object->__process_key_fn = object_data.process_key_fn;
 }
 
 static void __init_default_values(ntg_object* object)
 {
     object->__parent = NULL;
     object->__children = NULL;
+    object->__scene = NULL;
 
     object->__min_size = ntg_xy(0, 0);
     object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
@@ -662,9 +693,7 @@ static void __init_default_values(ntg_object* object)
     object->__constrain_fn = NULL;
     object->__arrange_fn = NULL;
     object->__draw_fn = NULL;
-    object->__process_key_fn = NULL;
 }
-
 
 void _ntg_object_deinit_fn(ntg_entity* entity)
 {
@@ -677,12 +706,22 @@ void _ntg_object_deinit_fn(ntg_entity* entity)
     _ntg_entity_deinit_fn(entity);
 }
 
+void _ntg_object_propagate_set_scene(ntg_object* object, ntg_scene* scene)
+{
+    assert(object != NULL);
+
+    ntg_object_tree_perform(object, NTG_OBJECT_PERFORM_TOP_DOWN,
+            update_scene_fn, scene);
+}
+
 void _ntg_object_add_child(ntg_object* object, ntg_object* child)
 {
     assert(object != NULL);
     assert(child != NULL);
 
     assert(child->__parent == NULL);
+
+    _ntg_object_propagate_set_scene(child, object->__scene);
 
     ntg_object_vec_append(object->__children, child);
 
@@ -696,7 +735,24 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
 
     if(child->__parent != object) return;
 
+    _ntg_object_propagate_set_scene(child, NULL);
+
     ntg_object_vec_remove(object->__children, child);
 
     child->__parent = NULL;
+}
+
+void _ntg_object_rm_children(ntg_object* object)
+{
+    assert(object != NULL);
+
+    struct ntg_object_vecv children = ntg_object_get_children_(object);
+
+    size_t i;
+    for(i = 0; i < children.count; i++)
+    {
+        _ntg_object_propagate_set_scene(children.data[i], NULL);
+    }
+
+    ntg_object_vec_empty(object->__children);
 }

@@ -3,8 +3,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "core/loop/ntg_loop.h"
 #include "core/object/ntg_object.h"
 #include "core/object/shared/ntg_object_vec.h"
+#include "core/stage/ntg_stage.h"
 #include "shared/ntg_log.h"
 
 static void update_focused(ntg_scene* scene);
@@ -39,6 +41,22 @@ ntg_object* ntg_scene_get_root(ntg_scene* scene)
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
 {
     assert(scene != NULL);
+    assert(ntg_object_get_parent(root, NTG_OBJECT_PARENT_EXCL_DECOR) == NULL);
+    if(scene->_root == root) return;
+
+    ntg_object* old_root = scene->_root;
+
+    if(old_root != NULL)
+    {
+        ntg_object* old_root_gr = ntg_object_get_group_root_(old_root);
+        _ntg_object_propagate_set_scene(old_root_gr, NULL);
+    }
+
+    if(root != NULL)
+    {
+        ntg_object* root_gr = ntg_object_get_group_root_(root);
+        _ntg_object_propagate_set_scene(root_gr, scene);
+    }
 
     scene->_root = root;
 }
@@ -73,19 +91,8 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 
     update_focused(scene);
 
-    scene->__layout_fn(scene, size);
-}
-
-/* ------------------------------------------------------ */
-
-bool ntg_scene_feed_key_event(
-        ntg_scene* scene,
-        struct nt_key_event key,
-        ntg_loop_ctx* loop_ctx)
-{
-    assert(scene != NULL);
-
-    return scene->__process_key_fn(scene, key, loop_ctx);
+    if(scene->_root != NULL)
+        scene->__layout_fn(scene, size);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -93,12 +100,8 @@ bool ntg_scene_feed_key_event(
 /* -------------------------------------------------------------------------- */
 
 static void __init_default_values(ntg_scene* scene);
-static bool process_key_fn_def(ntg_scene* scene,
-        struct nt_key_event key, ntg_loop_ctx* loop_ctx);
 
-void _ntg_scene_init_(ntg_scene* scene,
-        ntg_scene_layout_fn layout_fn, 
-        ntg_scene_process_key_fn process_key_fn)
+void _ntg_scene_init_(ntg_scene* scene, ntg_scene_layout_fn layout_fn)
 {
     assert(scene != NULL);
     assert(layout_fn != NULL);
@@ -109,8 +112,6 @@ void _ntg_scene_init_(ntg_scene* scene,
     scene->_focused = NULL;
 
     scene->__layout_fn = layout_fn;
-    scene->__process_key_fn = (process_key_fn != NULL) ?
-        process_key_fn : process_key_fn_def;
 
     scene->_graph = ntg_scene_graph_new();
 }
@@ -121,25 +122,11 @@ static void __init_default_values(ntg_scene* scene)
     scene->_graph = NULL;
     
     scene->__layout_fn = NULL;
-    scene->__process_key_fn = NULL;
 
     scene->_focused = NULL;
     scene->__pending_focused = NULL;
     scene->__pending_focused_flag = false;
     scene->data = NULL;
-}
-
-static bool process_key_fn_def(ntg_scene* scene,
-        struct nt_key_event key, ntg_loop_ctx* loop_ctx)
-{
-    assert(scene != NULL);
-
-    struct ntg_object_key_ctx ctx = {
-        .scene = scene,
-        .loop_ctx = loop_ctx
-    };
-
-    return ntg_object_feed_key(scene->_focused, key, ctx);
 }
 
 void _ntg_scene_deinit_fn(ntg_entity* entity)
@@ -151,6 +138,13 @@ void _ntg_scene_deinit_fn(ntg_entity* entity)
     __init_default_values(scene);
 
     _ntg_entity_deinit_fn(entity);
+}
+
+void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
+{
+    assert(scene != NULL);
+
+    scene->_stage = stage;
 }
 
 static void add_to_registered_fn(ntg_object* object, void* _registered)

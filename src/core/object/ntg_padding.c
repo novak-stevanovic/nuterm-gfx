@@ -43,14 +43,13 @@ void _ntg_padding_init_(ntg_padding* padding, ntg_object_draw_fn draw_fn)
     assert(padding != NULL);
     assert(draw_fn != NULL);
 
-    struct ntg_object_init_data object_data = {
+    struct ntg_object_layout_ops object_data = {
         .layout_init_fn = _ntg_padding_layout_init_fn,
         .layout_deinit_fn = _ntg_padding_layout_deinit_fn,
         .measure_fn = _ntg_padding_measure_fn,
         .constrain_fn = _ntg_padding_constrain_fn,
         .arrange_fn = _ntg_padding_arrange_fn,
         .draw_fn = draw_fn,
-        .process_key_fn = NULL
     };
 
     _ntg_object_init_((ntg_object*)padding, object_data);

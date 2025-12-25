@@ -45,9 +45,7 @@ struct ntg_label
 /* -------------------------------------------------------------------------- */
 
 ntg_label* ntg_label_new(ntg_entity_system* system);
-void _ntg_label_init_(ntg_label* label,
-        ntg_label_post_draw_fn post_draw_fn,
-        ntg_object_process_key_fn process_key_fn);
+void _ntg_label_init_(ntg_label* label, ntg_label_post_draw_fn post_draw_fn);
 
 struct ntg_label_opts ntg_label_get_opts(const ntg_label* label);
 void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts);

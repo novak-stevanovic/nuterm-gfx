@@ -29,68 +29,26 @@ void __callback_fn(void* data, void* task_result)
     ntg_log_log("%p", task_result);
 }
 
-bool scene_process_key_fn(
-        ntg_scene* scene,
-        struct nt_key_event key,
-        ntg_loop_ctx* loop_ctx)
+void loop_process_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
 {
-    ntg_scene* _scene = (ntg_scene*)scene;
-
-    if(nt_key_event_utf32_check(key, 's', false))
+    if(event.type == NT_EVENT_KEY)
     {
-        ntg_log_log("scene received s");
-        return true;
-    }
-    else if(nt_key_event_utf32_check(key, 'w', false))
-    {
-        ntg_log_log("scene received w");
-
-        ntg_taskmaster* taskmaster = ntg_loop_ctx_get_taskmaster(loop_ctx);
-
-        ntg_log_log("calling ntg_taskmaster_execute_task");
-        ntg_taskmaster_execute_task(taskmaster, __task_fn, NULL, __callback_fn, NULL);
-
-        return true;
-    }
-    else if(nt_key_event_utf32_check(key, 'f', false))
-    {
-        ntg_object* scene_object = (ntg_object*)_scene->data;
-        ntg_scene_focus(_scene, scene_object);
-        ntg_log_log("Focused center middle child");
-        return true;
-    }
-    else if(nt_key_event_utf32_check(key, 'u', false))
-    {
-        ntg_log_log("Unfocused");
-        ntg_scene_focus(_scene, NULL);
-        return true;
-    }
-    else if(nt_key_event_utf32_check(key, 'q', false))
-    {
-        ntg_loop_ctx_break(loop_ctx);
-        return true;
-    }
-    else 
-    {
-        struct ntg_object_key_ctx ctx = {
-            .scene = _scene,
-            .loop_ctx = loop_ctx
-        };
-        if(scene->_focused != NULL)
-            return ntg_object_feed_key(scene->_focused, key, ctx);
-        else return false;
+        if(nt_key_event_utf32_check(event.key_data, 'q', false))
+        {
+            ntg_loop_ctx_break(ctx);
+        }
     }
 }
 
-static void gui_fn2(ntg_entity_system* es, void* data)
+static void gui_fn(ntg_loop* loop, ntg_entity_system* es, void* data)
 {
     // Root
     ntg_border_box* root = ntg_border_box_new(es);
-    _ntg_border_box_init_(root, NULL);
+    _ntg_border_box_init_(root);
 
     // North
     ntg_label* north = ntg_label_new( es);
-    _ntg_label_init_(north, NULL, NULL);
+    _ntg_label_init_(north, NULL);
     struct nt_gfx north_gfx = {
         .bg = nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
         .fg = nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
@@ -120,7 +78,7 @@ static void gui_fn2(ntg_entity_system* es, void* data)
 
     // Center
     ntg_box* center = ntg_box_new(es);
-    _ntg_box_init_(center, NULL);
+    _ntg_box_init_(center);
     struct ntg_box_opts center_opts = ntg_box_opts_def();
     center_opts.orientation = NTG_ORIENTATION_V;
     center_opts.palignment = NTG_ALIGNMENT_2;
@@ -130,18 +88,18 @@ static void gui_fn2(ntg_entity_system* es, void* data)
 
     // Center children
     ntg_color_block* center1 = ntg_color_block_new(es);
-    _ntg_color_block_init_(center1, NULL);
+    _ntg_color_block_init_(center1);
     ntg_color_block_set_color(center1, nt_color_new_rgb(nt_rgb_new(0, 70, 70)));
     ntg_color_block* center2 = ntg_color_block_new(es);
-    _ntg_color_block_init_(center2, NULL);
+    _ntg_color_block_init_(center2);
     ntg_color_block_set_color(center2, nt_color_new_rgb(nt_rgb_new(0, 140, 140)));
     ntg_color_block* center3 = ntg_color_block_new(es);
-    _ntg_color_block_init_(center3, NULL);
+    _ntg_color_block_init_(center3);
     ntg_color_block_set_color(center3, nt_color_new_rgb(nt_rgb_new(0, 210, 210)));
 
     // South
     ntg_box* south = ntg_box_new(es);
-    _ntg_box_init_(south, NULL);
+    _ntg_box_init_(south);
     struct ntg_box_opts south_opts = ntg_box_opts_def();
     south_opts.orientation = NTG_ORIENTATION_H;
     south_opts.palignment = NTG_ALIGNMENT_2;
@@ -154,10 +112,10 @@ static void gui_fn2(ntg_entity_system* es, void* data)
 
     // South children
     ntg_color_block* south1 = ntg_color_block_new(es);
-    _ntg_color_block_init_(south1, NULL);
+    _ntg_color_block_init_(south1);
     ntg_color_block_set_color(south1, nt_color_new_rgb(nt_rgb_new(0, 255, 0)));
     ntg_color_block* south2 = ntg_color_block_new(es);
-    _ntg_color_block_init_(south2, NULL);
+    _ntg_color_block_init_(south2);
     ntg_color_block_set_color(south2, nt_color_new_rgb(nt_rgb_new(0, 0, 255)));
 
     // Connect center
@@ -176,40 +134,47 @@ static void gui_fn2(ntg_entity_system* es, void* data)
 
     // Stage
     ntg_def_stage* stage = ntg_def_stage_new(es);
-    _ntg_def_stage_init_(stage);
+    _ntg_def_stage_init_(stage, loop);
 
     // Scene
     ntg_def_scene* scene = ntg_def_scene_new(es);
-    _ntg_def_scene_init_(scene, scene_process_key_fn);
+    _ntg_def_scene_init_(scene);
+    ntg_def_scene* test_scene = ntg_def_scene_new(es);
+    _ntg_def_scene_init_(test_scene);
 
     // Connect root-scene-stage
     ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
+    // ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)center);
+    // ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
+
+    ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
+    ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)test_scene);
     ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
 
     // Loop, renderer, taskmaster
-    ntg_loop* loop = ntg_loop_new(es);
     ntg_def_renderer* renderer = ntg_def_renderer_new(es);
     ntg_taskmaster* taskmaster = ntg_taskmaster_new(es);
-
-    _ntg_def_renderer_init_(renderer, loop);
+    _ntg_def_renderer_init_(renderer);
     _ntg_taskmaster_init_(taskmaster);
-    struct ntg_loop_init_data loop_data = {
-        .process_event_fn = NULL,
-        .renderer = (ntg_renderer*)renderer,
-        .taskmaster = taskmaster,
-        .framerate = 30
-    };
-    _ntg_loop_init_(loop, loop_data);
 
     // Run
-    ntg_loop_run(loop, (ntg_stage*)stage, NULL);
+    struct ntg_loop_run_data loop_data = {
+        .process_event_fn = loop_process_event_fn,
+        .renderer = (ntg_renderer*)renderer,
+        .taskmaster = taskmaster,
+        .framerate = 30,
+        .stage = (ntg_stage*)stage,
+        .ctx_data = NULL
+    };
+
+    ntg_loop_run(loop, loop_data);
 }
 
 int main(int argc, char *argv[])
 {
     _ntg_init_();
 
-    ntg_launch(gui_fn2, NULL);
+    ntg_launch(gui_fn, NULL);
 
     ntg_wait();
 

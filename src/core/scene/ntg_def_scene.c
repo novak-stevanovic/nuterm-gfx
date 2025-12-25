@@ -28,12 +28,11 @@ ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_scene_init_(ntg_def_scene* scene,
-        ntg_scene_process_key_fn process_key_fn)
+void _ntg_def_scene_init_(ntg_def_scene* scene)
 {
     assert(scene != NULL);
 
-    _ntg_scene_init_((ntg_scene*)scene, _ntg_def_scene_layout_fn, process_key_fn);
+    _ntg_scene_init_((ntg_scene*)scene, _ntg_def_scene_layout_fn);
 
     scene->__layout_arena = sarena_create(30000);
     assert(scene->__layout_arena != NULL);
@@ -78,7 +77,7 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
 {
     assert(_scene != NULL);
 
-    ntg_object* root = ntg_scene_get_root(_scene);
+    ntg_object* root = ntg_object_get_group_root_(_scene->_root);
     if(_scene->_root == NULL) return;
 
     ntg_def_scene* scene = (ntg_def_scene*)_scene;

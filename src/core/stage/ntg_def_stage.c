@@ -25,11 +25,11 @@ ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_stage_init_(ntg_def_stage* stage)
+void _ntg_def_stage_init_(ntg_def_stage* stage, ntg_loop* loop)
 {
     assert(stage != NULL);
 
-    _ntg_stage_init_((ntg_stage*)stage, _ntg_def_stage_compose_fn);
+    _ntg_stage_init_((ntg_stage*)stage, loop, _ntg_def_stage_compose_fn);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -66,7 +66,8 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size)
         ntg_object* root = ntg_scene_get_root(ntg_stage_get_scene(_stage));
         if(root != NULL)
         {
-            ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN,
+            ntg_object_tree_perform(root,
+                    NTG_OBJECT_PERFORM_TOP_DOWN,
                     __draw_fn, _stage);
         }
     }

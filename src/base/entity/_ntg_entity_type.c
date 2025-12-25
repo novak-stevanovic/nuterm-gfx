@@ -157,7 +157,7 @@ const ntg_entity_type NTG_ENTITY_DEF_RENDERER = {
 
 const ntg_entity_type NTG_ENTITY_LOOP = {
     .__parent = &NTG_ENTITY_DEFAULT,
-    ._size = sizeof(ntg_loop)
+    ._size = sizeof(ntg_entity)
 };
 
 /* -------------------------------------------------------------------------- */

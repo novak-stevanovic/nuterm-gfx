@@ -79,6 +79,7 @@ unsigned int ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entit
 void ntg_entity_system_raise_event(
         ntg_entity_system* system,
         ntg_entity* source, 
+        ntg_entity* target,
         unsigned int type, void* data)
 {
     assert(system != NULL);
@@ -103,7 +104,8 @@ void ntg_entity_system_raise_event(
         it_sub = subs->_data[i];
         struct ntg_entity_data* it_map_data = ntg_entity_map_get(system->map, it_sub.entity);
 
-        if(it_map_data != NULL) // not deinited
+        // not deinited & (broadcast or target)
+        if((it_map_data != NULL) && ((target == NULL) || (target == it_sub.entity)))
             it_sub.handler(it_sub.entity, event);
     }
 }

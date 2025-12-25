@@ -12,8 +12,6 @@ typedef struct ntg_loop ntg_loop;
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-/* Double-buffered app renderer that listens to ntg_loop for resizes. When
- * a resize happens, the next render will be a full render. */
 struct ntg_def_renderer
 {
     ntg_renderer __base;
@@ -21,9 +19,7 @@ struct ntg_def_renderer
     ntg_stage_drawing* __backbuff;
     nt_charbuff* __charbuff;
 
-    ntg_loop* __loop;
-
-    bool __resize;
+    struct ntg_xy __old_size;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -31,17 +27,16 @@ struct ntg_def_renderer
 /* -------------------------------------------------------------------------- */
 
 ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system);
+void _ntg_def_renderer_init_(ntg_def_renderer* renderer);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_renderer_init_(ntg_def_renderer* renderer, ntg_loop* loop);
 void _ntg_def_renderer_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,
-        const ntg_stage_drawing* stage_drawing,
-        struct ntg_xy size);
+        const ntg_stage_drawing* stage_drawing);
 
 #endif // _NTG_DB_RENDERER_H_

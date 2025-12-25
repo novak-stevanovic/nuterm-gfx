@@ -12,6 +12,9 @@
 #include "core/stage/ntg_def_stage.h"
 #include "shared/ntg_shared.h"
 
+typedef struct ntg_entity_system ntg_entity_system;
+typedef struct ntg_loop ntg_loop;
+
 /* -------------------------------------------------------------------------- */
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
@@ -23,7 +26,7 @@ void _ntg_deinit_();
 /* LAUNCH */
 /* -------------------------------------------------------------------------- */
 
-typedef void (*ntg_gui_fn)(ntg_entity_system* system, void* data);
+typedef void (*ntg_gui_fn)(ntg_loop* loop, ntg_entity_system* system, void* data);
 
 void ntg_launch(ntg_gui_fn gui_fn, void* data);
 
@@ -35,8 +38,9 @@ void* ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
+// TODO: nuterm-gfx: rework event propagation loop -> focused, add more events | **
 // TODO: ntg_padding: rethink measure_fn | *
-// TODO: ntg_object/ntg_scene: rework scan_scene() fn, more event types, remove process_key_fn, add ntg_entity_feed_event()? | *
+// TODO: ntg_object/ntg_scene: rework scan_scene() fn | *
 // TODO: nuterm: add signal event, maybe more event types - allow user to define and post events to loop? | **
 // TODO: ntg_taskmaster: full rework | **
 // TODO: ntg_list and/or ntg_table: implement | **

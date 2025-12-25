@@ -31,7 +31,7 @@ struct ntg_box
 /* -------------------------------------------------------------------------- */
 
 ntg_box* ntg_box_new(ntg_entity_system* system);
-void _ntg_box_init_(ntg_box* box, ntg_object_process_key_fn process_key_fn);
+void _ntg_box_init_(ntg_box* box);
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box);
 void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts);

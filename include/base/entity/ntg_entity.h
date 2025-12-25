@@ -20,9 +20,7 @@ struct ntg_event;
 
 typedef void (*ntg_entity_deinit_fn)(ntg_entity* entity);
 
-typedef void (*ntg_event_handler_fn)(
-        ntg_entity* observer,
-        struct ntg_event event);
+typedef void (*ntg_event_handler_fn)(ntg_entity* observer, struct ntg_event event);
 
 /* Base class for GUI objects. Entities must be dynamically allocated. */
 
@@ -34,6 +32,7 @@ struct ntg_entity
     ntg_entity_system* __system;
 };
 
+// Extensible
 struct ntg_event
 {
     unsigned int id;
@@ -46,10 +45,6 @@ struct ntg_event
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------ */
-/* ENTITY */
-/* ------------------------------------------------------ */
-
 struct ntg_entity_init_data
 {
     const ntg_entity_type* type;
@@ -60,15 +55,13 @@ struct ntg_entity_init_data
 ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data);
 void ntg_entity_destroy(ntg_entity* entity);
 
-/* Call last in overriden deinit_fn */
-void _ntg_entity_deinit_fn(ntg_entity* entity);
-
 /* ------------------------------------------------------ */
 
 void ntg_entity_raise_event(
         ntg_entity* entity,
-        unsigned int type,
-        void* data);
+        ntg_entity* target,
+        unsigned int type, void* data);
+
 void ntg_entity_observe(
         ntg_entity* observer,
         ntg_entity* observed,
@@ -81,5 +74,14 @@ bool ntg_entity_is_observing(
         ntg_entity* observer,
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
+
+/* ------------------------------------------------------ */
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+/* Call last in overriden deinit_fn */
+void _ntg_entity_deinit_fn(ntg_entity* entity);
 
 #endif // _NTG_ENTITY_H_

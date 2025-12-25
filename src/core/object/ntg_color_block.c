@@ -39,19 +39,17 @@ ntg_color_block* ntg_color_block_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_color_block_init_(ntg_color_block* color_block,
-        ntg_object_process_key_fn process_key_fn)
+void _ntg_color_block_init_(ntg_color_block* color_block)
 {
     assert(color_block != NULL);
 
-    struct ntg_object_init_data object_data = {
+    struct ntg_object_layout_ops object_data = {
         .layout_init_fn = NULL,
         .layout_deinit_fn = NULL,
         .measure_fn = _ntg_color_block_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = _ntg_color_block_draw_fn,
-        .process_key_fn = process_key_fn
     };
 
     _ntg_object_init_((ntg_object*)color_block, object_data);

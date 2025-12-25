@@ -31,19 +31,17 @@ ntg_prog_bar* ntg_prog_bar_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_prog_bar_init_(ntg_prog_bar* prog_bar,
-        ntg_object_process_key_fn process_key_fn)
+void _ntg_prog_bar_init_(ntg_prog_bar* prog_bar)
 {
     assert(prog_bar != NULL);
 
-    struct ntg_object_init_data object_data = {
+    struct ntg_object_layout_ops object_data = {
         .layout_init_fn = NULL,
         .layout_deinit_fn = NULL,
         .measure_fn = _ntg_prog_bar_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = _ntg_prog_bar_draw_fn,
-        .process_key_fn = NULL
     };
 
     _ntg_object_init_((ntg_object*)prog_bar, object_data);

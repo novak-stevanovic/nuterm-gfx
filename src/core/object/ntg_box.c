@@ -39,18 +39,17 @@ ntg_box* ntg_box_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_box_init_(ntg_box* box, ntg_object_process_key_fn process_key_fn)
+void _ntg_box_init_(ntg_box* box)
 {
     assert(box != NULL);
 
-    struct ntg_object_init_data object_data = {
+    struct ntg_object_layout_ops object_data = {
         .layout_init_fn = _ntg_box_layout_init_fn,
         .layout_deinit_fn = _ntg_box_layout_deinit_fn,
         .measure_fn = _ntg_box_measure_fn,
         .constrain_fn = _ntg_box_constrain_fn,
         .arrange_fn = __ntg_box_arrange_fn,
         .draw_fn = NULL,
-        .process_key_fn = process_key_fn
     };
 
     _ntg_object_init_((ntg_object*)box, object_data);

@@ -22,7 +22,6 @@ typedef struct ntg_object_xy_map ntg_object_xy_map;
 typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 typedef struct sarena sarena;
-struct nt_key_event;
 struct ntg_object_measure_ctx;
 struct ntg_object_measure_out;
 struct ntg_object_constrain_ctx;
@@ -32,6 +31,7 @@ struct ntg_object_arrange_out;
 struct ntg_object_draw_ctx;
 struct ntg_object_draw_out;
 struct ntg_object_key_ctx;
+struct ntg_loop_event;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -136,17 +136,6 @@ typedef void (*ntg_object_draw_fn)(
 
 /* ------------------------------------------------------ */
 
-struct ntg_object_key_ctx
-{
-    ntg_scene* scene;
-    ntg_loop_ctx* loop_ctx;
-};
-
-/* Returns if the key had been consumed. */
-typedef bool (*ntg_object_process_key_fn)(ntg_object* object,
-        struct nt_key_event key_event,
-        struct ntg_object_key_ctx ctx);
-
 /* ------------------------------------------------------ */
 
 struct ntg_object
@@ -155,6 +144,7 @@ struct ntg_object
 
     struct
     {
+        ntg_scene* __scene;
         ntg_object* __parent;
         ntg_object_vec* __children;
     };
@@ -173,11 +163,6 @@ struct ntg_object
         ntg_object_arrange_fn __arrange_fn;
         ntg_object_draw_fn __draw_fn;
         ntg_cell __background;
-    };
-
-    struct
-    {
-        ntg_object_process_key_fn __process_key_fn;
     };
 
     void* data;
@@ -200,6 +185,8 @@ bool ntg_object_is_padding(const ntg_object* object);
 /* OBJECT TREE */
 /* ------------------------------------------------------ */
 
+ntg_scene* ntg_object_get_scene(ntg_object* object);
+
 const ntg_object* ntg_object_get_group_root(const ntg_object* object);
 ntg_object* ntg_object_get_group_root_(ntg_object* object);
 
@@ -208,6 +195,9 @@ typedef enum ntg_object_parent_opts
     NTG_OBJECT_PARENT_INCL_DECOR,
     NTG_OBJECT_PARENT_EXCL_DECOR
 } ntg_object_parent_opts;
+
+const ntg_object* ntg_object_get_root(const ntg_object* object, ntg_object_parent_opts opts);
+ntg_object* ntg_object_get_root_(ntg_object* object, ntg_object_parent_opts opts);
 
 /* Gets object's parent node. */
 const ntg_object* ntg_object_get_parent(const ntg_object* object, ntg_object_parent_opts opts);
@@ -304,19 +294,11 @@ void ntg_object_draw(
         void* layout_data,
         sarena* arena);
 
-/* ------------------------------------------------------ */
-/* EVENT */
-/* ------------------------------------------------------ */
-
-bool ntg_object_feed_key(ntg_object* object,
-        struct nt_key_event key_event,
-        struct ntg_object_key_ctx ctx);
-
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_object_init_data
+struct ntg_object_layout_ops
 {
     ntg_object_layout_init_fn layout_init_fn;
     ntg_object_layout_deinit_fn layout_deinit_fn;
@@ -324,15 +306,15 @@ struct ntg_object_init_data
     ntg_object_constrain_fn constrain_fn;
     ntg_object_arrange_fn arrange_fn;
     ntg_object_draw_fn draw_fn;
-
-    ntg_object_process_key_fn process_key_fn;
 };
 
-void _ntg_object_init_(ntg_object* object, struct ntg_object_init_data object_data);
-
+void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops layout_ops);
 void _ntg_object_deinit_fn(ntg_entity* entity);
+
+void _ntg_object_propagate_set_scene(ntg_object* object, ntg_scene* scene);
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
+void _ntg_object_rm_children(ntg_object* object);
 
 #endif // _NTG_OBJECT_H_

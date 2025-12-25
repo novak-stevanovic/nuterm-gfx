@@ -29,8 +29,7 @@ struct ntg_border_box
 
 ntg_border_box* ntg_border_box_new(ntg_entity_system* system);
 
-void _ntg_border_box_init_(ntg_border_box* box,
-        ntg_object_process_key_fn process_key_fn);
+void _ntg_border_box_init_(ntg_border_box* box);
 
 ntg_object* ntg_border_box_get_north(ntg_border_box* box);
 ntg_object* ntg_border_box_get_east(ntg_border_box* box);

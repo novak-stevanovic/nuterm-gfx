@@ -25,8 +25,7 @@ struct ntg_def_scene
 
 ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system);
 
-void _ntg_def_scene_init_(ntg_def_scene* scene,
-        ntg_scene_process_key_fn process_key_fn);
+void _ntg_def_scene_init_(ntg_def_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

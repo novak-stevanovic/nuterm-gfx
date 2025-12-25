@@ -8,12 +8,11 @@
 
 void ntg_renderer_render(
         ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing,
-        struct ntg_xy size)
+        const ntg_stage_drawing* stage_drawing)
 {
     assert(renderer != NULL);
 
-    renderer->__render_fn(renderer, stage_drawing, size);
+    renderer->__render_fn(renderer, stage_drawing);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -30,23 +30,14 @@ void ntg_entity_destroy(ntg_entity* entity)
     free(entity);
 }
 
-void _ntg_entity_deinit_fn(ntg_entity* entity)
-{
-    assert(entity != NULL);
-    
-    ntg_entity_system_unregister(entity->__system, entity);
-
-    (*entity) = (ntg_entity) {0};
-}
-
 /* ------------------------------------------------------ */
 
 void ntg_entity_raise_event(
         ntg_entity* entity,
-        unsigned int type,
-        void* data)
+        ntg_entity* target,
+        unsigned int type, void* data)
 {
-    ntg_entity_system_raise_event(entity->__system, entity, type, data);
+    ntg_entity_system_raise_event(entity->__system, entity, target, type, data);
 }
 
 void ntg_entity_observe(
@@ -72,4 +63,17 @@ bool ntg_entity_is_observing(
 {
     return ntg_entity_system_has_observe(observer->__system,
             observer, observed, handler_fn);
+}
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
+
+void _ntg_entity_deinit_fn(ntg_entity* entity)
+{
+    assert(entity != NULL);
+    
+    ntg_entity_system_unregister(entity->__system, entity);
+
+    (*entity) = (ntg_entity) {0};
 }

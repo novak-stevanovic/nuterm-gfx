@@ -132,20 +132,17 @@ ntg_label* ntg_label_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_label_init_(ntg_label* label,
-        ntg_label_post_draw_fn post_draw_fn,
-        ntg_object_process_key_fn process_key_fn)
+void _ntg_label_init_(ntg_label* label, ntg_label_post_draw_fn post_draw_fn)
 {
     assert(label != NULL);
 
-    struct ntg_object_init_data object_data = {
+    struct ntg_object_layout_ops object_data = {
         .layout_init_fn = NULL,
         .layout_deinit_fn = NULL,
         .measure_fn = _ntg_label_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = _ntg_label_draw_fn,
-        .process_key_fn = process_key_fn
     };
 
     _ntg_object_init_((ntg_object*)label, object_data);

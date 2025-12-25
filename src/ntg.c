@@ -8,6 +8,9 @@
 #include "shared/ntg_log.h"
 #include "shared/sarena.h"
 
+static ntg_loop* ntg_loop_new(ntg_entity_system* system);
+static void _ntg_loop_deinit_fn(ntg_entity* entity);
+
 /* -------------------------------------------------------------------------- */
 
 static pthread_t __ntg_thread;
@@ -54,8 +57,7 @@ void ntg_launch(ntg_gui_fn gui_fn, void* data)
     thread_fn_data->gui_fn = gui_fn;
     thread_fn_data->gui_fn_data = data;
 
-    int status = pthread_create(&__ntg_thread, NULL,
-            ntg_thread_fn, thread_fn_data);
+    int status = pthread_create(&__ntg_thread, NULL, ntg_thread_fn, thread_fn_data);
 
     assert(status == 0);
 
@@ -88,7 +90,9 @@ static void* ntg_thread_fn(void* _thread_fn_data)
 
     ntg_entity_system* es = ntg_entity_system_new();
 
-    data->gui_fn(es, data->gui_fn_data);
+    ntg_loop* loop = ntg_loop_new(es);
+
+    data->gui_fn(loop, es, data->gui_fn_data);
 
     ntg_entity_system_destroy(es);
 
@@ -96,3 +100,26 @@ static void* ntg_thread_fn(void* _thread_fn_data)
 
     return NULL;
 }
+
+/* TO MODIFY, CHANGE ALSO IN _NTG_ENTITY_TYPE.C */
+ntg_loop* ntg_loop_new(ntg_entity_system* system)
+{
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_LOOP,
+        .deinit_fn = _ntg_loop_deinit_fn,
+        .system = system
+    };
+
+    ntg_loop* new = (ntg_loop*)ntg_entity_create(entity_data);
+    assert(new != NULL);
+
+    return new;
+}
+
+void _ntg_loop_deinit_fn(ntg_entity* entity)
+{
+    assert(entity != NULL);
+
+    _ntg_entity_deinit_fn(entity);
+}
+
