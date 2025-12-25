@@ -37,6 +37,11 @@ struct ntg_loop_event;
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
+typedef bool (*ntg_object_process_event_fn)(
+        ntg_object* object,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx);
+
 /* Dynamically allocates and initializes an object that will be used in the
  * layout process for `object`. */
 typedef void* (*ntg_object_layout_init_fn)(const ntg_object* object);
@@ -163,6 +168,11 @@ struct ntg_object
         ntg_object_arrange_fn __arrange_fn;
         ntg_object_draw_fn __draw_fn;
         ntg_cell __background;
+    };
+
+    struct
+    {
+        ntg_object_process_event_fn __process_event_fn;
     };
 
     void* data;
@@ -294,6 +304,18 @@ void ntg_object_draw(
         void* layout_data,
         sarena* arena);
 
+/* ------------------------------------------------------ */
+/* EVENT */
+/* ------------------------------------------------------ */
+
+bool ntg_object_feed_event(
+        ntg_object* object,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx);
+
+void ntg_object_set_process_event_fn(ntg_object* object,
+        ntg_object_process_event_fn process_event_fn);
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
@@ -311,7 +333,7 @@ struct ntg_object_layout_ops
 void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops layout_ops);
 void _ntg_object_deinit_fn(ntg_entity* entity);
 
-void _ntg_object_propagate_set_scene(ntg_object* object, ntg_scene* scene);
+void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene);
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child);

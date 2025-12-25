@@ -15,6 +15,7 @@ typedef struct ntg_object_vec ntg_object_vec;
 typedef struct ntg_object ntg_object;
 typedef struct ntg_stage ntg_stage;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
+struct ntg_loop_event;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -24,6 +25,11 @@ typedef struct ntg_loop_ctx ntg_loop_ctx;
 typedef void (*ntg_scene_layout_fn)(
         ntg_scene* scene,
         struct ntg_xy size);
+
+typedef bool (*ntg_scene_process_event_fn)(
+        ntg_scene* scene,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx);
 
 struct ntg_scene_node
 {
@@ -44,8 +50,9 @@ struct ntg_scene
 
     ntg_scene_layout_fn __layout_fn;
 
-    ntg_object *_focused, *__pending_focused;
-    bool __pending_focused_flag;
+    ntg_object *_focused;
+
+    ntg_scene_process_event_fn __process_event_fn;
 
     void* data;
 };
@@ -54,7 +61,6 @@ struct ntg_scene
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-ntg_object* ntg_scene_get_focused(ntg_scene* scene);
 void ntg_scene_focus(ntg_scene* scene, ntg_object* object);
 
 ntg_object* ntg_scene_get_root(ntg_scene* scene);
@@ -71,6 +77,16 @@ struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
  *
  * 3) Calls the scene's `ntg_scene_layout_fn` to perform the layout. */
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size);
+
+/* ------------------------------------------------------ */
+
+bool ntg_scene_feed_event(
+        ntg_scene* scene,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx);
+
+void ntg_scene_set_process_event_fn(ntg_scene* scene,
+        ntg_scene_process_event_fn process_event_fn);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

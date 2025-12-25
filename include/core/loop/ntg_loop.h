@@ -18,8 +18,6 @@ typedef struct ntg_renderer ntg_renderer;
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-typedef void (*ntg_loop_process_event_fn)(ntg_loop_ctx* ctx, struct nt_event event);
-
 struct ntg_loop_ctx
 {
     bool __loop;
@@ -41,7 +39,7 @@ struct ntg_loop_event
 
 struct ntg_loop_run_data
 {
-    ntg_loop_process_event_fn process_event_fn;
+    void (*process_event_fn)(ntg_loop_ctx* ctx, struct nt_event event);
     ntg_stage* stage;
     ntg_renderer* renderer; // non-NULL
     ntg_taskmaster* taskmaster; // non-NULL

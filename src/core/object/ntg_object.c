@@ -17,9 +17,12 @@ struct ntg_object_container
     ntg_object_vec vec;
 };
 
-static void update_scene_fn(ntg_object* object, void* scene)
+bool process_event_fn_def(
+        ntg_object* object,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx)
 {
-    object->__scene = (ntg_scene*)scene;
+    return false;
 }
 
 /* ---------------------------------------------------------------- */
@@ -654,6 +657,29 @@ void ntg_object_draw(
         object->__draw_fn(object, size, ctx, out, layout_data, arena);
 }
 
+/* ------------------------------------------------------ */
+/* EVENT */
+/* ------------------------------------------------------ */
+
+bool ntg_object_feed_event(
+        ntg_object* object,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx)
+{
+    assert(object != NULL);
+
+    return object->__process_event_fn(object, event, loop_ctx);
+}
+
+void ntg_object_set_process_event_fn(ntg_object* object,
+        ntg_object_process_event_fn process_event_fn)
+{
+    assert(object != NULL);
+
+    object->__process_event_fn = (process_event_fn != NULL) ?
+        process_event_fn : process_event_fn_def;
+}
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
@@ -675,6 +701,7 @@ void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops object_d
     object->__constrain_fn = object_data.constrain_fn;
     object->__arrange_fn = object_data.arrange_fn;
     object->__draw_fn = object_data.draw_fn;
+    object->__process_event_fn = process_event_fn_def;
 }
 
 static void __init_default_values(ntg_object* object)
@@ -706,12 +733,20 @@ void _ntg_object_deinit_fn(ntg_entity* entity)
     _ntg_entity_deinit_fn(entity);
 }
 
-void _ntg_object_propagate_set_scene(ntg_object* object, ntg_scene* scene)
+void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene)
 {
     assert(object != NULL);
 
-    ntg_object_tree_perform(object, NTG_OBJECT_PERFORM_TOP_DOWN,
-            update_scene_fn, scene);
+    if(object->__scene == scene) return;
+
+    object->__scene = scene;
+}
+
+static void set_scene_fn(ntg_object* object, void* _scene)
+{
+    ntg_scene* scene = (ntg_scene*)_scene;
+
+    _ntg_object_set_scene(object, scene);
 }
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child)
@@ -721,9 +756,17 @@ void _ntg_object_add_child(ntg_object* object, ntg_object* child)
 
     assert(child->__parent == NULL);
 
-    _ntg_object_propagate_set_scene(child, object->__scene);
+    // ntg_object_tree_perform(child, NTG_OBJECT_PERFORM_TOP_DOWN,
+    //         set_scene_fn, object->__scene);
 
     ntg_object_vec_append(object->__children, child);
+
+    struct ntg_event_object_chldadd_data data = {
+        .child = child
+    };
+
+    ntg_entity_raise_event((ntg_entity*)object, NULL,
+            NTG_EVENT_OBJECT_CHLDADD, &data);
 
     child->__parent = object;
 }
@@ -735,9 +778,17 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
 
     if(child->__parent != object) return;
 
-    _ntg_object_propagate_set_scene(child, NULL);
+    // ntg_object_tree_perform(child, NTG_OBJECT_PERFORM_TOP_DOWN,
+    //         set_scene_fn, NULL);
 
     ntg_object_vec_remove(object->__children, child);
+
+    struct ntg_event_object_chldrm_data data = {
+        .child = child
+    };
+
+    ntg_entity_raise_event((ntg_entity*)object, NULL,
+            NTG_EVENT_OBJECT_CHLDRM, &data);
 
     child->__parent = NULL;
 }
@@ -747,12 +798,16 @@ void _ntg_object_rm_children(ntg_object* object)
     assert(object != NULL);
 
     struct ntg_object_vecv children = ntg_object_get_children_(object);
+    size_t count = children.count;
 
     size_t i;
-    for(i = 0; i < children.count; i++)
-    {
-        _ntg_object_propagate_set_scene(children.data[i], NULL);
-    }
 
-    ntg_object_vec_empty(object->__children);
+    ntg_object** children_cpy = (ntg_object**)malloc(sizeof(ntg_object*) * count);
+    for(i = 0; i < count; i++)
+        children_cpy[i] = children.data[i];
+
+    for(i = 0; i < count; i++)
+        _ntg_object_rm_child(object, children_cpy[i]);
+
+    free(children_cpy);
 }

@@ -55,7 +55,8 @@ void ntg_scene_graph_destroy(ntg_scene_graph* scene_graph)
     free(scene_graph);
 }
 
-void ntg_scene_graph_add(ntg_scene_graph* scene_graph, const ntg_object* object)
+struct ntg_scene_node_protect* ntg_scene_graph_add(
+        ntg_scene_graph* scene_graph, const ntg_object* object)
 {
     assert(scene_graph != NULL);
 
@@ -71,6 +72,8 @@ void ntg_scene_graph_add(ntg_scene_graph* scene_graph, const ntg_object* object)
     new->data.drawing = ntg_object_drawing_new();
 
     HASH_ADD_PTR(scene_graph->head, key, new);
+
+    return &(new->data);
 }
 
 void ntg_scene_graph_remove(ntg_scene_graph* scene_graph, const ntg_object* object)

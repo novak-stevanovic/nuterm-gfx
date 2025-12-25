@@ -13,20 +13,20 @@ static void get_true_children(const ntg_border_box* box, ntg_object** out_north,
         ntg_object** out_east, ntg_object** out_south,
         ntg_object** out_west, ntg_object** out_center)
 {
-    (*out_north) = (box->__north != NULL) ?
-        ntg_object_get_group_root_(box->__north) :
+    (*out_north) = (box->__children[NTG_BORDER_BOX_NORTH]!= NULL) ?
+        ntg_object_get_group_root_(box->__children[NTG_BORDER_BOX_NORTH]) :
         NULL;
-    (*out_east) = (box->__east != NULL) ?
-        ntg_object_get_group_root_(box->__east) :
+    (*out_east) = (box->__children[NTG_BORDER_BOX_EAST]!= NULL) ?
+        ntg_object_get_group_root_(box->__children[NTG_BORDER_BOX_EAST]) :
         NULL;
-    (*out_south) = (box->__south != NULL) ?
-        ntg_object_get_group_root_(box->__south) :
+    (*out_south) = (box->__children[NTG_BORDER_BOX_SOUTH]!= NULL) ?
+        ntg_object_get_group_root_(box->__children[NTG_BORDER_BOX_SOUTH]) :
         NULL;
-    (*out_west) = (box->__west != NULL) ?
-        ntg_object_get_group_root_(box->__west) :
+    (*out_west) = (box->__children[NTG_BORDER_BOX_WEST]!= NULL) ?
+        ntg_object_get_group_root_(box->__children[NTG_BORDER_BOX_WEST]) :
         NULL;
-    (*out_center) = (box->__center != NULL) ?
-        ntg_object_get_group_root_(box->__center) :
+    (*out_center) = (box->__children[NTG_BORDER_BOX_CENTER] != NULL) ?
+        ntg_object_get_group_root_(box->__children[NTG_BORDER_BOX_CENTER]) :
         NULL;
 }
 
@@ -41,11 +41,7 @@ struct ntg_border_box_opts ntg_border_box_opts_def()
 
 static void init_default(ntg_border_box* box)
 {
-    box->__north = NULL;
-    box->__east = NULL;
-    box->__south = NULL;
-    box->__west = NULL;
-    box->__center = NULL;
+    memset(box->__children, 0, sizeof(ntg_object*) * 5);
 }
 
 ntg_border_box* ntg_border_box_new(ntg_entity_system* system)
@@ -80,154 +76,53 @@ void _ntg_border_box_init_(ntg_border_box* box)
     init_default(box);
 }
 
-ntg_object* ntg_border_box_get_north(ntg_border_box* box)
+const ntg_object* ntg_border_box_get(
+        const ntg_border_box* box,
+        ntg_border_box_pos pos)
 {
     assert(box != NULL);
 
-    return box->__north;
+    return box->__children[pos];
 }
 
-ntg_object* ntg_border_box_get_east(ntg_border_box* box)
+const ntg_object* ntg_border_box_get_(
+        const ntg_border_box* box,
+        ntg_border_box_pos pos)
 {
     assert(box != NULL);
 
-    return box->__east;
+    return box->__children[pos];
 }
 
-ntg_object* ntg_border_box_get_south(ntg_border_box* box)
+void ntg_border_box_set(ntg_border_box* box,
+        ntg_object* object,
+        ntg_border_box_pos position)
 {
     assert(box != NULL);
 
-    return box->__south;
-}
-
-ntg_object* ntg_border_box_get_west(ntg_border_box* box)
-{
     assert(box != NULL);
+    assert((object == NULL) || ntg_object_is_widget(object));
+    assert((ntg_object*)box != object);
 
-    return box->__west;
-}
+    ntg_object* old_object = box->__children[position];
 
-ntg_object* ntg_border_box_get_center(ntg_border_box* box)
-{
-    assert(box != NULL);
+    if(old_object == object) return;
 
-    return box->__center;
-}
-
-void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north)
-{
-    assert(box != NULL);
-
-    ntg_object* _box = (ntg_object*)box;
-
-    ntg_object* parent = ntg_object_get_parent_(north, NTG_OBJECT_PARENT_EXCL_DECOR);
-
-    assert(parent == NULL);
-
-    if(box->__north != NULL)
-        _ntg_object_rm_child((ntg_object*)box, box->__north);
-
-    if(north != NULL)
+    if(object != NULL)
     {
-        ntg_object* group_root = ntg_object_get_group_root_(north);
-
-        _ntg_object_add_child(_box, group_root);
+        ntg_object* object_parent = ntg_object_get_parent_(object, NTG_OBJECT_PARENT_EXCL_DECOR);
+        assert(object_parent == NULL);
     }
 
-    box->__north = north;
-}
+    if(old_object != NULL)
+        _ntg_object_rm_child((ntg_object*)box, ntg_object_get_group_root_(old_object));
 
-void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east)
-{
-    assert(box != NULL);
+    box->__children[position] = object;
 
-    ntg_object* _box = (ntg_object*)box;
-
-    ntg_object* parent = ntg_object_get_parent_(east, NTG_OBJECT_PARENT_EXCL_DECOR);
-
-    assert(parent == NULL);
-
-    if(box->__east != NULL)
-        _ntg_object_rm_child((ntg_object*)box, box->__east);
-
-    if(east != NULL)
+    if(object != NULL)
     {
-        ntg_object* group_root = ntg_object_get_group_root_(east);
-
-        _ntg_object_add_child(_box, group_root);
+        _ntg_object_add_child((ntg_object*)box, ntg_object_get_group_root_(object));
     }
-
-    box->__east = east;
-}
-
-void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south)
-{
-    assert(box != NULL);
-
-    ntg_object* _box = (ntg_object*)box;
-
-    ntg_object* parent = ntg_object_get_parent_(south, NTG_OBJECT_PARENT_EXCL_DECOR);
-
-    assert(parent == NULL);
-
-    if(box->__south != NULL)
-        _ntg_object_rm_child((ntg_object*)box, box->__south);
-
-    if(south)
-    {
-        ntg_object* group_root = ntg_object_get_group_root_(south);
-
-        _ntg_object_add_child(_box, group_root);
-    }
-
-    box->__south = south;
-}
-
-void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west)
-{
-    assert(box != NULL);
-
-    ntg_object* _box = (ntg_object*)box;
-
-    ntg_object* parent = ntg_object_get_parent_(west, NTG_OBJECT_PARENT_EXCL_DECOR);
-
-    assert(parent == NULL);
-
-    if(box->__west != NULL)
-        _ntg_object_rm_child((ntg_object*)box, box->__west);
-
-    if(west)
-    {
-        ntg_object* group_root = ntg_object_get_group_root_(west);
-
-        _ntg_object_add_child(_box, group_root);
-    }
-
-    box->__west = west;
-}
-
-void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center)
-{
-    assert(box != NULL);
-
-    ntg_object* _box = (ntg_object*)box;
-
-    ntg_object* parent = ntg_object_get_parent_(center, NTG_OBJECT_PARENT_EXCL_DECOR);
-
-    assert(parent == NULL);
-
-    if(box->__center != NULL)
-        _ntg_object_rm_child((ntg_object*)box, box->__center);
-
-    if(center)
-    {
-        ntg_object* group_root = ntg_object_get_group_root_(center);
-
-        _ntg_object_add_child(_box, group_root);
-    }
-
-    box->__center = center;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -75,6 +75,8 @@ void ntg_box_add_child(ntg_box* box, ntg_object* child)
 {
     assert(box != NULL);
     assert(child != NULL);
+    assert(ntg_object_is_widget(child));
+    assert((ntg_object*)box != child);
 
     ntg_object* group_root = ntg_object_get_group_root_(child);
     ntg_object* parent = ntg_object_get_parent_(child, NTG_OBJECT_PARENT_EXCL_DECOR);
@@ -88,6 +90,8 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 {
     assert(box != NULL);
     assert(child != NULL);
+    assert(ntg_object_is_widget(child));
+    assert((ntg_object*)box != child);
 
     ntg_object* group_root = ntg_object_get_group_root_(child);
     ntg_object* parent = ntg_object_get_parent_(child, NTG_OBJECT_PARENT_EXCL_DECOR);

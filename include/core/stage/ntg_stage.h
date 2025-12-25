@@ -12,6 +12,8 @@ typedef struct ntg_stage ntg_stage;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
 typedef struct ntg_loop ntg_loop;
+typedef struct ntg_loop_ctx ntg_loop_ctx;
+struct ntg_loop_event;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -22,6 +24,11 @@ typedef void (*ntg_stage_compose_fn)(
         ntg_stage* stage,
         struct ntg_xy size);
 
+typedef bool (*ntg_stage_process_event_fn)(
+        ntg_stage* stage,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx);
+
 struct ntg_stage
 {
     ntg_entity __base;
@@ -30,6 +37,8 @@ struct ntg_stage
     ntg_stage_drawing* _drawing;
 
     ntg_loop* __loop;
+
+    ntg_stage_process_event_fn __process_event_fn;
 
     void* data;
 };
@@ -44,6 +53,14 @@ const ntg_stage_drawing* ntg_stage_get_drawing(const ntg_stage* stage);
 
 ntg_scene* ntg_stage_get_scene(ntg_stage* stage);
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
+
+bool ntg_stage_feed_event(
+        ntg_stage* stage,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx);
+
+void ntg_stage_set_process_event_fn(ntg_stage* stage,
+        ntg_stage_process_event_fn process_event_fn);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

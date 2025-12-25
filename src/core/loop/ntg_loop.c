@@ -10,6 +10,18 @@
 #include "nt.h"
 #include "shared/ntg_log.h"
 
+static void process_event_fn_def(ntg_loop_ctx* ctx, struct nt_event event)
+{
+    struct ntg_loop_event loop_event = {
+        .event = event
+    };
+
+    if(event.type == NT_EVENT_KEY)
+    {
+        ntg_stage_feed_event(ctx->_stage, loop_event, ctx);
+    }
+}
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -22,8 +34,8 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     assert(data.renderer != NULL);
     assert(data.stage != NULL);
     if(data.framerate > 300) data.framerate = 300;
-    // if(data.process_event_fn == NULL)
-    //     data.process_event_fn = process_event_fn_def;
+    if(data.process_event_fn == NULL)
+        data.process_event_fn = process_event_fn_def;
 
     struct ntg_xy app_size;
     nt_get_term_size(&app_size.x, &app_size.y);
@@ -82,7 +94,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
             {
                 case NT_EVENT_KEY:
                     key_data.key = _nt_event.key_data;
-                    ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOPKEYPRS, &key_data);
+                    ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOP_KEY, &key_data);
                     break;
 
                 case NT_EVENT_RESIZE:
@@ -92,7 +104,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
                             _nt_event.resize_data.height);
                     ctx._app_size = app_size;
                     resize_data.new = app_size;
-                    ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOPRSZ, &resize_data);
+                    ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOP_RSZ, &resize_data);
                     break;
                 case NT_EVENT_TIMEOUT: assert(0);
             }

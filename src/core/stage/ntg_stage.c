@@ -5,6 +5,21 @@
 #include "core/scene/ntg_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 
+static bool process_event_fn_def(
+        ntg_stage* stage,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx)
+{
+    if(stage->_scene == NULL) return false;
+
+    if(event.event.type == NT_EVENT_KEY)
+    {
+        return ntg_scene_feed_event(stage->_scene, event, loop_ctx);
+    }
+
+    return false;
+}
+
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size)
 {
     assert(stage != NULL);
@@ -44,6 +59,25 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         _ntg_scene_set_stage(scene, stage);
 
     stage->_scene = scene;
+}
+
+bool ntg_stage_feed_event(
+        ntg_stage* stage,
+        struct ntg_loop_event event,
+        ntg_loop_ctx* loop_ctx)
+{
+    assert(stage != NULL);
+
+    return stage->__process_event_fn(stage, event, loop_ctx);
+}
+
+void ntg_stage_set_process_event_fn(ntg_stage* stage,
+        ntg_stage_process_event_fn process_event_fn)
+{
+    assert(stage != NULL);
+
+    stage->__process_event_fn = (process_event_fn != NULL) ?
+        process_event_fn : process_event_fn_def;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -24,7 +24,9 @@ struct ntg_scene_node_protect
 ntg_scene_graph* ntg_scene_graph_new();
 void ntg_scene_graph_destroy(ntg_scene_graph* scene_graph);
 
-void ntg_scene_graph_add(ntg_scene_graph* scene_graph, const ntg_object* object);
+struct ntg_scene_node_protect* ntg_scene_graph_add(
+        ntg_scene_graph* scene_graph,
+        const ntg_object* object);
 void ntg_scene_graph_remove(ntg_scene_graph* scene_graph, const ntg_object* object);
 struct ntg_scene_node_protect* ntg_scene_graph_get(ntg_scene_graph* scene_graph,
         const ntg_object* object);

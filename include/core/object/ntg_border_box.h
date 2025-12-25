@@ -16,11 +16,20 @@ struct ntg_border_box_opts
 
 struct ntg_border_box_opts ntg_border_box_opts_def();
 
+typedef enum ntg_border_box_pos
+{
+    NTG_BORDER_BOX_NORTH = 0,
+    NTG_BORDER_BOX_EAST,
+    NTG_BORDER_BOX_SOUTH,
+    NTG_BORDER_BOX_WEST,
+    NTG_BORDER_BOX_CENTER
+} ntg_border_box_pos;
+
 struct ntg_border_box
 {
     ntg_object __base;
-    ntg_object *__north, *__east, *__south,
-               *__west, *__center;
+
+    ntg_object* __children[5];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -31,17 +40,17 @@ ntg_border_box* ntg_border_box_new(ntg_entity_system* system);
 
 void _ntg_border_box_init_(ntg_border_box* box);
 
-ntg_object* ntg_border_box_get_north(ntg_border_box* box);
-ntg_object* ntg_border_box_get_east(ntg_border_box* box);
-ntg_object* ntg_border_box_get_south(ntg_border_box* box);
-ntg_object* ntg_border_box_get_west(ntg_border_box* box);
-ntg_object* ntg_border_box_get_center(ntg_border_box* box);
+const ntg_object* ntg_border_box_get(
+        const ntg_border_box* box,
+        ntg_border_box_pos pos);
 
-void ntg_border_box_set_north(ntg_border_box* box, ntg_object* north);
-void ntg_border_box_set_east(ntg_border_box* box, ntg_object* east);
-void ntg_border_box_set_south(ntg_border_box* box, ntg_object* south);
-void ntg_border_box_set_west(ntg_border_box* box, ntg_object* west);
-void ntg_border_box_set_center(ntg_border_box* box, ntg_object* center);
+const ntg_object* ntg_border_box_get_(
+        const ntg_border_box* box,
+        ntg_border_box_pos pos);
+
+void ntg_border_box_set(ntg_border_box* box,
+        ntg_object* object,
+        ntg_border_box_pos position);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

@@ -128,9 +128,9 @@ static void gui_fn(ntg_loop* loop, ntg_entity_system* es, void* data)
     ntg_box_add_child(south, (ntg_object*)south2);
     
     // Connect root
-    ntg_border_box_set_north(root, (ntg_object*)north);
-    ntg_border_box_set_center(root, (ntg_object*)center);
-    ntg_border_box_set_south(root, (ntg_object*)south);
+    ntg_border_box_set(root, (ntg_object*)north, NTG_BORDER_BOX_NORTH);
+    ntg_border_box_set(root, (ntg_object*)center, NTG_BORDER_BOX_CENTER);
+    ntg_border_box_set(root, (ntg_object*)south, NTG_BORDER_BOX_SOUTH);
 
     // Stage
     ntg_def_stage* stage = ntg_def_stage_new(es);
@@ -144,8 +144,6 @@ static void gui_fn(ntg_loop* loop, ntg_entity_system* es, void* data)
 
     // Connect root-scene-stage
     ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
-    // ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)center);
-    // ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
 
     ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
     ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)test_scene);
