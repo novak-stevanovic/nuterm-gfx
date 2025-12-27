@@ -43,14 +43,14 @@ struct ntg_scene_node
 struct ntg_scene
 {
     ntg_entity __base;
-    ntg_object* _root;
+
     ntg_stage* _stage;
 
+    ntg_object* _root;
     ntg_scene_graph* _graph;
+    ntg_object *_focused;
 
     ntg_scene_layout_fn __layout_fn;
-
-    ntg_object *_focused;
 
     ntg_scene_process_event_fn __process_event_fn;
 
@@ -71,11 +71,6 @@ struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
 
 /* ------------------------------------------------------ */
 
-/* 1) Scans the scene for new objects
- *
- * 2) It updates the focused object based on pending_focused field.
- *
- * 3) Calls the scene's `ntg_scene_layout_fn` to perform the layout. */
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size);
 
 /* ------------------------------------------------------ */

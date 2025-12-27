@@ -51,8 +51,6 @@ void _ntg_taskmaster_deinit_fn(ntg_entity* entity)
     taskmaster->__callbacks = NULL;
 
     free(taskmaster->data);
-
-    _ntg_entity_deinit_fn(entity);
 }
 
 struct ntg_thread_fn_data

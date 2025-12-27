@@ -110,6 +110,4 @@ void _ntg_stage_deinit_fn(ntg_entity* entity)
     stage->__compose_fn = NULL;
     stage->data = NULL;
     stage->__loop = NULL;
-
-    _ntg_entity_deinit_fn(entity);
 }

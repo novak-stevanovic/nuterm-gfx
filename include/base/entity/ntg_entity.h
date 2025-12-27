@@ -81,7 +81,4 @@ bool ntg_entity_is_observing(
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-/* Call last in overriden deinit_fn */
-void _ntg_entity_deinit_fn(ntg_entity* entity);
-
 #endif // _NTG_ENTITY_H_

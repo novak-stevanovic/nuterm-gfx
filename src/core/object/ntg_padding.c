@@ -20,18 +20,19 @@ struct ntg_padding_width ntg_padding_width(size_t north,
     };
 }
 
-void ntg_padding_set_width(ntg_padding* padding, struct ntg_padding_width width)
+struct ntg_padding_opts ntg_padding_opts_def()
 {
-    assert(padding != NULL);
-
-    padding->__width = width;
+    return (struct ntg_padding_opts) {
+        .mode = NTG_PADDING_ENABLE_ON_NATURAL,
+        .width = ntg_padding_width(1, 1, 1, 1)
+    };
 }
 
-struct ntg_padding_width ntg_padding_get_width(const ntg_padding* padding)
+void ntg_padding_set_opts(ntg_padding* padding, struct ntg_padding_opts opts)
 {
     assert(padding != NULL);
 
-    return padding->__width;
+    padding->_opts = opts;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +55,7 @@ void _ntg_padding_init_(ntg_padding* padding, ntg_object_draw_fn draw_fn)
 
     _ntg_object_init_((ntg_object*)padding, object_data);
 
-    padding->__width = ntg_padding_width(0, 0, 0, 0);
+    padding->_opts = ntg_padding_opts_def();
 }
 
 void _ntg_padding_deinit_fn(ntg_entity* entity)
@@ -62,7 +63,7 @@ void _ntg_padding_deinit_fn(ntg_entity* entity)
     assert(entity != NULL);
 
     ntg_padding* padding = (ntg_padding*)entity;
-    padding->__width = (struct ntg_padding_width) {0};
+    padding->_opts = ntg_padding_opts_def();
 
     _ntg_object_deinit_fn(entity);
 }
@@ -99,25 +100,23 @@ struct ntg_object_measure _ntg_padding_measure_fn(
 
     if(orientation == NTG_ORIENTATION_H)
     {
-        size_t h_size = padding->__width.west + padding->__width.east;
+        size_t h_size = padding->_opts.width.west + padding->_opts.width.east;
         return (struct ntg_object_measure) {
             .min_size = child_data.min_size + h_size,
             .natural_size = child_data.natural_size + h_size,
             .max_size = (child_data.max_size == NTG_SIZE_MAX) ?
-                NTG_SIZE_MAX :
-                child_data.max_size + h_size,
+                NTG_SIZE_MAX : child_data.max_size + h_size,
             .grow = 1
         };
     }
     else
     {
-        size_t v_size = padding->__width.north + padding->__width.south;
+        size_t v_size = padding->_opts.width.north + padding->_opts.width.south;
         return (struct ntg_object_measure) {
             .min_size = child_data.min_size + v_size,
             .natural_size = child_data.natural_size + v_size,
             .max_size = (child_data.max_size == NTG_SIZE_MAX) ?
-                NTG_SIZE_MAX :
-                child_data.max_size + v_size,
+                NTG_SIZE_MAX : child_data.max_size + v_size,
             .grow = 1
         };
     }
@@ -138,19 +137,26 @@ void _ntg_padding_constrain_fn(
             ctx.measures, child);
     struct ntg_padding_ldata* layout_data = (struct ntg_padding_ldata*)_layout_data;
 
-    size_t extra_space = _ssub_size(size, child_data.natural_size);
+    size_t extra_space;
+    if(padding->_opts.mode == NTG_PADDING_ENABLE_ON_NATURAL)
+        extra_space = _ssub_size(size, child_data.natural_size);
+    else if(padding->_opts.mode == NTG_PADDING_ENABLE_ON_MIN)
+        extra_space = _ssub_size(size, child_data.min_size);
+    else if(padding->_opts.mode == NTG_PADDING_ENABLE_ALWAYS)
+        extra_space = size;
+    else assert(0);
 
     size_t _sizes[2] = {0};
     size_t caps[2];
     if(orientation == NTG_ORIENTATION_H)
     {
-        caps[0] = padding->__width.west;
-        caps[1] = padding->__width.east;
+        caps[0] = padding->_opts.width.west;
+        caps[1] = padding->_opts.width.east;
     }
     else
     {
-        caps[0] = padding->__width.north;
-        caps[1] = padding->__width.south;
+        caps[0] = padding->_opts.width.north;
+        caps[1] = padding->_opts.width.south;
     }
 
     ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_space, 2, arena);

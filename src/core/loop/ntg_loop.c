@@ -117,7 +117,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         process_elapsed_ns = (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
 
         process_elapsed_ms = process_elapsed_ns / 1000000LL;
-        ntg_log_log("TIME TAKEN: %d", process_elapsed_ms);
+        // ntg_log_log("TIME TAKEN: %d", process_elapsed_ms);
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
 

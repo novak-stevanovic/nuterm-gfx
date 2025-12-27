@@ -26,26 +26,29 @@ void _ntg_deinit_();
 /* LAUNCH */
 /* -------------------------------------------------------------------------- */
 
-typedef void (*ntg_gui_fn)(ntg_loop* loop, ntg_entity_system* system, void* data);
+typedef void (*ntg_gui_fn)(ntg_entity_system* system, ntg_loop* loop, void* data);
 
 void ntg_launch(ntg_gui_fn gui_fn, void* data);
 
-/* Waits for NTG thread to finish.
- * This function returns the return value of `gui_fn` passed in ntg_launch(). */
-void* ntg_wait();
+void ntg_wait();
 
 /* -------------------------------------------------------------------------- */
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: nuterm-gfx: rework event propagation loop -> focused, add more events | **
-// TODO: ntg_padding: rethink measure_fn | *
-// TODO: ntg_object/ntg_scene: rework scan_scene() fn | *
-// TODO: nuterm: add signal event, maybe more event types - allow user to define and post events to loop? | **
+// TODO: ntg_loop: loop -> stage -> scene (-> focused) loop event dispatch                                    |
+// TODO: Should scene have reference to focused element or list of focused elements, or a "focus manager"?    | **
+// TODO: Should scene have built-in focused-click feature?                                                    |
+// --------------------------------------------------------------------------------------------------------------------------
+// TODO: nuterm: add signal event, maybe more event types - allow user to define and post events to loop? | *
+// TODO: ntg_scene: optimize ntg_def_scene layout fn | *
+// TODO: ntg_scene: implement multi-root system | **
 // TODO: ntg_taskmaster: full rework | **
 // TODO: ntg_list and/or ntg_table: implement | **
-// TODO: ntg_scene: implement multi-root, multifocused? system | **
-// TODO: ntg_scene: optimize ntg_def_scene layout fn | **
+// TODO: ntg_label: coloring/styling specific words, implement buttons/text fields | *
+
+// RELEASE
+// TODO: nuterm-gfx: add more events | *
 // TODO: nuterm-gfx: add convenience macros | *
 // TODO: nuterm-gfx: add proper error-handling, names of nullable parameters in fns | ***
 

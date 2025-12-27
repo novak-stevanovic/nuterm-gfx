@@ -40,7 +40,7 @@ void loop_process_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
     }
 }
 
-static void gui_fn(ntg_loop* loop, ntg_entity_system* es, void* data)
+static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 {
     // Root
     ntg_border_box* root = ntg_border_box_new(es);
@@ -67,13 +67,16 @@ static void gui_fn(ntg_loop* loop, ntg_entity_system* es, void* data)
     struct ntg_def_border_style north_border_style = ntg_def_border_style_monochrome(
             nt_color_new_rgb(nt_rgb_new(255, 255, 255)));
     ntg_def_border_set_style(north_border, north_border_style);
-    ntg_padding_set_width((ntg_padding*)north_border, ntg_padding_width(1, 1, 1, 1));
+    struct ntg_padding_opts north_border_opts = {
+        .width = ntg_padding_width(2, 2, 2, 2),
+        .mode = NTG_PADDING_ENABLE_ALWAYS
+    };
+    ntg_padding_set_opts((ntg_padding*)north_border, north_border_opts);
     ntg_object_set_border((ntg_object*)north, (ntg_padding*)north_border);
 
     // North padding
     ntg_def_padding* north_padding = ntg_def_padding_new(es);
     _ntg_def_padding_init_(north_padding);
-    ntg_padding_set_width((ntg_padding*)north_padding, ntg_padding_width(2, 1, 1, 1));
     // ntg_object_set_padding((ntg_object*)north, (ntg_padding*)north_padding);
 
     // Center

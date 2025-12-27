@@ -94,6 +94,8 @@ void _ntg_def_renderer_render_fn(
             optimized_render(renderer, stage_drawing, size);
     }
 
+    renderer->__old_size = size;
+
     nt_buffer_disable(NT_BUFF_FLUSH);
 }
 
@@ -151,7 +153,7 @@ static void optimized_render(ntg_def_renderer* renderer,
         }
     }
 
-    ntg_log_log("NTG_DEF_RENDERER | optimized_render | counter - %ld", counter);
+    // ntg_log_log("NTG_DEF_RENDERER | optimized_render | counter - %ld", counter);
 }
 
 static void full_render(ntg_def_renderer* renderer,
@@ -175,5 +177,5 @@ static void full_render(ntg_def_renderer* renderer,
             counter++;
         }
     }
-    ntg_log_log("NTG_DEF_RENDERER | full_render | counter - %ld", counter);
+    // ntg_log_log("NTG_DEF_RENDERER | full_render | counter - %ld", counter);
 }

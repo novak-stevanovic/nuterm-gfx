@@ -728,9 +728,8 @@ void _ntg_object_deinit_fn(ntg_entity* entity)
 
     ntg_object* object = (ntg_object*)entity;
     ntg_object_vec_destroy(object->__children);
-    __init_default_values(object);
 
-    _ntg_entity_deinit_fn(entity);
+    __init_default_values(object);
 }
 
 void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene)
@@ -740,13 +739,6 @@ void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene)
     if(object->__scene == scene) return;
 
     object->__scene = scene;
-}
-
-static void set_scene_fn(ntg_object* object, void* _scene)
-{
-    ntg_scene* scene = (ntg_scene*)_scene;
-
-    _ntg_object_set_scene(object, scene);
 }
 
 void _ntg_object_add_child(ntg_object* object, ntg_object* child)

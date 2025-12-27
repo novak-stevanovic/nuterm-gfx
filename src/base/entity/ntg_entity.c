@@ -12,8 +12,7 @@ ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data)
     memset(entity, 0, init_data.type->_size);
 
     entity->_type = init_data.type;
-    entity->__deinit_fn = (init_data.deinit_fn != NULL) ?
-        init_data.deinit_fn : _ntg_entity_deinit_fn;
+    entity->__deinit_fn = init_data.deinit_fn;
     entity->__system = init_data.system;
 
     ntg_entity_system_register(init_data.system, entity);
@@ -25,7 +24,12 @@ void ntg_entity_destroy(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    entity->__deinit_fn(entity);
+    if(entity->__deinit_fn != NULL)
+        entity->__deinit_fn(entity);
+
+    ntg_entity_system_unregister(entity->__system, entity);
+
+    memset(entity, 0, entity->_type->_size);
     
     free(entity);
 }
@@ -63,17 +67,4 @@ bool ntg_entity_is_observing(
 {
     return ntg_entity_system_has_observe(observer->__system,
             observer, observed, handler_fn);
-}
-
-/* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED */
-/* -------------------------------------------------------------------------- */
-
-void _ntg_entity_deinit_fn(ntg_entity* entity)
-{
-    assert(entity != NULL);
-    
-    ntg_entity_system_unregister(entity->__system, entity);
-
-    (*entity) = (ntg_entity) {0};
 }

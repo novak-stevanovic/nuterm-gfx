@@ -18,20 +18,33 @@ struct ntg_padding_width ntg_padding_width(
         size_t north, size_t east,
         size_t south, size_t west);
 
+typedef enum ntg_padding_enable_mode
+{
+    NTG_PADDING_ENABLE_ON_NATURAL,
+    NTG_PADDING_ENABLE_ON_MIN,
+    NTG_PADDING_ENABLE_ALWAYS
+} ntg_padding_enable_mode;
+
+struct ntg_padding_opts
+{
+    ntg_padding_enable_mode mode;
+    struct ntg_padding_width width;
+};
+
+struct ntg_padding_opts ntg_padding_opts_def();
+
 struct ntg_padding
 {
     ntg_object __base;
 
-    struct ntg_padding_width __width;
-    ntg_cell __cell;
+    struct ntg_padding_opts _opts;
 };
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_padding_set_width(ntg_padding* padding, struct ntg_padding_width width);
-struct ntg_padding_width ntg_padding_get_width(const ntg_padding* padding);
+void ntg_padding_set_opts(ntg_padding* padding, struct ntg_padding_opts opts);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

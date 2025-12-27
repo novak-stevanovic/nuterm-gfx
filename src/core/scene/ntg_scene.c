@@ -136,9 +136,6 @@ void _ntg_scene_init_(ntg_scene* scene, ntg_scene_layout_fn layout_fn)
 
     __init_default_values(scene);
 
-    scene->_root = NULL;
-    scene->_focused = NULL;
-
     scene->__layout_fn = layout_fn;
 
     scene->_graph = ntg_scene_graph_new();
@@ -146,12 +143,16 @@ void _ntg_scene_init_(ntg_scene* scene, ntg_scene_layout_fn layout_fn)
 
 static void __init_default_values(ntg_scene* scene)
 {
+    scene->_stage = NULL;
+
     scene->_root = NULL;
     scene->_graph = NULL;
+    scene->_focused = NULL;
     
     scene->__layout_fn = NULL;
 
-    scene->_focused = NULL;
+    scene->__process_event_fn = NULL;
+
     scene->data = NULL;
 }
 
@@ -162,8 +163,6 @@ void _ntg_scene_deinit_fn(ntg_entity* entity)
     ntg_scene* scene = (ntg_scene*)entity;
     ntg_scene_graph_destroy(scene->_graph);
     __init_default_values(scene);
-
-    _ntg_entity_deinit_fn(entity);
 }
 
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
