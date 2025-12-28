@@ -6,6 +6,7 @@
 #include "core/loop/ntg_loop.h"
 #include "core/object/ntg_object.h"
 #include "core/object/shared/ntg_object_vec.h"
+#include "core/scene/focuser/ntg_focuser.h"
 #include "core/stage/ntg_stage.h"
 
 static void on_object_register(ntg_scene* scene, ntg_object* object);
@@ -14,36 +15,16 @@ static void on_object_register_fn(ntg_object* object, void* _scene);
 static void on_object_unregister_fn(ntg_object* object, void* _scene);
 static void object_event_handler_fn(ntg_entity* scene, struct ntg_event event);
 
-static bool process_event_fn_def(
-        ntg_scene* scene,
-        struct ntg_loop_event event,
-        ntg_loop_ctx* loop_ctx)
-{
-    if(scene->_focused == NULL) return false;
-
-    if(event.event.type == NT_EVENT_KEY)
-        return ntg_object_feed_event(scene->_focused, event, loop_ctx);
-
-    else return false;
-}
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_focus(ntg_scene* scene, ntg_object* object)
-{
-    assert(scene != NULL);
-    assert(ntg_object_get_scene(object) == scene);
-
-    scene->_focused = object;
-}
-
-ntg_object* ntg_scene_get_root(ntg_scene* scene)
+void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
 {
     assert(scene != NULL);
 
-    return scene->_root;
+    if(scene->_root != NULL)
+        scene->__layout_fn(scene, size);
 }
 
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
@@ -72,16 +53,19 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
     scene->_root = root;
 }
 
-struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
+struct ntg_scene_node ntg_scene_get_node(
+        const ntg_scene* scene,
         const ntg_object* object)
 {
     assert(scene != NULL);
     assert(object != NULL);
 
     struct ntg_scene_node_protect* _node = ntg_scene_graph_get(scene->_graph, object);
-    assert(_node != NULL);
+
+    if(_node == NULL) return (struct ntg_scene_node) {0};
 
     return (struct ntg_scene_node) {
+        .exists = true,
         .min_size = _node->min_size,
         .natural_size = _node->natural_size,
         .max_size = _node->max_size,
@@ -92,18 +76,6 @@ struct ntg_scene_node ntg_scene_get_node(const ntg_scene* scene,
     };
 }
 
-/* ------------------------------------------------------ */
-
-void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
-{
-    assert(scene != NULL);
-
-    if(scene->_root != NULL)
-        scene->__layout_fn(scene, size);
-}
-
-/* ------------------------------------------------------ */
-
 bool ntg_scene_feed_event(
         ntg_scene* scene,
         struct ntg_loop_event event,
@@ -111,16 +83,39 @@ bool ntg_scene_feed_event(
 {
     assert(scene != NULL);
 
-    return scene->__process_event_fn(scene, event, loop_ctx);
+    bool consumed = false;
+    if(scene->__event_mode == NTG_SCENE_EVENT_PROCESS_FIRST)
+    {
+        if(scene->__event_fn != NULL)
+            consumed = scene->__event_fn(scene, event, loop_ctx);
+
+        if(!consumed && scene->_focuser != NULL)
+            ntg_focuser_dispatch_event(scene->_focuser, event, loop_ctx);
+    }
+    else // scene->__event_mode = NTG_SCENE_EVENT_DISPATCH_FIRST
+    {
+        if(scene->_focuser != NULL)
+            ntg_focuser_dispatch_event(scene->_focuser, event, loop_ctx);
+
+        if(!consumed && (scene->__event_fn != NULL))
+            consumed = scene->__event_fn(scene, event, loop_ctx);
+    }
+
+    return consumed;
 }
 
-void ntg_scene_set_process_event_fn(ntg_scene* scene,
-        ntg_scene_process_event_fn process_event_fn)
+void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn)
 {
     assert(scene != NULL);
 
-    scene->__process_event_fn = (process_event_fn != NULL) ?
-        process_event_fn : process_event_fn_def;
+    scene->__event_fn = fn;
+}
+
+void ntg_scene_set_event_mode(ntg_scene* scene, ntg_scene_event_mode mode)
+{
+    assert(scene != NULL);
+
+    scene->__event_mode = mode;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -129,13 +124,16 @@ void ntg_scene_set_process_event_fn(ntg_scene* scene,
 
 static void __init_default_values(ntg_scene* scene);
 
-void _ntg_scene_init_(ntg_scene* scene, ntg_scene_layout_fn layout_fn)
+void _ntg_scene_init_(ntg_scene* scene,
+        ntg_focuser* focuser,
+        ntg_scene_layout_fn layout_fn)
 {
     assert(scene != NULL);
     assert(layout_fn != NULL);
 
     __init_default_values(scene);
 
+    scene->_focuser = focuser;
     scene->__layout_fn = layout_fn;
 
     scene->_graph = ntg_scene_graph_new();
@@ -147,11 +145,12 @@ static void __init_default_values(ntg_scene* scene)
 
     scene->_root = NULL;
     scene->_graph = NULL;
-    scene->_focused = NULL;
-    
     scene->__layout_fn = NULL;
 
-    scene->__process_event_fn = NULL;
+    scene->_focuser = NULL;
+
+    scene->__event_fn = NULL;
+    scene->__event_mode = NTG_SCENE_EVENT_DISPATCH_FIRST;
 
     scene->data = NULL;
 }

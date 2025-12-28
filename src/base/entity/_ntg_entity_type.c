@@ -16,6 +16,8 @@
 #include "core/scene/ntg_scene.h"
 #include "core/stage/ntg_def_stage.h"
 #include "core/stage/ntg_stage.h"
+#include "core/scene/focuser/ntg_focuser.h"
+#include "core/scene/focuser/ntg_def_focuser.h"
 
 bool ntg_entity_instanceof(const ntg_entity_type* type, const ntg_entity_type* ancestor)
 {
@@ -40,7 +42,7 @@ bool ntg_entity_is(const ntg_entity_type* type, const ntg_entity_type* ancestor)
 /* Base                                                                        */
 /* -------------------------------------------------------------------------- */
 
-const ntg_entity_type NTG_ENTITY_DEFAULT = {
+const ntg_entity_type NTG_ENTITY = {
     .__parent = NULL,
     ._size = sizeof(ntg_entity)
 };
@@ -50,7 +52,7 @@ const ntg_entity_type NTG_ENTITY_DEFAULT = {
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_OBJECT = {
-    .__parent = &NTG_ENTITY_DEFAULT,
+    .__parent = &NTG_ENTITY,
     ._size = sizeof(ntg_object)
 };
 
@@ -114,7 +116,7 @@ const ntg_entity_type NTG_ENTITY_DEF_BORDER = {
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_SCENE = {
-    .__parent = &NTG_ENTITY_DEFAULT,
+    .__parent = &NTG_ENTITY,
     ._size = sizeof(ntg_scene)
 };
 
@@ -124,11 +126,25 @@ const ntg_entity_type NTG_ENTITY_DEF_SCENE = {
 };
 
 /* -------------------------------------------------------------------------- */
+/* NTG_FOCUSER                                                                */
+/* -------------------------------------------------------------------------- */
+
+const ntg_entity_type NTG_ENTITY_FOCUSER = {
+    .__parent = &NTG_ENTITY,
+    ._size = sizeof(ntg_focuser)
+};
+
+const ntg_entity_type NTG_ENTITY_DEF_FOCUSER = {
+    .__parent = &NTG_ENTITY_FOCUSER,
+    ._size = sizeof(ntg_def_focuser)
+};
+
+/* -------------------------------------------------------------------------- */
 /* NTG_STAGE                                                                  */
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_STAGE = {
-    .__parent = &NTG_ENTITY_DEFAULT,
+    .__parent = &NTG_ENTITY,
     ._size = sizeof(ntg_stage)
 };
 
@@ -142,7 +158,7 @@ const ntg_entity_type NTG_ENTITY_DEF_STAGE = {
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_RENDERER = {
-    .__parent = &NTG_ENTITY_DEFAULT,
+    .__parent = &NTG_ENTITY,
     ._size = sizeof(ntg_renderer)
 };
 
@@ -156,7 +172,7 @@ const ntg_entity_type NTG_ENTITY_DEF_RENDERER = {
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_LOOP = {
-    .__parent = &NTG_ENTITY_DEFAULT,
+    .__parent = &NTG_ENTITY,
     ._size = sizeof(ntg_entity)
 };
 
@@ -165,6 +181,6 @@ const ntg_entity_type NTG_ENTITY_LOOP = {
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_TASKMASTER = {
-    .__parent = &NTG_ENTITY_DEFAULT,
+    .__parent = &NTG_ENTITY,
     ._size = sizeof(ntg_taskmaster)
 };

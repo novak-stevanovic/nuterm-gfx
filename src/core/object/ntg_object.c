@@ -1,29 +1,14 @@
-#include "core/loop/ntg_loop.h"
-#include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_measure.h"
-#include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_object_xy_map.h"
 #include <stdlib.h>
 #include <assert.h>
 
 #include "core/object/ntg_object.h"
 #include "core/object/shared/ntg_object_vec.h"
-
-#include "nt_event.h"
+#include "core/loop/ntg_loop.h"
+#include "core/object/shared/ntg_object_drawing.h"
+#include "core/object/shared/ntg_object_measure.h"
+#include "core/object/shared/ntg_object_size_map.h"
+#include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
-
-struct ntg_object_container
-{
-    ntg_object_vec vec;
-};
-
-bool process_event_fn_def(
-        ntg_object* object,
-        struct ntg_loop_event event,
-        ntg_loop_ctx* loop_ctx)
-{
-    return false;
-}
 
 /* ---------------------------------------------------------------- */
 /* IDENTITY */
@@ -664,20 +649,23 @@ void ntg_object_draw(
 bool ntg_object_feed_event(
         ntg_object* object,
         struct ntg_loop_event event,
-        ntg_loop_ctx* loop_ctx)
+        ntg_loop_ctx* ctx)
 {
     assert(object != NULL);
 
-    return object->__process_event_fn(object, event, loop_ctx);
+    if(object->__event_fn != NULL)
+        return object->__event_fn(object, event, ctx);
+    else
+        return false;
 }
 
-void ntg_object_set_process_event_fn(ntg_object* object,
-        ntg_object_process_event_fn process_event_fn)
+void ntg_object_set_event_fn(
+        ntg_object* object,
+        ntg_object_event_fn fn)
 {
     assert(object != NULL);
 
-    object->__process_event_fn = (process_event_fn != NULL) ?
-        process_event_fn : process_event_fn_def;
+    object->__event_fn = fn;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -701,7 +689,7 @@ void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops object_d
     object->__constrain_fn = object_data.constrain_fn;
     object->__arrange_fn = object_data.arrange_fn;
     object->__draw_fn = object_data.draw_fn;
-    object->__process_event_fn = process_event_fn_def;
+    object->__event_fn = NULL;
 }
 
 static void __init_default_values(ntg_object* object)
@@ -748,6 +736,7 @@ void _ntg_object_add_child(ntg_object* object, ntg_object* child)
 
     assert(child->__parent == NULL);
 
+    // ntg_scene performs this
     // ntg_object_tree_perform(child, NTG_OBJECT_PERFORM_TOP_DOWN,
     //         set_scene_fn, object->__scene);
 
@@ -770,6 +759,7 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
 
     if(child->__parent != object) return;
 
+    // ntg_scene performs this
     // ntg_object_tree_perform(child, NTG_OBJECT_PERFORM_TOP_DOWN,
     //         set_scene_fn, NULL);
 

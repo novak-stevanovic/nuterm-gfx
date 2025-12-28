@@ -37,10 +37,10 @@ struct ntg_loop_event;
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-typedef bool (*ntg_object_process_event_fn)(
+typedef bool (*ntg_object_event_fn)(
         ntg_object* object,
         struct ntg_loop_event event,
-        ntg_loop_ctx* loop_ctx);
+        ntg_loop_ctx* ctx);
 
 /* Dynamically allocates and initializes an object that will be used in the
  * layout process for `object`. */
@@ -172,7 +172,7 @@ struct ntg_object
 
     struct
     {
-        ntg_object_process_event_fn __process_event_fn;
+        ntg_object_event_fn __event_fn;
     };
 
     void* data;
@@ -313,8 +313,9 @@ bool ntg_object_feed_event(
         struct ntg_loop_event event,
         ntg_loop_ctx* loop_ctx);
 
-void ntg_object_set_process_event_fn(ntg_object* object,
-        ntg_object_process_event_fn process_event_fn);
+void ntg_object_set_event_fn(
+        ntg_object* object,
+        ntg_object_event_fn fn);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

@@ -19,7 +19,7 @@ ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system)
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_DEF_RENDERER,
         .deinit_fn = _ntg_def_renderer_deinit_fn,
-        .system = system,
+        .system = system
     };
 
     ntg_def_renderer* new = (ntg_def_renderer*)ntg_entity_create(entity_data);

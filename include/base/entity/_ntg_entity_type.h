@@ -1,6 +1,8 @@
 #ifndef __NTG_ENTITY_H__
 #define __NTG_ENTITY_H__
 
+/* Included in ntg_entity.h */
+
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -15,7 +17,7 @@ struct ntg_entity_type
 bool ntg_entity_instanceof(const ntg_entity_type* type, const ntg_entity_type* ancestor);
 bool ntg_entity_is(const ntg_entity_type* type, const ntg_entity_type* ancestor);
 
-extern const ntg_entity_type NTG_ENTITY_DEFAULT;
+extern const ntg_entity_type NTG_ENTITY;
 
 /* NTG_OBJECT */
 
@@ -29,6 +31,10 @@ extern const ntg_entity_type NTG_ENTITY_OBJECT, NTG_ENTITY_WIDGET,
 /* NTG_SCENE */
 
 extern const ntg_entity_type NTG_ENTITY_SCENE, NTG_ENTITY_DEF_SCENE;
+
+/* NTG_FOCUSER */
+
+extern const ntg_entity_type NTG_ENTITY_FOCUSER, NTG_ENTITY_DEF_FOCUSER;
 
 /* NTG_STAGE */
 

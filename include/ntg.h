@@ -36,9 +36,8 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: ntg_loop: loop -> stage -> scene (-> focused) loop event dispatch                                    |
-// TODO: Should scene have reference to focused element or list of focused elements, or a "focus manager"?    | **
-// TODO: Should scene have built-in focused-click feature?                                                    |
+// TODO: ntg_container: remove need for ntg_object_get_group_root() | *
+
 // --------------------------------------------------------------------------------------------------------------------------
 // TODO: nuterm: add signal event, maybe more event types - allow user to define and post events to loop? | *
 // TODO: ntg_scene: optimize ntg_def_scene layout fn | *

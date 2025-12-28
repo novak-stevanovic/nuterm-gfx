@@ -6,6 +6,7 @@
 
 #include "core/object/ntg_def_border.h"
 #include "core/object/ntg_def_padding.h"
+#include "core/scene/focuser/ntg_def_focuser.h"
 #include "nt_gfx.h"
 #include "ntg.h"
 #include "core/object/ntg_border_box.h"
@@ -16,6 +17,20 @@
 #include "shared/sarena.h"
 
 #define COUNT 100
+
+bool north_event_fn(ntg_object* object, struct ntg_loop_event event, ntg_loop_ctx* ctx)
+{
+    if(event.event.type == NT_EVENT_KEY)
+    {
+        if(nt_key_event_utf32_check(event.event.key_data, 'Q', false))
+        {
+            ntg_loop_ctx_break(ctx);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 void* __task_fn(void* data)
 {
@@ -29,15 +44,18 @@ void __callback_fn(void* data, void* task_result)
     ntg_log_log("%p", task_result);
 }
 
-void loop_process_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
+bool loop_event_fn(ntg_loop_ctx* ctx, struct ntg_loop_event event)
 {
-    if(event.type == NT_EVENT_KEY)
+    if(event.event.type == NT_EVENT_KEY)
     {
-        if(nt_key_event_utf32_check(event.key_data, 'q', false))
+        if(nt_key_event_utf32_check(event.event.key_data, 'q', false))
         {
             ntg_loop_ctx_break(ctx);
+            return true;
         }
     }
+
+    return false;
 }
 
 static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
@@ -60,6 +78,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     north_opts.gfx = north_gfx;
     north_opts.palignment = NTG_TEXT_ALIGNMENT_1;
     ntg_label_set_opts(north, north_opts);
+    ntg_object_set_event_fn((ntg_object*)north, north_event_fn);
 
     // North border
     ntg_def_border* north_border = ntg_def_border_new(es);
@@ -140,16 +159,15 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     _ntg_def_stage_init_(stage, loop);
 
     // Scene
+    ntg_def_focuser* focuser = ntg_def_focuser_new(es);
     ntg_def_scene* scene = ntg_def_scene_new(es);
-    _ntg_def_scene_init_(scene);
-    ntg_def_scene* test_scene = ntg_def_scene_new(es);
-    _ntg_def_scene_init_(test_scene);
+    _ntg_def_scene_init_(scene, (ntg_focuser*)focuser);
+    _ntg_def_focuser_init_(focuser, (ntg_scene*)scene);
 
     // Connect root-scene-stage
     ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
 
     ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
-    ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)test_scene);
     ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
 
     // Loop, renderer, taskmaster
@@ -160,7 +178,8 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     // Run
     struct ntg_loop_run_data loop_data = {
-        .process_event_fn = loop_process_event_fn,
+        .event_fn = loop_event_fn,
+        .event_mode = NTG_LOOP_EVENT_DISPATCH_FIRST,
         .renderer = (ntg_renderer*)renderer,
         .taskmaster = taskmaster,
         .framerate = 30,
@@ -168,6 +187,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
         .ctx_data = NULL
     };
 
+    ntg_def_focuser_focus(focuser, (ntg_object*)north);
     ntg_loop_run(loop, loop_data);
 }
 

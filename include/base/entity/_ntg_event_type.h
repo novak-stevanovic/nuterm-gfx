@@ -1,6 +1,8 @@
 #ifndef __NTG_EVENT_H__
 #define __NTG_EVENT_H__
 
+/* Included in ntg_entity.h */
+
 #include "base/ntg_cell.h"
 #include "nt_event.h"
 #include "shared/ntg_xy.h"
@@ -8,7 +10,7 @@
 typedef struct ntg_object ntg_object;
 
 #define NTG_EVENT_LOOP_RSZ 1
-struct ntg_event_loop_resize_data
+struct ntg_event_loop_rsz_data
 {
     struct ntg_xy old, new;
 };

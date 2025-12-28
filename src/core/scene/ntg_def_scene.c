@@ -28,11 +28,11 @@ ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_scene_init_(ntg_def_scene* scene)
+void _ntg_def_scene_init_(ntg_def_scene* scene, ntg_focuser* focuser)
 {
     assert(scene != NULL);
 
-    _ntg_scene_init_((ntg_scene*)scene, _ntg_def_scene_layout_fn);
+    _ntg_scene_init_((ntg_scene*)scene, focuser, _ntg_def_scene_layout_fn);
 
     scene->__layout_arena = sarena_create(30000);
     assert(scene->__layout_arena != NULL);
@@ -306,8 +306,6 @@ static void measure2_fn(ntg_object* object, void* _layout_data)
     ntg_scene_graph* graph = _scene->_graph;
 
     struct ntg_scene_node_protect* node = ntg_scene_graph_get(graph, object);
-    // const ntg_object_vec* children = ntg_object_get_children(object);
-    // size_t child_count = children->_count;
 
     ntg_object_measure_map* measures = get_object_measure_map(object,
             scene, NTG_ORIENTATION_V);
@@ -427,37 +425,3 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     ntg_object_draw(object, node->size, ctx, &out,
             node->object_layout_data, scene->__layout_arena);
 }
-
-// static bool __process_key_fn(ntg_scene* _scene, struct nt_key_event key,
-//         ntg_loop_ctx* loop_ctx)
-// {
-//     assert(_scene != NULL);
-//
-//     ntg_def_scene* scene = (ntg_def_scene*)_scene;
-//
-//     ntg_object* focused = _scene->_focused;
-//
-//     struct ntg_process_key_ctx ctx = {
-//         .scene = _scene,
-//         .loop_ctx = loop_ctx
-//     };
-//
-//     bool consumed = false;
-//     if(scene->__key_mode == NTG_DEF_SCENE_KEY_MODE_FOCUSED_FIRST)
-//     {
-//         consumed = scene->__process_key_fn(scene, key, loop_ctx);
-//
-//         if((!consumed) && (focused != NULL))
-//             consumed = focused->_process_key_fn_(focused, key, ctx);
-//     }
-//     else
-//     {
-//         if(focused != NULL)
-//             consumed = focused->_process_key_fn_(focused, key, ctx);
-//
-//         if(!consumed)
-//             consumed = scene->__process_key_fn(scene, key, loop_ctx);
-//     }
-//
-//     return consumed;
-// }

@@ -33,13 +33,24 @@ struct ntg_loop_event
     struct nt_event event;
 };
 
+typedef bool (*ntg_loop_event_fn)(
+        ntg_loop_ctx* ctx,
+        struct ntg_loop_event event);
+
+typedef enum ntg_loop_event_mode
+{
+    NTG_LOOP_EVENT_PROCESS_FIRST,
+    NTG_LOOP_EVENT_DISPATCH_FIRST
+} ntg_loop_event_mode;
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_loop_run_data
 {
-    void (*process_event_fn)(ntg_loop_ctx* ctx, struct nt_event event);
+    ntg_loop_event_fn event_fn;
+    ntg_loop_event_mode event_mode;
     ntg_stage* stage;
     ntg_renderer* renderer; // non-NULL
     ntg_taskmaster* taskmaster; // non-NULL

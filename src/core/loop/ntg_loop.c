@@ -10,18 +10,6 @@
 #include "nt.h"
 #include "shared/ntg_log.h"
 
-static void process_event_fn_def(ntg_loop_ctx* ctx, struct nt_event event)
-{
-    struct ntg_loop_event loop_event = {
-        .event = event
-    };
-
-    if(event.type == NT_EVENT_KEY)
-    {
-        ntg_stage_feed_event(ctx->_stage, loop_event, ctx);
-    }
-}
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -34,8 +22,6 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     assert(data.renderer != NULL);
     assert(data.stage != NULL);
     if(data.framerate > 300) data.framerate = 300;
-    if(data.process_event_fn == NULL)
-        data.process_event_fn = process_event_fn_def;
 
     struct ntg_xy app_size;
     nt_get_term_size(&app_size.x, &app_size.y);
@@ -55,10 +41,10 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     uint64_t process_elapsed_ms;
     const ntg_stage_drawing* drawing;
 
-    struct nt_event _nt_event;
+    struct nt_event event;
 
     /* loop resize */
-    struct ntg_event_loop_resize_data resize_data;
+    struct ntg_event_loop_rsz_data resize_data;
 
     /* loop key */
     struct ntg_event_loop_key_data key_data;
@@ -67,13 +53,32 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     {
         if(!ctx.__loop) break;
 
-        _nt_event = nt_wait_for_event(timeout, &_status);
+        event = nt_wait_for_event(timeout, &_status);
         clock_gettime(CLOCK_MONOTONIC, &ts_start);
-        // if(_status == NT_ERR_UNEXPECTED) break;
 
-        data.process_event_fn(&ctx, _nt_event);
+        struct ntg_loop_event loop_event = {
+            .event = event
+        };
 
-        if(_nt_event.type == NT_EVENT_TIMEOUT)
+        bool consumed = false;
+        if(data.event_mode == NTG_LOOP_EVENT_PROCESS_FIRST)
+        {
+            if(data.event_fn != NULL)
+                consumed = data.event_fn(&ctx, loop_event);
+
+            if((!consumed) && (data.stage != NULL))
+                ntg_stage_feed_event(data.stage, loop_event, &ctx);
+        }
+        else // data.event_mode = NTG_LOOP_EVENT_DISPATCH_FIRST
+        {
+            if(data.stage != NULL)
+                consumed = ntg_stage_feed_event(data.stage, loop_event, &ctx);
+
+            if((!consumed) && (data.event_fn != NULL))
+                data.event_fn(&ctx, loop_event);
+        }
+
+        if(event.type == NT_EVENT_TIMEOUT)
         {
             timeout = 1000 / data.framerate;
 
@@ -89,19 +94,19 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         }
         else
         {
-            timeout -= _nt_event.elapsed;
-            switch(_nt_event.type)
+            timeout -= event.elapsed;
+            switch(event.type)
             {
                 case NT_EVENT_KEY:
-                    key_data.key = _nt_event.key_data;
+                    key_data.key = event.key_data;
                     ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOP_KEY, &key_data);
                     break;
 
                 case NT_EVENT_RESIZE:
                     resize_data.old = app_size;
                     app_size = ntg_xy(
-                            _nt_event.resize_data.width,
-                            _nt_event.resize_data.height);
+                            event.resize_data.width,
+                            event.resize_data.height);
                     ctx._app_size = app_size;
                     resize_data.new = app_size;
                     ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOP_RSZ, &resize_data);

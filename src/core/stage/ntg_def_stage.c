@@ -61,9 +61,9 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size)
 {
     assert(_stage != NULL);
 
-    if((_stage->_scene != NULL) && (ntg_scene_get_root(_stage->_scene) != NULL))
+    if((_stage->_scene != NULL) && (_stage->_scene->_root != NULL))
     {
-        ntg_object* root = ntg_scene_get_root(ntg_stage_get_scene(_stage));
+        ntg_object* root = _stage->_scene->_root;
         if(root != NULL)
         {
             ntg_object_tree_perform(root,
