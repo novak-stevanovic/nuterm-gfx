@@ -1,6 +1,8 @@
 #!/bin/bash
 
-rm -f include/shared/_uconv.h
+cd ..
+
+rm -f include/shared/uconv.h
 rm -f include/shared/sarena.h
 
 rm -rf include/shared/temp
@@ -13,7 +15,7 @@ git clone https://github.com/novak-stevanovic/sarena
 
 cd ..
 
-cp temp/uconv/include/uconv.h _uconv.h
+cp temp/uconv/include/uconv.h uconv.h
 cp temp/sarena/include/sarena.h sarena.h
 
 rm -rf temp
