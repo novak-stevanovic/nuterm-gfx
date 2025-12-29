@@ -11,229 +11,129 @@
 #define NTG_CELL_EMPTY ' '
 
 /* -------------------------------------------------------------------------- */
-/* NTG_RCELL */
+/* CELL */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_rcell
+struct ntg_cell
 {
-    uint32_t codepoint; /* UTF32 codepoint */
+    uint32_t codepoint;
     struct nt_gfx gfx;
 };
 
-static inline struct ntg_rcell ntg_rcell_new(uint32_t codepoint, struct nt_gfx gfx)
+static inline struct ntg_cell ntg_cell_default()
 {
-    return (struct ntg_rcell) { 
-        .codepoint = codepoint,
-        .gfx = gfx
-    };
-}
-
-static inline struct ntg_rcell ntg_rcell_default()
-{
-    return (struct ntg_rcell) {
+    return (struct ntg_cell) {
         .codepoint = NTG_CELL_EMPTY,
         .gfx = NT_GFX_DEFAULT
     };
 }
 
-static inline bool ntg_rcell_are_equal(struct ntg_rcell cell1, struct ntg_rcell cell2)
+static inline bool ntg_cell_are_equal(struct ntg_cell c1, struct ntg_cell c2)
 {
-    return (memcmp(&cell1, &cell2, sizeof(struct ntg_rcell)) == 0);
+    return (memcmp(&c1, &c2, sizeof(struct ntg_cell)) == 0);
 }
 
 /* -------------------------------------------------------------------------- */
-/* NTG_CELL */
+/* VCELL */
 /* -------------------------------------------------------------------------- */
 
-typedef enum ntg_cell_type
+typedef enum ntg_vcell_type
 { 
-    NTG_CELL_TYPE_FULL,
-    NTG_CELL_TYPE_OVERLAY,
-    NTG_CELL_TYPE_TRANSPARENT
+    NTG_VCELL_FULL,
+    NTG_VCELL_OVERLAY,
+    NTG_VCELL_TRANSPARENT
 } ntg_cell_type;
 
-typedef struct ntg_cell
+struct ntg_vcell
 {
-    struct ntg_rcell __base;
-    ntg_cell_type _type;
-} ntg_cell;
+    ntg_cell_type type;
+    union
+    {
+        struct
+        {
+            uint32_t codepoint;
+            struct nt_gfx gfx;
+        } full;
 
-static inline ntg_cell ntg_cell_full(uint32_t codepoint, struct nt_gfx gfx)
+        struct
+        {
+            uint32_t codepoint;
+            nt_color fg;
+            nt_style style;
+        } overlay;
+
+        struct {} transparent;
+    };
+};
+
+static inline struct ntg_vcell ntg_vcell_default()
 {
-    return (ntg_cell) {
-        .__base = { .codepoint = codepoint, .gfx = gfx },
-        ._type = NTG_CELL_TYPE_FULL
+    return (struct ntg_vcell) {
+        .type = NTG_VCELL_FULL,
+        .full = {
+            .codepoint = NTG_CELL_EMPTY,
+            .gfx = NT_GFX_DEFAULT
+        }
     };
 }
 
-static inline ntg_cell ntg_cell_default()
+static inline struct ntg_vcell ntg_vcell_full(uint32_t cp, struct nt_gfx gfx)
 {
-    return (ntg_cell) {
-        .__base = ntg_rcell_default(),
-        ._type = NTG_CELL_TYPE_FULL
+    return (struct ntg_vcell) {
+        .type = NTG_VCELL_FULL,
+        .full = {
+            .codepoint = cp,
+            .gfx = gfx
+        }
     };
 }
 
-static inline ntg_cell ntg_cell_bg(nt_color bg)
-{
-    struct nt_gfx gfx = {
-        .fg = NT_COLOR_DEFAULT,
-        .bg = bg,
-        .style = NT_STYLE_DEFAULT
-    };
-
-    return (ntg_cell) {
-        .__base = ntg_rcell_new(NTG_CELL_EMPTY, gfx),
-        ._type = NTG_CELL_TYPE_FULL
-    };
-}
-
-static inline ntg_cell ntg_cell_overlay(uint32_t codepoint,
+static inline struct ntg_vcell ntg_vcell_overlay(uint32_t cp,
         nt_color fg, nt_style style)
 {
-    struct nt_gfx gfx = {
-        .fg = fg,
-        .bg = NT_COLOR_DEFAULT,
-        .style = style
-    };
-
-    return (ntg_cell) {
-        .__base = ntg_rcell_new(codepoint, gfx),
-        ._type = NTG_CELL_TYPE_FULL
+    return (struct ntg_vcell) {
+        .type = NTG_VCELL_OVERLAY,
+        .overlay = {
+            .codepoint = cp,
+            .fg = fg,
+            .style = style
+        }
     };
 }
 
-static inline ntg_cell ntg_cell_transparent()
+static inline struct ntg_vcell ntg_vcell_transparent()
 {
-    return (ntg_cell) {
-        .__base = { NTG_CELL_EMPTY, NT_GFX_DEFAULT },
-        ._type = NTG_CELL_TYPE_OVERLAY
+    return (struct ntg_vcell) {
+        .type = NTG_VCELL_TRANSPARENT
     };
 }
 
-static inline bool ntg_cell_are_equal(ntg_cell cell1, ntg_cell cell2)
+static inline struct ntg_vcell ntg_vcell_bg(nt_color color)
 {
-    return (memcmp(&cell1, &cell2, sizeof(struct ntg_rcell)) == 0);
+    return (struct ntg_vcell) {
+        .type = NTG_VCELL_FULL,
+        .full = {
+            .codepoint = NTG_CELL_EMPTY,
+            .gfx = {
+                .bg = color,
+                .fg = NT_COLOR_DEFAULT,
+                .style = NT_STYLE_DEFAULT
+            }
+        }
+    };
 }
 
-struct ntg_rcell ntg_cell_overwrite(ntg_cell overwriting,
-        struct ntg_rcell overwritten);
-
-static inline bool ntg_cell_has_bg(ntg_cell cell)
+static inline bool ntg_vcell_are_equal(struct ntg_vcell c1, struct ntg_vcell c2)
 {
-    return (cell._type == NTG_CELL_TYPE_FULL);
+    return (memcmp(&c1, &c2, sizeof(struct ntg_cell)) == 0);
 }
 
-static inline nt_color ntg_cell_get_bg(ntg_cell cell)
-{
-    assert(ntg_cell_has_bg(cell));
-
-    return cell.__base.gfx.bg;
-}
-
-static inline ntg_cell ntg_cell_set_bg(ntg_cell cell, nt_color bg)
-{
-    assert(ntg_cell_has_bg(cell));
-
-    ntg_cell copy = cell;
-    copy.__base.gfx.bg = bg;
-    
-    return copy;
-}
-
-static inline bool ntg_cell_has_fg(ntg_cell cell)
-{
-    return (cell._type != NTG_CELL_TYPE_TRANSPARENT);
-}
-
-static inline nt_color ntg_cell_get_fg(ntg_cell cell)
-{
-    assert(ntg_cell_has_fg(cell));
-
-    return cell.__base.gfx.fg;
-}
-
-static inline ntg_cell ntg_cell_set_fg(ntg_cell cell, nt_color fg)
-{
-    assert(ntg_cell_has_fg(cell));
-
-    ntg_cell copy = cell;
-    copy.__base.gfx.fg = fg;
-    
-    return copy;
-}
-
-static inline nt_style ntg_cell_get_style(ntg_cell cell)
-{
-    assert(ntg_cell_has_fg(cell));
-
-    return cell.__base.gfx.style;
-}
-
-static inline ntg_cell ntg_cell_set_style(ntg_cell cell, nt_style style)
-{
-    assert(ntg_cell_has_fg(cell));
-
-    ntg_cell copy = cell;
-    copy.__base.gfx.style = style;
-    
-    return copy;
-}
-
-static inline uint32_t ntg_cell_get_codepoint(ntg_cell cell)
-{
-    assert(ntg_cell_has_fg(cell));
-
-    return cell.__base.codepoint;
-}
-
-static inline ntg_cell ntg_cell_set_codepoint(ntg_cell cell, uint32_t codepoint)
-{
-    assert(ntg_cell_has_fg(cell));
-
-    ntg_cell copy = cell;
-    copy.__base.codepoint = codepoint;
-    
-    return copy;
-}
+struct ntg_cell ntg_vcell_overwrite(
+        struct ntg_vcell overwriting,
+        struct ntg_cell overwritten);
 
 /* -------------------------------------------------------------------------- */
-/* NTG_RCELL_GRID */
-/* -------------------------------------------------------------------------- */
-
-typedef struct ntg_rcell_grid
-{
-    struct ntg_rcell* __data;
-    struct ntg_xy _size;
-} ntg_rcell_grid;
-
-void __ntg_rcell_grid_init__(ntg_rcell_grid* grid);
-void __ntg_rcell_grid_deinit__(ntg_rcell_grid* grid);
-
-ntg_rcell_grid* ntg_rcell_grid_new();
-void ntg_rcell_grid_destroy(ntg_rcell_grid* grid);
-
-void ntg_rcell_grid_set_size(ntg_rcell_grid* grid, struct ntg_xy size,
-        ntg_status* out_status);
-
-static inline const struct ntg_rcell* ntg_rcell_grid_at(
-        const ntg_rcell_grid* grid, struct ntg_xy pos)
-{
-    return ((grid != NULL) ?
-            &(grid->__data[pos.y * grid->_size.x + pos.x]) :
-            NULL);
-}
-
-static inline struct ntg_rcell* ntg_rcell_grid_at_(
-        ntg_rcell_grid* grid, struct ntg_xy pos)
-{
-    return ((grid != NULL) ?
-            &(grid->__data[pos.y * grid->_size.x + pos.x]) :
-            NULL);
-}
-
-/* -------------------------------------------------------------------------- */
-/* NTG_CELL_GRID */
+/* CELL GRID */
 /* -------------------------------------------------------------------------- */
 
 typedef struct ntg_cell_grid
@@ -242,102 +142,125 @@ typedef struct ntg_cell_grid
     struct ntg_xy _size;
 } ntg_cell_grid;
 
-void __ntg_cell_grid_init__(ntg_cell_grid* grid);
-void __ntg_cell_grid_deinit__(ntg_cell_grid* grid);
+void _ntg_cell_grid_init_(ntg_cell_grid* grid);
+void _ntg_cell_grid_deinit_(ntg_cell_grid* grid);
 
-ntg_cell_grid* ntg_cell_grid_new();
-void ntg_cell_grid_destroy(ntg_cell_grid* grid);
+void ntg_cell_grid_set_size(ntg_cell_grid* grid,
+        struct ntg_xy size, ntg_status* out_status);
 
-static inline const ntg_cell* ntg_cell_grid_at(const ntg_cell_grid* grid,
-        struct ntg_xy pos)
+static inline const struct ntg_cell* ntg_cell_grid_at(
+        const ntg_cell_grid* grid, struct ntg_xy pos)
 {
     return ((grid != NULL) ?
             &(grid->__data[pos.y * grid->_size.x + pos.x]) :
             NULL);
 }
 
-static inline ntg_cell* ntg_cell_grid_at_(ntg_cell_grid* grid,
-        struct ntg_xy pos)
+static inline struct ntg_cell* ntg_cell_grid_at_(
+        ntg_cell_grid* grid, struct ntg_xy pos)
 {
     return ((grid != NULL) ?
             &(grid->__data[pos.y * grid->_size.x + pos.x]) :
             NULL);
 }
 
-void ntg_cell_grid_set_size(ntg_cell_grid* grid, struct ntg_xy size,
-        ntg_status* out_status);
-
 /* -------------------------------------------------------------------------- */
-/* NTG_RCELL_VGRID */
+/* VCELL GRID */
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_rcell_vgrid
+typedef struct ntg_vcell_grid
 {
-    ntg_rcell_grid ___data; // grid + allocated size
+    struct ntg_vcell* __data;
+    struct ntg_xy _size;
+} ntg_vcell_grid;
+
+void _ntg_vcell_grid_init_(ntg_vcell_grid* grid);
+void _ntg_vcell_grid_deinit_(ntg_vcell_grid* grid);
+
+static inline const struct ntg_vcell* ntg_vcell_grid_at(
+        const ntg_vcell_grid* grid, struct ntg_xy pos)
+{
+    size_t idx = pos.y * grid->_size.x + pos.x;
+
+    return ((grid != NULL) ? &(grid->__data[idx]) : NULL);
+}
+
+static inline struct ntg_vcell* ntg_vcell_grid_at_(
+        ntg_vcell_grid* grid, struct ntg_xy pos)
+{
+    size_t idx = pos.y * grid->_size.x + pos.x;
+
+    return ((grid != NULL) ? &(grid->__data[idx]) : NULL);
+}
+
+void ntg_vcell_grid_set_size(ntg_vcell_grid* grid,
+        struct ntg_xy size, ntg_status* out_status);
+
+/* -------------------------------------------------------------------------- */
+/* CELL VECGRID */
+/* -------------------------------------------------------------------------- */
+
+typedef struct ntg_cell_vecgrid
+{
+    ntg_cell_grid __data; // grid + allocated size
     struct ntg_xy __size; // current size
-} ntg_rcell_vgrid;
+} ntg_cell_vecgrid;
 
-void __ntg_rcell_vgrid_init__(ntg_rcell_vgrid* vgrid);
-void __ntg_rcell_vgrid_deinit__(ntg_rcell_vgrid* vgrid);
+void _ntg_cell_vecgrid_init_(ntg_cell_vecgrid* vecgrid);
+void _ntg_cell_vecgrid_deinit_(ntg_cell_vecgrid* vecgrid);
 
-ntg_rcell_vgrid* ntg_rcell_vgrid_new();
-void ntg_rcell_vgrid_destroy(ntg_rcell_vgrid* vgrid);
-
-void ntg_rcell_vgrid_set_size(ntg_rcell_vgrid* vgrid, struct ntg_xy size,
+void ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid, struct ntg_xy size,
         ntg_status* out_status);
 
-struct ntg_xy ntg_rcell_vgrid_get_size(const ntg_rcell_vgrid* vgrid);
+struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid);
 
-static inline const struct ntg_rcell* ntg_rcell_vgrid_at(
-        const ntg_rcell_vgrid* vgrid, struct ntg_xy pos)
+static inline const struct ntg_cell* ntg_cell_vecgrid_at(
+        const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
 {
-    return ((vgrid != NULL) ?
-            ntg_rcell_grid_at(&vgrid->___data, pos) :
+    return ((vecgrid != NULL) ?
+            ntg_cell_grid_at(&vecgrid->__data, pos) :
             NULL);
 }
 
-static inline struct ntg_rcell* ntg_rcell_vgrid_at_(
-        ntg_rcell_vgrid* vgrid, struct ntg_xy pos)
+static inline struct ntg_cell* ntg_cell_vecgrid_at_(
+        ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
 {
-    return ((vgrid != NULL) ?
-            ntg_rcell_grid_at_(&vgrid->___data, pos) :
+    return ((vecgrid != NULL) ?
+            ntg_cell_grid_at_(&vecgrid->__data, pos) :
             NULL);
 }
 
 /* -------------------------------------------------------------------------- */
-/* NTG_CELL_VGRID */
+/* VCELL VECGRID */
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_cell_vgrid
+typedef struct ntg_vcell_vecgrid
 {
-    ntg_cell_grid ___data; // grid + allocated size
+    ntg_vcell_grid __data; // grid + allocated size
     struct ntg_xy __size; // current size
-} ntg_cell_vgrid;
+} ntg_vcell_vecgrid;
 
-void __ntg_cell_vgrid_init__(ntg_cell_vgrid* vgrid);
-void __ntg_cell_vgrid_deinit__(ntg_cell_vgrid* vgrid);
+void _ntg_vcell_vecgrid_init_(ntg_vcell_vecgrid* vecgrid);
+void _ntg_vcell_vecgrid_deinit_(ntg_vcell_vecgrid* vecgrid);
 
-ntg_cell_vgrid* ntg_cell_vgrid_new();
-void ntg_cell_vgrid_destroy(ntg_cell_vgrid* vgrid);
+void ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid,
+        struct ntg_xy size, ntg_status* out_status);
 
-void ntg_cell_vgrid_set_size(ntg_cell_vgrid* vgrid, struct ntg_xy size,
-        ntg_status* out_status);
+struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid);
 
-struct ntg_xy ntg_cell_vgrid_get_size(const ntg_cell_vgrid* vgrid);
-
-static inline const struct ntg_cell* ntg_cell_vgrid_at(
-        const ntg_cell_vgrid* vgrid, struct ntg_xy pos)
+static inline const struct ntg_vcell* ntg_vcell_vecgrid_at(
+        const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
 {
-    return ((vgrid != NULL) ?
-            ntg_cell_grid_at(&vgrid->___data, pos) :
+    return ((vecgrid != NULL) ?
+            ntg_vcell_grid_at(&vecgrid->__data, pos) :
             NULL);
 }
 
-static inline struct ntg_cell* ntg_cell_vgrid_at_(
-        ntg_cell_vgrid* vgrid, struct ntg_xy pos)
+static inline struct ntg_vcell* ntg_vcell_vecgrid_at_(
+        ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
 {
-    return ((vgrid != NULL) ?
-            ntg_cell_grid_at_(&vgrid->___data, pos) :
+    return ((vecgrid != NULL) ?
+            ntg_vcell_grid_at_(&vecgrid->__data, pos) :
             NULL);
 }
 

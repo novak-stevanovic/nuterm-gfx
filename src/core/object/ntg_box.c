@@ -54,51 +54,40 @@ void _ntg_box_init_(ntg_box* box)
 
     _ntg_object_init_((ntg_object*)box, object_data);
 
-    box->__opts = ntg_box_opts_def();
+    box->_opts = ntg_box_opts_def();
+    box->_children = ntg_object_vec_new();
 }
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box)
 {
     assert(box != NULL);
 
-    return box->__opts;
+    return box->_opts;
 }
 
 void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
 {
     assert(box != NULL);
     
-    box->__opts = opts;
+    box->_opts = opts;
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child)
 {
     assert(box != NULL);
     assert(child != NULL);
-    assert(ntg_object_is_widget(child));
-    assert((ntg_object*)box != child);
 
-    ntg_object* group_root = ntg_object_get_group_root_(child);
-    ntg_object* parent = ntg_object_get_parent_(child, NTG_OBJECT_PARENT_EXCL_DECOR);
-
-    assert(parent == NULL);
-
-    _ntg_object_add_child((ntg_object*)box, group_root);
+    _ntg_object_add_child((ntg_object*)box, child);
+    ntg_object_vec_append(box->_children, child);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 {
     assert(box != NULL);
     assert(child != NULL);
-    assert(ntg_object_is_widget(child));
-    assert((ntg_object*)box != child);
 
-    ntg_object* group_root = ntg_object_get_group_root_(child);
-    ntg_object* parent = ntg_object_get_parent_(child, NTG_OBJECT_PARENT_EXCL_DECOR);
-
-    assert(parent == ((ntg_object*)box));
-
-    _ntg_object_rm_child(parent, group_root);
+    _ntg_object_add_child((ntg_object*)box, child);
+    ntg_object_vec_remove(box->_children, child);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -111,7 +100,11 @@ void _ntg_box_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    ((ntg_box*)entity)->__opts = ntg_box_opts_def();
+    ntg_box* box = (ntg_box*)entity;
+
+    box->_opts = ntg_box_opts_def();
+    ntg_object_vec_destroy(box->_children);
+    box->_children = NULL;
     _ntg_object_deinit_fn(entity);
 }
 
@@ -161,7 +154,7 @@ struct ntg_object_measure _ntg_box_measure_fn(
         it_measure.natural_size = _max2_size(it_measure.natural_size, 1);
         it_measure.max_size = _max2_size(it_measure.max_size, 1);
 
-        if(orientation == box->__opts.orientation)
+        if(orientation == box->_opts.orientation)
         {
             min_size += it_measure.min_size;
             natural_size += it_measure.natural_size;
@@ -175,7 +168,7 @@ struct ntg_object_measure _ntg_box_measure_fn(
         }
     }
 
-    size_t spacing = calculate_total_spacing(box->__opts.spacing, children.count);
+    size_t spacing = calculate_total_spacing(box->_opts.spacing, children.count);
 
      struct ntg_object_measure measure = {
         .min_size = min_size,
@@ -222,7 +215,7 @@ void _ntg_box_constrain_fn(
     const ntg_object* it_child;
     struct ntg_object_measure it_measure;
     size_t i;
-    if(orientation == box->__opts.orientation)
+    if(orientation == box->_opts.orientation)
     {
         if(size >= natural_size) // redistribute extra, capped with max_size
         {
@@ -244,7 +237,7 @@ void _ntg_box_constrain_fn(
         {
             if(size >= min_size) // redistribute extra, capped with natural_size
             {
-                size_t pref_spacing = calculate_total_spacing(box->__opts.spacing, children.count);
+                size_t pref_spacing = calculate_total_spacing(box->_opts.spacing, children.count);
                 extra_size = _ssub_size(size - min_size, pref_spacing);
 
                 for(i = 0; i < children.count; i++)
@@ -317,9 +310,9 @@ void __ntg_box_arrange_fn(
     if(children.count == 0) return;
 
     /* Init */
-    ntg_orientation orient = box->__opts.orientation;
-    ntg_alignment prim_align = box->__opts.palignment;
-    ntg_alignment sec_align = box->__opts.salignment;
+    ntg_orientation orient = box->_opts.orientation;
+    ntg_alignment prim_align = box->_opts.palignment;
+    ntg_alignment sec_align = box->_opts.salignment;
 
     size_t i;
     const ntg_object* it_child;
@@ -341,7 +334,7 @@ void __ntg_box_arrange_fn(
     }
 
     /* Calculate spacing */
-    size_t pref_spacing = calculate_total_spacing(box->__opts.spacing, children.count);
+    size_t pref_spacing = calculate_total_spacing(box->_opts.spacing, children.count);
     size_t total_spacing = _min2_size(pref_spacing, _size.prim_val - _children_size.prim_val);
 
     /* Distribute padding space */

@@ -1,3 +1,0 @@
-#ifndef _NTG_LOOP_EVENT_H_
-#define _NTG_LOOP_EVENT_H_
-# _NTG_LOOP_EVENT_H_

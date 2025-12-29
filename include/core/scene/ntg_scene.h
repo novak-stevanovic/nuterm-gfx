@@ -2,7 +2,6 @@
 #define _NTG_SCENE_H_
 
 #include "base/entity/ntg_entity.h"
-#include "core/scene/_ntg_scene_graph.h"
 #include "shared/ntg_xy.h"
 #include "nt_event.h"
 
@@ -16,6 +15,8 @@ typedef struct ntg_object ntg_object;
 typedef struct ntg_stage ntg_stage;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 typedef struct ntg_focuser ntg_focuser;
+typedef struct ntg_object_drawing ntg_object_drawing;
+typedef struct ntg_scene_graph ntg_scene_graph;
 struct ntg_loop_event;
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +55,7 @@ struct ntg_scene
     ntg_stage* _stage;
 
     ntg_object* _root;
-    ntg_scene_graph* _graph;
+    ntg_scene_graph* __graph;
     ntg_scene_layout_fn __layout_fn;
 
     ntg_focuser* _focuser;
@@ -85,13 +86,19 @@ void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn);
 void ntg_scene_set_event_mode(ntg_scene* scene, ntg_scene_event_mode mode);
 
 /* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED */
+/* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
 void _ntg_scene_init_(ntg_scene* scene,
         ntg_focuser* focuser,
         ntg_scene_layout_fn layout_fn);
 void _ntg_scene_deinit_fn(ntg_entity* entity);
+
+ntg_scene_graph* ntg_scene_get_graph(ntg_scene* scene);
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL */
+/* -------------------------------------------------------------------------- */
 
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);
 

@@ -36,19 +36,17 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: ntg_container: remove need for ntg_object_get_group_root() | *
-
-// --------------------------------------------------------------------------------------------------------------------------
+// TODO: ntg_scene: optimize ntg_def_scene layout fn | * | ACTIVE
 // TODO: nuterm: add signal event, maybe more event types - allow user to define and post events to loop? | *
-// TODO: ntg_scene: optimize ntg_def_scene layout fn | *
 // TODO: ntg_scene: implement multi-root system | **
 // TODO: ntg_taskmaster: full rework | **
 // TODO: ntg_list and/or ntg_table: implement | **
 // TODO: ntg_label: coloring/styling specific words, implement buttons/text fields | *
 
 // RELEASE
-// TODO: nuterm-gfx: add more events | *
-// TODO: nuterm-gfx: add convenience macros | *
-// TODO: nuterm-gfx: add proper error-handling, names of nullable parameters in fns | ***
+// TODO: nuterm-gfx: add more generic events
+// TODO: nuterm-gfx: add convenience macros
+// TODO: nuterm-gfx: add proper error-handling
+// TODO: nuterm-gfx: make comment documentation consistent
 
 #endif // _NTG_H_

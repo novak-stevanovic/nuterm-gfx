@@ -1,4 +1,4 @@
-#include "base/entity/_ntg_entity_type.h"
+#include "base/entity/ntg_entity_type.h"
 #include "core/loop/ntg_loop.h"
 #include "core/loop/ntg_taskmaster.h"
 #include "core/object/ntg_border_box.h"
@@ -19,7 +19,7 @@
 #include "core/scene/focuser/ntg_focuser.h"
 #include "core/scene/focuser/ntg_def_focuser.h"
 
-bool ntg_entity_instanceof(const ntg_entity_type* type, const ntg_entity_type* ancestor)
+bool ntg_entity_instance_of(const ntg_entity_type* type, const ntg_entity_type* ancestor)
 {
     const ntg_entity_type* it = type;
 
@@ -33,7 +33,7 @@ bool ntg_entity_instanceof(const ntg_entity_type* type, const ntg_entity_type* a
     return false;
 }
 
-bool ntg_entity_is(const ntg_entity_type* type, const ntg_entity_type* ancestor)
+bool ntg_entity_is_same_type(const ntg_entity_type* type, const ntg_entity_type* ancestor)
 {
     return (type == ancestor);
 }

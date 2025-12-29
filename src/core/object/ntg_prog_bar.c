@@ -11,9 +11,9 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
 {
     return (struct ntg_prog_bar_opts) {
         .orientation = NTG_ORIENTATION_H,
-        .complete_style = ntg_cell_bg(nt_color_new_rgb(nt_rgb_new(0, 255, 0))),
-        .uncomplete_style = ntg_cell_bg(nt_color_new_rgb(nt_rgb_new(255, 0, 0))),
-        .threshold_style = ntg_cell_bg(nt_color_new_rgb(nt_rgb_new(0, 255, 0))),
+        .complete_style = ntg_vcell_bg(nt_color_new_rgb(nt_rgb_new(0, 255, 0))),
+        .uncomplete_style = ntg_vcell_bg(nt_color_new_rgb(nt_rgb_new(255, 0, 0))),
+        .threshold_style = ntg_vcell_bg(nt_color_new_rgb(nt_rgb_new(0, 255, 0))),
     };
 }
 
@@ -119,7 +119,7 @@ void _ntg_prog_bar_draw_fn(
     size_t i, j;
     struct ntg_oxy _it_xy;
     struct ntg_xy it_xy;
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
     for(i = 0; i < _size.prim_val; i++)
     {
         for(j = 0; j < _size.sec_val; j++)

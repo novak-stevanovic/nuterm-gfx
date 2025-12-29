@@ -43,20 +43,20 @@ void _ntg_def_padding_draw_fn(
         void* _layout_data,
         sarena* arena)
 {
-    ntg_cell cell;
+    struct ntg_vcell cell;
 
     if(ntg_object_get_children(object).count == 0)
     {
-        cell = ntg_cell_default();
+        cell = ntg_vcell_default();
     }
     else
     {
         const ntg_object* child = ntg_object_get_children(object).data[0];
-        cell = ntg_object_get_bg(child);
+        cell = child->_background;
     }
 
     size_t i, j;
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)

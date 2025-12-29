@@ -8,14 +8,14 @@ void _ntg_object_drawing_init_(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    __ntg_cell_vgrid_init__(&drawing->___data);
+    _ntg_vcell_vecgrid_init_(&drawing->___data);
 }
 
 void _ntg_object_drawing_deinit_(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    __ntg_cell_vgrid_deinit__(&drawing->___data);
+    _ntg_vcell_vecgrid_deinit_(&drawing->___data);
 }
 
 ntg_object_drawing* ntg_object_drawing_new()
@@ -42,7 +42,7 @@ void ntg_object_drawing_destroy(ntg_object_drawing* drawing)
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 {
     return (drawing != NULL) ?
-        ntg_cell_vgrid_get_size(&drawing->___data) :
+        ntg_vcell_vecgrid_get_size(&drawing->___data) :
         NTG_XY_UNSET;
 }
 
@@ -52,7 +52,7 @@ void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
     if(drawing == NULL) return;
 
     ntg_status _status;
-    ntg_cell_vgrid_set_size(&drawing->___data, size, &_status);
+    ntg_vcell_vecgrid_set_size(&drawing->___data, size, &_status);
     assert(_status == NTG_SUCCESS);
 }
 
@@ -84,8 +84,8 @@ void ntg_object_drawing_place(const ntg_object_drawing* src_drawing,
 
     size_t i, j;
     struct ntg_xy it_dest_pos, it_src_pos;
-    ntg_cell* it_dest_cell;
-    const ntg_cell* it_src_cell;
+    struct ntg_vcell* it_dest_cell;
+    const struct ntg_vcell* it_src_cell;
     for(i = 0; i < src_box_size.y; i++)
     {
         for(j = 0; j < src_box_size.x; j++)
@@ -128,8 +128,8 @@ void ntg_object_drawing_place_(const ntg_object_drawing* src_drawing,
 
     size_t i, j;
     struct ntg_xy it_dest_pos, it_src_pos;
-    struct ntg_rcell* it_dest_cell;
-    const ntg_cell* it_src_cell;
+    struct ntg_cell* it_dest_cell;
+    const struct ntg_vcell* it_src_cell;
     for(i = 0; i < src_box_size.y; i++)
     {
         for(j = 0; j < src_box_size.x; j++)
@@ -140,7 +140,7 @@ void ntg_object_drawing_place_(const ntg_object_drawing* src_drawing,
             it_dest_cell = ntg_stage_drawing_at_(dest_drawing, it_dest_pos);
             it_src_cell = ntg_object_drawing_at(src_drawing, it_src_pos);
 
-            (*it_dest_cell) = ntg_cell_overwrite(*it_src_cell, *it_dest_cell);
+            (*it_dest_cell) = ntg_vcell_overwrite(*it_src_cell, *it_dest_cell);
         }
     }
 }

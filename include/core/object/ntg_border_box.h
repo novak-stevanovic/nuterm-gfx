@@ -29,7 +29,7 @@ struct ntg_border_box
 {
     ntg_object __base;
 
-    ntg_object* __children[5];
+    ntg_object* _children[5];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -39,14 +39,6 @@ struct ntg_border_box
 ntg_border_box* ntg_border_box_new(ntg_entity_system* system);
 
 void _ntg_border_box_init_(ntg_border_box* box);
-
-const ntg_object* ntg_border_box_get(
-        const ntg_border_box* box,
-        ntg_border_box_pos pos);
-
-const ntg_object* ntg_border_box_get_(
-        const ntg_border_box* box,
-        ntg_border_box_pos pos);
 
 void ntg_border_box_set(ntg_border_box* box,
         ntg_object* object,

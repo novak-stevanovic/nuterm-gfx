@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <time.h>
 #include <assert.h>
 
@@ -51,15 +50,13 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     nt_status _status;
     while(true)
     {
-        if(!ctx.__loop) break;
+        if(!(ctx.__loop)) break;
 
         event = nt_wait_for_event(timeout, &_status);
         clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
-        struct ntg_loop_event loop_event = {
-            .event = event
-        };
-
+        // Process/dispatch event
+        struct ntg_loop_event loop_event = { .event = event };
         bool consumed = false;
         if(data.event_mode == NTG_LOOP_EVENT_PROCESS_FIRST)
         {
@@ -78,6 +75,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
                 data.event_fn(&ctx, loop_event);
         }
 
+        // Default handling of events
         if(event.type == NT_EVENT_TIMEOUT)
         {
             timeout = 1000 / data.framerate;
@@ -99,7 +97,8 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
             {
                 case NT_EVENT_KEY:
                     key_data.key = event.key_data;
-                    ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOP_KEY, &key_data);
+                    ntg_entity_raise_event((ntg_entity*)loop, NULL,
+                            NTG_EVENT_LOOP_KEY, &key_data);
                     break;
 
                 case NT_EVENT_RESIZE:
@@ -109,7 +108,8 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
                             event.resize_data.height);
                     ctx._app_size = app_size;
                     resize_data.new = app_size;
-                    ntg_entity_raise_event((ntg_entity*)loop, NULL, NTG_EVENT_LOOP_RSZ, &resize_data);
+                    ntg_entity_raise_event((ntg_entity*)loop, NULL,
+                            NTG_EVENT_LOOP_RSZ, &resize_data);
                     break;
                 case NT_EVENT_TIMEOUT: assert(0);
             }
@@ -117,13 +117,14 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
+        // Subtract time taken inside the loop iteration
         process_elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
             + (int64_t)(ts_end.tv_nsec - ts_start.tv_nsec);
         process_elapsed_ns = (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
 
         process_elapsed_ms = process_elapsed_ns / 1000000LL;
-        // ntg_log_log("TIME TAKEN: %d", process_elapsed_ms);
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
+        ntg_log_log("FRAME PROCESS TIME: %d ms", process_elapsed_ms);
     }
 
     ctx = (struct ntg_loop_ctx) {0};

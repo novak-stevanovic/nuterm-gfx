@@ -12,9 +12,9 @@ typedef struct ntg_prog_bar ntg_prog_bar;
 struct ntg_prog_bar_opts
 {
     ntg_orientation orientation;
-    ntg_cell complete_style;
-    ntg_cell uncomplete_style;
-    ntg_cell threshold_style;
+    struct ntg_vcell complete_style;
+    struct ntg_vcell uncomplete_style;
+    struct ntg_vcell threshold_style;
 };
 
 struct ntg_prog_bar_opts ntg_prog_bar_opts_def();

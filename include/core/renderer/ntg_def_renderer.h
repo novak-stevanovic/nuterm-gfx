@@ -4,7 +4,7 @@
 #include "core/renderer/ntg_renderer.h"
 
 typedef struct ntg_def_renderer ntg_def_renderer;
-typedef struct ntg_rcell_vgrid ntg_rcell_vgrid;
+typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;
 typedef struct nt_charbuff nt_charbuff;
 typedef struct ntg_loop ntg_loop;
 

@@ -2,8 +2,8 @@
 #define _NTG_ENTITY_H_
 
 #include <stdbool.h>
-#include "base/entity/_ntg_entity_type.h"
-#include "base/entity/_ntg_event_type.h"
+#include "base/entity/ntg_entity_type.h"
+#include "base/entity/ntg_event_type.h"
 
 /* -------------------------------------------------------------------------- */
 /* DECLARATIONS */

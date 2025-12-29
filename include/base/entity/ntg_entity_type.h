@@ -1,5 +1,5 @@
-#ifndef __NTG_ENTITY_H__
-#define __NTG_ENTITY_H__
+#ifndef _NTG_ENTITY_TYPE_H_
+#define _NTG_ENTITY_TYPE_H_
 
 /* Included in ntg_entity.h */
 
@@ -14,8 +14,8 @@ struct ntg_entity_type
     size_t _size;
 };
 
-bool ntg_entity_instanceof(const ntg_entity_type* type, const ntg_entity_type* ancestor);
-bool ntg_entity_is(const ntg_entity_type* type, const ntg_entity_type* ancestor);
+bool ntg_entity_instance_of(const ntg_entity_type* type, const ntg_entity_type* ancestor);
+bool ntg_entity_is_same_type(const ntg_entity_type* type, const ntg_entity_type* ancestor);
 
 extern const ntg_entity_type NTG_ENTITY;
 
@@ -52,4 +52,4 @@ extern const ntg_entity_type NTG_ENTITY_LOOP;
 
 extern const ntg_entity_type NTG_ENTITY_TASKMASTER;
 
-#endif // __NTG_ENTITY_H__
+#endif // _NTG_ENTITY_TYPE_H_

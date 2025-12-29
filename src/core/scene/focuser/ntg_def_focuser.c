@@ -33,8 +33,11 @@ void ntg_def_focuser_focus(ntg_def_focuser* focuser, ntg_object* object)
 
     ntg_focuser* _focuser = (ntg_focuser*)focuser;
 
-    struct ntg_scene_node data = ntg_scene_get_node(_focuser->_scene, object);
-    assert(data.exists);
+    if(object != NULL)
+    {
+        struct ntg_scene_node data = ntg_scene_get_node(_focuser->_scene, object);
+        assert(data.exists);
+    }
 
     focuser->_focused = object;
 }

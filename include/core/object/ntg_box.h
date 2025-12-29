@@ -23,7 +23,9 @@ struct ntg_box
 {
     ntg_object __base;
 
-    struct ntg_box_opts __opts;
+    struct ntg_box_opts _opts;
+
+    ntg_object_vec* _children;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -11,7 +11,7 @@ typedef struct ntg_def_border ntg_def_border;
 
 struct ntg_def_border_style
 {
-    ntg_cell top_left, top, top_right,
+    struct ntg_vcell top_left, top, top_right,
              right, bottom_right, bottom,
              bottom_left, left, padding;
 };

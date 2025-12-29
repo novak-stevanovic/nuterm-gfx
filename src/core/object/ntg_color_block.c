@@ -99,13 +99,13 @@ void _ntg_color_block_draw_fn(
     ntg_color_block* color_block = (ntg_color_block*)object;
 
     size_t i, j;
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
             it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
-            (*it_cell) = ntg_cell_bg(color_block->__color);
+            (*it_cell) = ntg_vcell_bg(color_block->__color);
         }
     }
 }

@@ -74,13 +74,13 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size)
     else
     {
         size_t i, j;
-        struct ntg_rcell* it_cell;
+        struct ntg_cell* it_cell;
         for(i = 0; i < size.y; i++)
         {
             for(j = 0; j < size.x; j++)
             {
                 it_cell = ntg_stage_drawing_at_(_stage->_drawing, ntg_xy(j, i));
-                (*it_cell) = ntg_rcell_default();
+                (*it_cell) = ntg_cell_default();
             }
         }
     }

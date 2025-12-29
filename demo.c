@@ -4,19 +4,15 @@
 #include <unistd.h>
 #include <assert.h>
 
+#include "ntg.h"
 #include "core/object/ntg_def_border.h"
 #include "core/object/ntg_def_padding.h"
 #include "core/scene/focuser/ntg_def_focuser.h"
-#include "nt_gfx.h"
-#include "ntg.h"
 #include "core/object/ntg_border_box.h"
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_color_block.h"
 #include "core/object/ntg_label.h"
 #include "shared/ntg_log.h"
-#include "shared/sarena.h"
-
-#define COUNT 100
 
 bool north_event_fn(ntg_object* object, struct ntg_loop_event event, ntg_loop_ctx* ctx)
 {
@@ -130,7 +126,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     ntg_box_set_opts(south, south_opts);
     // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
     struct nt_rgb rgb_white = nt_rgb_new(255, 255, 255);
-    ntg_object_set_bg((ntg_object*)south, ntg_cell_bg(nt_color_new_rgb(rgb_white)));
+    ntg_object_set_background((ntg_object*)south, ntg_vcell_bg(nt_color_new_rgb(rgb_white)));
 
     // South children
     ntg_color_block* south1 = ntg_color_block_new(es);
@@ -188,6 +184,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     };
 
     ntg_def_focuser_focus(focuser, (ntg_object*)north);
+    // ntg_def_focuser_focus(focuser, NULL);
     ntg_loop_run(loop, loop_data);
 }
 

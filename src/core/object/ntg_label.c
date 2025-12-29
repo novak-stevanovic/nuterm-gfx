@@ -97,7 +97,7 @@ static void trim_text(ntg_label* label)
 static void init_default_values(ntg_label* label)
 {
     label->__text = (struct ntg_str) {0};
-    label->__opts = ntg_label_opts_def();
+    label->_opts = ntg_label_opts_def();
     label->__post_draw_fn = NULL;
 }
 
@@ -156,15 +156,15 @@ struct ntg_label_opts ntg_label_get_opts(const ntg_label* label)
 {
     assert(label != NULL);
 
-    return label->__opts;
+    return label->_opts;
 }
 
 void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
 {
     assert(label != NULL);
 
-    label->__opts = opts;
-    ntg_object_set_bg((ntg_object*)label, ntg_cell_full(' ', opts.gfx));
+    label->_opts = opts;
+    ntg_object_set_background((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
 }
 
 struct ntg_strv ntg_label_get_text(const ntg_label* label)
@@ -209,7 +209,7 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
         .len = text.len
     };
 
-    if(label->__opts.autotrim) trim_text(label);
+    if(label->_opts.autotrim) trim_text(label);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -269,30 +269,26 @@ struct ntg_object_measure _ntg_label_measure_fn(
     if(rows.count == 0) return (struct ntg_object_measure) {0};
 
     struct ntg_object_measure result;
-    switch(label->__opts.wrap)
+    switch(label->_opts.wrap)
     {
         case NTG_TEXT_WRAP_NOWRAP:
             result = measure_nowrap_fn(rows.views, rows.count, 
-                    label->__opts.orientation, label->__opts.indent,
+                    label->_opts.orientation, label->_opts.indent,
                     orientation, for_size, arena);
             break;
         case NTG_TEXT_WRAP_WRAP:
             result = measure_wrap_fn(rows.views, rows.count,
-                    label->__opts.orientation, label->__opts.indent, orientation,
+                    label->_opts.orientation, label->_opts.indent, orientation,
                     for_size, arena);
             break;
         case NTG_TEXT_WRAP_WORD_WRAP:
             result = measure_wwrap_fn(rows.views, rows.count,
-                    label->__opts.orientation, label->__opts.indent, orientation,
+                    label->_opts.orientation, label->_opts.indent, orientation,
                     for_size, arena);
             break;
 
         default: assert(0);
     }
-
-    /* Clean up */
-    // free(rows.views);
-    // free(text_utf32);
 
     return result;
 }
@@ -314,7 +310,7 @@ void _ntg_label_draw_fn(
 
     /* Init content matrix */
     struct ntg_xy content_size = 
-        (label->__opts.orientation == NTG_ORIENTATION_H) ?
+        (label->_opts.orientation == NTG_ORIENTATION_H) ?
         size :
         ntg_xy_transpose(size);
 
@@ -343,7 +339,7 @@ void _ntg_label_draw_fn(
     assert(rows.views != NULL);
     if(rows.count == 0) return;
 
-    size_t capped_indent = _min2_size(label->__opts.indent, content_size.x);
+    size_t capped_indent = _min2_size(label->_opts.indent, content_size.x);
 
     /* Create content matrix */
     size_t i, j, k;
@@ -361,7 +357,7 @@ void _ntg_label_draw_fn(
     {
         _it_wrap_rows = NULL;
         _it_wrap_rows_count = 0;
-        switch(label->__opts.wrap)
+        switch(label->_opts.wrap)
         {
             case NTG_TEXT_WRAP_NOWRAP:
                get_wrap_rows_nowrap(rows.views[i], content_size.x, &_it_wrap_rows,
@@ -385,7 +381,7 @@ void _ntg_label_draw_fn(
             /* Avoid overflow in switch statement */
             _it_wrap_rows[j].count = _min2_size(_it_wrap_rows[j].count, content_size.x);
 
-            switch(label->__opts.palignment)
+            switch(label->_opts.palignment)
             {
                 case NTG_TEXT_ALIGNMENT_1:
                     it_row_align_indent = 0;
@@ -416,7 +412,7 @@ void _ntg_label_draw_fn(
             {
                 if(_it_wrap_rows[j].data[k] == ' ')
                 {
-                    if(label->__opts.palignment == NTG_TEXT_ALIGNMENT_JUSTIFY)
+                    if(label->_opts.palignment == NTG_TEXT_ALIGNMENT_JUSTIFY)
                     {
                         size_t space_justified_count = (it_wrap_row_extra_space / it_wrap_row_space_count) +
                             (it_wrap_row_space_counter < (it_wrap_row_extra_space % it_wrap_row_space_count)); 
@@ -437,14 +433,12 @@ void _ntg_label_draw_fn(
             content_i++;
 
         }
-
-        // if(_it_wrap_rows != NULL) free(_it_wrap_rows);
     }
 
     /* Transpose the content matrix if needed */
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
     uint32_t* it_content;
-    if(label->__opts.orientation == NTG_ORIENTATION_H)
+    if(label->_opts.orientation == NTG_ORIENTATION_H)
     {
         for(i = 0; i < content_size.y; i++)
         {
@@ -453,7 +447,7 @@ void _ntg_label_draw_fn(
                 it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
                 it_content = label_content_at(&_content, ntg_xy(j, i));
 
-                (*it_cell) = ntg_cell_full((*it_content), label->__opts.gfx);
+                (*it_cell) = ntg_vcell_full((*it_content), label->_opts.gfx);
             }
         }
     }
@@ -466,12 +460,10 @@ void _ntg_label_draw_fn(
                 it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(i, j));
                 it_content = label_content_at(&_content, ntg_xy(j, i));
 
-                (*it_cell) = ntg_cell_full((*it_content), label->__opts.gfx);
+                (*it_cell) = ntg_vcell_full((*it_content), label->_opts.gfx);
             }
         }
     }
-
-    /* Cleanup is not needed due to arena */
 }
 
 /* -------------------------------------------------------------------------- */
@@ -571,8 +563,6 @@ static struct ntg_object_measure measure_wrap_fn(
                     &it_row_wrap_row_count, arena);
 
             row_counter += it_row_wrap_row_count;
-
-            // free(it_row_wrap_rows);
         }
 
         return (struct ntg_object_measure) {
@@ -619,7 +609,6 @@ static struct ntg_object_measure measure_wwrap_fn(
                         it_words.views[j].count + j_word_adj_indent);
             }
 
-            // free(it_words.views);
             it_words.views = NULL;
             it_words.count = 0;
         }
@@ -641,8 +630,6 @@ static struct ntg_object_measure measure_wwrap_fn(
                     &it_row_wrap_row_count, arena);
 
             row_counter += it_row_wrap_row_count;
-
-            // free(it_row_wrap_rows);
         }
 
         return (struct ntg_object_measure) {
@@ -851,8 +838,6 @@ static void get_wrap_rows_wwrap(struct ntg_strv_utf32 row,
             }
         }
     }
-
-    // free(words.views);
 
     (*out_wwrap_rows) = wwrap_rows;
     (*out_wwrap_row_count) = wwrap_row_counter;

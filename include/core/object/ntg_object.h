@@ -141,8 +141,6 @@ typedef void (*ntg_object_draw_fn)(
 
 /* ------------------------------------------------------ */
 
-/* ------------------------------------------------------ */
-
 struct ntg_object
 {
     ntg_entity __base;
@@ -167,7 +165,7 @@ struct ntg_object
         ntg_object_constrain_fn __constrain_fn;
         ntg_object_arrange_fn __arrange_fn;
         ntg_object_draw_fn __draw_fn;
-        ntg_cell __background;
+        struct ntg_vcell _background;
     };
 
     struct
@@ -260,8 +258,7 @@ const ntg_padding* ntg_object_get_border(const ntg_object* object);
 ntg_padding* ntg_object_get_border_(ntg_object* object);
 ntg_padding* ntg_object_set_border(ntg_object* object, ntg_padding* border);
 
-ntg_cell ntg_object_get_bg(const ntg_object* object);
-void ntg_object_set_bg(ntg_object* object, ntg_cell background);
+void ntg_object_set_background(ntg_object* object, struct ntg_vcell background);
 
 /* ------------------------------------------------------ */
 /* LAYOUT */
@@ -311,14 +308,14 @@ void ntg_object_draw(
 bool ntg_object_feed_event(
         ntg_object* object,
         struct ntg_loop_event event,
-        ntg_loop_ctx* loop_ctx);
+        ntg_loop_ctx* ctx);
 
 void ntg_object_set_event_fn(
         ntg_object* object,
         ntg_object_event_fn fn);
 
 /* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED */
+/* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object_layout_ops
@@ -334,10 +331,18 @@ struct ntg_object_layout_ops
 void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops layout_ops);
 void _ntg_object_deinit_fn(ntg_entity* entity);
 
-void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene);
-
+/* object & child must be widgets */
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL */
+/* -------------------------------------------------------------------------- */
+
+void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child);
+void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_children(ntg_object* object);
+
+void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene);
 
 #endif // _NTG_OBJECT_H_

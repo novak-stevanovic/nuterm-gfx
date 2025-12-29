@@ -83,30 +83,30 @@ void ntg_def_border_set_style(ntg_def_border* border, struct ntg_def_border_styl
 struct ntg_def_border_style ntg_def_border_style_def()
 {
     return (struct ntg_def_border_style) {
-        .top_left = ntg_cell_default(),
-        .top = ntg_cell_default(),
-        .top_right = ntg_cell_default(),
-        .right = ntg_cell_default(),
-        .bottom_right = ntg_cell_default(),
-        .bottom = ntg_cell_default(),
-        .bottom_left = ntg_cell_default(),
-        .left = ntg_cell_default(),
-        .padding = ntg_cell_default()
+        .top_left = ntg_vcell_default(),
+        .top = ntg_vcell_default(),
+        .top_right = ntg_vcell_default(),
+        .right = ntg_vcell_default(),
+        .bottom_right = ntg_vcell_default(),
+        .bottom = ntg_vcell_default(),
+        .bottom_left = ntg_vcell_default(),
+        .left = ntg_vcell_default(),
+        .padding = ntg_vcell_default()
     };
 }
 
 struct ntg_def_border_style ntg_def_border_style_monochrome(nt_color color)
 {
     return (struct ntg_def_border_style) {
-        .top_left = ntg_cell_bg(color),
-        .top = ntg_cell_bg(color),
-        .top_right = ntg_cell_bg(color),
-        .right = ntg_cell_bg(color),
-        .bottom_right = ntg_cell_bg(color),
-        .bottom = ntg_cell_bg(color),
-        .bottom_left = ntg_cell_bg(color),
-        .left = ntg_cell_bg(color),
-        .padding = ntg_cell_bg(color),
+        .top_left = ntg_vcell_bg(color),
+        .top = ntg_vcell_bg(color),
+        .top_right = ntg_vcell_bg(color),
+        .right = ntg_vcell_bg(color),
+        .bottom_right = ntg_vcell_bg(color),
+        .bottom = ntg_vcell_bg(color),
+        .bottom_left = ntg_vcell_bg(color),
+        .left = ntg_vcell_bg(color),
+        .padding = ntg_vcell_bg(color),
     };
 }
 
@@ -164,7 +164,7 @@ static void draw_padding(const ntg_def_border* border,
         struct ntg_xy size, ntg_object_drawing* out_drawing)
 {
     size_t i, j;
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
@@ -186,7 +186,7 @@ static void draw_north(const ntg_def_border* border,
             child_start, child_size, child_end);
 
     size_t j;
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
 
     if(size.x >= 3)
     {
@@ -230,7 +230,7 @@ static void draw_east(const ntg_def_border* border,
             child_start, child_size, child_end);
 
     size_t i;
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
 
     if(size.y >= 3)
     {
@@ -267,7 +267,7 @@ static void draw_south(const ntg_def_border* border,
             child_start, child_size, child_end);
 
     size_t j;
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
 
     if(size.x >= 3)
     {
@@ -310,7 +310,7 @@ static void draw_west(const ntg_def_border* border,
             child_start, child_size, child_end);
 
     size_t i;
-    ntg_cell* it_cell;
+    struct ntg_vcell* it_cell;
 
     if(size.y >= 3)
     {
