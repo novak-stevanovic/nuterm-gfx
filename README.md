@@ -1,12 +1,14 @@
 # Nuterm-GFX - Work in progress
 
-__Nuterm-GFX__ is a retained-mode terminal GUI library written in C. The library relies upon __Nuterm__(a terminal backend) for loop events and unified terminal GFX manipulation. It implements a multi-pass layout process, similar to GTK, and utilizes an arena allocator for the layout process, providing great performance. Core pieces are the scene(drives the layout), the scene focuser (tracks focus and routes input/events to the focused objects), the stage(combines per-object drawings into a single buffer, ready for rendering), the renderer which uses __Nuterm__ GFX primitives to output the resulting buffer onto the terminal and the taskmaster(allows for executing asyncronous tasks).
+__Nuterm-GFX__ is a retained-mode terminal GUI library written in C. It implements a __multi-pass layout process__, similar to GTK, and utilizes an arena allocator for the layout process, providing __great performance__. Core pieces are the scene(drives the layout), the scene focuser(tracks focus and routes input/events to the focused objects), the stage(combines per-object drawings into a single buffer, ready for rendering), the renderer(outputs the resulting buffer onto the terminal screen), and the taskmaster - allows for executing asyncronous tasks.
 
-The library is built from the ground up with strong modularity: Scene, stage, focuser, renderer, object... are implemented as abstract types, giving the user the ability to provide their own implementation and/or mix up different implementations. The codebase was intentionally written in __OOP-style__ as an exercise in applying object-oriented principles in C, which makes adding new widgets straightforward, although a bit verbose.
+The library is built from the ground up with strong __modularity__: scene, stage, focuser, renderer, object, etc. are all implemented as abstract types, giving the user the ability to provide their own implementation and/or mix up different implementations. The codebase was intentionally written in __OOP-style__ as an exercise in applying object-oriented principles in C, which makes the process of adding new widgets straightforward and robust, although a bit verbose.
 
 ## Dependencies
 
-The library uses several small header-only libraries that are bundled internally, so the user does not need to manage them manually ([SArena](https://github.com/novak-stevanovic/sarena), [UConv](https://github.com/novak-stevanovic/uconv), [uthash](https://github.com/troydhanson/uthash)). In addition, it depends on [Nuterm](https://github.com/novak-stevanovic/nuterm), a terminal backend written in C. Build integration expects pkg-config to be available and uses it to obtain the required compiler and linker flags for nuterm via its .pc file.
+The library uses several small header-only libraries that are bundled internally, so the user does not need to manage them manually ([SArena](https://github.com/novak-stevanovic/sarena), [UConv](https://github.com/novak-stevanovic/uconv), [uthash](https://github.com/troydhanson/uthash)). 
+
+In addition, it depends on [Nuterm](https://github.com/novak-stevanovic/nuterm), a terminal backend written in C. It is a core part of the system, acting as an abstraction layer for cross-terminal compatibility and providing the main loop used by the library. Build integration expects pkg-config to be available and uses it to obtain the required compiler and linker flags for nuterm via its .pc file.
 
 ## Makefile instructions:
 
