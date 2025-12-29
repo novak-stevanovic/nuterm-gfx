@@ -2,7 +2,7 @@
 
 __Nuterm-GFX__ is a retained-mode terminal GUI library written in C. It implements a __multi-pass layout process__ (inspired by GTK) that uses an arena allocator, providing __great performance__. Core pieces are the the Object (base GUI component type), the Scene (drives the layout), the Scene Focuser (tracks focus and routes input/events to the focused objects), the Stage (combines per-object drawings into a single buffer, ready for rendering), the Renderer(outputs the resulting buffer onto the terminal screen), and the Taskmaster (allows for executing asynchronous tasks).
 
-The library is built from the ground up with strong __modularity__: Scene, Stage, Focuser, Renderer, Object, etc. are all implemented as abstract types, giving the user the ability to provide their own implementation and/or mix up different implementations. The codebase was intentionally written in an OOP-inspired style, but without overdoing object-orientation, as heavy OOP patterns are often inconvenient in C. Object-oriented principles are applied with restraint, focusing on practicality and clarity, making the process of adding new widgets intuitive and straightforward.
+The library is built from the ground up with strong __modularity__: Scene, Stage, Focuser, Renderer, Object, etc. are all implemented as abstract types, giving the user the ability to provide their own implementation and/or mix up different implementations. The codebase was intentionally written in an OOP-inspired style, but without excessive use of OOP patterns, as heavy OOP abstractions are often inconvenient in C. This combination makes the process of adding new widgets intuitive and straightforward.
 
 ## Dependencies
 
