@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
-#include <shared/_uconv.h>
+#include <shared/uconv.h>
 
 #include "core/object/ntg_label.h"
 #include "core/object/shared/ntg_object_drawing.h"
