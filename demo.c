@@ -20,11 +20,10 @@ bool north_event_fn(ntg_object* object, struct ntg_loop_event event, ntg_loop_ct
     if(event.event.type == NT_EVENT_KEY)
     {
         char c[] = "Ћ";
-        uint32_t utf32;
-        size_t w;
-        uc_utf8_to_utf32((uint8_t*)c, strlen(c), &utf32, 1, 0, &w, NULL);
+        uc_status _status;
+        uint32_t cp = uc_utf8_to_utf32_single((uint8_t*)c, strlen(c), 0, &_status);
 
-        if(nt_key_event_utf32_check(event.event.key_data, utf32, false))
+        if(nt_key_event_utf32_check(event.event.key_data, cp, false))
         {
             ntg_loop_ctx_break(ctx);
             return true;

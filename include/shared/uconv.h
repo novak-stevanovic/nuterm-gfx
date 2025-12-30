@@ -86,40 +86,43 @@ typedef uint8_t uc_flags;
 /* CONVENIENCE FUNCTIONS/MACROS */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Checks if the codepoint is in Unicode range.
+/* Checks if the codepoint is in Unicode range.
  *
  * POSSIBLE FLAGS:
  * 1) UC_FLAG_ALLOW_SURROGATE - If the codepoint is in the surrogate range,
  * the function will return true.
  *
- * RETURN VALUE: true or false.
-*/
+ * RETURN VALUE: true or false. */
 bool uc_utf32_is_in_range(uint32_t utf32_codepoint, uc_flags flags);
 
 /* ------------------------------------------------------ */
 
-/**
- * @brief Determines the length of a UTF8 unit depending on the provided
- * start byte.
+/* Determines the length of a UTF8 unit depending on the provided start byte.
  *
  * RETURN VALUE: 
  * ON SUCCESS: Integer value [1-4].
- * ON FALURE: SIZE_MAX if the start byte is of invalid format.
-*/
+ * ON FALURE: SIZE_MAX if the start byte is of invalid format. */
 size_t uc_utf8_unit_len(uint8_t utf8_sbyte);
+
+/* ------------------------------------------------------ */
+
+uint32_t uc_utf8_to_utf32_single(const uint8_t* utf8_seq,
+        size_t len, uc_flags flags, uc_status* out_status);
+
+/* ------------------------------------------------------ */
+
+void uc_utf32_to_utf8_single(uint32_t utf32, uc_flags flags,
+        uint8_t* out_utf8_seq, size_t* out_len,
+        uc_status* out_status);
 
 /* -------------------------------------------------------------------------- */
 /* UTF8 -> UTF32 */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Converts a UTF-8 encoded byte sequence to UTF-32.
- *
- * This function reads up to `len` bytes from the input UTF-8 sequence and decodes
+/* This function reads up to `len` bytes from the input UTF-8 sequence and decodes
  * it into UTF-32 code points, storing the result in `out_utf32_seq`. The conversion
  * stops either when the input is fully consumed or when the output buffer reaches
- * its capacity(or when an error occurs).
+ * its `capacity` (or when an error occurs).
  *
  * If `out_utf32_seq` is NULL, the function will perform the decoding but will not
  * store the result. This can be used to check for errors and to find out the
@@ -128,14 +131,6 @@ size_t uc_utf8_unit_len(uint8_t utf8_sbyte);
  *
  * `out_width` will return the number of successfully decoded and stored codepoints.
  * This applies for all status codes(failure or success).
- *
- * @param utf8_eq        Pointer to the input UTF-8 sequence.
- * @param len            Number of bytes in `utf8_seq` to process.
- * @param out_utf32_seq  Output buffer for the resulting UTF-32 code points.
- * @param capacity       Maximum number of UTF-32 code points the output buffer can hold.
- * @param flags          Optional flags.
- * @param out_width      Number of successfully processed UTF-8 characters.
- * @param out_status     Indicates success or a specific error condition. 
  *
  * POSSIBLE FLAGS:
  * 1) UC_FLAG_ALLOW_SURROGATE - If the function runs into a surrogate value, it will
@@ -157,8 +152,7 @@ size_t uc_utf8_unit_len(uint8_t utf8_sbyte);
  * 7) UC_ERR_INVALID_SBYTE - The function ran into a UTF-8 character with a
  * start byte that has an invalid format.
  * 8) UC_ERR_INVALID_CBYTE - The function ran into a UTF-8 character with a
- * continuation byte of invalid format.
- */
+ * continuation byte of invalid format. */
 void uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
         uint32_t* out_utf32_seq, size_t capacity, uc_flags flags,
         size_t* out_width, uc_status* out_status);
@@ -167,10 +161,7 @@ void uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
 /* UTF32 -> UTF8 */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Converts a UTF-32 code point sequence to a UTF-8 encoded byte sequence.
- *
- * This function reads up to `width` UTF-32 code points from the input `utf32_seq`
+/* This function reads up to `width` UTF-32 code points from the input `utf32_seq`
  * and encodes them into UTF-8, storing the result in `out_utf8_seq`. The conversion
  * stops either when all input code points are processed or when the output buffer
  * reaches `capacity` bytes (or when an error occurs).
@@ -183,15 +174,6 @@ void uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
  * `out_width` will return the number of successfully encoded code points, and
  * `out_len` will return the number of bytes successfully written to `out_utf8_seq`.
  * These counts are set regardless of whether the function succeeds or fails.
- *
- * @param utf32_seq      Pointer to the input UTF-32 sequence.
- * @param width          Number of UTF-32 code points.
- * @param out_utf8_seq   Output buffer for the resulting UTF-8 byte sequence.
- * @param capacity       Maximum number of bytes the output buffer can hold.
- * @param flags          Optional flags.
- * @param out_width      Number of successfully encoded UTF-32 code points.
- * @param out_len        Number of bytes successfully written to `out_utf8_seq`.
- * @param out_status     Indicates success or a specific error condition.
  *
  * POSSIBLE FLAGS:
  * 1) UC_FLAG_ALLOW_SURROGATE - If the function encounters a surrogate code point,
@@ -277,6 +259,21 @@ size_t uc_utf8_unit_len(uint8_t utf8_sbyte)
     if(out_status != NULL)                                                     \
         *out_status = (status);                                                \
     return                                                                     \
+
+uint32_t uc_utf8_to_utf32_single(const uint8_t* utf8_seq,
+        size_t len, uc_flags flags, uc_status* out_status)
+{
+    uint32_t _cp;
+    uc_utf8_to_utf32(utf8_seq, len, &_cp, 1, flags, NULL, out_status);
+    return _cp;
+}
+
+void uc_utf32_to_utf8_single(uint32_t utf32, uc_flags flags,
+        uint8_t* out_utf8_seq, size_t* out_len, uc_status* out_status)
+{
+    uc_utf32_to_utf8(&utf32, 1, out_utf8_seq, 4, flags,
+            NULL, out_len, out_status);
+}
 
 void uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
         uint32_t* out_utf32_seq, size_t capacity, uc_flags flags,
