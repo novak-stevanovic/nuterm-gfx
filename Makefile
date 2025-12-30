@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Validation & Global Settings
+# Validation
 # -----------------------------------------------------------------------------
 
 GOAL_COUNT := $(words $(MAKECMDGOALS))
@@ -10,15 +10,34 @@ ifneq ($(GOAL_COUNT),1)
     endif
 endif
 
-# ---------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Public Settings
+# -----------------------------------------------------------------------------
 
 LIB_TYPE ?= so
 
 PREFIX ?= /usr/local
-
-PC_PREFIX ?= /usr/local/lib/pkgconfig
+PC_PREFIX ?= $(PREFIX)/lib/pkgconfig
+PC_WITH_PATH =
 
 OPT ?= 2
+
+CC = gcc
+AR = ar
+MAKE = make
+
+# -----------------------------------------------------------------------------
+# Private Settings
+# -----------------------------------------------------------------------------
+
+LIB_NAME = ntg
+LIB_PC = $(LIB_NAME).pc
+
+C_SRC = $(shell find src -name "*.c")
+C_OBJ = $(patsubst src/%.c,build/%.o,$(C_SRC))
+
+INSTALL_INCLUDE = include/*
+
 OPT_FLAG = -O$(OPT)
 
 DEBUG ?= 1
@@ -27,23 +46,12 @@ ifeq ($(DEBUG),1)
     OPT_FLAG = -O0
 endif
 
-# ---------------------------------------------------------
-
-LIB_NAME = ntg
-LIB_PC = $(LIB_NAME).pc
-
-CC = gcc
-AR = ar
-MAKE = make
-
-C_SRC = $(shell find src -name "*.c")
-C_OBJ = $(patsubst src/%.c,build/%.o,$(C_SRC))
-
-INSTALL_INCLUDE = include/*
-
 # -----------------------------------------------------------------------------
 # Build Flags
 # -----------------------------------------------------------------------------
+
+DEP_CFLAGS = -pthread
+DEP_LFLAGS = -pthread -lm
 
 # ---------------------------------------------------------
 # pkgconf
@@ -56,19 +64,16 @@ _PC_INCLUDEDIR = $${exec_prefix}/include
 _PC_NAME = $(LIB_NAME)
 _PC_DESCRIPTION = Terminal GUI library
 _PC_VERSION = 1.0.0
-_PC_LIBS = -L$${libdir} -l$(LIB_NAME)
-_PC_CFLAGS = -I$${includedir}/$(LIB_NAME)
+_PC_LIBS = -L$${libdir} -l$(LIB_NAME) $(DEP_CFLAGS)
+_PC_CFLAGS = -I$${includedir}/$(LIB_NAME) $(DEP_LFLAGS)
 _PC_REQUIRES = nuterm
 _PC_REQUIRES_PRIVATE =
 
 PC_DEPS = $(_PC_REQUIRES)
 ifneq ($(PC_DEPS),)
-    PC_CFLAGS = $(shell pkgconf --silence-errors --cflags $(PC_DEPS))
-    PC_LFLAGS = $(shell pkgconf --silence-errors --libs $(PC_DEPS))
+    DEP_CFLAGS += $(shell pkgconf --with-path=$(PC_WITH_PATH) --silence-errors --cflags $(PC_DEPS))
+    DEP_LFLAGS += $(shell pkgconf --with-path=$(PC_WITH_PATH) --silence-errors --libs $(PC_DEPS))
 endif
-
-DEP_CFLAGS = $(PC_CFLAGS)
-DEP_LFLAGS = $(PC_LFLAGS) -lm
 
 # ---------------------------------------------------------
 # Source Flags
@@ -87,19 +92,19 @@ $(SRC_CFLAGS_WARN) $(SRC_CFLAGS_DEBUG) $(SRC_CFLAGS_OPTIMIZATION)
 # Test Flags
 # ---------------------------------------------------------
 
-TEST_CFLAGS_DEBUG = $(DEBUG_FLAG)
-TEST_CFLAGS_OPTIMIZATION = -O0
-TEST_CFLAGS_WARN = -Wall
-TEST_CFLAGS_MAKE = -MMD -MP
-TEST_CFLAGS_INCLUDE = -Iinclude $(DEP_CFLAGS)
+DEMO_CFLAGS_DEBUG = $(DEBUG_FLAG)
+DEMO_CFLAGS_OPTIMIZATION = -O0
+DEMO_CFLAGS_WARN = -Wall
+DEMO_CFLAGS_MAKE = -MMD -MP
+DEMO_CFLAGS_INCLUDE = -Iinclude $(DEP_CFLAGS)
 
-TEST_CFLAGS = -c $(TEST_CFLAGS_INCLUDE) $(TEST_CFLAGS_MAKE) \
-$(TEST_CFLAGS_WARN) $(TEST_CFLAGS_DEBUG) $(TEST_CFLAGS_OPTIMIZATION)
+DEMO_CFLAGS = -c $(DEMO_CFLAGS_INCLUDE) $(DEMO_CFLAGS_MAKE) \
+$(DEMO_CFLAGS_WARN) $(DEMO_CFLAGS_DEBUG) $(DEMO_CFLAGS_OPTIMIZATION)
 
-TEST_LFLAGS = -L. -l$(LIB_NAME) $(DEP_LFLAGS)
+DEMO_LFLAGS = -L. -l$(LIB_NAME) $(DEP_LFLAGS)
 
 ifeq ($(LIB_TYPE),so)
-    TEST_LFLAGS += -Wl,-rpath,.
+    DEMO_LFLAGS += -Wl,-rpath,.
 endif
 
 # ---------------------------------------------------------
@@ -136,11 +141,11 @@ $(C_OBJ): build/%.o: src/%.c
 # demo -----------------------------------------------------
 
 demo: $(C_OBJ) build/demo.o $(LIB_FILE)
-	$(CC) build/demo.o -o $@ $(TEST_LFLAGS)
+	$(CC) build/demo.o -o $@ $(DEMO_LFLAGS)
 
 build/demo.o: demo.c
 	@mkdir -p $(dir $@)
-	$(CC) $(TEST_CFLAGS) demo.c -o $@
+	$(CC) $(DEMO_CFLAGS) demo.c -o $@
 
 # install --------------------------------------------------
 

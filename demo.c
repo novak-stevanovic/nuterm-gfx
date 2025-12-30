@@ -13,12 +13,18 @@
 #include "core/object/ntg_color_block.h"
 #include "core/object/ntg_label.h"
 #include "shared/ntg_log.h"
+#include "shared/uconv.h"
 
 bool north_event_fn(ntg_object* object, struct ntg_loop_event event, ntg_loop_ctx* ctx)
 {
     if(event.event.type == NT_EVENT_KEY)
     {
-        if(nt_key_event_utf32_check(event.event.key_data, 'Q', false))
+        char c[] = "Ћ";
+        uint32_t utf32;
+        size_t w;
+        uc_utf8_to_utf32((uint8_t*)c, strlen(c), &utf32, 1, 0, &w, NULL);
+
+        if(nt_key_event_utf32_check(event.event.key_data, utf32, false))
         {
             ntg_loop_ctx_break(ctx);
             return true;
@@ -68,11 +74,13 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
         .fg = nt_color_new_rgb(nt_rgb_new(255, 255, 255)),
         .style = nt_style_new(NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD)
     };
-    struct ntg_strv north_text = ntg_strv_from_cstr("Novak");
+    struct ntg_strv north_text = ntg_strv_from_cstr("Novak Novak Novak Novak Novak Novak Novak\nEmilija");
     ntg_label_set_text(north, north_text);
     struct ntg_label_opts north_opts = ntg_label_opts_def();
     north_opts.gfx = north_gfx;
-    north_opts.palignment = NTG_TEXT_ALIGNMENT_1;
+    north_opts.palignment = NTG_TEXT_ALIGNMENT_JUSTIFY;
+    north_opts.indent = 2;
+    north_opts.wrap = NTG_TEXT_WRAP_WORD_WRAP;
     ntg_label_set_opts(north, north_opts);
     ntg_object_set_event_fn((ntg_object*)north, north_event_fn);
 
@@ -83,8 +91,8 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
             nt_color_new_rgb(nt_rgb_new(255, 255, 255)));
     ntg_def_border_set_style(north_border, north_border_style);
     struct ntg_padding_opts north_border_opts = {
-        .width = ntg_padding_width(2, 2, 2, 2),
-        .mode = NTG_PADDING_ENABLE_ALWAYS
+        .width = ntg_padding_width(2, 0, 2, 2),
+        .mode = NTG_PADDING_ENABLE_ON_NATURAL
     };
     ntg_padding_set_opts((ntg_padding*)north_border, north_border_opts);
     ntg_object_set_border((ntg_object*)north, (ntg_padding*)north_border);
@@ -92,7 +100,12 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     // North padding
     ntg_def_padding* north_padding = ntg_def_padding_new(es);
     _ntg_def_padding_init_(north_padding);
+    struct ntg_padding_opts north_padding_opts = {
+        .width = ntg_padding_width(2, 0, 2, 2),
+        .mode = NTG_PADDING_ENABLE_ON_NATURAL
+    };
     // ntg_object_set_padding((ntg_object*)north, (ntg_padding*)north_padding);
+    ntg_padding_set_opts((ntg_padding*)north_padding, north_padding_opts);
 
     // Center
     ntg_box* center = ntg_box_new(es);
@@ -124,9 +137,17 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     south_opts.salignment = NTG_ALIGNMENT_2;
     south_opts.spacing = 10;
     ntg_box_set_opts(south, south_opts);
-    // ntg_object_set_min_size(_south, ntg_xy(1000, 1000));
+    ntg_object_set_min_size((ntg_object*)south, ntg_xy(1000, 1000));
     struct nt_rgb rgb_white = nt_rgb_new(255, 255, 255);
     ntg_object_set_background((ntg_object*)south, ntg_vcell_bg(nt_color_new_rgb(rgb_white)));
+    ntg_def_padding* south_padding = ntg_def_padding_new(es);
+    _ntg_def_padding_init_(south_padding);
+    struct ntg_padding_opts south_padding_opts = {
+        .width = ntg_padding_width(2, 0, 2, 2),
+        .mode = NTG_PADDING_ENABLE_ALWAYS
+    };
+    ntg_padding_set_opts((ntg_padding*)south_padding, south_padding_opts);
+    ntg_object_set_padding((ntg_object*)south, (ntg_padding*)south_padding);
 
     // South children
     ntg_color_block* south1 = ntg_color_block_new(es);
@@ -163,7 +184,6 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     // Connect root-scene-stage
     ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
 
-    ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
     ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
 
     // Loop, renderer, taskmaster
