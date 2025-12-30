@@ -154,7 +154,7 @@ install: $(LIB_PC)
 	ln -f $(LIB_FILE) $(PREFIX)/lib
 	@mkdir -p $(PREFIX)/include/$(LIB_NAME) # headers
 	cp -r $(INSTALL_INCLUDE) $(PREFIX)/include/$(LIB_NAME)
-	mkdir -p $(PC_PREFIX) # pc file
+	@mkdir -p $(PC_PREFIX) # pc file
 	mv $(LIB_PC) $(PC_PREFIX)
 
 $(LIB_PC):
