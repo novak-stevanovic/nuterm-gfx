@@ -8,7 +8,7 @@
 #include "nt_charbuff.h"
 #include "shared/ntg_log.h"
 
-#define CHARBUFF_CAP 100000
+#define CHARBUFF_CAP 200000
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -36,8 +36,6 @@ void _ntg_def_renderer_init_(ntg_def_renderer* renderer)
 
     renderer->__backbuff = ntg_stage_drawing_new();
     assert(renderer->__backbuff != NULL);
-    renderer->__charbuff = nt_charbuff_new(CHARBUFF_CAP);
-    assert(renderer->__charbuff != NULL);
 
     renderer->__old_size = ntg_xy(0, 0);
 }
@@ -62,8 +60,6 @@ void _ntg_def_renderer_deinit_fn(ntg_entity* entity)
 
     ntg_stage_drawing_destroy(renderer->__backbuff);
     renderer->__backbuff = NULL;
-    nt_charbuff_destroy(renderer->__charbuff);
-    renderer->__charbuff = NULL;
 
     renderer->__old_size = ntg_xy(0, 0);
 
@@ -79,8 +75,12 @@ void _ntg_def_renderer_render_fn(
     ntg_def_renderer* renderer = (ntg_def_renderer*)_renderer;
     struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
     bool resize = !(ntg_xy_are_equal(renderer->__old_size, size));
+
+    // TODO: malloc
+    nt_charbuff* charbuff = nt_charbuff_new(CHARBUFF_CAP);
+    assert(charbuff != NULL);
     
-    nt_buffer_enable(renderer->__charbuff);
+    nt_buffer_enable(charbuff);
 
     if(stage_drawing == NULL)
     {
@@ -97,6 +97,8 @@ void _ntg_def_renderer_render_fn(
     renderer->__old_size = size;
 
     nt_buffer_disable(NT_BUFF_FLUSH);
+
+    nt_charbuff_destroy(charbuff);
 }
 
 /* -------------------------------------------------------------------------- */

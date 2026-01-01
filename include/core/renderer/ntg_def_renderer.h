@@ -17,7 +17,6 @@ struct ntg_def_renderer
     ntg_renderer __base;
 
     ntg_stage_drawing* __backbuff;
-    nt_charbuff* __charbuff;
 
     struct ntg_xy __old_size;
 };

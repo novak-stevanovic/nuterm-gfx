@@ -36,9 +36,10 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: ntg_object: notify scene when padding/border changes
-
+// TODO: ntg_object: notify scene when padding/border changes | *
+// TODO: nuterm: optimize writing to terminal | *
 // TODO: nuterm: add signal event, maybe more event types - allow user to define and post events to loop? | *
+
 // TODO: ntg_scene: implement multi-root system | **
 // TODO: ntg_taskmaster: full rework | **
 // TODO: ntg_list and/or ntg_table: implement | **
