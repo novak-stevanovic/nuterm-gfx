@@ -61,6 +61,25 @@ void ntg_event_sub_vec_append(
     ntg_vector_append((ntg_vector*)vec, &sub);
 }
 
+void ntg_event_sub_vec_insert(
+        ntg_event_sub_vec* vec,
+        ntg_entity* observer,
+        ntg_event_handler_fn handler,
+        size_t pos)
+{
+    assert(vec != NULL);
+    assert(observer != NULL);
+    assert(handler != NULL);
+    assert(pos <= vec->_count);
+
+    struct ntg_event_sub sub = {
+        .entity = observer,
+        .handler = handler
+    };
+
+    ntg_vector_insert((ntg_vector*)vec, pos, &sub);
+}
+
 void ntg_event_sub_vec_remove(
         ntg_event_sub_vec* vec,
         ntg_entity* observer,

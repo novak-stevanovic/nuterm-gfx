@@ -15,6 +15,12 @@
 #include "shared/ntg_log.h"
 #include "shared/uconv.h"
 
+struct loop_ctx_data
+{
+    ntg_label* north;
+    ntg_color_block* center2;
+};
+
 bool north_event_fn(ntg_object* object, struct ntg_loop_event event, ntg_loop_ctx* ctx)
 {
     if(event.event.type == NT_EVENT_KEY)
@@ -47,11 +53,36 @@ void __callback_fn(void* data, void* task_result)
 
 bool loop_event_fn(ntg_loop_ctx* ctx, struct ntg_loop_event event)
 {
+    struct loop_ctx_data* data = ctx->data;
+
     if(event.event.type == NT_EVENT_KEY)
     {
         if(nt_key_event_utf32_check(event.event.key_data, 'q', false))
         {
             ntg_loop_ctx_break(ctx);
+            return true;
+        }
+        else if(nt_key_event_utf32_check(event.event.key_data, '1', false))
+        {
+            // struct ntg_xy old = ntg_object_get_min_size((ntg_object*)data->north);
+            // ntg_object_set_min_size((ntg_object*)data->north, ntg_xy_add(old, ntg_xy(0, 5)));
+            struct ntg_label_opts opts = data->north->_opts;
+            opts.wrap = NTG_TEXT_WRAP_NOWRAP;
+            ntg_label_set_opts(data->north, opts);
+            ntg_label_set_text(data->north, ntg_strv_from_cstr("a\nab\nab\nab"));
+
+            // ntg_log_log("NORTH MIN SIZE SET");
+            return true;
+        }
+        else if(nt_key_event_utf32_check(event.event.key_data, '2', false))
+        {
+            struct ntg_label_opts opts = data->north->_opts;
+            opts.wrap = NTG_TEXT_WRAP_WRAP;
+            ntg_label_set_opts(data->north, opts);
+
+            ntg_label_set_text(data->north, ntg_strv_from_cstr(
+                        "novanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovakkkkkkkkkkkkkkkkkkkknovak"
+                        "novanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovakkkkkkkkkkkkkkkkkkkknovak"));
             return true;
         }
     }
@@ -63,10 +94,12 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 {
     // Root
     ntg_border_box* root = ntg_border_box_new(es);
+    ntg_log_log("Root: %p", root);
     _ntg_border_box_init_(root);
 
     // North
     ntg_label* north = ntg_label_new( es);
+    ntg_log_log("North: %p", north);
     _ntg_label_init_(north, NULL);
     struct nt_gfx north_gfx = {
         .bg = nt_color_new_rgb(nt_rgb_new(255, 0, 0)),
@@ -78,7 +111,6 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     struct ntg_label_opts north_opts = ntg_label_opts_def();
     north_opts.gfx = north_gfx;
     north_opts.palignment = NTG_TEXT_ALIGNMENT_JUSTIFY;
-    north_opts.indent = 2;
     north_opts.wrap = NTG_TEXT_WRAP_WORD_WRAP;
     ntg_label_set_opts(north, north_opts);
     ntg_object_set_event_fn((ntg_object*)north, north_event_fn);
@@ -94,7 +126,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
         .mode = NTG_PADDING_ENABLE_ON_NATURAL
     };
     ntg_padding_set_opts((ntg_padding*)north_border, north_border_opts);
-    ntg_object_set_border((ntg_object*)north, (ntg_padding*)north_border);
+    // ntg_object_set_border((ntg_object*)north, (ntg_padding*)north_border);
 
     // North padding
     ntg_def_padding* north_padding = ntg_def_padding_new(es);
@@ -108,6 +140,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     // Center
     ntg_box* center = ntg_box_new(es);
+    ntg_log_log("Center: %p", center);
     _ntg_box_init_(center);
     struct ntg_box_opts center_opts = ntg_box_opts_def();
     center_opts.orientation = NTG_ORIENTATION_V;
@@ -146,7 +179,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
         .mode = NTG_PADDING_ENABLE_ALWAYS
     };
     ntg_padding_set_opts((ntg_padding*)south_padding, south_padding_opts);
-    ntg_object_set_padding((ntg_object*)south, (ntg_padding*)south_padding);
+    // ntg_object_set_padding((ntg_object*)south, (ntg_padding*)south_padding);
 
     // South children
     ntg_color_block* south1 = ntg_color_block_new(es);
@@ -191,18 +224,23 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     _ntg_def_renderer_init_(renderer);
     _ntg_taskmaster_init_(taskmaster);
 
+    struct loop_ctx_data ctx_data = {
+        .north = north,
+        .center2 = center2
+    };
+
     // Run
     struct ntg_loop_run_data loop_data = {
         .event_fn = loop_event_fn,
         .event_mode = NTG_LOOP_EVENT_DISPATCH_FIRST,
         .renderer = (ntg_renderer*)renderer,
         .taskmaster = taskmaster,
-        .framerate = 30,
+        .framerate = 60,
         .stage = (ntg_stage*)stage,
-        .ctx_data = NULL
+        .ctx_data = &ctx_data
     };
 
-    ntg_def_focuser_focus(focuser, (ntg_object*)north);
+    // ntg_def_focuser_focus(focuser, (ntg_object*)north);
     // ntg_def_focuser_focus(focuser, NULL);
     ntg_loop_run(loop, loop_data);
 }

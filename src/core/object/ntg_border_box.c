@@ -93,6 +93,8 @@ void ntg_border_box_set(ntg_border_box* box,
 
     if(object != NULL)
         _ntg_object_add_child((ntg_object*)box, object);
+
+    _ntg_object_mark_change(object);
 }
 
 /* -------------------------------------------------------------------------- */

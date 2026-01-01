@@ -22,7 +22,6 @@ struct ntg_color_block
 ntg_color_block* ntg_color_block_new(ntg_entity_system* system);
 void _ntg_color_block_init_(ntg_color_block* color_block);
 
-nt_color ntg_color_block_get_color(const ntg_color_block* color_block);
 void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
 
 /* -------------------------------------------------------------------------- */

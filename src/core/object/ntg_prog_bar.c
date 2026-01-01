@@ -54,13 +54,8 @@ void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage)
     assert(prog_bar != NULL);
 
     prog_bar->__percentage = _min2_double(1.0, percentage);
-}
 
-double ntg_prog_bar_get_percentage(const ntg_prog_bar* prog_bar)
-{
-    assert(prog_bar != NULL);
-
-    return prog_bar->__percentage;
+    _ntg_object_mark_change((ntg_object*)prog_bar);
 }
 
 void _ntg_prog_bar_deinit_fn(ntg_entity* entity)

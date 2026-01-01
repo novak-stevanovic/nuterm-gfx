@@ -8,6 +8,7 @@
 #include "shared/ntg_xy.h"
 
 typedef struct ntg_object ntg_object;
+typedef struct ntg_scene ntg_scene;
 
 #define NTG_EVENT_LOOP_RSZ 1
 struct ntg_event_loop_rsz_data
@@ -59,6 +60,14 @@ struct ntg_event_scene_objadd_data
 struct ntg_event_scene_objrm_data
 {
     ntg_object* object;
+};
+
+#define NTG_EVENT_SCENE_CHANGE 11
+
+#define NTG_EVENT_STAGE_SCNCHNG 10
+struct ntg_event_stage_scnchng_data
+{
+    ntg_scene *old, *new;
 };
 
 #endif // _NTG_EVENT_TYPE_H_

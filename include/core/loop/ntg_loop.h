@@ -25,7 +25,8 @@ struct ntg_loop_ctx
     ntg_taskmaster* _taskmaster;
     ntg_stage* _stage;
     void* data;
-    unsigned int _elapsed;
+    uint64_t _elapsed;
+    uint64_t _frame;
 };
 
 struct ntg_loop_event

@@ -165,6 +165,8 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
 
     label->_opts = opts;
     ntg_object_set_background((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
+
+    _ntg_object_mark_change((ntg_object*)label);
 }
 
 struct ntg_strv ntg_label_get_text(const ntg_label* label)
@@ -210,6 +212,8 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
     };
 
     if(label->_opts.autotrim) trim_text(label);
+
+    _ntg_object_mark_change((ntg_object*)label);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -518,8 +522,8 @@ static struct ntg_object_measure measure_nowrap_fn(
     else
     {
         return (struct ntg_object_measure) {
-            .min_size = _max2_size(rows->count, DEFAULT_SIZE),
-            .natural_size = _max2_size(rows->count, DEFAULT_SIZE),
+            .min_size = _max2_size(row_count, DEFAULT_SIZE),
+            .natural_size = _max2_size(row_count, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }

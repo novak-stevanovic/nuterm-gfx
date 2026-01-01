@@ -11,18 +11,13 @@
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-nt_color ntg_color_block_get_color(const ntg_color_block* color_block)
-{
-    assert(color_block != NULL);
-
-    return color_block->__color;
-}
-
 void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
 {
     assert(color_block != NULL);
 
     color_block->__color = color;
+
+    _ntg_object_mark_change((ntg_object*)color_block);
 }
 
 ntg_color_block* ntg_color_block_new(ntg_entity_system* system)

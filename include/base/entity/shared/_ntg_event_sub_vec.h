@@ -29,6 +29,11 @@ void ntg_event_sub_vec_append(
         ntg_event_sub_vec* vec,
         ntg_entity* observer,
         ntg_event_handler_fn handler);
+void ntg_event_sub_vec_insert(
+        ntg_event_sub_vec* vec,
+        ntg_entity* observer,
+        ntg_event_handler_fn handler,
+        size_t pos);
 void ntg_event_sub_vec_remove(
         ntg_event_sub_vec* vec,
         ntg_entity* observer,

@@ -259,6 +259,8 @@ void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size)
     assert(object != NULL);
 
     object->__min_size = size;
+
+    _ntg_object_mark_change(object);
 }
 
 struct ntg_xy ntg_object_get_max_size(ntg_object* object)
@@ -273,6 +275,8 @@ void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size)
     assert(object != NULL);
 
     object->__max_size = size;
+
+    _ntg_object_mark_change(object);
 }
 
 struct ntg_xy ntg_object_get_grow(const ntg_object* object)
@@ -287,6 +291,8 @@ void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow)
     assert(object != NULL);
 
     object->__grow = grow;
+
+    _ntg_object_mark_change(object);
 }
 
 /* ---------------------------------------------------------------- */
@@ -465,6 +471,7 @@ void ntg_object_set_background(ntg_object* object, struct ntg_vcell background)
     assert(object != NULL);
 
     object->_background = background;
+    _ntg_object_mark_change(object);
 }
 
 /* ---------------------------------------------------------------- */
@@ -750,6 +757,11 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
             NTG_EVENT_OBJECT_CHLDRM, &data);
 }
 
+void _ntg_object_mark_change(ntg_object* object)
+{
+    ntg_entity_raise_event((ntg_entity*)object, NULL, NTG_EVENT_OBJECT_CHANGE, NULL);
+}
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
@@ -774,6 +786,8 @@ void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child)
     struct ntg_event_object_chldadd_dcr_data data = { .child = child };
     ntg_entity_raise_event((ntg_entity*)object, NULL,
             NTG_EVENT_OBJECT_CHLDADD_DCR, &data);
+
+    _ntg_object_mark_change(object);
 }
 
 void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
@@ -796,6 +810,8 @@ void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
     struct ntg_event_object_chldrm_dcr_data data = { .child = child };
     ntg_entity_raise_event((ntg_entity*)object, NULL,
             NTG_EVENT_OBJECT_CHLDRM_DCR, &data);
+
+    _ntg_object_mark_change(object);
 }
 
 void _ntg_object_rm_children(ntg_object* object)

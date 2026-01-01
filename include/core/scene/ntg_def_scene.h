@@ -15,6 +15,9 @@ typedef struct ntg_def_scene ntg_def_scene;
 struct ntg_def_scene
 {
     ntg_scene __base;
+
+    bool __detected_changes;
+    struct ntg_xy __last_size;
 };
 
 /* -------------------------------------------------------------------------- */

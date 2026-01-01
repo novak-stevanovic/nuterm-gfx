@@ -20,7 +20,7 @@ PREFIX ?= /usr/local
 PC_PREFIX ?= $(PREFIX)/lib/pkgconfig
 PC_WITH_PATH =
 
-OPT ?= 2
+OPT ?= 3
 
 CC = gcc
 AR = ar
@@ -40,7 +40,7 @@ INSTALL_INCLUDE = include/*
 
 OPT_FLAG = -O$(OPT)
 
-DEBUG ?= 1
+DEBUG ?= 0
 ifeq ($(DEBUG),1)
     DEBUG_FLAG = -g
     OPT_FLAG = -O0

@@ -59,21 +59,16 @@ void _ntg_def_border_init_(ntg_def_border* def_border)
 
     _ntg_padding_init_((ntg_padding*)def_border, _ntg_def_border_draw_fn);
 
-    def_border->__style = ntg_def_border_style_def();
-}
-
-struct ntg_def_border_style ntg_def_border_get_style(const ntg_def_border* border)
-{
-    assert(border != NULL);
-
-    return border->__style;
+    def_border->_style = ntg_def_border_style_def();
 }
 
 void ntg_def_border_set_style(ntg_def_border* border, struct ntg_def_border_style style)
 {
     assert(border != NULL);
 
-    border->__style = style;
+    border->_style = style;
+
+    _ntg_object_mark_change((ntg_object*)border);
 }
 
 /* ------------------------------------------------------ */
@@ -118,7 +113,7 @@ void _ntg_def_border_deinit_fn(ntg_entity* entity)
 {
     ntg_def_border* border = (ntg_def_border*)entity;
 
-    border->__style = (struct ntg_def_border_style) {0};
+    border->_style = (struct ntg_def_border_style) {0};
     _ntg_padding_deinit_fn(entity);
 }
 
@@ -170,7 +165,7 @@ static void draw_padding(const ntg_def_border* border,
         for(j = 0; j < size.x; j++)
         {
             it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(j, i));
-            (*it_cell) = border->__style.padding;
+            (*it_cell) = border->_style.padding;
         }
     }
 }
@@ -193,16 +188,16 @@ static void draw_north(const ntg_def_border* border,
         if(border_width.north > 0)
         {
             it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(0, 0));
-            (*it_cell) = border->__style.top_left;
+            (*it_cell) = border->_style.top_left;
 
             for(j = 1; j < (size.x - 1); j++)
             {
                 it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(j, 0));
-                (*it_cell) = border->__style.top;
+                (*it_cell) = border->_style.top;
             }
 
             it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(size.x - 1, 0));
-            (*it_cell) = border->__style.top_right;
+            (*it_cell) = border->_style.top_right;
         }
     }
     else if(size.x >= 1)
@@ -212,7 +207,7 @@ static void draw_north(const ntg_def_border* border,
             for(j = 0; j < size.x; j++)
             {
                 it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(j, 0));
-                (*it_cell) = border->__style.top;
+                (*it_cell) = border->_style.top;
             }
         }
     }
@@ -239,7 +234,7 @@ static void draw_east(const ntg_def_border* border,
             for(i = 0; i < size.y; i++)
             {
                 it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(size.x - 1, i));
-                (*it_cell) = border->__style.right;
+                (*it_cell) = border->_style.right;
             }
         }
     }
@@ -250,7 +245,7 @@ static void draw_east(const ntg_def_border* border,
             for(i = 0; i < size.y; i++)
             {
                 it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(size.x - 1, i));
-                (*it_cell) = border->__style.right;
+                (*it_cell) = border->_style.right;
             }
         }
     }
@@ -274,16 +269,16 @@ static void draw_south(const ntg_def_border* border,
         if(border_width.south > 0)
         {
             it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(0, size.y - 1));
-            (*it_cell) = border->__style.bottom_left;
+            (*it_cell) = border->_style.bottom_left;
 
             for(j = 1; j < (size.x - 1); j++)
             {
                 it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(j, size.y - 1));
-                (*it_cell) = border->__style.top;
+                (*it_cell) = border->_style.top;
             }
 
             it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(size.x - 1, size.y - 1));
-            (*it_cell) = border->__style.top_right;
+            (*it_cell) = border->_style.top_right;
         }
     }
     else if(size.x >= 1)
@@ -293,7 +288,7 @@ static void draw_south(const ntg_def_border* border,
             for(j = 0; j < size.x; j++)
             {
                 it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(j, size.y - 1));
-                (*it_cell) = border->__style.top;
+                (*it_cell) = border->_style.top;
             }
         }
     }
@@ -319,7 +314,7 @@ static void draw_west(const ntg_def_border* border,
             for(i = 0; i < size.y; i++)
             {
                 it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(0, i));
-                (*it_cell) = border->__style.left;
+                (*it_cell) = border->_style.left;
             }
         }
 
@@ -331,7 +326,7 @@ static void draw_west(const ntg_def_border* border,
             for(i = 0; i < size.y; i++)
             {
                 it_cell = ntg_object_drawing_at_(out_drawing, ntg_xy(0, i));
-                (*it_cell) = border->__style.left;
+                (*it_cell) = border->_style.left;
             }
         }
     }

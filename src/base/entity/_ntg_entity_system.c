@@ -126,7 +126,23 @@ void ntg_entity_system_add_observe(
     assert(observer_data != NULL);
     assert(observed_data != NULL);
 
-    ntg_event_sub_vec_append(observed_data->subscribers, observer, handler_fn);
+    ntg_event_sub_vec* subs = observed_data->subscribers;
+    if(observer == observed)
+    {
+        size_t i;
+        struct ntg_event_sub it_sub;
+        for(i = 0; i < subs->_count; i++)
+        {
+            it_sub = subs->_data[i];
+            if(it_sub.entity != observer) break;
+        }
+
+        ntg_event_sub_vec_insert(subs, observer, handler_fn, i);
+    }
+    else
+    {
+        ntg_event_sub_vec_append(subs, observer, handler_fn);
+    }
 }
 
 void ntg_entity_system_rm_observe(

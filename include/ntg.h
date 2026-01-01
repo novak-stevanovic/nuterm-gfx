@@ -36,7 +36,8 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: ntg_scene: optimize ntg_def_scene layout fn | * | ACTIVE
+// TODO: ntg_object: notify scene when padding/border changes
+
 // TODO: nuterm: add signal event, maybe more event types - allow user to define and post events to loop? | *
 // TODO: ntg_scene: implement multi-root system | **
 // TODO: ntg_taskmaster: full rework | **

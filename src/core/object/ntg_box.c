@@ -70,6 +70,8 @@ void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
     assert(box != NULL);
     
     box->_opts = opts;
+
+    _ntg_object_mark_change((ntg_object*)box);
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child)

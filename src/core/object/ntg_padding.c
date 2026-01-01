@@ -33,6 +33,8 @@ void ntg_padding_set_opts(ntg_padding* padding, struct ntg_padding_opts opts)
     assert(padding != NULL);
 
     padding->_opts = opts;
+
+    _ntg_object_mark_change((ntg_object*)padding);
 }
 
 /* -------------------------------------------------------------------------- */

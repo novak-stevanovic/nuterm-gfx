@@ -140,6 +140,8 @@ void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow);
 /* PADDING & BORDER */
 /* ------------------------------------------------------ */
 
+// TODO: raise appropriate event for scene
+
 const ntg_padding* ntg_object_get_padding(const ntg_object* object);
 ntg_padding* ntg_object_get_padding_(ntg_object* object);
 ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding);
@@ -214,6 +216,8 @@ void _ntg_object_deinit_fn(ntg_entity* entity);
 /* object & child must be widgets */
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
+
+void _ntg_object_mark_change(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */

@@ -20,7 +20,7 @@ struct ntg_def_border
 {
     ntg_padding __base;
 
-    struct ntg_def_border_style __style;
+    struct ntg_def_border_style _style;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -30,7 +30,6 @@ struct ntg_def_border
 ntg_def_border* ntg_def_border_new(ntg_entity_system* system);
 void _ntg_def_border_init_(ntg_def_border* def_border);
 
-struct ntg_def_border_style ntg_def_border_get_style(const ntg_def_border* border);
 void ntg_def_border_set_style(ntg_def_border* border, struct ntg_def_border_style style);
 
 /* ------------------------------------------------------ */

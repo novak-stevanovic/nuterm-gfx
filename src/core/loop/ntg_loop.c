@@ -31,6 +31,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     ctx._app_size = app_size;
     ctx.__loop = true;
     ctx._elapsed = 0;
+    ctx._frame = 0;
     ctx.data = data.ctx_data;
 
     /* loop */
@@ -89,6 +90,8 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
             ntg_renderer_render(data.renderer, drawing);
             ntg_taskmaster_execute_callbacks(data.taskmaster);
+
+            ctx._frame++;
         }
         else
         {
@@ -120,7 +123,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         // Subtract time taken inside the loop iteration
         process_elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
             + (int64_t)(ts_end.tv_nsec - ts_start.tv_nsec);
-        process_elapsed_ns = (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
+        // process_elapsed_ns = (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
 
         process_elapsed_ms = process_elapsed_ns / 1000000LL;
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;

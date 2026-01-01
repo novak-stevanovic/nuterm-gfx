@@ -4,6 +4,7 @@
 #include "core/loop/ntg_loop.h"
 #include "core/scene/ntg_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
+#include "shared/ntg_log.h"
 
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size)
 {
@@ -13,6 +14,7 @@ void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size)
 
     if(stage->_scene != NULL)
         ntg_scene_layout(stage->_scene, size);
+
     stage->__compose_fn(stage, size);
 }
 
@@ -28,6 +30,7 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     assert(stage != NULL);
     if(stage->_scene == scene) return;
 
+    ntg_scene* old_scene = stage->_scene;
     ntg_stage* old_stage = scene->_stage;
 
     if(old_stage != NULL)
@@ -37,6 +40,13 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         _ntg_scene_set_stage(scene, stage);
 
     stage->_scene = scene;
+
+    struct ntg_event_stage_scnchng_data data = {
+        .old = old_scene,
+        .new = scene
+    };
+    ntg_entity_raise_event((ntg_entity*)stage, NULL,
+            NTG_EVENT_STAGE_SCNCHNG, &data);
 }
 
 bool ntg_stage_feed_event(
