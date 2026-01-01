@@ -44,8 +44,8 @@ void _ntg_box_init_(ntg_box* box)
     assert(box != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .layout_init_fn = _ntg_box_layout_init_fn,
-        .layout_deinit_fn = _ntg_box_layout_deinit_fn,
+        .init_fn = _ntg_box_layout_init_fn,
+        .deinit_fn = _ntg_box_layout_deinit_fn,
         .measure_fn = _ntg_box_measure_fn,
         .constrain_fn = _ntg_box_constrain_fn,
         .arrange_fn = __ntg_box_arrange_fn,

@@ -53,8 +53,8 @@ void _ntg_border_box_init_(ntg_border_box* box)
     assert(box != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .layout_init_fn = NULL,
-        .layout_deinit_fn = NULL,
+        .init_fn = NULL,
+        .deinit_fn = NULL,
         .measure_fn = _ntg_border_box_measure_fn,
         .constrain_fn = _ntg_border_box_constrain_fn,
         .arrange_fn = _ntg_border_box_arrange_fn,

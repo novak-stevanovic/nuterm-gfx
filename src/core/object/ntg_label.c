@@ -137,8 +137,8 @@ void _ntg_label_init_(ntg_label* label, ntg_label_post_draw_fn post_draw_fn)
     assert(label != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .layout_init_fn = NULL,
-        .layout_deinit_fn = NULL,
+        .init_fn = NULL,
+        .deinit_fn = NULL,
         .measure_fn = _ntg_label_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,

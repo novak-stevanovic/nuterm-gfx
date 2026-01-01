@@ -479,16 +479,16 @@ void* ntg_object_layout_init(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return (object->__layout_init_fn != NULL) ?
-        object->__layout_init_fn(object) : NULL;
+    return (object->__layout_ops.init_fn != NULL) ?
+        object->__layout_ops.init_fn(object) : NULL;
 }
 
 void ntg_object_layout_deinit(const ntg_object* object, void* layout_data)
 {
     assert(object != NULL);
 
-    if(object->__layout_deinit_fn != NULL)
-        object->__layout_deinit_fn(object, layout_data);
+    if(object->__layout_ops.deinit_fn != NULL)
+        object->__layout_ops.deinit_fn(object, layout_data);
 }
 
 struct ntg_object_measure ntg_object_measure(
@@ -516,9 +516,9 @@ struct ntg_object_measure ntg_object_measure(
     };
 
     struct ntg_object_measure result;
-    if(object->__measure_fn != NULL)
+    if(object->__layout_ops.measure_fn != NULL)
     {
-        result = object->__measure_fn(object, orientation, for_size,
+        result = object->__layout_ops.measure_fn(object, orientation, for_size,
                 ctx, out, layout_data, arena);
     }
     else result = (struct ntg_object_measure) {0};
@@ -564,7 +564,7 @@ void ntg_object_constrain(
     assert(arena != NULL);
 
     /* Check if to call wrapped constrain fn */
-    if((size == 0) || (object->__constrain_fn == NULL))
+    if((size == 0) || (object->__layout_ops.constrain_fn == NULL))
     {
         const ntg_object_vec* children = object->__children;
         if(children == NULL) return;
@@ -575,7 +575,7 @@ void ntg_object_constrain(
     }
     else
     {
-        object->__constrain_fn(object, orientation, size,
+        object->__layout_ops.constrain_fn(object, orientation, size,
                 ctx, out, layout_data, arena);
     }
 }
@@ -592,7 +592,7 @@ void ntg_object_arrange(
     assert(out != NULL);
     assert(arena != NULL);
 
-    if(ntg_xy_size_is_zero(size) || (object->__arrange_fn == NULL))
+    if(ntg_xy_size_is_zero(size) || (object->__layout_ops.arrange_fn == NULL))
     {
         const ntg_object_vec* children = object->__children;
         if(children == NULL) return;
@@ -603,7 +603,7 @@ void ntg_object_arrange(
     }
     else
     {
-        object->__arrange_fn(object, size, ctx, out, layout_data, arena);
+        object->__layout_ops.arrange_fn(object, size, ctx, out, layout_data, arena);
     }
 }
 
@@ -631,8 +631,8 @@ void ntg_object_draw(
         }
     }
 
-    if(object->__draw_fn != NULL)
-        object->__draw_fn(object, size, ctx, out, layout_data, arena);
+    if(object->__layout_ops.draw_fn != NULL)
+        object->__layout_ops.draw_fn(object, size, ctx, out, layout_data, arena);
 }
 
 /* ------------------------------------------------------ */
@@ -667,7 +667,7 @@ void ntg_object_set_event_fn(
 
 static void __init_default_values(ntg_object* object);
 
-void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops object_data)
+void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops layout_ops)
 {
     assert(object != NULL);
 
@@ -676,12 +676,7 @@ void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops object_d
     object->__children = ntg_object_vec_new();
     object->_background = ntg_vcell_default();
     object->__scene = NULL;
-    object->__layout_init_fn = object_data.layout_init_fn;
-    object->__layout_deinit_fn = object_data.layout_deinit_fn;
-    object->__measure_fn = object_data.measure_fn;
-    object->__constrain_fn = object_data.constrain_fn;
-    object->__arrange_fn = object_data.arrange_fn;
-    object->__draw_fn = object_data.draw_fn;
+    object->__layout_ops = layout_ops;
     object->__event_fn = NULL;
 }
 
@@ -695,12 +690,7 @@ static void __init_default_values(ntg_object* object)
     object->__max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
     object->__grow = ntg_xy(1, 1);
 
-    object->__layout_init_fn = NULL;
-    object->__layout_deinit_fn = NULL;
-    object->__measure_fn = NULL;
-    object->__constrain_fn = NULL;
-    object->__arrange_fn = NULL;
-    object->__draw_fn = NULL;
+    object->__layout_ops = (struct ntg_object_layout_ops) {0};
 }
 
 void _ntg_object_deinit_fn(ntg_entity* entity)

@@ -36,8 +36,8 @@ void _ntg_prog_bar_init_(ntg_prog_bar* prog_bar)
     assert(prog_bar != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .layout_init_fn = NULL,
-        .layout_deinit_fn = NULL,
+        .init_fn = NULL,
+        .deinit_fn = NULL,
         .measure_fn = _ntg_prog_bar_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,

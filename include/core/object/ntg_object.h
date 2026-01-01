@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "base/entity/ntg_entity.h"
+#include "core/object/ntg_object_layout.h"
 #include "base/ntg_cell.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "shared/ntg_xy.h"
@@ -13,24 +14,9 @@
 /* -------------------------------------------------------------------------- */
 
 typedef struct ntg_object ntg_object;
-
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_padding ntg_padding;
-typedef struct ntg_object_measure_map ntg_object_measure_map;
-typedef struct ntg_object_size_map ntg_object_size_map;
-typedef struct ntg_object_xy_map ntg_object_xy_map;
-typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
-typedef struct sarena sarena;
-struct ntg_object_measure_ctx;
-struct ntg_object_measure_out;
-struct ntg_object_constrain_ctx;
-struct ntg_object_constrain_out;
-struct ntg_object_arrange_ctx;
-struct ntg_object_arrange_out;
-struct ntg_object_draw_ctx;
-struct ntg_object_draw_out;
-struct ntg_object_key_ctx;
 struct ntg_loop_event;
 
 /* -------------------------------------------------------------------------- */
@@ -42,102 +28,17 @@ typedef bool (*ntg_object_event_fn)(
         struct ntg_loop_event event,
         ntg_loop_ctx* ctx);
 
-/* Dynamically allocates and initializes an object that will be used in the
- * layout process for `object`. */
-typedef void* (*ntg_object_layout_init_fn)(const ntg_object* object);
-
-/* Frees the resources associated with `layout_data` object. */
-typedef void (*ntg_object_layout_deinit_fn)(
-        const ntg_object* object,
-        void* layout_data);
-
 /* ------------------------------------------------------ */
 
-struct ntg_object_measure_ctx
+struct ntg_object_layout_ops
 {
-    const ntg_object_measure_map* measures;
+    ntg_object_layout_init_fn init_fn;
+    ntg_object_layout_deinit_fn deinit_fn;
+    ntg_object_measure_fn measure_fn;
+    ntg_object_constrain_fn constrain_fn;
+    ntg_object_arrange_fn arrange_fn;
+    ntg_object_draw_fn draw_fn;
 };
-
-struct ntg_object_measure_out
-{
-    size_t __placeholder;
-};
-
-/* Measures how much space the object would require along one axis,
- * if the size is constrained for the other axis. */
-typedef struct ntg_object_measure (*ntg_object_measure_fn)(
-        const ntg_object* object,
-        ntg_orientation orientation,
-        size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
-        sarena* arena);
-
-/* ------------------------------------------------------ */
-
-struct ntg_object_constrain_ctx
-{
-    const ntg_object_measure_map* measures;
-};
-
-struct ntg_object_constrain_out
-{
-    ntg_object_size_map* const sizes;
-};
-
-/* Determines the children's sizes for given `orientation` and `size`. */
-typedef void (*ntg_object_constrain_fn)(
-        const ntg_object* object,
-        ntg_orientation orientation,
-        size_t size,
-        struct ntg_object_constrain_ctx ctx,
-        struct ntg_object_constrain_out* out,
-        void* layout_data,
-        sarena* arena);
-
-/* ------------------------------------------------------ */
-
-struct ntg_object_arrange_ctx
-{
-    const ntg_object_xy_map* sizes;
-};
-
-struct ntg_object_arrange_out
-{
-    ntg_object_xy_map* const pos;
-};
-
-/* Determines children positions for given `size`. */
-typedef void (*ntg_object_arrange_fn)(
-        const ntg_object* object,
-        struct ntg_xy size,
-        struct ntg_object_arrange_ctx ctx,
-        struct ntg_object_arrange_out* out,
-        void* layout_data,
-        sarena* arena);
-
-/* ------------------------------------------------------ */
-
-struct ntg_object_draw_ctx
-{
-    const ntg_object_xy_map* sizes;
-    const ntg_object_xy_map* pos;
-};
-
-struct ntg_object_draw_out
-{
-    ntg_object_drawing* const drawing;
-};
-
-/* Creates the `object` drawing. */
-typedef void (*ntg_object_draw_fn)(
-        const ntg_object* object,
-        struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
-        void* layout_data,
-        sarena* arena);
 
 /* ------------------------------------------------------ */
 
@@ -159,12 +60,7 @@ struct ntg_object
 
     struct
     {
-        ntg_object_layout_init_fn __layout_init_fn;
-        ntg_object_layout_deinit_fn __layout_deinit_fn;
-        ntg_object_measure_fn __measure_fn;
-        ntg_object_constrain_fn __constrain_fn;
-        ntg_object_arrange_fn __arrange_fn;
-        ntg_object_draw_fn __draw_fn;
+        struct ntg_object_layout_ops __layout_ops;
         struct ntg_vcell _background;
     };
 
@@ -317,16 +213,6 @@ void ntg_object_set_event_fn(
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
-
-struct ntg_object_layout_ops
-{
-    ntg_object_layout_init_fn layout_init_fn;
-    ntg_object_layout_deinit_fn layout_deinit_fn;
-    ntg_object_measure_fn measure_fn;
-    ntg_object_constrain_fn constrain_fn;
-    ntg_object_arrange_fn arrange_fn;
-    ntg_object_draw_fn draw_fn;
-};
 
 void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops layout_ops);
 void _ntg_object_deinit_fn(ntg_entity* entity);

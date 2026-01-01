@@ -44,8 +44,8 @@ void _ntg_color_block_init_(ntg_color_block* color_block)
     assert(color_block != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .layout_init_fn = NULL,
-        .layout_deinit_fn = NULL,
+        .init_fn = NULL,
+        .deinit_fn = NULL,
         .measure_fn = _ntg_color_block_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,

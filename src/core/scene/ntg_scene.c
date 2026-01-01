@@ -199,8 +199,8 @@ static void on_object_register(ntg_scene* scene, ntg_object* object)
 
     _ntg_object_set_scene(object, scene);
 
-    struct ntg_event_scene_objrgstr_data data = { .object = object };
-    ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_OBJRGSTR, &data);
+    struct ntg_event_scene_objadd_data data = { .object = object };
+    ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_OBJADD, &data);
 }
 
 static void on_object_unregister(ntg_scene* scene, ntg_object* object)
@@ -217,8 +217,8 @@ static void on_object_unregister(ntg_scene* scene, ntg_object* object)
 
     _ntg_object_set_scene(object, NULL);
 
-    struct ntg_event_scene_objunrgstr_data data = { .object = object };
-    ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_OBJUNRGSTR, &data);
+    struct ntg_event_scene_objrm_data data = { .object = object };
+    ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_OBJRM, &data);
 }
 
 static void on_object_register_fn(ntg_object* object, void* _scene)

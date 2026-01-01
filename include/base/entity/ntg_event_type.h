@@ -51,14 +51,14 @@ struct ntg_event_object_chldrm_dcr_data
 
 #define NTG_EVENT_OBJECT_REDRAW 8
 
-#define NTG_EVENT_SCENE_OBJRGSTR 9
-struct ntg_event_scene_objrgstr_data
+#define NTG_EVENT_SCENE_OBJADD 9
+struct ntg_event_scene_objadd_data
 {
     ntg_object* object;
 };
 
-#define NTG_EVENT_SCENE_OBJUNRGSTR 10
-struct ntg_event_scene_objunrgstr_data
+#define NTG_EVENT_SCENE_OBJRM 10
+struct ntg_event_scene_objrm_data
 {
     ntg_object* object;
 };

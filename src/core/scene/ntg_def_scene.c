@@ -428,27 +428,3 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     ntg_object_draw(object, node->size, ctx, &out,
             node->object_layout_data, scene->__layout_arena);
 }
-
-static void scene_observe_fn(ntg_entity* observer, struct ntg_event event)
-{
-    ntg_scene* _scene = (ntg_scene*)observer;
-    ntg_def_scene* scene = (ntg_def_scene*)observer;
-    ntg_scene_graph* graph = ntg_scene_get_graph(_scene);
-
-    if(event.type == NTG_EVENT_SCENE_OBJRGSTR)
-    {
-        struct ntg_event_scene_objrgstr_data* data = event.data;
-        assert(data != NULL);
-
-        struct ntg_scene_node_protected* node = ntg_scene_graph_get(graph, data->object);
-        assert(node != NULL);
-    }
-    else if(event.type == NTG_EVENT_SCENE_OBJUNRGSTR)
-    {
-        // TODO: by the time the def_scene receives this event, the object's node
-        // is already removed from the ntg_scene_graph
-        struct ntg_event_scene_objunrgstr_data* data =
-            (struct ntg_event_scene_objunrgstr_data*)event.data;
-        if(data == NULL) return;
-    }
-}
