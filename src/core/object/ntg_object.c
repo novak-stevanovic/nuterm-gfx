@@ -86,7 +86,7 @@ ntg_object* ntg_object_get_group_root_(ntg_object* object)
     }
 }
 
-const ntg_object* ntg_object_get_root(const ntg_object* object, ntg_object_parent_opts opts)
+const ntg_object* ntg_object_get_root(const ntg_object* object, bool incl_decor)
 {
     assert(object != NULL);
 
@@ -95,7 +95,7 @@ const ntg_object* ntg_object_get_root(const ntg_object* object, ntg_object_paren
     while(true)
     {
         prev = it_obj;
-        it_obj = ntg_object_get_parent(object, opts);
+        it_obj = ntg_object_get_parent(object, incl_decor);
         
         if(it_obj == NULL) return prev;
     }
@@ -103,7 +103,7 @@ const ntg_object* ntg_object_get_root(const ntg_object* object, ntg_object_paren
     return NULL;
 }
 
-ntg_object* ntg_object_get_root_(ntg_object* object, ntg_object_parent_opts opts)
+ntg_object* ntg_object_get_root_(ntg_object* object, bool incl_decor)
 {
     assert(object != NULL);
 
@@ -112,7 +112,7 @@ ntg_object* ntg_object_get_root_(ntg_object* object, ntg_object_parent_opts opts
     while(true)
     {
         prev = it_obj;
-        it_obj = ntg_object_get_parent_(object, opts);
+        it_obj = ntg_object_get_parent_(object, incl_decor);
         
         if(it_obj == NULL) return prev;
     }
@@ -120,35 +120,31 @@ ntg_object* ntg_object_get_root_(ntg_object* object, ntg_object_parent_opts opts
     return NULL;
 }
 
-const ntg_object* ntg_object_get_parent(const ntg_object* object, ntg_object_parent_opts opts)
+const ntg_object* ntg_object_get_parent(const ntg_object* object, bool incl_decor)
 {
     assert(object != NULL);
 
     const ntg_object* group_root;
-    switch(opts)
+    if(incl_decor)
+        return object->__parent;
+    else
     {
-        case NTG_OBJECT_PARENT_INCL_DECOR:
-            return object->__parent;
-        case NTG_OBJECT_PARENT_EXCL_DECOR:
-             group_root = ntg_object_get_group_root(object);
-             return group_root->__parent;
-        default: assert(0);
+         group_root = ntg_object_get_group_root(object);
+         return group_root->__parent;
     }
 }
 
-ntg_object* ntg_object_get_parent_(ntg_object* object, ntg_object_parent_opts opts)
+ntg_object* ntg_object_get_parent_(ntg_object* object, bool incl_decor)
 {
     assert(object != NULL);
 
     ntg_object* group_root;
-    switch(opts)
+    if(incl_decor)
+        return object->__parent;
+    else
     {
-        case NTG_OBJECT_PARENT_INCL_DECOR:
-            return object->__parent;
-        case NTG_OBJECT_PARENT_EXCL_DECOR:
-             group_root = ntg_object_get_group_root_(object);
-             return group_root->__parent;
-        default: assert(0);
+        group_root = ntg_object_get_group_root_(object);
+        return group_root->__parent;
     }
 }
 
@@ -388,7 +384,7 @@ const ntg_padding* ntg_object_get_padding(const ntg_object* object)
 {
     assert(object != NULL);
 
-    const ntg_object* parent = ntg_object_get_parent(object, NTG_OBJECT_PARENT_INCL_DECOR);
+    const ntg_object* parent = ntg_object_get_parent(object, true);
     if((parent == NULL) || (!ntg_object_is_padding(parent)))
         return NULL;
     else return (ntg_padding*)parent;
@@ -398,7 +394,7 @@ ntg_padding* ntg_object_get_padding_(ntg_object* object)
 {
     assert(object != NULL);
 
-    ntg_object* parent = ntg_object_get_parent_(object, NTG_OBJECT_PARENT_INCL_DECOR);
+    ntg_object* parent = ntg_object_get_parent_(object, true);
     if((parent == NULL) || (!ntg_object_is_padding(parent)))
         return NULL;
     else return (ntg_padding*)parent;
@@ -599,7 +595,7 @@ void ntg_object_arrange(
 
         size_t i;
         for(i = 0; i < children->_count; i++)
-            ntg_object_xy_map_set(out->pos, children->_data[i], ntg_xy(0, 0));
+            ntg_object_xy_map_set(out->positions, children->_data[i], ntg_xy(0, 0));
     }
     else
     {
@@ -720,8 +716,7 @@ void _ntg_object_add_child(ntg_object* object, ntg_object* child)
     assert(ntg_object_is_widget(object));
     assert(ntg_object_is_widget(child));
 
-    ntg_object* child_parent = ntg_object_get_parent_(
-            child, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* child_parent = ntg_object_get_parent_(child, false);
     assert(child_parent == NULL);
 
     ntg_object* child_root = ntg_object_get_group_root_(child);
@@ -741,8 +736,7 @@ void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
     assert(ntg_object_is_widget(object));
     assert(ntg_object_is_widget(child));
 
-    ntg_object* child_parent = ntg_object_get_parent_(
-            child, NTG_OBJECT_PARENT_EXCL_DECOR);
+    ntg_object* child_parent = ntg_object_get_parent_(child, false);
     assert(child_parent == object);
 
     ntg_object* child_root = ntg_object_get_group_root_(child);
@@ -766,7 +760,7 @@ void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child)
     assert(child != NULL);
 
     ntg_object* child_parent = ntg_object_get_parent_(
-            child, NTG_OBJECT_PARENT_INCL_DECOR);
+            child, true);
     assert(child_parent == NULL);
 
     // ntg_scene performs this
@@ -788,7 +782,7 @@ void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
     assert(child != NULL);
 
     ntg_object* child_parent = ntg_object_get_parent_(
-            child, NTG_OBJECT_PARENT_INCL_DECOR);
+            child, true);
     assert(child_parent != NULL);
 
     // ntg_scene performs this

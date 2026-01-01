@@ -394,7 +394,7 @@ void __ntg_box_arrange_fn(
                 ntg_xy_from_oxy(_base_offset),
                 ntg_xy_from_oxy(_it_extra_offset));
 
-        ntg_object_xy_map_set(out->pos, it_child, it_pos);
+        ntg_object_xy_map_set(out->positions, it_child, it_pos);
 
         /* Calculate next primary axis position */
         _it_extra_offset.prim_val += (_it_size.prim_val + _spacing_after[i]);

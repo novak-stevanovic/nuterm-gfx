@@ -193,5 +193,5 @@ void _ntg_padding_arrange_fn(
             layout_data->final_width.west,
             layout_data->final_width.north);
 
-    ntg_object_xy_map_set(out->pos, child, offset);
+    ntg_object_xy_map_set(out->positions, child, offset);
 }

@@ -47,17 +47,15 @@ struct ntg_event_object_chldrm_dcr_data
     ntg_object* child;
 };
 
-#define NTG_EVENT_OBJECT_REMEASURE 7
+#define NTG_EVENT_OBJECT_CHANGE 7
 
-#define NTG_EVENT_OBJECT_REDRAW 8
-
-#define NTG_EVENT_SCENE_OBJADD 9
+#define NTG_EVENT_SCENE_OBJADD 8
 struct ntg_event_scene_objadd_data
 {
     ntg_object* object;
 };
 
-#define NTG_EVENT_SCENE_OBJRM 10
+#define NTG_EVENT_SCENE_OBJRM 9
 struct ntg_event_scene_objrm_data
 {
     ntg_object* object;

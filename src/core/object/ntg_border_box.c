@@ -82,7 +82,7 @@ void ntg_border_box_set(ntg_border_box* box,
 
     if(object != NULL)
     {
-        ntg_object* object_parent = ntg_object_get_parent_(object, NTG_OBJECT_PARENT_EXCL_DECOR);
+        ntg_object* object_parent = ntg_object_get_parent_(object, false);
         assert(object_parent == NULL);
     }
 
@@ -400,14 +400,14 @@ void _ntg_border_box_arrange_fn(
     struct ntg_xy center_pos = ntg_xy(west_size.x, north_size.y);
 
     if(north != NULL)
-        ntg_object_xy_map_set(out->pos, north, north_pos);
+        ntg_object_xy_map_set(out->positions, north, north_pos);
     if(east != NULL)
-        ntg_object_xy_map_set(out->pos, east, east_pos);
+        ntg_object_xy_map_set(out->positions, east, east_pos);
     if(south != NULL)
-        ntg_object_xy_map_set(out->pos, south, south_pos);
+        ntg_object_xy_map_set(out->positions, south, south_pos);
     if(west != NULL)
-        ntg_object_xy_map_set(out->pos, west, west_pos);
+        ntg_object_xy_map_set(out->positions, west, west_pos);
     if(center != NULL)
-        ntg_object_xy_map_set(out->pos, center, center_pos);
+        ntg_object_xy_map_set(out->positions, center, center_pos);
 }
 

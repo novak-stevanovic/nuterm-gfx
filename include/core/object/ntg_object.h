@@ -94,18 +94,12 @@ ntg_scene* ntg_object_get_scene(ntg_object* object);
 const ntg_object* ntg_object_get_group_root(const ntg_object* object);
 ntg_object* ntg_object_get_group_root_(ntg_object* object);
 
-typedef enum ntg_object_parent_opts
-{
-    NTG_OBJECT_PARENT_INCL_DECOR,
-    NTG_OBJECT_PARENT_EXCL_DECOR
-} ntg_object_parent_opts;
-
-const ntg_object* ntg_object_get_root(const ntg_object* object, ntg_object_parent_opts opts);
-ntg_object* ntg_object_get_root_(ntg_object* object, ntg_object_parent_opts opts);
+const ntg_object* ntg_object_get_root(const ntg_object* object, bool incl_decor);
+ntg_object* ntg_object_get_root_(ntg_object* object, bool incl_decor);
 
 /* Gets object's parent node. */
-const ntg_object* ntg_object_get_parent(const ntg_object* object, ntg_object_parent_opts opts);
-ntg_object* ntg_object_get_parent_(ntg_object* object, ntg_object_parent_opts opts);
+const ntg_object* ntg_object_get_parent(const ntg_object* object, bool incl_decor);
+ntg_object* ntg_object_get_parent_(ntg_object* object, bool incl_decor);
 
 /* Returns base widget for node group(non-decorator). */
 const ntg_object* ntg_object_get_base_widget(const ntg_object* object);

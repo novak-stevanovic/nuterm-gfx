@@ -32,7 +32,7 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
     assert(scene != NULL);
     if(scene->_root == root) return;
     if(root != NULL)
-        assert(ntg_object_get_parent(root, NTG_OBJECT_PARENT_EXCL_DECOR) == NULL);
+        assert(ntg_object_get_parent(root, false) == NULL);
 
     ntg_object* old_root = scene->_root;
 
@@ -61,7 +61,8 @@ struct ntg_scene_node ntg_scene_get_node(
     assert(scene != NULL);
     assert(object != NULL);
 
-    struct ntg_scene_node_protected* _node = ntg_scene_graph_get(scene->__graph, object);
+    struct ntg_scene_node_protected* _node = ntg_scene_graph_get(
+            scene->__graph, object);
 
     if(_node == NULL) return (struct ntg_scene_node) {0};
 
@@ -165,7 +166,7 @@ void _ntg_scene_deinit_fn(ntg_entity* entity)
     __init_default_values(scene);
 }
 
-ntg_scene_graph* ntg_scene_get_graph(ntg_scene* scene)
+ntg_scene_graph* _ntg_scene_get_graph(ntg_scene* scene)
 {
     assert(scene != NULL);
 

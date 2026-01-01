@@ -94,7 +94,7 @@ void _ntg_scene_init_(ntg_scene* scene,
         ntg_scene_layout_fn layout_fn);
 void _ntg_scene_deinit_fn(ntg_entity* entity);
 
-ntg_scene_graph* ntg_scene_get_graph(ntg_scene* scene);
+ntg_scene_graph* _ntg_scene_get_graph(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */

@@ -15,8 +15,6 @@ typedef struct ntg_def_scene ntg_def_scene;
 struct ntg_def_scene
 {
     ntg_scene __base;
-
-    sarena* __layout_arena;
 };
 
 /* -------------------------------------------------------------------------- */

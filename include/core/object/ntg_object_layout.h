@@ -32,7 +32,7 @@ typedef void (*ntg_object_layout_deinit_fn)(
 
 struct ntg_object_measure_ctx
 {
-    const ntg_object_measure_map* measures;
+    const ntg_object_measure_map* measures; // children measures
 };
 
 struct ntg_object_measure_out
@@ -55,12 +55,12 @@ typedef struct ntg_object_measure (*ntg_object_measure_fn)(
 
 struct ntg_object_constrain_ctx
 {
-    const ntg_object_measure_map* measures;
+    const ntg_object_measure_map* measures; // children measures
 };
 
 struct ntg_object_constrain_out
 {
-    ntg_object_size_map* const sizes;
+    ntg_object_size_map* const sizes; // children sizes
 };
 
 /* Determines the children's sizes for given `orientation` and `size`. */
@@ -77,12 +77,12 @@ typedef void (*ntg_object_constrain_fn)(
 
 struct ntg_object_arrange_ctx
 {
-    const ntg_object_xy_map* sizes;
+    const ntg_object_xy_map* sizes; // children sizes
 };
 
 struct ntg_object_arrange_out
 {
-    ntg_object_xy_map* const pos;
+    ntg_object_xy_map* const positions; // children positions
 };
 
 /* Determines children positions for given `size`. */
@@ -98,8 +98,8 @@ typedef void (*ntg_object_arrange_fn)(
 
 struct ntg_object_draw_ctx
 {
-    const ntg_object_xy_map* sizes;
-    const ntg_object_xy_map* pos;
+    const ntg_object_xy_map* sizes; // children sizes
+    const ntg_object_xy_map* positions; // children positions
 };
 
 struct ntg_object_draw_out

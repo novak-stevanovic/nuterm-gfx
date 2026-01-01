@@ -133,7 +133,7 @@ void _ntg_def_border_draw_fn(
     const ntg_def_border* border = (const ntg_def_border*)object;
     const ntg_object* child = ntg_object_get_children(object).data[0];
 
-    struct ntg_xy child_start = ntg_object_xy_map_get(ctx.pos, child);
+    struct ntg_xy child_start = ntg_object_xy_map_get(ctx.positions, child);
     struct ntg_xy child_size = ntg_object_xy_map_get(ctx.sizes, child);
     struct ntg_xy child_end = ntg_xy_add(child_start, child_size);
 
