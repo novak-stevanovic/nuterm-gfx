@@ -1,9 +1,9 @@
 #ifndef _NTG_DEF_STAGE_H_
 #define _NTG_DEF_STAGE_H_
 
+#include <stdbool.h>
+#include "base/ntg_xy.h"
 #include "core/stage/ntg_stage.h"
-
-typedef struct ntg_def_stage ntg_def_stage;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

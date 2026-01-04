@@ -1,12 +1,11 @@
 #ifndef _NTG_CELL_H_
 #define _NTG_CELL_H_
 
-#include <assert.h>
 #include <stdint.h>
 #include <string.h>
-#include "shared/ntg_xy.h"
+#include "shared/ntg_typedef.h"
 #include "nt_gfx.h"
-#include "shared/ntg_status.h"
+#include "base/ntg_xy.h"
 
 #define NTG_CELL_EMPTY ' '
 
@@ -136,11 +135,11 @@ struct ntg_cell ntg_vcell_overwrite(
 /* CELL GRID */
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_cell_grid
+struct ntg_cell_grid
 {
     struct ntg_cell* __data;
     struct ntg_xy _size;
-} ntg_cell_grid;
+};
 
 void _ntg_cell_grid_init_(ntg_cell_grid* grid);
 void _ntg_cell_grid_deinit_(ntg_cell_grid* grid);
@@ -168,11 +167,11 @@ static inline struct ntg_cell* ntg_cell_grid_at_(
 /* VCELL GRID */
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_vcell_grid
+struct ntg_vcell_grid
 {
     struct ntg_vcell* __data;
     struct ntg_xy _size;
-} ntg_vcell_grid;
+};
 
 void _ntg_vcell_grid_init_(ntg_vcell_grid* grid);
 void _ntg_vcell_grid_deinit_(ntg_vcell_grid* grid);
@@ -200,11 +199,11 @@ void ntg_vcell_grid_set_size(ntg_vcell_grid* grid,
 /* CELL VECGRID */
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_cell_vecgrid
+struct ntg_cell_vecgrid
 {
     ntg_cell_grid __data; // grid + allocated size
     struct ntg_xy __size; // current size
-} ntg_cell_vecgrid;
+};
 
 void _ntg_cell_vecgrid_init_(ntg_cell_vecgrid* vecgrid);
 void _ntg_cell_vecgrid_deinit_(ntg_cell_vecgrid* vecgrid);
@@ -234,11 +233,11 @@ static inline struct ntg_cell* ntg_cell_vecgrid_at_(
 /* VCELL VECGRID */
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_vcell_vecgrid
+struct ntg_vcell_vecgrid
 {
     ntg_vcell_grid __data; // grid + allocated size
     struct ntg_xy __size; // current size
-} ntg_vcell_vecgrid;
+};
 
 void _ntg_vcell_vecgrid_init_(ntg_vcell_vecgrid* vecgrid);
 void _ntg_vcell_vecgrid_deinit_(ntg_vcell_vecgrid* vecgrid);

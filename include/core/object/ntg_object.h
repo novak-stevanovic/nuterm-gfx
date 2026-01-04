@@ -1,32 +1,55 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
-#include <stdbool.h>
-#include <stddef.h>
 #include "base/entity/ntg_entity.h"
-#include "core/object/ntg_object_layout.h"
+#include "base/ntg_xy.h"
 #include "base/ntg_cell.h"
-#include "core/object/shared/ntg_object_vec.h"
-#include "shared/ntg_xy.h"
-
-/* -------------------------------------------------------------------------- */
-/* FORWARD DECLARATIONS */
-/* -------------------------------------------------------------------------- */
-
-typedef struct ntg_object ntg_object;
-typedef struct ntg_scene ntg_scene;
-typedef struct ntg_padding ntg_padding;
-typedef struct ntg_loop_ctx ntg_loop_ctx;
-struct ntg_loop_event;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-typedef bool (*ntg_object_event_fn)(
-        ntg_object* object,
-        struct ntg_loop_event event,
-        ntg_loop_ctx* ctx);
+#include <stddef.h>
+struct ntg_object_measure_ctx
+{
+    const ntg_object_measure_map* measures; // children measures
+};
+
+struct ntg_object_measure_out
+{
+    size_t __placeholder;
+};
+
+struct ntg_object_constrain_ctx
+{
+    const ntg_object_measure_map* measures; // children measures
+};
+
+struct ntg_object_constrain_out
+{
+    ntg_object_size_map* const sizes; // children sizes
+};
+
+struct ntg_object_arrange_ctx
+{
+    const ntg_object_xy_map* sizes; // children sizes
+};
+
+struct ntg_object_arrange_out
+{
+    ntg_object_xy_map* const positions; // children positions
+};
+
+struct ntg_object_draw_ctx
+{
+    const ntg_object_xy_map* sizes; // children sizes
+    const ntg_object_xy_map* positions; // children positions
+};
+
+struct ntg_object_draw_out
+{
+    ntg_object_drawing* const drawing;
+};
 
 /* ------------------------------------------------------ */
 
@@ -111,11 +134,11 @@ struct ntg_object_vecv ntg_object_get_children_(ntg_object* object);
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
 bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant);
 
-typedef enum ntg_object_perform_mode
+enum ntg_object_perform_mode
 {
     NTG_OBJECT_PERFORM_TOP_DOWN,
     NTG_OBJECT_PERFORM_BOTTOM_UP
-} ntg_object_perform_mode;
+};
 
 void ntg_object_tree_perform(
         ntg_object* object,
@@ -199,7 +222,7 @@ void ntg_object_draw(
 
 bool ntg_object_feed_event(
         ntg_object* object,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* ctx);
 
 void ntg_object_set_event_fn(

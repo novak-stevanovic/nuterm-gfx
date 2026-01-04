@@ -1,21 +1,17 @@
 #ifndef _NTG_OBJECT_VEC_H_
 #define _NTG_OBJECT_VEC_H_
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <sys/types.h>
-
-typedef struct ntg_object ntg_object;
+#include "shared/ntg_typedef.h"
 
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_object_vec
+struct ntg_object_vec
 {
     ntg_object** _data;
     size_t _count;
     size_t __capacity;
     size_t __data_size;
-} ntg_object_vec;
+};
 
 void _ntg_object_vec_init_(ntg_object_vec* vec);
 void _ntg_object_vec_deinit_(ntg_object_vec* vec);
@@ -44,13 +40,13 @@ struct ntg_object_vecv ntg_object_vecv_new(ntg_object_vec* vec);
 
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_const_object_vec
+struct ntg_const_object_vec
 {
     const ntg_object** _data;
     size_t _count;
     size_t __capacity;
     size_t __data_size;
-} ntg_const_object_vec;
+};
 
 void _ntg_const_object_vec_init_(ntg_const_object_vec* vec);
 void _ntg_const_object_vec_deinit_(ntg_const_object_vec* vec);

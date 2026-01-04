@@ -1,11 +1,6 @@
-#include <stdlib.h>
-#include <math.h>
-#include <stdbool.h>
-#include <assert.h>
-
+#include "ntg.h"
 #include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
-#include "shared/sarena.h"
 
 static inline bool __is_equal_double(double x, double y)
 {

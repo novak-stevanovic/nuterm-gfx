@@ -1,13 +1,12 @@
-#include <stdlib.h>
-
+#include "ntg.h"
 #include "core/object/ntg_padding.h"
 #include "base/ntg_sap.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_measure_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
+#include "core/object/shared/ntg_object_vec.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
-#include "shared/ntg_log.h"
 
 struct ntg_padding_width ntg_padding_width(size_t north,
         size_t east, size_t south, size_t west)

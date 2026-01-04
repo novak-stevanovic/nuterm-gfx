@@ -1,9 +1,7 @@
-#include <stdlib.h>
-#include <assert.h>
-
-#include "base/entity/ntg_entity.h"
 #include "base/entity/_ntg_entity_system.h"
-#include "base/entity/shared/ntg_entity_vec.h"
+#include "ntg.h"
+#include <assert.h>
+#include <stdlib.h>
 
 ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data)
 {

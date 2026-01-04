@@ -1,11 +1,12 @@
 #ifndef _NTG_SAP_H_
 #define _NTG_SAP_H_
 
-/* Generic Space Allocation Policies. */
-
+#include "sarena.h"
 #include <stddef.h>
 
-typedef struct sarena sarena;
+// #include "shared/ntg_typedef.h"
+
+/* Generic Space Allocation Policies. */
 
 /* Distributes `space_pool` space into `out_sizes`.
  * Distribution takes place depending on `caps` - if a size in `out_sizes`

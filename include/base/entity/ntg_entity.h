@@ -1,26 +1,11 @@
 #ifndef _NTG_ENTITY_H_
 #define _NTG_ENTITY_H_
 
-#include <stdbool.h>
-#include "base/entity/ntg_entity_type.h"
-#include "base/entity/ntg_event_type.h"
-
-/* -------------------------------------------------------------------------- */
-/* DECLARATIONS */
-/* -------------------------------------------------------------------------- */
-
-typedef struct ntg_entity ntg_entity;
-typedef struct ntg_entity_register ntg_entity_register;
-typedef struct ntg_entity_system ntg_entity_system;
-struct ntg_event;
+#include "shared/ntg_typedef.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
-
-typedef void (*ntg_entity_deinit_fn)(ntg_entity* entity);
-
-typedef void (*ntg_event_handler_fn)(ntg_entity* observer, struct ntg_event event);
 
 /* Base class for GUI objects. Entities must be dynamically allocated. */
 

@@ -1,13 +1,11 @@
-#include <assert.h>
-#include <stdlib.h>
-
+#include "ntg.h"
 #include "core/stage/ntg_def_stage.h"
+#include "base/entity/ntg_entity_type.h"
+#include "base/entity/ntg_event_type.h"
 #include "core/object/ntg_object.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
-#include "shared/ntg_log.h"
-
 static void observe_fn(ntg_entity* entity, struct ntg_event event);
 
 /* -------------------------------------------------------------------------- */

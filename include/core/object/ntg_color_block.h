@@ -3,8 +3,6 @@
 
 #include "core/object/ntg_object.h"
 
-typedef struct ntg_color_block ntg_color_block;
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */

@@ -1,10 +1,7 @@
 #ifndef __NTG_ENTITY_SYSTEM_H__
 #define __NTG_ENTITY_SYSTEM_H__
 
-#include "base/entity/ntg_entity.h"
-
-typedef struct ntg_entity_system ntg_entity_system;
-typedef struct ntg_entity ntg_entity;
+#include "shared/ntg_typedef.h"
 
 ntg_entity_system* ntg_entity_system_new();
 void ntg_entity_system_destroy(ntg_entity_system* system);

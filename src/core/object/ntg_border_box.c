@@ -1,12 +1,11 @@
-#include <assert.h>
-#include <stdlib.h>
-
+#include "ntg.h"
 #include "core/object/ntg_border_box.h"
+#include "base/entity/ntg_entity_type.h"
+#include "base/ntg_sap.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_measure_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
 #include "core/object/shared/ntg_object_xy_map.h"
-#include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
 
 static void get_children(const ntg_border_box* box, ntg_object** out_north,
@@ -68,7 +67,7 @@ void _ntg_border_box_init_(ntg_border_box* box)
 
 void ntg_border_box_set(ntg_border_box* box,
         ntg_object* object,
-        ntg_border_box_pos position)
+        enum ntg_border_box_pos position)
 {
     assert(box != NULL);
 

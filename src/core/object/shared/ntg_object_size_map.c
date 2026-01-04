@@ -1,8 +1,6 @@
-#include <assert.h>
-
-#include "core/object/shared/ntg_object_size_map.h"
+#include "ntg.h"
 #include "core/object/shared/_ntg_object_map.h"
-#include "shared/sarena.h"
+#include "core/object/shared/ntg_object_measure.h"
 
 struct ntg_object_size_map
 {

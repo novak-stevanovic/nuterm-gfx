@@ -1,12 +1,8 @@
 #ifndef _NTG_SCENE_GRAPH_H_
 #define _NTG_SCENE_GRAPH_H_
 
-#include "shared/ntg_xy.h"
-
-typedef struct ntg_scene_graph ntg_scene_graph;
-typedef struct ntg_object ntg_object;
-typedef struct ntg_object_drawing ntg_object_drawing;
-typedef struct ntg_const_object_vec ntg_const_object_vec;
+#include "shared/ntg_typedef.h"
+#include "base/ntg_xy.h"
 
 struct ntg_scene_node_pr
 {

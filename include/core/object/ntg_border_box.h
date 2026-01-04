@@ -3,8 +3,6 @@
 
 #include "core/object/ntg_object.h"
 
-typedef struct ntg_border_box ntg_border_box;
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
@@ -16,14 +14,14 @@ struct ntg_border_box_opts
 
 struct ntg_border_box_opts ntg_border_box_opts_def();
 
-typedef enum ntg_border_box_pos
+enum ntg_border_box_pos
 {
     NTG_BORDER_BOX_NORTH = 0,
     NTG_BORDER_BOX_EAST,
     NTG_BORDER_BOX_SOUTH,
     NTG_BORDER_BOX_WEST,
     NTG_BORDER_BOX_CENTER
-} ntg_border_box_pos;
+};
 
 struct ntg_border_box
 {
@@ -42,7 +40,7 @@ void _ntg_border_box_init_(ntg_border_box* box);
 
 void ntg_border_box_set(ntg_border_box* box,
         ntg_object* object,
-        ntg_border_box_pos position);
+        enum ntg_border_box_pos position);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

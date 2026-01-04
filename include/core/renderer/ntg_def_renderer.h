@@ -1,12 +1,8 @@
-#ifndef _NTG_DB_RENDERER_H_
-#define _NTG_DB_RENDERER_H_
+#ifndef _NTG_DEF_RENDERER_H_
+#define _NTG_DEF_RENDERER_H_
 
 #include "core/renderer/ntg_renderer.h"
-
-typedef struct ntg_def_renderer ntg_def_renderer;
-typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;
-typedef struct nt_charbuff nt_charbuff;
-typedef struct ntg_loop ntg_loop;
+#include "base/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -38,4 +34,4 @@ void _ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing);
 
-#endif // _NTG_DB_RENDERER_H_
+#endif // _NTG_DEF_RENDERER_H_

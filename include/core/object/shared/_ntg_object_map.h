@@ -1,11 +1,7 @@
 #ifndef __NTG_MAP_H__
 #define __NTG_MAP_H__
 
-#include <stddef.h>
-
-typedef struct ntg_object_map ntg_object_map;
-typedef struct ntg_object ntg_object;
-typedef struct sarena sarena;
+#include "shared/ntg_typedef.h"
 
 struct ntg_object_map
 {

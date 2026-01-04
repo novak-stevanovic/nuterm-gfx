@@ -41,12 +41,12 @@ static inline size_t _min2_size(size_t x, size_t y)
     return (x > y) ? y : x;
 }
 
-static inline unsigned int _max2_uint(uint x, uint y)
+static inline unsigned int _max2_uint(unsigned int x, unsigned int y)
 {
     return (x > y) ? x : y;
 }
 
-static inline unsigned int _min2_uint(uint x, uint y)
+static inline unsigned int _min2_uint(unsigned int x, unsigned int y)
 {
     return (x > y) ? y : x;
 }

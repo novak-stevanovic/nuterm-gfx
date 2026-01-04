@@ -1,7 +1,6 @@
-#include <stdlib.h>
-#include <assert.h>
-
+#include "ntg.h"
 #include "base/ntg_cell.h"
+#include "shared/ntg_status.h"
 #include "shared/_ntg_shared.h"
 
 struct ntg_cell ntg_vcell_overwrite(

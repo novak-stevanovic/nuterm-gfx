@@ -1,9 +1,8 @@
 #ifndef __NTG_EVENT_SUB_VEC_H__
 #define __NTG_EVENT_SUB_VEC_H__
 
-#include <stdbool.h>
 #include <stddef.h>
-#include "base/entity/ntg_entity.h"
+#include "shared/ntg_typedef.h"
 
 struct ntg_event_sub
 {
@@ -11,13 +10,13 @@ struct ntg_event_sub
     ntg_event_handler_fn handler;
 };
 
-typedef struct ntg_event_sub_vec
+struct ntg_event_sub_vec
 {
     struct ntg_event_sub* _data;
     size_t _count;
     size_t __capacity;
     size_t __data_size;
-} ntg_event_sub_vec;
+};
 
 void _ntg_event_sub_vec_init_(ntg_event_sub_vec* vec);
 void _ntg_event_sub_vec_deinit_(ntg_event_sub_vec* vec);

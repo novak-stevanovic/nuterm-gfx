@@ -2,38 +2,16 @@
 #define _NTG_STAGE_H_
 
 #include "base/entity/ntg_entity.h"
-#include "shared/ntg_xy.h"
-
-/* -------------------------------------------------------------------------- */
-/* FORWARD DECLARATIONS */
-/* -------------------------------------------------------------------------- */
-
-typedef struct ntg_stage ntg_stage;
-typedef struct ntg_scene ntg_scene;
-typedef struct ntg_stage_drawing ntg_stage_drawing;
-typedef struct ntg_loop ntg_loop;
-typedef struct ntg_loop_ctx ntg_loop_ctx;
-struct ntg_loop_event;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-/* Composes the scene's logical drawing into an ntg_stage_drawing */
-typedef void (*ntg_stage_compose_fn)(
-        ntg_stage* stage,
-        struct ntg_xy size);
-
-typedef bool (*ntg_stage_event_fn)(
-        ntg_stage* stage,
-        struct ntg_loop_event event,
-        ntg_loop_ctx* loop_ctx);
-
-typedef enum ntg_stage_event_mode
+enum ntg_stage_event_mode
 {
     NTG_STAGE_EVENT_PROCESS_FIRST,
     NTG_STAGE_EVENT_DISPATCH_FIRST
-} ntg_stage_event_mode;
+};
 
 struct ntg_stage
 {
@@ -61,7 +39,7 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 
 bool ntg_stage_feed_event(
         ntg_stage* stage,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* loop_ctx);
 
 void ntg_stage_set_event_fn(ntg_stage* stage, ntg_stage_event_fn fn);

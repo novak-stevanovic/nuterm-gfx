@@ -1,7 +1,6 @@
-#include <stdlib.h>
-#include <assert.h>
-
+#include "ntg.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
+#include "shared/ntg_status.h"
 
 void _ntg_stage_drawing_init_(ntg_stage_drawing* drawing)
 {

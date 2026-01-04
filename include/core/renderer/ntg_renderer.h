@@ -2,19 +2,10 @@
 #define _NTG_RENDERER_H_
 
 #include "base/entity/ntg_entity.h"
-#include "shared/ntg_xy.h"
-
-typedef struct ntg_renderer ntg_renderer;
-typedef struct ntg_stage_drawing ntg_stage_drawing;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
-
-/* If `stage_drawing` is NULL, render empty */
-typedef void (*ntg_renderer_render_fn)(
-        ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing);
 
 struct ntg_renderer
 {

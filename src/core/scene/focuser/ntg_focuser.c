@@ -1,11 +1,10 @@
-#include <assert.h>
-
+#include "ntg.h"
 #include "core/scene/focuser/ntg_focuser.h"
-#include "core/loop/ntg_loop.h"
+#include "nt_event.h"
 
 bool ntg_focuser_dispatch_event(
         ntg_focuser* focuser,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* ctx)
 {
     assert(focuser != NULL);

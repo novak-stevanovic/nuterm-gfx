@@ -1,14 +1,8 @@
-#include <assert.h>
-#include <stdlib.h>
+#include "ntg.h"
 #include "core/renderer/ntg_def_renderer.h"
-#include "base/ntg_cell.h"
-#include "core/loop/ntg_loop.h"
+#include "base/entity/ntg_entity_type.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 #include "nt.h"
-#include "nt_charbuff.h"
-#include "shared/ntg_log.h"
-
-#define CHARBUFF_CAP 200000
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -77,10 +71,10 @@ void _ntg_def_renderer_render_fn(
     bool resize = !(ntg_xy_are_equal(renderer->__old_size, size));
 
     // TODO: malloc
-    nt_charbuff* charbuff = nt_charbuff_new(CHARBUFF_CAP);
-    assert(charbuff != NULL);
+    // nt_charbuff* charbuff = nt_charbuff_new(CHARBUFF_CAP);
+    // assert(charbuff != NULL);
     
-    nt_buffer_enable(charbuff);
+    // nt_buffer_enable(charbuff);
 
     if(stage_drawing == NULL)
     {
@@ -96,9 +90,9 @@ void _ntg_def_renderer_render_fn(
 
     renderer->__old_size = size;
 
-    nt_buffer_disable(NT_BUFF_FLUSH);
+    // nt_buffer_disable(NT_BUFF_FLUSH);
 
-    nt_charbuff_destroy(charbuff);
+    // nt_charbuff_destroy(charbuff);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -133,7 +127,6 @@ static void optimized_render(ntg_def_renderer* renderer,
 
     size_t i, j;
     struct ntg_cell it_drawing_cell, *it_back_buffer_cell;
-    size_t counter = 0;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
@@ -151,7 +144,6 @@ static void optimized_render(ntg_def_renderer* renderer,
 
             (*it_back_buffer_cell) = it_drawing_cell;
             nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx, j, i, NULL);
-            counter++;
         }
     }
 

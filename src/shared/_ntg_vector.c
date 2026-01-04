@@ -1,8 +1,6 @@
+#include "ntg.h"
+#include "shared/ntg_typedef.h"
 #include "shared/_ntg_vector.h"
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <stdint.h> 
 
 static void ntg_vector_grow_if_needed(ntg_vector* vector)
 {

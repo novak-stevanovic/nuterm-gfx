@@ -1,12 +1,9 @@
 #ifndef _NTG_ENTITY_TYPE_H_
 #define _NTG_ENTITY_TYPE_H_
 
-/* Included in ntg_entity.h */
-
 #include <stdbool.h>
 #include <stddef.h>
-
-typedef struct ntg_entity_type ntg_entity_type;
+#include "shared/ntg_typedef.h"
 
 struct ntg_entity_type
 {
@@ -47,9 +44,5 @@ extern const ntg_entity_type NTG_ENTITY_RENDERER, NTG_ENTITY_DEF_RENDERER;
 /* NTG_LOOP */
 
 extern const ntg_entity_type NTG_ENTITY_LOOP;
-
-/* NTG_TASKMASTER */
-
-extern const ntg_entity_type NTG_ENTITY_TASKMASTER;
 
 #endif // _NTG_ENTITY_TYPE_H_

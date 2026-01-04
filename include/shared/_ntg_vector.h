@@ -1,17 +1,15 @@
 #ifndef __NTG_VECTOR_H__
 #define __NTG_VECTOR_H__
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <sys/types.h>
+#include "shared/ntg_typedef.h"
 
-typedef struct ntg_vector
+struct ntg_vector
 {
     void* __data;
     size_t _count;
     size_t __capacity;
     size_t __data_size;
-} ntg_vector;
+};
 
 void _ntg_vector_init_(ntg_vector* v, size_t data_size, size_t init_cap);
 void _ntg_vector_deinit_(ntg_vector* vector);

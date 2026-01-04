@@ -2,42 +2,17 @@
 #define _NTG_SCENE_H_
 
 #include "base/entity/ntg_entity.h"
-#include "shared/ntg_xy.h"
-#include "nt_event.h"
-
-/* -------------------------------------------------------------------------- */
-/* FORWARD DECLARATIONS */
-/* -------------------------------------------------------------------------- */
-
-typedef struct ntg_scene ntg_scene;
-typedef struct ntg_object_vec ntg_object_vec;
-typedef struct ntg_object ntg_object;
-typedef struct ntg_stage ntg_stage;
-typedef struct ntg_loop_ctx ntg_loop_ctx;
-typedef struct ntg_focuser ntg_focuser;
-typedef struct ntg_object_drawing ntg_object_drawing;
-typedef struct ntg_scene_graph ntg_scene_graph;
-struct ntg_loop_event;
+#include "base/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-/* Performs logical layout of the scene. */
-typedef void (*ntg_scene_layout_fn)(
-        ntg_scene* scene,
-        struct ntg_xy size);
-
-typedef bool (*ntg_scene_event_fn)(
-        ntg_scene* scene,
-        struct ntg_loop_event event,
-        ntg_loop_ctx* loop_ctx);
-
-typedef enum ntg_scene_event_mode
+enum ntg_scene_event_mode
 {
     NTG_SCENE_EVENT_PROCESS_FIRST,
     NTG_SCENE_EVENT_DISPATCH_FIRST
-} ntg_scene_event_mode;
+};
 
 struct ntg_scene_hooks
 {
@@ -98,7 +73,7 @@ struct ntg_scene_node ntg_scene_get_node(
 
 bool ntg_scene_feed_event(
         ntg_scene* scene,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* loop_ctx);
 
 void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn);

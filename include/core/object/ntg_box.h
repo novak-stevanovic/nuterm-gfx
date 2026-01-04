@@ -4,8 +4,6 @@
 #include "core/object/ntg_object.h"
 #include "core/object/shared/ntg_object_measure.h"
 
-typedef struct ntg_box ntg_box;
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
@@ -17,6 +15,7 @@ struct ntg_box_opts
     ntg_alignment salignment;
     size_t spacing;
 };
+
 struct ntg_box_opts ntg_box_opts_def();
 
 struct ntg_box

@@ -2,9 +2,8 @@
 #define _NTG_DEF_SCENE_H_
 
 #include "core/scene/ntg_scene.h"
-
-typedef struct sarena sarena;
-typedef struct ntg_def_scene ntg_def_scene;
+#include <stdbool.h>
+#include "base/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

@@ -1,10 +1,8 @@
-#include <assert.h>
-#include <stdlib.h>
-
+#include "ntg.h"
 #include "core/object/ntg_color_block.h"
+#include "base/entity/ntg_entity_type.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_measure.h"
-
 #define DEFAULT_SIZE 1
 
 /* -------------------------------------------------------------------------- */

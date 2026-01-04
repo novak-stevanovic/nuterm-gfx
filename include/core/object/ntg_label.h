@@ -2,20 +2,13 @@
 #define _NTG_LABEL_H_
 
 #include "core/object/ntg_object.h"
-#include "shared/ntg_string.h"
+#include "base/ntg_xy.h"
 #include "base/ntg_text.h"
-
-typedef struct ntg_label ntg_label;
+#include "shared/ntg_string.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
-
-typedef void (*ntg_label_post_draw_fn)(
-        ntg_label* label,
-        ntg_object_drawing* out_drawing,
-        struct ntg_xy size,
-        sarena* arena);
 
 struct ntg_label_opts
 {

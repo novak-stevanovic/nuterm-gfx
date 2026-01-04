@@ -3,8 +3,6 @@
 
 #include "core/object/ntg_object.h"
 
-typedef struct ntg_padding ntg_padding;
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
@@ -18,12 +16,12 @@ struct ntg_padding_width ntg_padding_width(
         size_t north, size_t east,
         size_t south, size_t west);
 
-typedef enum ntg_padding_enable_mode
+enum ntg_padding_enable_mode
 {
     NTG_PADDING_ENABLE_ON_NATURAL,
     NTG_PADDING_ENABLE_ON_MIN,
     NTG_PADDING_ENABLE_ALWAYS
-} ntg_padding_enable_mode;
+};
 
 struct ntg_padding_opts
 {

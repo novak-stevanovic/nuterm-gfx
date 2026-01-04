@@ -1,10 +1,11 @@
-#include <assert.h>
-#include <stdlib.h>
-
+#include "ntg.h"
 #include "base/entity/_ntg_entity_system.h"
+#include "base/entity/ntg_entity.h"
 #include "base/entity/shared/_ntg_entity_map.h"
 #include "base/entity/shared/_ntg_event_sub_vec.h"
 #include "base/entity/shared/ntg_entity_vec.h"
+#include <assert.h>
+#include <stdlib.h>
 
 struct ntg_entity_system
 {

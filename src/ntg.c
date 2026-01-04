@@ -1,12 +1,6 @@
-#include <assert.h>
-#include <pthread.h>
-#include <stdlib.h>
-
 #include "ntg.h"
 #include "base/entity/_ntg_entity_system.h"
 #include "nt.h"
-#include "shared/ntg_log.h"
-#include "shared/sarena.h"
 
 static ntg_loop* ntg_loop_new(ntg_entity_system* system);
 
@@ -24,7 +18,7 @@ void _ntg_init_()
     _ntg_log_init_("ntg_log.txt");
 
     nt_status _status;
-    __nt_init__(&_status);
+    nuterm_init(&_status);
 
     switch(_status)
     {
@@ -74,7 +68,7 @@ void _ntg_deinit_()
 {
     nt_cursor_show(NULL);
     nt_alt_screen_disable(NULL);
-    __nt_deinit__();
+    nuterm_deinit();
 
    _ntg_log_deinit_();
 }

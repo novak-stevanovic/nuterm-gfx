@@ -1,34 +1,22 @@
 #ifndef _NTG_EVENT_TYPE_H_
 #define _NTG_EVENT_TYPE_H_
 
-/* Included in ntg_entity.h */
-
-#include "base/ntg_cell.h"
+#include "shared/ntg_typedef.h"
 #include "nt_event.h"
-#include "shared/ntg_xy.h"
 
-typedef struct ntg_object ntg_object;
-typedef struct ntg_scene ntg_scene;
-
-#define NTG_EVENT_LOOP_RSZ 1
-struct ntg_event_loop_rsz_data
+#define NTG_EVENT_LOOP_EVENT 1
+struct ntg_event_loop_event_data
 {
-    struct ntg_xy old, new;
+    struct nt_event event;
 };
 
-#define NTG_EVENT_LOOP_KEY 2
-struct ntg_event_loop_key_data
-{
-    struct nt_key_event key;
-};
-
-#define NTG_EVENT_OBJECT_CHLDADD 3
+#define NTG_EVENT_OBJECT_CHLDADD 4
 struct ntg_event_object_chldadd_data
 {
     ntg_object* child; // widget
 };
 
-#define NTG_EVENT_OBJECT_CHLDRM 4
+#define NTG_EVENT_OBJECT_CHLDRM 5
 struct ntg_event_object_chldrm_data
 {
     ntg_object* child; // widget
@@ -36,27 +24,27 @@ struct ntg_event_object_chldrm_data
 
 /* Raised any time a change occurs in the object tree, including
  * decorator child add/remove */
-#define NTG_EVENT_OBJECT_CHLDADD_DCR 5
+#define NTG_EVENT_OBJECT_CHLDADD_DCR 6
 struct ntg_event_object_chldadd_dcr_data
 {
     ntg_object* child;
 };
 
-#define NTG_EVENT_OBJECT_CHLDRM_DCR 6
+#define NTG_EVENT_OBJECT_CHLDRM_DCR 7
 struct ntg_event_object_chldrm_dcr_data
 {
     ntg_object* child;
 };
 
-#define NTG_EVENT_OBJECT_CHANGE 7
+#define NTG_EVENT_OBJECT_CHANGE 8
 
-#define NTG_EVENT_SCENE_OBJADD 8
+#define NTG_EVENT_SCENE_OBJADD 9
 struct ntg_event_scene_objadd_data
 {
     ntg_object* object;
 };
 
-#define NTG_EVENT_SCENE_OBJRM 9
+#define NTG_EVENT_SCENE_OBJRM 10
 struct ntg_event_scene_objrm_data
 {
     ntg_object* object;
@@ -64,7 +52,7 @@ struct ntg_event_scene_objrm_data
 
 #define NTG_EVENT_SCENE_CHANGE 11
 
-#define NTG_EVENT_STAGE_SCNCHNG 10
+#define NTG_EVENT_STAGE_SCNCHNG 12
 struct ntg_event_stage_scnchng_data
 {
     ntg_scene *old, *new;

@@ -1,8 +1,9 @@
+#include "ntg.h"
 #include "core/scene/focuser/ntg_def_focuser.h"
-#include "base/entity/ntg_entity.h"
-#include "core/loop/ntg_loop.h"
+#include "base/entity/ntg_entity_type.h"
 #include "core/object/ntg_object.h"
 #include "core/scene/ntg_scene.h"
+#include "nt_event.h"
 
 ntg_def_focuser* ntg_def_focuser_new(ntg_entity_system* system)
 {
@@ -57,7 +58,7 @@ void _ntg_def_focuser_deinit_fn(ntg_entity* entity)
 
 bool _ntg_def_focuser_dispatch_fn(
         ntg_focuser* focuser,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* ctx)
 {
     ntg_def_focuser* def_focuser = (ntg_def_focuser*)focuser;

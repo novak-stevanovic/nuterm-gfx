@@ -1,11 +1,9 @@
 #ifndef _NTG_STRING_H_
 #define _NTG_STRING_H_
 
-#include <stddef.h>
+#include "shared/ntg_typedef.h"
 #include <stdint.h>
 #include <string.h>
-
-typedef struct sarena sarena;
 
 size_t _ntg_str_count(const char* str, size_t len, const char* sep, size_t data_size);
 

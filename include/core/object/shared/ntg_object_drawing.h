@@ -1,15 +1,13 @@
 #ifndef _NTG_OBJECT_DRAWING_H_
 #define _NTG_OBJECT_DRAWING_H_
 
+#include "shared/ntg_typedef.h"
 #include "base/ntg_cell.h"
-#include "shared/ntg_xy.h"
 
-typedef struct ntg_stage_drawing ntg_stage_drawing;
-
-typedef struct ntg_object_drawing
+struct ntg_object_drawing
 {
     ntg_vcell_vecgrid ___data;
-} ntg_object_drawing;
+};
 
 void _ntg_object_drawing_init_(ntg_object_drawing* object_drawing);
 void _ntg_object_drawing_deinit_(ntg_object_drawing* object_drawing);

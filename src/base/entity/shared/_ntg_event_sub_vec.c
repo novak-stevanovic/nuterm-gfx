@@ -1,9 +1,7 @@
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
-
+#include "ntg.h"
 #include "base/entity/shared/_ntg_event_sub_vec.h"
 #include "shared/_ntg_vector.h"
+#include <stdlib.h>
 
 struct _ntg_event_sub
 {

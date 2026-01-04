@@ -1,6 +1,4 @@
-#include <stdlib.h>
-#include <assert.h>
-
+#include "ntg.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "shared/_ntg_vector.h"
 

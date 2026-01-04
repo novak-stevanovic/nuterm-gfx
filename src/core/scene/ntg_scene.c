@@ -1,12 +1,8 @@
-#include <stdlib.h>
-#include <assert.h>
-
+#include "ntg.h"
 #include "core/scene/ntg_scene.h"
-#include "core/loop/ntg_loop.h"
+#include "base/entity/ntg_event_type.h"
 #include "core/object/ntg_object.h"
-#include "core/object/shared/ntg_object_vec.h"
 #include "core/scene/focuser/ntg_focuser.h"
-#include "core/stage/ntg_stage.h"
 #include "core/scene/ntg_scene_graph.h"
 
 static void on_object_register(ntg_scene* scene, ntg_object* object);
@@ -93,7 +89,7 @@ struct ntg_scene_node ntg_scene_get_node(
 
 bool ntg_scene_feed_event(
         ntg_scene* scene,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* loop_ctx)
 {
     assert(scene != NULL);

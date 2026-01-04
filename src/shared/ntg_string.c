@@ -1,10 +1,6 @@
-#include <stdbool.h>
-#include <string.h>
+#include "ntg.h"
 #include <assert.h>
-#include <stdlib.h>
-
 #include "shared/ntg_string.h"
-#include "shared/sarena.h"
 
 size_t _ntg_str_count(const char* str, size_t len, const char* sep, size_t data_size)
 {

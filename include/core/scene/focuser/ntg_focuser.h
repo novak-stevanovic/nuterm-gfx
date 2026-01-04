@@ -2,21 +2,10 @@
 #define _NTG_FOCUSER_H_
 
 #include "base/entity/ntg_entity.h"
-#include <stdbool.h>
-
-typedef struct ntg_focuser ntg_focuser;
-typedef struct ntg_loop_ctx ntg_loop_ctx;
-typedef struct ntg_scene ntg_scene;
-struct ntg_loop_event;
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
-
-typedef bool (*ntg_focuser_dispatch_fn)(
-        ntg_focuser* focuser,
-        struct ntg_loop_event event,
-        ntg_loop_ctx* ctx);
 
 struct ntg_focuser
 {
@@ -31,7 +20,7 @@ struct ntg_focuser
 
 bool ntg_focuser_dispatch_event(
         ntg_focuser* focuser,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* ctx);
 
 /* -------------------------------------------------------------------------- */

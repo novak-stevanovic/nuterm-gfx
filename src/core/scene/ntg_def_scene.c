@@ -1,15 +1,16 @@
-#include <stdlib.h>
-#include <assert.h>
-
+#include "ntg.h"
 #include "core/scene/ntg_def_scene.h"
+#include "base/entity/ntg_entity_type.h"
+#include "base/entity/ntg_event_type.h"
 #include "core/object/ntg_object.h"
 #include "core/object/shared/ntg_object_drawing.h"
+#include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_measure_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
+#include "core/object/shared/ntg_object_vec.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "core/scene/ntg_scene_graph.h"
 #include "shared/ntg_log.h"
-#include "shared/sarena.h"
 
 #define DEBUG 0
 

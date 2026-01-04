@@ -1,10 +1,10 @@
-#include <assert.h>
-
-#include "core/object/shared/ntg_object_measure_map.h"
+#include "ntg.h"
 #include "core/object/shared/_ntg_object_map.h"
-#include "shared/sarena.h"
+#include "core/object/shared/ntg_object_measure.h"
+#include "core/object/shared/ntg_object_measure_map.h"
 
 struct ntg_object_measure_map
+
 {
     ntg_object_map __base;
 };

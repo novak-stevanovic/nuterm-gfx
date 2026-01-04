@@ -3,10 +3,6 @@
 
 #include "core/scene/focuser/ntg_focuser.h"
 
-typedef struct ntg_def_focuser ntg_def_focuser;
-typedef struct ntg_object ntg_object;
-typedef struct ntg_entity_system ntg_entity_system;
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
@@ -35,7 +31,7 @@ void _ntg_def_focuser_deinit_fn(ntg_entity* entity);
 
 bool _ntg_def_focuser_dispatch_fn(
         ntg_focuser* focuser,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* ctx);
 
 #endif // _NTG_DEF_FOCUSER_H_

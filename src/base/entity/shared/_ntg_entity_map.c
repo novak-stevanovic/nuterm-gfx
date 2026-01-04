@@ -1,9 +1,10 @@
-#include <assert.h>
-#include <stdlib.h>
+#include "ntg.h"
+
 #include "base/entity/shared/_ntg_entity_map.h"
 #include "base/entity/shared/_ntg_event_sub_vec.h"
 #include "base/entity/shared/ntg_entity_vec.h"
 #include "shared/_uthash.h"
+#include <assert.h>
 
 struct ntg_entity_data_hh
 {

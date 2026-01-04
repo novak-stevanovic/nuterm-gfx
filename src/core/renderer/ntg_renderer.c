@@ -1,6 +1,5 @@
+#include "ntg.h"
 #include "core/renderer/ntg_renderer.h"
-
-#include <assert.h>
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */

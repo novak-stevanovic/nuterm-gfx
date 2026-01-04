@@ -1,13 +1,13 @@
-#include <stdlib.h>
-#include <assert.h>
-
+#include "ntg.h"
 #include "core/object/ntg_object.h"
-#include "core/object/shared/ntg_object_vec.h"
-#include "core/loop/ntg_loop.h"
+#include "base/entity/ntg_entity_type.h"
+#include "base/entity/ntg_event_type.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_size_map.h"
+#include "core/object/shared/ntg_object_vec.h"
 #include "core/object/shared/ntg_object_xy_map.h"
+#include "nt_event.h"
 #include "shared/_ntg_shared.h"
 
 /* ---------------------------------------------------------------- */
@@ -644,7 +644,7 @@ void ntg_object_draw(
 
 bool ntg_object_feed_event(
         ntg_object* object,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* ctx)
 {
     assert(object != NULL);

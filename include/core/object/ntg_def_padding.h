@@ -3,8 +3,6 @@
 
 #include "core/object/ntg_padding.h"
 
-typedef struct ntg_def_padding ntg_def_padding;
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */

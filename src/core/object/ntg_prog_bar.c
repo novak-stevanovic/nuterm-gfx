@@ -1,8 +1,6 @@
-#include <assert.h>
-#include <math.h>
-#include <stdlib.h>
-
+#include "ntg.h"
 #include "core/object/ntg_prog_bar.h"
+#include "base/entity/ntg_entity_type.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "shared/_ntg_shared.h"
@@ -11,9 +9,9 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
 {
     return (struct ntg_prog_bar_opts) {
         .orientation = NTG_ORIENTATION_H,
-        .complete_style = ntg_vcell_bg(nt_color_new_rgb(nt_rgb_new(0, 255, 0))),
-        .uncomplete_style = ntg_vcell_bg(nt_color_new_rgb(nt_rgb_new(255, 0, 0))),
-        .threshold_style = ntg_vcell_bg(nt_color_new_rgb(nt_rgb_new(0, 255, 0))),
+        .complete_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(0, 255, 0))),
+        .uncomplete_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(255, 0, 0))),
+        .threshold_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(0, 255, 0))),
     };
 }
 

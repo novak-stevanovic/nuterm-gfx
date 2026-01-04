@@ -1,9 +1,6 @@
-#include <string.h>
-#include <assert.h>
-
+#include "ntg.h"
 #include "core/object/shared/_ntg_object_map.h"
 #include "core/object/ntg_object.h"
-#include "shared/sarena.h"
 
 void _ntg_object_map_init_(ntg_object_map* ctx,
         size_t capacity, size_t data_size, sarena* arena)

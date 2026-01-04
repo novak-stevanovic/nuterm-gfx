@@ -1,13 +1,13 @@
 #ifndef _NTG_STAGE_DRAWING_H_
 #define _NTG_STAGE_DRAWING_H_
 
+#include "shared/ntg_typedef.h"
 #include "base/ntg_cell.h"
-#include "shared/ntg_xy.h"
 
-typedef struct ntg_stage_drawing
+struct ntg_stage_drawing
 {
     ntg_cell_vecgrid ___data;
-} ntg_stage_drawing;
+};
 
 void _ntg_stage_drawing_init_(ntg_stage_drawing* drawing);
 void _ntg_stage_drawing_deinit_(ntg_stage_drawing* drawing);

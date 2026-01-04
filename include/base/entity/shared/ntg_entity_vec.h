@@ -5,17 +5,17 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-typedef struct ntg_entity ntg_entity;
+#include "shared/ntg_typedef.h"
 
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_entity_vec
+struct ntg_entity_vec
 {
     ntg_entity** _data;
     size_t _count;
     size_t __capacity;
     size_t __data_size;
-} ntg_entity_vec;
+};
 
 void _ntg_entity_vec_init_(ntg_entity_vec* vec);
 void _ntg_entity_vec_deinit_(ntg_entity_vec* vec);
@@ -44,13 +44,13 @@ struct ntg_entity_vecv ntg_entity_vecv_new(ntg_entity_vec* vec);
 
 /* -------------------------------------------------------------------------- */
 
-typedef struct ntg_const_entity_vec
+struct ntg_const_entity_vec
 {
     const ntg_entity** _data;
     size_t _count;
     size_t __capacity;
     size_t __data_size;
-} ntg_const_entity_vec;
+};
 
 void _ntg_const_entity_vec_init_(ntg_const_entity_vec* vec);
 void _ntg_const_entity_vec_deinit_(ntg_const_entity_vec* vec);
@@ -79,3 +79,4 @@ struct ntg_const_entity_vecv ntg_const_entity_vecv_new(ntg_const_entity_vec* vec
 struct ntg_const_entity_vecv ntg_const_entity_vecv_new_(ntg_entity_vec* vec);
 
 #endif // _NTG_ENTITY_VEC_H_
+

@@ -1,11 +1,11 @@
 #ifndef _NTG_XY_H_
 #define _NTG_XY_H_
 
-#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include "shared/ntg_typedef.h"
 
 #define NTG_SIZE_MAX 10000
 
@@ -19,18 +19,13 @@ struct ntg_dxy
     ssize_t x, y;
 };
 
-struct ntg_constr
-{
-    struct ntg_xy min_size, max_size;
-};
-
-typedef enum ntg_orientation
+enum ntg_orientation
 {
     NTG_ORIENTATION_H,
     NTG_ORIENTATION_V
-} ntg_orientation;
+};
 
-typedef enum ntg_alignment
+enum ntg_alignment
 {
     /* left, when used in reference to x axis alignment */
     /* top, when used in reference to y axis alignment */
@@ -43,7 +38,7 @@ typedef enum ntg_alignment
     /* bottom, when used in reference to y axis alignment */
     NTG_ALIGNMENT_3
 
-} ntg_alignment;
+};
 
 struct ntg_oxy
 {
@@ -58,11 +53,6 @@ static const struct ntg_xy NTG_XY_UNSET = { 0, 0 };
 static const struct ntg_dxy NTG_DXY_MAX = { NTG_SIZE_MAX, NTG_SIZE_MAX };
 static const struct ntg_dxy NTG_DXY_MIN = { 0, 0 };
 static const struct ntg_dxy NTG_DXY_UNSET = { 0, 0 };
-
-static const struct ntg_constr NTG_CONSTR_UNSET = {
-    .min_size = { 0, 0 },
-    .max_size = { SIZE_MAX, SIZE_MAX }
-};
 
 /* -------------------------------------------------------------------------- */
 
@@ -183,27 +173,6 @@ static inline struct ntg_dxy ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy va
     else if(val.y > max.y) val.y = max.y;
 
     return val;
-}
-
-/* -------------------------------------------------------------------------- */
-
-static inline struct ntg_constr ntg_constr(struct ntg_xy min_size,
-        struct ntg_xy max_size)
-{
-    return (struct ntg_constr) { .min_size = min_size, .max_size = max_size };
-}
-
-static inline bool ntg_constr_contains(struct ntg_constr constr,
-        struct ntg_xy point)
-{
-    return (point.x >= constr.min_size.x) && (point.x < constr.max_size.x) &&
-        (point.y >= constr.min_size.y) && (point.y < constr.max_size.y);
-}
-
-static inline bool ntg_constr_are_equal(struct ntg_constr c1, struct ntg_constr c2)
-{
-    return (ntg_xy_are_equal(c1.min_size, c2.min_size) &&
-            ntg_xy_are_equal(c1.max_size, c2.max_size));
 }
 
 /* -------------------------------------------------------------------------- */

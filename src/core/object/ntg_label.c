@@ -1,33 +1,14 @@
-#include <assert.h>
-#include <math.h>
-#include <stdlib.h>
-#include <shared/uconv.h>
-
+#include "ntg.h"
 #include "core/object/ntg_label.h"
+#include "base/entity/ntg_entity_type.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "shared/_ntg_shared.h"
-#include "shared/ntg_string.h"
-#include "shared/sarena.h"
+#include "uconv.h"
 
 /* UGLY CODE - TODO: rewrite sometime */
 
 #define DEFAULT_SIZE 1
-
-typedef struct label_content
-{
-    uint32_t* __data;
-    struct ntg_xy _size;
-} label_content;
-
-static void _label_content_init_(label_content* content,
-        struct ntg_xy size, sarena* arena);
-
-static inline uint32_t* label_content_at(label_content* content,
-        struct ntg_xy position)
-{
-    return &(content->__data[position.y * content->_size.x + position.x]);
-}
 
 static void get_wrap_rows_nowrap(struct ntg_strv_utf32 row,
         size_t for_size, struct ntg_strv_utf32** out_wrap_rows,
@@ -318,8 +299,10 @@ void _ntg_label_draw_fn(
         size :
         ntg_xy_transpose(size);
 
-    label_content _content;
-    _label_content_init_(&_content, content_size, arena);
+    size_t i, j, k;
+    size_t content_size_prod = content_size.x * content_size.y;
+    uint32_t* content_buff = sarena_malloc(arena, sizeof(uint32_t) * content_size_prod);
+    for(i = 0; i < content_size_prod; i++) content_buff[i] = NTG_CELL_EMPTY;
 
     /* Get UTF-32 text */
     size_t utf32_cap = label->__text.len;
@@ -346,14 +329,13 @@ void _ntg_label_draw_fn(
     size_t capped_indent = _min2_size(label->_opts.indent, content_size.x);
 
     /* Create content matrix */
-    size_t i, j, k;
     size_t content_i = 0, content_j = 0;
     /* align variables */
     size_t it_row_align_indent, it_row_effective_indent;
     /* wrap variables */
     struct ntg_strv_utf32* _it_wrap_rows;
     size_t _it_wrap_rows_count;
-    uint32_t* it_content_cell;
+    uint32_t* it_content;
     /* justify variables */
     size_t it_wrap_row_content_space, it_wrap_row_extra_space,
            it_wrap_row_space_count, it_wrap_row_space_counter;
@@ -427,9 +409,8 @@ void _ntg_label_draw_fn(
                 }
                 if(content_j >= content_size.x) break; // if indent is too big
 
-                it_content_cell = label_content_at(&_content, ntg_xy(content_j, content_i));
-
-                (*it_content_cell) = _it_wrap_rows[j].data[k]; 
+                it_content = &(content_buff[content_size.x * content_i + content_j]);
+                (*it_content) = _it_wrap_rows[j].data[k]; 
 
                 content_j++;
             }
@@ -441,7 +422,6 @@ void _ntg_label_draw_fn(
 
     /* Transpose the content matrix if needed */
     struct ntg_vcell* it_cell;
-    uint32_t* it_content;
     if(label->_opts.orientation == NTG_ORIENTATION_H)
     {
         for(i = 0; i < content_size.y; i++)
@@ -449,7 +429,7 @@ void _ntg_label_draw_fn(
             for(j = 0; j < content_size.x; j++)
             {
                 it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
-                it_content = label_content_at(&_content, ntg_xy(j, i));
+                it_content = &(content_buff[content_size.x * i + j]);
 
                 (*it_cell) = ntg_vcell_full((*it_content), label->_opts.gfx);
             }
@@ -462,7 +442,7 @@ void _ntg_label_draw_fn(
             for(j = 0; j < content_size.x; j++)
             {
                 it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(i, j));
-                it_content = label_content_at(&_content, ntg_xy(j, i));
+                it_content = &(content_buff[content_size.x * i + j]);
 
                 (*it_cell) = ntg_vcell_full((*it_content), label->_opts.gfx);
             }
@@ -471,25 +451,6 @@ void _ntg_label_draw_fn(
 }
 
 /* -------------------------------------------------------------------------- */
-
-static void _label_content_init_(label_content* content,
-        struct ntg_xy size, sarena* arena)
-{
-    assert(content != NULL);
-
-    content->__data = NULL;
-    content->_size = ntg_xy(0, 0);
-
-    size_t count = size.x * size.y;
-
-    content->__data = (uint32_t*)sarena_malloc(arena, sizeof(uint32_t) * count);
-    assert(content->__data != NULL);
-    size_t i;
-    for(i = 0; i < count; i++)
-        content->__data[i] = NTG_CELL_EMPTY;
-
-    content->_size = size;
-}
 
 static struct ntg_object_measure measure_nowrap_fn(
         const struct ntg_strv_utf32* rows,

@@ -1,10 +1,9 @@
-#include <assert.h>
-
+#include "ntg.h"
 #include "core/stage/ntg_stage.h"
-#include "core/loop/ntg_loop.h"
+#include "base/ntg_xy.h"
 #include "core/scene/ntg_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
-#include "shared/ntg_log.h"
+#include "base/entity/ntg_event_type.h"
 
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size)
 {
@@ -51,7 +50,7 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 
 bool ntg_stage_feed_event(
         ntg_stage* stage,
-        struct ntg_loop_event event,
+        struct nt_event event,
         ntg_loop_ctx* loop_ctx)
 {
     assert(stage != NULL);

@@ -1,15 +1,12 @@
-#include <assert.h>
-#include <stdlib.h>
-
+#include "ntg.h"
 #include "core/object/ntg_box.h"
+#include "base/entity/ntg_entity_type.h"
 #include "base/ntg_sap.h"
-#include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_measure_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
-#include "shared/sarena.h"
 
 struct ntg_box_opts ntg_box_opts_def()
 {
