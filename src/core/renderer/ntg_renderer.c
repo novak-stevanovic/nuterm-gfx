@@ -1,17 +1,17 @@
 #include "ntg.h"
-#include "core/renderer/ntg_renderer.h"
+#include <assert.h>
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_renderer_render(
-        ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing)
+void ntg_renderer_render(ntg_renderer* renderer,
+        const ntg_stage_drawing* stage_drawing,
+        sarena* arena)
 {
     assert(renderer != NULL);
 
-    renderer->__render_fn(renderer, stage_drawing);
+    renderer->__render_fn(renderer, stage_drawing, arena);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1,7 +1,7 @@
 #ifndef _NTG_FOCUSER_H_
 #define _NTG_FOCUSER_H_
 
-#include "base/entity/ntg_entity.h"
+#include "core/entity/ntg_entity.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

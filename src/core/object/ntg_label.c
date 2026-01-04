@@ -1,10 +1,8 @@
 #include "ntg.h"
-#include "core/object/ntg_label.h"
-#include "base/entity/ntg_entity_type.h"
-#include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_measure.h"
 #include "shared/_ntg_shared.h"
-#include "uconv.h"
+#include <assert.h>
+#include <math.h>
+#include <stdlib.h>
 
 /* UGLY CODE - TODO: rewrite sometime */
 
@@ -85,11 +83,11 @@ static void init_default_values(ntg_label* label)
 struct ntg_label_opts ntg_label_opts_def()
 {
     return (struct ntg_label_opts) {
-        .orientation = NTG_ORIENTATION_H,
+        .orientation = NTG_ORIENT_H,
         .gfx = NT_GFX_DEFAULT,
-        .palignment = NTG_TEXT_ALIGNMENT_1,
-        .salignment = NTG_ALIGNMENT_1,
-        .wrap = NTG_TEXT_WRAP_NOWRAP,
+        .palignment = NTG_LABEL_TEXT_ALIGN_1,
+        .salignment = NTG_ALIGN_1,
+        .wrap = NTG_LABEL_TEXT_WRAP_NONE,
         .autotrim = true,
         .indent = false
     };
@@ -256,17 +254,17 @@ struct ntg_object_measure _ntg_label_measure_fn(
     struct ntg_object_measure result;
     switch(label->_opts.wrap)
     {
-        case NTG_TEXT_WRAP_NOWRAP:
+        case NTG_LABEL_TEXT_WRAP_NONE:
             result = measure_nowrap_fn(rows.views, rows.count, 
                     label->_opts.orientation, label->_opts.indent,
                     orientation, for_size, arena);
             break;
-        case NTG_TEXT_WRAP_WRAP:
+        case NTG_LABEL_TEXT_WRAP_CHAR:
             result = measure_wrap_fn(rows.views, rows.count,
                     label->_opts.orientation, label->_opts.indent, orientation,
                     for_size, arena);
             break;
-        case NTG_TEXT_WRAP_WORD_WRAP:
+        case NTG_LABEL_TEXT_WRAP_WORD:
             result = measure_wwrap_fn(rows.views, rows.count,
                     label->_opts.orientation, label->_opts.indent, orientation,
                     for_size, arena);
@@ -295,7 +293,7 @@ void _ntg_label_draw_fn(
 
     /* Init content matrix */
     struct ntg_xy content_size = 
-        (label->_opts.orientation == NTG_ORIENTATION_H) ?
+        (label->_opts.orientation == NTG_ORIENT_H) ?
         size :
         ntg_xy_transpose(size);
 
@@ -345,15 +343,15 @@ void _ntg_label_draw_fn(
         _it_wrap_rows_count = 0;
         switch(label->_opts.wrap)
         {
-            case NTG_TEXT_WRAP_NOWRAP:
+            case NTG_LABEL_TEXT_WRAP_NONE:
                get_wrap_rows_nowrap(rows.views[i], content_size.x, &_it_wrap_rows,
                        &_it_wrap_rows_count, arena); 
                 break;
-            case NTG_TEXT_WRAP_WRAP:
+            case NTG_LABEL_TEXT_WRAP_CHAR:
                get_wrap_rows_wrap(rows.views[i], content_size.x, &_it_wrap_rows,
                        &_it_wrap_rows_count, arena); 
                 break;
-            case NTG_TEXT_WRAP_WORD_WRAP:
+            case NTG_LABEL_TEXT_WRAP_WORD:
                get_wrap_rows_wwrap(rows.views[i], content_size.x, &_it_wrap_rows,
                        &_it_wrap_rows_count, arena); 
                 break;
@@ -369,16 +367,16 @@ void _ntg_label_draw_fn(
 
             switch(label->_opts.palignment)
             {
-                case NTG_TEXT_ALIGNMENT_1:
+                case NTG_LABEL_TEXT_ALIGN_1:
                     it_row_align_indent = 0;
                     break;
-                case NTG_TEXT_ALIGNMENT_2:
+                case NTG_LABEL_TEXT_ALIGN_2:
                     it_row_align_indent = (content_size.x -_it_wrap_rows[j].count) / 2;
                     break;
-                case NTG_TEXT_ALIGNMENT_3:
+                case NTG_LABEL_TEXT_ALIGN_3:
                     it_row_align_indent = (content_size.x -_it_wrap_rows[j].count);
                     break;
-                case NTG_TEXT_ALIGNMENT_JUSTIFY:
+                case NTG_LABEL_TEXT_ALIGN_JUSTIFY:
                     it_row_align_indent = 0;
                     break;
                 default: assert(0);
@@ -398,7 +396,7 @@ void _ntg_label_draw_fn(
             {
                 if(_it_wrap_rows[j].data[k] == ' ')
                 {
-                    if(label->_opts.palignment == NTG_TEXT_ALIGNMENT_JUSTIFY)
+                    if(label->_opts.palignment == NTG_LABEL_TEXT_ALIGN_JUSTIFY)
                     {
                         size_t space_justified_count = (it_wrap_row_extra_space / it_wrap_row_space_count) +
                             (it_wrap_row_space_counter < (it_wrap_row_extra_space % it_wrap_row_space_count)); 
@@ -422,7 +420,7 @@ void _ntg_label_draw_fn(
 
     /* Transpose the content matrix if needed */
     struct ntg_vcell* it_cell;
-    if(label->_opts.orientation == NTG_ORIENTATION_H)
+    if(label->_opts.orientation == NTG_ORIENT_H)
     {
         for(i = 0; i < content_size.y; i++)
         {

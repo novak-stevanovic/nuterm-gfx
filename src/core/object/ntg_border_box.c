@@ -1,12 +1,6 @@
 #include "ntg.h"
-#include "core/object/ntg_border_box.h"
-#include "base/entity/ntg_entity_type.h"
-#include "base/ntg_sap.h"
-#include "core/object/shared/ntg_object_measure.h"
-#include "core/object/shared/ntg_object_measure_map.h"
-#include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
+#include <assert.h>
 
 static void get_children(const ntg_border_box* box, ntg_object** out_north,
         ntg_object** out_east, ntg_object** out_south,
@@ -140,7 +134,7 @@ struct ntg_object_measure _ntg_border_box_measure_fn(
         (struct ntg_object_measure) {0};
 
     size_t min, natural, max;
-    if(orientation == NTG_ORIENTATION_H)
+    if(orientation == NTG_ORIENT_H)
     {
         min = _max3_size(
                 north_measure.min_size,
@@ -221,7 +215,7 @@ void _ntg_border_box_constrain_fn(
     size_t north_size, east_size, south_size,
            west_size, center_size;
 
-    if(orientation == NTG_ORIENTATION_H)
+    if(orientation == NTG_ORIENT_H)
     {
         north_size = size;
         south_size = size;
@@ -411,4 +405,3 @@ void _ntg_border_box_arrange_fn(
     if(center != NULL)
         ntg_object_xy_map_set(out->positions, center, center_pos);
 }
-

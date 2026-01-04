@@ -1,9 +1,7 @@
+#include "core/entity/shared/_ntg_entity_map.h"
+#include "core/entity/shared/_ntg_event_sub_vec.h"
+#include "core/entity/shared/ntg_entity_vec.h"
 #include "ntg.h"
-#include "base/entity/_ntg_entity_system.h"
-#include "base/entity/ntg_entity.h"
-#include "base/entity/shared/_ntg_entity_map.h"
-#include "base/entity/shared/_ntg_event_sub_vec.h"
-#include "base/entity/shared/ntg_entity_vec.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -14,7 +12,7 @@ struct ntg_entity_system
     ntg_entity_map* map;
 };
 
-ntg_entity_system* ntg_entity_system_new()
+ntg_entity_system* _ntg_entity_system_new()
 {
     ntg_entity_system* new = (ntg_entity_system*)malloc(sizeof(ntg_entity_system));
     assert(new != NULL);
@@ -26,7 +24,7 @@ ntg_entity_system* ntg_entity_system_new()
     return new;
 }
 
-void ntg_entity_system_destroy(ntg_entity_system* system)
+void _ntg_entity_system_destroy(ntg_entity_system* system)
 {
     assert(system != NULL);
 
@@ -44,7 +42,7 @@ void ntg_entity_system_destroy(ntg_entity_system* system)
     free(system);
 }
 
-void ntg_entity_system_register(ntg_entity_system* system, ntg_entity* entity)
+void _ntg_entity_system_register(ntg_entity_system* system, ntg_entity* entity)
 {
     assert(system != NULL);
     assert(entity != NULL);
@@ -55,7 +53,7 @@ void ntg_entity_system_register(ntg_entity_system* system, ntg_entity* entity)
     ntg_entity_map_add(system->map, entity, (++system->entity_id_gen));
 }
 
-void ntg_entity_system_unregister(ntg_entity_system* system, ntg_entity* entity)
+void _ntg_entity_system_unregister(ntg_entity_system* system, ntg_entity* entity)
 {
     assert(system != NULL);
     assert(entity != NULL);
@@ -66,7 +64,7 @@ void ntg_entity_system_unregister(ntg_entity_system* system, ntg_entity* entity)
     ntg_entity_map_remove(system->map, entity);
 }
 
-unsigned int ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity)
+unsigned int _ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity)
 {
     assert(system != NULL);
     assert(entity != NULL);
@@ -77,7 +75,7 @@ unsigned int ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entit
     return map_data->id;
 }
 
-void ntg_entity_system_raise_event(
+void _ntg_entity_system_raise_event(
         ntg_entity_system* system,
         ntg_entity* source, 
         ntg_entity* target,
@@ -111,7 +109,7 @@ void ntg_entity_system_raise_event(
     }
 }
 
-void ntg_entity_system_add_observe(
+void _ntg_entity_system_add_observe(
         ntg_entity_system* system,
         ntg_entity* observer,
         ntg_entity* observed,
@@ -146,7 +144,7 @@ void ntg_entity_system_add_observe(
     }
 }
 
-void ntg_entity_system_rm_observe(
+void _ntg_entity_system_rm_observe(
         ntg_entity_system* system,
         ntg_entity* observer,
         ntg_entity* observed,
@@ -168,7 +166,7 @@ void ntg_entity_system_rm_observe(
     }
 }
 
-bool ntg_entity_system_has_observe(
+bool _ntg_entity_system_has_observe(
         ntg_entity_system* system,
         ntg_entity* observer,
         ntg_entity* observed,

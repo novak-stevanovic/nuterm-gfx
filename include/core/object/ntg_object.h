@@ -1,7 +1,7 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
-#include "base/entity/ntg_entity.h"
+#include "core/entity/ntg_entity.h"
 #include "base/ntg_xy.h"
 #include "base/ntg_cell.h"
 

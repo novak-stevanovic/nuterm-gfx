@@ -1,8 +1,5 @@
 #include "ntg.h"
-#include "core/object/ntg_def_padding.h"
-#include "base/entity/ntg_entity_type.h"
-#include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_vec.h"
+#include <assert.h>
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */

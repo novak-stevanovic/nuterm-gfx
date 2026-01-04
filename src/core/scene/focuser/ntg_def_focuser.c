@@ -1,9 +1,5 @@
 #include "ntg.h"
-#include "core/scene/focuser/ntg_def_focuser.h"
-#include "base/entity/ntg_entity_type.h"
-#include "core/object/ntg_object.h"
-#include "core/scene/ntg_scene.h"
-#include "nt_event.h"
+#include <assert.h>
 
 ntg_def_focuser* ntg_def_focuser_new(ntg_entity_system* system)
 {

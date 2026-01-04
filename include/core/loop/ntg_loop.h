@@ -16,6 +16,7 @@ struct ntg_loop_ctx
     ntg_stage* _stage;
     uint64_t _elapsed;
     uint64_t _frame;
+    sarena* _arena;
     void* data;
 };
 

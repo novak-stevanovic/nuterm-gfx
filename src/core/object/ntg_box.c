@@ -1,19 +1,14 @@
 #include "ntg.h"
-#include "core/object/ntg_box.h"
-#include "base/entity/ntg_entity_type.h"
-#include "base/ntg_sap.h"
-#include "core/object/shared/ntg_object_measure_map.h"
-#include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_object_vec.h"
-#include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
+#include <assert.h>
+#include <stdlib.h>
 
 struct ntg_box_opts ntg_box_opts_def()
 {
     return (struct ntg_box_opts) {
-        .orientation = NTG_ORIENTATION_H,
-        .palignment = NTG_ALIGNMENT_1,
-        .salignment = NTG_ALIGNMENT_1,
+        .orientation = NTG_ORIENT_H,
+        .palignment = NTG_ALIGN_1,
+        .salignment = NTG_ALIGN_1,
         .spacing = 0
     };
 }
@@ -176,7 +171,7 @@ struct ntg_object_measure _ntg_box_measure_fn(
         .grow = 1
     };
 
-     if(orientation == NTG_ORIENTATION_H)
+     if(orientation == NTG_ORIENT_H)
          layout_data->hmeasure = measure;
      else
          layout_data->vmeasure = measure;
@@ -199,7 +194,7 @@ void _ntg_box_constrain_fn(
 
     if(children.count == 0) return;
 
-    struct ntg_object_measure content_size = (orientation == NTG_ORIENTATION_H) ?
+    struct ntg_object_measure content_size = (orientation == NTG_ORIENT_H) ?
         layout_data->hmeasure : layout_data->vmeasure;
     size_t min_size = content_size.min_size;
     size_t natural_size = content_size.natural_size;
@@ -357,16 +352,16 @@ void __ntg_box_arrange_fn(
 
     /* Calculate base offset */
     struct ntg_oxy _base_offset = ntg_oxy(0, 0, orient);
-    if(prim_align == NTG_ALIGNMENT_1)
+    if(prim_align == NTG_ALIGN_1)
         _base_offset.prim_val = 0;
-    else if(prim_align == NTG_ALIGNMENT_2)
+    else if(prim_align == NTG_ALIGN_2)
         _base_offset.prim_val = (_size.prim_val - _content_size.prim_val) / 2;
     else
         _base_offset.prim_val = _size.prim_val - _content_size.prim_val;
 
-    if(sec_align == NTG_ALIGNMENT_1)
+    if(sec_align == NTG_ALIGN_1)
         _base_offset.sec_val = 0;
-    else if(sec_align == NTG_ALIGNMENT_2)
+    else if(sec_align == NTG_ALIGN_2)
         _base_offset.sec_val = (_size.sec_val - _content_size.sec_val) / 2;
     else
         _base_offset.sec_val = (_size.sec_val - _content_size.sec_val);
@@ -381,9 +376,9 @@ void __ntg_box_arrange_fn(
         _it_size = ntg_oxy_from_xy(it_size, orient);
 
         /* Calculate offset from secondary alignment */
-        if(sec_align == NTG_ALIGNMENT_1)
+        if(sec_align == NTG_ALIGN_1)
             _it_extra_offset.sec_val = 0;
-        else if(sec_align == NTG_ALIGNMENT_2)
+        else if(sec_align == NTG_ALIGN_2)
             _it_extra_offset.sec_val = (_content_size.sec_val - _it_size.sec_val) / 2;
         else
             _it_extra_offset.sec_val = (_content_size.sec_val - _it_size.sec_val);

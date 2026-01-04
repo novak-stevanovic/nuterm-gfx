@@ -1,12 +1,7 @@
 #include "ntg.h"
-#include "core/object/ntg_padding.h"
-#include "base/ntg_sap.h"
-#include "core/object/shared/ntg_object_measure.h"
-#include "core/object/shared/ntg_object_measure_map.h"
-#include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_object_vec.h"
-#include "core/object/shared/ntg_object_xy_map.h"
 #include "shared/_ntg_shared.h"
+#include <assert.h>
+#include <stdlib.h>
 
 struct ntg_padding_width ntg_padding_width(size_t north,
         size_t east, size_t south, size_t west)
@@ -99,7 +94,7 @@ struct ntg_object_measure _ntg_padding_measure_fn(
     struct ntg_object_measure child_data = ntg_object_measure_map_get(
             ctx.measures, child);
 
-    if(orientation == NTG_ORIENTATION_H)
+    if(orientation == NTG_ORIENT_H)
     {
         size_t h_size = padding->_opts.width.west + padding->_opts.width.east;
         return (struct ntg_object_measure) {
@@ -149,7 +144,7 @@ void _ntg_padding_constrain_fn(
 
     size_t _sizes[2] = {0};
     size_t caps[2];
-    if(orientation == NTG_ORIENTATION_H)
+    if(orientation == NTG_ORIENT_H)
     {
         caps[0] = padding->_opts.width.west;
         caps[1] = padding->_opts.width.east;
@@ -162,7 +157,7 @@ void _ntg_padding_constrain_fn(
 
     ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_space, 2, arena);
 
-    if(orientation == NTG_ORIENTATION_H)
+    if(orientation == NTG_ORIENT_H)
     {
         layout_data->final_width.west = _sizes[0];
         layout_data->final_width.east = _sizes[1];

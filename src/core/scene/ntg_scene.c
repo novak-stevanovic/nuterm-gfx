@@ -1,9 +1,5 @@
 #include "ntg.h"
-#include "core/scene/ntg_scene.h"
-#include "base/entity/ntg_event_type.h"
-#include "core/object/ntg_object.h"
-#include "core/scene/focuser/ntg_focuser.h"
-#include "core/scene/ntg_scene_graph.h"
+#include <assert.h>
 
 static void on_object_register(ntg_scene* scene, ntg_object* object);
 static void on_object_unregister(ntg_scene* scene, ntg_object* object);
@@ -15,12 +11,12 @@ static void object_observe_fn(ntg_entity* scene, struct ntg_event event);
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size)
+void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
 {
     assert(scene != NULL);
 
     if(scene->_root != NULL)
-        scene->__layout_fn(scene, size);
+        scene->__layout_fn(scene, size, arena);
 }
 
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)

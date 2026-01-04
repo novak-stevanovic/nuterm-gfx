@@ -1,23 +1,4 @@
 #include "ntg.h"
-#include "base/entity/ntg_entity_type.h"
-#include "core/loop/ntg_loop.h"
-#include "core/object/ntg_border_box.h"
-#include "core/object/ntg_box.h"
-#include "core/object/ntg_color_block.h"
-#include "core/object/ntg_def_border.h"
-#include "core/object/ntg_def_padding.h"
-#include "core/object/ntg_label.h"
-#include "core/object/ntg_object.h"
-#include "core/object/ntg_prog_bar.h"
-#include "core/object/ntg_padding.h"
-#include "core/renderer/ntg_def_renderer.h"
-#include "core/renderer/ntg_renderer.h"
-#include "core/scene/ntg_def_scene.h"
-#include "core/scene/ntg_scene.h"
-#include "core/stage/ntg_def_stage.h"
-#include "core/stage/ntg_stage.h"
-#include "core/scene/focuser/ntg_focuser.h"
-#include "core/scene/focuser/ntg_def_focuser.h"
 
 bool ntg_entity_instance_of(const ntg_entity_type* type, const ntg_entity_type* ancestor)
 

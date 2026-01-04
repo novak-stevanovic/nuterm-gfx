@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "shared/ntg_log.h"
 
 static FILE *log_file = NULL;
 

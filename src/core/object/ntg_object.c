@@ -1,14 +1,7 @@
 #include "ntg.h"
-#include "core/object/ntg_object.h"
-#include "base/entity/ntg_entity_type.h"
-#include "base/entity/ntg_event_type.h"
-#include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_measure.h"
-#include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_object_vec.h"
-#include "core/object/shared/ntg_object_xy_map.h"
-#include "nt_event.h"
 #include "shared/_ntg_shared.h"
+#include <assert.h>
+#include <stdlib.h>
 
 /* ---------------------------------------------------------------- */
 /* IDENTITY */
@@ -507,7 +500,7 @@ struct ntg_object_measure ntg_object_measure(
     assert(out != NULL);
     assert(arena != NULL);
 
-    size_t user_grow = (orientation == NTG_ORIENTATION_H) ?
+    size_t user_grow = (orientation == NTG_ORIENT_H) ?
         object->__grow.x :
         object->__grow.y;
 
@@ -526,10 +519,10 @@ struct ntg_object_measure ntg_object_measure(
     }
     else result = (struct ntg_object_measure) {0};
 
-    size_t user_min_size = (orientation == NTG_ORIENTATION_H) ?
+    size_t user_min_size = (orientation == NTG_ORIENT_H) ?
         object->__min_size.x :
         object->__min_size.y;
-    size_t user_max_size = (orientation == NTG_ORIENTATION_H) ?
+    size_t user_max_size = (orientation == NTG_ORIENT_H) ?
         object->__max_size.x :
         object->__max_size.y;
 

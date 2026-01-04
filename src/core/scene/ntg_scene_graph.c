@@ -1,8 +1,6 @@
 #include "ntg.h"
-#include "core/scene/ntg_scene_graph.h"
-#include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_vec.h"
 #include "shared/_uthash.h"
+#include <assert.h>
 
 struct ntg_scene_data_hh
 {

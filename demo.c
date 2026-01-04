@@ -1,9 +1,5 @@
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "ntg.h"
 #include <unistd.h>
-#include <assert.h>
-
 
 struct loop_ctx_data
 {
@@ -62,7 +58,7 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
             // struct ntg_xy old = ntg_object_get_min_size((ntg_object*)data->north);
             // ntg_object_set_min_size((ntg_object*)data->north, ntg_xy_add(old, ntg_xy(0, 5)));
             struct ntg_label_opts opts = data->north->_opts;
-            opts.wrap = NTG_TEXT_WRAP_NOWRAP;
+            opts.wrap = NTG_LABEL_TEXT_WRAP_NONE,
             ntg_label_set_opts(data->north, opts);
             ntg_label_set_text(data->north, ntg_strv_from_cstr("a\nab\nab\nab"));
 
@@ -72,7 +68,7 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
         else if(nt_key_utf32_check(key, '2', false))
         {
             struct ntg_label_opts opts = data->north->_opts;
-            opts.wrap = NTG_TEXT_WRAP_WRAP;
+            opts.wrap = NTG_LABEL_TEXT_WRAP_WORD;
             ntg_label_set_opts(data->north, opts);
 
             ntg_label_set_text(data->north, ntg_strv_from_cstr(
@@ -101,12 +97,12 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
         .fg = nt_color_new_auto(nt_rgb_new(255, 255, 255)),
         .style = nt_style_new(NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD, NT_STYLE_VAL_BOLD)
     };
-    struct ntg_strv north_text = ntg_strv_from_cstr("Novak Novak Novak Novak Novak Novak Novak\nEmilija");
+    struct ntg_strv north_text = ntg_strv_from_cstr("Novak Novak Novak Novak Novak Novak Novak");
     ntg_label_set_text(north, north_text);
     struct ntg_label_opts north_opts = ntg_label_opts_def();
     north_opts.gfx = north_gfx;
-    north_opts.palignment = NTG_TEXT_ALIGNMENT_JUSTIFY;
-    north_opts.wrap = NTG_TEXT_WRAP_WORD_WRAP;
+    north_opts.palignment = NTG_LABEL_TEXT_ALIGN_JUSTIFY;
+    north_opts.wrap = NTG_LABEL_TEXT_WRAP_WORD;
     ntg_label_set_opts(north, north_opts);
     ntg_object_set_event_fn((ntg_object*)north, north_event_fn);
 
@@ -138,9 +134,9 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     ntg_log_log("Center: %p", center);
     _ntg_box_init_(center);
     struct ntg_box_opts center_opts = ntg_box_opts_def();
-    center_opts.orientation = NTG_ORIENTATION_V;
-    center_opts.palignment = NTG_ALIGNMENT_2;
-    center_opts.salignment = NTG_ALIGNMENT_2;
+    center_opts.orientation = NTG_ORIENT_V;
+    center_opts.palignment = NTG_ALIGN_2;
+    center_opts.salignment = NTG_ALIGN_2;
     ntg_box_set_opts(center, center_opts);
     ntg_object_set_min_size((ntg_object*)center, ntg_xy(1000, 1000));
 
@@ -159,9 +155,9 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     ntg_box* south = ntg_box_new(es);
     _ntg_box_init_(south);
     struct ntg_box_opts south_opts = ntg_box_opts_def();
-    south_opts.orientation = NTG_ORIENTATION_H;
-    south_opts.palignment = NTG_ALIGNMENT_2;
-    south_opts.salignment = NTG_ALIGNMENT_2;
+    south_opts.orientation = NTG_ORIENT_H;
+    south_opts.palignment = NTG_ALIGN_2;
+    south_opts.salignment = NTG_ALIGN_2;
     south_opts.spacing = 10;
     ntg_box_set_opts(south, south_opts);
     ntg_object_set_min_size((ntg_object*)south, ntg_xy(1000, 1000));
@@ -240,13 +236,13 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
 int main(int argc, char *argv[])
 {
-    _ntg_init_();
+    ntg_init();
 
     ntg_launch(gui_fn, NULL);
 
     ntg_wait();
 
-    _ntg_deinit_();
+    ntg_deinit();
 
     return 0;
 }

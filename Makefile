@@ -30,7 +30,7 @@ MAKE = make
 # Private Settings
 # -----------------------------------------------------------------------------
 
-LIB_NAME = ntg
+LIB_NAME = nutermgfx
 LIB_PC = $(LIB_NAME).pc
 
 C_SRC = $(shell find src -name "*.c")

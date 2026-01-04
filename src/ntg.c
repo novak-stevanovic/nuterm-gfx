@@ -1,6 +1,9 @@
 #include "ntg.h"
-#include "base/entity/_ntg_entity_system.h"
 #include "nt.h"
+#include <pthread.h>
+#include <assert.h>
+#include <stdlib.h>
+#include "core/entity/_ntg_entity_system.h"
 
 static ntg_loop* ntg_loop_new(ntg_entity_system* system);
 
@@ -9,16 +12,16 @@ static ntg_loop* ntg_loop_new(ntg_entity_system* system);
 static pthread_t __ntg_thread;
 static bool __launched = false;
 
-static void* ntg_thread_fn(void* _thread_fn_data);
+static void* ntg_thread_fn(void* _data);
 
 /* -------------------------------------------------------------------------- */
 
-void _ntg_init_()
+void ntg_init()
 {
     _ntg_log_init_("ntg_log.txt");
 
     nt_status _status;
-    nuterm_init(&_status);
+    nt_init(&_status);
 
     switch(_status)
     {
@@ -64,34 +67,33 @@ void ntg_wait()
     pthread_join(__ntg_thread, NULL);
 }
 
-void _ntg_deinit_()
+void ntg_deinit()
 {
     nt_cursor_show(NULL);
     nt_alt_screen_disable(NULL);
-    nuterm_deinit();
+    nt_deinit();
 
    _ntg_log_deinit_();
 }
 
-static void* ntg_thread_fn(void* _thread_fn_data)
+static void* ntg_thread_fn(void* _data)
 {
-    struct thread_fn_data* data =
-        (struct thread_fn_data*)_thread_fn_data;
+    struct thread_fn_data* data = (struct thread_fn_data*)_data;
 
-    ntg_entity_system* es = ntg_entity_system_new();
+    ntg_entity_system* es = _ntg_entity_system_new();
 
     ntg_loop* loop = ntg_loop_new(es);
 
     data->gui_fn(es, loop, data->gui_fn_data);
 
-    ntg_entity_system_destroy(es);
+    _ntg_entity_system_destroy(es);
 
     free(data);
 
     return NULL;
 }
 
-/* TO MODIFY ntg_loop, CHANGE ALSO IN _NTG_ENTITY_TYPE.C */
+/* TO MODIFY ntg_loop, CHANGE ALSO IN NTG_ENTITY_TYPE.C */
 ntg_loop* ntg_loop_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {

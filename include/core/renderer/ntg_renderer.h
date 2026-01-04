@@ -1,7 +1,7 @@
 #ifndef _NTG_RENDERER_H_
 #define _NTG_RENDERER_H_
 
-#include "base/entity/ntg_entity.h"
+#include "core/entity/ntg_entity.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -19,9 +19,9 @@ struct ntg_renderer
 /* -------------------------------------------------------------------------- */
 
 /* If `stage_drawing` is NULL, render empty */
-void ntg_renderer_render(
-        ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing);
+void ntg_renderer_render(ntg_renderer* renderer,
+        const ntg_stage_drawing* stage_drawing,
+        sarena* arena);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

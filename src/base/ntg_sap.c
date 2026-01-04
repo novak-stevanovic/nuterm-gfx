@@ -1,6 +1,7 @@
 #include "ntg.h"
-#include "base/ntg_sap.h"
 #include "shared/_ntg_shared.h"
+#include <assert.h>
+#include <math.h>
 
 static inline bool __is_equal_double(double x, double y)
 {

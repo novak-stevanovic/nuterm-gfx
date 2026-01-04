@@ -1,20 +1,16 @@
 #include "ntg.h"
-#include "core/stage/ntg_stage.h"
-#include "base/ntg_xy.h"
-#include "core/scene/ntg_scene.h"
-#include "core/stage/shared/ntg_stage_drawing.h"
-#include "base/entity/ntg_event_type.h"
+#include <assert.h>
 
-void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size)
+void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
 {
     assert(stage != NULL);
 
     ntg_stage_drawing_set_size(stage->_drawing, size);
 
     if(stage->_scene != NULL)
-        ntg_scene_layout(stage->_scene, size);
+        ntg_scene_layout(stage->_scene, size, arena);
 
-    stage->__compose_fn(stage, size);
+    stage->__compose_fn(stage, size, arena);
 }
 
 const ntg_stage_drawing* ntg_stage_get_drawing(const ntg_stage* stage)

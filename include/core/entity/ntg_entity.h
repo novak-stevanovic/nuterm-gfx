@@ -40,13 +40,14 @@ struct ntg_entity_init_data
 ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data);
 void ntg_entity_destroy(ntg_entity* entity);
 
+unsigned int ntg_entity_get_id(const ntg_entity* entity);
+
 /* ------------------------------------------------------ */
 
 void ntg_entity_raise_event(
         ntg_entity* entity,
         ntg_entity* target,
         unsigned int type, void* data);
-
 void ntg_entity_observe(
         ntg_entity* observer,
         ntg_entity* observed,

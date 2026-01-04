@@ -1,9 +1,5 @@
 #include "ntg.h"
-#include "core/object/ntg_def_border.h"
-#include "base/entity/ntg_entity_type.h"
-#include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_vec.h"
-#include "core/object/shared/ntg_object_xy_map.h"
+#include <assert.h>
 
 static struct ntg_padding_width get_border_width(
         struct ntg_xy size,

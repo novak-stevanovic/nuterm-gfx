@@ -12,10 +12,9 @@
 #include "shared/ntg_log.h"
 #include "shared/ntg_typedef.h"
 #include "base/ntg_cell.h"
-#include "base/entity/ntg_entity.h"
-#include "base/entity/ntg_entity_type.h"
-#include "base/entity/ntg_event_type.h"
-#include "base/ntg_text.h"
+#include "core/entity/ntg_entity.h"
+#include "core/entity/ntg_entity_type.h"
+#include "core/entity/ntg_event_type.h"
 #include "base/ntg_sap.h"
 #include "base/ntg_xy.h"
 #include "core/renderer/ntg_def_renderer.h"
@@ -49,8 +48,8 @@
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_init_();
-void _ntg_deinit_();
+void ntg_init();
+void ntg_deinit();
 
 /* -------------------------------------------------------------------------- */
 /* LAUNCH */
@@ -67,8 +66,8 @@ void ntg_wait();
 /* -------------------------------------------------------------------------- */
 
 // TODO: ntg_object: notify scene when padding/border changes | *
-// TODO: handle private files - typedef
-// TODO: remove ntg_text.h?
+// TODO: nuterm-gfx: rethink vectors - use lists instead?
+// TODO: nuterm, sarena, uconv, nuterm-gfx: change macro names - no underscores?
 
 // TODO: ntg_scene: implement multi-root system | **
 // TODO: ntg_taskmaster: full rework | **

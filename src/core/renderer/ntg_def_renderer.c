@@ -1,8 +1,6 @@
-#include "ntg.h"
-#include "core/renderer/ntg_def_renderer.h"
-#include "base/entity/ntg_entity_type.h"
-#include "core/stage/shared/ntg_stage_drawing.h"
 #include "nt.h"
+#include "ntg.h"
+#include <assert.h>
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -60,9 +58,9 @@ void _ntg_def_renderer_deinit_fn(ntg_entity* entity)
     _ntg_renderer_deinit_fn(entity);
 }
 
-void _ntg_def_renderer_render_fn(
-        ntg_renderer* _renderer,
-        const ntg_stage_drawing* stage_drawing)
+void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
+        const ntg_stage_drawing* stage_drawing,
+        sarena* arena)
 {
     assert(_renderer != NULL);
 
@@ -70,11 +68,10 @@ void _ntg_def_renderer_render_fn(
     struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
     bool resize = !(ntg_xy_are_equal(renderer->__old_size, size));
 
-    // TODO: malloc
-    // nt_charbuff* charbuff = nt_charbuff_new(CHARBUFF_CAP);
-    // assert(charbuff != NULL);
-    
-    // nt_buffer_enable(charbuff);
+    void* buffer = sarena_malloc(arena, 20000);
+    nt_status _status;
+    nt_buffer_enable(buffer, 20000, &_status);
+    assert(_status == NT_SUCCESS);
 
     if(stage_drawing == NULL)
     {
@@ -90,9 +87,7 @@ void _ntg_def_renderer_render_fn(
 
     renderer->__old_size = size;
 
-    // nt_buffer_disable(NT_BUFF_FLUSH);
-
-    // nt_charbuff_destroy(charbuff);
+    nt_buffer_disable(NT_BUFF_FLUSH);
 }
 
 /* -------------------------------------------------------------------------- */

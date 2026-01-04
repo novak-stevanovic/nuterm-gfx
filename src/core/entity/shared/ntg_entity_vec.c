@@ -1,7 +1,7 @@
+#include "core/entity/shared/ntg_entity_vec.h"
 #include "ntg.h"
-
-#include "base/entity/shared/ntg_entity_vec.h"
 #include "shared/_ntg_vector.h"
+
 #include <assert.h>
 #include <stdlib.h>
 

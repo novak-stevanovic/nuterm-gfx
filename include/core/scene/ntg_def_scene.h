@@ -33,6 +33,6 @@ void _ntg_def_scene_init_(ntg_def_scene* scene, ntg_focuser* focuser);
 
 void _ntg_def_scene_deinit_fn(ntg_entity* entity);
 
-void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size);
+void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* arena);
 
 #endif // _NTG_DEF_SCENE_H_

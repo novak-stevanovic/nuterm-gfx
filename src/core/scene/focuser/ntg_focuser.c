@@ -1,6 +1,5 @@
 #include "ntg.h"
-#include "core/scene/focuser/ntg_focuser.h"
-#include "nt_event.h"
+#include <assert.h>
 
 bool ntg_focuser_dispatch_event(
         ntg_focuser* focuser,

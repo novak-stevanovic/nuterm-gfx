@@ -95,11 +95,6 @@ typedef struct ntg_vcell_grid ntg_vcell_grid;
 typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;
 typedef struct ntg_vcell_vecgrid ntg_vcell_vecgrid;
 
-/* Text */
-
-typedef enum ntg_text_wrap_mode ntg_text_wrap_mode;
-typedef enum ntg_text_alignment ntg_text_alignment;
-
 /* Entity */
 typedef struct ntg_entity ntg_entity;
 typedef struct ntg_entity_system ntg_entity_system;
@@ -183,7 +178,8 @@ typedef void (*ntg_object_draw_fn)(
 /* Performs logical layout of the scene. */
 typedef void (*ntg_scene_layout_fn)(
         ntg_scene* scene,
-        struct ntg_xy size);
+        struct ntg_xy size,
+        sarena* arena);
 
 typedef bool (*ntg_scene_event_fn)(
         ntg_scene* scene,
@@ -198,12 +194,14 @@ typedef bool (*ntg_focuser_dispatch_fn)(
 /* If `stage_drawing` is NULL, render empty */
 typedef void (*ntg_renderer_render_fn)(
         ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing);
+        const ntg_stage_drawing* stage_drawing,
+        sarena* arena);
 
 /* Composes the scene's logical drawing into an ntg_stage_drawing */
 typedef void (*ntg_stage_compose_fn)(
         ntg_stage* stage,
-        struct ntg_xy size);
+        struct ntg_xy size,
+        sarena* arena);
 
 typedef bool (*ntg_stage_event_fn)(
         ntg_stage* stage,

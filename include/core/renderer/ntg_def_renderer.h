@@ -30,8 +30,8 @@ void _ntg_def_renderer_init_(ntg_def_renderer* renderer);
 
 void _ntg_def_renderer_deinit_fn(ntg_entity* entity);
 
-void _ntg_def_renderer_render_fn(
-        ntg_renderer* _renderer,
-        const ntg_stage_drawing* stage_drawing);
+void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
+        const ntg_stage_drawing* stage_drawing,
+        sarena* arena);
 
 #endif // _NTG_DEF_RENDERER_H_

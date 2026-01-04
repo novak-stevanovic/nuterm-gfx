@@ -30,6 +30,6 @@ void _ntg_def_stage_init_(ntg_def_stage* stage, ntg_loop* loop);
 
 void _ntg_def_stage_deinit_fn(ntg_entity* entity);
 
-void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size);
+void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size, sarena* arena);
 
 #endif // _NTG_DEF_STAGE_H_

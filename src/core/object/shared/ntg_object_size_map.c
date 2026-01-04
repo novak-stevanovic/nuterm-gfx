@@ -1,6 +1,6 @@
-#include "ntg.h"
 #include "core/object/shared/_ntg_object_map.h"
-#include "core/object/shared/ntg_object_measure.h"
+#include "ntg.h"
+#include <assert.h>
 
 struct ntg_object_size_map
 {

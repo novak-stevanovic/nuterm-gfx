@@ -3,20 +3,34 @@
 
 #include "core/object/ntg_object.h"
 #include "base/ntg_xy.h"
-#include "base/ntg_text.h"
 #include "shared/ntg_string.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
+enum ntg_label_text_wrap
+{
+    NTG_LABEL_TEXT_WRAP_NONE,
+    NTG_LABEL_TEXT_WRAP_CHAR,
+    NTG_LABEL_TEXT_WRAP_WORD
+};
+
+enum ntg_label_text_align
+{
+    NTG_LABEL_TEXT_ALIGN_1,
+    NTG_LABEL_TEXT_ALIGN_2,
+    NTG_LABEL_TEXT_ALIGN_3,
+    NTG_LABEL_TEXT_ALIGN_JUSTIFY
+};
+
 struct ntg_label_opts
 {
     ntg_orientation orientation;
     struct nt_gfx gfx;
-    ntg_text_alignment palignment;
+    enum ntg_label_text_align palignment;
     ntg_alignment salignment;
-    ntg_text_wrap_mode wrap;
+    enum ntg_label_text_wrap wrap;
     bool autotrim;
     size_t indent;
 };

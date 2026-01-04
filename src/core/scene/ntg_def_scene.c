@@ -1,16 +1,6 @@
 #include "ntg.h"
-#include "core/scene/ntg_def_scene.h"
-#include "base/entity/ntg_entity_type.h"
-#include "base/entity/ntg_event_type.h"
-#include "core/object/ntg_object.h"
-#include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/shared/ntg_object_measure.h"
-#include "core/object/shared/ntg_object_measure_map.h"
-#include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_object_vec.h"
-#include "core/object/shared/ntg_object_xy_map.h"
-#include "core/scene/ntg_scene_graph.h"
-#include "shared/ntg_log.h"
+#include <assert.h>
+#include <stdlib.h>
 
 #define DEBUG 0
 
@@ -75,7 +65,6 @@ void _ntg_def_scene_init_(ntg_def_scene* scene, ntg_focuser* focuser)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-
 struct ntg_layout_data
 {
     ntg_def_scene* scene;
@@ -92,7 +81,7 @@ void _ntg_def_scene_deinit_fn(ntg_entity* entity)
     _ntg_scene_deinit_fn(entity);
 }
 
-void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
+void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* arena)
 {
     assert(_scene != NULL);
 
@@ -113,9 +102,6 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
 
     ntg_object* root = ntg_object_get_group_root_(_scene->_root);
     struct ntg_scene_node_pr* root_node = ntg_scene_graph_get(graph, root);
-
-    sarena* arena = sarena_create(50000);
-    assert(arena != NULL);
 
     struct ntg_layout_data data = {
         .scene = scene,
@@ -139,8 +125,6 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size)
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, constrain2_fn, &data);
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, arrange_fn, &data);
     ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, draw_fn, &data);
-
-    sarena_destroy(arena);
 
     scene->__last_size = size;
     scene->__detected_changes = false;
@@ -169,13 +153,13 @@ static ntg_object_measure_map* get_children_measures(ntg_object* object,
         it_node = ntg_scene_graph_get(graph, it_child);
 
         it_measure = (struct ntg_object_measure) {
-            .min_size = (orientation == NTG_ORIENTATION_H) ?
+            .min_size = (orientation == NTG_ORIENT_H) ?
                 it_node->min_size.x : it_node->min_size.y,
-            .natural_size = (orientation == NTG_ORIENTATION_H) ? 
+            .natural_size = (orientation == NTG_ORIENT_H) ? 
                 it_node->natural_size.x : it_node->natural_size.y,
-            .max_size = (orientation == NTG_ORIENTATION_H) ? 
+            .max_size = (orientation == NTG_ORIENT_H) ? 
                 it_node->max_size.x : it_node->max_size.y,
-            .grow = (orientation == NTG_ORIENTATION_H) ? 
+            .grow = (orientation == NTG_ORIENT_H) ? 
                 it_node->grow.x : it_node->grow.y
         };
 
@@ -259,13 +243,13 @@ static void measure1_fn(ntg_object* object, void* _layout_data)
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M1 | %p", object);
 
     ntg_object_measure_map* measures = get_children_measures(object,
-            scene, NTG_ORIENTATION_H, arena);
+            scene, NTG_ORIENT_H, arena);
 
     struct ntg_object_measure_ctx ctx = { .measures = measures };
     struct ntg_object_measure_out out = {0};
 
     struct ntg_object_measure result = ntg_object_measure(object,
-            NTG_ORIENTATION_H, NTG_SIZE_MAX, ctx, &out,
+            NTG_ORIENT_H, NTG_SIZE_MAX, ctx, &out,
             node->object_layout_data, arena);
 
     if((node->min_size.x != result.min_size) ||
@@ -310,13 +294,13 @@ static void constrain1_fn(ntg_object* object, void* _layout_data)
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C1 | %p", object);
 
     ntg_object_measure_map* measures = get_children_measures(object,
-            scene, NTG_ORIENTATION_H, arena);
+            scene, NTG_ORIENT_H, arena);
     ntg_object_size_map* _sizes = ntg_object_size_map_new(child_count, arena);
 
     struct ntg_object_constrain_ctx ctx = { .measures = measures };
     struct ntg_object_constrain_out out = { .sizes = _sizes };
 
-    ntg_object_constrain(object, NTG_ORIENTATION_H,
+    ntg_object_constrain(object, NTG_ORIENT_H,
             node->size.x, ctx, &out,
             node->object_layout_data, arena);
 
@@ -371,13 +355,13 @@ static void measure2_fn(ntg_object* object, void* _layout_data)
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M2 | %p", object);
 
     ntg_object_measure_map* measures = get_children_measures(object,
-            scene, NTG_ORIENTATION_V, arena);
+            scene, NTG_ORIENT_V, arena);
 
     struct ntg_object_measure_ctx ctx = { .measures = measures };
     struct ntg_object_measure_out out = {0};
 
     struct ntg_object_measure result = ntg_object_measure(
-            object, NTG_ORIENTATION_V,
+            object, NTG_ORIENT_V,
             node->size.x, ctx, &out,
             node->object_layout_data,
             arena);
@@ -422,14 +406,14 @@ static void constrain2_fn(ntg_object* object, void* _layout_data)
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C2 | %p", object);
 
     ntg_object_measure_map* measures = get_children_measures(object,
-            scene, NTG_ORIENTATION_V, arena);
+            scene, NTG_ORIENT_V, arena);
     ntg_object_size_map* _sizes = ntg_object_size_map_new(child_count,
             arena);
 
     struct ntg_object_constrain_ctx ctx = { .measures = measures };
     struct ntg_object_constrain_out out = { .sizes = _sizes };
 
-    ntg_object_constrain(object, NTG_ORIENTATION_V,
+    ntg_object_constrain(object, NTG_ORIENT_V,
             node->size.y, ctx, &out,
             node->object_layout_data, arena);
 

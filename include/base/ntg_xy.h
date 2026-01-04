@@ -21,23 +21,22 @@ struct ntg_dxy
 
 enum ntg_orientation
 {
-    NTG_ORIENTATION_H,
-    NTG_ORIENTATION_V
+    NTG_ORIENT_H,
+    NTG_ORIENT_V
 };
 
 enum ntg_alignment
 {
     /* left, when used in reference to x axis alignment */
     /* top, when used in reference to y axis alignment */
-    NTG_ALIGNMENT_1,
+    NTG_ALIGN_1,
 
     /* center */
-    NTG_ALIGNMENT_2,
+    NTG_ALIGN_2,
 
     /* right, when used in reference to x axis alignment */
     /* bottom, when used in reference to y axis alignment */
-    NTG_ALIGNMENT_3
-
+    NTG_ALIGN_3
 };
 
 struct ntg_oxy
@@ -179,16 +178,16 @@ static inline struct ntg_dxy ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy va
 
 static inline ntg_orientation ntg_orientation_get_other(ntg_orientation ort)
 {
-    return (ort == NTG_ORIENTATION_H) ?
-        NTG_ORIENTATION_V :
-        NTG_ORIENTATION_H;
+    return (ort == NTG_ORIENT_H) ?
+        NTG_ORIENT_V :
+        NTG_ORIENT_H;
 }
 
 /* -------------------------------------------------------------------------- */
 
 static inline struct ntg_xy ntg_xy_from_oxy(struct ntg_oxy orient_xy)
 {
-    if(orient_xy.orient == NTG_ORIENTATION_H)
+    if(orient_xy.orient == NTG_ORIENT_H)
         return ntg_xy(orient_xy.prim_val, orient_xy.sec_val);
     else
         return ntg_xy(orient_xy.sec_val, orient_xy.prim_val);
@@ -215,10 +214,10 @@ static inline struct ntg_oxy ntg_oxy_size(struct ntg_oxy oxy)
 static inline struct ntg_oxy ntg_oxy_from_xy(struct ntg_xy xy,
         ntg_orientation orientation)
 {
-    if(orientation == NTG_ORIENTATION_H)
-        return ntg_oxy(xy.x, xy.y, NTG_ORIENTATION_H);
+    if(orientation == NTG_ORIENT_H)
+        return ntg_oxy(xy.x, xy.y, NTG_ORIENT_H);
     else
-        return ntg_oxy(xy.y, xy.x, NTG_ORIENTATION_V);
+        return ntg_oxy(xy.y, xy.x, NTG_ORIENT_V);
 }
 
 /* -------------------------------------------------------------------------- */

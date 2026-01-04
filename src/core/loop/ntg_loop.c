@@ -1,9 +1,8 @@
 #include "ntg.h"
-#include "core/loop/ntg_loop.h"
-#include "core/renderer/ntg_renderer.h"
-#include "core/stage/ntg_stage.h"
+#include <assert.h>
 #include "nt.h"
-#include "shared/ntg_log.h"
+#include <time.h>
+#include <signal.h>
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -25,6 +24,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     ctx._elapsed = 0;
     ctx._frame = 0;
     ctx.data = data.ctx_data;
+    ctx._arena = sarena_create(50000);
 
     /* loop */
     unsigned int timeout = 1000 / data.framerate;
@@ -35,6 +35,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
     struct nt_event event;
     unsigned int event_elapsed;
+    struct ntg_event_loop_event_data loop_event_data;
 
     nt_status _status;
     while(true)
@@ -81,19 +82,24 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
             if(ctx._stage != NULL)
             {
-                ntg_stage_compose(ctx._stage, ctx._app_size);
+                ntg_stage_compose(ctx._stage, ctx._app_size, ctx._arena);
                 drawing = ntg_stage_get_drawing(ctx._stage);
             }
             else drawing = NULL;
 
-            ntg_renderer_render(data.renderer, drawing);
+            ntg_renderer_render(data.renderer, drawing, ctx._arena);
 
             ctx._frame++;
+            sarena_rewind(ctx._arena);
         }
         else
         {
             timeout -= event_elapsed;
         }
+
+        loop_event_data.event = event;
+        ntg_entity_raise_event((ntg_entity*)loop, NULL,
+                NTG_EVENT_LOOP_EVENT, &loop_event_data);
 
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
@@ -106,6 +112,7 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
 
+    sarena_destroy(ctx._arena);
     ctx = (struct ntg_loop_ctx) {0};
 }
 

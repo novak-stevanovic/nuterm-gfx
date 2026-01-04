@@ -1,7 +1,6 @@
 #include "ntg.h"
-#include "core/object/shared/ntg_object_drawing.h"
-#include "core/stage/shared/ntg_stage_drawing.h"
-#include "shared/ntg_status.h"
+#include <assert.h>
+#include <stdlib.h>
 
 void _ntg_object_drawing_init_(ntg_object_drawing* drawing)
 {
