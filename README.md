@@ -20,8 +20,4 @@ Default options are `PREFIX=/usr/local`, `PC_PREFIX=PREFIX/lib/pkgconfig`, `OPT=
 
 ## Usage instructions:
 
-This library can be used in your project via pkg-config. First, you need to install it on your system - either globally or locally in your project (so that the .pc file is available).
-
-1. Install with desired `PREFIX` and `PC_PREFIX`.
-
-2. Compile your project with flags: `$(pkgconf --cflags nutermgfx)` and link with flags: `$(pkgconf --libs nutermgfx)`. Make sure pkg-config can also find the .pc files of the libraries that are used via pkg-config.
+Compile your project with flags: `$(pkgconf --cflags nutermgfx)` and link with flags: `$(pkgconf --libs nutermgfx)`. For this to work, make sure that pkg-config searches in the directory of the .pc file generated in the installation process.
