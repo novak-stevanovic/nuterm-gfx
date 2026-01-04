@@ -23,7 +23,7 @@ struct ntg_scene_node_pr* ntg_scene_graph_add(
         ntg_scene_graph* scene_graph,
         const ntg_object* object);
 
-void ntg_scene_graph_remove(
+void ntg_scene_graph_rm(
         ntg_scene_graph* scene_graph,
         const ntg_object* object);
 
@@ -31,7 +31,7 @@ struct ntg_scene_node_pr* ntg_scene_graph_get(
         ntg_scene_graph* scene_graph,
         const ntg_object* object);
 
-/* Expects an initialized, empty vector. */
+/* Expects an initialized, empty vec. */
 void ntg_scene_graph_get_keys(
         const ntg_scene_graph* scene_graph,
         ntg_const_object_vec* out_vec);

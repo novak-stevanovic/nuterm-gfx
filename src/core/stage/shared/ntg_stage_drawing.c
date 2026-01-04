@@ -2,18 +2,18 @@
 #include <assert.h>
 #include <stdlib.h>
 
-void _ntg_stage_drawing_init_(ntg_stage_drawing* drawing)
+void ntg_stage_drawing_init(ntg_stage_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    _ntg_cell_vecgrid_init_(&drawing->___data);
+    ntg_cell_vecgrid_init(&drawing->___data);
 }
 
 void _ntg_stage_drawing_deinit_(ntg_stage_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    _ntg_cell_vecgrid_deinit_(&drawing->___data);
+    ntg_cell_vecgrid_deinit(&drawing->___data);
 }
 
 ntg_stage_drawing* ntg_stage_drawing_new()
@@ -23,7 +23,7 @@ ntg_stage_drawing* ntg_stage_drawing_new()
 
     if(new == NULL) return NULL;
 
-    _ntg_stage_drawing_init_(new);
+    ntg_stage_drawing_init(new);
 
     return new;
 }

@@ -6,7 +6,7 @@
 
 static FILE *log_file = NULL;
 
-void _ntg_log_init_(const char* filepath)
+void ntg_log_init(const char* filepath)
 {
     if (log_file != NULL)
     {

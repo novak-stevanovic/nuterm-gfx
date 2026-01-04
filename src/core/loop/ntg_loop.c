@@ -51,7 +51,6 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
             unsigned int signum = *(unsigned int*)event.data;
             if(signum == SIGWINCH) // RESIZE
             {
-                ntg_log_log("Resize");
                 nt_get_term_size(&ctx._app_size.x, &ctx._app_size.y);
             }
         }

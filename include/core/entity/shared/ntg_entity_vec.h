@@ -17,22 +17,15 @@ struct ntg_entity_vec
     size_t __data_size;
 };
 
-void _ntg_entity_vec_init_(ntg_entity_vec* vec);
-void _ntg_entity_vec_deinit_(ntg_entity_vec* vec);
+void ntg_entity_vec_init(ntg_entity_vec* vec);
+void ntg_entity_vec_deinit(ntg_entity_vec* vec);
 
-ntg_entity_vec* ntg_entity_vec_new();
-void ntg_entity_vec_destroy(ntg_entity_vec* vec);
-
-void ntg_entity_vec_append(ntg_entity_vec* vec, ntg_entity* entity);
-void ntg_entity_vec_remove(ntg_entity_vec* vec, ntg_entity* entity);
+void ntg_entity_vec_add(ntg_entity_vec* vec, ntg_entity* entity);
+void ntg_entity_vec_rm(ntg_entity_vec* vec, ntg_entity* entity);
 void ntg_entity_vec_empty(ntg_entity_vec* vec);
 
-size_t ntg_entity_vec_find(
-        const ntg_entity_vec* vec,
-        const ntg_entity* entity);
-bool ntg_entity_vec_contains(
-        const ntg_entity_vec* vec,
-        const ntg_entity* entity);
+size_t ntg_entity_vec_find(const ntg_entity_vec* vec, const ntg_entity* entity);
+bool ntg_entity_vec_has(const ntg_entity_vec* vec, const ntg_entity* entity);
 
 struct ntg_entity_vecv
 {
@@ -52,22 +45,15 @@ struct ntg_const_entity_vec
     size_t __data_size;
 };
 
-void _ntg_const_entity_vec_init_(ntg_const_entity_vec* vec);
-void _ntg_const_entity_vec_deinit_(ntg_const_entity_vec* vec);
+void ntg_const_entity_vec_init(ntg_const_entity_vec* vec);
+void ntg_const_entity_vec_deinit(ntg_const_entity_vec* vec);
 
-ntg_const_entity_vec* ntg_const_entity_vec_new();
-void ntg_const_entity_vec_destroy(ntg_const_entity_vec* vec);
-
-void ntg_const_entity_vec_append(ntg_const_entity_vec* vec, const ntg_entity* entity);
-void ntg_const_entity_vec_remove(ntg_const_entity_vec* vec, const ntg_entity* entity);
+void ntg_const_entity_vec_add(ntg_const_entity_vec* vec, const ntg_entity* entity);
+void ntg_const_entity_vec_rm(ntg_const_entity_vec* vec, const ntg_entity* entity);
 void ntg_const_entity_vec_empty(ntg_const_entity_vec* vec);
 
-size_t ntg_const_entity_vec_find(
-        const ntg_const_entity_vec* vec,
-        const ntg_entity* entity);
-bool ntg_const_entity_vec_contains(
-        const ntg_const_entity_vec* vec,
-        const ntg_entity* entity);
+size_t ntg_const_entity_vec_find(const ntg_const_entity_vec* vec, const ntg_entity* entity);
+bool ntg_const_entity_vec_has(const ntg_const_entity_vec* vec, const ntg_entity* entity);
 
 struct ntg_const_entity_vecv
 {

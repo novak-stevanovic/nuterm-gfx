@@ -1,4 +1,4 @@
-#include "core/object/shared/_ntg_object_map.h"
+#include "core/object/shared/ntg_object_map.h"
 #include "ntg.h"
 #include <assert.h>
 
@@ -13,7 +13,7 @@ ntg_object_measure_map* ntg_object_measure_map_new(size_t child_count, sarena* a
             arena, sizeof(ntg_object_measure_map));
     assert(new != NULL);
 
-    _ntg_object_map_init_(&new->__base, child_count,
+    ntg_object_map_init(&new->__base, child_count,
             sizeof(struct ntg_object_measure), arena);
 
     return new;

@@ -41,7 +41,7 @@ ntg_border_box* ntg_border_box_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_border_box_init_(ntg_border_box* box)
+void ntg_border_box_init(ntg_border_box* box)
 {
     assert(box != NULL);
 
@@ -54,7 +54,7 @@ void _ntg_border_box_init_(ntg_border_box* box)
         .draw_fn = NULL,
     };
 
-    _ntg_object_init_((ntg_object*)box, object_data);
+    ntg_object_init((ntg_object*)box, object_data);
 
     init_default(box);
 }
@@ -85,7 +85,11 @@ void ntg_border_box_set(ntg_border_box* box,
     box->_children[position] = object;
 
     if(object != NULL)
+    {
+        bool validate = _ntg_object_validate_add_child((ntg_object*)box, object);
+        assert(validate);
         _ntg_object_add_child((ntg_object*)box, object);
+    }
 
     _ntg_object_mark_change(object);
 }

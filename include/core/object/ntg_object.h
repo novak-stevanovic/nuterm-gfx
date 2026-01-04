@@ -4,12 +4,13 @@
 #include "core/entity/ntg_entity.h"
 #include "base/ntg_xy.h"
 #include "base/ntg_cell.h"
+#include "core/object/shared/ntg_object_vec.h"
+#include <stddef.h>
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-#include <stddef.h>
 struct ntg_object_measure_ctx
 {
     const ntg_object_measure_map* measures; // children measures
@@ -73,7 +74,7 @@ struct ntg_object
     {
         ntg_scene* __scene;
         ntg_object* __parent;
-        ntg_object_vec* __children;
+        ntg_object_vec __children;
     };
 
     struct
@@ -134,17 +135,31 @@ struct ntg_object_vecv ntg_object_get_children_(ntg_object* object);
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
 bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant);
 
-enum ntg_object_perform_mode
-{
-    NTG_OBJECT_PERFORM_TOP_DOWN,
-    NTG_OBJECT_PERFORM_BOTTOM_UP
-};
+#define NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fn_name, perform_fn)               \
+static void fn_name(ntg_object* object, void* data)                            \
+{                                                                              \
+    if(object == NULL) return;                                                 \
+    perform_fn(object, data);                                                  \
+    struct ntg_object_vecv children = ntg_object_get_children_(object);        \
+    size_t i;                                                                  \
+    for(i = 0; i < children.count; i++)                                        \
+    {                                                                          \
+        fn_name(children.data[i], data);                                       \
+    }                                                                          \
+}                                                                              \
 
-void ntg_object_tree_perform(
-        ntg_object* object,
-        ntg_object_perform_mode mode,
-        void (*perform_fn)(ntg_object* object, void* data),
-        void* data);
+#define NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(fn_name, perform_fn)              \
+static void fn_name(ntg_object* object, void* data)                            \
+{                                                                              \
+    if(object == NULL) return;                                                 \
+    struct ntg_object_vecv children = ntg_object_get_children_(object);        \
+    size_t i;                                                                  \
+    for(i = 0; i < children.count; i++)                                        \
+    {                                                                          \
+        fn_name(children.data[i], data);                                       \
+    }                                                                          \
+    perform_fn(object, data);                                                  \
+}                                                                              \
 
 /* ------------------------------------------------------ */
 /* SIZE CONTROL */
@@ -167,11 +182,11 @@ void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow);
 
 const ntg_padding* ntg_object_get_padding(const ntg_object* object);
 ntg_padding* ntg_object_get_padding_(ntg_object* object);
-ntg_padding* ntg_object_set_padding(ntg_object* object, ntg_padding* padding);
+void ntg_object_set_padding(ntg_object* object, ntg_padding* padding);
 
 const ntg_padding* ntg_object_get_border(const ntg_object* object);
 ntg_padding* ntg_object_get_border_(ntg_object* object);
-ntg_padding* ntg_object_set_border(ntg_object* object, ntg_padding* border);
+void ntg_object_set_border(ntg_object* object, ntg_padding* border);
 
 void ntg_object_set_background(ntg_object* object, struct ntg_vcell background);
 
@@ -233,10 +248,11 @@ void ntg_object_set_event_fn(
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_object_init_(ntg_object* object, struct ntg_object_layout_ops layout_ops);
+void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops);
 void _ntg_object_deinit_fn(ntg_entity* entity);
 
-/* object & child must be widgets */
+bool _ntg_object_validate_add_child(ntg_object* object, ntg_object* child);
+// Adding before validating is UB
 void _ntg_object_add_child(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child);
 
@@ -246,6 +262,7 @@ void _ntg_object_mark_change(ntg_object* object);
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
 
+// TODO: validate?
 void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child);
 void _ntg_object_rm_children(ntg_object* object);

@@ -20,11 +20,11 @@ ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_renderer_init_(ntg_def_renderer* renderer)
+void ntg_def_renderer_init(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
 
-    _ntg_renderer_init_((ntg_renderer*)renderer, _ntg_def_renderer_render_fn);
+    ntg_renderer_init((ntg_renderer*)renderer, _ntg_def_renderer_render_fn);
 
     renderer->__backbuff = ntg_stage_drawing_new();
     assert(renderer->__backbuff != NULL);

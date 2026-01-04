@@ -14,7 +14,7 @@ bool ntg_focuser_dispatch_event(
         return false;
 }
 
-void _ntg_focuser_init_(
+void ntg_focuser_init(
         ntg_focuser* focuser,
         ntg_scene* scene,
         ntg_focuser_dispatch_fn dispatch_fn)

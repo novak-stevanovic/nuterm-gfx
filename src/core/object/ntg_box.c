@@ -31,12 +31,12 @@ ntg_box* ntg_box_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_box_init_(ntg_box* box)
+void ntg_box_init(ntg_box* box)
 {
     assert(box != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .init_fn = _ntg_box_layout_init_fn,
+        .init_fn = ntg_box_layout_initfn,
         .deinit_fn = _ntg_box_layout_deinit_fn,
         .measure_fn = _ntg_box_measure_fn,
         .constrain_fn = _ntg_box_constrain_fn,
@@ -44,10 +44,10 @@ void _ntg_box_init_(ntg_box* box)
         .draw_fn = NULL,
     };
 
-    _ntg_object_init_((ntg_object*)box, object_data);
+    ntg_object_init((ntg_object*)box, object_data);
 
     box->_opts = ntg_box_opts_def();
-    box->_children = ntg_object_vec_new();
+    ntg_object_vec_init(&box->_children);
 }
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box)
@@ -71,8 +71,11 @@ void ntg_box_add_child(ntg_box* box, ntg_object* child)
     assert(box != NULL);
     assert(child != NULL);
 
+    bool validate = _ntg_object_validate_add_child((ntg_object*)box, child);
+    assert(validate);
+
     _ntg_object_add_child((ntg_object*)box, child);
-    ntg_object_vec_append(box->_children, child);
+    ntg_object_vec_add(&box->_children, child);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_object* child)
@@ -81,7 +84,7 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
     assert(child != NULL);
 
     _ntg_object_add_child((ntg_object*)box, child);
-    ntg_object_vec_remove(box->_children, child);
+    ntg_object_vec_rm(&box->_children, child);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -97,12 +100,11 @@ void _ntg_box_deinit_fn(ntg_entity* entity)
     ntg_box* box = (ntg_box*)entity;
 
     box->_opts = ntg_box_opts_def();
-    ntg_object_vec_destroy(box->_children);
-    box->_children = NULL;
+    _ntg_object_vec_deinit_(&box->_children);
     _ntg_object_deinit_fn(entity);
 }
 
-void* _ntg_box_layout_init_fn(const ntg_object* object)
+void* ntg_box_layout_initfn(const ntg_object* object)
 {
     struct ntg_box_ldata* new = (struct ntg_box_ldata*)malloc(
             sizeof(struct ntg_box_ldata));

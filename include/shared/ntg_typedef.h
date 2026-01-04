@@ -29,7 +29,9 @@ struct ntg_object_draw_out;;
 // SHARED
 
 /* Vector */
-typedef struct ntg_vector ntg_vector;
+typedef struct ntg_vec ntg_vec;
+
+typedef int (*ntg_vec_cmp_fn)(const void* data1, const void* data2);
 
 /* Status */
 typedef unsigned int ntg_status;
@@ -60,7 +62,7 @@ typedef struct ntg_scene ntg_scene;
 typedef struct ntg_def_scene ntg_def_scene;
 typedef struct ntg_scene_graph ntg_scene_graph;
 typedef struct ntg_focuser ntg_focuser;
-typedef struct ntg_def_focuser ntg_def_focuser;
+typedef struct ntg_single_focuser ntg_single_focuser;
 typedef enum ntg_scene_event_mode ntg_scene_event_mode;
 
 /* Object */
@@ -72,7 +74,6 @@ typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_xy_map ntg_object_xy_map;
 typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_object_map ntg_object_map;
-typedef enum ntg_object_perform_mode ntg_object_perform_mode;
 
 
 typedef struct ntg_label ntg_label;
@@ -94,12 +95,13 @@ typedef struct ntg_cell_grid ntg_cell_grid;
 typedef struct ntg_vcell_grid ntg_vcell_grid;
 typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;
 typedef struct ntg_vcell_vecgrid ntg_vcell_vecgrid;
+typedef enum ntg_vcell_type ntg_vcell_type;
 
 /* Entity */
 typedef struct ntg_entity ntg_entity;
 typedef struct ntg_entity_system ntg_entity_system;
 typedef struct ntg_entity_map ntg_entity_map;
-typedef struct ntg_event_sub_vec ntg_event_sub_vec;
+typedef struct ntg_event_observe_vec ntg_event_obs_vec;
 typedef struct ntg_entity_vec ntg_entity_vec;
 typedef struct ntg_const_entity_vec ntg_const_entity_vec;
 typedef struct ntg_entity_type ntg_entity_type;

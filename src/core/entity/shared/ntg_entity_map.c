@@ -1,6 +1,6 @@
 #include "ntg.h"
-#include "core/entity/shared/_ntg_entity_map.h"
-#include "core/entity/shared/_ntg_event_sub_vec.h"
+#include "core/entity/shared/ntg_entity_map.h"
+#include "core/entity/shared/ntg_event_obs_vec.h"
 #include "core/entity/shared/ntg_entity_vec.h"
 #include "shared/_uthash.h"
 
@@ -42,7 +42,7 @@ void ntg_entity_map_destroy(ntg_entity_map* map)
         HASH_DEL(map->head, current);  /* delete; users advances to next */
 
         current->key = NULL;
-        ntg_event_sub_vec_destroy(current->data.subscribers);
+        ntg_event_obs_vec_deinit(&current->data.observers);
         current->data = (struct ntg_entity_data) {0};
 
         free(current);
@@ -65,13 +65,13 @@ void ntg_entity_map_add(ntg_entity_map* map, ntg_entity* object, unsigned int id
 
     new->key = object;
     new->data = (struct ntg_entity_data) {0};
-    new->data.subscribers = ntg_event_sub_vec_new();
+    ntg_event_obs_vec_init(&new->data.observers);
     new->data.id = id;
 
     HASH_ADD_PTR(map->head, key, new);
 }
 
-void ntg_entity_map_remove(ntg_entity_map* map, ntg_entity* entity)
+void ntg_entity_map_rm(ntg_entity_map* map, ntg_entity* entity)
 {
     assert(map != NULL);
 
@@ -81,7 +81,7 @@ void ntg_entity_map_remove(ntg_entity_map* map, ntg_entity* entity)
     HASH_DEL(map->head, found);
 
     found->key = NULL;
-    ntg_event_sub_vec_destroy(found->data.subscribers);
+    ntg_event_obs_vec_deinit(&found->data.observers);
     found->data = (struct ntg_entity_data) {0};
 
     free(found);
@@ -104,7 +104,7 @@ void ntg_entity_map_get_keys(const ntg_entity_map* map, ntg_entity_vec* out_vec)
     struct ntg_entity_data_hh *current, *tmp;
 
     HASH_ITER(hh, map->head, current, tmp) {
-        ntg_entity_vec_append(out_vec, current->key);
+        ntg_entity_vec_add(out_vec, current->key);
     }
 }
 

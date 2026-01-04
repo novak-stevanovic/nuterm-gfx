@@ -7,23 +7,29 @@
 #include "sarena.h"
 #include "uconv.h"
 
+#include "shared/ntg_typedef.h"
+#include "shared/_uthash.h"
 #include "shared/ntg_status.h"
+#include "shared/ntg_vec.h"
 #include "shared/ntg_string.h"
 #include "shared/ntg_log.h"
-#include "shared/ntg_typedef.h"
 #include "base/ntg_cell.h"
-#include "core/entity/ntg_entity.h"
-#include "core/entity/ntg_entity_type.h"
-#include "core/entity/ntg_event_type.h"
-#include "base/ntg_sap.h"
 #include "base/ntg_xy.h"
+#include "base/ntg_sap.h"
 #include "core/renderer/ntg_def_renderer.h"
 #include "core/renderer/ntg_renderer.h"
 #include "core/loop/ntg_loop.h"
+#include "core/entity/shared/ntg_entity_map.h"
+#include "core/entity/shared/ntg_event_obs_vec.h"
+#include "core/entity/shared/ntg_entity_vec.h"
+#include "core/entity/ntg_entity.h"
+#include "core/entity/ntg_entity_type.h"
+#include "core/entity/ntg_event_type.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "core/object/shared/ntg_object_measure_map.h"
+#include "core/object/shared/ntg_object_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/ntg_label.h"
@@ -38,8 +44,8 @@
 #include "core/scene/ntg_scene.h"
 #include "core/scene/ntg_scene_graph.h"
 #include "core/scene/ntg_def_scene.h"
-#include "core/scene/focuser/ntg_def_focuser.h"
 #include "core/scene/focuser/ntg_focuser.h"
+#include "core/scene/focuser/ntg_single_focuser.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
 #include "core/stage/ntg_stage.h"
 #include "core/stage/ntg_def_stage.h"
@@ -65,14 +71,12 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: ntg_object: notify scene when padding/border changes | *
-// TODO: nuterm-gfx: rethink vectors - use lists instead?
 // TODO: nuterm, sarena, uconv, nuterm-gfx: change macro names - no underscores?
 
 // TODO: ntg_scene: implement multi-root system | **
 // TODO: ntg_taskmaster: full rework | **
-// TODO: ntg_list and/or ntg_table: implement | **
 // TODO: ntg_label: coloring/styling specific words, implement buttons/text fields | *
+// TODO: nuterm-gfx: implement more widgets(table, list, group...) | **
 
 // RELEASE
 // TODO: nuterm-gfx: add more generic events

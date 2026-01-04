@@ -27,6 +27,13 @@ static void* graph_node_data_init_fn(ntg_scene* _scene, ntg_object* object);
 static void graph_node_data_deinit_fn(ntg_scene* _scene, ntg_object* object, void* data);
 static void observe_fn(ntg_entity* entity, struct ntg_event event);
 
+NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(measure1_tree, measure1_fn);
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(constrain1_tree, constrain1_fn);
+NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(measure2_tree, measure2_fn);
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(constrain2_tree, constrain2_fn);
+NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(arrange_tree, arrange_fn);
+NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -44,7 +51,7 @@ ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_scene_init_(ntg_def_scene* scene, ntg_focuser* focuser)
+void ntg_def_scene_init(ntg_def_scene* scene, ntg_focuser* focuser)
 {
     assert(scene != NULL);
 
@@ -53,7 +60,7 @@ void _ntg_def_scene_init_(ntg_def_scene* scene, ntg_focuser* focuser)
         .graph_node_data_deinit_fn = graph_node_data_deinit_fn
     };
 
-    _ntg_scene_init_((ntg_scene*)scene, focuser, _ntg_def_scene_layout_fn, hooks);
+    ntg_scene_init((ntg_scene*)scene, focuser, _ntg_def_scene_layout_fn, hooks);
 
     scene->__detected_changes = true;
     scene->__last_size = ntg_xy(0, 0);
@@ -119,12 +126,12 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* are
         root_node_data->draw = true;
     }
 
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP, measure1_fn, &data);
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, constrain1_fn, &data);
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_BOTTOM_UP, measure2_fn, &data);
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, constrain2_fn, &data);
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, arrange_fn, &data);
-    ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, draw_fn, &data);
+    measure1_tree(root, &data);
+    constrain1_tree(root, &data);
+    measure2_tree(root, &data);
+    constrain2_tree(root, &data);
+    arrange_tree(root, &data);
+    draw_tree(root, &data);
 
     scene->__last_size = size;
     scene->__detected_changes = false;
@@ -520,15 +527,7 @@ static void draw_fn(ntg_object* object, void* _layout_data)
 static void* graph_node_data_init_fn(ntg_scene* _scene, ntg_object* object)
 {
     struct node_data* data = malloc(sizeof(struct node_data));
-
-    (*data) = (struct node_data) {
-        .measure1 = true,
-        .constrain1 = true,
-        .measure2 = true,
-        .constrain2 = true,
-        .arrange = true,
-        .draw = true
-    };
+    (*data) = (struct node_data) {0};
 
     return data;
 }
@@ -551,24 +550,38 @@ static void observe_fn(ntg_entity* entity, struct ntg_event event)
         // graph node data init is already handled by the hook fn
         scene->__detected_changes = true;
 
+        struct ntg_scene_node_pr* node = ntg_scene_graph_get(graph, added);
+        assert(node != NULL);
+
+        struct node_data* node_data = node->data;
+        (*node_data) = (struct node_data) {
+            .measure1 = true,
+            .constrain1 = true,
+            .measure2 = true,
+            .constrain2 = true,
+            .arrange = true,
+            .draw = true
+        };
+
         ntg_entity_observe(entity, (ntg_entity*)added, observe_fn);
     }
     else if(event.type == NTG_EVENT_SCENE_OBJRM)
     {
         struct ntg_event_scene_objrm_data* data = event.data;
-        ntg_object* removed = data->object;
+        ntg_object* rmd = data->object;
         // graph node data deinit is already handled by the hook fn
         scene->__detected_changes = true;
 
-        ntg_entity_stop_observing(entity, (ntg_entity*)removed, observe_fn);
+        ntg_entity_stop_observing(entity, (ntg_entity*)rmd, observe_fn);
     }
-    else if(event.type == NTG_EVENT_OBJECT_CHANGE)
+    else if(event.type == NTG_EVENT_OBJECT_DIFF)
     {
         scene->__detected_changes = true;
 
         ntg_object* source_object = (ntg_object*)event.source;
 
         struct ntg_scene_node_pr* node = ntg_scene_graph_get(graph, source_object);
+        assert(node != NULL);
         struct node_data* node_data = node->data;
 
         (*node_data) = (struct node_data) {

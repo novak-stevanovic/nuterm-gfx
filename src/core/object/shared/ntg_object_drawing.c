@@ -2,18 +2,18 @@
 #include <assert.h>
 #include <stdlib.h>
 
-void _ntg_object_drawing_init_(ntg_object_drawing* drawing)
+void ntg_object_drawing_init(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    _ntg_vcell_vecgrid_init_(&drawing->___data);
+    ntg_vcell_vecgrid_init(&drawing->___data);
 }
 
 void _ntg_object_drawing_deinit_(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    _ntg_vcell_vecgrid_deinit_(&drawing->___data);
+    ntg_vcell_vecgrid_deinit(&drawing->___data);
 }
 
 ntg_object_drawing* ntg_object_drawing_new()
@@ -23,7 +23,7 @@ ntg_object_drawing* ntg_object_drawing_new()
 
     if(new == NULL) return NULL;
 
-    _ntg_object_drawing_init_(new);
+    ntg_object_drawing_init(new);
 
     return new;
 }

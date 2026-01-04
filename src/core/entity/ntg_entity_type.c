@@ -118,7 +118,7 @@ const ntg_entity_type NTG_ENTITY_FOCUSER = {
 
 const ntg_entity_type NTG_ENTITY_DEF_FOCUSER = {
     .__parent = &NTG_ENTITY_FOCUSER,
-    ._size = sizeof(ntg_def_focuser)
+    ._size = sizeof(ntg_single_focuser)
 };
 
 /* -------------------------------------------------------------------------- */

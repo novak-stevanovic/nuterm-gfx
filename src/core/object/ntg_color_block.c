@@ -29,7 +29,7 @@ ntg_color_block* ntg_color_block_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_color_block_init_(ntg_color_block* color_block)
+void ntg_color_block_init(ntg_color_block* color_block)
 {
     assert(color_block != NULL);
 
@@ -42,7 +42,7 @@ void _ntg_color_block_init_(ntg_color_block* color_block)
         .draw_fn = _ntg_color_block_draw_fn,
     };
 
-    _ntg_object_init_((ntg_object*)color_block, object_data);
+    ntg_object_init((ntg_object*)color_block, object_data);
 
     color_block->__color = NT_COLOR_DEFAULT;
 }

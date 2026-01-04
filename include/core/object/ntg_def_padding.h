@@ -17,7 +17,7 @@ struct ntg_def_padding
 /* -------------------------------------------------------------------------- */
 
 ntg_def_padding* ntg_def_padding_new(ntg_entity_system* system);
-void _ntg_def_padding_init_(ntg_def_padding* def_padding);
+void ntg_def_padding_init(ntg_def_padding* def_padding);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

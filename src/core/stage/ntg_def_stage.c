@@ -21,11 +21,11 @@ ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_stage_init_(ntg_def_stage* stage, ntg_loop* loop)
+void ntg_def_stage_init(ntg_def_stage* stage, ntg_loop* loop)
 {
     assert(stage != NULL);
 
-    _ntg_stage_init_((ntg_stage*)stage, loop, _ntg_def_stage_compose_fn);
+    ntg_stage_init((ntg_stage*)stage, loop, _ntg_def_stage_compose_fn);
 
     stage->__detected_changes = true;
     stage->__old_size = ntg_xy(0, 0);
@@ -48,7 +48,7 @@ void _ntg_def_stage_deinit_fn(ntg_entity* entity)
     _ntg_stage_deinit_fn(entity);
 }
 
-static void __draw_fn(ntg_object* object, void* _stage)
+static void draw_fn(ntg_object* object, void* _stage)
 {
     ntg_stage* stage = (ntg_stage*)_stage;
 
@@ -57,6 +57,8 @@ static void __draw_fn(ntg_object* object, void* _stage)
     ntg_object_drawing_place_(node.drawing, ntg_xy(0, 0),
             node.size, stage->_drawing, node.abs_pos);
 }
+
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(draw_tree, draw_fn);
 
 void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size, sarena* arena)
 {
@@ -80,9 +82,8 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size, sarena* ar
 
     if((_stage->_scene != NULL) && (_stage->_scene->_root != NULL))
     {
-        ntg_object* root = _stage->_scene->_root;
-        if(root != NULL)
-            ntg_object_tree_perform(root, NTG_OBJECT_PERFORM_TOP_DOWN, __draw_fn, _stage);
+        ntg_object* root = ntg_object_get_group_root_(_stage->_scene->_root);
+        if(root != NULL) draw_tree(root, stage);
     }
 
     stage->__detected_changes = false;
@@ -93,7 +94,7 @@ static void observe_fn(ntg_entity* entity, struct ntg_event event)
 {
     ntg_def_stage* stage = (ntg_def_stage*)entity;
 
-    if(event.type == NTG_EVENT_SCENE_CHANGE)
+    if(event.type == NTG_EVENT_SCENE_DIFF)
     {
         stage->__detected_changes = true;
     }

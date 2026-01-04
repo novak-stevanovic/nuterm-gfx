@@ -23,7 +23,7 @@ struct ntg_event_object_chldrm_data
 };
 
 /* Raised any time a change occurs in the object tree, including
- * decorator child add/remove */
+ * decorator child add/rm */
 #define NTG_EVENT_OBJECT_CHLDADD_DCR 6
 struct ntg_event_object_chldadd_dcr_data
 {
@@ -36,7 +36,7 @@ struct ntg_event_object_chldrm_dcr_data
     ntg_object* child;
 };
 
-#define NTG_EVENT_OBJECT_CHANGE 8
+#define NTG_EVENT_OBJECT_DIFF 8
 
 #define NTG_EVENT_SCENE_OBJADD 9
 struct ntg_event_scene_objadd_data
@@ -50,12 +50,24 @@ struct ntg_event_scene_objrm_data
     ntg_object* object;
 };
 
-#define NTG_EVENT_SCENE_CHANGE 11
+#define NTG_EVENT_SCENE_DIFF 11
 
 #define NTG_EVENT_STAGE_SCNCHNG 12
 struct ntg_event_stage_scnchng_data
 {
     ntg_scene *old, *new;
+};
+
+#define NTG_EVENT_OBJECT_PADCHNG 13
+struct ntg_event_object_padchng
+{
+    ntg_padding *old, *new;
+};
+
+#define NTG_EVENT_OBJECT_BORDCHNG 14
+struct ntg_event_object_bordchng
+{
+    ntg_padding *old, *new;
 };
 
 #endif // _NTG_EVENT_TYPE_H_

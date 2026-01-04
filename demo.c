@@ -4,7 +4,11 @@
 struct loop_ctx_data
 {
     ntg_label* north;
+    ntg_def_border* north_border;
+    ntg_def_padding* north_padding;
     ntg_color_block* center2;
+    ntg_border_box* root;
+    ntg_def_border* root_border;
 };
 
 bool north_event_fn(ntg_object* object, struct nt_event event, ntg_loop_ctx* ctx)
@@ -72,9 +76,33 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
             ntg_label_set_opts(data->north, opts);
 
             ntg_label_set_text(data->north, ntg_strv_from_cstr(
-                        "novanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovakkkkkkkkkkkkkkkkkkkknovak"
-                        "novanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovanovakkkkkkkkkkkkkkkkkkkknovak"));
+                        "novanovanovanovanovanovanovanovanovanov"
+                        "novanovanovanovanovanovanovanovanovanov"));
             return true;
+        }
+        else if(nt_key_utf32_check(key, '3', false))
+        {
+            if(ntg_object_get_padding((ntg_object*)data->north) != NULL)
+                ntg_object_set_padding((ntg_object*)data->north, NULL);
+            else
+                ntg_object_set_padding((ntg_object*)data->north, (ntg_padding*)data->north_padding);
+            return false;
+        }
+        else if(nt_key_utf32_check(key, '4', false))
+        {
+            if(ntg_object_get_border((ntg_object*)data->north) != NULL)
+                ntg_object_set_border((ntg_object*)data->north, NULL);
+            else
+                ntg_object_set_border((ntg_object*)data->north, (ntg_padding*)data->north_border);
+            return false;
+        }
+        else if(nt_key_utf32_check(key, '5', false))
+        {
+            if(ntg_object_get_border((ntg_object*)data->root) != NULL)
+                ntg_object_set_border((ntg_object*)data->root, NULL);
+            else
+                ntg_object_set_border((ntg_object*)data->root, (ntg_padding*)data->root_border);
+            return false;
         }
     }
 
@@ -86,12 +114,25 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     // Root
     ntg_border_box* root = ntg_border_box_new(es);
     ntg_log_log("Root: %p", root);
-    _ntg_border_box_init_(root);
+    ntg_border_box_init(root);
+
+    // Root border
+    ntg_def_border* root_border = ntg_def_border_new(es);
+    ntg_def_border_init(root_border);
+    struct ntg_def_border_style root_border_style = ntg_def_border_style_monochrome(
+            nt_color_new_auto(nt_rgb_new(0, 0, 0)));
+    ntg_def_border_set_style(root_border, root_border_style);
+    struct ntg_padding_opts root_border_opts = {
+        .width = ntg_padding_width(2, 2, 2, 2),
+        .mode = NTG_PADDING_ENABLE_ALWAYS
+    };
+    ntg_padding_set_opts((ntg_padding*)root_border, root_border_opts);
+    ntg_object_set_border((ntg_object*)root, (ntg_padding*)root_border);
 
     // North
     ntg_label* north = ntg_label_new( es);
     ntg_log_log("North: %p", north);
-    _ntg_label_init_(north, NULL);
+    ntg_label_init(north, NULL);
     struct nt_gfx north_gfx = {
         .bg = nt_color_new_auto(nt_rgb_new(255, 0, 0)),
         .fg = nt_color_new_auto(nt_rgb_new(255, 255, 255)),
@@ -108,31 +149,29 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     // North border
     ntg_def_border* north_border = ntg_def_border_new(es);
-    _ntg_def_border_init_(north_border);
+    ntg_def_border_init(north_border);
     struct ntg_def_border_style north_border_style = ntg_def_border_style_monochrome(
             nt_color_new_auto(nt_rgb_new(255, 255, 255)));
     ntg_def_border_set_style(north_border, north_border_style);
     struct ntg_padding_opts north_border_opts = {
-        .width = ntg_padding_width(2, 0, 2, 2),
+        .width = ntg_padding_width(3, 3, 3, 3),
         .mode = NTG_PADDING_ENABLE_ON_NATURAL
     };
     ntg_padding_set_opts((ntg_padding*)north_border, north_border_opts);
-    // ntg_object_set_border((ntg_object*)north, (ntg_padding*)north_border);
 
     // North padding
     ntg_def_padding* north_padding = ntg_def_padding_new(es);
-    _ntg_def_padding_init_(north_padding);
+    ntg_def_padding_init(north_padding);
     struct ntg_padding_opts north_padding_opts = {
-        .width = ntg_padding_width(2, 0, 2, 2),
+        .width = ntg_padding_width(1, 1, 1, 1),
         .mode = NTG_PADDING_ENABLE_ON_NATURAL
     };
-    // ntg_object_set_padding((ntg_object*)north, (ntg_padding*)north_padding);
     ntg_padding_set_opts((ntg_padding*)north_padding, north_padding_opts);
 
     // Center
     ntg_box* center = ntg_box_new(es);
     ntg_log_log("Center: %p", center);
-    _ntg_box_init_(center);
+    ntg_box_init(center);
     struct ntg_box_opts center_opts = ntg_box_opts_def();
     center_opts.orientation = NTG_ORIENT_V;
     center_opts.palignment = NTG_ALIGN_2;
@@ -142,18 +181,18 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     // Center children
     ntg_color_block* center1 = ntg_color_block_new(es);
-    _ntg_color_block_init_(center1);
+    ntg_color_block_init(center1);
     ntg_color_block_set_color(center1, nt_color_new_auto(nt_rgb_new(0, 70, 70)));
     ntg_color_block* center2 = ntg_color_block_new(es);
-    _ntg_color_block_init_(center2);
+    ntg_color_block_init(center2);
     ntg_color_block_set_color(center2, nt_color_new_auto(nt_rgb_new(0, 140, 140)));
     ntg_color_block* center3 = ntg_color_block_new(es);
-    _ntg_color_block_init_(center3);
+    ntg_color_block_init(center3);
     ntg_color_block_set_color(center3, nt_color_new_auto(nt_rgb_new(0, 210, 210)));
 
     // South
     ntg_box* south = ntg_box_new(es);
-    _ntg_box_init_(south);
+    ntg_box_init(south);
     struct ntg_box_opts south_opts = ntg_box_opts_def();
     south_opts.orientation = NTG_ORIENT_H;
     south_opts.palignment = NTG_ALIGN_2;
@@ -164,20 +203,20 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     struct nt_rgb rgb_white = nt_rgb_new(255, 255, 255);
     ntg_object_set_background((ntg_object*)south, ntg_vcell_bg(nt_color_new_auto(rgb_white)));
     ntg_def_padding* south_padding = ntg_def_padding_new(es);
-    _ntg_def_padding_init_(south_padding);
+    ntg_def_padding_init(south_padding);
     struct ntg_padding_opts south_padding_opts = {
-        .width = ntg_padding_width(2, 0, 2, 2),
+        .width = ntg_padding_width(1, 2, 1, 2),
         .mode = NTG_PADDING_ENABLE_ALWAYS
     };
     ntg_padding_set_opts((ntg_padding*)south_padding, south_padding_opts);
-    // ntg_object_set_padding((ntg_object*)south, (ntg_padding*)south_padding);
+    ntg_object_set_padding((ntg_object*)south, (ntg_padding*)south_padding);
 
     // South children
     ntg_color_block* south1 = ntg_color_block_new(es);
-    _ntg_color_block_init_(south1);
+    ntg_color_block_init(south1);
     ntg_color_block_set_color(south1, nt_color_new_auto(nt_rgb_new(0, 255, 0)));
     ntg_color_block* south2 = ntg_color_block_new(es);
-    _ntg_color_block_init_(south2);
+    ntg_color_block_init(south2);
     ntg_color_block_set_color(south2, nt_color_new_auto(nt_rgb_new(0, 0, 255)));
 
     // Connect center
@@ -196,14 +235,14 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     // Stage
     ntg_def_stage* stage = ntg_def_stage_new(es);
-    _ntg_def_stage_init_(stage, loop);
+    ntg_def_stage_init(stage, loop);
     ntg_stage_set_event_fn((ntg_stage*)stage, stage_event_fn);
 
     // Scene
-    ntg_def_focuser* focuser = ntg_def_focuser_new(es);
+    ntg_single_focuser* focuser = ntg_single_focuser_new(es);
     ntg_def_scene* scene = ntg_def_scene_new(es);
-    _ntg_def_scene_init_(scene, (ntg_focuser*)focuser);
-    _ntg_def_focuser_init_(focuser, (ntg_scene*)scene);
+    ntg_def_scene_init(scene, (ntg_focuser*)focuser);
+    ntg_single_focuser_init(focuser, (ntg_scene*)scene);
 
     // Connect root-scene-stage
     ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
@@ -212,11 +251,15 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     // Loop, renderer
     ntg_def_renderer* renderer = ntg_def_renderer_new(es);
-    _ntg_def_renderer_init_(renderer);
+    ntg_def_renderer_init(renderer);
 
     struct loop_ctx_data ctx_data = {
         .north = north,
-        .center2 = center2
+        .north_border = north_border,
+        .north_padding = north_padding,
+        .center2 = center2,
+        .root = root,
+        .root_border = root_border
     };
 
     // Run
@@ -229,8 +272,8 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
         .ctx_data = &ctx_data
     };
 
-    // ntg_def_focuser_focus(focuser, (ntg_object*)north);
-    // ntg_def_focuser_focus(focuser, NULL);
+    // ntg_single_focuser_focus(focuser, (ntg_object*)north);
+    // ntg_single_focuser_focus(focuser, NULL);
     ntg_loop_run(loop, loop_data);
 }
 

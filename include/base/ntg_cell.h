@@ -36,16 +36,16 @@ static inline bool ntg_cell_are_equal(struct ntg_cell c1, struct ntg_cell c2)
 /* VCELL */
 /* -------------------------------------------------------------------------- */
 
-typedef enum ntg_vcell_type
+enum ntg_vcell_type
 { 
     NTG_VCELL_FULL,
     NTG_VCELL_OVERLAY,
     NTG_VCELL_TRANSPARENT
-} ntg_cell_type;
+};
 
 struct ntg_vcell
 {
-    ntg_cell_type type;
+    ntg_vcell_type type;
     union
     {
         struct
@@ -141,8 +141,8 @@ struct ntg_cell_grid
     struct ntg_xy _size;
 };
 
-void _ntg_cell_grid_init_(ntg_cell_grid* grid);
-void _ntg_cell_grid_deinit_(ntg_cell_grid* grid);
+void ntg_cell_grid_init(ntg_cell_grid* grid);
+void ntg_cell_grid_deinit(ntg_cell_grid* grid);
 
 void ntg_cell_grid_set_size(ntg_cell_grid* grid,
         struct ntg_xy size, ntg_status* out_status);
@@ -173,8 +173,8 @@ struct ntg_vcell_grid
     struct ntg_xy _size;
 };
 
-void _ntg_vcell_grid_init_(ntg_vcell_grid* grid);
-void _ntg_vcell_grid_deinit_(ntg_vcell_grid* grid);
+void ntg_vcell_grid_init(ntg_vcell_grid* grid);
+void ntg_vcell_grid_deinit(ntg_vcell_grid* grid);
 
 static inline const struct ntg_vcell* ntg_vcell_grid_at(
         const ntg_vcell_grid* grid, struct ntg_xy pos)
@@ -205,8 +205,8 @@ struct ntg_cell_vecgrid
     struct ntg_xy __size; // current size
 };
 
-void _ntg_cell_vecgrid_init_(ntg_cell_vecgrid* vecgrid);
-void _ntg_cell_vecgrid_deinit_(ntg_cell_vecgrid* vecgrid);
+void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid);
+void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid);
 
 void ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid, struct ntg_xy size,
         ntg_status* out_status);
@@ -239,8 +239,8 @@ struct ntg_vcell_vecgrid
     struct ntg_xy __size; // current size
 };
 
-void _ntg_vcell_vecgrid_init_(ntg_vcell_vecgrid* vecgrid);
-void _ntg_vcell_vecgrid_deinit_(ntg_vcell_vecgrid* vecgrid);
+void ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid);
+void ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid);
 
 void ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid,
         struct ntg_xy size, ntg_status* out_status);

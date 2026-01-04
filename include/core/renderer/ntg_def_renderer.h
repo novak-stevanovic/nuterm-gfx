@@ -22,7 +22,7 @@ struct ntg_def_renderer
 /* -------------------------------------------------------------------------- */
 
 ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system);
-void _ntg_def_renderer_init_(ntg_def_renderer* renderer);
+void ntg_def_renderer_init(ntg_def_renderer* renderer);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

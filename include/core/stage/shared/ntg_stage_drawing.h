@@ -9,7 +9,7 @@ struct ntg_stage_drawing
     ntg_cell_vecgrid ___data;
 };
 
-void _ntg_stage_drawing_init_(ntg_stage_drawing* drawing);
+void ntg_stage_drawing_init(ntg_stage_drawing* drawing);
 void _ntg_stage_drawing_deinit_(ntg_stage_drawing* drawing);
 
 ntg_stage_drawing* ntg_stage_drawing_new();

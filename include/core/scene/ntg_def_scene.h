@@ -25,7 +25,7 @@ struct ntg_def_scene
 
 ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system);
 
-void _ntg_def_scene_init_(ntg_def_scene* scene, ntg_focuser* focuser);
+void ntg_def_scene_init(ntg_def_scene* scene, ntg_focuser* focuser);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

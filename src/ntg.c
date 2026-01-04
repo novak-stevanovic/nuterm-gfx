@@ -18,7 +18,7 @@ static void* ntg_thread_fn(void* _data);
 
 void ntg_init()
 {
-    _ntg_log_init_("ntg_log.txt");
+    ntg_log_init("ntg_log.txt");
 
     nt_status _status;
     nt_init(&_status);

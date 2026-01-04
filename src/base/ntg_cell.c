@@ -30,7 +30,7 @@ struct ntg_cell ntg_vcell_overwrite(
 
 /* ------------------------------------------------------ */
 
-void _ntg_cell_grid_init_(ntg_cell_grid* grid)
+void ntg_cell_grid_init(ntg_cell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -38,7 +38,7 @@ void _ntg_cell_grid_init_(ntg_cell_grid* grid)
     grid->__data = NULL;
 }
 
-void _ntg_cell_grid_deinit_(ntg_cell_grid* grid)
+void ntg_cell_grid_deinit(ntg_cell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -99,7 +99,7 @@ void ntg_cell_grid_set_size(ntg_cell_grid* grid,
 /* VCELL GRID */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_vcell_grid_init_(ntg_vcell_grid* grid)
+void ntg_vcell_grid_init(ntg_vcell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -107,7 +107,7 @@ void _ntg_vcell_grid_init_(ntg_vcell_grid* grid)
     grid->__data = NULL;
 }
 
-void _ntg_vcell_grid_deinit_(ntg_vcell_grid* grid)
+void ntg_vcell_grid_deinit(ntg_vcell_grid* grid)
 {
     if(grid == NULL) return;
 
@@ -168,20 +168,20 @@ void ntg_vcell_grid_set_size(ntg_vcell_grid* grid,
 /* CELL VECGRID */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_cell_vecgrid_init_(ntg_cell_vecgrid* vecgrid)
+void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid)
 {
     assert(vecgrid != NULL);
 
-    _ntg_cell_grid_init_(&vecgrid->__data);
+    ntg_cell_grid_init(&vecgrid->__data);
 
     vecgrid->__size = NTG_XY_UNSET;
 }
 
-void _ntg_cell_vecgrid_deinit_(ntg_cell_vecgrid* vecgrid)
+void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
 {
     assert(vecgrid != NULL);
 
-    _ntg_cell_grid_deinit_(&vecgrid->__data);
+    ntg_cell_grid_deinit(&vecgrid->__data);
 
     vecgrid->__size = NTG_XY_UNSET;
 }
@@ -207,20 +207,20 @@ void ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid, struct ntg_xy size,
 /* VCELL VECGRID */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_vcell_vecgrid_init_(ntg_vcell_vecgrid* vecgrid)
+void ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid)
 {
     assert(vecgrid != NULL);
 
-    _ntg_vcell_grid_init_(&vecgrid->__data);
+    ntg_vcell_grid_init(&vecgrid->__data);
 
     vecgrid->__size = NTG_XY_UNSET;
 }
 
-void _ntg_vcell_vecgrid_deinit_(ntg_vcell_vecgrid* vecgrid)
+void ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
 {
     assert(vecgrid != NULL);
 
-    _ntg_vcell_grid_deinit_(&vecgrid->__data);
+    ntg_vcell_grid_deinit(&vecgrid->__data);
 
     vecgrid->__size = NTG_XY_UNSET;
 }

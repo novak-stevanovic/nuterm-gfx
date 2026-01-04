@@ -24,7 +24,7 @@ struct ntg_box
 
     struct ntg_box_opts _opts;
 
-    ntg_object_vec* _children;
+    ntg_object_vec _children;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -32,7 +32,7 @@ struct ntg_box
 /* -------------------------------------------------------------------------- */
 
 ntg_box* ntg_box_new(ntg_entity_system* system);
-void _ntg_box_init_(ntg_box* box);
+void ntg_box_init(ntg_box* box);
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box);
 void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts);
@@ -52,7 +52,7 @@ struct ntg_box_ldata
     void* data;
 };
 
-void* _ntg_box_layout_init_fn(const ntg_object* object);
+void* ntg_box_layout_initfn(const ntg_object* object);
 void _ntg_box_layout_deinit_fn(const ntg_object* object, void* layout_data);
 
 struct ntg_object_measure _ntg_box_measure_fn(

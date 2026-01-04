@@ -9,7 +9,7 @@ struct ntg_object_drawing
     ntg_vcell_vecgrid ___data;
 };
 
-void _ntg_object_drawing_init_(ntg_object_drawing* object_drawing);
+void ntg_object_drawing_init(ntg_object_drawing* object_drawing);
 void _ntg_object_drawing_deinit_(ntg_object_drawing* object_drawing);
 
 ntg_object_drawing* ntg_object_drawing_new();

@@ -48,7 +48,7 @@ void ntg_padding_set_opts(ntg_padding* padding, struct ntg_padding_opts opts);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_padding_init_(ntg_padding* padding, ntg_object_draw_fn draw_fn);
+void ntg_padding_init(ntg_padding* padding, ntg_object_draw_fn draw_fn);
 
 void _ntg_padding_deinit_fn(ntg_entity* object);
 
@@ -58,7 +58,7 @@ struct ntg_padding_ldata
     void* data;
 };
 
-void* _ntg_padding_layout_init_fn(const ntg_object* object);
+void* ntg_padding_layout_initfn(const ntg_object* object);
 void _ntg_padding_layout_deinit_fn(const ntg_object* object, void* layout_data);
 
 struct ntg_object_measure _ntg_padding_measure_fn(

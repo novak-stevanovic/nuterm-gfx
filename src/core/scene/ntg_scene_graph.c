@@ -73,7 +73,7 @@ struct ntg_scene_node_pr* ntg_scene_graph_add(
     return &(new->data);
 }
 
-void ntg_scene_graph_remove(
+void ntg_scene_graph_rm(
         ntg_scene_graph* scene_graph,
         const ntg_object* object)
 {
@@ -110,7 +110,7 @@ void ntg_scene_graph_get_keys(
     struct ntg_scene_data_hh *current, *tmp;
 
     HASH_ITER(hh, scene_graph->head, current, tmp) {
-        ntg_const_object_vec_append(out_vec, current->key);
+        ntg_const_object_vec_add(out_vec, current->key);
     }
 }
 

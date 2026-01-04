@@ -1,5 +1,5 @@
-#include "core/entity/shared/_ntg_entity_map.h"
-#include "core/entity/shared/_ntg_event_sub_vec.h"
+#include "core/entity/shared/ntg_entity_map.h"
+#include "core/entity/shared/ntg_event_obs_vec.h"
 #include "core/entity/shared/ntg_entity_vec.h"
 #include "ntg.h"
 #include <assert.h>
@@ -30,12 +30,12 @@ void _ntg_entity_system_destroy(ntg_entity_system* system)
 
     /* destroy entities */
     ntg_entity_vec _vec;
-    _ntg_entity_vec_init_(&_vec);
+    ntg_entity_vec_init(&_vec);
     ntg_entity_map_get_keys(system->map, &_vec);
     size_t i;
     for(i = 0; i < _vec._count; i++)
         ntg_entity_destroy(_vec._data[i]);
-    _ntg_entity_vec_deinit_(&_vec);
+    ntg_entity_vec_deinit(&_vec);
 
     ntg_entity_map_destroy(system->map);
 
@@ -61,7 +61,7 @@ void _ntg_entity_system_unregister(ntg_entity_system* system, ntg_entity* entity
     struct ntg_entity_data* map_data = ntg_entity_map_get(system->map, entity);
     assert(map_data != NULL);
 
-    ntg_entity_map_remove(system->map, entity);
+    ntg_entity_map_rm(system->map, entity);
 }
 
 unsigned int _ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity)
@@ -94,18 +94,18 @@ void _ntg_entity_system_raise_event(
     struct ntg_entity_data* map_data = ntg_entity_map_get(system->map, source);
     assert(map_data != NULL);
 
-    ntg_event_sub_vec* subs = map_data->subscribers;
+    ntg_event_obs_vec* subs = &map_data->observers;
 
     size_t i;
-    struct ntg_event_sub it_sub;
+    struct ntg_event_obs it_obs;
     for(i = 0; i < subs->_count; i++)
     {
-        it_sub = subs->_data[i];
-        struct ntg_entity_data* it_map_data = ntg_entity_map_get(system->map, it_sub.entity);
+        it_obs = subs->_data[i];
+        struct ntg_entity_data* it_map_data = ntg_entity_map_get(system->map, it_obs.observer);
 
         // not deinited & (broadcast or target)
-        if((it_map_data != NULL) && ((target == NULL) || (target == it_sub.entity)))
-            it_sub.handler(it_sub.entity, event);
+        if((it_map_data != NULL) && ((target == NULL) || (target == it_obs.observer)))
+            it_obs.handler(it_obs.observer, event);
     }
 }
 
@@ -125,22 +125,26 @@ void _ntg_entity_system_add_observe(
     assert(observer_data != NULL);
     assert(observed_data != NULL);
 
-    ntg_event_sub_vec* subs = observed_data->subscribers;
+    struct ntg_event_obs obs = {
+        .observer = observer,
+        .handler = handler_fn
+    };
+
+    ntg_event_obs_vec* subs = &observed_data->observers;
     if(observer == observed)
     {
         size_t i;
-        struct ntg_event_sub it_sub;
+        struct ntg_event_obs it_sub;
         for(i = 0; i < subs->_count; i++)
         {
             it_sub = subs->_data[i];
-            if(it_sub.entity != observer) break;
+            if(it_sub.observer != observer) break;
         }
-
-        ntg_event_sub_vec_insert(subs, observer, handler_fn, i);
+        ntg_event_obs_vec_ins(subs, obs, i);
     }
     else
     {
-        ntg_event_sub_vec_append(subs, observer, handler_fn);
+        ntg_event_obs_vec_add(subs, obs);
     }
 }
 
@@ -159,10 +163,15 @@ void _ntg_entity_system_rm_observe(
     struct ntg_entity_data* observer_data = ntg_entity_map_get(system->map, observer);
     assert(observer_data != NULL);
 
+    struct ntg_event_obs obs = {
+        .observer = observer,
+        .handler = handler_fn
+    };
+
     if(observed_data != NULL)
     {
-        if(ntg_event_sub_vec_contains(observed_data->subscribers, observer, handler_fn))
-            ntg_event_sub_vec_remove(observed_data->subscribers, observer, handler_fn);
+        if(ntg_event_obs_vec_has(&observed_data->observers, obs))
+            ntg_event_obs_vec_rm(&observed_data->observers, obs);
     }
 }
 
@@ -182,8 +191,13 @@ bool _ntg_entity_system_has_observe(
     assert(observer_data != NULL);
     assert(observed_data != NULL);
 
+    struct ntg_event_obs obs = {
+        .observer = observer,
+        .handler = handler_fn
+    };
+
     if(observed_data != NULL)
-        return ntg_event_sub_vec_contains(observer_data->subscribers, observer, handler_fn);
+        return ntg_event_obs_vec_has(&observer_data->observers, obs);
     else
         return false;
 }

@@ -18,7 +18,7 @@ void ntg_renderer_render(ntg_renderer* renderer,
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_renderer_init_(ntg_renderer* renderer, ntg_renderer_render_fn render_fn)
+void ntg_renderer_init(ntg_renderer* renderer, ntg_renderer_render_fn render_fn)
 {
     assert(renderer != NULL);
     assert(render_fn != NULL);

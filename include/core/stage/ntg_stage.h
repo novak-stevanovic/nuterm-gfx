@@ -49,7 +49,7 @@ void ntg_stage_set_event_mode(ntg_stage* stage, ntg_stage_event_mode mode);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_stage_init_(ntg_stage* stage, ntg_loop* loop,
+void ntg_stage_init(ntg_stage* stage, ntg_loop* loop,
         ntg_stage_compose_fn compose_fn);
 void _ntg_stage_deinit_fn(ntg_entity* entity);
 

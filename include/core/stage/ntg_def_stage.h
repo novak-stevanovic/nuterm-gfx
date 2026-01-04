@@ -22,7 +22,7 @@ struct ntg_def_stage
 /* -------------------------------------------------------------------------- */
 
 ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system);
-void _ntg_def_stage_init_(ntg_def_stage* stage, ntg_loop* loop);
+void ntg_def_stage_init(ntg_def_stage* stage, ntg_loop* loop);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

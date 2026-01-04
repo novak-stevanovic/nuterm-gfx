@@ -18,11 +18,11 @@ ntg_def_padding* ntg_def_padding_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_padding_init_(ntg_def_padding* def_padding)
+void ntg_def_padding_init(ntg_def_padding* def_padding)
 {
     assert(def_padding != NULL);
 
-    _ntg_padding_init_((ntg_padding*)def_padding, _ntg_def_padding_draw_fn);
+    ntg_padding_init((ntg_padding*)def_padding, _ntg_def_padding_draw_fn);
 }
 
 /* -------------------------------------------------------------------------- */

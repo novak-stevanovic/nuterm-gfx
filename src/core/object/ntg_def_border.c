@@ -51,11 +51,11 @@ ntg_def_border* ntg_def_border_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_def_border_init_(ntg_def_border* def_border)
+void ntg_def_border_init(ntg_def_border* def_border)
 {
     assert(def_border != NULL);
 
-    _ntg_padding_init_((ntg_padding*)def_border, _ntg_def_border_draw_fn);
+    ntg_padding_init((ntg_padding*)def_border, _ntg_def_border_draw_fn);
 
     def_border->_style = ntg_def_border_style_def();
 }

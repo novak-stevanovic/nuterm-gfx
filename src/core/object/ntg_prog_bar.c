@@ -27,7 +27,7 @@ ntg_prog_bar* ntg_prog_bar_new(ntg_entity_system* system)
     return new;
 }
 
-void _ntg_prog_bar_init_(ntg_prog_bar* prog_bar)
+void ntg_prog_bar_init(ntg_prog_bar* prog_bar)
 {
     assert(prog_bar != NULL);
 
@@ -40,7 +40,7 @@ void _ntg_prog_bar_init_(ntg_prog_bar* prog_bar)
         .draw_fn = _ntg_prog_bar_draw_fn,
     };
 
-    _ntg_object_init_((ntg_object*)prog_bar, object_data);
+    ntg_object_init((ntg_object*)prog_bar, object_data);
 
     prog_bar->__opts = ntg_prog_bar_opts_def();
 }

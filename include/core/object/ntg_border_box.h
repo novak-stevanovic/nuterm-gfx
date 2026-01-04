@@ -36,7 +36,7 @@ struct ntg_border_box
 
 ntg_border_box* ntg_border_box_new(ntg_entity_system* system);
 
-void _ntg_border_box_init_(ntg_border_box* box);
+void ntg_border_box_init(ntg_border_box* box);
 
 void ntg_border_box_set(ntg_border_box* box,
         ntg_object* object,
