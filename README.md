@@ -3,13 +3,13 @@
 __Nuterm-GFX__ is a retained-mode terminal GUI library written in C. It features a __multi-pass layout process__ (inspired by GTK) that relies on arena allocation, ensuring __high performance__. The library is built from the ground up with strong __modularity__ - Scene, Stage, Object, etc. are all implemented as abstract types, giving the user the ability to provide their own implementation and/or mix up different implementations. 
 The codebase was intentionally written in an __OOP-inspired style__, but without heavy abstractions. This combination makes the process of adding new widgets straightforward.
 
-It also provides __UTF-32 support__ for correct handling of Unicode text and __asynchronous task execution__ on worker threads while maintaining __cross-terminal compatibility__ through a terminal backend abstraction.
+It also provides __UTF-32 support__ for correct handling of Unicode text and __asynchronous task execution__ on worker threads while maintaining __cross-terminal compatibility__.
 
 # Dependencies
 
-This library relies on [UConv](https://github.com/novak-stevanovic/uconv) for UTF-32 conversion needs, on [SArena](https://github.com/novak-stevanovic/sarena) for arena allocation and [uthash](https://github.com/troydhanson/uthash). This is bundled internally.
+The library is built on top of [Nuterm](https://github.com/novak-stevanovic/nuterm), which abstracts differences between terminal emulators and handles escape sequences, input events, and output buffering. Additionally, this library relies on [UConv](https://github.com/novak-stevanovic/uconv) for its UTF-32 conversion needs and [SArena](https://github.com/novak-stevanovic/sarena) for arena allocation. To fetch compile and link flags, pkg-config is used. This means that, when compiling the library, pkg-config must be able to locate corresponding .pc files.
 
-Additionally, the library relies on [Nuterm](https://github.com/novak-stevanovic/nuterm), a terminal backend. To fetch compile and link flags, pkg-config is used. This means that, when compiling the library, pkg-config must be able to find Nuterm's .pc file.
+The library also uses [uthash](https://github.com/troydhanson/uthash). That is bundled internally.
 
 ## Makefile instructions:
 
