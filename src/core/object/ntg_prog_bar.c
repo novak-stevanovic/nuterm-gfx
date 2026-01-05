@@ -40,7 +40,7 @@ void ntg_prog_bar_init(ntg_prog_bar* prog_bar)
         .draw_fn = _ntg_prog_bar_draw_fn,
     };
 
-    ntg_object_init((ntg_object*)prog_bar, object_data);
+    _ntg_object_init((ntg_object*)prog_bar, object_data);
 
     prog_bar->__opts = ntg_prog_bar_opts_def();
 }

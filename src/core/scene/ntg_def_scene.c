@@ -60,7 +60,7 @@ void ntg_def_scene_init(ntg_def_scene* scene, ntg_focuser* focuser)
         .graph_node_data_deinit_fn = graph_node_data_deinit_fn
     };
 
-    ntg_scene_init((ntg_scene*)scene, focuser, _ntg_def_scene_layout_fn, hooks);
+    _ntg_scene_init((ntg_scene*)scene, focuser, _ntg_def_scene_layout_fn, hooks);
 
     scene->__detected_changes = true;
     scene->__last_size = ntg_xy(0, 0);

@@ -11,13 +11,16 @@
 
 struct ntg_loop_ctx
 {
-    bool __loop;
     struct ntg_xy _app_size;
     ntg_stage* _stage;
-    uint64_t _elapsed;
-    uint64_t _frame;
-    sarena* _arena;
+    uint64_t _elapsed; // elapsed ms since loop started
+    uint64_t _frame; // frame counter
+    sarena* _arena; // rewinds on frame end, useful for layout
+    ntg_task_runner* _task_runner;
+    ntg_platform* platform;
     void* data;
+
+    bool __loop;
 };
 
 enum ntg_loop_event_mode
@@ -44,6 +47,9 @@ struct ntg_loop_run_data
 void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data);
 
 void ntg_loop_ctx_break(ntg_loop_ctx* ctx);
+void ntg_platform_run(ntg_platform* platform,
+        void (*task_fn)(void* data, ntg_loop_ctx* ctx),
+        void* data);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

@@ -4,8 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "core/entity/_ntg_entity_system.h"
-
-static ntg_loop* ntg_loop_new(ntg_entity_system* system);
+#include "core/loop/_ntg_loop.h"
 
 /* -------------------------------------------------------------------------- */
 
@@ -82,7 +81,7 @@ static void* ntg_thread_fn(void* _data)
 
     ntg_entity_system* es = _ntg_entity_system_new();
 
-    ntg_loop* loop = ntg_loop_new(es);
+    ntg_loop* loop = _ntg_loop_new(es);
 
     data->gui_fn(es, loop, data->gui_fn_data);
 
@@ -91,19 +90,4 @@ static void* ntg_thread_fn(void* _data)
     free(data);
 
     return NULL;
-}
-
-/* TO MODIFY ntg_loop, CHANGE ALSO IN NTG_ENTITY_TYPE.C */
-ntg_loop* ntg_loop_new(ntg_entity_system* system)
-{
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_LOOP,
-        .deinit_fn = NULL,
-        .system = system
-    };
-
-    ntg_loop* new = (ntg_loop*)ntg_entity_create(entity_data);
-    assert(new != NULL);
-
-    return new;
 }

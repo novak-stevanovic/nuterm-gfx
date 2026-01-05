@@ -49,7 +49,7 @@ void ntg_padding_init(ntg_padding* padding, ntg_object_draw_fn draw_fn)
         .draw_fn = draw_fn,
     };
 
-    ntg_object_init((ntg_object*)padding, object_data);
+    _ntg_object_init((ntg_object*)padding, object_data);
 
     padding->_opts = ntg_padding_opts_def();
 }

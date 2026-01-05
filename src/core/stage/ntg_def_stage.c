@@ -25,7 +25,7 @@ void ntg_def_stage_init(ntg_def_stage* stage, ntg_loop* loop)
 {
     assert(stage != NULL);
 
-    ntg_stage_init((ntg_stage*)stage, loop, _ntg_def_stage_compose_fn);
+    _ntg_stage_init((ntg_stage*)stage, loop, _ntg_def_stage_compose_fn);
 
     stage->__detected_changes = true;
     stage->__old_size = ntg_xy(0, 0);

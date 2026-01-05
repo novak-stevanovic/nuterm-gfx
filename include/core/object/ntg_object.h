@@ -248,7 +248,7 @@ void ntg_object_set_event_fn(
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops);
+void _ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops);
 void _ntg_object_deinit_fn(ntg_entity* entity);
 
 bool _ntg_object_validate_add_child(ntg_object* object, ntg_object* child);
@@ -261,11 +261,6 @@ void _ntg_object_mark_change(ntg_object* object);
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
-
-// TODO: validate?
-void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child);
-void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child);
-void _ntg_object_rm_children(ntg_object* object);
 
 void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene);
 

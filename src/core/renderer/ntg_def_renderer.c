@@ -24,7 +24,7 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
 
-    ntg_renderer_init((ntg_renderer*)renderer, _ntg_def_renderer_render_fn);
+    _ntg_renderer_init((ntg_renderer*)renderer, _ntg_def_renderer_render_fn);
 
     renderer->__backbuff = ntg_stage_drawing_new();
     assert(renderer->__backbuff != NULL);

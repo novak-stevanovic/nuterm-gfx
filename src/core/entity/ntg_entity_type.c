@@ -1,3 +1,4 @@
+#include "core/loop/_ntg_loop.h"
 #include "ntg.h"
 
 bool ntg_entity_instance_of(const ntg_entity_type* type, const ntg_entity_type* ancestor)
@@ -21,7 +22,7 @@ bool ntg_entity_is_same_type(const ntg_entity_type* type, const ntg_entity_type*
 }
 
 /* -------------------------------------------------------------------------- */
-/* Base                                                                        */
+/* Base */
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY = {
@@ -30,7 +31,7 @@ const ntg_entity_type NTG_ENTITY = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_OBJECT hierarchy                                                       */
+/* NTG_OBJECT */
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_OBJECT = {
@@ -94,7 +95,7 @@ const ntg_entity_type NTG_ENTITY_DEF_BORDER = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_SCENE                                                                  */
+/* NTG_SCENE */
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_SCENE = {
@@ -108,7 +109,7 @@ const ntg_entity_type NTG_ENTITY_DEF_SCENE = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_FOCUSER                                                                */
+/* NTG_FOCUSER */
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_FOCUSER = {
@@ -122,7 +123,7 @@ const ntg_entity_type NTG_ENTITY_DEF_FOCUSER = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_STAGE                                                                  */
+/* NTG_STAGE */
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_STAGE = {
@@ -136,7 +137,7 @@ const ntg_entity_type NTG_ENTITY_DEF_STAGE = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_RENDERER                                                               */
+/* NTG_RENDERER */
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_RENDERER = {
@@ -150,10 +151,20 @@ const ntg_entity_type NTG_ENTITY_DEF_RENDERER = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_LOOP                                                                   */
+/* NTG_LOOP */
 /* -------------------------------------------------------------------------- */
 
 const ntg_entity_type NTG_ENTITY_LOOP = {
     .__parent = &NTG_ENTITY,
-    ._size = sizeof(ntg_entity)
+    ._size = sizeof(ntg_loop)
+};
+
+const ntg_entity_type NTG_ENTITY_TASK_RUNNER = {
+    .__parent = &NTG_ENTITY,
+    ._size = sizeof(ntg_task_runner)
+};
+
+const ntg_entity_type NTG_ENTITY_PLATFORM = {
+    .__parent = &NTG_ENTITY,
+    ._size = sizeof(ntg_platform)
 };

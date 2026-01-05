@@ -90,7 +90,7 @@ void ntg_stage_set_event_mode(ntg_stage* stage, ntg_stage_event_mode mode)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_stage_init(ntg_stage* stage, ntg_loop* loop,
+void _ntg_stage_init(ntg_stage* stage, ntg_loop* loop,
         ntg_stage_compose_fn compose_fn)
 {
     assert(stage != NULL);

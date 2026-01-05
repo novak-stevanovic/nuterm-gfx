@@ -44,7 +44,7 @@ void ntg_box_init(ntg_box* box)
         .draw_fn = NULL,
     };
 
-    ntg_object_init((ntg_object*)box, object_data);
+    _ntg_object_init((ntg_object*)box, object_data);
 
     box->_opts = ntg_box_opts_def();
     ntg_object_vec_init(&box->_children);

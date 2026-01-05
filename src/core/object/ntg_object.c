@@ -3,6 +3,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
+// TODO: validate?
+static void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child);
+static void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child);
+// static void _ntg_object_rm_children(ntg_object* object);
+
 /* ---------------------------------------------------------------- */
 /* IDENTITY */
 /* ---------------------------------------------------------------- */
@@ -638,7 +643,7 @@ void ntg_object_set_event_fn(
 
 static void _init_default_values(ntg_object* object);
 
-void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops)
+void _ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops)
 {
     assert(object != NULL);
 
@@ -733,7 +738,7 @@ void _ntg_object_mark_change(ntg_object* object)
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child)
+static void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child)
 {
     assert(object != NULL);
     assert(child != NULL);
@@ -752,7 +757,7 @@ void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child)
     _ntg_object_mark_change(object);
 }
 
-void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
+static void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
 {
     assert(object != NULL);
     assert(child != NULL);
@@ -772,21 +777,21 @@ void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
     _ntg_object_mark_change(object);
 }
 
-void _ntg_object_rm_children(ntg_object* object)
-{
-    assert(object != NULL);
-
-    struct ntg_object_vecv children = ntg_object_get_children_(object);
-    size_t count = children.count;
-
-    size_t i;
-
-    ntg_object** children_cpy = (ntg_object**)malloc(sizeof(ntg_object*) * count);
-    for(i = 0; i < count; i++)
-        children_cpy[i] = children.data[i];
-
-    for(i = 0; i < count; i++)
-        _ntg_object_rm_child_dcr(object, children_cpy[i]);
-
-    free(children_cpy);
-}
+// static void _ntg_object_rm_children(ntg_object* object)
+// {
+//     assert(object != NULL);
+//
+//     struct ntg_object_vecv children = ntg_object_get_children_(object);
+//     size_t count = children.count;
+//
+//     size_t i;
+//
+//     ntg_object** children_cpy = (ntg_object**)malloc(sizeof(ntg_object*) * count);
+//     for(i = 0; i < count; i++)
+//         children_cpy[i] = children.data[i];
+//
+//     for(i = 0; i < count; i++)
+//         _ntg_object_rm_child_dcr(object, children_cpy[i]);
+//
+//     free(children_cpy);
+// }

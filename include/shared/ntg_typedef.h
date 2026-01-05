@@ -62,6 +62,8 @@ typedef struct ntg_entity_type ntg_entity_type;
 typedef struct ntg_loop ntg_loop;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 typedef enum ntg_loop_event_mode ntg_loop_event_mode;
+typedef struct ntg_task_runner ntg_task_runner;
+typedef struct ntg_platform ntg_platform;
 
 typedef struct ntg_renderer ntg_renderer;
 typedef struct ntg_def_renderer ntg_def_renderer;

@@ -42,7 +42,7 @@ void ntg_color_block_init(ntg_color_block* color_block)
         .draw_fn = _ntg_color_block_draw_fn,
     };
 
-    ntg_object_init((ntg_object*)color_block, object_data);
+    _ntg_object_init((ntg_object*)color_block, object_data);
 
     color_block->__color = NT_COLOR_DEFAULT;
 }

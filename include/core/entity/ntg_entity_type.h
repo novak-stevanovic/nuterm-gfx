@@ -43,6 +43,7 @@ extern const ntg_entity_type NTG_ENTITY_RENDERER, NTG_ENTITY_DEF_RENDERER;
 
 /* NTG_LOOP */
 
-extern const ntg_entity_type NTG_ENTITY_LOOP;
+extern const ntg_entity_type NTG_ENTITY_LOOP, NTG_ENTITY_TASK_RUNNER,
+       NTG_ENTITY_PLATFORM;
 
 #endif // _NTG_ENTITY_TYPE_H_

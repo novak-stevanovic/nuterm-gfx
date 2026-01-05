@@ -54,7 +54,7 @@ void ntg_border_box_init(ntg_border_box* box)
         .draw_fn = NULL,
     };
 
-    ntg_object_init((ntg_object*)box, object_data);
+    _ntg_object_init((ntg_object*)box, object_data);
 
     init_default(box);
 }

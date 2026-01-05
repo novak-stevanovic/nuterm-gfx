@@ -148,7 +148,7 @@ static void init_default_values(ntg_scene* scene)
     scene->data = NULL;
 }
 
-void ntg_scene_init(ntg_scene* scene,
+void _ntg_scene_init(ntg_scene* scene,
         ntg_focuser* focuser,
         ntg_scene_layout_fn layout_fn,
         struct ntg_scene_hooks hooks)

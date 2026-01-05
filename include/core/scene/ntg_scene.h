@@ -83,7 +83,7 @@ void ntg_scene_set_event_mode(ntg_scene* scene, ntg_scene_event_mode mode);
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_init(ntg_scene* scene,
+void _ntg_scene_init(ntg_scene* scene,
         ntg_focuser* focuser,
         ntg_scene_layout_fn layout_fn,
         struct ntg_scene_hooks hooks);

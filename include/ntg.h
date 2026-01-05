@@ -71,12 +71,11 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: nuterm, sarena, uconv, nuterm-gfx: change macro names - no underscores?
-// TODO: refactor ntg_typedef.h
-// TODO: nuterm: add click event, add event masks, add event type cap
+// TODO: nuterm, sarena, uconv, nuterm-gfx: change macro names - no underscores? | *
+// TODO: nuterm: add click event, add event masks, add event type cap | *
+// TODO: ntg_taskmaster & ntg_platform: implement | *
 
 // TODO: ntg_scene: implement multi-root system | **
-// TODO: ntg_taskmaster: full rework | **
 // TODO: ntg_label: coloring/styling specific words, implement buttons/text fields | *
 // TODO: nuterm-gfx: implement more widgets(table, list, group...) | **
 

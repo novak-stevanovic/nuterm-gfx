@@ -124,7 +124,7 @@ void ntg_label_init(ntg_label* label, ntg_label_post_draw_fn post_draw_fn)
         .draw_fn = _ntg_label_draw_fn,
     };
 
-    ntg_object_init((ntg_object*)label, object_data);
+    _ntg_object_init((ntg_object*)label, object_data);
 
     init_default_values(label);
     
