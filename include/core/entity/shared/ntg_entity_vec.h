@@ -14,7 +14,7 @@ struct ntg_entity_vec
     ntg_entity** _data;
     size_t _count;
     size_t __capacity;
-    size_t __data_size;
+    size_t __grow_factor;
 };
 
 void ntg_entity_vec_init(ntg_entity_vec* vec);
@@ -42,7 +42,7 @@ struct ntg_const_entity_vec
     const ntg_entity** _data;
     size_t _count;
     size_t __capacity;
-    size_t __data_size;
+    size_t __grow_factor;
 };
 
 void ntg_const_entity_vec_init(ntg_const_entity_vec* vec);

@@ -16,7 +16,7 @@ struct ntg_event_observe_vec
     struct ntg_event_obs* _data;
     size_t _count;
     size_t __capacity;
-    size_t __data_size;
+    size_t __grow_factor;
 };
 
 void ntg_event_obs_vec_init(ntg_event_obs_vec* vec);

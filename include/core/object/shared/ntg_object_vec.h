@@ -10,7 +10,7 @@ struct ntg_object_vec
     ntg_object** _data;
     size_t _count;
     size_t __capacity;
-    size_t __data_size;
+    size_t __grow_factor;
 };
 
 void ntg_object_vec_init(ntg_object_vec* vec);
@@ -42,14 +42,11 @@ struct ntg_const_object_vec
     const ntg_object** _data;
     size_t _count;
     size_t __capacity;
-    size_t __data_size;
+    size_t __grow_factor;
 };
 
 void ntg_const_object_vec_init(ntg_const_object_vec* vec);
 void _ntg_const_object_vec_deinit_(ntg_const_object_vec* vec);
-
-ntg_const_object_vec* ntg_const_object_vec_new();
-void ntg_const_object_vec_destroy(ntg_const_object_vec* vec);
 
 void ntg_const_object_vec_add(ntg_const_object_vec* vec, const ntg_object* object);
 void ntg_const_object_vec_rm(ntg_const_object_vec* vec, const ntg_object* object);

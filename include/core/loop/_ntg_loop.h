@@ -2,10 +2,20 @@
 #define __NTG_LOOP_H__
 
 #include "core/entity/ntg_entity.h"
+#include "core/loop/ntg_loop.h"
+#include "core/loop/ntg_task_list.h"
+#include "core/loop/ntg_ptask_list.h"
 
-struct ntg_task_runner
+struct ntg_task
 {
-    ntg_entity __base;
+    void (*task_fn)(void* data, ntg_platform* platform);
+    void* data;
+};
+
+struct ntg_ptask // Platform task
+{
+    void (*task_fn)(void* data, ntg_loop_ctx* ctx);
+    void* data;
 };
 
 struct ntg_loop
@@ -20,10 +30,41 @@ void _ntg_loop_deinit_fn(ntg_entity* entity);
 struct ntg_platform
 {
     ntg_entity __base;
+
+    pthread_mutex_t __lock;
+    ntg_ptask_list __tasks;
 };
 
-ntg_platform* _ntg_platform_new(ntg_entity_system* system);
 void _ntg_platform_init(ntg_platform* platform);
-void _ntg_platform_deinit_fn(ntg_entity* entity);
+void _ntg_platform_deinit(ntg_platform* platform);
+void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task);
+void _ntg_platform_execute_all(ntg_platform* platform, ntg_loop_ctx* loop_ctx);
+
+#define NTG_TASK_RUNNER_TASKS_MAX 1000
+
+struct ntg_task_runner
+{
+    ntg_entity __base;
+
+    ntg_platform* __platform;
+
+    pthread_t __threads[NTG_LOOP_WORKER_THREADS_MAX];
+    size_t __thread_count;
+
+    pthread_cond_t __cond;
+    pthread_mutex_t __lock;
+
+    ntg_task_list __tasks;
+
+    bool __running;
+};
+
+// TODO: what if tasks running when deiniting
+
+void _ntg_task_runner_init(ntg_task_runner* runner,
+        ntg_platform* platform, unsigned int worker_threads);
+void _ntg_task_runner_deinit(ntg_task_runner* runner);
+
+void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task);
 
 #endif // __NTG_LOOP_H__

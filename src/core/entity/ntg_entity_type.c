@@ -158,13 +158,3 @@ const ntg_entity_type NTG_ENTITY_LOOP = {
     .__parent = &NTG_ENTITY,
     ._size = sizeof(ntg_loop)
 };
-
-const ntg_entity_type NTG_ENTITY_TASK_RUNNER = {
-    .__parent = &NTG_ENTITY,
-    ._size = sizeof(ntg_task_runner)
-};
-
-const ntg_entity_type NTG_ENTITY_PLATFORM = {
-    .__parent = &NTG_ENTITY,
-    ._size = sizeof(ntg_platform)
-};

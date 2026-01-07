@@ -16,32 +16,36 @@ bool north_event_fn(ntg_object* object, struct nt_event event, ntg_loop_ctx* ctx
     return false;
 }
 
+void stage_ptask_fn(void* _stage, ntg_loop_ctx* ctx)
+{
+    ntg_stage* stage = (ntg_stage*)_stage;
+    ntg_color_block* center2 = stage->data;
+
+    ntg_color_block_set_color(center2, nt_color_new_auto(nt_rgb_new(0, 255, 0)));
+}
+
+void stage_task_fn(void* _stage, ntg_platform* platform)
+{
+    sleep(3); // simulate work
+
+    ntg_platform_execute_later(platform, stage_ptask_fn, _stage);
+}
+
 bool stage_event_fn(ntg_stage* stage, struct nt_event event, ntg_loop_ctx* loop_ctx)
 {
     if(event.type == NT_EVENT_KEY)
     {
-        struct nt_key key = *(struct nt_key*)event.data;
+        struct nt_key_event key = *(struct nt_key_event*)event.data;
 
-        if(nt_key_utf32_check(key, 'q', false))
+        if(nt_key_event_utf32_check(key, 't', false))
         {
-            ntg_log_log("Stage received q");
-            return false;
+            ntg_log_log("Stage received t");
+            ntg_task_runner_execute(loop_ctx->_task_runner, stage_task_fn, stage);
+            return true;
         }
     }
 
     return false;
-}
-
-void* __task_fn(void* data)
-{
-    sleep(5);
-
-    return NULL;
-}
-
-void __callback_fn(void* data, void* task_result)
-{
-    ntg_log_log("%p", task_result);
 }
 
 bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
@@ -50,14 +54,14 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
 
     if(event.type == NT_EVENT_KEY)
     {
-        struct nt_key key = *(struct nt_key*)event.data;
+        struct nt_key_event key = *(struct nt_key_event*)event.data;
 
-        if(nt_key_utf32_check(key, 'q', false))
+        if(nt_key_event_utf32_check(key, 'q', false))
         {
             ntg_loop_ctx_break(ctx);
             return true;
         }
-        else if(nt_key_utf32_check(key, '1', false))
+        else if(nt_key_event_utf32_check(key, '1', false))
         {
             // struct ntg_xy old = ntg_object_get_min_size((ntg_object*)data->north);
             // ntg_object_set_min_size((ntg_object*)data->north, ntg_xy_add(old, ntg_xy(0, 5)));
@@ -69,7 +73,7 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
             // ntg_log_log("NORTH MIN SIZE SET");
             return true;
         }
-        else if(nt_key_utf32_check(key, '2', false))
+        else if(nt_key_event_utf32_check(key, '2', false))
         {
             struct ntg_label_opts opts = data->north->_opts;
             opts.wrap = NTG_LABEL_TEXT_WRAP_WORD;
@@ -80,28 +84,37 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
                         "novanovanovanovanovanovanovanovanovanov"));
             return true;
         }
-        else if(nt_key_utf32_check(key, '3', false))
+        else if(nt_key_event_utf32_check(key, '3', false))
         {
             if(ntg_object_get_padding((ntg_object*)data->north) != NULL)
                 ntg_object_set_padding((ntg_object*)data->north, NULL);
             else
-                ntg_object_set_padding((ntg_object*)data->north, (ntg_padding*)data->north_padding);
+            {
+                ntg_object_set_padding((ntg_object*)data->north,
+                        (ntg_padding*)data->north_padding);
+            }
             return false;
         }
-        else if(nt_key_utf32_check(key, '4', false))
+        else if(nt_key_event_utf32_check(key, '4', false))
         {
             if(ntg_object_get_border((ntg_object*)data->north) != NULL)
                 ntg_object_set_border((ntg_object*)data->north, NULL);
             else
-                ntg_object_set_border((ntg_object*)data->north, (ntg_padding*)data->north_border);
+            {
+                ntg_object_set_border((ntg_object*)data->north,
+                        (ntg_padding*)data->north_border);
+            }
             return false;
         }
-        else if(nt_key_utf32_check(key, '5', false))
+        else if(nt_key_event_utf32_check(key, '5', false))
         {
             if(ntg_object_get_border((ntg_object*)data->root) != NULL)
                 ntg_object_set_border((ntg_object*)data->root, NULL);
             else
-                ntg_object_set_border((ntg_object*)data->root, (ntg_padding*)data->root_border);
+            {
+                ntg_object_set_border((ntg_object*)data->root,
+                        (ntg_padding*)data->root_border);
+            }
             return false;
         }
     }
@@ -269,8 +282,11 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
         .renderer = (ntg_renderer*)renderer,
         .framerate = 60,
         .stage = (ntg_stage*)stage,
+        .worker_threads = 16,
         .ctx_data = &ctx_data
     };
+
+    ((ntg_stage*)stage)->data = center2;
 
     // ntg_single_focuser_focus(focuser, (ntg_object*)north);
     // ntg_single_focuser_focus(focuser, NULL);

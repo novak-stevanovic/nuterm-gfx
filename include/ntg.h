@@ -3,21 +3,22 @@
 
 #include "nt_gfx.h"
 #include "nt_event.h"
-#include "nt_key.h"
 #include "sarena.h"
 #include "uconv.h"
 
-#include "shared/ntg_typedef.h"
-#include "shared/_uthash.h"
 #include "shared/ntg_status.h"
 #include "shared/ntg_vec.h"
+#include "shared/ntg_typedef.h"
 #include "shared/ntg_string.h"
+#include "shared/ntg_fwd_list.h"
 #include "shared/ntg_log.h"
 #include "base/ntg_cell.h"
 #include "base/ntg_xy.h"
 #include "base/ntg_sap.h"
 #include "core/renderer/ntg_def_renderer.h"
 #include "core/renderer/ntg_renderer.h"
+#include "core/loop/ntg_task_list.h"
+#include "core/loop/ntg_ptask_list.h"
 #include "core/loop/ntg_loop.h"
 #include "core/entity/shared/ntg_entity_map.h"
 #include "core/entity/shared/ntg_event_obs_vec.h"
@@ -71,15 +72,15 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: nuterm, sarena, uconv, nuterm-gfx: change macro names - no underscores? | *
-// TODO: nuterm: add click event, add event masks, add event type cap | *
-// TODO: ntg_taskmaster & ntg_platform: implement | *
+// TODO: add event masks for loop, stage, scene. Remove focuser? Rethink event dispatch | *
+// TODO: ntg_task_runner: what if task gets stuck? | *
 
 // TODO: ntg_scene: implement multi-root system | **
-// TODO: ntg_label: coloring/styling specific words, implement buttons/text fields | *
-// TODO: nuterm-gfx: implement more widgets(table, list, group...) | **
+// TODO: ntg_label: coloring/styling specific words | *
+// TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **
 
 // RELEASE
+// TODO: nuterm, sarena, uconv, nuterm-gfx: change macro names - no underscores? | *
 // TODO: nuterm-gfx: add more generic events
 // TODO: nuterm-gfx: add convenience macros
 // TODO: nuterm-gfx: add proper error-handling

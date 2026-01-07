@@ -31,6 +31,7 @@ struct ntg_object_draw_out;;
 /* ------------------------------------------------------ */
 
 typedef struct ntg_vec ntg_vec;
+typedef struct ntg_fwd_list ntg_fwd_list;
 
 typedef unsigned int ntg_status;
 
@@ -63,6 +64,8 @@ typedef struct ntg_loop ntg_loop;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
 typedef enum ntg_loop_event_mode ntg_loop_event_mode;
 typedef struct ntg_task_runner ntg_task_runner;
+typedef struct ntg_task_list ntg_task_list;
+typedef struct ntg_ptask_list ntg_ptask_list;
 typedef struct ntg_platform ntg_platform;
 
 typedef struct ntg_renderer ntg_renderer;

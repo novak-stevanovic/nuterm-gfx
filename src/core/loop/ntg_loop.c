@@ -1,6 +1,7 @@
 #include "ntg.h"
 #include <assert.h>
 #include "nt.h"
+#include "core/loop/_ntg_loop.h"
 #include <time.h>
 #include <signal.h>
 
@@ -14,8 +15,13 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
     assert(data.renderer != NULL);
     assert(data.stage != NULL);
+    assert(data.worker_threads <= NTG_LOOP_WORKER_THREADS_MAX);
     if(data.framerate > 300) data.framerate = 300;
 
+    ntg_platform platform;
+    _ntg_platform_init(&platform);
+    ntg_task_runner task_runner;
+    _ntg_task_runner_init(&task_runner, &platform, data.worker_threads);
 
     ntg_loop_ctx ctx;
     ctx._stage = data.stage;
@@ -23,8 +29,10 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     ctx.__loop = true;
     ctx._elapsed = 0;
     ctx._frame = 0;
-    ctx.data = data.ctx_data;
     ctx._arena = sarena_create(50000);
+    ctx._platform = &platform;
+    ctx._task_runner = &task_runner;
+    ctx.data = data.ctx_data;
 
     /* loop */
     unsigned int timeout = 1000 / data.framerate;
@@ -38,6 +46,11 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     struct ntg_event_loop_event_data loop_event_data;
 
     nt_status _status;
+
+    // struct nt_key_event key = nt_key_event_utf32_new('q', false);
+    // struct nt_event test_event = nt_event_new(NT_EVENT_KEY, &key, sizeof(key));
+    // nt_event_push(test_event, &_status);
+    // assert(_status == NT_SUCCESS);
     while(true)
     {
         if(!(ctx.__loop)) break;
@@ -77,6 +90,8 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         // Frame end
         if(event.type == NT_EVENT_TIMEOUT)
         {
+            _ntg_platform_execute_all(&platform, &ctx);
+
             timeout = 1000 / data.framerate;
 
             if(ctx._stage != NULL)
@@ -113,6 +128,9 @@ void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     }
 
     sarena_destroy(ctx._arena);
+    _ntg_platform_deinit(&platform);
+    // TODO: end tasks?
+    _ntg_task_runner_deinit(&task_runner);
     ctx = (struct ntg_loop_ctx) {0};
 }
 
@@ -121,4 +139,26 @@ void ntg_loop_ctx_break(ntg_loop_ctx* ctx)
     assert(ctx != NULL);
 
     ctx->__loop = false;
+}
+
+void ntg_task_runner_execute(ntg_task_runner* task_runner, 
+        void (*task_fn)(void* data, ntg_platform* platform),
+        void* data)
+{
+    struct ntg_task task = {
+        .task_fn = task_fn,
+        .data = data
+    };
+    _ntg_task_runner_execute(task_runner, task);
+}
+
+void ntg_platform_execute_later(ntg_platform* platform, 
+        void (*task_fn)(void* data, ntg_loop_ctx* ctx),
+        void* data)
+{
+    struct ntg_ptask task = {
+        .task_fn = task_fn,
+        .data = data
+    };
+    _ntg_platform_execute_later(platform, task);
 }
