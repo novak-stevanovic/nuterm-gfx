@@ -22,13 +22,19 @@ struct ntg_loop_ctx
     ntg_platform* _platform;
     void* data;
 
-    bool __loop;
+    bool __loop, __force_finish;
 };
 
 enum ntg_loop_event_mode
 {
     NTG_LOOP_EVENT_PROCESS_FIRST,
     NTG_LOOP_EVENT_DISPATCH_FIRST
+};
+
+enum ntg_loop_status
+{
+    NTG_LOOP_CLEAN_FINISH,
+    NTG_LOOP_FORCE_FINISH
 };
 
 /* -------------------------------------------------------------------------- */
@@ -47,9 +53,20 @@ struct ntg_loop_run_data
     void* ctx_data;
 };
 
-void ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data);
+enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data);
 
-void ntg_loop_ctx_break(ntg_loop_ctx* ctx);
+/* Used to stop the main loop. When this function is called, an issue may occur
+if the task runner is still running tasks on worker threads. In this case,
+behavior of the function depends on `force_break` parameter.
+
+If `force_break` is false, the function will fail and will return `false`.
+If `force_break` is true, the function will not deinitalize the task runner
+or the platform. This will signal `ntg_loop_return` to return
+NTG_LOOP_FORCE_FINISH. The user should then clean up and terminate the program.
+
+This will leave the threads running. If any of the tasks use
+`ntg_platform_execute_later`, the request will be ignored. */
+bool ntg_loop_ctx_break(ntg_loop_ctx* ctx, bool force_break);
 
 void ntg_task_runner_execute(ntg_task_runner* task_runner, 
         void (*task_fn)(void* data, ntg_platform* platform),

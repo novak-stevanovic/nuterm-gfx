@@ -58,7 +58,7 @@ struct ntg_padding_ldata
     void* data;
 };
 
-void* ntg_padding_layout_initfn(const ntg_object* object);
+void* ntg_padding_layout_init_fn(const ntg_object* object);
 void _ntg_padding_layout_deinit_fn(const ntg_object* object, void* layout_data);
 
 struct ntg_object_measure _ntg_padding_measure_fn(

@@ -41,7 +41,7 @@ void ntg_padding_init(ntg_padding* padding, ntg_object_draw_fn draw_fn)
     assert(draw_fn != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .init_fn = ntg_padding_layout_initfn,
+        .init_fn = ntg_padding_layout_init_fn,
         .deinit_fn = _ntg_padding_layout_deinit_fn,
         .measure_fn = _ntg_padding_measure_fn,
         .constrain_fn = _ntg_padding_constrain_fn,
@@ -64,7 +64,7 @@ void _ntg_padding_deinit_fn(ntg_entity* entity)
     _ntg_object_deinit_fn(entity);
 }
 
-void* ntg_padding_layout_initfn(const ntg_object* object)
+void* ntg_padding_layout_init_fn(const ntg_object* object)
 {
     struct ntg_padding_ldata* new = (struct ntg_padding_ldata*)malloc(
             sizeof(struct ntg_padding_ldata));

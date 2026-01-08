@@ -73,7 +73,7 @@ void ntg_wait();
 /* -------------------------------------------------------------------------- */
 
 // TODO: add event masks for loop, stage, scene. Remove focuser? Rethink event dispatch | *
-// TODO: ntg_task_runner: what if task gets stuck? | *
+// TODO: fix error that is visible when running valgrind regarding render_fn for def_renderer. Optimize vecgrids.
 
 // TODO: ntg_scene: implement multi-root system | **
 // TODO: ntg_label: coloring/styling specific words | *

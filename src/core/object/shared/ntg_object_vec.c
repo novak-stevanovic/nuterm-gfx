@@ -10,7 +10,7 @@ void ntg_object_vec_init(ntg_object_vec* vec)
     ntg_vec_init((ntg_vec*)vec, sizeof(ntg_object*), 5, 2);
 }
 
-void _ntg_object_vec_deinit_(ntg_object_vec* vec)
+void ntg_object_vec_deinit(ntg_object_vec* vec)
 {
     assert(vec != NULL);
     ntg_vec_deinit((ntg_vec*)vec);

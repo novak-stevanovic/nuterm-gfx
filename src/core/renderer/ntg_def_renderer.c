@@ -127,10 +127,10 @@ static void optimized_render(ntg_def_renderer* renderer,
         for(j = 0; j < size.x; j++)
         {
             it_drawing_cell = *(ntg_stage_drawing_at(drawing, ntg_xy(j, i)));
-            it_back_buffer_cell = ntg_stage_drawing_at_(renderer->__backbuff, ntg_xy(j, i));
 
             if((i < old_back_buffer_size.y) && (j < old_back_buffer_size.x))
             {
+                it_back_buffer_cell = ntg_stage_drawing_at_(renderer->__backbuff, ntg_xy(j, i));
                 if(ntg_cell_are_equal(*it_back_buffer_cell, it_drawing_cell))
                 {
                     continue;

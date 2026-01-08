@@ -58,7 +58,14 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
 
         if(nt_key_event_utf32_check(key, 'q', false))
         {
-            ntg_loop_ctx_break(ctx);
+            bool success = ntg_loop_ctx_break(ctx, false);
+            ntg_log_log("Attempt to end loop: %d", success);
+            return true;
+        }
+        if(nt_key_event_utf32_check(key, 'Q', false))
+        {
+            ntg_log_log("Force end to loop");
+            ntg_loop_ctx_break(ctx, true);
             return true;
         }
         else if(nt_key_event_utf32_check(key, '1', false))
@@ -290,7 +297,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     // ntg_single_focuser_focus(focuser, (ntg_object*)north);
     // ntg_single_focuser_focus(focuser, NULL);
-    ntg_loop_run(loop, loop_data);
+    enum ntg_loop_status status = ntg_loop_run(loop, loop_data);
 }
 
 int main(int argc, char *argv[])

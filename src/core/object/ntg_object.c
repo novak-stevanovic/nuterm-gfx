@@ -674,7 +674,7 @@ void _ntg_object_deinit_fn(ntg_entity* entity)
     assert(entity != NULL);
 
     ntg_object* object = (ntg_object*)entity;
-    ntg_object_vec_init(&object->__children);
+    ntg_object_vec_deinit(&object->__children);
 
     _init_default_values(object);
 }
