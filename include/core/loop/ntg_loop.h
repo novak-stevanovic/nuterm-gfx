@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "shared/ntg_typedef.h"
-#include "base/ntg_xy.h"
+#include "shared/ntg_xy.h"
 
 #define NTG_LOOP_WORKER_THREADS_MAX 32
 

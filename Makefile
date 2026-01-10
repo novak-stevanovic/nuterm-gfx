@@ -56,6 +56,8 @@ OTHER_DEP_LFLAGS = -lm -pthread
 # pkgconf
 # ---------------------------------------------------------
 
+PC_DEPS = nuterm sarena uconv
+
 _PC_PREFIX = $(PREFIX)
 _PC_EXEC_PREFIX = $${prefix}
 _PC_LIBDIR = $${exec_prefix}/lib
@@ -65,10 +67,9 @@ _PC_DESCRIPTION = Terminal GUI library
 _PC_VERSION = 1.0.0
 _PC_LIBS = -L$${libdir} -l$(LIB_NAME) $(OTHER_DEP_LFLAGS)
 _PC_CFLAGS = -I$${includedir}/$(LIB_NAME)
-_PC_REQUIRES = nuterm uconv sarena
+_PC_REQUIRES = $(PC_DEPS)
 _PC_REQUIRES_PRIVATE =
 
-PC_DEPS = $(_PC_REQUIRES)
 ifneq ($(PC_DEPS),)
     DEP_CFLAGS = $(shell pkgconf --with-path=$(PC_WITH_PATH) --silence-errors --cflags $(PC_DEPS))
     DEP_LFLAGS = $(shell pkgconf --with-path=$(PC_WITH_PATH) --silence-errors --libs $(PC_DEPS))

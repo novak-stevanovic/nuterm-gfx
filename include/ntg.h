@@ -13,7 +13,7 @@
 #include "shared/ntg_fwd_list.h"
 #include "shared/ntg_log.h"
 #include "base/ntg_cell.h"
-#include "base/ntg_xy.h"
+#include "shared/ntg_xy.h"
 #include "base/ntg_sap.h"
 #include "core/renderer/ntg_def_renderer.h"
 #include "core/renderer/ntg_renderer.h"
@@ -73,10 +73,9 @@ void ntg_wait();
 /* -------------------------------------------------------------------------- */
 
 // TODO: add event masks for loop, stage, scene. Remove focuser? Rethink event dispatch | *
-// TODO: fix error that is visible when running valgrind regarding render_fn for def_renderer. Optimize vecgrids.
 
 // TODO: ntg_scene: implement multi-root system | **
-// TODO: ntg_label: coloring/styling specific words | *
+// TODO: ntg_label: coloring/styling specific words | **
 // TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **
 
 // RELEASE

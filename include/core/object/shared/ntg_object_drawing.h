@@ -6,7 +6,7 @@
 
 struct ntg_object_drawing
 {
-    ntg_vcell_vecgrid ___data;
+    ntg_vcell_vecgrid __data;
 };
 
 void ntg_object_drawing_init(ntg_object_drawing* object_drawing);
@@ -30,7 +30,7 @@ static inline const struct ntg_vcell* ntg_object_drawing_at(
         const ntg_object_drawing* object_drawing, struct ntg_xy pos)
 {
     return (object_drawing != NULL) ?
-        ntg_vcell_vecgrid_at(&object_drawing->___data, pos) :
+        ntg_vcell_vecgrid_at(&object_drawing->__data, pos) :
         NULL;
 }
 
@@ -38,7 +38,7 @@ static inline struct ntg_vcell* ntg_object_drawing_at_(
         ntg_object_drawing* object_drawing, struct ntg_xy pos)
 {
     return (object_drawing != NULL) ?
-        ntg_vcell_vecgrid_at_(&object_drawing->___data, pos) :
+        ntg_vcell_vecgrid_at_(&object_drawing->__data, pos) :
         NULL;
 }
 

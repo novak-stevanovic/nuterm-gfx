@@ -1,5 +1,6 @@
 #include "ntg.h"
 #include <unistd.h>
+#include <assert.h>
 
 struct loop_ctx_data
 {
@@ -48,7 +49,7 @@ bool stage_event_fn(ntg_stage* stage, struct nt_event event, ntg_loop_ctx* loop_
     return false;
 }
 
-bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
+bool loop_event_fn1(ntg_loop_ctx* ctx, struct nt_event event)
 {
     struct loop_ctx_data* data = ctx->data;
 
@@ -129,7 +130,7 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
     return false;
 }
 
-static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
+static void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* data)
 {
     // Root
     ntg_border_box* root = ntg_border_box_new(es);
@@ -284,7 +285,7 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     // Run
     struct ntg_loop_run_data loop_data = {
-        .event_fn = loop_event_fn,
+        .event_fn = loop_event_fn1,
         .event_mode = NTG_LOOP_EVENT_DISPATCH_FIRST,
         .renderer = (ntg_renderer*)renderer,
         .framerate = 60,
@@ -300,11 +301,57 @@ static void gui_fn(ntg_entity_system* es, ntg_loop* loop, void* data)
     enum ntg_loop_status status = ntg_loop_run(loop, loop_data);
 }
 
+bool loop_event_fn2(ntg_loop_ctx* ctx, struct nt_event event)
+{
+    if(event.type == NT_EVENT_KEY)
+    {
+        struct nt_key_event key = *(struct nt_key_event*)event.data;
+        if(nt_key_event_utf32_check(key, 'q', false))
+        {
+            ntg_loop_ctx_break(ctx, false);
+            return true;
+        }
+    }
+    return false;
+}
+
+static void gui_fn2(ntg_entity_system* es, ntg_loop* loop, void* data)
+{
+    ntg_def_scene* scene = ntg_def_scene_new(es);
+    ntg_single_focuser* focuser = ntg_single_focuser_new(es);
+    ntg_def_stage* stage = ntg_def_stage_new(es);
+    ntg_color_block* cb = ntg_color_block_new(es);
+    ntg_def_renderer* renderer = ntg_def_renderer_new(es);
+
+    ntg_single_focuser_init(focuser, (ntg_scene*)scene);
+    ntg_def_scene_init(scene, (ntg_focuser*)focuser);
+    ntg_def_stage_init(stage, loop);
+    ntg_color_block_init(cb);
+    ntg_def_renderer_init(renderer);
+
+    ntg_stage_set_scene((ntg_stage*)stage, (ntg_scene*)scene);
+    ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)cb);
+    ntg_color_block_set_color(cb, nt_color_new_auto(nt_rgb_new(255, 0, 0)));
+
+    struct ntg_loop_run_data loop_data = {
+        .event_fn = loop_event_fn2,
+        .event_mode = NTG_LOOP_EVENT_PROCESS_FIRST,
+        .stage = (ntg_stage*)stage,
+        .renderer = (ntg_renderer*)renderer,
+        .framerate = 60,
+        .worker_threads = 4,
+        .ctx_data = NULL
+    };
+
+    enum ntg_loop_status status = ntg_loop_run(loop, loop_data);
+    assert(status == NTG_LOOP_CLEAN_FINISH);
+}
+
 int main(int argc, char *argv[])
 {
     ntg_init();
 
-    ntg_launch(gui_fn, NULL);
+    ntg_launch(gui_fn1, NULL);
 
     ntg_wait();
 

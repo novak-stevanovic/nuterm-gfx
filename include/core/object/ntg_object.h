@@ -2,7 +2,7 @@
 #define _NTG_OBJECT_H_
 
 #include "core/entity/ntg_entity.h"
-#include "base/ntg_xy.h"
+#include "shared/ntg_xy.h"
 #include "base/ntg_cell.h"
 #include "core/object/shared/ntg_object_vec.h"
 #include <stddef.h>

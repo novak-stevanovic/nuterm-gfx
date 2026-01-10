@@ -1,19 +1,20 @@
 #include "ntg.h"
 #include <assert.h>
 #include <stdlib.h>
+#include "core/object/shared/ntg_object_drawing.h"
 
 void ntg_object_drawing_init(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    ntg_vcell_vecgrid_init(&drawing->___data);
+    ntg_vcell_vecgrid_init(&drawing->__data);
 }
 
 void _ntg_object_drawing_deinit_(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
-    ntg_vcell_vecgrid_deinit(&drawing->___data);
+    ntg_vcell_vecgrid_deinit(&drawing->__data);
 }
 
 ntg_object_drawing* ntg_object_drawing_new()
@@ -40,7 +41,7 @@ void ntg_object_drawing_destroy(ntg_object_drawing* drawing)
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 {
     return (drawing != NULL) ?
-        ntg_vcell_vecgrid_get_size(&drawing->___data) :
+        ntg_vcell_vecgrid_get_size(&drawing->__data) :
         NTG_XY_UNSET;
 }
 
@@ -49,9 +50,7 @@ void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
 {
     if(drawing == NULL) return;
 
-    ntg_status _status;
-    ntg_vcell_vecgrid_set_size(&drawing->___data, size, &_status);
-    assert(_status == NTG_SUCCESS);
+    ntg_vcell_vecgrid_set_size(&drawing->__data, size);
 }
 
 void ntg_object_drawing_place(const ntg_object_drawing* src_drawing,

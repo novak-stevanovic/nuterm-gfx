@@ -3,7 +3,7 @@
 
 #include "core/scene/ntg_scene.h"
 #include <stdbool.h>
-#include "base/ntg_xy.h"
+#include "shared/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

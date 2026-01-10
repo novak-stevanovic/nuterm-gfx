@@ -2,7 +2,7 @@
 #define _NTG_SCENE_H_
 
 #include "core/entity/ntg_entity.h"
-#include "base/ntg_xy.h"
+#include "shared/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

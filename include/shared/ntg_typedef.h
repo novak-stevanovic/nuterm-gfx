@@ -31,6 +31,7 @@ struct ntg_object_draw_out;;
 /* ------------------------------------------------------ */
 
 typedef struct ntg_vec ntg_vec;
+typedef struct ntg_vecgrid ntg_vecgrid;
 typedef struct ntg_fwd_list ntg_fwd_list;
 
 typedef unsigned int ntg_status;

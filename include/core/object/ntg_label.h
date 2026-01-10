@@ -2,7 +2,7 @@
 #define _NTG_LABEL_H_
 
 #include "core/object/ntg_object.h"
-#include "base/ntg_xy.h"
+#include "shared/ntg_xy.h"
 #include "shared/ntg_string.h"
 
 /* -------------------------------------------------------------------------- */

@@ -103,8 +103,7 @@ static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
         for(j = 0; j < size.x; j++)
         {
             it_drawing_cell = ntg_cell_default();
-            it_back_buffer_cell = ntg_stage_drawing_at_(renderer->__backbuff,
-                    ntg_xy(j, i));
+            it_back_buffer_cell = ntg_stage_drawing_at_(renderer->__backbuff, ntg_xy(j, i));
 
             (*it_back_buffer_cell) = it_drawing_cell;
         }
@@ -141,8 +140,6 @@ static void optimized_render(ntg_def_renderer* renderer,
             nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx, j, i, NULL);
         }
     }
-
-    // ntg_log_log("NTG_DEF_RENDERER | optimized_render | counter - %ld", counter);
 }
 
 static void full_render(ntg_def_renderer* renderer,
@@ -152,19 +149,15 @@ static void full_render(ntg_def_renderer* renderer,
 
     size_t i, j;
     struct ntg_cell it_drawing_cell, *it_back_buffer_cell;
-    size_t counter = 0;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
             it_drawing_cell = *(ntg_stage_drawing_at(drawing, ntg_xy(j, i)));
-            it_back_buffer_cell = ntg_stage_drawing_at_(renderer->__backbuff,
-                    ntg_xy(j, i));
+            it_back_buffer_cell = ntg_stage_drawing_at_(renderer->__backbuff, ntg_xy(j, i));
 
             (*it_back_buffer_cell) = it_drawing_cell;
             nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx, j, i, NULL);
-            counter++;
         }
     }
-    // ntg_log_log("NTG_DEF_RENDERER | full_render | counter - %ld", counter);
 }

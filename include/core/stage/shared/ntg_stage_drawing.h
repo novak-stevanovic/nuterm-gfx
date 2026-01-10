@@ -6,7 +6,7 @@
 
 struct ntg_stage_drawing
 {
-    ntg_cell_vecgrid ___data;
+    ntg_cell_vecgrid __data;
 };
 
 void ntg_stage_drawing_init(ntg_stage_drawing* drawing);
@@ -22,7 +22,7 @@ static inline const struct ntg_cell* ntg_stage_drawing_at(
         const ntg_stage_drawing* drawing, struct ntg_xy pos)
 {
     return (drawing != NULL) ?
-        ntg_cell_vecgrid_at(&drawing->___data, pos) :
+        ntg_cell_vecgrid_at(&drawing->__data, pos) :
         NULL;
 }
 
@@ -30,7 +30,7 @@ static inline struct ntg_cell* ntg_stage_drawing_at_(
         ntg_stage_drawing* drawing, struct ntg_xy pos)
 {
     return (drawing != NULL) ?
-        ntg_cell_vecgrid_at_(&drawing->___data, pos) :
+        ntg_cell_vecgrid_at_(&drawing->__data, pos) :
         NULL;
 }
 

@@ -2,7 +2,7 @@
 #define _NTG_SCENE_GRAPH_H_
 
 #include "shared/ntg_typedef.h"
-#include "base/ntg_xy.h"
+#include "shared/ntg_xy.h"
 
 struct ntg_scene_node_pr
 {

@@ -235,7 +235,7 @@ struct ntg_object_measure _ntg_label_measure_fn(
     assert(text_utf32 != NULL);
 
     size_t _width;
-    uc_status _status;
+    int _status;
     uc_utf8_to_utf32((uint8_t*)label->__text.data, utf32_cap, text_utf32,
             label->__text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
@@ -309,7 +309,7 @@ void _ntg_label_draw_fn(
     assert(text_utf32 != NULL);
 
     size_t _width;
-    uc_status _status;
+    int _status;
     uc_utf8_to_utf32((uint8_t*)label->__text.data, utf32_cap, text_utf32,
             label->__text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
