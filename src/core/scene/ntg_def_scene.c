@@ -76,6 +76,7 @@ struct ntg_layout_data
 {
     ntg_def_scene* scene;
     sarena* arena;
+    struct ntg_xy size;
 };
 
 void _ntg_def_scene_deinit_fn(ntg_entity* entity)
@@ -102,7 +103,7 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* are
         return;
     }
 
-    if(ntg_xy_are_equal(scene->__last_size, size) && !scene->__detected_changes)
+    if(ntg_xy_are_equal(scene->__last_size, size) && !(scene->__detected_changes))
         return;
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE: Layout unoptimized");
@@ -112,7 +113,8 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* are
 
     struct ntg_layout_data data = {
         .scene = scene,
-        .arena = arena
+        .arena = arena,
+        .size = size
     };
 
     root_node->position = ntg_xy(0, 0);
@@ -170,7 +172,7 @@ static ntg_object_measure_map* get_children_measures(ntg_object* object,
                 it_node->grow.x : it_node->grow.y
         };
 
-        ntg_object_measure_map_set(measures, it_child, it_measure);
+        ntg_object_measure_map_set(measures, it_child, it_measure, true);
     }
 
     return measures;
@@ -195,7 +197,7 @@ static ntg_object_xy_map* get_children_sizes_xy(ntg_object* object,
         it_child = children.data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
 
-        ntg_object_xy_map_set(sizes, it_child, it_node->size);
+        ntg_object_xy_map_set(sizes, it_child, it_node->size, true);
     }
 
     return sizes;
@@ -220,7 +222,7 @@ static ntg_object_xy_map* get_children_positions(ntg_object* object,
         it_child = children.data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
 
-        ntg_object_xy_map_set(positions, it_child, it_node->position);
+        ntg_object_xy_map_set(positions, it_child, it_node->position, true);
     }
 
     return positions;
@@ -321,7 +323,7 @@ static void constrain1_fn(ntg_object* object, void* _layout_data)
         it_child = children.data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
         it_node_data = it_node->data;
-        it_size = ntg_object_size_map_get(out.sizes, it_child);
+        it_size = ntg_object_size_map_get(out.sizes, it_child, true);
 
         if(it_node->size.x != it_size)
         {
@@ -412,10 +414,9 @@ static void constrain2_fn(ntg_object* object, void* _layout_data)
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C2 | %p", object);
 
-    ntg_object_measure_map* measures = get_children_measures(object,
-            scene, NTG_ORIENT_V, arena);
-    ntg_object_size_map* _sizes = ntg_object_size_map_new(child_count,
-            arena);
+    ntg_object_measure_map* measures = get_children_measures(object, scene,
+        NTG_ORIENT_V, arena);
+    ntg_object_size_map* _sizes = ntg_object_size_map_new(child_count, arena);
 
     struct ntg_object_constrain_ctx ctx = { .measures = measures };
     struct ntg_object_constrain_out out = { .sizes = _sizes };
@@ -434,7 +435,7 @@ static void constrain2_fn(ntg_object* object, void* _layout_data)
         it_child = children.data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
         it_node_data = it_node->data;
-        it_size = ntg_object_size_map_get(out.sizes, it_child);
+        it_size = ntg_object_size_map_get(out.sizes, it_child, true);
 
         if(it_node->size.y != it_size)
         {
@@ -488,7 +489,7 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     {
         it_child = children.data[i];
         it_node = ntg_scene_graph_get(graph, it_child);
-        it_pos = ntg_object_xy_map_get(_positions, it_child);
+        it_pos = ntg_object_xy_map_get(_positions, it_child, true);
 
         it_node->position = it_pos;
     }
@@ -510,7 +511,11 @@ static void draw_fn(ntg_object* object, void* _layout_data)
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | D | %p", object);
 
-    ntg_object_drawing_set_size(node->drawing, node->size);
+    ntg_object_drawing_set_size(node->drawing, node->size, layout_data->size);
+
+    ntg_log_log("NTG_DEF_SCENE | NODE SIZE: %d %d | DRAWING SIZE: %d %d",
+        node->size.x, node->size.y,
+        ntg_object_drawing_get_size(node->drawing).x, ntg_object_drawing_get_size(node->drawing).y);
 
     ntg_object_xy_map* sizes = get_children_sizes_xy(object, scene, arena);
     ntg_object_xy_map* positions = get_children_positions(object, scene, arena);

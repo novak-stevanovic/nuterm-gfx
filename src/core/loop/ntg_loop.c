@@ -1,9 +1,9 @@
-#include "ntg.h"
-#include <assert.h>
-#include "nt.h"
-#include "core/loop/_ntg_loop.h"
 #include <time.h>
 #include <signal.h>
+#include <assert.h>
+#include "ntg.h"
+#include "nt.h"
+#include "core/loop/_ntg_loop.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -27,7 +27,7 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     ctx._stage = data.stage;
     nt_get_term_size(&ctx._app_size.x, &ctx._app_size.y);
     ctx.__loop = true;
-    ctx.__force_finish = false;
+    ctx.__force_break = false;
     ctx._elapsed = 0;
     ctx._frame = 0;
     ctx._arena = sarena_create(50000);
@@ -48,10 +48,6 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
     nt_status _status;
 
-    // struct nt_key_event key = nt_key_event_utf32_new('q', false);
-    // struct nt_event test_event = nt_event_new(NT_EVENT_KEY, &key, sizeof(key));
-    // nt_event_push(test_event, &_status);
-    // assert(_status == NT_SUCCESS);
     while(true)
     {
         if(!(ctx.__loop)) break;
@@ -129,7 +125,7 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     }
 
     enum ntg_loop_status status;
-    if(!ctx.__force_finish)
+    if(!ctx.__force_break)
     {
         status = NTG_LOOP_CLEAN_FINISH;
         _ntg_platform_deinit(&platform);
@@ -139,10 +135,12 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     else
     {
         status = NTG_LOOP_FORCE_FINISH;
+        _ntg_platform_invalidate(&platform);
+        _ntg_task_runner_invalidate(&task_runner);
     }
 
     sarena_destroy(ctx._arena);
-    ctx = (struct ntg_loop_ctx) {0};
+    // ctx = (struct ntg_loop_ctx) {0};
     return status;
 }
 
@@ -153,7 +151,7 @@ bool ntg_loop_ctx_break(ntg_loop_ctx* ctx, bool force_break)
     if(force_break)
     {
         ctx->__loop = false;
-        ctx->__force_finish = true;
+        ctx->__force_break = true;
 
         return true;
     }

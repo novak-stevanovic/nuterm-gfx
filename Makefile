@@ -40,7 +40,7 @@ INSTALL_INCLUDE = include/*
 
 OPT_FLAG = -O$(OPT)
 
-DEBUG ?= 1
+DEBUG ?= 0
 ifeq ($(DEBUG),1)
     DEBUG_FLAG = -g
     OPT_FLAG = -O0

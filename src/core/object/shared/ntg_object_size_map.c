@@ -20,24 +20,21 @@ ntg_object_size_map* ntg_object_size_map_new(size_t child_count, sarena* arena)
 }
 
 void ntg_object_size_map_set(ntg_object_size_map* map,
-        const ntg_object* object,
-        size_t size)
+    const ntg_object* object, size_t size, bool decor)
 {
     assert(map != NULL);
     assert(object != NULL);
 
-    ntg_object_map_set(&map->__base, object, &size);
+    ntg_object_map_set(&map->__base, object, &size, decor);
 }
 
-size_t ntg_object_size_map_get(
-        const ntg_object_size_map* map,
-        const ntg_object* object)
+size_t ntg_object_size_map_get(const ntg_object_size_map* map,
+    const ntg_object* object, bool decor)
 {
     assert(map != NULL);
     assert(object != NULL);
 
-    size_t* result = (size_t*)
-        ntg_object_map_get(&map->__base, object);
+    size_t* result = (size_t*)ntg_object_map_get(&map->__base, object, decor);
     assert(result != NULL);
 
     return (result != NULL) ? *result : 0;

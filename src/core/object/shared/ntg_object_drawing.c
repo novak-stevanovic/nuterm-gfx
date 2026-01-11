@@ -1,7 +1,6 @@
 #include "ntg.h"
 #include <assert.h>
 #include <stdlib.h>
-#include "core/object/shared/ntg_object_drawing.h"
 
 void ntg_object_drawing_init(ntg_object_drawing* drawing)
 {
@@ -46,11 +45,11 @@ struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 }
 
 void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
-        struct ntg_xy size)
+    struct ntg_xy size, struct ntg_xy size_cap)
 {
     if(drawing == NULL) return;
 
-    ntg_vcell_vecgrid_set_size(&drawing->__data, size);
+    ntg_vcell_vecgrid_set_size(&drawing->__data, size, size_cap);
 }
 
 void ntg_object_drawing_place(const ntg_object_drawing* src_drawing,

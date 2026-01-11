@@ -9,35 +9,35 @@ struct ntg_object_measure_map
 
 ntg_object_measure_map* ntg_object_measure_map_new(size_t child_count, sarena* arena)
 {
-    ntg_object_measure_map* new = (ntg_object_measure_map*)sarena_malloc(
-            arena, sizeof(ntg_object_measure_map));
+    ntg_object_measure_map* new = sarena_malloc(arena, sizeof(ntg_object_measure_map));
     assert(new != NULL);
 
-    ntg_object_map_init(&new->__base, child_count,
-            sizeof(struct ntg_object_measure), arena);
+    ntg_object_map_init(&new->__base,
+        child_count,
+        sizeof(struct ntg_object_measure),
+        arena);
 
     return new;
 }
 
 void ntg_object_measure_map_set(ntg_object_measure_map* map,
         const ntg_object* object,
-        struct ntg_object_measure measure)
+        struct ntg_object_measure measure, bool decor)
 {
     assert(map != NULL);
     assert(object != NULL);
 
-    ntg_object_map_set(&map->__base, object, &measure);
+    ntg_object_map_set(&map->__base, object, &measure, decor);
 }
 
 struct ntg_object_measure ntg_object_measure_map_get(
         const ntg_object_measure_map* map,
-        const ntg_object* object)
+        const ntg_object* object, bool decor)
 {
     assert(map != NULL);
     assert(object != NULL);
 
-    struct ntg_object_measure* result = (struct ntg_object_measure*)
-        ntg_object_map_get(&map->__base, object);
+    struct ntg_object_measure* result = ntg_object_map_get(&map->__base, object, decor);
     assert(result != NULL);
 
     return (result != NULL) ? *result : (struct ntg_object_measure) {0};

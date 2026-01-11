@@ -18,7 +18,7 @@ struct ntg_scene_hooks
 {
     void* (*graph_node_data_init_fn)(ntg_scene* scene, ntg_object* object);
     void (*graph_node_data_deinit_fn)(ntg_scene* scene, ntg_object* object,
-            void* data);
+        void* data);
 };
 
 struct ntg_scene_node

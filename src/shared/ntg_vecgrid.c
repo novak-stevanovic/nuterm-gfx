@@ -3,6 +3,7 @@
 #include "shared/ntg_log.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 void ntg_vecgrid_init(ntg_vecgrid* vecgrid)
 {
@@ -36,11 +37,11 @@ void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
 
     size = ntg_xy_size(size);
 
+    if(ntg_xy_are_equal(vecgrid->_size, size)) return;
+
     size_t size_prod = size.x * size.y;
     size_t old_size_prod = vecgrid->_size.x * vecgrid->_size.y;
     size_t size_cap_prod = size_cap.x * size_cap.y;
-
-    if(size_prod == old_size_prod) return;
 
     size_t shrink_threshold = vecgrid->_capacity / modifier;
 
@@ -54,7 +55,7 @@ void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
         shrink_threshold);
     */
 
-    if((size_prod > vecgrid->_capacity) || (size_prod < shrink_threshold))
+    if((size_prod > vecgrid->_capacity) || (size_prod <= shrink_threshold))
     {
         if(size_prod == 0)
         {
@@ -78,25 +79,23 @@ void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
         }
     }
 
+    // if(size_prod == 0)
+    // {
+    //     // ntg_log_log("VECGRID SET SIZE | FREEING");
+    //     if(vecgrid->_capacity > 0)
+    //         free(vecgrid->_data);
 
-    /*
-    if(size_prod == 0)
-    {
-        // ntg_log_log("VECGRID SET SIZE | FREEING");
-        if(vecgrid->_capacity > 0)
-            free(vecgrid->_data);
+    //     vecgrid->_data = 0;
+    //     vecgrid->_capacity = 0;
+    // }
+    // else
+    // {
+    //     if(vecgrid->_capacity > 0)
+    //         vecgrid->_data = realloc(vecgrid->_data, size_prod * data_size);
+    //     else
+    //         vecgrid->_data = malloc(size_prod * data_size);
+    // }
 
-        vecgrid->_data = 0;
-        vecgrid->_capacity = 0;
-    }
-    else
-    {
-        if(vecgrid->_capacity > 0)
-            vecgrid->_data = realloc(vecgrid->_data, size_prod * data_size);
-        else
-            vecgrid->_data = malloc(new_cap * data_size);
-    }
-    */
 
     vecgrid->_size = size;
 }

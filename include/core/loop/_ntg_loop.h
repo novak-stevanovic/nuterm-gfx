@@ -35,6 +35,10 @@ struct ntg_platform
 
     pthread_mutex_t __lock;
     ntg_ptask_list __tasks;
+
+    // When a loop is forcefully ended, this flag will be set. It indicates that
+    // any calls to the platform should be ignored.
+    bool __invalid;
 };
 
 void _ntg_platform_init(ntg_platform* platform);
@@ -42,6 +46,7 @@ void _ntg_platform_deinit(ntg_platform* platform);
 void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task);
 
 void _ntg_platform_execute_all(ntg_platform* platform, ntg_loop_ctx* loop_ctx);
+void _ntg_platform_invalidate(ntg_platform* platform);
 
 /* -------------------------------------------------------------------------- */
 /* TASK RUNNER */
@@ -71,6 +76,10 @@ struct ntg_task_runner
 
     bool __init;
     size_t __running;
+
+    // When a loop is forcefully ended, this flag will be set. It indicates that
+    // any calls to the platform should be ignored.
+    bool __invalid;
 };
 
 void _ntg_task_runner_init(ntg_task_runner* task_runner,
@@ -83,5 +92,7 @@ void _ntg_task_runner_deinit(ntg_task_runner* task_runner);
 
 bool _ntg_task_runner_is_running(ntg_task_runner* task_runner);
 void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task);
+
+void _ntg_task_runner_invalidate(ntg_task_runner* task_runner);
 
 #endif // __NTG_LOOP_H__

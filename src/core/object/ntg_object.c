@@ -548,7 +548,7 @@ void ntg_object_constrain(
 
         size_t i;
         for(i = 0; i < children->_count; i++)
-            ntg_object_size_map_set(out->sizes, children->_data[i], 0);
+            ntg_object_size_map_set(out->sizes, children->_data[i], 0, true);
     }
     else
     {
@@ -575,7 +575,7 @@ void ntg_object_arrange(
 
         size_t i;
         for(i = 0; i < children->_count; i++)
-            ntg_object_xy_map_set(out->positions, children->_data[i], ntg_xy(0, 0));
+            ntg_object_xy_map_set(out->positions, children->_data[i], ntg_xy(0, 0), true);
     }
     else
     {

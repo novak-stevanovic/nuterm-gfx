@@ -1,6 +1,6 @@
+#include <assert.h>
 #include "core/object/ntg_object.h"
 #include "ntg.h"
-#include <assert.h>
 
 static void on_object_register(ntg_scene* scene, ntg_object* object);
 static void on_object_unregister(ntg_scene* scene, ntg_object* object);

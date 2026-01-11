@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "shared/_ntg_shared.h"
 #include "nt.h"
+#include "base/ntg_cell.h"
 
 void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid)
 {
@@ -18,15 +19,14 @@ void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
     ntg_vecgrid_deinit(&vecgrid->__base);
 }
 
-void ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid, struct ntg_xy size)
+void ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid,
+    struct ntg_xy size, struct ntg_xy size_cap)
 {
     assert(vecgrid != NULL);
 
     struct ntg_xy old_size = vecgrid->__base._size;
 
-    struct ntg_xy size_cap;
-    nt_get_term_size(&size_cap.x, &size_cap.y);
-    ntg_vecgrid_set_size(&vecgrid->__base, size, 1.75, size_cap, sizeof(struct ntg_cell));
+    ntg_vecgrid_set_size(&vecgrid->__base, size, 2.25, size_cap, sizeof(struct ntg_cell));
 
     size_t i, j;
     struct ntg_cell* it_cell;
@@ -61,15 +61,14 @@ void ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
     ntg_vecgrid_deinit(&vecgrid->__base);
 }
 
-void ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid, struct ntg_xy size)
+void ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid,
+    struct ntg_xy size, struct ntg_xy size_cap)
 {
     assert(vecgrid != NULL);
 
-    struct ntg_xy size_cap;
-    nt_get_term_size(&size_cap.x, &size_cap.y);
-    ntg_vecgrid_set_size(&vecgrid->__base, size, 1.75, size_cap, sizeof(struct ntg_vcell));
-
     struct ntg_xy old_size = vecgrid->__base._size;
+
+    ntg_vecgrid_set_size(&vecgrid->__base, size, 2.25, size_cap, sizeof(struct ntg_vcell));
 
     size_t i, j;
     struct ntg_vcell* it_cell;

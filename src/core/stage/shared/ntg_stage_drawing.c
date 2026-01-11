@@ -45,9 +45,9 @@ struct ntg_xy ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing)
 }
 
 void ntg_stage_drawing_set_size(ntg_stage_drawing* drawing,
-        struct ntg_xy size)
+    struct ntg_xy size, struct ntg_xy size_cap)
 {
     if(drawing == NULL) return;
 
-    ntg_cell_vecgrid_set_size(&drawing->__data, size);
+    ntg_cell_vecgrid_set_size(&drawing->__data, size, size_cap);
 }

@@ -2,8 +2,8 @@
 #include <assert.h>
 #include "core/object/shared/ntg_object_map.h"
 
-void ntg_object_map_init(ntg_object_map* ctx,
-        size_t capacity, size_t data_size, sarena* arena)
+void ntg_object_map_init(ntg_object_map* ctx, size_t capacity,
+    size_t data_size, sarena* arena)
 {
     assert(ctx != NULL);
     assert(data_size > 0);
@@ -28,18 +28,18 @@ void ntg_object_map_init(ntg_object_map* ctx,
     }
 }
 
-void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* data)
+void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* data, bool decor)
 {
     assert(ctx != NULL);
     assert(object != NULL);
     assert(ctx->__keys != NULL);
 
-    const ntg_object* group_root = ntg_object_get_group_root(object);
+    const ntg_object* target = decor ? object : ntg_object_get_group_root(object);
 
     size_t i;
     for(i = 0; i < ctx->__count; i++)
     {
-        if(ctx->__keys[i] == group_root) break;
+        if(ctx->__keys[i] == target) break;
     }
 
     if(i < ctx->__count)
@@ -50,7 +50,7 @@ void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* dat
     {
         assert(ctx->__count < ctx->__capacity);
 
-        ctx->__keys[ctx->__count] = group_root;
+        ctx->__keys[ctx->__count] = target;
 
         memcpy(ctx->__values + (ctx->__data_size * ctx->__count),
                 data,
@@ -61,18 +61,18 @@ void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* dat
 
 }
 
-void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object)
+void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object, bool decor)
 {
     assert(ctx != NULL);
     assert(object != NULL);
     assert(ctx->__keys != NULL);
 
-    const ntg_object* group_root = ntg_object_get_group_root(object);
+    const ntg_object* target = decor ? object : ntg_object_get_group_root(object);
 
     size_t i;
     for(i = 0; i < ctx->__count; i++)
     {
-        if(ctx->__keys[i] == group_root)
+        if(ctx->__keys[i] == target)
             return (ctx->__values + (i * ctx->__data_size));
     }
 

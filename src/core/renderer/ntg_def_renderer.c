@@ -94,7 +94,8 @@ void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
 
 static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
 {
-    ntg_stage_drawing_set_size(renderer->__backbuff, size);
+    struct ntg_xy size_cap = ntg_xy(size.x + 30, size.y + 30);
+    ntg_stage_drawing_set_size(renderer->__backbuff, size, size_cap);
 
     size_t i, j;
     struct ntg_cell it_drawing_cell, *it_back_buffer_cell;
@@ -117,7 +118,8 @@ static void optimized_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size)
 {
     struct ntg_xy old_back_buffer_size = ntg_stage_drawing_get_size(renderer->__backbuff);
-    ntg_stage_drawing_set_size(renderer->__backbuff, size);
+    struct ntg_xy size_cap = ntg_xy(size.x + 30, size.y + 30);
+    ntg_stage_drawing_set_size(renderer->__backbuff, size, size_cap);
 
     size_t i, j;
     struct ntg_cell it_drawing_cell, *it_back_buffer_cell;
@@ -145,7 +147,8 @@ static void optimized_render(ntg_def_renderer* renderer,
 static void full_render(ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing, struct ntg_xy size)
 {
-    ntg_stage_drawing_set_size(renderer->__backbuff, size);
+    struct ntg_xy size_cap = ntg_xy(size.x + 30, size.y + 30);
+    ntg_stage_drawing_set_size(renderer->__backbuff, size, size_cap);
 
     size_t i, j;
     struct ntg_cell it_drawing_cell, *it_back_buffer_cell;

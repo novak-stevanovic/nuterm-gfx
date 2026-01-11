@@ -22,7 +22,7 @@ struct ntg_loop_ctx
     ntg_platform* _platform;
     void* data;
 
-    bool __loop, __force_finish;
+    bool __loop, __force_break;
 };
 
 enum ntg_loop_event_mode

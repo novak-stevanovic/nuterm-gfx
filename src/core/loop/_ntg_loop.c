@@ -42,6 +42,8 @@ void _ntg_platform_init(ntg_platform* platform)
     pthread_mutex_init(&platform->__lock, NULL);
 
     ntg_ptask_list_init(&platform->__tasks);
+
+    platform->__invalid = false;
 }
 
 void _ntg_platform_deinit(ntg_platform* platform)
@@ -51,6 +53,8 @@ void _ntg_platform_deinit(ntg_platform* platform)
     pthread_mutex_destroy(&platform->__lock);
 
     ntg_ptask_list_deinit(&platform->__tasks);
+
+    platform->__invalid = true;
 }
 
 void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
@@ -58,6 +62,12 @@ void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
     assert(platform != NULL);
 
     pthread_mutex_lock(&platform->__lock);
+
+    if(platform->__invalid)
+    {
+        pthread_mutex_unlock(&platform->__lock);
+        return;
+    }
 
     ntg_ptask_list_push_back(&platform->__tasks, task);
 
@@ -69,6 +79,14 @@ void _ntg_platform_execute_all(ntg_platform* platform, ntg_loop_ctx* loop_ctx)
     assert(platform != NULL);
     assert(loop_ctx != NULL);
 
+    pthread_mutex_lock(&platform->__lock);
+
+    if(platform->__invalid)
+    {
+        pthread_mutex_unlock(&platform->__lock);
+        return;
+    }
+
     struct ntg_ptask_list_node* it_node = platform->__tasks._head;
 
     while(it_node != NULL)
@@ -78,6 +96,17 @@ void _ntg_platform_execute_all(ntg_platform* platform, ntg_loop_ctx* loop_ctx)
 
         ntg_ptask_list_pop_front(&platform->__tasks);
     }
+
+    pthread_mutex_unlock(&platform->__lock);
+}
+
+void _ntg_platform_invalidate(ntg_platform* platform)
+{
+    assert(platform != NULL);
+
+    pthread_mutex_lock(&platform->__lock);
+    platform->__invalid = true;
+    pthread_mutex_unlock(&platform->__lock);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -114,6 +143,8 @@ void _ntg_task_runner_init(ntg_task_runner* task_runner,
 
         assert(status == 0);
     }
+
+    task_runner->__invalid = false;
 }
 
 void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
@@ -139,6 +170,7 @@ void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
     ntg_task_list_deinit(&task_runner->__tasks);
 
     task_runner->__running = 0;
+    task_runner->__invalid = true;
 }
 
 bool _ntg_task_runner_is_running(ntg_task_runner* task_runner)
@@ -164,10 +196,25 @@ void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task
 
     pthread_mutex_lock(&task_runner->__lock);
 
+    if(task_runner->__invalid)
+    {
+        pthread_mutex_unlock(&task_runner->__lock);
+        return;
+    }
+
     assert(task_runner->__init);
     ntg_task_list_push_back(&task_runner->__tasks, task);
     pthread_cond_broadcast(&task_runner->__cond);
 
+    pthread_mutex_unlock(&task_runner->__lock);
+}
+
+void _ntg_task_runner_invalidate(ntg_task_runner* task_runner)
+{
+    assert(task_runner != NULL);
+
+    pthread_mutex_lock(&task_runner->__lock);
+    task_runner->__invalid = true;
     pthread_mutex_unlock(&task_runner->__lock);
 }
 

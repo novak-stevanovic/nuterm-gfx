@@ -148,7 +148,7 @@ static void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* data)
         .mode = NTG_PADDING_ENABLE_ALWAYS
     };
     ntg_padding_set_opts((ntg_padding*)root_border, root_border_opts);
-    ntg_object_set_border((ntg_object*)root, (ntg_padding*)root_border);
+    // ntg_object_set_border((ntg_object*)root, (ntg_padding*)root_border);
 
     // North
     ntg_label* north = ntg_label_new( es);
@@ -230,7 +230,7 @@ static void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* data)
         .mode = NTG_PADDING_ENABLE_ALWAYS
     };
     ntg_padding_set_opts((ntg_padding*)south_padding, south_padding_opts);
-    ntg_object_set_padding((ntg_object*)south, (ntg_padding*)south_padding);
+    // ntg_object_set_padding((ntg_object*)south, (ntg_padding*)south_padding);
 
     // South children
     ntg_color_block* south1 = ntg_color_block_new(es);

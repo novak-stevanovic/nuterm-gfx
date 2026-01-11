@@ -92,7 +92,7 @@ struct ntg_object_measure _ntg_padding_measure_fn(
     const ntg_padding* padding = (ntg_padding*)object;
     const ntg_object* child = ntg_object_get_children(object).data[0];
     struct ntg_object_measure child_data = ntg_object_measure_map_get(
-            ctx.measures, child);
+        ctx.measures, child, true);
 
     if(orientation == NTG_ORIENT_H)
     {
@@ -130,7 +130,7 @@ void _ntg_padding_constrain_fn(
     const ntg_padding* padding = (ntg_padding*)object;
     const ntg_object* child = ntg_object_get_children(object).data[0];
     struct ntg_object_measure child_data = ntg_object_measure_map_get(
-            ctx.measures, child);
+            ctx.measures, child, true);
     struct ntg_padding_ldata* layout_data = (struct ntg_padding_ldata*)_layout_data;
 
     size_t extra_space;
@@ -170,7 +170,7 @@ void _ntg_padding_constrain_fn(
 
     size_t child_size = size - _sizes[0] - _sizes[1];
 
-    ntg_object_size_map_set(out->sizes, child, child_size);
+    ntg_object_size_map_set(out->sizes, child, child_size, true);
 }
 
 void _ntg_padding_arrange_fn(
@@ -189,5 +189,5 @@ void _ntg_padding_arrange_fn(
             layout_data->final_width.west,
             layout_data->final_width.north);
 
-    ntg_object_xy_map_set(out->positions, child, offset);
+    ntg_object_xy_map_set(out->positions, child, offset, true);
 }
