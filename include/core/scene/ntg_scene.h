@@ -14,23 +14,6 @@ enum ntg_scene_event_mode
     NTG_SCENE_EVENT_DISPATCH_FIRST
 };
 
-struct ntg_scene_hooks
-{
-    void* (*graph_node_data_init_fn)(ntg_scene* scene, ntg_object* object);
-    void (*graph_node_data_deinit_fn)(ntg_scene* scene, ntg_object* object,
-        void* data);
-};
-
-struct ntg_scene_node
-{
-    bool exists;
-    struct ntg_xy min_size, natural_size, max_size, grow;
-
-    struct ntg_xy size;
-    struct ntg_xy rel_pos, abs_pos;
-    const ntg_object_drawing* drawing;
-};
-
 struct ntg_scene
 {
     ntg_entity __base;
@@ -43,7 +26,6 @@ struct ntg_scene
     struct
     {
         ntg_object* _root;
-        ntg_scene_graph* __graph;
         ntg_scene_layout_fn __layout_fn;
     };
 
@@ -55,8 +37,6 @@ struct ntg_scene
         ntg_scene_event_fn __event_fn;
     };
 
-    struct ntg_scene_hooks __hooks;
-
     void* data;
 };
 
@@ -66,10 +46,6 @@ struct ntg_scene
 
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
-
-struct ntg_scene_node ntg_scene_get_node(
-        const ntg_scene* scene,
-        const ntg_object* object);
 
 bool ntg_scene_feed_event(
         ntg_scene* scene,
@@ -85,11 +61,8 @@ void ntg_scene_set_event_mode(ntg_scene* scene, ntg_scene_event_mode mode);
 
 void _ntg_scene_init(ntg_scene* scene,
         ntg_focuser* focuser,
-        ntg_scene_layout_fn layout_fn,
-        struct ntg_scene_hooks hooks);
+        ntg_scene_layout_fn layout_fn);
 void _ntg_scene_deinit_fn(ntg_entity* entity);
-
-ntg_scene_graph* _ntg_scene_get_graph(ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */

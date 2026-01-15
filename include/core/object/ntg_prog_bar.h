@@ -42,20 +42,17 @@ struct ntg_prog_bar
 void _ntg_prog_bar_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(
-        const ntg_object* object,
+        const ntg_object* _prog_bar,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
         sarena* arena);
 
 void _ntg_prog_bar_draw_fn(
-        const ntg_object* object,
+        const ntg_object* _prog_bar,
+        void* _layout_data,
         struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
-        void* layout_data,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // _NTG_PROG_BAR_H_

@@ -56,7 +56,7 @@ typedef enum ntg_vcell_type ntg_vcell_type;
 typedef struct ntg_entity ntg_entity;
 typedef struct ntg_entity_system ntg_entity_system;
 typedef struct ntg_entity_map ntg_entity_map;
-typedef struct ntg_event_observe_vec ntg_event_obs_vec;
+typedef struct ntg_event_obs_vec ntg_event_obs_vec;
 typedef struct ntg_entity_vec ntg_entity_vec;
 typedef struct ntg_const_entity_vec ntg_const_entity_vec;
 typedef struct ntg_entity_type ntg_entity_type;
@@ -79,18 +79,19 @@ typedef enum ntg_stage_event_mode ntg_stage_event_mode;
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_def_scene ntg_def_scene;
-typedef struct ntg_scene_graph ntg_scene_graph;
 typedef struct ntg_focuser ntg_focuser;
-typedef struct ntg_single_focuser ntg_single_focuser;
+typedef struct ntg_def_focuser ntg_def_focuser;
 typedef enum ntg_scene_event_mode ntg_scene_event_mode;
 
 typedef struct ntg_object ntg_object;
+typedef enum ntg_object_target ntg_object_target;
 typedef struct ntg_object_vec ntg_object_vec;
 typedef struct ntg_const_object_vec ntg_const_object_vec;
 typedef struct ntg_object_measure_map ntg_object_measure_map;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_xy_map ntg_object_xy_map;
 typedef struct ntg_object_drawing ntg_object_drawing;
+typedef struct ntg_temp_object_drawing ntg_temp_object_drawing;
 typedef struct ntg_object_map ntg_object_map;
 typedef struct ntg_label ntg_label;
 typedef struct ntg_color_block ntg_color_block;
@@ -136,58 +137,38 @@ typedef bool (*ntg_object_event_fn)(
         struct nt_event event,
         ntg_loop_ctx* ctx);
 
-/* Dynamically allocates and initializes an object that will be used in the
- * layout process for `object`. */
-typedef void* (*ntg_object_layout_init_fn)(const ntg_object* object);
-
-/* Frees the resources associated with `layout_data` object. */
-typedef void (*ntg_object_layout_deinit_fn)(
-        const ntg_object* object,
-        void* layout_data);
-
 /* Measures how much space the object would require along one axis,
  * if the size is constrained for the other axis. */
 typedef struct ntg_object_measure (*ntg_object_measure_fn)(
         const ntg_object* object,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
         sarena* arena);
 
 /* Determines the children's sizes for given `orientation` and `size`. */
 typedef void (*ntg_object_constrain_fn)(
         const ntg_object* object,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_object_constrain_ctx ctx,
-        struct ntg_object_constrain_out* out,
-        void* layout_data,
+        ntg_object_size_map* out_sizes,
         sarena* arena);
 
 /* Determines children positions for given `size`. */
 typedef void (*ntg_object_arrange_fn)(
         const ntg_object* object,
+        void* _layout_data,
         struct ntg_xy size,
-        struct ntg_object_arrange_ctx ctx,
-        struct ntg_object_arrange_out* out,
-        void* layout_data,
+        ntg_object_xy_map* out_positions,
         sarena* arena);
 
 /* Creates the `object` drawing. */
 typedef void (*ntg_object_draw_fn)(
         const ntg_object* object,
+        void* _layout_data,
         struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
-        void* layout_data,
-        sarena* arena);
-
-typedef void (*ntg_label_post_draw_fn)(
-        ntg_label* label,
-        ntg_object_drawing* out_drawing,
-        struct ntg_xy size,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
 /* SCENE ------------------------------------------------ */

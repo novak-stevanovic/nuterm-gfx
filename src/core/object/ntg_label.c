@@ -77,7 +77,6 @@ static void init_default_values(ntg_label* label)
 {
     label->__text = (struct ntg_str) {0};
     label->_opts = ntg_label_opts_def();
-    label->__post_draw_fn = NULL;
 }
 
 struct ntg_label_opts ntg_label_opts_def()
@@ -111,13 +110,11 @@ ntg_label* ntg_label_new(ntg_entity_system* system)
     return new;
 }
 
-void ntg_label_init(ntg_label* label, ntg_label_post_draw_fn post_draw_fn)
+void ntg_label_init(ntg_label* label)
 {
     assert(label != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .init_fn = NULL,
-        .deinit_fn = NULL,
         .measure_fn = _ntg_label_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
@@ -127,8 +124,6 @@ void ntg_label_init(ntg_label* label, ntg_label_post_draw_fn post_draw_fn)
     _ntg_object_init((ntg_object*)label, object_data);
 
     init_default_values(label);
-    
-    label->__post_draw_fn = post_draw_fn;
 }
 
 struct ntg_label_opts ntg_label_get_opts(const ntg_label* label)
@@ -214,17 +209,13 @@ void _ntg_label_deinit_fn(ntg_entity* entity)
 }
 
 struct ntg_object_measure _ntg_label_measure_fn(
-        const ntg_object* object,
+        const ntg_object* _label,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
         sarena* arena)
 {
-    assert(object != NULL);
-
-    const ntg_label* label = (const ntg_label*)object;
+    const ntg_label* label = (const ntg_label*)_label;
     
     if(label->__text.len == 0) return (struct ntg_object_measure) {0};
 
@@ -277,16 +268,13 @@ struct ntg_object_measure _ntg_label_measure_fn(
 }
 
 void _ntg_label_draw_fn(
-        const ntg_object* object,
+        const ntg_object* _label,
+        void* _layout_data,
         struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
-        void* layout_data,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena)
 {
-    assert(object != NULL);
-
-    const ntg_label* label = (const ntg_label*)object;
+    const ntg_label* label = (const ntg_label*)_label;
 
     if((label->__text.len == 0) || (label->__text.data == NULL)) return;
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
@@ -426,20 +414,20 @@ void _ntg_label_draw_fn(
         {
             for(j = 0; j < content_size.x; j++)
             {
-                it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
+                it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(j, i));
                 it_content = &(content_buff[content_size.x * i + j]);
 
                 (*it_cell) = ntg_vcell_full((*it_content), label->_opts.gfx);
             }
         }
     }
-    else // NTG_ORIENTATION_VERTICAL
+    else // NTG_ORIENT_V
     {
         for(i = 0; i < content_size.y; i++)
         {
             for(j = 0; j < content_size.x; j++)
             {
-                it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(i, j));
+                it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(i, j));
                 it_content = &(content_buff[content_size.x * i + j]);
 
                 (*it_cell) = ntg_vcell_full((*it_content), label->_opts.gfx);

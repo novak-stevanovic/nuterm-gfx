@@ -46,7 +46,6 @@ enum ntg_vcell_type
 
 struct ntg_vcell
 {
-    ntg_vcell_type type;
     union
     {
         struct
@@ -64,6 +63,7 @@ struct ntg_vcell
 
         struct {} transparent;
     };
+    ntg_vcell_type type;
 };
 
 static inline struct ntg_vcell ntg_vcell_default()

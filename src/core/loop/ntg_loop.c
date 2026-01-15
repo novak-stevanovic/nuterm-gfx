@@ -30,7 +30,7 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     ctx.__force_break = false;
     ctx._elapsed = 0;
     ctx._frame = 0;
-    ctx._arena = sarena_create(50000);
+    ctx._arena = sarena_create(1000000);
     ctx._platform = &platform;
     ctx._task_runner = &task_runner;
     ctx.data = data.ctx_data;

@@ -34,8 +34,6 @@ void ntg_color_block_init(ntg_color_block* color_block)
     assert(color_block != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .init_fn = NULL,
-        .deinit_fn = NULL,
         .measure_fn = _ntg_color_block_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
@@ -63,30 +61,28 @@ void _ntg_color_block_deinit_fn(ntg_entity* entity)
 }
 
 struct ntg_object_measure _ntg_color_block_measure_fn(
-        const ntg_object* object,
+        const ntg_object* _block,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
         sarena* arena)
 {
     return (struct ntg_object_measure) {
         .min_size = DEFAULT_SIZE,
         .natural_size = DEFAULT_SIZE,
         .max_size = NTG_SIZE_MAX,
+        .grow = 1
     };
 }
 
 void _ntg_color_block_draw_fn(
-        const ntg_object* object,
+        const ntg_object* _block,
+        void* _layout_data,
         struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
-        void* layout_data,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena)
 {
-    ntg_color_block* color_block = (ntg_color_block*)object;
+    ntg_color_block* color_block = (ntg_color_block*)_block;
 
     size_t i, j;
     struct ntg_vcell* it_cell;
@@ -94,7 +90,7 @@ void _ntg_color_block_draw_fn(
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
+            it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(j, i));
             (*it_cell) = ntg_vcell_bg(color_block->__color);
         }
     }

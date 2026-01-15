@@ -128,7 +128,7 @@ bool ntg_const_object_vec_has(
     return ntg_vec_has((ntg_vec*)vec, &object, NULL, sizeof(ntg_object*));
 }
 
-struct ntg_const_object_vecv ntg_const_object_vecv_new(ntg_const_object_vec* vec)
+struct ntg_const_object_vecv ntg_const_object_vecv_new(const ntg_const_object_vec* vec)
 {
     assert(vec != NULL);
 

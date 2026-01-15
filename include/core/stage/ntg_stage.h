@@ -2,6 +2,7 @@
 #define _NTG_STAGE_H_
 
 #include "core/entity/ntg_entity.h"
+#include "core/stage/shared/ntg_stage_drawing.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -20,7 +21,7 @@ struct ntg_stage
     ntg_scene* _scene;
 
     ntg_stage_compose_fn __compose_fn;
-    ntg_stage_drawing* _drawing;
+    ntg_stage_drawing _drawing;
 
     ntg_stage_event_mode __event_mode;
     ntg_stage_event_fn __event_fn;

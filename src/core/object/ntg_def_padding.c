@@ -35,22 +35,21 @@ void _ntg_def_padding_deinit_fn(ntg_entity* entity)
 }
 
 void _ntg_def_padding_draw_fn(
-        const ntg_object* object,
-        struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
+        const ntg_object* _padding,
         void* _layout_data,
+        struct ntg_xy size,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena)
 {
     struct ntg_vcell cell;
 
-    if(ntg_object_get_children(object).count == 0)
+    if(ntg_object_get_children(_padding).count == 0)
     {
         cell = ntg_vcell_default();
     }
     else
     {
-        const ntg_object* child = ntg_object_get_children(object).data[0];
+        const ntg_object* child = ntg_object_get_children(_padding).data[0];
         cell = child->_background;
     }
 
@@ -60,7 +59,7 @@ void _ntg_def_padding_draw_fn(
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_object_drawing_at_(out->drawing, ntg_xy(j, i));
+            it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(j, i));
             (*it_cell) = cell;
         }
     }

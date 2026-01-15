@@ -5,8 +5,8 @@ void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
 {
     assert(stage != NULL);
 
-    struct ntg_xy size_cap = ntg_xy(size.x + 30, size.y + 30);
-    ntg_stage_drawing_set_size(stage->_drawing, size, size_cap);
+    struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
+    ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap);
 
     if(stage->_scene != NULL)
         ntg_scene_layout(stage->_scene, size, arena);
@@ -18,7 +18,7 @@ const ntg_stage_drawing* ntg_stage_get_drawing(const ntg_stage* stage)
 {
     assert(stage != NULL);
 
-    return ((const ntg_stage_drawing*)stage->_drawing);
+    return ((const ntg_stage_drawing*)&stage->_drawing);
 }
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
@@ -101,7 +101,7 @@ void _ntg_stage_init(ntg_stage* stage, ntg_loop* loop,
     stage->_loop = loop;
     stage->_scene = NULL;
 
-    stage->_drawing = ntg_stage_drawing_new();
+    ntg_stage_drawing_init(&stage->_drawing);
     stage->__compose_fn = compose_fn;
 
     stage->__event_fn = NULL;
@@ -115,10 +115,9 @@ void _ntg_stage_deinit_fn(ntg_entity* entity)
     assert(entity != NULL);
 
     ntg_stage* stage = (ntg_stage*)entity;
-    ntg_stage_drawing_destroy(stage->_drawing);
+    ntg_stage_drawing_deinit(&stage->_drawing);
 
     stage->_scene = NULL;
-    stage->_drawing = NULL;
     stage->__compose_fn = NULL;
     stage->data = NULL;
     stage->_loop = NULL;

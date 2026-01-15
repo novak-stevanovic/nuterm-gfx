@@ -1,63 +1,25 @@
 #ifndef _NTG_OBJECT_H_
 #define _NTG_OBJECT_H_
 
+#include <stddef.h>
 #include "core/entity/ntg_entity.h"
 #include "shared/ntg_xy.h"
 #include "base/ntg_cell.h"
 #include "core/object/shared/ntg_object_vec.h"
-#include <stddef.h>
+#include "core/object/shared/ntg_object_drawing.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_object_measure_ctx
+enum ntg_object_target
 {
-    const ntg_object_measure_map* measures; // children measures
+    NTG_OBJECT_GROUP_ROOT,
+    NTG_OBJECT_SELF
 };
-
-struct ntg_object_measure_out
-{
-    size_t __placeholder;
-};
-
-struct ntg_object_constrain_ctx
-{
-    const ntg_object_measure_map* measures; // children measures
-};
-
-struct ntg_object_constrain_out
-{
-    ntg_object_size_map* const sizes; // children sizes
-};
-
-struct ntg_object_arrange_ctx
-{
-    const ntg_object_xy_map* sizes; // children sizes
-};
-
-struct ntg_object_arrange_out
-{
-    ntg_object_xy_map* const positions; // children positions
-};
-
-struct ntg_object_draw_ctx
-{
-    const ntg_object_xy_map* sizes; // children sizes
-    const ntg_object_xy_map* positions; // children positions
-};
-
-struct ntg_object_draw_out
-{
-    ntg_object_drawing* const drawing;
-};
-
-/* ------------------------------------------------------ */
 
 struct ntg_object_layout_ops
 {
-    ntg_object_layout_init_fn init_fn;
-    ntg_object_layout_deinit_fn deinit_fn;
     ntg_object_measure_fn measure_fn;
     ntg_object_constrain_fn constrain_fn;
     ntg_object_arrange_fn arrange_fn;
@@ -79,13 +41,24 @@ struct ntg_object
 
     struct
     {
-        struct ntg_xy __min_size, __max_size, __grow;
+        struct ntg_xy _user_min_size, _user_max_size, _user_grow;
     };
 
     struct
     {
         struct ntg_object_layout_ops __layout_ops;
         struct ntg_vcell _background;
+
+        void* layout_data;
+    };
+
+    struct
+    {
+
+        struct ntg_xy __min_size, __nat_size, __max_size, __grow;
+        struct ntg_xy __size;
+        struct ntg_xy __position;
+        ntg_object_drawing __drawing;
     };
 
     struct
@@ -118,12 +91,12 @@ ntg_scene* ntg_object_get_scene(ntg_object* object);
 const ntg_object* ntg_object_get_group_root(const ntg_object* object);
 ntg_object* ntg_object_get_group_root_(ntg_object* object);
 
-const ntg_object* ntg_object_get_root(const ntg_object* object, bool incl_decor);
-ntg_object* ntg_object_get_root_(ntg_object* object, bool incl_decor);
+const ntg_object* ntg_object_get_root(const ntg_object* object, bool incl_dcr);
+ntg_object* ntg_object_get_root_(ntg_object* object, bool incl_dcr);
 
 /* Gets object's parent node. */
-const ntg_object* ntg_object_get_parent(const ntg_object* object, bool incl_decor);
-ntg_object* ntg_object_get_parent_(ntg_object* object, bool incl_decor);
+const ntg_object* ntg_object_get_parent(const ntg_object* object, bool incl_dcr);
+ntg_object* ntg_object_get_parent_(ntg_object* object, bool incl_dcr);
 
 /* Returns base widget for node group(non-decorator). */
 const ntg_object* ntg_object_get_base_widget(const ntg_object* object);
@@ -165,20 +138,15 @@ static void fn_name(ntg_object* object, void* data)                            \
 /* SIZE CONTROL */
 /* ------------------------------------------------------ */
 
-struct ntg_xy ntg_object_get_min_size(ntg_object* object);
-void ntg_object_set_min_size(ntg_object* object, struct ntg_xy size);
+void ntg_object_set_user_min_size(ntg_object* object, struct ntg_xy size);
 
-struct ntg_xy ntg_object_get_max_size(ntg_object* object);
-void ntg_object_set_max_size(ntg_object* object, struct ntg_xy size);
+void ntg_object_set_user_max_size(ntg_object* object, struct ntg_xy size);
 
-struct ntg_xy ntg_object_get_grow(const ntg_object* object);
-void ntg_object_set_grow(ntg_object* object, struct ntg_xy grow);
+void ntg_object_set_usergrow(ntg_object* object, struct ntg_xy grow);
 
 /* ------------------------------------------------------ */
 /* PADDING & BORDER */
 /* ------------------------------------------------------ */
-
-// TODO: raise appropriate event for scene
 
 const ntg_padding* ntg_object_get_padding(const ntg_object* object);
 ntg_padding* ntg_object_get_padding_(ntg_object* object);
@@ -194,42 +162,67 @@ void ntg_object_set_background(ntg_object* object, struct ntg_vcell background);
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-void* ntg_object_layout_init(const ntg_object* object);
-void ntg_object_layout_deinit(const ntg_object* object, void* layout_data);
-
 struct ntg_object_measure ntg_object_measure(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
         sarena* arena);
 
 void ntg_object_constrain(
         const ntg_object* object,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_object_constrain_ctx ctx,
-        struct ntg_object_constrain_out* out,
-        void* layout_data,
+        ntg_object_size_map* out_sizes,
         sarena* arena);
 
 void ntg_object_arrange(
         const ntg_object* object,
         struct ntg_xy size,
-        struct ntg_object_arrange_ctx ctx,
-        struct ntg_object_arrange_out* out,
-        void* layout_data,
+        ntg_object_xy_map* out_positions,
         sarena* arena);
 
 void ntg_object_draw(
         const ntg_object* object,
         struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
-        void* layout_data,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena);
+
+struct ntg_object_measure ntg_object_get_measure(
+        const ntg_object* object,
+        ntg_orientation orientation,
+        ntg_object_target target);
+void ntg_object_set_measure(
+        ntg_object* object,
+        struct ntg_object_measure measure,
+        ntg_orientation orientation, ntg_object_target target);
+
+struct ntg_xy ntg_object_get_size(
+        const ntg_object* object,
+        ntg_object_target target);
+void ntg_object_set_size(
+        ntg_object* object,
+        struct ntg_xy size,
+        ntg_object_target target);
+
+struct ntg_xy ntg_object_get_position(
+        const ntg_object* object,
+        ntg_object_target target);
+struct ntg_xy ntg_object_get_position_abs(
+        const ntg_object* object,
+        ntg_object_target target);
+void ntg_object_set_position(
+        ntg_object* object,
+        struct ntg_xy position,
+        ntg_object_target target);
+
+const ntg_object_drawing* ntg_object_get_drawing(
+        const ntg_object* object,
+        ntg_object_target target);
+void ntg_object_update_drawing(
+        ntg_object* object,
+        const ntg_temp_object_drawing* drawing,
+        struct ntg_xy size_cap,
+        ntg_object_target target);
 
 /* ------------------------------------------------------ */
 /* EVENT */

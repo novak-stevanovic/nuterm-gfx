@@ -45,16 +45,14 @@ void ntg_border_box_init(ntg_border_box* box)
 {
     assert(box != NULL);
 
-    struct ntg_object_layout_ops object_data = {
-        .init_fn = NULL,
-        .deinit_fn = NULL,
+    struct ntg_object_layout_ops layout_ops = {
         .measure_fn = _ntg_border_box_measure_fn,
         .constrain_fn = _ntg_border_box_constrain_fn,
         .arrange_fn = _ntg_border_box_arrange_fn,
         .draw_fn = NULL,
     };
 
-    _ntg_object_init((ntg_object*)box, object_data);
+    _ntg_object_init((ntg_object*)box, layout_ops);
 
     init_default(box);
 }
@@ -75,7 +73,7 @@ void ntg_border_box_set(ntg_border_box* box,
 
     if(object != NULL)
     {
-        ntg_object* object_parent = ntg_object_get_parent_(object, false);
+        ntg_object* object_parent = ntg_object_get_parent_(object, NTG_OBJECT_GROUP_ROOT);
         assert(object_parent == NULL);
     }
 
@@ -107,34 +105,31 @@ void _ntg_border_box_deinit_fn(ntg_entity* entity)
 }
 
 struct ntg_object_measure _ntg_border_box_measure_fn(
-        const ntg_object* object,
+        const ntg_object* _border_box,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
         sarena* arena)
 {
-    // const ntg_object* object = (const ntg_object*)user;
-    const ntg_border_box* box = (const ntg_border_box*)object;
+    const ntg_border_box* border_box = (const ntg_border_box*)_border_box;
 
     ntg_object *north, *east, *south, *west, *center;
-    get_children(box, &north, &east, &south, &west, &center);
+    get_children(border_box, &north, &east, &south, &west, &center);
 
     struct ntg_object_measure north_measure = (north != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, north, false) :
+        ntg_object_get_measure(north, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
     struct ntg_object_measure east_measure = (east != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, east, false) :
+        ntg_object_get_measure(east, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
     struct ntg_object_measure south_measure = (south != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, south, false) :
+        ntg_object_get_measure(south, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
     struct ntg_object_measure west_measure = (west != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, west, false) :
+        ntg_object_get_measure(west, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
     struct ntg_object_measure center_measure = (center != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, center, false) :
+        ntg_object_get_measure(center, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
 
     size_t min, natural, max;
@@ -178,39 +173,33 @@ struct ntg_object_measure _ntg_border_box_measure_fn(
 }
 
 void _ntg_border_box_constrain_fn(
-        const ntg_object* object,
+        const ntg_object* _border_box,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_object_constrain_ctx ctx,
-        struct ntg_object_constrain_out* out,
-        void* layout_data,
+        ntg_object_size_map* out_sizes,
         sarena* arena)
 {
-    // const ntg_object* object = (const ntg_object*)user;
-    const ntg_border_box* box = (const ntg_border_box*)object;
+    const ntg_border_box* border_box = (const ntg_border_box*)_border_box;
 
     ntg_object *north, *east, *south, *west, *center;
-    get_children(box, &north, &east, &south, &west, &center);
+    get_children(border_box, &north, &east, &south, &west, &center);
 
     struct ntg_object_measure north_measure = (north != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, north, false) :
+        ntg_object_get_measure(north, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
     struct ntg_object_measure east_measure = (east != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, east, false) :
+        ntg_object_get_measure(east, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
     struct ntg_object_measure south_measure = (south != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, south, false) :
+        ntg_object_get_measure(south, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
     struct ntg_object_measure west_measure = (west != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, west, false) :
+        ntg_object_get_measure(west, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
     struct ntg_object_measure center_measure = (center != NULL) ?
-        ntg_object_measure_map_get(ctx.measures, center, false) :
+        ntg_object_get_measure(center, orientation, NTG_OBJECT_GROUP_ROOT) :
         (struct ntg_object_measure) {0};
-
-    // size_t min_size = ntg_constrain_ctx_get_min_size(ctx);
-    // size_t natural_size = ntg_constrain_ctx_get_natural_size(ctx);
-    // size_t max_size = ntg_constrain_ctx_get_max_size(ctx);
 
     size_t caps[3] = {0};
     size_t _sizes[3] = {0};
@@ -281,7 +270,7 @@ void _ntg_border_box_constrain_fn(
         center_size =  _sizes[1];
         east_size =  _sizes[2];
     }
-    else // NTG_ORIENTATION_VERTICAL
+    else // NTG_ORIENT_V
     {
         struct ntg_object_measure wce_measure = {
             .min_size = _max3_size(west_measure.min_size, center_measure.min_size, east_measure.min_size),
@@ -353,38 +342,37 @@ void _ntg_border_box_constrain_fn(
     }
 
     if(north != NULL)
-        ntg_object_size_map_set(out->sizes, north, north_size, false);
+        ntg_object_size_map_set(out_sizes, north, north_size, NTG_OBJECT_GROUP_ROOT);
     if(east != NULL)
-        ntg_object_size_map_set(out->sizes, east, east_size, false);
+        ntg_object_size_map_set(out_sizes, east, east_size, NTG_OBJECT_GROUP_ROOT);
     if(south != NULL)
-        ntg_object_size_map_set(out->sizes, south, south_size, false);
+        ntg_object_size_map_set(out_sizes, south, south_size, NTG_OBJECT_GROUP_ROOT);
     if(west != NULL)
-        ntg_object_size_map_set(out->sizes, west, west_size, false);
+        ntg_object_size_map_set(out_sizes, west, west_size, NTG_OBJECT_GROUP_ROOT);
     if(center != NULL)
-        ntg_object_size_map_set(out->sizes, center, center_size, false);
+        ntg_object_size_map_set(out_sizes, center, center_size, NTG_OBJECT_GROUP_ROOT);
 }
 
 void _ntg_border_box_arrange_fn(
-        const ntg_object* object,
+        const ntg_object* _border_box,
+        void* _layout_data,
         struct ntg_xy size,
-        struct ntg_object_arrange_ctx ctx,
-        struct ntg_object_arrange_out* out,
-        void* layout_data,
+        ntg_object_xy_map* out_positions,
         sarena* arena)
 {
-    const ntg_border_box* box = (const ntg_border_box*)object;
+    const ntg_border_box* border_box = (const ntg_border_box*)_border_box;
 
     ntg_object *north, *east, *south, *west, *center;
-    get_children(box, &north, &east, &south, &west, &center);
+    get_children(border_box, &north, &east, &south, &west, &center);
 
     struct ntg_xy north_size = (north != NULL) ?
-        ntg_object_xy_map_get(ctx.sizes, north, false) : ntg_xy(0, 0);
+        ntg_object_get_size(north, NTG_OBJECT_GROUP_ROOT) : ntg_xy(0, 0);
     struct ntg_xy east_size = (east != NULL) ?
-        ntg_object_xy_map_get(ctx.sizes, east, false) : ntg_xy(0, 0);
+        ntg_object_get_size(east, NTG_OBJECT_GROUP_ROOT) : ntg_xy(0, 0);
     struct ntg_xy south_size = (south != NULL) ?
-        ntg_object_xy_map_get(ctx.sizes, south, false) : ntg_xy(0, 0);
+        ntg_object_get_size(south, NTG_OBJECT_GROUP_ROOT) : ntg_xy(0, 0);
     struct ntg_xy west_size = (west != NULL) ?
-        ntg_object_xy_map_get(ctx.sizes, west, false) : ntg_xy(0, 0);
+        ntg_object_get_size(west, NTG_OBJECT_GROUP_ROOT) : ntg_xy(0, 0);
 
     size_t west_east_width = west_size.x + east_size.x;
     size_t north_south_height = north_size.y + south_size.y;
@@ -399,13 +387,13 @@ void _ntg_border_box_arrange_fn(
     struct ntg_xy center_pos = ntg_xy(west_size.x, north_size.y);
 
     if(north != NULL)
-        ntg_object_xy_map_set(out->positions, north, north_pos, false);
+        ntg_object_xy_map_set(out_positions, north, north_pos, NTG_OBJECT_GROUP_ROOT);
     if(east != NULL)
-        ntg_object_xy_map_set(out->positions, east, east_pos, false);
+        ntg_object_xy_map_set(out_positions, east, east_pos, NTG_OBJECT_GROUP_ROOT);
     if(south != NULL)
-        ntg_object_xy_map_set(out->positions, south, south_pos, false);
+        ntg_object_xy_map_set(out_positions, south, south_pos, NTG_OBJECT_GROUP_ROOT);
     if(west != NULL)
-        ntg_object_xy_map_set(out->positions, west, west_pos, false);
+        ntg_object_xy_map_set(out_positions, west, west_pos, NTG_OBJECT_GROUP_ROOT);
     if(center != NULL)
-        ntg_object_xy_map_set(out->positions, center, center_pos, false);
+        ntg_object_xy_map_set(out_positions, center, center_pos, NTG_OBJECT_GROUP_ROOT);
 }

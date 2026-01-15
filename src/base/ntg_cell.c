@@ -26,7 +26,7 @@ void ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid,
 
     struct ntg_xy old_size = vecgrid->__base._size;
 
-    ntg_vecgrid_set_size(&vecgrid->__base, size, 2.25, size_cap, sizeof(struct ntg_cell));
+    ntg_vecgrid_set_size(&vecgrid->__base, size, 2.5, size_cap, sizeof(struct ntg_cell));
 
     size_t i, j;
     struct ntg_cell* it_cell;
@@ -68,7 +68,7 @@ void ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid,
 
     struct ntg_xy old_size = vecgrid->__base._size;
 
-    ntg_vecgrid_set_size(&vecgrid->__base, size, 2.25, size_cap, sizeof(struct ntg_vcell));
+    ntg_vecgrid_set_size(&vecgrid->__base, size, 2.5, size_cap, sizeof(struct ntg_vcell));
 
     size_t i, j;
     struct ntg_vcell* it_cell;

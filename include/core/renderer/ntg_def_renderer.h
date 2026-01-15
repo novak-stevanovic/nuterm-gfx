@@ -3,6 +3,7 @@
 
 #include "core/renderer/ntg_renderer.h"
 #include "shared/ntg_xy.h"
+#include "core/stage/shared/ntg_stage_drawing.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -12,7 +13,7 @@ struct ntg_def_renderer
 {
     ntg_renderer __base;
 
-    ntg_stage_drawing* __backbuff;
+    ntg_stage_drawing __backbuff;
 
     struct ntg_xy __old_size;
 };

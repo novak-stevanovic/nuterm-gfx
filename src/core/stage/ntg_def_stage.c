@@ -52,10 +52,11 @@ static void draw_fn(ntg_object* object, void* _stage)
 {
     ntg_stage* stage = (ntg_stage*)_stage;
 
-    struct ntg_scene_node node = ntg_scene_get_node(stage->_scene, object);
+    const ntg_object_drawing* drawing = ntg_object_get_drawing(object, NTG_OBJECT_SELF);
+    struct ntg_xy size = ntg_object_get_size(object, NTG_OBJECT_SELF);
+    struct ntg_xy pos = ntg_object_get_position_abs(object, NTG_OBJECT_SELF);
 
-    ntg_object_drawing_place_(node.drawing, ntg_xy(0, 0),
-            node.size, stage->_drawing, node.abs_pos);
+    ntg_object_drawing_place_(drawing, ntg_xy(0, 0), size, &stage->_drawing, pos);
 }
 
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(draw_tree, draw_fn);
@@ -75,7 +76,7 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size, sarena* ar
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_stage_drawing_at_(_stage->_drawing, ntg_xy(j, i));
+            it_cell = ntg_stage_drawing_at_(&_stage->_drawing, ntg_xy(j, i));
             (*it_cell) = ntg_cell_default();
         }
     }

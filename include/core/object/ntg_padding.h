@@ -52,39 +52,26 @@ void ntg_padding_init(ntg_padding* padding, ntg_object_draw_fn draw_fn);
 
 void _ntg_padding_deinit_fn(ntg_entity* object);
 
-struct ntg_padding_ldata
-{
-    struct ntg_padding_width final_width;
-    void* data;
-};
-
-void* ntg_padding_layout_init_fn(const ntg_object* object);
-void _ntg_padding_layout_deinit_fn(const ntg_object* object, void* layout_data);
-
 struct ntg_object_measure _ntg_padding_measure_fn(
-        const ntg_object* object,
+        const ntg_object* _padding,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* _layout_data,
         sarena* arena);
 
 void _ntg_padding_constrain_fn(
-        const ntg_object* object,
+        const ntg_object* _padding,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_object_constrain_ctx ctx,
-        struct ntg_object_constrain_out* out,
-        void* _layout_data,
+        ntg_object_size_map* out_sizes,
         sarena* arena);
 
 void _ntg_padding_arrange_fn(
-        const ntg_object* object,
-        struct ntg_xy size,
-        struct ntg_object_arrange_ctx ctx,
-        struct ntg_object_arrange_out* out,
+        const ntg_object* _padding,
         void* _layout_data,
+        struct ntg_xy size,
+        ntg_object_xy_map* out_positions,
         sarena* arena);
 
 #endif // _NTG_PADDING_H_

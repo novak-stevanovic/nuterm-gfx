@@ -4,11 +4,9 @@
 #include "shared/ntg_typedef.h"
 #include "nt_event.h"
 
-#define NTG_EVENT_LOOP_EVENT 1
-struct ntg_event_loop_event_data
-{
-    struct nt_event event;
-};
+/* -------------------------------------------------------------------------- */
+/* OBJECT */
+/* -------------------------------------------------------------------------- */
 
 #define NTG_EVENT_OBJECT_CHLDADD 4
 struct ntg_event_object_chldadd_data
@@ -38,6 +36,22 @@ struct ntg_event_object_chldrm_dcr_data
 
 #define NTG_EVENT_OBJECT_DIFF 8
 
+#define NTG_EVENT_OBJECT_PADCHNG 13
+struct ntg_event_object_padchng
+{
+    ntg_padding *old, *new;
+};
+
+#define NTG_EVENT_OBJECT_BORDCHNG 14
+struct ntg_event_object_bordchng
+{
+    ntg_padding *old, *new;
+};
+
+/* -------------------------------------------------------------------------- */
+/* SCENE */
+/* -------------------------------------------------------------------------- */
+
 #define NTG_EVENT_SCENE_OBJADD 9
 struct ntg_event_scene_objadd_data
 {
@@ -52,22 +66,28 @@ struct ntg_event_scene_objrm_data
 
 #define NTG_EVENT_SCENE_DIFF 11
 
+/* -------------------------------------------------------------------------- */
+/* STAGE */
+/* -------------------------------------------------------------------------- */
+
 #define NTG_EVENT_STAGE_SCNCHNG 12
 struct ntg_event_stage_scnchng_data
 {
     ntg_scene *old, *new;
 };
 
-#define NTG_EVENT_OBJECT_PADCHNG 13
-struct ntg_event_object_padchng
+/* -------------------------------------------------------------------------- */
+/* LOOP*/
+/* -------------------------------------------------------------------------- */
+
+#define NTG_EVENT_LOOP_EVENT 1
+struct ntg_event_loop_event_data
 {
-    ntg_padding *old, *new;
+    struct nt_event event;
 };
 
-#define NTG_EVENT_OBJECT_BORDCHNG 14
-struct ntg_event_object_bordchng
-{
-    ntg_padding *old, *new;
-};
+/* -------------------------------------------------------------------------- */
+/* RENDERER*/
+/* -------------------------------------------------------------------------- */
 
 #endif // _NTG_EVENT_TYPE_H_

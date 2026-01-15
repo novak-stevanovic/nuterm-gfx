@@ -44,11 +44,10 @@ struct ntg_def_border_style ntg_def_border_style_monochrome(nt_color color);
 void _ntg_def_border_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_border_draw_fn(
-        const ntg_object* object,
-        struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
+        const ntg_object* _border,
         void* _layout_data,
+        struct ntg_xy size,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // _NTG_DEF_BORDER_H_

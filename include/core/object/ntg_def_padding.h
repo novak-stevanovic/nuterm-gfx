@@ -26,11 +26,10 @@ void ntg_def_padding_init(ntg_def_padding* def_padding);
 void _ntg_def_padding_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_padding_draw_fn(
-        const ntg_object* object,
-        struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
+        const ntg_object* _padding,
         void* _layout_data,
+        struct ntg_xy size,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // _NTG_DEF_PADDING_H_

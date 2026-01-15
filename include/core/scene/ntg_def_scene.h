@@ -10,13 +10,15 @@
 /* -------------------------------------------------------------------------- */
 
 /* Default scene with implemented layout that allows for wrapping of elements.
- * Layout is always performed in full. */
+Optimized layout. */
 struct ntg_def_scene
 {
     ntg_scene __base;
 
     bool __detected_changes;
     struct ntg_xy __last_size;
+
+    void* __map;
 };
 
 /* -------------------------------------------------------------------------- */

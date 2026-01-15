@@ -1,0 +1,2341 @@
+reading file "heaptrack.demo.480524.zst" - please wait, this might take some time...
+Debuggee command was: ./demo
+finished reading file, now analyzing data:
+
+MOST CALLS TO ALLOCATION FUNCTIONS
+52 calls to allocation functions with 15B peak consumption from
+__GI___strdup
+  at ./string/strdup.c:42
+  in /lib/x86_64-linux-gnu/libc.so.6
+5 calls with 0B peak consumption from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:439
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+5 calls with 0B peak consumption from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    measure2_fn
+      at src/core/scene/ntg_def_scene.c:319
+      in ./libnutermgfx.so
+    measure2_tree
+      at src/core/scene/ntg_def_scene.c:36
+      in ./libnutermgfx.so
+    measure2_tree
+      at src/core/scene/ntg_def_scene.c:36
+      in ./libnutermgfx.so
+    measure2_tree
+      at src/core/scene/ntg_def_scene.c:36
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:136
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+5 calls with 0B peak consumption from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    ntg_vecgrid_set_size
+      at src/shared/ntg_vecgrid.c:83
+      in ./libnutermgfx.so
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+5 calls with 0B peak consumption from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    measure1_fn
+      at src/core/scene/ntg_def_scene.c:226
+      in ./libnutermgfx.so
+    measure1_tree
+      at src/core/scene/ntg_def_scene.c:34
+      in ./libnutermgfx.so
+    measure1_tree
+      at src/core/scene/ntg_def_scene.c:34
+      in ./libnutermgfx.so
+    measure1_tree
+      at src/core/scene/ntg_def_scene.c:34
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:134
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+3 calls with 0B peak consumption from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:439
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 29 from 20 other places
+
+34 calls to allocation functions with 2.04K peak consumption from
+ntg_vec_init
+  at src/shared/ntg_vec.c:27
+  in ./libnutermgfx.so
+1 calls with 40B peak consumption from:
+    ntg_object_vec_init
+      at src/core/object/shared/ntg_object_vec.c:10
+      in ./libnutermgfx.so
+    _ntg_object_init
+      at src/core/object/ntg_object.c:768
+      in ./libnutermgfx.so
+    ntg_color_block_init
+      at src/core/object/ntg_color_block.c:43
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:235
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 80B peak consumption from:
+    ntg_event_obs_vec_init
+      at src/core/entity/shared/ntg_event_obs_vec.c:17
+      in ./libnutermgfx.so
+    system_map_add
+      at src/core/entity/_ntg_entity_system.c:232
+      in ./libnutermgfx.so
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_color_block_new
+      at src/core/object/ntg_color_block.c:26
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:208
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 40B peak consumption from:
+    ntg_object_vec_init
+      at src/core/object/shared/ntg_object_vec.c:10
+      in ./libnutermgfx.so
+    _ntg_object_init
+      at src/core/object/ntg_object.c:768
+      in ./libnutermgfx.so
+    ntg_color_block_init
+      at src/core/object/ntg_color_block.c:43
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:209
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 80B peak consumption from:
+    ntg_event_obs_vec_init
+      at src/core/entity/shared/ntg_event_obs_vec.c:17
+      in ./libnutermgfx.so
+    system_map_add
+      at src/core/entity/_ntg_entity_system.c:232
+      in ./libnutermgfx.so
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_box_new
+      at src/core/object/ntg_box.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:213
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 40B peak consumption from:
+    ntg_object_vec_init
+      at src/core/object/shared/ntg_object_vec.c:10
+      in ./libnutermgfx.so
+    _ntg_object_init
+      at src/core/object/ntg_object.c:768
+      in ./libnutermgfx.so
+    ntg_box_init
+      at src/core/object/ntg_box.c:50
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:214
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 29 from 29 other places
+
+18 calls to allocation functions with 5.76K peak consumption from
+calloc
+  at ../include/rtld-malloc.h:44
+  in /lib64/ld-linux-x86-64.so.2
+allocate_dtv
+  at ../elf/dl-tls.c:401
+16 calls with 5.12K peak consumption from:
+    __GI__dl_allocate_tls
+      at ../elf/dl-tls.c:670
+      in /lib64/ld-linux-x86-64.so.2
+    allocate_stack
+      at ./nptl/allocatestack.c:423
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __pthread_create_2_1
+      at ./nptl/pthread_create.c:650
+    _ntg_task_runner_init
+      at src/core/loop/_ntg_loop.c:141
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:24
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 320B peak consumption from:
+    __GI__dl_allocate_tls
+      at ../elf/dl-tls.c:670
+      in /lib64/ld-linux-x86-64.so.2
+    allocate_stack
+      at ./nptl/allocatestack.c:423
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __pthread_create_2_1
+      at ./nptl/pthread_create.c:650
+    nt_init
+      in /usr/local/lib/libnuterm.so
+    ntg_init
+      at src/ntg.c:23
+      in ./libnutermgfx.so
+    main
+      at /home/novak/code/nuterm-gfx/demo.c:350
+      in /home/novak/code/nuterm-gfx/demo
+1 calls with 320B peak consumption from:
+    __GI__dl_allocate_tls
+      at ../elf/dl-tls.c:670
+      in /lib64/ld-linux-x86-64.so.2
+    allocate_stack
+      at ./nptl/allocatestack.c:423
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __pthread_create_2_1
+      at ./nptl/pthread_create.c:650
+    ntg_launch
+      at src/ntg.c:55
+      in ./libnutermgfx.so
+    main
+      at /home/novak/code/nuterm-gfx/demo.c:352
+      in /home/novak/code/nuterm-gfx/demo
+
+18 calls to allocation functions with 5.51K peak consumption from
+ntg_entity_create
+  at src/core/entity/ntg_entity.c:8
+  in ./libnutermgfx.so
+1 calls with 336B peak consumption from:
+    ntg_color_block_new
+      at src/core/object/ntg_color_block.c:26
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:208
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 88B peak consumption from:
+    ntg_def_renderer_new
+      at src/core/renderer/ntg_def_renderer.c:17
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:272
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 112B peak consumption from:
+    ntg_def_scene_new
+      at src/core/scene/ntg_def_scene.c:53
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:262
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 48B peak consumption from:
+    ntg_def_focuser_new
+      at src/core/scene/focuser/ntg_def_focuser.c:12
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:261
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 128B peak consumption from:
+    ntg_def_stage_new
+      at src/core/stage/ntg_def_stage.c:18
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:256
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 13 from 13 other places
+
+18 calls to allocation functions with 1.87K peak consumption from
+system_map_add
+  at src/core/entity/_ntg_entity_system.c:229
+  in ./libnutermgfx.so
+1 calls with 104B peak consumption from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_color_block_new
+      at src/core/object/ntg_color_block.c:26
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:208
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 104B peak consumption from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_def_renderer_new
+      at src/core/renderer/ntg_def_renderer.c:17
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:272
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 104B peak consumption from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_def_scene_new
+      at src/core/scene/ntg_def_scene.c:53
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:262
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 104B peak consumption from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_def_focuser_new
+      at src/core/scene/focuser/ntg_def_focuser.c:12
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:261
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 104B peak consumption from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_def_stage_new
+      at src/core/stage/ntg_def_stage.c:18
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:256
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 13 from 13 other places
+
+11 calls to allocation functions with 210.50K peak consumption from
+ntg_vecgrid_set_size
+  at src/shared/ntg_vecgrid.c:76
+  in ./libnutermgfx.so
+5 calls with 47.52K peak consumption from:
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+3 calls with 48.55K peak consumption from:
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 46.14K peak consumption from:
+    ntg_cell_vecgrid_set_size
+      at src/base/ntg_cell.c:29
+      in ./libnutermgfx.so
+    ntg_stage_drawing_set_size
+      at src/core/stage/shared/ntg_stage_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:9
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 22.15K peak consumption from:
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 46.14K peak consumption from:
+    ntg_cell_vecgrid_set_size
+      at src/base/ntg_cell.c:29
+      in ./libnutermgfx.so
+    ntg_stage_drawing_set_size
+      at src/core/stage/shared/ntg_stage_drawing.c:31
+      in ./libnutermgfx.so
+    full_render
+      at src/core/renderer/ntg_def_renderer.c:149
+      in ./libnutermgfx.so
+    _ntg_def_renderer_render_fn
+      at src/core/renderer/ntg_def_renderer.c:81
+      in ./libnutermgfx.so
+    ntg_renderer_render
+      at src/core/renderer/ntg_renderer.c:14
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:101
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+
+9 calls to allocation functions with 648B peak consumption from
+scene_map_add
+  at src/core/scene/ntg_def_scene.c:151
+  in ./libnutermgfx.so
+5 calls with 360B peak consumption from:
+    observe_fn
+      at src/core/scene/ntg_def_scene.c:464
+      in ./libnutermgfx.so
+    _ntg_entity_system_raise_event
+      at src/core/entity/_ntg_entity_system.c:130
+      in ./libnutermgfx.so
+    ntg_entity_raise_event
+      at src/core/entity/ntg_entity.c:50
+      in ./libnutermgfx.so
+    on_object_register
+      at src/core/scene/ntg_scene.c:152
+      in ./libnutermgfx.so
+    on_object_register_fn
+      at src/core/scene/ntg_scene.c:171
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    ntg_scene_set_root
+      at src/core/scene/ntg_scene.c:44
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:267
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+3 calls with 216B peak consumption from:
+    observe_fn
+      at src/core/scene/ntg_def_scene.c:464
+      in ./libnutermgfx.so
+    _ntg_entity_system_raise_event
+      at src/core/entity/_ntg_entity_system.c:130
+      in ./libnutermgfx.so
+    ntg_entity_raise_event
+      at src/core/entity/ntg_entity.c:50
+      in ./libnutermgfx.so
+    on_object_register
+      at src/core/scene/ntg_scene.c:152
+      in ./libnutermgfx.so
+    on_object_register_fn
+      at src/core/scene/ntg_scene.c:171
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    ntg_scene_set_root
+      at src/core/scene/ntg_scene.c:44
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:267
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 72B peak consumption from:
+    observe_fn
+      at src/core/scene/ntg_def_scene.c:464
+      in ./libnutermgfx.so
+    _ntg_entity_system_raise_event
+      at src/core/entity/_ntg_entity_system.c:130
+      in ./libnutermgfx.so
+    ntg_entity_raise_event
+      at src/core/entity/ntg_entity.c:50
+      in ./libnutermgfx.so
+    on_object_register
+      at src/core/scene/ntg_scene.c:152
+      in ./libnutermgfx.so
+    on_object_register_fn
+      at src/core/scene/ntg_scene.c:171
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    ntg_scene_set_root
+      at src/core/scene/ntg_scene.c:44
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:267
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+
+6 calls to allocation functions with 1.00M peak consumption from
+sarena_create
+  in /usr/local/lib/libsarena.so
+1 calls with 0B peak consumption from:
+    trim_text
+      at src/core/object/ntg_label.c:36
+      in ./libnutermgfx.so
+    ntg_label_set_text
+      at src/core/object/ntg_label.c:188
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:161
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 0B peak consumption from:
+    trim_text
+      at src/core/object/ntg_label.c:36
+      in ./libnutermgfx.so
+    ntg_label_set_text
+      at src/core/object/ntg_label.c:188
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:161
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 0B peak consumption from:
+    trim_text
+      at src/core/object/ntg_label.c:36
+      in ./libnutermgfx.so
+    ntg_label_set_text
+      at src/core/object/ntg_label.c:188
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:161
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 40B peak consumption from:
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 32B peak consumption from:
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 1 from 1 other places
+
+4 calls to allocation functions with 128B peak consumption from
+ntg_padding_init
+  at src/core/object/ntg_padding.c:57
+  in ./libnutermgfx.so
+1 calls with 32B peak consumption from:
+    ntg_def_border_init
+      at src/core/object/ntg_def_border.c:58
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:140
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 32B peak consumption from:
+    ntg_def_border_init
+      at src/core/object/ntg_def_border.c:58
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:171
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 32B peak consumption from:
+    ntg_def_padding_init
+      at src/core/object/ntg_def_padding.c:25
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:183
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+1 calls with 32B peak consumption from:
+    ntg_def_padding_init
+      at src/core/object/ntg_def_padding.c:25
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:225
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+
+3 calls to allocation functions with 61B peak consumption from
+__tzstring_len
+  at ./time/tzset.c:98
+  in /lib/x86_64-linux-gnu/libc.so.6
+2 calls with 41B peak consumption from:
+    __tzfile_read
+      at ./time/tzfile.c:412
+      in /lib/x86_64-linux-gnu/libc.so.6
+    tzset_internal
+      at ./time/tzset.c:405
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    ntg_log_init
+      at src/shared/ntg_log.c:23
+      in ./libnutermgfx.so
+    ntg_init
+      at src/ntg.c:20
+      in ./libnutermgfx.so
+    main
+      at /home/novak/code/nuterm-gfx/demo.c:350
+      in /home/novak/code/nuterm-gfx/demo
+1 calls with 20B peak consumption from:
+    __tzfile_read
+      at ./time/tzfile.c:412
+      in /lib/x86_64-linux-gnu/libc.so.6
+    tzset_internal
+      at ./time/tzset.c:405
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    ntg_log_init
+      at src/shared/ntg_log.c:23
+      in ./libnutermgfx.so
+    ntg_init
+      at src/ntg.c:20
+      in ./libnutermgfx.so
+    main
+      at /home/novak/code/nuterm-gfx/demo.c:350
+      in /home/novak/code/nuterm-gfx/demo
+
+
+PEAK MEMORY CONSUMERS
+1.00M peak memory consumed over 6 calls from
+sarena_create
+  in /usr/local/lib/libsarena.so
+1000.00K consumed over 1 calls from:
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+40B consumed over 1 calls from:
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+32B consumed over 1 calls from:
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 0B from 1 other places
+
+210.50K peak memory consumed over 11 calls from
+ntg_vecgrid_set_size
+  at src/shared/ntg_vecgrid.c:76
+  in ./libnutermgfx.so
+48.55K consumed over 3 calls from:
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+47.52K consumed over 5 calls from:
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+46.14K consumed over 1 calls from:
+    ntg_cell_vecgrid_set_size
+      at src/base/ntg_cell.c:29
+      in ./libnutermgfx.so
+    ntg_stage_drawing_set_size
+      at src/core/stage/shared/ntg_stage_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:9
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+46.14K consumed over 1 calls from:
+    ntg_cell_vecgrid_set_size
+      at src/base/ntg_cell.c:29
+      in ./libnutermgfx.so
+    ntg_stage_drawing_set_size
+      at src/core/stage/shared/ntg_stage_drawing.c:31
+      in ./libnutermgfx.so
+    full_render
+      at src/core/renderer/ntg_def_renderer.c:149
+      in ./libnutermgfx.so
+    _ntg_def_renderer_render_fn
+      at src/core/renderer/ntg_def_renderer.c:81
+      in ./libnutermgfx.so
+    ntg_renderer_render
+      at src/core/renderer/ntg_renderer.c:14
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:101
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+22.15K consumed over 1 calls from:
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+
+72.70K peak memory consumed over 1 calls from
+0x7f92542a57b9
+  in /lib/x86_64-linux-gnu/libstdc++.so.6
+72.70K consumed over 1 calls from:
+    call_init
+      at ./elf/dl-init.c:74
+      in /lib64/ld-linux-x86-64.so.2
+    call_init
+      at ./elf/dl-init.c:26
+    _dl_init
+      at ./elf/dl-init.c:121
+      in /lib64/ld-linux-x86-64.so.2
+    0x7f92548a3b4f
+      at ./elf/rtld.c:0
+      in /lib64/ld-linux-x86-64.so.2
+
+5.76K peak memory consumed over 18 calls from
+calloc
+  at ../include/rtld-malloc.h:44
+  in /lib64/ld-linux-x86-64.so.2
+allocate_dtv
+  at ../elf/dl-tls.c:401
+5.12K consumed over 16 calls from:
+    __GI__dl_allocate_tls
+      at ../elf/dl-tls.c:670
+      in /lib64/ld-linux-x86-64.so.2
+    allocate_stack
+      at ./nptl/allocatestack.c:423
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __pthread_create_2_1
+      at ./nptl/pthread_create.c:650
+    _ntg_task_runner_init
+      at src/core/loop/_ntg_loop.c:141
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:24
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+320B consumed over 1 calls from:
+    __GI__dl_allocate_tls
+      at ../elf/dl-tls.c:670
+      in /lib64/ld-linux-x86-64.so.2
+    allocate_stack
+      at ./nptl/allocatestack.c:423
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __pthread_create_2_1
+      at ./nptl/pthread_create.c:650
+    nt_init
+      in /usr/local/lib/libnuterm.so
+    ntg_init
+      at src/ntg.c:23
+      in ./libnutermgfx.so
+    main
+      at /home/novak/code/nuterm-gfx/demo.c:350
+      in /home/novak/code/nuterm-gfx/demo
+320B consumed over 1 calls from:
+    __GI__dl_allocate_tls
+      at ../elf/dl-tls.c:670
+      in /lib64/ld-linux-x86-64.so.2
+    allocate_stack
+      at ./nptl/allocatestack.c:423
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __pthread_create_2_1
+      at ./nptl/pthread_create.c:650
+    ntg_launch
+      at src/ntg.c:55
+      in ./libnutermgfx.so
+    main
+      at /home/novak/code/nuterm-gfx/demo.c:352
+      in /home/novak/code/nuterm-gfx/demo
+
+5.51K peak memory consumed over 18 calls from
+ntg_entity_create
+  at src/core/entity/ntg_entity.c:8
+  in ./libnutermgfx.so
+584B consumed over 1 calls from:
+    ntg_def_border_new
+      at src/core/object/ntg_def_border.c:48
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:139
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+584B consumed over 1 calls from:
+    ntg_def_border_new
+      at src/core/object/ntg_def_border.c:48
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:170
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+392B consumed over 1 calls from:
+    ntg_label_new
+      at src/core/object/ntg_label.c:107
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:152
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+384B consumed over 1 calls from:
+    ntg_box_new
+      at src/core/object/ntg_box.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:213
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+384B consumed over 1 calls from:
+    ntg_box_new
+      at src/core/object/ntg_box.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:191
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 3.18K from 13 other places
+
+4.10K peak memory consumed over 2 calls from
+__GI__IO_file_doallocate
+  at ./libio/filedoalloc.c:101
+  in /lib/x86_64-linux-gnu/libc.so.6
+4.10K consumed over 1 calls from:
+    __GI__IO_doallocbuf
+      at ./libio/genops.c:347
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __GI__IO_doallocbuf
+      at ./libio/genops.c:342
+    _IO_new_file_overflow
+      at ./libio/fileops.c:744
+      in /lib/x86_64-linux-gnu/libc.so.6
+    _IO_new_file_xsputn
+      at ./libio/fileops.c:1243
+      in /lib/x86_64-linux-gnu/libc.so.6
+    _IO_new_file_xsputn
+      at ./libio/fileops.c:1196
+    outstring_func
+      at ./stdio-common/vfprintf-internal.c:239
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __vfprintf_internal
+      at ./stdio-common/vfprintf-internal.c:767
+    __fprintf
+      at ./stdio-common/fprintf.c:32
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:48
+      in ./libnutermgfx.so
+    ntg_log_init
+      at src/shared/ntg_log.c:23
+      in ./libnutermgfx.so
+    ntg_init
+      at src/ntg.c:20
+      in ./libnutermgfx.so
+    main
+      at /home/novak/code/nuterm-gfx/demo.c:350
+      in /home/novak/code/nuterm-gfx/demo
+
+2.04K peak memory consumed over 34 calls from
+ntg_vec_init
+  at src/shared/ntg_vec.c:27
+  in ./libnutermgfx.so
+80B consumed over 1 calls from:
+    ntg_event_obs_vec_init
+      at src/core/entity/shared/ntg_event_obs_vec.c:17
+      in ./libnutermgfx.so
+    system_map_add
+      at src/core/entity/_ntg_entity_system.c:232
+      in ./libnutermgfx.so
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_def_padding_new
+      at src/core/object/ntg_def_padding.c:15
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:182
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+80B consumed over 1 calls from:
+    ntg_event_obs_vec_init
+      at src/core/entity/shared/ntg_event_obs_vec.c:17
+      in ./libnutermgfx.so
+    system_map_add
+      at src/core/entity/_ntg_entity_system.c:232
+      in ./libnutermgfx.so
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_color_block_new
+      at src/core/object/ntg_color_block.c:26
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:205
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+80B consumed over 1 calls from:
+    ntg_event_obs_vec_init
+      at src/core/entity/shared/ntg_event_obs_vec.c:17
+      in ./libnutermgfx.so
+    system_map_add
+      at src/core/entity/_ntg_entity_system.c:232
+      in ./libnutermgfx.so
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_color_block_new
+      at src/core/object/ntg_color_block.c:26
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:202
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+80B consumed over 1 calls from:
+    ntg_event_obs_vec_init
+      at src/core/entity/shared/ntg_event_obs_vec.c:17
+      in ./libnutermgfx.so
+    system_map_add
+      at src/core/entity/_ntg_entity_system.c:232
+      in ./libnutermgfx.so
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_box_new
+      at src/core/object/ntg_box.c:33
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:191
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+80B consumed over 1 calls from:
+    ntg_event_obs_vec_init
+      at src/core/entity/shared/ntg_event_obs_vec.c:17
+      in ./libnutermgfx.so
+    system_map_add
+      at src/core/entity/_ntg_entity_system.c:232
+      in ./libnutermgfx.so
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    _ntg_loop_new
+      at src/core/loop/_ntg_loop.c:21
+      in ./libnutermgfx.so
+    ntg_thread_fn
+      at src/ntg.c:84
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 1.64K from 29 other places
+
+1.87K peak memory consumed over 18 calls from
+system_map_add
+  at src/core/entity/_ntg_entity_system.c:229
+  in ./libnutermgfx.so
+104B consumed over 1 calls from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    _ntg_loop_new
+      at src/core/loop/_ntg_loop.c:21
+      in ./libnutermgfx.so
+    ntg_thread_fn
+      at src/ntg.c:84
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+104B consumed over 1 calls from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_border_box_new
+      at src/core/object/ntg_border_box.c:38
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:134
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+104B consumed over 1 calls from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_def_border_new
+      at src/core/object/ntg_def_border.c:48
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:139
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+104B consumed over 1 calls from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_label_new
+      at src/core/object/ntg_label.c:107
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:152
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+104B consumed over 1 calls from:
+    _ntg_entity_system_register
+      at src/core/entity/_ntg_entity_system.c:75
+      in ./libnutermgfx.so
+    ntg_entity_create
+      at src/core/entity/ntg_entity.c:16
+      in ./libnutermgfx.so
+    ntg_def_border_new
+      at src/core/object/ntg_def_border.c:48
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:170
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 1.35K from 13 other places
+
+1.17K peak memory consumed over 1 calls from
+__tzfile_read
+  at ./time/tzfile.c:279
+  in /lib/x86_64-linux-gnu/libc.so.6
+1.17K consumed over 1 calls from:
+    tzset_internal
+      at ./time/tzset.c:405
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    ntg_log_init
+      at src/shared/ntg_log.c:23
+      in ./libnutermgfx.so
+    ntg_init
+      at src/ntg.c:20
+      in ./libnutermgfx.so
+    main
+      at /home/novak/code/nuterm-gfx/demo.c:350
+      in /home/novak/code/nuterm-gfx/demo
+
+648B peak memory consumed over 9 calls from
+scene_map_add
+  at src/core/scene/ntg_def_scene.c:151
+  in ./libnutermgfx.so
+360B consumed over 5 calls from:
+    observe_fn
+      at src/core/scene/ntg_def_scene.c:464
+      in ./libnutermgfx.so
+    _ntg_entity_system_raise_event
+      at src/core/entity/_ntg_entity_system.c:130
+      in ./libnutermgfx.so
+    ntg_entity_raise_event
+      at src/core/entity/ntg_entity.c:50
+      in ./libnutermgfx.so
+    on_object_register
+      at src/core/scene/ntg_scene.c:152
+      in ./libnutermgfx.so
+    on_object_register_fn
+      at src/core/scene/ntg_scene.c:171
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    ntg_scene_set_root
+      at src/core/scene/ntg_scene.c:44
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:267
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+216B consumed over 3 calls from:
+    observe_fn
+      at src/core/scene/ntg_def_scene.c:464
+      in ./libnutermgfx.so
+    _ntg_entity_system_raise_event
+      at src/core/entity/_ntg_entity_system.c:130
+      in ./libnutermgfx.so
+    ntg_entity_raise_event
+      at src/core/entity/ntg_entity.c:50
+      in ./libnutermgfx.so
+    on_object_register
+      at src/core/scene/ntg_scene.c:152
+      in ./libnutermgfx.so
+    on_object_register_fn
+      at src/core/scene/ntg_scene.c:171
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    ntg_scene_set_root
+      at src/core/scene/ntg_scene.c:44
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:267
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+72B consumed over 1 calls from:
+    observe_fn
+      at src/core/scene/ntg_def_scene.c:464
+      in ./libnutermgfx.so
+    _ntg_entity_system_raise_event
+      at src/core/entity/_ntg_entity_system.c:130
+      in ./libnutermgfx.so
+    ntg_entity_raise_event
+      at src/core/entity/ntg_entity.c:50
+      in ./libnutermgfx.so
+    on_object_register
+      at src/core/scene/ntg_scene.c:152
+      in ./libnutermgfx.so
+    on_object_register_fn
+      at src/core/scene/ntg_scene.c:171
+      in ./libnutermgfx.so
+    on_object_register_fn_tree
+      at src/core/scene/ntg_scene.c:23
+      in ./libnutermgfx.so
+    ntg_scene_set_root
+      at src/core/scene/ntg_scene.c:44
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:267
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+
+
+MOST TEMPORARY ALLOCATIONS
+36 temporary allocations of 52 allocations in total (69.23%) from
+__GI___strdup
+  at ./string/strdup.c:42
+  in /lib/x86_64-linux-gnu/libc.so.6
+5 temporary allocations of 5 allocations in total (100.00%) from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    measure2_fn
+      at src/core/scene/ntg_def_scene.c:319
+      in ./libnutermgfx.so
+    measure2_tree
+      at src/core/scene/ntg_def_scene.c:36
+      in ./libnutermgfx.so
+    measure2_tree
+      at src/core/scene/ntg_def_scene.c:36
+      in ./libnutermgfx.so
+    measure2_tree
+      at src/core/scene/ntg_def_scene.c:36
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:136
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+5 temporary allocations of 5 allocations in total (100.00%) from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    ntg_vecgrid_set_size
+      at src/shared/ntg_vecgrid.c:83
+      in ./libnutermgfx.so
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+5 temporary allocations of 5 allocations in total (100.00%) from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    measure1_fn
+      at src/core/scene/ntg_def_scene.c:226
+      in ./libnutermgfx.so
+    measure1_tree
+      at src/core/scene/ntg_def_scene.c:34
+      in ./libnutermgfx.so
+    measure1_tree
+      at src/core/scene/ntg_def_scene.c:34
+      in ./libnutermgfx.so
+    measure1_tree
+      at src/core/scene/ntg_def_scene.c:34
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:134
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+3 temporary allocations of 3 allocations in total (100.00%) from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    ntg_vecgrid_set_size
+      at src/shared/ntg_vecgrid.c:83
+      in ./libnutermgfx.so
+    ntg_vcell_vecgrid_set_size
+      at src/base/ntg_cell.c:71
+      in ./libnutermgfx.so
+    ntg_object_drawing_set_size
+      at src/core/object/shared/ntg_object_drawing.c:31
+      in ./libnutermgfx.so
+    ntg_object_update_drawing
+      at src/core/object/ntg_object.c:714
+      in ./libnutermgfx.so
+    draw_fn
+      at src/core/scene/ntg_def_scene.c:448
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    draw_tree
+      at src/core/scene/ntg_def_scene.c:39
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:139
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+3 temporary allocations of 3 allocations in total (100.00%) from:
+    tzset_internal
+      at ./time/tzset.c:402
+      in /lib/x86_64-linux-gnu/libc.so.6
+    __tz_convert
+      at ./time/tzset.c:577
+      in /lib/x86_64-linux-gnu/libc.so.6
+    ntg_log_log
+      at src/shared/ntg_log.c:46
+      in ./libnutermgfx.so
+    measure2_fn
+      at src/core/scene/ntg_def_scene.c:319
+      in ./libnutermgfx.so
+    measure2_tree
+      at src/core/scene/ntg_def_scene.c:36
+      in ./libnutermgfx.so
+    measure2_tree
+      at src/core/scene/ntg_def_scene.c:36
+      in ./libnutermgfx.so
+    _ntg_def_scene_layout_fn
+      at src/core/scene/ntg_def_scene.c:136
+      in ./libnutermgfx.so
+    ntg_scene_layout
+      at src/core/scene/ntg_scene.c:20
+      in ./libnutermgfx.so
+    ntg_stage_compose
+      at src/core/stage/ntg_stage.c:12
+      in ./libnutermgfx.so
+    ntg_loop_run
+      at src/core/loop/ntg_loop.c:96
+      in ./libnutermgfx.so
+    gui_fn1
+      at /home/novak/code/nuterm-gfx/demo.c:299
+      in /home/novak/code/nuterm-gfx/demo
+    ntg_thread_fn
+      at src/ntg.c:86
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 15B from 20 other places
+
+1 temporary allocations of 1 allocations in total (100.00%) from
+0x7f92542a57b9
+  in /lib/x86_64-linux-gnu/libstdc++.so.6
+1 temporary allocations of 1 allocations in total (100.00%) from:
+    call_init
+      at ./elf/dl-init.c:74
+      in /lib64/ld-linux-x86-64.so.2
+    call_init
+      at ./elf/dl-init.c:26
+    _dl_init
+      at ./elf/dl-init.c:121
+      in /lib64/ld-linux-x86-64.so.2
+    0x7f92548a3b4f
+      at ./elf/rtld.c:0
+      in /lib64/ld-linux-x86-64.so.2
+
+1 temporary allocations of 2 allocations in total (50.00%) from
+ntg_vec_grow_if_needed
+  at src/shared/ntg_vec.c:11
+  in ./libnutermgfx.so
+1 temporary allocations of 2 allocations in total (50.00%) from:
+    ntg_vec_add
+      at src/shared/ntg_vec.c:48
+      in ./libnutermgfx.so
+    ntg_entity_vec_add
+      at src/core/entity/shared/ntg_entity_vec.c:25
+      in ./libnutermgfx.so
+    system_map_get_keys
+      at src/core/entity/_ntg_entity_system.c:273
+      in ./libnutermgfx.so
+    _ntg_entity_system_destroy
+      at src/core/entity/_ntg_entity_system.c:54
+      in ./libnutermgfx.so
+    ntg_thread_fn
+      at src/ntg.c:88
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+
+1 temporary allocations of 34 allocations in total (2.94%) from
+ntg_vec_init
+  at src/shared/ntg_vec.c:27
+  in ./libnutermgfx.so
+1 temporary allocations of 1 allocations in total (100.00%) from:
+    ntg_entity_vec_init
+      at src/core/entity/shared/ntg_entity_vec.c:11
+      in ./libnutermgfx.so
+    _ntg_entity_system_destroy
+      at src/core/entity/_ntg_entity_system.c:53
+      in ./libnutermgfx.so
+    ntg_thread_fn
+      at src/ntg.c:88
+      in ./libnutermgfx.so
+    start_thread
+      at ./nptl/pthread_create.c:442
+      in /lib/x86_64-linux-gnu/libc.so.6
+    clone3
+      at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+      in /lib/x86_64-linux-gnu/libc.so.6
+  and 0B from 29 other places
+
+
+total runtime: 1.08s.
+calls to allocation functions: 191 (177/s)
+temporary memory allocations: 39 (36/s)
+peak heap memory consumption: 1.31M
+peak RSS (including heaptrack overhead): 10.53M
+total memory leaked: 1.28K
+suppressed leaks: 1.24K

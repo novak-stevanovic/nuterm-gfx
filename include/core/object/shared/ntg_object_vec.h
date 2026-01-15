@@ -65,7 +65,7 @@ struct ntg_const_object_vecv
     size_t count;
 };
 
-struct ntg_const_object_vecv ntg_const_object_vecv_new(ntg_const_object_vec* vec);
+struct ntg_const_object_vecv ntg_const_object_vecv_new(const ntg_const_object_vec* vec);
 struct ntg_const_object_vecv ntg_const_object_vecv_new_(const ntg_object_vec* vec);
 
 #endif // _NTG_OBJECT_VEC_H_

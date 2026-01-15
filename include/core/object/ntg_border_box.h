@@ -49,29 +49,25 @@ void ntg_border_box_set(ntg_border_box* box,
 void _ntg_border_box_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_border_box_measure_fn(
-        const ntg_object* object,
+        const ntg_object* _border_box,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
         sarena* arena);
 
 void _ntg_border_box_constrain_fn(
-        const ntg_object* object,
+        const ntg_object* _border_box,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t size,
-        struct ntg_object_constrain_ctx ctx,
-        struct ntg_object_constrain_out* out,
-        void* layout_data,
+        ntg_object_size_map* out_sizes,
         sarena* arena);
 
 void _ntg_border_box_arrange_fn(
-        const ntg_object* object,
+        const ntg_object* _border_box,
+        void* _layout_data,
         struct ntg_xy size,
-        struct ntg_object_arrange_ctx ctx,
-        struct ntg_object_arrange_out* out,
-        void* layout_data,
+        ntg_object_xy_map* out_positions,
         sarena* arena);
 
 #endif // _NTG_BORDER_BOX_H_

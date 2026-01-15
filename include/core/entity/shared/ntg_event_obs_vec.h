@@ -11,7 +11,7 @@ struct ntg_event_obs
     ntg_event_handler_fn handler;
 };
 
-struct ntg_event_observe_vec
+struct ntg_event_obs_vec
 {
     struct ntg_event_obs* _data;
     size_t _count;

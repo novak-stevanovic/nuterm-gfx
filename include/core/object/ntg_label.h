@@ -41,8 +41,6 @@ struct ntg_label
 {
     ntg_object __base;
 
-    ntg_label_post_draw_fn __post_draw_fn;
-
     struct ntg_str __text;
     struct ntg_label_opts _opts;
 };
@@ -52,7 +50,7 @@ struct ntg_label
 /* -------------------------------------------------------------------------- */
 
 ntg_label* ntg_label_new(ntg_entity_system* system);
-void ntg_label_init(ntg_label* label, ntg_label_post_draw_fn post_draw_fn);
+void ntg_label_init(ntg_label* label);
 
 void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts);
 
@@ -66,20 +64,17 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text);
 void _ntg_label_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_label_measure_fn(
-        const ntg_object* object,
+        const ntg_object* _label,
+        void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
-        struct ntg_object_measure_ctx ctx,
-        struct ntg_object_measure_out* out,
-        void* layout_data,
         sarena* arena);
 
 void _ntg_label_draw_fn(
-        const ntg_object* object,
+        const ntg_object* _label,
+        void* _layout_data,
         struct ntg_xy size,
-        struct ntg_object_draw_ctx ctx,
-        struct ntg_object_draw_out* out,
-        void* layout_data,
+        ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // _NTG_LABEL_H_

@@ -9,32 +9,11 @@ void ntg_object_drawing_init(ntg_object_drawing* drawing)
     ntg_vcell_vecgrid_init(&drawing->__data);
 }
 
-void _ntg_object_drawing_deinit_(ntg_object_drawing* drawing)
+void ntg_object_drawing_deinit(ntg_object_drawing* drawing)
 {
     if(drawing == NULL) return;
 
     ntg_vcell_vecgrid_deinit(&drawing->__data);
-}
-
-ntg_object_drawing* ntg_object_drawing_new()
-{
-    ntg_object_drawing* new = (ntg_object_drawing*)malloc(
-            sizeof(struct ntg_object_drawing));
-
-    if(new == NULL) return NULL;
-
-    ntg_object_drawing_init(new);
-
-    return new;
-}
-
-void ntg_object_drawing_destroy(ntg_object_drawing* drawing)
-{
-    if(drawing == NULL) return;
-
-    _ntg_object_drawing_deinit_(drawing);
-
-    free(drawing);
 }
 
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
@@ -137,6 +116,38 @@ void ntg_object_drawing_place_(const ntg_object_drawing* src_drawing,
             it_src_cell = ntg_object_drawing_at(src_drawing, it_src_pos);
 
             (*it_dest_cell) = ntg_vcell_overwrite(*it_src_cell, *it_dest_cell);
+        }
+    }
+}
+
+void ntg_temp_object_drawing_init(ntg_temp_object_drawing* drawing,
+        struct ntg_xy size, sarena* arena)
+{
+    assert(drawing != NULL);
+    assert(arena != NULL);
+
+    if(ntg_xy_size_is_zero(size))
+    {
+        drawing->__data = NULL;
+        drawing->_size = ntg_xy(0, 0);
+    }
+    else
+    {
+        drawing->__data = sarena_malloc(arena, sizeof(struct ntg_vcell) *
+                size.x * size.y);
+        assert(drawing->__data != NULL);
+
+        drawing->_size = size;
+
+        size_t i, j;
+        struct ntg_vcell* it_cell;
+        for(i = 0; i < size.y; i++)
+        {
+            for(j = 0; j < size.x; j++)
+            {
+                it_cell = ntg_temp_object_drawing_at_(drawing, ntg_xy(j, i));
+                (*it_cell) = ntg_vcell_default();
+            }
         }
     }
 }
