@@ -41,7 +41,7 @@ void _ntg_platform_init(ntg_platform* platform)
 
     pthread_mutex_init(&platform->__lock, NULL);
 
-    ntg_ptask_list_init(&platform->__tasks);
+    ntg_ptask_list_init(&platform->__tasks, NULL);
 
     platform->__invalid = false;
 }
@@ -52,7 +52,7 @@ void _ntg_platform_deinit(ntg_platform* platform)
 
     pthread_mutex_destroy(&platform->__lock);
 
-    ntg_ptask_list_deinit(&platform->__tasks);
+    ntg_ptask_list_deinit(&platform->__tasks, NULL);
 
     platform->__invalid = true;
 }
@@ -69,7 +69,7 @@ void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
         return;
     }
 
-    ntg_ptask_list_push_back(&platform->__tasks, task);
+    ntg_ptask_list_pushb(&platform->__tasks, task, NULL);
 
     pthread_mutex_unlock(&platform->__lock);
 }
@@ -87,14 +87,14 @@ void _ntg_platform_execute_all(ntg_platform* platform, ntg_loop_ctx* loop_ctx)
         return;
     }
 
-    struct ntg_ptask_list_node* it_node = platform->__tasks._head;
+    struct ntg_ptask_list_node* it_node = platform->__tasks.head;
 
     while(it_node != NULL)
     {
         it_node->data->task_fn(it_node->data->data, loop_ctx);
         it_node = it_node->next;
 
-        ntg_ptask_list_pop_front(&platform->__tasks);
+        ntg_ptask_list_popf(&platform->__tasks, NULL);
     }
 
     pthread_mutex_unlock(&platform->__lock);
@@ -130,7 +130,7 @@ void _ntg_task_runner_init(ntg_task_runner* task_runner,
 
     task_runner->__init = true;
 
-    ntg_task_list_init(&task_runner->__tasks);
+    ntg_task_list_init(&task_runner->__tasks, NULL);
 
     task_runner->__running = 0;
 
@@ -167,7 +167,7 @@ void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
     pthread_mutex_destroy(&task_runner->__lock);
     pthread_cond_destroy(&task_runner->__cond);
 
-    ntg_task_list_deinit(&task_runner->__tasks);
+    ntg_task_list_deinit(&task_runner->__tasks, NULL);
 
     task_runner->__running = 0;
     task_runner->__invalid = true;
@@ -203,7 +203,7 @@ void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task
     }
 
     assert(task_runner->__init);
-    ntg_task_list_push_back(&task_runner->__tasks, task);
+    ntg_task_list_pushb(&task_runner->__tasks, task, NULL);
     pthread_cond_broadcast(&task_runner->__cond);
 
     pthread_mutex_unlock(&task_runner->__lock);
@@ -226,7 +226,7 @@ static void* worker_fn(void* _data)
     {
         pthread_mutex_lock(&runner->__lock);
 
-        while(runner->__init && (runner->__tasks._count == 0))
+        while(runner->__init && (runner->__tasks.size == 0))
         {
             pthread_cond_wait(&runner->__cond, &runner->__lock);
         }
@@ -237,8 +237,8 @@ static void* worker_fn(void* _data)
             break;
         }
 
-        struct ntg_task task = *(runner->__tasks._head->data);
-        ntg_task_list_pop_front(&runner->__tasks);
+        struct ntg_task task = *(runner->__tasks.head->data);
+        ntg_task_list_popf(&runner->__tasks, NULL);
         (runner->__running)++;
 
         pthread_mutex_unlock(&runner->__lock);

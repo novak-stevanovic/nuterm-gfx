@@ -1,5 +1,5 @@
-#ifndef _NTG_STRING_H_
-#define _NTG_STRING_H_
+#ifndef NTG_STRING_H
+#define NTG_STRING_H
 
 #include "shared/ntg_typedef.h"
 #include <stdint.h>
@@ -78,4 +78,4 @@ struct ntg_str_split_out ntg_str_split(struct ntg_strv str, char sep, sarena* ar
 struct ntg_str_utf32_split_out ntg_str_utf32_split(struct ntg_strv_utf32 str,
         uint32_t sep, sarena* arena);
 
-#endif // _NTG_STRING_H_
+#endif // NTG_STRING_H

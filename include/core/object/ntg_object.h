@@ -1,16 +1,18 @@
-#ifndef _NTG_OBJECT_H_
-#define _NTG_OBJECT_H_
+#ifndef NTG_OBJECT_H
+#define NTG_OBJECT_H
 
 #include <stddef.h>
 #include "core/entity/ntg_entity.h"
 #include "shared/ntg_xy.h"
 #include "base/ntg_cell.h"
-#include "core/object/shared/ntg_object_vec.h"
 #include "core/object/shared/ntg_object_drawing.h"
+#include "shared/genc.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
+
+GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
 enum ntg_object_target
 {
@@ -69,6 +71,18 @@ struct ntg_object
     void* data;
 };
 
+struct ntg_object_vec_view
+{
+    ntg_object* const * data;
+    size_t size;
+};
+
+struct ntg_object_vec_cview
+{
+    const ntg_object* const * object;
+    size_t size;
+};
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -86,6 +100,8 @@ bool ntg_object_is_padding(const ntg_object* object);
 /* OBJECT TREE */
 /* ------------------------------------------------------ */
 
+const ntg_object_vec* ntg_object_get_children(const ntg_object* object);
+
 ntg_scene* ntg_object_get_scene(ntg_object* object);
 
 const ntg_object* ntg_object_get_group_root(const ntg_object* object);
@@ -102,9 +118,6 @@ ntg_object* ntg_object_get_parent_(ntg_object* object, bool incl_dcr);
 const ntg_object* ntg_object_get_base_widget(const ntg_object* object);
 ntg_object* ntg_object_get_base_widget_(ntg_object* object);
 
-struct ntg_const_object_vecv ntg_object_get_children(const ntg_object* object);
-struct ntg_object_vecv ntg_object_get_children_(ntg_object* object);
-
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
 bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant);
 
@@ -113,11 +126,11 @@ static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
     perform_fn(object, data);                                                  \
-    struct ntg_object_vecv children = ntg_object_get_children_(object);        \
+    const ntg_object_vec* children = ntg_object_get_children(object);          \
     size_t i;                                                                  \
-    for(i = 0; i < children.count; i++)                                        \
+    for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
-        fn_name(children.data[i], data);                                       \
+        fn_name(children->data[i], data);                                      \
     }                                                                          \
 }                                                                              \
 
@@ -125,11 +138,11 @@ static void fn_name(ntg_object* object, void* data)                            \
 static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
-    struct ntg_object_vecv children = ntg_object_get_children_(object);        \
+    const ntg_object_vec* children = ntg_object_get_children(object);          \
     size_t i;                                                                  \
-    for(i = 0; i < children.count; i++)                                        \
+    for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
-        fn_name(children.data[i], data);                                       \
+        fn_name(children->data[i], data);                                      \
     }                                                                          \
     perform_fn(object, data);                                                  \
 }                                                                              \
@@ -142,7 +155,7 @@ void ntg_object_set_user_min_size(ntg_object* object, struct ntg_xy size);
 
 void ntg_object_set_user_max_size(ntg_object* object, struct ntg_xy size);
 
-void ntg_object_set_usergrow(ntg_object* object, struct ntg_xy grow);
+void ntg_object_set_user_grow(ntg_object* object, struct ntg_xy grow);
 
 /* ------------------------------------------------------ */
 /* PADDING & BORDER */
@@ -257,4 +270,4 @@ void _ntg_object_mark_change(ntg_object* object);
 
 void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene);
 
-#endif // _NTG_OBJECT_H_
+#endif // NTG_OBJECT_H

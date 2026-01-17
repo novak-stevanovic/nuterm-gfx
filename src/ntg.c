@@ -6,6 +6,15 @@
 #include "core/entity/_ntg_entity_system.h"
 #include "core/loop/_ntg_loop.h"
 
+#define UCONV_IMPLEMENTATION
+#include "shared/uconv.h"
+
+#define SARENA_IMPLEMENTATION
+#include "shared/sarena.h"
+
+#define GENC_IMPLEMENTATION
+#include "shared/genc.h"
+
 /* -------------------------------------------------------------------------- */
 
 static pthread_t __ntg_thread;

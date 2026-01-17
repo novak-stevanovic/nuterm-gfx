@@ -81,7 +81,7 @@ struct ntg_object_measure _ntg_padding_measure_fn(
         sarena* arena)
 {
     const ntg_padding* padding = (ntg_padding*)_padding;
-    const ntg_object* child = ntg_object_get_children(_padding).data[0];
+    const ntg_object* child = ntg_object_get_children(_padding)->data[0];
     struct ntg_object_measure child_data = ntg_object_get_measure(child,
             orientation, NTG_OBJECT_SELF);
 
@@ -118,7 +118,7 @@ void _ntg_padding_constrain_fn(
         sarena* arena)
 {
     const ntg_padding* padding = (ntg_padding*)_padding;
-    const ntg_object* child = ntg_object_get_children(_padding).data[0];
+    const ntg_object* child = ntg_object_get_children(_padding)->data[0];
     struct ntg_object_measure child_data = ntg_object_get_measure(child,
             orientation, NTG_OBJECT_SELF);
     struct ntg_padding_ldata* layout_data = (struct ntg_padding_ldata*)_layout_data;
@@ -171,7 +171,7 @@ void _ntg_padding_arrange_fn(
         sarena* arena)
 {
     // const ntg_padding* padding = (ntg_padding*)object;
-    const ntg_object* child = ntg_object_get_children(_padding).data[0];
+    const ntg_object* child = ntg_object_get_children(_padding)->data[0];
     struct ntg_padding_ldata* layout_data = (struct ntg_padding_ldata*)_layout_data;
     struct ntg_xy offset = ntg_xy(
             layout_data->final_width.west,

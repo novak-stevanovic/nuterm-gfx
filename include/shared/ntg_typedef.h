@@ -1,10 +1,10 @@
-#ifndef _NTG_TYPEDEF_H_
-#define _NTG_TYPEDEF_H_
+#ifndef NTG_TYPEDEF_H
+#define NTG_TYPEDEF_H
 
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "sarena.h"
+#include "shared/sarena.h"
 
 /* -------------------------------------------------------------------------- */
 /* FORWARD DECLARE */
@@ -54,11 +54,10 @@ typedef enum ntg_vcell_type ntg_vcell_type;
 /* ------------------------------------------------------ */
 
 typedef struct ntg_entity ntg_entity;
+typedef struct ntg_entity_vec ntg_entity_vec;
 typedef struct ntg_entity_system ntg_entity_system;
 typedef struct ntg_entity_map ntg_entity_map;
 typedef struct ntg_event_obs_vec ntg_event_obs_vec;
-typedef struct ntg_entity_vec ntg_entity_vec;
-typedef struct ntg_const_entity_vec ntg_const_entity_vec;
 typedef struct ntg_entity_type ntg_entity_type;
 
 typedef struct ntg_loop ntg_loop;
@@ -79,14 +78,12 @@ typedef enum ntg_stage_event_mode ntg_stage_event_mode;
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_def_scene ntg_def_scene;
-typedef struct ntg_focuser ntg_focuser;
-typedef struct ntg_def_focuser ntg_def_focuser;
 typedef enum ntg_scene_event_mode ntg_scene_event_mode;
 
 typedef struct ntg_object ntg_object;
-typedef enum ntg_object_target ntg_object_target;
 typedef struct ntg_object_vec ntg_object_vec;
-typedef struct ntg_const_object_vec ntg_const_object_vec;
+typedef enum ntg_object_target ntg_object_target;
+typedef struct ntg_object_list ntg_object_list;
 typedef struct ntg_object_measure_map ntg_object_measure_map;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_xy_map ntg_object_xy_map;
@@ -184,11 +181,6 @@ typedef bool (*ntg_scene_event_fn)(
         struct nt_event event,
         ntg_loop_ctx* loop_ctx);
 
-typedef bool (*ntg_focuser_dispatch_fn)(
-        ntg_focuser* focuser,
-        struct nt_event event,
-        ntg_loop_ctx* ctx);
-
 /* STAGE ------------------------------------------------ */
 
 /* Composes the scene's logical drawing into an ntg_stage_drawing */
@@ -210,4 +202,4 @@ typedef void (*ntg_renderer_render_fn)(
         const ntg_stage_drawing* stage_drawing,
         sarena* arena);
 
-#endif // _NTG_TYPEDEF_H_
+#endif // NTG_TYPEDEF_H

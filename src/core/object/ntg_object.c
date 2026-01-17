@@ -150,7 +150,7 @@ const ntg_object* ntg_object_get_base_widget(const ntg_object* object)
 
     const ntg_object* it_obj = object;
     while(ntg_object_is_decorator(it_obj))
-        it_obj = it_obj->__children._data[0];
+        it_obj = it_obj->__children.data[0];
 
     return it_obj;
 }
@@ -161,23 +161,16 @@ ntg_object* ntg_object_get_base_widget_(ntg_object* object)
 
     ntg_object* it_obj = object;
     while(ntg_object_is_decorator(it_obj))
-        it_obj = it_obj->__children._data[0];
+        it_obj = it_obj->__children.data[0];
 
     return it_obj;
 }
 
-struct ntg_object_vecv ntg_object_get_children_(ntg_object* object)
+const ntg_object_vec* ntg_object_get_children(const ntg_object* object)
 {
     assert(object != NULL);
 
-    return ntg_object_vecv_new(&object->__children);
-}
-
-struct ntg_const_object_vecv ntg_object_get_children(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    return ntg_const_object_vecv_new_(&object->__children);
+    return &object->__children;
 }
 
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor)
@@ -256,10 +249,10 @@ static void separate_object_group(ntg_object* group_root, ntg_object** border,
     {
         _border = group_root;
 
-        if(!ntg_object_is_widget(group_root->__children._data[0])) // padding
+        if(!ntg_object_is_widget(group_root->__children.data[0])) // padding
         {
-            _padding = _border->__children._data[0];
-            _widget = _padding->__children._data[0];
+            _padding = _border->__children.data[0];
+            _widget = _padding->__children.data[0];
 
             _ntg_object_rm_child_dcr(_border, _padding);
             _ntg_object_rm_child_dcr(_padding, _widget);
@@ -267,7 +260,7 @@ static void separate_object_group(ntg_object* group_root, ntg_object** border,
         else // widget
         {
             _padding = NULL;
-            _widget = _border->__children._data[0];
+            _widget = _border->__children.data[0];
 
             _ntg_object_rm_child_dcr(_border, _widget);
         }
@@ -276,7 +269,7 @@ static void separate_object_group(ntg_object* group_root, ntg_object** border,
     {
         _border = NULL;
         _padding = group_root;
-        _widget = _padding->__children._data[0];
+        _widget = _padding->__children.data[0];
 
         _ntg_object_rm_child_dcr(_padding, _widget);
     }
@@ -502,8 +495,8 @@ void ntg_object_constrain(
         const ntg_object_vec* children = &object->__children;
 
         size_t i;
-        for(i = 0; i < children->_count; i++)
-            ntg_object_size_map_set(out_sizes, children->_data[i], 0, true);
+        for(i = 0; i < children->size; i++)
+            ntg_object_size_map_set(out_sizes, children->data[i], 0, true);
     }
     else
     {
@@ -527,8 +520,8 @@ void ntg_object_arrange(
         const ntg_object_vec* children = &object->__children;
 
         size_t i;
-        for(i = 0; i < children->_count; i++)
-            ntg_object_xy_map_set(out_positions, children->_data[i], ntg_xy(0, 0), true);
+        for(i = 0; i < children->size; i++)
+            ntg_object_xy_map_set(out_positions, children->data[i], ntg_xy(0, 0), true);
     }
     else
     {
@@ -765,7 +758,7 @@ void _ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_op
 
     _init_default_values(object);
 
-    ntg_object_vec_init(&object->__children);
+    ntg_object_vec_init(&object->__children, 5, NULL);
     object->_background = ntg_vcell_default();
     object->__scene = NULL;
     object->__layout_ops = layout_ops;
@@ -800,7 +793,7 @@ void _ntg_object_deinit_fn(ntg_entity* entity)
     assert(entity != NULL);
 
     ntg_object* object = (ntg_object*)entity;
-    ntg_object_vec_deinit(&object->__children);
+    ntg_object_vec_deinit(&object->__children, NULL);
     ntg_object_drawing_deinit(&object->__drawing);
 
     _init_default_values(object);
@@ -853,7 +846,7 @@ void _ntg_object_add_child(ntg_object* object, ntg_object* child)
 void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
 {
     ntg_object* child_root = ntg_object_get_group_root_(child);
-    assert(ntg_object_vec_has(&object->__children, child_root));
+    assert(ntg_object_vec_exists(&object->__children, child_root, NULL));
 
     _ntg_object_rm_child_dcr(object, child_root);
 
@@ -881,7 +874,7 @@ static void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child)
     ntg_object* child_parent = ntg_object_get_parent_(child, true);
     assert(child_parent == NULL);
 
-    ntg_object_vec_add(&object->__children, child);
+    ntg_object_vec_pushb(&object->__children, child, NULL);
 
     child->__parent = object;
 
@@ -900,7 +893,7 @@ static void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
     ntg_object* child_parent = ntg_object_get_parent_(child, true);
     assert(child_parent != NULL);
 
-    ntg_object_vec_rm(&object->__children, child);
+    ntg_object_vec_rm(&object->__children, child, NULL);
 
     child->__parent = NULL;
 
@@ -910,22 +903,3 @@ static void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
 
     _ntg_object_mark_change(object);
 }
-
-// static void _ntg_object_rm_children(ntg_object* object)
-// {
-//     assert(object != NULL);
-//
-//     struct ntg_object_vecv children = ntg_object_get_children_(object);
-//     size_t count = children.count;
-//
-//     size_t i;
-//
-//     ntg_object** children_cpy = (ntg_object**)malloc(sizeof(ntg_object*) * count);
-//     for(i = 0; i < count; i++)
-//         children_cpy[i] = children.data[i];
-//
-//     for(i = 0; i < count; i++)
-//         _ntg_object_rm_child_dcr(object, children_cpy[i]);
-//
-//     free(children_cpy);
-// }

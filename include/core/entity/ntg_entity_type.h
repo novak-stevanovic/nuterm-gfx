@@ -1,5 +1,5 @@
-#ifndef _NTG_ENTITY_TYPE_H_
-#define _NTG_ENTITY_TYPE_H_
+#ifndef NTG_ENTITY_TYPE_H
+#define NTG_ENTITY_TYPE_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -45,4 +45,4 @@ extern const ntg_entity_type NTG_ENTITY_RENDERER, NTG_ENTITY_DEF_RENDERER;
 
 extern const ntg_entity_type NTG_ENTITY_LOOP;
 
-#endif // _NTG_ENTITY_TYPE_H_
+#endif // NTG_ENTITY_TYPE_H

@@ -3,7 +3,7 @@
 #include "core/object/shared/ntg_object_map.h"
 
 void ntg_object_map_init(ntg_object_map* ctx, size_t capacity,
-    size_t data_size, sarena* arena)
+        size_t data_size, sarena* arena)
 {
     assert(ctx != NULL);
     assert(data_size > 0);
@@ -28,7 +28,8 @@ void ntg_object_map_init(ntg_object_map* ctx, size_t capacity,
     }
 }
 
-void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* data, bool decor)
+void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* data,
+        bool decor)
 {
     assert(ctx != NULL);
     assert(object != NULL);
@@ -61,7 +62,8 @@ void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* dat
 
 }
 
-void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object, bool decor)
+void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object,
+        bool decor)
 {
     assert(ctx != NULL);
     assert(object != NULL);

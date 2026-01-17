@@ -1,5 +1,5 @@
-#ifndef __NTG_ENTITY_SYSTEM_H__
-#define __NTG_ENTITY_SYSTEM_H__
+#ifndef _NTG_ENTITY_SYSTEM_H_
+#define _NTG_ENTITY_SYSTEM_H_
 
 #include "shared/ntg_typedef.h"
 
@@ -31,4 +31,4 @@ bool _ntg_entity_system_has_observe(
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
 
-#endif // __NTG_ENTITY_SYSTEM_H__
+#endif // _NTG_ENTITY_SYSTEM_H_

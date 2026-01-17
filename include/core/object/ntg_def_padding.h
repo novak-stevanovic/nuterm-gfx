@@ -1,5 +1,5 @@
-#ifndef _NTG_DEF_PADDING_H_
-#define _NTG_DEF_PADDING_H_
+#ifndef NTG_DEF_PADDING_H
+#define NTG_DEF_PADDING_H
 
 #include "core/object/ntg_padding.h"
 
@@ -32,4 +32,4 @@ void _ntg_def_padding_draw_fn(
         ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
-#endif // _NTG_DEF_PADDING_H_
+#endif // NTG_DEF_PADDING_H

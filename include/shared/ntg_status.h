@@ -1,5 +1,5 @@
-#ifndef _NTG_STATUS_H_
-#define _NTG_STATUS_H_
+#ifndef NTG_STATUS_H
+#define NTG_STATUS_H
 
 #define NTG_STATUS_BASE 2000
 #define NTG_SUCCESS (NTG_STATUS_BASE + 0)
@@ -8,4 +8,4 @@
 #define NTG_ERR_MAX_THREAD (NTG_STATUS_BASE + 3)
 #define NTG_ERR_ALLOC_FAIL (NTG_STATUS_BASE + 4)
 
-#endif // _NTG_STATUS_H_
+#endif // NTG_STATUS_H

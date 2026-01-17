@@ -1,5 +1,5 @@
-#ifndef _NTG_DEF_BORDER_H_
-#define _NTG_DEF_BORDER_H_
+#ifndef NTG_DEF_BORDER_H
+#define NTG_DEF_BORDER_H
 
 #include "core/object/ntg_padding.h"
 
@@ -50,4 +50,4 @@ void _ntg_def_border_draw_fn(
         ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
-#endif // _NTG_DEF_BORDER_H_
+#endif // NTG_DEF_BORDER_H

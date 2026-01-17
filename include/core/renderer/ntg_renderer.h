@@ -1,5 +1,5 @@
-#ifndef _NTG_RENDERER_H_
-#define _NTG_RENDERER_H_
+#ifndef NTG_RENDERER_H
+#define NTG_RENDERER_H
 
 #include "core/entity/ntg_entity.h"
 
@@ -30,4 +30,4 @@ void ntg_renderer_render(ntg_renderer* renderer,
 void _ntg_renderer_init(ntg_renderer* renderer, ntg_renderer_render_fn render_fn);
 void _ntg_renderer_deinit_fn(ntg_entity* entity);
 
-#endif // _NTG_RENDERER_H_
+#endif // NTG_RENDERER_H

@@ -1,5 +1,5 @@
-#ifndef _NTG_OBJECT_SIZE_MAP_H_
-#define _NTG_OBJECT_SIZE_MAP_H_
+#ifndef NTG_OBJECT_SIZE_MAP_H
+#define NTG_OBJECT_SIZE_MAP_H
 
 #include "shared/ntg_typedef.h"
 
@@ -10,4 +10,4 @@ void ntg_object_size_map_set(ntg_object_size_map* map,
 size_t ntg_object_size_map_get(const ntg_object_size_map* map,
         const ntg_object* object, bool decor);
 
-#endif // _NTG_OBJECT_SIZE_MAP_H_
+#endif // NTG_OBJECT_SIZE_MAP_H

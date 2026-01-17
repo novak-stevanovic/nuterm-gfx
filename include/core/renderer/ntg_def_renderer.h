@@ -1,5 +1,5 @@
-#ifndef _NTG_DEF_RENDERER_H_
-#define _NTG_DEF_RENDERER_H_
+#ifndef NTG_DEF_RENDERER_H
+#define NTG_DEF_RENDERER_H
 
 #include "core/renderer/ntg_renderer.h"
 #include "shared/ntg_xy.h"
@@ -35,4 +35,4 @@ void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
         sarena* arena);
 
-#endif // _NTG_DEF_RENDERER_H_
+#endif // NTG_DEF_RENDERER_H

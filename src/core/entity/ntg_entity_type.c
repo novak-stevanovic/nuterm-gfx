@@ -2,7 +2,6 @@
 #include "ntg.h"
 
 bool ntg_entity_instance_of(const ntg_entity_type* type, const ntg_entity_type* ancestor)
-
 {
     const ntg_entity_type* it = type;
 
@@ -106,20 +105,6 @@ const ntg_entity_type NTG_ENTITY_SCENE = {
 const ntg_entity_type NTG_ENTITY_DEF_SCENE = {
     .__parent = &NTG_ENTITY_SCENE,
     ._size = sizeof(ntg_def_scene)
-};
-
-/* -------------------------------------------------------------------------- */
-/* NTG_FOCUSER */
-/* -------------------------------------------------------------------------- */
-
-const ntg_entity_type NTG_ENTITY_FOCUSER = {
-    .__parent = &NTG_ENTITY,
-    ._size = sizeof(ntg_focuser)
-};
-
-const ntg_entity_type NTG_ENTITY_DEF_FOCUSER = {
-    .__parent = &NTG_ENTITY_FOCUSER,
-    ._size = sizeof(ntg_def_focuser)
 };
 
 /* -------------------------------------------------------------------------- */

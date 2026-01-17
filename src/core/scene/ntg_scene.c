@@ -56,25 +56,10 @@ bool ntg_scene_feed_event(
 {
     assert(scene != NULL);
 
-    bool consumed = false;
-    if(scene->__event_mode == NTG_SCENE_EVENT_PROCESS_FIRST)
-    {
-        if(scene->__event_fn != NULL)
-            consumed = scene->__event_fn(scene, event, loop_ctx);
+    return false;
+    // TODO
 
-        if(!consumed && scene->_focuser != NULL)
-            ntg_focuser_dispatch_event(scene->_focuser, event, loop_ctx);
-    }
-    else // scene->__event_mode = NTG_SCENE_EVENT_DISPATCH_FIRST
-    {
-        if(scene->_focuser != NULL)
-            ntg_focuser_dispatch_event(scene->_focuser, event, loop_ctx);
-
-        if(!consumed && (scene->__event_fn != NULL))
-            consumed = scene->__event_fn(scene, event, loop_ctx);
-    }
-
-    return consumed;
+    // return consumed;
 }
 
 void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn)
@@ -102,16 +87,13 @@ static void init_default_values(ntg_scene* scene)
     scene->_root = NULL;
     scene->__layout_fn = NULL;
 
-    scene->_focuser = NULL;
     scene->__event_fn = NULL;
     scene->__event_mode = NTG_SCENE_EVENT_DISPATCH_FIRST;
 
     scene->data = NULL;
 }
 
-void _ntg_scene_init(ntg_scene* scene,
-        ntg_focuser* focuser,
-        ntg_scene_layout_fn layout_fn)
+void _ntg_scene_init(ntg_scene* scene, ntg_scene_layout_fn layout_fn)
 {
     assert(scene != NULL);
     assert(layout_fn != NULL);
@@ -119,8 +101,6 @@ void _ntg_scene_init(ntg_scene* scene,
     init_default_values(scene);
 
     scene->__layout_fn = layout_fn;
-
-    scene->_focuser = focuser;
 }
 
 void _ntg_scene_deinit_fn(ntg_entity* entity)

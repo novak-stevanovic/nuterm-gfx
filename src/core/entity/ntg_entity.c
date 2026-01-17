@@ -1,7 +1,7 @@
+#include <stdlib.h>
+#include <assert.h>
 #include "core/entity/_ntg_entity_system.h"
 #include "ntg.h"
-#include <assert.h>
-#include <stdlib.h>
 
 ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data)
 {
@@ -47,7 +47,8 @@ void ntg_entity_raise_event(
         ntg_entity* target,
         unsigned int type, void* data)
 {
-    _ntg_entity_system_raise_event(entity->__system, entity, target, type, data);
+    _ntg_entity_system_raise_event(entity->__system, entity, target,
+            type, data);
 }
 
 void ntg_entity_observe(
@@ -55,7 +56,8 @@ void ntg_entity_observe(
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn)
 {
-    _ntg_entity_system_add_observe(observer->__system, observer, observed, handler_fn);
+    _ntg_entity_system_add_observe(observer->__system, observer, observed,
+            handler_fn);
 }
 
 void ntg_entity_stop_observing(
@@ -63,7 +65,8 @@ void ntg_entity_stop_observing(
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn)
 {
-    _ntg_entity_system_rm_observe(observer->__system, observer, observed, handler_fn);
+    _ntg_entity_system_rm_observe(observer->__system, observer,
+            observed, handler_fn);
 }
 
 bool ntg_entity_is_observing(

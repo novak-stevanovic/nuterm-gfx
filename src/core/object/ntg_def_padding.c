@@ -43,13 +43,13 @@ void _ntg_def_padding_draw_fn(
 {
     struct ntg_vcell cell;
 
-    if(ntg_object_get_children(_padding).count == 0)
+    if(ntg_object_get_children(_padding)->size == 0)
     {
         cell = ntg_vcell_default();
     }
     else
     {
-        const ntg_object* child = ntg_object_get_children(_padding).data[0];
+        const ntg_object* child = ntg_object_get_children(_padding)->data[0];
         cell = child->_background;
     }
 

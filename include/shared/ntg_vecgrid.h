@@ -1,5 +1,5 @@
-#ifndef _NTG_VECGRID_H_
-#define _NTG_VECGRID_H_
+#ifndef NTG_VECGRID_H
+#define NTG_VECGRID_H
 
 #include "shared/ntg_xy.h"
 #include "shared/ntg_typedef.h"
@@ -15,6 +15,6 @@ void ntg_vecgrid_init(ntg_vecgrid* vecgrid);
 void ntg_vecgrid_deinit(ntg_vecgrid* vecgrid);
 
 void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
-    double modifier, struct ntg_xy size_cap, size_t data_size);
+        double modifier, struct ntg_xy size_cap, size_t data_size);
 
-#endif // _NTG_VECGRID_H_
+#endif // NTG_VECGRID_H

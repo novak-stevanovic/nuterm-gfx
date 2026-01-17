@@ -1,5 +1,5 @@
-#ifndef _NTG_COLOR_BLOCK_H_
-#define _NTG_COLOR_BLOCK_H_
+#ifndef NTG_COLOR_BLOCK_H
+#define NTG_COLOR_BLOCK_H
 
 #include "core/object/ntg_object.h"
 
@@ -42,4 +42,4 @@ void _ntg_color_block_draw_fn(
         ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
-#endif // _NTG_COLOR_BLOCK_H_
+#endif // NTG_COLOR_BLOCK_H

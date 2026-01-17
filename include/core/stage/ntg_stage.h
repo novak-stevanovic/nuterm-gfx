@@ -1,5 +1,5 @@
-#ifndef _NTG_STAGE_H_
-#define _NTG_STAGE_H_
+#ifndef NTG_STAGE_H
+#define NTG_STAGE_H
 
 #include "core/entity/ntg_entity.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
@@ -54,4 +54,4 @@ void _ntg_stage_init(ntg_stage* stage, ntg_loop* loop,
         ntg_stage_compose_fn compose_fn);
 void _ntg_stage_deinit_fn(ntg_entity* entity);
 
-#endif // _NTG_STAGE_H_
+#endif // NTG_STAGE_H

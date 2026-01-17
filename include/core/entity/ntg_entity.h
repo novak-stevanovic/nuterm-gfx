@@ -1,13 +1,16 @@
-#ifndef _NTG_ENTITY_H_
-#define _NTG_ENTITY_H_
+#ifndef NTG_ENTITY_H
+#define NTG_ENTITY_H
 
 #include "shared/ntg_typedef.h"
+#include "shared/genc.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
 /* Base class for GUI objects. Entities must be dynamically allocated. */
+
+GENC_VECTOR_GENERATE(ntg_entity_vec, ntg_entity*, 1.5, NULL);
 
 struct ntg_entity
 {
@@ -67,4 +70,4 @@ bool ntg_entity_is_observing(
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-#endif // _NTG_ENTITY_H_
+#endif // NTG_ENTITY_H

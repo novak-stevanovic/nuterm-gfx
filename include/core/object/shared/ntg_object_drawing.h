@@ -1,5 +1,5 @@
-#ifndef _NTG_OBJECT_DRAWING_H_
-#define _NTG_OBJECT_DRAWING_H_
+#ifndef NTG_OBJECT_DRAWING_H
+#define NTG_OBJECT_DRAWING_H
 
 #include "shared/ntg_typedef.h"
 #include "base/ntg_cell.h"
@@ -65,4 +65,4 @@ ntg_temp_object_drawing_at_(ntg_temp_object_drawing* drawing, struct ntg_xy pos)
         NULL;
 }
 
-#endif //  _NTG_OBJECT_DRAWING_H_
+#endif //  NTG_OBJECT_DRAWING_H

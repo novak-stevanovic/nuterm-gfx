@@ -1,5 +1,5 @@
-#ifndef _NTG_LOOP_H_
-#define _NTG_LOOP_H_
+#ifndef NTG_LOOP_H
+#define NTG_LOOP_H
 
 #include <stdint.h>
 #include "shared/ntg_typedef.h"
@@ -25,16 +25,16 @@ struct ntg_loop_ctx
     bool __loop, __force_break;
 };
 
-enum ntg_loop_event_mode
-{
-    NTG_LOOP_EVENT_PROCESS_FIRST,
-    NTG_LOOP_EVENT_DISPATCH_FIRST
-};
-
 enum ntg_loop_status
 {
     NTG_LOOP_CLEAN_FINISH,
     NTG_LOOP_FORCE_FINISH
+};
+
+enum ntg_loop_event_mode
+{
+    NTG_LOOP_EVENT_DISPATCH_FIRST,
+    NTG_LOOP_EVENT_PROCESS_FIRST
 };
 
 /* -------------------------------------------------------------------------- */
@@ -80,4 +80,4 @@ void ntg_platform_execute_later(ntg_platform* platform,
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-#endif // _NTG_LOOP_H_
+#endif // NTG_LOOP_H

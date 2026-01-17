@@ -1,5 +1,5 @@
-#ifndef __NTG_SHARED_H__
-#define __NTG_SHARED_H__
+#ifndef _NTG_SHARED_H_
+#define _NTG_SHARED_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -106,4 +106,4 @@ static inline size_t _ssub_size(size_t x, size_t y)
         return;                                                                \
     } while(0);                                                                \
 
-#endif // __NTG_SHARED_H__
+#endif // _NTG_SHARED_H_

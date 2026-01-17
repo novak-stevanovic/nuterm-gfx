@@ -1,5 +1,5 @@
-#ifndef _NTG_XY_H_
-#define _NTG_XY_H_
+#ifndef NTG_XY_H
+#define NTG_XY_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -227,4 +227,4 @@ static inline struct ntg_oxy ntg_oxy_from_xy(struct ntg_xy xy,
 
 /* -------------------------------------------------------------------------- */
 
-#endif // _NTG_XY_H_
+#endif // NTG_XY_H

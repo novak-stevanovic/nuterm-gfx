@@ -1,5 +1,5 @@
-#ifndef _NTG_DEF_STAGE_H_
-#define _NTG_DEF_STAGE_H_
+#ifndef NTG_DEF_STAGE_H
+#define NTG_DEF_STAGE_H
 
 #include <stdbool.h>
 #include "shared/ntg_xy.h"
@@ -32,4 +32,4 @@ void _ntg_def_stage_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size, sarena* arena);
 
-#endif // _NTG_DEF_STAGE_H_
+#endif // NTG_DEF_STAGE_H

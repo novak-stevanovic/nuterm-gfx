@@ -1,5 +1,5 @@
-#ifndef _NTG_STAGE_DRAWING_H_
-#define _NTG_STAGE_DRAWING_H_
+#ifndef NTG_STAGE_DRAWING_H
+#define NTG_STAGE_DRAWING_H
 
 #include "shared/ntg_typedef.h"
 #include "base/ntg_cell.h"
@@ -29,4 +29,4 @@ ntg_stage_drawing_at_(ntg_stage_drawing* drawing, struct ntg_xy pos)
     return (drawing != NULL) ? ntg_cell_vecgrid_at_(&drawing->__data, pos) : NULL;
 }
 
-#endif // _NTG_STAGE_DRAWING_H_
+#endif // NTG_STAGE_DRAWING_H

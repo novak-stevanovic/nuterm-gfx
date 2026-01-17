@@ -258,10 +258,8 @@ static void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* data)
     ntg_stage_set_event_fn((ntg_stage*)stage, stage_event_fn);
 
     // Scene
-    ntg_def_focuser* focuser = ntg_def_focuser_new(es);
     ntg_def_scene* scene = ntg_def_scene_new(es);
-    ntg_def_scene_init(scene, (ntg_focuser*)focuser);
-    ntg_def_focuser_init(focuser, (ntg_scene*)scene);
+    ntg_def_scene_init(scene);
 
     // Connect root-scene-stage
     ntg_scene_set_root((ntg_scene*)scene, (ntg_object*)root);
@@ -294,8 +292,6 @@ static void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* data)
 
     ((ntg_stage*)stage)->data = center2;
 
-    // ntg_def_focuser_focus(focuser, (ntg_object*)north);
-    // ntg_def_focuser_focus(focuser, NULL);
     enum ntg_loop_status status = ntg_loop_run(loop, loop_data);
 }
 
@@ -316,13 +312,11 @@ bool loop_event_fn2(ntg_loop_ctx* ctx, struct nt_event event)
 static void gui_fn2(ntg_entity_system* es, ntg_loop* loop, void* data)
 {
     ntg_def_scene* scene = ntg_def_scene_new(es);
-    ntg_def_focuser* focuser = ntg_def_focuser_new(es);
     ntg_def_stage* stage = ntg_def_stage_new(es);
     ntg_color_block* cb = ntg_color_block_new(es);
     ntg_def_renderer* renderer = ntg_def_renderer_new(es);
 
-    ntg_def_focuser_init(focuser, (ntg_scene*)scene);
-    ntg_def_scene_init(scene, (ntg_focuser*)focuser);
+    ntg_def_scene_init(scene);
     ntg_def_stage_init(stage, loop);
     ntg_color_block_init(cb);
     ntg_def_renderer_init(renderer);

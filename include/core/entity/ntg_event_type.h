@@ -1,5 +1,5 @@
-#ifndef _NTG_EVENT_TYPE_H_
-#define _NTG_EVENT_TYPE_H_
+#ifndef NTG_EVENT_TYPE_H
+#define NTG_EVENT_TYPE_H
 
 #include "shared/ntg_typedef.h"
 #include "nt_event.h"
@@ -90,4 +90,4 @@ struct ntg_event_loop_event_data
 /* RENDERER*/
 /* -------------------------------------------------------------------------- */
 
-#endif // _NTG_EVENT_TYPE_H_
+#endif // NTG_EVENT_TYPE_H

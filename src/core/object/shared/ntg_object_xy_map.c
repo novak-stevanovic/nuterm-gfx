@@ -19,8 +19,7 @@ ntg_object_xy_map* ntg_object_xy_map_new(size_t child_count, sarena* arena)
     return new;
 }
 
-void ntg_object_xy_map_set(ntg_object_xy_map* map,
-        const ntg_object* object,
+void ntg_object_xy_map_set(ntg_object_xy_map* map, const ntg_object* object,
         struct ntg_xy measure, bool decor)
 {
     assert(map != NULL);
@@ -29,8 +28,7 @@ void ntg_object_xy_map_set(ntg_object_xy_map* map,
     ntg_object_map_set(&map->__base, object, &measure, decor);
 }
 
-struct ntg_xy ntg_object_xy_map_get(
-        const ntg_object_xy_map* map,
+struct ntg_xy ntg_object_xy_map_get(const ntg_object_xy_map* map,
         const ntg_object* object, bool decor)
 {
     assert(map != NULL);

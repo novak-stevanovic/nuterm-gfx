@@ -1,5 +1,5 @@
-#ifndef _NTG_PADDING_H_
-#define _NTG_PADDING_H_
+#ifndef NTG_PADDING_H
+#define NTG_PADDING_H
 
 #include "core/object/ntg_object.h"
 
@@ -74,4 +74,4 @@ void _ntg_padding_arrange_fn(
         ntg_object_xy_map* out_positions,
         sarena* arena);
 
-#endif // _NTG_PADDING_H_
+#endif // NTG_PADDING_H

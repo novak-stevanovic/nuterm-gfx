@@ -1,5 +1,5 @@
-#ifndef _NTG_SCENE_H_
-#define _NTG_SCENE_H_
+#ifndef NTG_SCENE_H
+#define NTG_SCENE_H
 
 #include "core/entity/ntg_entity.h"
 #include "shared/ntg_xy.h"
@@ -31,10 +31,13 @@ struct ntg_scene
 
     struct
     {
-        ntg_focuser* _focuser;
-
         ntg_scene_event_mode __event_mode;
         ntg_scene_event_fn __event_fn;
+    };
+
+    struct
+    {
+        // ntg_list
     };
 
     void* data;
@@ -59,9 +62,7 @@ void ntg_scene_set_event_mode(ntg_scene* scene, ntg_scene_event_mode mode);
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_scene_init(ntg_scene* scene,
-        ntg_focuser* focuser,
-        ntg_scene_layout_fn layout_fn);
+void _ntg_scene_init(ntg_scene* scene, ntg_scene_layout_fn layout_fn);
 void _ntg_scene_deinit_fn(ntg_entity* entity);
 
 /* -------------------------------------------------------------------------- */
@@ -70,4 +71,4 @@ void _ntg_scene_deinit_fn(ntg_entity* entity);
 
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);
 
-#endif // _NTG_SCENE_H_
+#endif // NTG_SCENE_H

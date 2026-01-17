@@ -1,5 +1,5 @@
-#ifndef _NTG_OBJECT_MAP_H_
-#define _NTG_OBJECT_MAP_H_
+#ifndef NTG_OBJECT_MAP_H
+#define NTG_OBJECT_MAP_H
 
 #include "shared/ntg_typedef.h"
 
@@ -16,6 +16,7 @@ void ntg_object_map_init(ntg_object_map* ctx, size_t capacity,
 void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object,
     void* data, bool decor);
 
-void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object, bool decor);
+void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object,
+        bool decor);
 
-#endif // _NTG_OBJECT_MAP_H_
+#endif // NTG_OBJECT_MAP_H

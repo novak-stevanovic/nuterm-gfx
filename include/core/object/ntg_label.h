@@ -1,5 +1,5 @@
-#ifndef _NTG_LABEL_H_
-#define _NTG_LABEL_H_
+#ifndef NTG_LABEL_H
+#define NTG_LABEL_H
 
 #include "core/object/ntg_object.h"
 #include "shared/ntg_xy.h"
@@ -77,4 +77,4 @@ void _ntg_label_draw_fn(
         ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
-#endif // _NTG_LABEL_H_
+#endif // NTG_LABEL_H

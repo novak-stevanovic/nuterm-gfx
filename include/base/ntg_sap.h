@@ -1,7 +1,7 @@
-#ifndef _NTG_SAP_H_
-#define _NTG_SAP_H_
+#ifndef NTG_SAP_H
+#define NTG_SAP_H
 
-#include "sarena.h"
+#include "shared/sarena.h"
 #include <stddef.h>
 
 // #include "shared/ntg_typedef.h"
@@ -21,4 +21,4 @@
 size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
         size_t* out_sizes, size_t space_pool, size_t count, sarena* arena);
 
-#endif // _NTG_SAP_H_
+#endif // NTG_SAP_H

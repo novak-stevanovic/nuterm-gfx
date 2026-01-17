@@ -1,5 +1,5 @@
-#ifndef _NTG_CELL_H_
-#define _NTG_CELL_H_
+#ifndef NTG_CELL_H
+#define NTG_CELL_H
 
 #include <stdint.h>
 #include <string.h>
@@ -247,4 +247,4 @@ ntg_vcell_vecgrid_at_(ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
         return NULL;
 }
 
-#endif // _NTG_CELL_H_
+#endif // NTG_CELL_H

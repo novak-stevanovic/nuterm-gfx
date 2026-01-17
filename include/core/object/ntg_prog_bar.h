@@ -1,5 +1,5 @@
-#ifndef _NTG_PROG_BAR_H_
-#define _NTG_PROG_BAR_H_
+#ifndef NTG_PROG_BAR_H
+#define NTG_PROG_BAR_H
 
 #include "core/object/ntg_object.h"
 
@@ -55,4 +55,4 @@ void _ntg_prog_bar_draw_fn(
         ntg_temp_object_drawing* out_drawing,
         sarena* arena);
 
-#endif // _NTG_PROG_BAR_H_
+#endif // NTG_PROG_BAR_H

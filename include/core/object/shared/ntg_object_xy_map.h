@@ -1,5 +1,5 @@
-#ifndef _NTG_OBJECT_XY_MAP_H_
-#define _NTG_OBJECT_XY_MAP_H_
+#ifndef NTG_OBJECT_XY_MAP_H
+#define NTG_OBJECT_XY_MAP_H
 
 #include "shared/ntg_typedef.h"
 
@@ -12,4 +12,4 @@ struct ntg_xy ntg_object_xy_map_get(
         const ntg_object_xy_map* map,
         const ntg_object* object, bool decor);
 
-#endif // _NTG_OBJECT_XY_MAP_H_
+#endif // NTG_OBJECT_XY_MAP_H

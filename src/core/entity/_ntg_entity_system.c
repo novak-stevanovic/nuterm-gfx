@@ -1,10 +1,29 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "core/entity/shared/ntg_event_obs_vec.h"
-#include "core/entity/shared/ntg_entity_vec.h"
 #include "ntg.h"
 #include "shared/_uthash.h"
+#include "shared/genc.h"
+
+struct ntg_event_obs
+{
+    ntg_entity* observer;
+    ntg_event_handler_fn handler;
+};
+
+GENC_VECTOR_GENERATE(ntg_event_obs_vec, struct ntg_event_obs, 1.3, ntg_event_obs_cmp_fn);
+
+static int ntg_event_obs_cmp_fn(const void* _event_obs1, const void* _event_obs2)
+{
+    assert(_event_obs1 != NULL);
+    assert(_event_obs2 != NULL);
+
+    const struct ntg_event_obs event_obs1 = *(const struct ntg_event_obs*)_event_obs1;
+    const struct ntg_event_obs event_obs2 = *(const struct ntg_event_obs*)_event_obs2;
+
+    return !(((event_obs1.observer == event_obs2.observer) &&
+        (event_obs1.handler == event_obs2.handler)));
+}
 
 struct entity_data
 {
@@ -50,15 +69,14 @@ void _ntg_entity_system_destroy(ntg_entity_system* system)
 
     /* destroy entities */
     ntg_entity_vec _vec;
-    ntg_entity_vec_init(&_vec);
+    ntg_entity_vec_init(&_vec, 50, NULL);
     system_map_get_keys(system, &_vec);
     size_t i;
-    for(i = 0; i < _vec._count; i++)
-        ntg_entity_destroy(_vec._data[i]);
-    ntg_entity_vec_deinit(&_vec);
+    for(i = 0; i < _vec.size; i++)
+        ntg_entity_destroy(_vec.data[i]);
 
+    ntg_entity_vec_deinit(&_vec, NULL);
     system_map_del_all(system);
-
     system->map = NULL;
 
     free(system);
@@ -116,13 +134,13 @@ void _ntg_entity_system_raise_event(
     struct entity_data* map_data = system_map_get(system, source);
     assert(map_data != NULL);
 
-    ntg_event_obs_vec* subs = &map_data->observers;
+    ntg_event_obs_vec* subs = &(map_data->observers);
 
     size_t i;
     struct ntg_event_obs it_obs;
-    for(i = 0; i < subs->_count; i++)
+    for(i = 0; i < subs->size; i++)
     {
-        it_obs = subs->_data[i];
+        it_obs = subs->data[i];
         struct entity_data* it_map_data = system_map_get(system, it_obs.observer);
 
         // not deinited & (broadcast or target)
@@ -152,21 +170,21 @@ void _ntg_entity_system_add_observe(
         .handler = handler_fn
     };
 
-    ntg_event_obs_vec* subs = &observed_data->observers;
+    struct ntg_event_obs_vec* subs = &(observed_data->observers);
     if(observer == observed)
     {
         size_t i;
         struct ntg_event_obs it_sub;
-        for(i = 0; i < subs->_count; i++)
+        for(i = 0; i < subs->size; i++)
         {
-            it_sub = subs->_data[i];
+            it_sub = subs->data[i];
             if(it_sub.observer != observer) break;
         }
-        ntg_event_obs_vec_ins(subs, obs, i);
+        ntg_event_obs_vec_ins(subs, obs, i, NULL);
     }
     else
     {
-        ntg_event_obs_vec_add(subs, obs);
+        ntg_event_obs_vec_pushb(subs, obs, NULL);
     }
 }
 
@@ -192,8 +210,8 @@ void _ntg_entity_system_rm_observe(
 
     if(observed_data != NULL)
     {
-        if(ntg_event_obs_vec_has(&observed_data->observers, obs))
-            ntg_event_obs_vec_rm(&observed_data->observers, obs);
+        if(ntg_event_obs_vec_exists(&(observed_data->observers), obs, NULL))
+            ntg_event_obs_vec_rm(&(observed_data->observers), obs, NULL);
     }
 }
 
@@ -219,7 +237,7 @@ bool _ntg_entity_system_has_observe(
     };
 
     if(observed_data != NULL)
-        return ntg_event_obs_vec_has(&observer_data->observers, obs);
+        return ntg_event_obs_vec_exists(&observer_data->observers, obs, NULL);
     else
         return false;
 }
@@ -229,7 +247,7 @@ static void system_map_add(ntg_entity_system* system, ntg_entity* entity, unsign
     struct entity_data_hh* data_hh = malloc(sizeof(struct entity_data_hh));
     data_hh->key = entity;
     data_hh->data.id = id;
-    ntg_event_obs_vec_init(&data_hh->data.observers);
+    ntg_event_obs_vec_init(&(data_hh->data.observers), 2, NULL);
     HASH_ADD_PTR(system->map, key, data_hh);
 }
 
@@ -248,7 +266,7 @@ static void system_map_del(ntg_entity_system* system, ntg_entity* entity)
 
     if(found == NULL) return;
     HASH_DEL(system->map, found);
-    ntg_event_obs_vec_deinit(&found->data.observers);
+    ntg_event_obs_vec_deinit(&found->data.observers, NULL);
     free(found);
 }
 
@@ -259,7 +277,7 @@ static void system_map_del_all(ntg_entity_system* system)
     HASH_ITER(hh, system->map, curr, tmp)
     {
         HASH_DEL(system->map, curr);
-        ntg_event_obs_vec_deinit(&curr->data.observers);
+        ntg_event_obs_vec_deinit(&curr->data.observers, NULL);
         free(curr);
     };
 }
@@ -270,6 +288,6 @@ static void system_map_get_keys(ntg_entity_system* system, ntg_entity_vec* out_v
 
     HASH_ITER(hh, system->map, curr, tmp)
     {
-        ntg_entity_vec_add(out_vec, curr->key);
+        ntg_entity_vec_pushb(out_vec, curr->key, NULL);
     };
 }

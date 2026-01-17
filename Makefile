@@ -56,7 +56,7 @@ OTHER_DEP_LFLAGS = -lm -pthread
 # pkgconf
 # ---------------------------------------------------------
 
-PC_DEPS = nuterm sarena uconv
+PC_DEPS = nuterm
 
 _PC_PREFIX = $(PREFIX)
 _PC_EXEC_PREFIX = $${prefix}
@@ -86,7 +86,12 @@ SRC_CFLAGS_WARN = -Wall
 SRC_CFLAGS_MAKE = -MMD -MP
 SRC_CFLAGS_INCLUDE = -Iinclude $(DEP_CFLAGS)
 
-SRC_CFLAGS = -c -fPIC -pthread $(SRC_CFLAGS_STD) $(SRC_CFLAGS_INCLUDE) $(SRC_CFLAGS_MAKE) \
+SO_FLAGS =
+ifeq ($(LIB_TYPE),so)
+    SO_FLAGS = -fPIC
+endif
+
+SRC_CFLAGS = -c $(SO_FLAGS) -pthread $(SRC_CFLAGS_STD) $(SRC_CFLAGS_INCLUDE) $(SRC_CFLAGS_MAKE) \
 $(SRC_CFLAGS_WARN) $(SRC_CFLAGS_DEBUG) $(SRC_CFLAGS_OPTIMIZATION)
 
 # ---------------------------------------------------------
@@ -116,7 +121,7 @@ endif
 LIB_AR_FILE = lib$(LIB_NAME).a
 LIB_SO_FILE = lib$(LIB_NAME).so
 
-ifeq ($(LIB_TYPE), so)
+ifeq ($(LIB_TYPE),so)
     LIB_FILE = $(LIB_SO_FILE)
 else 
     LIB_FILE = $(LIB_AR_FILE)
@@ -139,6 +144,9 @@ $(LIB_SO_FILE): $(C_OBJ)
 $(C_OBJ): build/%.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(SRC_CFLAGS) $< -o $@
+ifeq ($(LIB_TYPE),a)
+	objcopy --redefine-syms=redefine.txt $@
+endif
 
 # demo -----------------------------------------------------
 

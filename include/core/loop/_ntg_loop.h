@@ -1,10 +1,9 @@
-#ifndef __NTG_LOOP_H__
-#define __NTG_LOOP_H__
+#ifndef _NTG_LOOP_H_
+#define _NTG_LOOP_H_
 
 #include "core/entity/ntg_entity.h"
 #include "core/loop/ntg_loop.h"
-#include "core/loop/ntg_task_list.h"
-#include "core/loop/ntg_ptask_list.h"
+#include "shared/genc.h"
 
 /* -------------------------------------------------------------------------- */
 /* LOOP */
@@ -28,6 +27,8 @@ struct ntg_ptask // Platform task
     void (*task_fn)(void* data, ntg_loop_ctx* ctx);
     void* data;
 };
+
+GENC_SIMPLE_LIST_GENERATE(ntg_ptask_list, struct ntg_ptask);
 
 struct ntg_platform
 {
@@ -59,6 +60,8 @@ struct ntg_task
     void (*task_fn)(void* data, ntg_platform* platform);
     void* data;
 };
+
+GENC_SIMPLE_LIST_GENERATE(ntg_task_list, struct ntg_task);
 
 struct ntg_task_runner
 {
@@ -95,4 +98,4 @@ void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task
 
 void _ntg_task_runner_invalidate(ntg_task_runner* task_runner);
 
-#endif // __NTG_LOOP_H__
+#endif // _NTG_LOOP_H_

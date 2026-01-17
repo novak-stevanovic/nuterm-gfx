@@ -1,5 +1,5 @@
-#ifndef _NTG_BORDER_BOX_H_
-#define _NTG_BORDER_BOX_H_
+#ifndef NTG_BORDER_BOX_H
+#define NTG_BORDER_BOX_H
 
 #include "core/object/ntg_object.h"
 
@@ -70,4 +70,4 @@ void _ntg_border_box_arrange_fn(
         ntg_object_xy_map* out_positions,
         sarena* arena);
 
-#endif // _NTG_BORDER_BOX_H_
+#endif // NTG_BORDER_BOX_H
