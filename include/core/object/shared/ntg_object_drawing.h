@@ -40,17 +40,17 @@ ntg_object_drawing_at_(ntg_object_drawing* drawing, struct ntg_xy pos)
         NULL;
 }
 
-struct ntg_temp_object_drawing
+struct ntg_tmp_object_drawing
 {
     struct ntg_vcell* __data;
     struct ntg_xy _size;
 };
 
-void ntg_temp_object_drawing_init(ntg_temp_object_drawing* drawing,
+void ntg_tmp_object_drawing_init(ntg_tmp_object_drawing* drawing,
         struct ntg_xy size, sarena* arena);
 
 static inline const struct ntg_vcell*
-ntg_temp_object_drawing_at(const ntg_temp_object_drawing* drawing, struct ntg_xy pos)
+ntg_tmp_object_drawing_at(const ntg_tmp_object_drawing* drawing, struct ntg_xy pos)
 {
     return (((drawing != NULL) && ntg_xy_is_greater(drawing->_size, pos))) ?
         &(drawing->__data[drawing->_size.x * pos.y + pos.x]) :
@@ -58,7 +58,7 @@ ntg_temp_object_drawing_at(const ntg_temp_object_drawing* drawing, struct ntg_xy
 }
 
 static inline struct ntg_vcell*
-ntg_temp_object_drawing_at_(ntg_temp_object_drawing* drawing, struct ntg_xy pos)
+ntg_tmp_object_drawing_at_(ntg_tmp_object_drawing* drawing, struct ntg_xy pos)
 {
     return (((drawing != NULL) && ntg_xy_is_greater(drawing->_size, pos))) ?
         &(drawing->__data[drawing->_size.x * pos.y + pos.x]) :

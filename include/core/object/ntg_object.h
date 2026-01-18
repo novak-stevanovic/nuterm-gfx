@@ -7,6 +7,7 @@
 #include "base/ntg_cell.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "shared/genc.h"
+#include "core/object/shared/ntg_object_measure.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -52,9 +53,9 @@ struct ntg_object
     struct
     {
 
-        struct ntg_xy _min_size, _nat_size, _max_size;
+        struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
-        struct ntg_xy _position;
+        struct ntg_xy _pos;
         ntg_object_drawing _drawing;
     };
 };
@@ -78,7 +79,7 @@ static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
     perform_fn(object, data);                                                  \
-    const ntg_object_vec* children = ntg_object_get_children(object);          \
+    const ntg_object_vec* children = &object->_children;                       \
     size_t i;                                                                  \
     for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
@@ -90,7 +91,7 @@ static void fn_name(ntg_object* object, void* data)                            \
 static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
-    const ntg_object_vec* children = ntg_object_get_children(object);          \
+    const ntg_object_vec* children = &object->_children;                       \
     size_t i;                                                                  \
     for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
@@ -105,29 +106,24 @@ static void fn_name(ntg_object* object, void* data)                            \
 
 void ntg_object_root_layout(ntg_object* root, struct ntg_xy size);
 
-struct ntg_object_measure
-ntg_object_get_measure(const ntg_object* object, ntg_orientation orientation);
-
-void ntg_object_measure(
-        ntg_object* object,
-        ntg_orientation orientation,
-        size_t for_size,
-        sarena* arena);
-
-void ntg_object_constrain(
-        ntg_object* object,
-        ntg_orientation orientation,
-        size_t size,
-        sarena* arena);
-
-void ntg_object_arrange(
-        ntg_object* object,
-        struct ntg_xy size,
-        sarena* arena);
-
+void ntg_object_measure(ntg_object* object,
+        ntg_orient orient,
+        bool constrained, sarena* arena);
+void ntg_object_constrain(ntg_object* object,
+        ntg_orient orient, sarena* arena);
+void ntg_object_arrange(ntg_object* object, sarena* arena);
 void ntg_object_draw(ntg_object* object, sarena* arena);
 
-struct ntg_xy ntg_object_get_position_abs(const ntg_object* object);
+struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object);
+
+// Layout helpers
+size_t ntg_object_get_for_size(const ntg_object* object,
+        ntg_orient orient, bool constrained);
+
+struct ntg_object_measure
+ntg_object_get_measure(const ntg_object* object, ntg_orient orient);
+
+size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */

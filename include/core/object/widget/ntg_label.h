@@ -1,7 +1,7 @@
 #ifndef NTG_LABEL_H
 #define NTG_LABEL_H
 
-#include "core/object/ntg_object.h"
+#include "core/object/widget/ntg_widget.h"
 #include "shared/ntg_xy.h"
 #include "shared/ntg_string.h"
 
@@ -26,10 +26,10 @@ enum ntg_label_text_align
 
 struct ntg_label_opts
 {
-    ntg_orientation orientation;
+    ntg_orient orient;
     struct nt_gfx gfx;
-    enum ntg_label_text_align palignment;
-    ntg_alignment salignment;
+    enum ntg_label_text_align palign;
+    ntg_align salign;
     enum ntg_label_text_wrap wrap;
     bool autotrim;
     size_t indent;
@@ -39,7 +39,7 @@ struct ntg_label_opts ntg_label_opts_def();
 
 struct ntg_label
 {
-    ntg_object __base;
+    ntg_widget __base;
 
     struct ntg_str __text;
     struct ntg_label_opts _opts;
@@ -64,17 +64,16 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text);
 void _ntg_label_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_label_measure_fn(
-        const ntg_object* _label,
+        const ntg_widget* _label,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena);
 
 void _ntg_label_draw_fn(
-        const ntg_object* _label,
+        const ntg_widget* _label,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // NTG_LABEL_H

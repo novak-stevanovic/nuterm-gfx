@@ -28,8 +28,8 @@ typedef struct ntg_fwd_list ntg_fwd_list;
 
 typedef unsigned int ntg_status;
 
-typedef enum ntg_orientation ntg_orientation;
-typedef enum ntg_alignment ntg_alignment;
+typedef enum ntg_orient ntg_orient;
+typedef enum ntg_align ntg_align;
 
 /* ------------------------------------------------------ */
 /* BASE */
@@ -78,7 +78,7 @@ typedef struct ntg_object_map ntg_object_map;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_xy_map ntg_object_xy_map;
 typedef struct ntg_object_drawing ntg_object_drawing;
-typedef struct ntg_temp_object_drawing ntg_temp_object_drawing;
+typedef struct ntg_tmp_object_drawing ntg_tmp_object_drawing;
 
 typedef struct ntg_widget ntg_widget;
 typedef struct ntg_widget_vec ntg_widget_vec;
@@ -130,37 +130,34 @@ typedef void* (*ntg_object_layout_data_init)(const ntg_object* object);
 typedef void (*ntg_object_layout_data_deinit)(void* data, const ntg_object* object);
 
 /* Measures how much space the object would require along one axis,
- * if the size is constrained for the other axis. */
+ * if the size is (un)constrained for the other axis. */
 typedef struct ntg_object_measure (*ntg_object_measure_fn)(
         const ntg_object* object,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena);
 
-/* Determines the children's sizes for given `orientation` and `size`. */
+/* Determines the children's sizes for given `orient`. */
 typedef void (*ntg_object_constrain_fn)(
         const ntg_object* object,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t size,
-        ntg_object_size_map* out_sizes,
+        ntg_orient orient,
+        ntg_object_size_map* out_size_map,
         sarena* arena);
 
-/* Determines children positions for given `size`. */
+/* Determines children poss. */
 typedef void (*ntg_object_arrange_fn)(
         const ntg_object* object,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_object_xy_map* out_positions,
+        ntg_object_xy_map* out_pos_map,
         sarena* arena);
 
 /* Creates the `object` drawing. */
 typedef void (*ntg_object_draw_fn)(
         const ntg_object* object,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 
 typedef bool (*ntg_widget_event_fn)(
@@ -171,33 +168,30 @@ typedef bool (*ntg_widget_event_fn)(
 typedef void* (*ntg_widget_layout_data_init)(const ntg_widget* widget);
 typedef void (*ntg_widget_layout_data_deinit)(void* data, const ntg_widget* widget);
 
-typedef struct ntg_widget_measure (*ntg_widget_measure_fn)(
+typedef struct ntg_object_measure (*ntg_widget_measure_fn)(
         const ntg_widget* widget,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena);
 
 typedef void (*ntg_widget_constrain_fn)(
         const ntg_widget* widget,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t size,
-        ntg_widget_size_map* out_sizes,
+        ntg_orient orient,
+        ntg_widget_size_map* out_size_map,
         sarena* arena);
 
 typedef void (*ntg_widget_arrange_fn)(
         const ntg_widget* widget,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_widget_xy_map* out_positions,
+        ntg_widget_xy_map* out_pos_map,
         sarena* arena);
 
 typedef void (*ntg_widget_draw_fn)(
         const ntg_widget* widget,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 
 /* SCENE ------------------------------------------------ */

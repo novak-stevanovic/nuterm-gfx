@@ -2,6 +2,7 @@
 #define NTG_WIDGET_H
 
 #include "core/object/ntg_object.h"
+#include "shared/genc.h"
 
 struct ntg_widget_layout_ops
 {
@@ -17,6 +18,8 @@ struct ntg_widget_hooks
 {
     void (*rm_child_fn)(ntg_widget* widget, ntg_widget* child);
 };
+
+GENC_VECTOR_GENERATE(ntg_widget_vec, ntg_widget*, 1.5, NULL);
 
 struct ntg_widget
 {
@@ -38,6 +41,8 @@ struct ntg_widget
 /* CONTROL */
 /* -------------------------------------------------------------------------- */
 
+#define NTG_WIDGET_USER_GROW_UNSET SIZE_MAX
+
 void ntg_widget_set_user_min_size(ntg_widget* widget, struct ntg_xy size);
 void ntg_widget_set_user_max_size(ntg_widget* widget, struct ntg_xy size);
 void ntg_widget_set_user_grow(ntg_widget* widget, struct ntg_xy grow);
@@ -57,28 +62,37 @@ void ntg_widget_set_event_fn(ntg_widget* widget, ntg_widget_event_fn event_fn);
 /* -------------------------------------------------------------------------- */
 
 struct ntg_xy ntg_widget_get_min_size(const ntg_widget* widget);
-struct ntg_xy ntg_widget_get_content_min_size(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_cont_min_size(const ntg_widget* widget);
 
 struct ntg_xy ntg_widget_get_nat_size(const ntg_widget* widget);
-struct ntg_xy ntg_widget_get_content_nat_size(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_cont_nat_size(const ntg_widget* widget);
 
 struct ntg_xy ntg_widget_get_max_size(const ntg_widget* widget);
-struct ntg_xy ntg_widget_get_content_max_size(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_cont_max_size(const ntg_widget* widget);
 
 struct ntg_xy ntg_widget_get_grow(const ntg_widget* widget);
 
-struct ntg_xy widget_get_size(const ntg_widget* widget);
-struct ntg_xy widget_get_content_size(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_size(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_cont_size(const ntg_widget* widget);
 
-struct ntg_xy ntg_widget_get_position(const ntg_widget* widget);
-struct ntg_xy widget_get_content_position(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_pos(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_pos_abs(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_cont_pos(const ntg_widget* widget);
+struct ntg_xy ntg_widget_get_cont_pos_abs(const ntg_widget* widget);
 
 /* LAYOUT PROCESS - CONVENIENCE */
 
-struct ntg_widget_measure
-ntg_widget_get_measure(const ntg_widget* widget, ntg_orientation orientation);
+size_t ntg_widget_get_cont_for_size(const ntg_widget* widget,
+        ntg_orient orient, bool constrain);
 
-size_t ntg_widget_get_size(const ntg_widget* widget, ntg_orientation orientation);
+struct ntg_object_measure
+ntg_widget_get_measure(const ntg_widget* widget, ntg_orient orient);
+
+struct ntg_object_measure
+ntg_widget_get_cont_measure(const ntg_widget* widget, ntg_orient orient);
+
+size_t ntg_widget_get_size_1d(const ntg_widget* widget, ntg_orient orient);
+size_t ntg_widget_get_cont_size_1d(const ntg_widget* widget, ntg_orient orient);
 
 /* -------------------------------------------------------------------------- */
 /* WIDGET TREE */
@@ -127,30 +141,27 @@ void _ntg_widget_layout_data_deinit_fn(void* data, const ntg_object* _widget);
 struct ntg_object_measure _ntg_widget_measure_fn(
         const ntg_object* _widget,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena);
 
 void _ntg_widget_constrain_fn(
         const ntg_object* _widget,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t size,
-        ntg_object_size_map* out_sizes,
+        ntg_orient orient,
+        ntg_object_size_map* out_size_map,
         sarena* arena);
 
 void _ntg_widget_arrange_fn(
         const ntg_object* _widget,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_object_xy_map* out_positions,
+        ntg_object_xy_map* out_pos_map,
         sarena* arena);
 
 void _ntg_widget_draw_fn(
         const ntg_object* _widget,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // NTG_WIDGET_H

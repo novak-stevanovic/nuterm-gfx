@@ -6,7 +6,7 @@
 struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
 {
     return (struct ntg_prog_bar_opts) {
-        .orientation = NTG_ORIENT_H,
+        .orient = NTG_ORIENT_H,
         .complete_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(0, 255, 0))),
         .uncomplete_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(255, 0, 0))),
         .threshold_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(0, 255, 0))),
@@ -31,14 +31,18 @@ void ntg_prog_bar_init(ntg_prog_bar* prog_bar)
 {
     assert(prog_bar != NULL);
 
-    struct ntg_object_layout_ops object_data = {
+    struct ntg_widget_layout_ops widget_data = {
         .measure_fn = _ntg_prog_bar_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = _ntg_prog_bar_draw_fn,
+        .init_fn = NULL,
+        .deinit_fn = NULL
     };
 
-    _ntg_object_init((ntg_object*)prog_bar, object_data);
+    struct ntg_widget_hooks hooks = {0};
+
+    ntg_widget_init((ntg_widget*)prog_bar, widget_data, hooks);
 
     prog_bar->__opts = ntg_prog_bar_opts_def();
 }
@@ -57,23 +61,23 @@ void _ntg_prog_bar_deinit_fn(ntg_entity* entity)
     ntg_prog_bar* prog_bar = (ntg_prog_bar*)entity;
     prog_bar->__opts = ntg_prog_bar_opts_def();
 
-    _ntg_object_deinit_fn(entity);
+    ntg_widget_deinit_fn(entity);
 }
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(
-        const ntg_object* _prog_bar,
+        const ntg_widget* _prog_bar,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
 
-    if(orientation == prog_bar->__opts.orientation)
+    if(orient == prog_bar->__opts.orient)
     {
         return (struct ntg_object_measure) {
             .min_size = 10,
-            .natural_size = 10,
+            .nat_size = 10,
             .max_size = SIZE_MAX 
         };
     }
@@ -81,24 +85,24 @@ struct ntg_object_measure _ntg_prog_bar_measure_fn(
     {
         return (struct ntg_object_measure) {
             .min_size = 1,
-            .natural_size = 1,
+            .nat_size = 1,
             .max_size = SIZE_MAX 
         };
     }
 }
 
 void _ntg_prog_bar_draw_fn(
-        const ntg_object* _prog_bar,
+        const ntg_widget* _prog_bar,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
+    struct ntg_xy size = ntg_widget_get_cont_size(_prog_bar);
 
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
-    struct ntg_oxy _size = ntg_oxy_from_xy(size, prog_bar->__opts.orientation);
+    struct ntg_oxy _size = ntg_oxy_from_xy(size, prog_bar->__opts.orient);
 
     size_t complete_count = round(_size.prim_val * prog_bar->__percentage);
 
@@ -110,9 +114,9 @@ void _ntg_prog_bar_draw_fn(
     {
         for(j = 0; j < _size.sec_val; j++)
         {
-            _it_xy = ntg_oxy(i, j, prog_bar->__opts.orientation);
+            _it_xy = ntg_oxy(i, j, prog_bar->__opts.orient);
             it_xy = ntg_xy_from_oxy(_it_xy);
-            it_cell = ntg_temp_object_drawing_at_(out_drawing, it_xy);
+            it_cell = ntg_tmp_object_drawing_at_(out_drawing, it_xy);
             if(complete_count == _size.prim_val)
                 (*it_cell) = prog_bar->__opts.complete_style;
             else if(complete_count == 0)

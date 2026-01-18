@@ -9,10 +9,10 @@ static inline bool __is_equal_double(double x, double y)
 }
 
 size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
-        size_t* out_sizes, size_t space_pool, size_t count, sarena* arena)
+        size_t* out_size_map, size_t space_pool, size_t count, sarena* arena)
 {
     assert(caps != NULL);
-    assert(out_sizes != NULL);
+    assert(out_size_map != NULL);
     
     if((space_pool == 0) || (count == 0)) return 0;
 
@@ -53,12 +53,12 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
             /* Test space_left */
             if(__is_equal_double(space_left, 0)) break;
             /* Test caps[i] */
-            if(out_sizes[i] + distributed[i] >= caps[i]) continue;
+            if(out_size_map[i] + distributed[i] >= caps[i]) continue;
 
             it_to_distribute = _min2_double(space_left, it_grow_factor);
             it_to_distribute = _min2_double(
                     it_to_distribute,
-                    caps[i] - out_sizes[i] - distributed[i]);
+                    caps[i] - out_size_map[i] - distributed[i]);
             if(__is_equal_double(it_to_distribute, 0)) continue;
 
             distributed[i] += it_to_distribute;
@@ -76,7 +76,7 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
     {
         it_floored = floor(distributed[i]);
         distributed_actual += (size_t)it_floored;
-        out_sizes[i] += (size_t)it_floored;
+        out_size_map[i] += (size_t)it_floored;
     }
 
     space_pool -= distributed_actual;
@@ -86,11 +86,11 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
         it_grow = (grows != NULL) ? grows[i] : 1;
 
         if(it_grow == 0) continue;
-        assert(out_sizes[i] <= caps[i]);
-        if(out_sizes[i] == caps[i]) continue;
+        assert(out_size_map[i] <= caps[i]);
+        if(out_size_map[i] == caps[i]) continue;
         if(space_pool == 0) break;
 
-        out_sizes[i]++;
+        out_size_map[i]++;
         distributed_actual++;
         space_pool--;
     }

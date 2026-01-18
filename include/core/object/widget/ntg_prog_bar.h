@@ -1,7 +1,7 @@
 #ifndef NTG_PROG_BAR_H
 #define NTG_PROG_BAR_H
 
-#include "core/object/ntg_object.h"
+#include "core/object/widget/ntg_widget.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -9,7 +9,7 @@
 
 struct ntg_prog_bar_opts
 {
-    ntg_orientation orientation;
+    ntg_orient orient;
     struct ntg_vcell complete_style;
     struct ntg_vcell uncomplete_style;
     struct ntg_vcell threshold_style;
@@ -29,7 +29,7 @@ void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage);
 
 struct ntg_prog_bar
 {
-    ntg_object __base;
+    ntg_widget __base;
 
     double __percentage; // [0, 1]
     struct ntg_prog_bar_opts __opts;
@@ -42,17 +42,16 @@ struct ntg_prog_bar
 void _ntg_prog_bar_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(
-        const ntg_object* _prog_bar,
+        const ntg_widget* _prog_bar,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena);
 
 void _ntg_prog_bar_draw_fn(
-        const ntg_object* _prog_bar,
+        const ntg_widget* _prog_bar,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // NTG_PROG_BAR_H

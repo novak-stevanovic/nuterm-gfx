@@ -19,14 +19,14 @@ static void get_wrap_rows_wwrap(struct ntg_strv_utf32 row,
         size_t* out_wwrap_row_count, sarena* arena);
 
 static struct ntg_object_measure measure_nowrap_fn(const struct ntg_strv_utf32* rows,
-        size_t row_count, ntg_orientation label_orientation, size_t indent,
-        ntg_orientation orientation, size_t for_size, sarena* arena);
+        size_t row_count, ntg_orient label_orient, size_t indent,
+        ntg_orient orient, size_t for_size, sarena* arena);
 static struct ntg_object_measure measure_wrap_fn(const struct ntg_strv_utf32* rows,
-        size_t row_count, ntg_orientation label_orientation, size_t indent,
-        ntg_orientation orientation, size_t for_size, sarena* arena);
+        size_t row_count, ntg_orient label_orient, size_t indent,
+        ntg_orient orient, size_t for_size, sarena* arena);
 static struct ntg_object_measure measure_wwrap_fn(const struct ntg_strv_utf32* rows,
-        size_t row_count, ntg_orientation label_orientation, size_t indent,
-        ntg_orientation orientation, size_t for_size, sarena* arena);
+        size_t row_count, ntg_orient label_orient, size_t indent,
+        ntg_orient orient, size_t for_size, sarena* arena);
 
 static void trim_text(ntg_label* label)
 {
@@ -82,10 +82,10 @@ static void init_default_values(ntg_label* label)
 struct ntg_label_opts ntg_label_opts_def()
 {
     return (struct ntg_label_opts) {
-        .orientation = NTG_ORIENT_H,
+        .orient = NTG_ORIENT_H,
         .gfx = NT_GFX_DEFAULT,
-        .palignment = NTG_LABEL_TEXT_ALIGN_1,
-        .salignment = NTG_ALIGN_1,
+        .palign = NTG_LABEL_TEXT_ALIGN_1,
+        .salign = NTG_ALIGN_1,
         .wrap = NTG_LABEL_TEXT_WRAP_NONE,
         .autotrim = true,
         .indent = false
@@ -114,14 +114,18 @@ void ntg_label_init(ntg_label* label)
 {
     assert(label != NULL);
 
-    struct ntg_object_layout_ops object_data = {
+    struct ntg_widget_layout_ops widget_data = {
         .measure_fn = _ntg_label_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = _ntg_label_draw_fn,
+        .init_fn = NULL,
+        .deinit_fn = NULL
     };
 
-    _ntg_object_init((ntg_object*)label, object_data);
+    struct ntg_widget_hooks hooks = {0};
+
+    ntg_widget_init((ntg_widget*)label, widget_data, hooks);
 
     init_default_values(label);
 }
@@ -138,7 +142,7 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
     assert(label != NULL);
 
     label->_opts = opts;
-    ntg_object_set_background((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
+    ntg_widget_set_background((ntg_widget*)label, ntg_vcell_bg(opts.gfx.bg));
 
     ntg_entity_raise_event((ntg_entity*)label, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
@@ -205,17 +209,18 @@ void _ntg_label_deinit_fn(ntg_entity* entity)
 
     init_default_values(label);
 
-    _ntg_object_deinit_fn(entity);
+    ntg_widget_deinit_fn(entity);
 }
 
 struct ntg_object_measure _ntg_label_measure_fn(
-        const ntg_object* _label,
+        const ntg_widget* _label,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena)
 {
     const ntg_label* label = (const ntg_label*)_label;
+    size_t for_size = ntg_widget_get_cont_for_size(_label, orient, constrained);
     
     if(label->__text.len == 0) return (struct ntg_object_measure) {0};
 
@@ -247,17 +252,17 @@ struct ntg_object_measure _ntg_label_measure_fn(
     {
         case NTG_LABEL_TEXT_WRAP_NONE:
             result = measure_nowrap_fn(rows.views, rows.count, 
-                    label->_opts.orientation, label->_opts.indent,
-                    orientation, for_size, arena);
+                    label->_opts.orient, label->_opts.indent,
+                    orient, for_size, arena);
             break;
         case NTG_LABEL_TEXT_WRAP_CHAR:
             result = measure_wrap_fn(rows.views, rows.count,
-                    label->_opts.orientation, label->_opts.indent, orientation,
+                    label->_opts.orient, label->_opts.indent, orient,
                     for_size, arena);
             break;
         case NTG_LABEL_TEXT_WRAP_WORD:
             result = measure_wwrap_fn(rows.views, rows.count,
-                    label->_opts.orientation, label->_opts.indent, orientation,
+                    label->_opts.orient, label->_opts.indent, orient,
                     for_size, arena);
             break;
 
@@ -268,27 +273,27 @@ struct ntg_object_measure _ntg_label_measure_fn(
 }
 
 void _ntg_label_draw_fn(
-        const ntg_object* _label,
+        const ntg_widget* _label,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {
     const ntg_label* label = (const ntg_label*)_label;
+    struct ntg_xy size = ntg_widget_get_cont_size(_label);
 
     if((label->__text.len == 0) || (label->__text.data == NULL)) return;
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
-    /* Init content matrix */
-    struct ntg_xy content_size = 
-        (label->_opts.orientation == NTG_ORIENT_H) ?
+    /* Init cont matrix */
+    struct ntg_xy cont_size = 
+        (label->_opts.orient == NTG_ORIENT_H) ?
         size :
         ntg_xy_transpose(size);
 
     size_t i, j, k;
-    size_t content_size_prod = content_size.x * content_size.y;
-    uint32_t* content_buff = sarena_malloc(arena, sizeof(uint32_t) * content_size_prod);
-    for(i = 0; i < content_size_prod; i++) content_buff[i] = NTG_CELL_EMPTY;
+    size_t cont_size_prod = cont_size.x * cont_size.y;
+    uint32_t* cont_buff = sarena_malloc(arena, sizeof(uint32_t) * cont_size_prod);
+    for(i = 0; i < cont_size_prod; i++) cont_buff[i] = NTG_CELL_EMPTY;
 
     /* Get UTF-32 text */
     size_t utf32_cap = label->__text.len;
@@ -312,18 +317,18 @@ void _ntg_label_draw_fn(
     assert(rows.views != NULL);
     if(rows.count == 0) return;
 
-    size_t capped_indent = _min2_size(label->_opts.indent, content_size.x);
+    size_t capped_indent = _min2_size(label->_opts.indent, cont_size.x);
 
-    /* Create content matrix */
-    size_t content_i = 0, content_j = 0;
+    /* Create cont matrix */
+    size_t cont_i = 0, cont_j = 0;
     /* align variables */
     size_t it_row_align_indent, it_row_effective_indent;
     /* wrap variables */
     struct ntg_strv_utf32* _it_wrap_rows;
     size_t _it_wrap_rows_count;
-    uint32_t* it_content;
+    uint32_t* it_cont;
     /* justify variables */
-    size_t it_wrap_row_content_space, it_wrap_row_extra_space,
+    size_t it_wrap_row_cont_space, it_wrap_row_extra_space,
            it_wrap_row_space_count, it_wrap_row_space_counter;
     for(i = 0; i < rows.count; i++)
     {
@@ -332,15 +337,15 @@ void _ntg_label_draw_fn(
         switch(label->_opts.wrap)
         {
             case NTG_LABEL_TEXT_WRAP_NONE:
-               get_wrap_rows_nowrap(rows.views[i], content_size.x, &_it_wrap_rows,
+               get_wrap_rows_nowrap(rows.views[i], cont_size.x, &_it_wrap_rows,
                        &_it_wrap_rows_count, arena); 
                 break;
             case NTG_LABEL_TEXT_WRAP_CHAR:
-               get_wrap_rows_wrap(rows.views[i], content_size.x, &_it_wrap_rows,
+               get_wrap_rows_wrap(rows.views[i], cont_size.x, &_it_wrap_rows,
                        &_it_wrap_rows_count, arena); 
                 break;
             case NTG_LABEL_TEXT_WRAP_WORD:
-               get_wrap_rows_wwrap(rows.views[i], content_size.x, &_it_wrap_rows,
+               get_wrap_rows_wwrap(rows.views[i], cont_size.x, &_it_wrap_rows,
                        &_it_wrap_rows_count, arena); 
                 break;
             default: assert(0);
@@ -348,21 +353,21 @@ void _ntg_label_draw_fn(
 
         for(j = 0; j < _it_wrap_rows_count; j++)
         {
-            if(content_i >= content_size.y) break;
+            if(cont_i >= cont_size.y) break;
 
             /* Avoid overflow in switch statement */
-            _it_wrap_rows[j].count = _min2_size(_it_wrap_rows[j].count, content_size.x);
+            _it_wrap_rows[j].count = _min2_size(_it_wrap_rows[j].count, cont_size.x);
 
-            switch(label->_opts.palignment)
+            switch(label->_opts.palign)
             {
                 case NTG_LABEL_TEXT_ALIGN_1:
                     it_row_align_indent = 0;
                     break;
                 case NTG_LABEL_TEXT_ALIGN_2:
-                    it_row_align_indent = (content_size.x -_it_wrap_rows[j].count) / 2;
+                    it_row_align_indent = (cont_size.x -_it_wrap_rows[j].count) / 2;
                     break;
                 case NTG_LABEL_TEXT_ALIGN_3:
-                    it_row_align_indent = (content_size.x -_it_wrap_rows[j].count);
+                    it_row_align_indent = (cont_size.x -_it_wrap_rows[j].count);
                     break;
                 case NTG_LABEL_TEXT_ALIGN_JUSTIFY:
                     it_row_align_indent = 0;
@@ -374,63 +379,63 @@ void _ntg_label_draw_fn(
             it_row_effective_indent = (j == 0) ?
                 _max2_size(capped_indent, it_row_align_indent) :
                 it_row_align_indent;
-            content_j = it_row_effective_indent;
+            cont_j = it_row_effective_indent;
 
             it_wrap_row_space_counter = 0;
             it_wrap_row_space_count = ntg_str_utf32_count(_it_wrap_rows[j], ' ');
-            it_wrap_row_content_space = _it_wrap_rows[j].count + it_row_effective_indent;
-            it_wrap_row_extra_space = _ssub_size(content_size.x, it_wrap_row_content_space);
+            it_wrap_row_cont_space = _it_wrap_rows[j].count + it_row_effective_indent;
+            it_wrap_row_extra_space = _ssub_size(cont_size.x, it_wrap_row_cont_space);
             for(k = 0; k < _it_wrap_rows[j].count; k++)
             {
                 if(_it_wrap_rows[j].data[k] == ' ')
                 {
-                    if(label->_opts.palignment == NTG_LABEL_TEXT_ALIGN_JUSTIFY)
+                    if(label->_opts.palign == NTG_LABEL_TEXT_ALIGN_JUSTIFY)
                     {
                         size_t space_justified_count = (it_wrap_row_extra_space / it_wrap_row_space_count) +
                             (it_wrap_row_space_counter < (it_wrap_row_extra_space % it_wrap_row_space_count)); 
 
-                        content_j += space_justified_count;
+                        cont_j += space_justified_count;
                     }
                     it_wrap_row_space_counter++;
                 }
-                if(content_j >= content_size.x) break; // if indent is too big
+                if(cont_j >= cont_size.x) break; // if indent is too big
 
-                it_content = &(content_buff[content_size.x * content_i + content_j]);
-                (*it_content) = _it_wrap_rows[j].data[k]; 
+                it_cont = &(cont_buff[cont_size.x * cont_i + cont_j]);
+                (*it_cont) = _it_wrap_rows[j].data[k]; 
 
-                content_j++;
+                cont_j++;
             }
 
-            content_i++;
+            cont_i++;
 
         }
     }
 
-    /* Transpose the content matrix if needed */
+    /* Transpose the cont matrix if needed */
     struct ntg_vcell* it_cell;
-    if(label->_opts.orientation == NTG_ORIENT_H)
+    if(label->_opts.orient == NTG_ORIENT_H)
     {
-        for(i = 0; i < content_size.y; i++)
+        for(i = 0; i < cont_size.y; i++)
         {
-            for(j = 0; j < content_size.x; j++)
+            for(j = 0; j < cont_size.x; j++)
             {
-                it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(j, i));
-                it_content = &(content_buff[content_size.x * i + j]);
+                it_cell = ntg_tmp_object_drawing_at_(out_drawing, ntg_xy(j, i));
+                it_cont = &(cont_buff[cont_size.x * i + j]);
 
-                (*it_cell) = ntg_vcell_full((*it_content), label->_opts.gfx);
+                (*it_cell) = ntg_vcell_full((*it_cont), label->_opts.gfx);
             }
         }
     }
     else // NTG_ORIENT_V
     {
-        for(i = 0; i < content_size.y; i++)
+        for(i = 0; i < cont_size.y; i++)
         {
-            for(j = 0; j < content_size.x; j++)
+            for(j = 0; j < cont_size.x; j++)
             {
-                it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(i, j));
-                it_content = &(content_buff[content_size.x * i + j]);
+                it_cell = ntg_tmp_object_drawing_at_(out_drawing, ntg_xy(i, j));
+                it_cont = &(cont_buff[cont_size.x * i + j]);
 
-                (*it_cell) = ntg_vcell_full((*it_content), label->_opts.gfx);
+                (*it_cell) = ntg_vcell_full((*it_cont), label->_opts.gfx);
             }
         }
     }
@@ -441,15 +446,15 @@ void _ntg_label_draw_fn(
 static struct ntg_object_measure measure_nowrap_fn(
         const struct ntg_strv_utf32* rows,
         size_t row_count,
-        ntg_orientation label_orientation,
+        ntg_orient label_orient,
         size_t indent,
-        ntg_orientation orientation,
+        ntg_orient orient,
         size_t for_size,
         sarena* arena)
 {
     assert(rows != NULL);
 
-    if(label_orientation == orientation)
+    if(label_orient == orient)
     {
         size_t i;
         size_t max_row_len = 0;
@@ -462,7 +467,7 @@ static struct ntg_object_measure measure_nowrap_fn(
 
         return (struct ntg_object_measure) {
             .min_size = _max2_size(max_row_len, DEFAULT_SIZE),
-            .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
+            .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
@@ -470,7 +475,7 @@ static struct ntg_object_measure measure_nowrap_fn(
     {
         return (struct ntg_object_measure) {
             .min_size = _max2_size(row_count, DEFAULT_SIZE),
-            .natural_size = _max2_size(row_count, DEFAULT_SIZE),
+            .nat_size = _max2_size(row_count, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
@@ -478,15 +483,15 @@ static struct ntg_object_measure measure_nowrap_fn(
 
 static struct ntg_object_measure measure_wrap_fn(
         const struct ntg_strv_utf32* rows, size_t row_count,
-        ntg_orientation label_orientation,
+        ntg_orient label_orient,
         size_t indent,
-        ntg_orientation orientation, size_t for_size,
+        ntg_orient orient, size_t for_size,
         sarena* arena)
 {
     assert(rows != NULL);
 
     size_t i;
-    if(label_orientation == orientation)
+    if(label_orient == orient)
     {
         size_t i;
         size_t max_row_len = 0;
@@ -499,7 +504,7 @@ static struct ntg_object_measure measure_wrap_fn(
 
         return (struct ntg_object_measure) {
             .min_size = DEFAULT_SIZE,
-            .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
+            .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
@@ -518,7 +523,7 @@ static struct ntg_object_measure measure_wrap_fn(
 
         return (struct ntg_object_measure) {
             .min_size = _max2_size(row_counter, DEFAULT_SIZE),
-            .natural_size = _max2_size(row_counter, DEFAULT_SIZE),
+            .nat_size = _max2_size(row_counter, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
@@ -527,9 +532,9 @@ static struct ntg_object_measure measure_wrap_fn(
 static struct ntg_object_measure measure_wwrap_fn(
         const struct ntg_strv_utf32* rows,
         size_t row_count,
-        ntg_orientation label_orientation,
+        ntg_orient label_orient,
         size_t indent,
-        ntg_orientation orientation,
+        ntg_orient orient,
         size_t for_size,
         sarena* arena)
 {
@@ -537,7 +542,7 @@ static struct ntg_object_measure measure_wwrap_fn(
 
     size_t i, j;
     struct ntg_str_utf32_split_out it_words;
-    if(label_orientation == orientation)
+    if(label_orient == orient)
     {
         size_t max_row_len = 0;
         size_t max_word_len = 0;
@@ -566,7 +571,7 @@ static struct ntg_object_measure measure_wwrap_fn(
 
         return (struct ntg_object_measure) {
             .min_size = _max2_size(max_word_len, DEFAULT_SIZE),
-            .natural_size = _max2_size(max_row_len, DEFAULT_SIZE),
+            .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }
@@ -585,7 +590,7 @@ static struct ntg_object_measure measure_wwrap_fn(
 
         return (struct ntg_object_measure) {
             .min_size = _max2_size(row_counter, DEFAULT_SIZE),
-            .natural_size = _max2_size(row_counter, DEFAULT_SIZE),
+            .nat_size = _max2_size(row_counter, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX
         };
     }

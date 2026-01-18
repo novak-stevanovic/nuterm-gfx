@@ -22,7 +22,7 @@ void ntg_def_padding_init(ntg_def_padding* def_padding)
 {
     assert(def_padding != NULL);
 
-    ntg_padding_init((ntg_padding*)def_padding, _ntg_def_padding_draw_fn);
+    ntg_decorator_init((ntg_decorator*)def_padding, _ntg_def_padding_draw_fn);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -31,26 +31,26 @@ void ntg_def_padding_init(ntg_def_padding* def_padding)
 
 void _ntg_def_padding_deinit_fn(ntg_entity* entity)
 {
-    _ntg_padding_deinit_fn(entity);
+    _ntg_decorator_deinit_fn(entity);
 }
 
 void _ntg_def_padding_draw_fn(
         const ntg_object* _padding,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {
     struct ntg_vcell cell;
+    struct ntg_xy size = _padding->_size;
 
-    if(ntg_object_get_children(_padding)->size == 0)
+    if(_padding->_children.size == 0)
     {
         cell = ntg_vcell_default();
     }
     else
     {
-        const ntg_object* child = ntg_object_get_children(_padding)->data[0];
-        cell = child->_background;
+        const ntg_object* child = _padding->_children.data[0];
+        cell = ((const ntg_decorator*)_padding)->_widget->_background;
     }
 
     size_t i, j;
@@ -59,7 +59,7 @@ void _ntg_def_padding_draw_fn(
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(j, i));
+            it_cell = ntg_tmp_object_drawing_at_(out_drawing, ntg_xy(j, i));
             (*it_cell) = cell;
         }
     }

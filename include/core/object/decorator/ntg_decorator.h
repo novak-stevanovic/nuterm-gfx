@@ -53,26 +53,27 @@ void ntg_decorator_init(ntg_decorator* decorator, ntg_object_draw_fn draw_fn);
 
 void _ntg_decorator_deinit_fn(ntg_entity* object);
 
+void* _ntg_decorator_layout_data_init_fn(const ntg_object* _decorator);
+void _ntg_decorator_layout_data_deinit_fn(void* data, const ntg_object* _decorator);
+
 struct ntg_object_measure _ntg_decorator_measure_fn(
         const ntg_object* _decorator,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena);
 
 void _ntg_decorator_constrain_fn(
         const ntg_object* _decorator,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t size,
-        ntg_object_size_map* out_sizes,
+        ntg_orient orient,
+        ntg_object_size_map* out_size_map,
         sarena* arena);
 
 void _ntg_decorator_arrange_fn(
         const ntg_object* _decorator,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_object_xy_map* out_positions,
+        ntg_object_xy_map* out_pos_map,
         sarena* arena);
 
 #endif // NTG_DECORATOR_H

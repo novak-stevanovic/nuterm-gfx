@@ -19,30 +19,30 @@ struct ntg_dxy
     ssize_t x, y;
 };
 
-enum ntg_orientation
+enum ntg_orient
 {
     NTG_ORIENT_H,
     NTG_ORIENT_V
 };
 
-enum ntg_alignment
+enum ntg_align
 {
-    /* left, when used in reference to x axis alignment */
-    /* top, when used in reference to y axis alignment */
+    /* left, when used in reference to x axis align */
+    /* top, when used in reference to y axis align */
     NTG_ALIGN_1,
 
     /* center */
     NTG_ALIGN_2,
 
-    /* right, when used in reference to x axis alignment */
-    /* bottom, when used in reference to y axis alignment */
+    /* right, when used in reference to x axis align */
+    /* bottom, when used in reference to y axis align */
     NTG_ALIGN_3
 };
 
 struct ntg_oxy
 {
     size_t prim_val, sec_val;
-    ntg_orientation orient;
+    ntg_orient orient;
 };
 
 static const struct ntg_xy NTG_XY_MAX = { NTG_SIZE_MAX, NTG_SIZE_MAX };
@@ -145,6 +145,11 @@ static inline struct ntg_xy ntg_xy_transpose(struct ntg_xy xy)
     };
 }
 
+static inline size_t ntg_xy_get(struct ntg_xy xy, ntg_orient orient)
+{
+    return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
+}
+
 /* -------------------------------------------------------------------------- */
 
 static inline struct ntg_dxy ntg_dxy(ssize_t x, ssize_t y)
@@ -179,9 +184,14 @@ static inline struct ntg_dxy ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy va
     return val;
 }
 
+static inline size_t ntg_dxy_get(struct ntg_dxy xy, ntg_orient orient)
+{
+    return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
+}
+
 /* -------------------------------------------------------------------------- */
 
-static inline ntg_orientation ntg_orientation_get_other(ntg_orientation ort)
+static inline ntg_orient ntg_orient_get_other(ntg_orient ort)
 {
     return (ort == NTG_ORIENT_H) ?
         NTG_ORIENT_V :
@@ -199,7 +209,7 @@ static inline struct ntg_xy ntg_xy_from_oxy(struct ntg_oxy orient_xy)
 }
 
 static inline struct ntg_oxy ntg_oxy(size_t prim_val, size_t sec_val,
-        ntg_orientation orient)
+        ntg_orient orient)
 {
     return (struct ntg_oxy) {
         .prim_val = prim_val,
@@ -217,9 +227,9 @@ static inline struct ntg_oxy ntg_oxy_size(struct ntg_oxy oxy)
 }
 
 static inline struct ntg_oxy ntg_oxy_from_xy(struct ntg_xy xy,
-        ntg_orientation orientation)
+        ntg_orient orient)
 {
-    if(orientation == NTG_ORIENT_H)
+    if(orient == NTG_ORIENT_H)
         return ntg_oxy(xy.x, xy.y, NTG_ORIENT_H);
     else
         return ntg_oxy(xy.y, xy.x, NTG_ORIENT_V);

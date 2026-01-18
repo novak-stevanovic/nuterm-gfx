@@ -120,7 +120,7 @@ void ntg_object_drawing_place_(const ntg_object_drawing* src_drawing,
     }
 }
 
-void ntg_temp_object_drawing_init(ntg_temp_object_drawing* drawing,
+void ntg_tmp_object_drawing_init(ntg_tmp_object_drawing* drawing,
         struct ntg_xy size, sarena* arena)
 {
     assert(drawing != NULL);
@@ -145,7 +145,7 @@ void ntg_temp_object_drawing_init(ntg_temp_object_drawing* drawing,
         {
             for(j = 0; j < size.x; j++)
             {
-                it_cell = ntg_temp_object_drawing_at_(drawing, ntg_xy(j, i));
+                it_cell = ntg_tmp_object_drawing_at_(drawing, ntg_xy(j, i));
                 (*it_cell) = ntg_vcell_default();
             }
         }

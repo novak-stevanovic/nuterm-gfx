@@ -1,5 +1,7 @@
 #include <assert.h>
 #include "ntg.h"
+#include "core/entity/ntg_entity_type.h"
+#include "shared/_ntg_shared.h"
 
 static void init_default_values(ntg_widget* widget);
 static void object_rm_child_fn(ntg_object* _widget, ntg_object* child);
@@ -12,7 +14,7 @@ void ntg_widget_set_user_min_size(ntg_widget* widget, struct ntg_xy size)
 {
     assert(widget != NULL);
 
-    wiget->_min_size = size;
+    widget->_user_min_size = size;
 
     ntg_entity_raise_event((ntg_entity*)widget, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
@@ -21,7 +23,7 @@ void ntg_widget_set_user_max_size(ntg_widget* widget, struct ntg_xy size)
 {
     assert(widget != NULL);
 
-    wiget->_max_size = size;
+    widget->_user_max_size = size;
 
     ntg_entity_raise_event((ntg_entity*)widget, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
@@ -30,7 +32,7 @@ void ntg_widget_set_user_grow(ntg_widget* widget, struct ntg_xy grow)
 {
     assert(widget != NULL);
 
-    wiget->_grow = grow;
+    widget->_user_grow = grow;
 
     ntg_entity_raise_event((ntg_entity*)widget, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
@@ -82,12 +84,12 @@ struct ntg_xy ntg_widget_get_min_size(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
-    ntg_object* group_root = ntg_widget_get_group_root(widget);
+    const ntg_object* group_root = ntg_widget_get_group_root(widget);
 
     return group_root->_min_size;
 }
 
-struct ntg_xy ntg_widget_get_content_min_size(const ntg_widget* widget)
+struct ntg_xy ntg_widget_get_cont_min_size(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
@@ -100,12 +102,12 @@ struct ntg_xy ntg_widget_get_nat_size(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
-    ntg_object* group_root = ntg_widget_get_group_root(widget);
+    const ntg_object* group_root = ntg_widget_get_group_root(widget);
 
     return group_root->_nat_size;
 }
 
-struct ntg_xy ntg_widget_get_content_nat_size(const ntg_widget* widget)
+struct ntg_xy ntg_widget_get_cont_nat_size(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
@@ -118,12 +120,12 @@ struct ntg_xy ntg_widget_get_max_size(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
-    ntg_object* group_root = ntg_widget_get_group_root(widget);
+    const ntg_object* group_root = ntg_widget_get_group_root(widget);
 
     return group_root->_max_size;
 }
 
-struct ntg_xy ntg_widget_get_content_max_size(const ntg_widget* widget)
+struct ntg_xy ntg_widget_get_cont_max_size(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
@@ -141,16 +143,16 @@ struct ntg_xy ntg_widget_get_grow(const ntg_widget* widget)
     return _widget->_grow;
 }
 
-struct ntg_xy widget_get_size(const ntg_widget* widget)
+struct ntg_xy ntg_widget_get_size(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
-    ntg_object* group_root = ntg_widget_get_group_root(widget);
+    const ntg_object* group_root = ntg_widget_get_group_root(widget);
 
     return group_root->_size;
 }
 
-struct ntg_xy widget_get_content_size(const ntg_widget* widget)
+struct ntg_xy ntg_widget_get_cont_size(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
@@ -159,61 +161,90 @@ struct ntg_xy widget_get_content_size(const ntg_widget* widget)
     return _widget->_size;
 }
 
-struct ntg_xy ntg_widget_get_position(const ntg_widget* widget)
+struct ntg_xy ntg_widget_get_pos(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
-    ntg_object* group_root = ntg_widget_get_group_root(widget);
+    const ntg_object* group_root = ntg_widget_get_group_root(widget);
 
-    return group_root->_min_size;
+    return group_root->_pos;
 }
 
-struct ntg_xy widget_get_content_position(const ntg_widget* widget)
+struct ntg_xy ntg_widget_get_pos_abs(const ntg_widget* widget)
+{
+    assert(widget != NULL);
+
+    const ntg_object* group_root = ntg_widget_get_group_root(widget);
+
+    return ntg_object_get_pos_abs(group_root);
+}
+
+struct ntg_xy ntg_widget_get_cont_pos(const ntg_widget* widget)
 {
     assert(widget != NULL);
 
     const ntg_object* _widget = (const ntg_object*)widget;
 
-    return _widget->_position;
+    return _widget->_pos;
+}
+
+struct ntg_xy ntg_widget_get_cont_pos_abs(const ntg_widget* widget)
+{
+    assert(widget != NULL);
+
+    const ntg_object* _widget = (const ntg_object*)widget;
+
+    return ntg_object_get_pos_abs(_widget);
 }
 
 /* LAYOUT PROCESS - CONVENIENCE */
 
-struct ntg_widget_measure
-ntg_widget_get_measure(const ntg_widget* widget, ntg_orientation orientation)
+size_t ntg_widget_get_cont_for_size(const ntg_widget* widget,
+        ntg_orient orient, bool constrain)
 {
     assert(widget != NULL);
 
-    ntg_object* group_root = ntg_widget_get_group_root(widget);
+    const ntg_object* _widget = (const ntg_object*)widget;
 
-    if(orientation == NTG_ORIENT_H)
-    {
-        return (struct ntg_widget_measure) {
-            .min_size = group_root->_min_size.x,
-            .nat_size = group_root->_nat_size.x,
-            .max_size = group_root->_max_size.x,
-            .grow = group_root->_grow.x
-        };
-    }
-    else
-    {
-        return (struct ntg_widget_measure) {
-            .min_size = group_root->_min_size.y,
-            .nat_size = group_root->_nat_size.y,
-            .max_size = group_root->_max_size.y,
-            .grow = group_root->_grow.y
-        };
-    }
+    return ntg_object_get_for_size(_widget, orient, constrain);
 }
 
-size_t ntg_widget_get_size(const ntg_widget* widget, ntg_orientation orientation)
+struct ntg_object_measure
+ntg_widget_get_measure(const ntg_widget* widget, ntg_orient orient)
 {
     assert(widget != NULL);
 
-    ntg_object* group_root = ntg_widget_get_group_root(widget);
+    const ntg_object* group_root = ntg_widget_get_group_root(widget);
 
-    return (orientation == NTG_ORIENT_H) ?
-        group_root->_size.x : group_root->_size.y;
+    return ntg_object_get_measure(group_root, orient);
+}
+
+struct ntg_object_measure
+ntg_widget_get_cont_measure(const ntg_widget* widget, ntg_orient orient)
+{
+    assert(widget != NULL);
+
+    const ntg_object* _widget = (const ntg_object*)widget;
+
+    return ntg_object_get_measure(_widget, orient);
+}
+
+size_t ntg_widget_get_size_1d(const ntg_widget* widget, ntg_orient orient)
+{
+    assert(widget != NULL);
+
+    const ntg_object* group_root = ntg_widget_get_group_root(widget);
+
+    return ntg_xy_get(group_root->_size, orient);
+}
+
+size_t ntg_widget_get_cont_size_1d(const ntg_widget* widget, ntg_orient orient)
+{
+    assert(widget != NULL);
+
+    const ntg_object* _widget = (const ntg_object*)widget;
+
+    return ntg_xy_get(_widget->_size, orient);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -234,7 +265,7 @@ bool ntg_widget_is_descendant(const ntg_widget* widget, const ntg_widget* descen
     assert(descendant != NULL);
 
     return ntg_object_is_descendant((const ntg_object*)widget,
-            (const ntg_object*)ancestor);
+            (const ntg_object*)descendant);
 }
 
 const ntg_widget* ntg_widget_get_parent(const ntg_widget* widget)
@@ -243,7 +274,7 @@ const ntg_widget* ntg_widget_get_parent(const ntg_widget* widget)
 
     const ntg_object* group_root = ntg_widget_get_group_root(widget);
 
-    return group_root->_parent;
+    return (const ntg_widget*)group_root->_parent;
 }
 
 ntg_widget* ntg_widget_get_parent_(ntg_widget* widget)
@@ -252,7 +283,7 @@ ntg_widget* ntg_widget_get_parent_(ntg_widget* widget)
 
     ntg_object* group_root = ntg_widget_get_group_root_(widget);
 
-    return group_root->_parent;
+    return (ntg_widget*)group_root->_parent;
 }
 
 const ntg_object* ntg_widget_get_group_root(const ntg_widget* widget)
@@ -268,8 +299,6 @@ const ntg_object* ntg_widget_get_group_root(const ntg_widget* widget)
         else
             return (const ntg_object*)widget;
     }
-
-    return prev;
 }
 
 ntg_object* ntg_widget_get_group_root_(ntg_widget* widget)
@@ -285,7 +314,7 @@ size_t ntg_widget_get_children_count(const ntg_widget* widget)
 
     const ntg_object* _widget = (const ntg_object*)widget;
 
-    return _widget->_children->size;
+    return _widget->_children.size;
 }
 
 size_t ntg_widget_get_children(const ntg_widget* widget,
@@ -299,14 +328,14 @@ size_t ntg_widget_get_children(const ntg_widget* widget,
     const ntg_object* it;
     const ntg_entity* _it;
     size_t i;
-    for(i = 0; ((i < cap) && (i < _widget->_children->size)); i++)
+    for(i = 0; ((i < cap) && (i < _widget->_children.size)); i++)
     {
-        it = _widget->_children->data[i];
+        it = _widget->_children.data[i];
         _it = (const ntg_entity*)it;
 
-        while(!ntg_entity_instanceof(_it->_type, NTG_ENTITY_WIDGET))
+        while(!ntg_entity_instance_of(_it->_type, &NTG_ENTITY_WIDGET))
         {
-            it = it->_children->data[0];
+            it = it->_children.data[0];
             _it = (const ntg_entity*)it;
         }
 
@@ -322,7 +351,7 @@ size_t ntg_widget_get_children_(ntg_widget* widget,
     assert(widget != NULL);
     assert(out_children != NULL);
 
-    return ntg_widget_get_children(widget, (const ntg_widget*)out_children, cap);
+    return ntg_widget_get_children(widget, (const ntg_widget**)out_children, cap);
 }
 
 void ntg_widget_set_padding(ntg_widget* widget, ntg_decorator* padding)
@@ -355,19 +384,19 @@ void ntg_widget_init(ntg_widget* widget,
 
     // Allow ntg_object to provide default implementations
     struct ntg_object_layout_ops _layout_ops = {
-        .init_fn = _ntg_widget_layout_data_init_fn,
-        .deinit_fn = _ntg_widget_layout_data_deinit_fn,
         .measure_fn = layout_ops.measure_fn ? _ntg_widget_measure_fn : NULL,
         .constrain_fn = layout_ops.constrain_fn ? _ntg_widget_constrain_fn : NULL,
         .arrange_fn = layout_ops.arrange_fn ? _ntg_widget_arrange_fn : NULL,
-        .draw_fn = _ntg_widget_draw_fn
+        .draw_fn = _ntg_widget_draw_fn,
+        .init_fn = _ntg_widget_layout_data_init_fn,
+        .deinit_fn = _ntg_widget_layout_data_deinit_fn
     };
 
     struct ntg_object_hooks _hooks = {
         .rm_child_fn = object_rm_child_fn
     };
 
-    ntg_object_init((ntg_object*)widget, _layout_ops, hooks);
+    ntg_object_init((ntg_object*)widget, _layout_ops, _hooks);
 
     init_default_values(widget);
 
@@ -377,7 +406,7 @@ void ntg_widget_init(ntg_widget* widget,
 
 void ntg_widget_deinit_fn(ntg_entity* _widget)
 {
-    init_default_values(widget);
+    init_default_values((ntg_widget*)_widget);
 
     ntg_object_deinit_fn(_widget);
 }
@@ -414,7 +443,7 @@ void ntg_widget_rm_child(ntg_widget* parent, ntg_widget* child)
 
     ntg_object* group_root = ntg_widget_get_group_root_(child);
 
-    ntg_object_rm_child((ntg_object*)_parent, group_root);
+    ntg_object_rm_child((ntg_object*)parent, group_root);
 
     struct ntg_event_widget_chldrm_data data1 = { .child = child };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
@@ -453,32 +482,58 @@ void _ntg_widget_layout_data_deinit_fn(void* data, const ntg_object* _widget)
 struct ntg_object_measure _ntg_widget_measure_fn(
         const ntg_object* _widget,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena)
 {
     const ntg_widget* widget = (const ntg_widget*)_widget;
 
     struct ntg_widget_layout_ops layout_ops = widget->__layout_ops;
 
-    return layout_ops.measure_fn(widget, _layout_data, orientation,
-            for_size, arena);
+    struct ntg_object_measure measure;
+    measure = layout_ops.measure_fn(widget, _layout_data,
+            orient, constrained, arena);
+
+    size_t user_min_size = ntg_xy_get(widget->_user_min_size, orient);
+    size_t user_max_size = ntg_xy_get(widget->_user_max_size, orient);
+ 
+    user_min_size = _min2_size(user_min_size, user_max_size);
+ 
+    if(user_max_size < measure.min_size)
+        measure.min_size = user_max_size;
+    else
+        measure.min_size = _max2_size(measure.min_size, user_min_size);
+ 
+    if(user_min_size > measure.max_size)
+        measure.max_size = user_min_size;
+    else
+        measure.max_size = _min2_size(measure.max_size, user_max_size);
+ 
+    measure.nat_size = _clamp_size(measure.min_size,
+            measure.nat_size, measure.max_size);
+ 
+    size_t user_grow = ntg_xy_get(widget->_user_grow, orient);
+    measure.grow = (user_grow != NTG_WIDGET_USER_GROW_UNSET) ?
+            user_grow : measure.grow;
+
+    return measure;
 }
 
 void _ntg_widget_constrain_fn(
         const ntg_object* _widget,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t size,
-        ntg_object_size_map* out_sizes,
+        ntg_orient orient,
+        ntg_object_size_map* out_size_map,
         sarena* arena)
 {
     const ntg_widget* widget = (const ntg_widget*)_widget;
+    struct ntg_xy size = _widget->_size;
 
     size_t i;
     size_t child_count = ntg_widget_get_children_count(widget);
 
-    const ntg_widget** buffer = sarena_malloc(sizeof(void*) * child_count);
+    const ntg_widget** buffer = (const ntg_widget**)sarena_malloc(
+            arena, sizeof(void*) * child_count);
     assert(buffer != NULL);
     ntg_widget_get_children(widget, buffer, child_count);
 
@@ -487,11 +542,11 @@ void _ntg_widget_constrain_fn(
     for(i = 0; i < child_count; i++) ntg_widget_size_map_set(_sizes, buffer[i], 0);
 
     struct ntg_widget_layout_ops layout_ops = widget->__layout_ops;
-    layout_ops.constrain_fn(widget, _layout_data, orientation, size, _sizes, arena);
+    layout_ops.constrain_fn(widget, _layout_data, orient, _sizes, arena);
 
     for(i = 0; i < child_count; i++)
     {
-        ntg_object_size_map_set(out_sizes, ntg_widget_get_group_root(buffer[i]),
+        ntg_object_size_map_set(out_size_map, ntg_widget_get_group_root(buffer[i]),
                 ntg_widget_size_map_get(_sizes, buffer[i]));
     }
 }
@@ -499,41 +554,41 @@ void _ntg_widget_constrain_fn(
 void _ntg_widget_arrange_fn(
         const ntg_object* _widget,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_object_xy_map* out_positions,
+        ntg_object_xy_map* out_pos_map,
         sarena* arena)
 {
     const ntg_widget* widget = (const ntg_widget*)_widget;
+    struct ntg_xy size = _widget->_size;
 
     size_t i;
     size_t child_count = ntg_widget_get_children_count(widget);
 
-    const ntg_widget** buffer = sarena_malloc(sizeof(void*) * child_count);
+    const ntg_widget** buffer = sarena_malloc(arena, sizeof(void*) * child_count);
     assert(buffer != NULL);
     ntg_widget_get_children(widget, buffer, child_count);
 
-    ntg_widget_xy_map* _positions;
-    _positions = ntg_widget_xy_map_new(child_count, arena);
-    for(i = 0; i < child_count; i++) ntg_widget_xy_map_set(_positions, buffer[i], 0);
+    ntg_widget_xy_map* _poss;
+    _poss = ntg_widget_xy_map_new(child_count, arena);
+    for(i = 0; i < child_count; i++) ntg_widget_xy_map_set(_poss, buffer[i], ntg_xy(0, 0));
 
     struct ntg_widget_layout_ops layout_ops = widget->__layout_ops;
-    layout_ops.arrange_fn(widget, _layout_data, orientation, size, _positions, arena);
+    layout_ops.arrange_fn(widget, _layout_data, _poss, arena);
 
     for(i = 0; i < child_count; i++)
     {
-        ntg_object_xy_map_set(out_positions, ntg_widget_get_group_root(buffer[i]),
-                ntg_widget_xy_map_get(_positions, buffer[i]));
+        ntg_object_xy_map_set(out_pos_map, ntg_widget_get_group_root(buffer[i]),
+                ntg_widget_xy_map_get(_poss, buffer[i]));
     }
 }
 
 void _ntg_widget_draw_fn(
         const ntg_object* _widget,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {
     const ntg_widget* widget = (const ntg_widget*)_widget;
+    struct ntg_xy size = _widget->_size;
 
     size_t i, j;
     struct ntg_vcell* it_cell;
@@ -541,22 +596,22 @@ void _ntg_widget_draw_fn(
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(j, i));
+            it_cell = ntg_tmp_object_drawing_at_(out_drawing, ntg_xy(j, i));
             (*it_cell) = widget->_background;
         }
     }
 
     struct ntg_widget_layout_ops layout_ops = widget->__layout_ops;
     if(layout_ops.draw_fn != NULL)
-        layout_ops.draw_fn(widget, _layout_data, size, out_drawing, arena);
+        layout_ops.draw_fn(widget, _layout_data, out_drawing, arena);
 
     assert(0);
 }
 
 static void init_default_values(ntg_widget* widget)
 {
-    _widget->__layout_ops = (struct ntg_widget_layout_ops) {0};
-    _widget->__hooks = (struct ntg_widget_hooks) {0};
+    widget->__layout_ops = (struct ntg_widget_layout_ops) {0};
+    widget->__hooks = (struct ntg_widget_hooks) {0};
     widget->_background = ntg_vcell_default();
     widget->_user_min_size = ntg_xy(0, 0);
     widget->_user_max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
@@ -573,11 +628,11 @@ static void object_rm_child_fn(ntg_object* _widget, ntg_object* child)
     
     ntg_object* it = child;
     ntg_entity* _it = (ntg_entity*)it;
-    while(!ntg_entity_instanceof(_it->_type, &NTG_ENTITY_WIDGET))
+    while(!ntg_entity_instance_of(_it->_type, &NTG_ENTITY_WIDGET))
     {
-        it = it->_children->data[0];
+        it = it->_children.data[0];
         _it = (ntg_entity*)it;
     }
 
-    widget->__hooks.rm_child_fn(widget, it);
+    widget->__hooks.rm_child_fn(widget, (ntg_widget*)it);
 }

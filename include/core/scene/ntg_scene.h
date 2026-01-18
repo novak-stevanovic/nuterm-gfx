@@ -25,6 +25,7 @@ struct ntg_scene
 
     struct
     {
+        struct ntg_xy _size;
         ntg_widget* _root;
         ntg_scene_layout_fn __layout_fn;
     };

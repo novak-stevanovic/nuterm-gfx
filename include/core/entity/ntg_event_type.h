@@ -21,7 +21,7 @@ struct ntg_event_object_chldrm_data
 };
 
 #define NTG_EVENT_OBJECT_PRNTCHNG 6
-struct ntg_event_object_parent_change
+struct ntg_event_object_prntchng_data
 {
     ntg_object *old, *new;
 };
@@ -48,6 +48,18 @@ struct ntg_event_widget_prntchng_data
 struct ntg_event_widget_bgchng_data
 {
     struct ntg_vcell old, new;
+};
+
+#define NTG_EVENT_WIDGET_PADCHNG 104
+struct ntg_event_widget_padchng_data
+{
+    ntg_decorator *old, *new;
+};
+
+#define NTG_EVENT_WIDGET_BORDCHNG 105
+struct ntg_event_widget_bordchng_data
+{
+    ntg_decorator *old, *new;
 };
 
 #define NTG_EVENT_OBJECT_SCNCHNG 7

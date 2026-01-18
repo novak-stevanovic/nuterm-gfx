@@ -34,14 +34,18 @@ void ntg_color_block_init(ntg_color_block* color_block)
 {
     assert(color_block != NULL);
 
-    struct ntg_object_layout_ops object_data = {
+    struct ntg_widget_layout_ops widget_data = {
         .measure_fn = _ntg_color_block_measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = _ntg_color_block_draw_fn,
+        .init_fn = NULL,
+        .deinit_fn = NULL
     };
 
-    _ntg_object_init((ntg_object*)color_block, object_data);
+    struct ntg_widget_hooks hooks = {0};
+
+    ntg_widget_init((ntg_widget*)color_block, widget_data, hooks);
 
     color_block->__color = NT_COLOR_DEFAULT;
 }
@@ -58,32 +62,32 @@ void _ntg_color_block_deinit_fn(ntg_entity* entity)
     ntg_color_block* color_block = (ntg_color_block*)entity;
 
     color_block->__color = NT_COLOR_DEFAULT;
-    _ntg_object_deinit_fn(entity);
+    ntg_widget_deinit_fn(entity);
 }
 
 struct ntg_object_measure _ntg_color_block_measure_fn(
-        const ntg_object* _block,
+        const ntg_widget* _block,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena)
 {
     return (struct ntg_object_measure) {
         .min_size = DEFAULT_SIZE,
-        .natural_size = DEFAULT_SIZE,
+        .nat_size = DEFAULT_SIZE,
         .max_size = NTG_SIZE_MAX,
         .grow = 1
     };
 }
 
 void _ntg_color_block_draw_fn(
-        const ntg_object* _block,
+        const ntg_widget* _block,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {
     ntg_color_block* color_block = (ntg_color_block*)_block;
+    struct ntg_xy size = ntg_widget_get_cont_size(_block);
 
     size_t i, j;
     struct ntg_vcell* it_cell;
@@ -91,7 +95,7 @@ void _ntg_color_block_draw_fn(
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(j, i));
+            it_cell = ntg_tmp_object_drawing_at_(out_drawing, ntg_xy(j, i));
             (*it_cell) = ntg_vcell_bg(color_block->__color);
         }
     }

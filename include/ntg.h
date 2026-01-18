@@ -24,25 +24,24 @@
 #include "core/entity/ntg_entity.h"
 #include "core/entity/ntg_entity_type.h"
 #include "core/entity/ntg_event_type.h"
-#include "core/object/shared/ntg_widget_map.h"
-#include "core/object/shared/ntg_widget_xy_map.h"
+#include "core/object/widget/ntg_label.h"
+#include "core/object/widget/ntg_prog_bar.h"
+#include "core/object/widget/ntg_color_block.h"
+#include "core/object/widget/ntg_border_box.h"
+#include "core/object/widget/ntg_box.h"
+#include "core/object/widget/ntg_widget.h"
+#include "core/object/widget/shared/ntg_widget_map.h"
+#include "core/object/widget/shared/ntg_widget_xy_map.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "core/object/shared/ntg_object_map.h"
-#include "core/object/shared/ntg_widget_size_map.h"
+#include "core/object/widget/shared/ntg_widget_size_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
-#include "core/object/shared/ntg_widget_measure.h"
 #include "core/object/shared/ntg_object_drawing.h"
-#include "core/object/ntg_label.h"
-#include "core/object/ntg_def_border.h"
 #include "core/object/ntg_object.h"
-#include "core/object/ntg_prog_bar.h"
-#include "core/object/ntg_def_padding.h"
-#include "core/object/ntg_color_block.h"
-#include "core/object/ntg_border_box.h"
-#include "core/object/ntg_box.h"
-#include "core/object/ntg_decorator.h"
-#include "core/object/ntg_widget.h"
+#include "core/object/decorator/ntg_def_border.h"
+#include "core/object/decorator/ntg_def_padding.h"
+#include "core/object/decorator/ntg_decorator.h"
 #include "core/scene/ntg_scene.h"
 #include "core/scene/ntg_def_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
@@ -71,8 +70,10 @@ void ntg_wait();
 /* -------------------------------------------------------------------------- */
 
 // ACTIVE: ntg_widget refactor. | **
+// REMINDER: deattach object on deinit
+// REMINDER: implement children for border_box, box.
+// REMINDER: implement padding/border fot ntg_widget
 
-// TODO: deattach object on deinit | *
 // TODO: implement modals on scene, object focus managers | **
 
 // TODO: ntg_scene: implement multi-root system | **

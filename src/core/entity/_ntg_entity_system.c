@@ -11,8 +11,6 @@ struct ntg_event_obs
     ntg_event_handler_fn handler;
 };
 
-GENC_VECTOR_GENERATE(ntg_event_obs_vec, struct ntg_event_obs, 1.3, ntg_event_obs_cmp_fn);
-
 static int ntg_event_obs_cmp_fn(const void* _event_obs1, const void* _event_obs2)
 {
     assert(_event_obs1 != NULL);
@@ -24,6 +22,8 @@ static int ntg_event_obs_cmp_fn(const void* _event_obs1, const void* _event_obs2
     return !(((event_obs1.observer == event_obs2.observer) &&
         (event_obs1.handler == event_obs2.handler)));
 }
+
+GENC_VECTOR_GENERATE(ntg_event_obs_vec, struct ntg_event_obs, 1.3, ntg_event_obs_cmp_fn);
 
 struct entity_data
 {

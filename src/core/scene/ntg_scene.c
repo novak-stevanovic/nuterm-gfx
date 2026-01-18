@@ -19,6 +19,7 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
 {
     assert(scene != NULL);
 
+    scene->_size = size;
     scene->__layout_fn(scene, size, arena);
 }
 
@@ -88,6 +89,7 @@ static void init_default_values(ntg_scene* scene)
 {
     scene->_stage = NULL;
 
+    scene->_size = ntg_xy(0, 0);
     scene->_root = NULL;
     scene->__layout_fn = NULL;
 
@@ -173,11 +175,11 @@ static void object_observe_fn(ntg_entity* _scene, struct ntg_event event)
     {
         ntg_entity_raise_event(_scene, NULL, NTG_EVENT_SCENE_DIFF, NULL);
     }
-    else if(event.type == NTG_EVENT_OBJECT_PADCHNG)
+    else if(event.type == NTG_EVENT_WIDGET_PADCHNG)
     {
-        struct ntg_event_object_padchng* data = event.data;
+        struct ntg_event_widget_padchng_data* data = event.data;
 
-        if(scene->_root == event.source)
+        if(scene->_root == (ntg_widget*)event.source)
         {
             if(data->old != NULL)
                 on_object_unregister(scene, (ntg_object*)data->old);
@@ -186,11 +188,11 @@ static void object_observe_fn(ntg_entity* _scene, struct ntg_event event)
                 on_object_register(scene, (ntg_object*)data->new);
         }
     }
-    else if(event.type == NTG_EVENT_OBJECT_BORDCHNG)
+    else if(event.type == NTG_EVENT_WIDGET_BORDCHNG)
     {
-        struct ntg_event_object_bordchng* data = event.data;
+        struct ntg_event_widget_bordchng_data* data = event.data;
 
-        if(scene->_root == event.source)
+        if(scene->_root == (ntg_widget*)event.source)
         {
             if(data->old != NULL)
                 on_object_unregister(scene, (ntg_object*)data->old);

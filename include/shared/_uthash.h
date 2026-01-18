@@ -785,7 +785,7 @@ do {                                                                            
   }                                                                              \
 } while (0)
 
-/* rm an item from a given bucket */
+/* remove an item from a given bucket */
 #define HASH_DEL_IN_BKT(head,delhh)                                              \
 do {                                                                             \
   UT_hash_bucket *_hd_head = &(head);                                            \
@@ -1094,7 +1094,7 @@ typedef struct UT_hash_table {
    UT_hash_bucket *buckets;
    unsigned num_buckets, log2_num_buckets;
    unsigned num_items;
-   struct UT_hash_handle *tail; /* tail hh in app order, for fast add    */
+   struct UT_hash_handle *tail; /* tail hh in app order, for fast append    */
    ptrdiff_t hho; /* hash handle offset (byte pos of hash handle in element */
 
    /* in an ideal situation (all buckets used equally), no bucket would have

@@ -1,7 +1,7 @@
 #ifndef NTG_COLOR_BLOCK_H
 #define NTG_COLOR_BLOCK_H
 
-#include "core/object/ntg_object.h"
+#include "core/object/widget/ntg_widget.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -9,7 +9,7 @@
 
 struct ntg_color_block
 {
-    ntg_object __base;
+    ntg_widget __base;
     nt_color __color;
 };
 
@@ -29,17 +29,16 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
 void _ntg_color_block_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_color_block_measure_fn(
-        const ntg_object* _block,
+        const ntg_widget* _block,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena);
 
 void _ntg_color_block_draw_fn(
-        const ntg_object* _block,
+        const ntg_widget* _block,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // NTG_COLOR_BLOCK_H

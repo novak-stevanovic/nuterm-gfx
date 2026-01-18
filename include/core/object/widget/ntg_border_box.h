@@ -1,7 +1,7 @@
 #ifndef NTG_BORDER_BOX_H
 #define NTG_BORDER_BOX_H
 
-#include "core/object/ntg_object.h"
+#include "core/object/widget/ntg_widget.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -25,9 +25,9 @@ enum ntg_border_box_pos
 
 struct ntg_border_box
 {
-    ntg_object __base;
+    ntg_widget __base;
 
-    ntg_object* _children[5];
+    ntg_widget* _children[5];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -39,8 +39,8 @@ ntg_border_box* ntg_border_box_new(ntg_entity_system* system);
 void ntg_border_box_init(ntg_border_box* box);
 
 void ntg_border_box_set(ntg_border_box* box,
-        ntg_object* object,
-        enum ntg_border_box_pos position);
+        ntg_widget* widget,
+        enum ntg_border_box_pos pos);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
@@ -49,25 +49,23 @@ void ntg_border_box_set(ntg_border_box* box,
 void _ntg_border_box_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_border_box_measure_fn(
-        const ntg_object* _border_box,
+        const ntg_widget* _border_box,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t for_size,
+        ntg_orient orient,
+        bool constrained,
         sarena* arena);
 
 void _ntg_border_box_constrain_fn(
-        const ntg_object* _border_box,
+        const ntg_widget* _border_box,
         void* _layout_data,
-        ntg_orientation orientation,
-        size_t size,
-        ntg_object_size_map* out_sizes,
+        ntg_orient orient,
+        ntg_widget_size_map* out_size_map,
         sarena* arena);
 
 void _ntg_border_box_arrange_fn(
-        const ntg_object* _border_box,
+        const ntg_widget* _border_box,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_object_xy_map* out_positions,
+        ntg_widget_xy_map* out_pos_map,
         sarena* arena);
 
 #endif // NTG_BORDER_BOX_H

@@ -1,7 +1,7 @@
 #ifndef NTG_DEF_PADDING_H
 #define NTG_DEF_PADDING_H
 
-#include "core/object/ntg_decorator.h"
+#include "core/object/decorator/ntg_decorator.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -9,7 +9,7 @@
 
 struct ntg_def_padding
 {
-    ntg_padding __base;
+    ntg_decorator __base;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -28,8 +28,7 @@ void _ntg_def_padding_deinit_fn(ntg_entity* entity);
 void _ntg_def_padding_draw_fn(
         const ntg_object* _padding,
         void* _layout_data,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
+        ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 
 #endif // NTG_DEF_PADDING_H

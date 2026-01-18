@@ -52,9 +52,9 @@ static void draw_fn(ntg_object* object, void* _stage)
 {
     ntg_stage* stage = (ntg_stage*)_stage;
 
-    const ntg_object_drawing* drawing = ntg_object_get_drawing(object, NTG_OBJECT_SELF);
-    struct ntg_xy size = ntg_object_get_size(object, NTG_OBJECT_SELF);
-    struct ntg_xy pos = ntg_object_get_position_abs(object, NTG_OBJECT_SELF);
+    const ntg_object_drawing* drawing = &(object->_drawing);
+    struct ntg_xy size = object->_size;
+    struct ntg_xy pos = ntg_object_get_pos_abs(object);
 
     ntg_object_drawing_place_(drawing, ntg_xy(0, 0), size, &stage->_drawing, pos);
 }
@@ -83,8 +83,11 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size, sarena* ar
 
     if((_stage->_scene != NULL) && (_stage->_scene->_root != NULL))
     {
-        ntg_object* root = ntg_object_get_group_root_(_stage->_scene->_root);
-        if(root != NULL) draw_tree(root, stage);
+        if(_stage->_scene->_root != NULL)
+        {
+            ntg_object* root = ntg_widget_get_group_root_(_stage->_scene->_root);
+            draw_tree(root, stage);
+        }
     }
 
     stage->__detected_changes = false;
