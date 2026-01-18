@@ -89,7 +89,7 @@ void ntg_border_box_set(ntg_border_box* box,
         _ntg_object_add_child((ntg_object*)box, object);
     }
 
-    _ntg_object_mark_change(object);
+    ntg_entity_raise_event((ntg_entity*)box, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */

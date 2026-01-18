@@ -8,10 +8,15 @@
 
 #include "shared/ntg_status.h"
 #include "shared/ntg_typedef.h"
+#include "shared/uconv.h"
+#include "shared/ntg_xy.h"
 #include "shared/ntg_string.h"
+#include "shared/ntg_shared.h"
+#include "shared/sarena.h"
+#include "shared/genc.h"
+#include "shared/ntg_vecgrid.h"
 #include "shared/ntg_log.h"
 #include "base/ntg_cell.h"
-#include "shared/ntg_xy.h"
 #include "base/ntg_sap.h"
 #include "core/renderer/ntg_def_renderer.h"
 #include "core/renderer/ntg_renderer.h"
@@ -19,10 +24,14 @@
 #include "core/entity/ntg_entity.h"
 #include "core/entity/ntg_entity_type.h"
 #include "core/entity/ntg_event_type.h"
+#include "core/object/shared/ntg_widget_map.h"
+#include "core/object/shared/ntg_widget_xy_map.h"
 #include "core/object/shared/ntg_object_measure.h"
 #include "core/object/shared/ntg_object_xy_map.h"
 #include "core/object/shared/ntg_object_map.h"
+#include "core/object/shared/ntg_widget_size_map.h"
 #include "core/object/shared/ntg_object_size_map.h"
+#include "core/object/shared/ntg_widget_measure.h"
 #include "core/object/shared/ntg_object_drawing.h"
 #include "core/object/ntg_label.h"
 #include "core/object/ntg_def_border.h"
@@ -32,7 +41,8 @@
 #include "core/object/ntg_color_block.h"
 #include "core/object/ntg_border_box.h"
 #include "core/object/ntg_box.h"
-#include "core/object/ntg_padding.h"
+#include "core/object/ntg_decorator.h"
+#include "core/object/ntg_widget.h"
 #include "core/scene/ntg_scene.h"
 #include "core/scene/ntg_def_scene.h"
 #include "core/stage/shared/ntg_stage_drawing.h"
@@ -60,7 +70,9 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TODO: refactoring: explicit API regarding decorator/widget calls
+// ACTIVE: ntg_widget refactor. | **
+
+// TODO: deattach object on deinit | *
 // TODO: implement modals on scene, object focus managers | **
 
 // TODO: ntg_scene: implement multi-root system | **
@@ -68,7 +80,7 @@ void ntg_wait();
 // TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **
 
 // RELEASE
-// TODO: hide functions from final .so file
+// TODO: hide functions from final .so file(change -fvisibility)
 // TODO: nuterm-gfx: add more generic events
 // TODO: nuterm-gfx: add convenience macros
 // TODO: nuterm-gfx: add proper error-handling

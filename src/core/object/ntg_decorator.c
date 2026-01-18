@@ -3,15 +3,16 @@
 #include <assert.h>
 #include <stdlib.h>
 
-struct ntg_padding_ldata
+struct ntg_decorator_ldata
 {
-    struct ntg_padding_width final_width; // determined in constrain phase
+    struct ntg_decorator_width final_width; // determined in constrain phase
 };
 
-struct ntg_padding_width ntg_padding_width(size_t north,
-        size_t east, size_t south, size_t west)
+struct ntg_decorator_width ntg_decorator_width(
+        size_t north, size_t east,
+        size_t south, size_t west)
 {
-    return (struct ntg_padding_width) {
+    return (struct ntg_decorator_width) {
         .north = north,
         .east = east,
         .south = south,
@@ -19,75 +20,75 @@ struct ntg_padding_width ntg_padding_width(size_t north,
     };
 }
 
-struct ntg_padding_opts ntg_padding_opts_def()
+struct ntg_decorator_opts ntg_decorator_opts_def()
 {
-    return (struct ntg_padding_opts) {
+    return (struct ntg_decorator_opts) {
         .mode = NTG_PADDING_ENABLE_ON_NATURAL,
-        .width = ntg_padding_width(1, 1, 1, 1)
+        .width = ntg_decorator_width(1, 1, 1, 1)
     };
 }
 
-void ntg_padding_set_opts(ntg_padding* padding, struct ntg_padding_opts opts)
+void ntg_decorator_set_opts(ntg_decorator* decorator, struct ntg_decorator_opts opts)
 {
-    assert(padding != NULL);
+    assert(decorator != NULL);
 
-    padding->_opts = opts;
+    decorator->_opts = opts;
 
-    _ntg_object_mark_change((ntg_object*)padding);
+    ntg_entity_raise_event((ntg_entity*)decorator, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_padding_init(ntg_padding* padding, ntg_object_draw_fn draw_fn)
+void ntg_decorator_init(ntg_decorator* decorator, ntg_object_draw_fn draw_fn)
 {
-    assert(padding != NULL);
+    assert(decorator != NULL);
     assert(draw_fn != NULL);
 
     struct ntg_object_layout_ops object_data = {
-        .measure_fn = _ntg_padding_measure_fn,
-        .constrain_fn = _ntg_padding_constrain_fn,
-        .arrange_fn = _ntg_padding_arrange_fn,
+        .measure_fn = _ntg_decorator_measure_fn,
+        .constrain_fn = _ntg_decorator_constrain_fn,
+        .arrange_fn = _ntg_decorator_arrange_fn,
         .draw_fn = draw_fn,
     };
 
-    _ntg_object_init((ntg_object*)padding, object_data);
+    _ntg_object_init((ntg_object*)decorator, object_data);
 
-    struct ntg_padding_ldata* data = malloc(sizeof(struct ntg_padding_ldata));
+    struct ntg_decorator_ldata* data = malloc(sizeof(struct ntg_decorator_ldata));
     assert(data != NULL);
-    (*data) = (struct ntg_padding_ldata) {0};
-    ((ntg_object*)padding)->layout_data = data;
+    (*data) = (struct ntg_decorator_ldata) {0};
+    ((ntg_object*)decorator)->layout_data = data;
 
-    padding->_opts = ntg_padding_opts_def();
+    decorator->_opts = ntg_decorator_opts_def();
 }
 
-void _ntg_padding_deinit_fn(ntg_entity* entity)
+void _ntg_decorator_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
-    ntg_padding* padding = (ntg_padding*)entity;
-    padding->_opts = ntg_padding_opts_def();
-    free(((ntg_object*)padding)->layout_data);
+    ntg_decorator* decorator = (ntg_decorator*)entity;
+    decorator->_opts = ntg_decorator_opts_def();
+    free(((ntg_object*)decorator)->layout_data);
 
     _ntg_object_deinit_fn(entity);
 }
 
-struct ntg_object_measure _ntg_padding_measure_fn(
-        const ntg_object* _padding,
+struct ntg_object_measure _ntg_decorator_measure_fn(
+        const ntg_object* _decorator,
         void* _layout_data,
         ntg_orientation orientation,
         size_t for_size,
         sarena* arena)
 {
-    const ntg_padding* padding = (ntg_padding*)_padding;
-    const ntg_object* child = ntg_object_get_children(_padding)->data[0];
+    const ntg_decorator* decorator = (ntg_decorator*)_decorator;
+    const ntg_object* child = ntg_object_get_children(_decorator)->data[0];
     struct ntg_object_measure child_data = ntg_object_get_measure(child,
             orientation, NTG_OBJECT_SELF);
 
     if(orientation == NTG_ORIENT_H)
     {
-        size_t h_size = padding->_opts.width.west + padding->_opts.width.east;
+        size_t h_size = decorator->_opts.width.west + decorator->_opts.width.east;
         return (struct ntg_object_measure) {
             .min_size = child_data.min_size + h_size,
             .natural_size = child_data.natural_size + h_size,
@@ -98,7 +99,7 @@ struct ntg_object_measure _ntg_padding_measure_fn(
     }
     else
     {
-        size_t v_size = padding->_opts.width.north + padding->_opts.width.south;
+        size_t v_size = decorator->_opts.width.north + decorator->_opts.width.south;
         return (struct ntg_object_measure) {
             .min_size = child_data.min_size + v_size,
             .natural_size = child_data.natural_size + v_size,
@@ -109,26 +110,26 @@ struct ntg_object_measure _ntg_padding_measure_fn(
     }
 }
 
-void _ntg_padding_constrain_fn(
-        const ntg_object* _padding,
+void _ntg_decorator_constrain_fn(
+        const ntg_object* _decorator,
         void* _layout_data,
         ntg_orientation orientation,
         size_t size,
         ntg_object_size_map* out_sizes,
         sarena* arena)
 {
-    const ntg_padding* padding = (ntg_padding*)_padding;
-    const ntg_object* child = ntg_object_get_children(_padding)->data[0];
+    const ntg_decorator* decorator = (ntg_decorator*)_decorator;
+    const ntg_object* child = ntg_object_get_children(_decorator)->data[0];
     struct ntg_object_measure child_data = ntg_object_get_measure(child,
             orientation, NTG_OBJECT_SELF);
-    struct ntg_padding_ldata* layout_data = (struct ntg_padding_ldata*)_layout_data;
+    struct ntg_decorator_ldata* layout_data = (struct ntg_decorator_ldata*)_layout_data;
 
     size_t extra_space;
-    if(padding->_opts.mode == NTG_PADDING_ENABLE_ON_NATURAL)
+    if(decorator->_opts.mode == NTG_PADDING_ENABLE_ON_NATURAL)
         extra_space = _ssub_size(size, child_data.natural_size);
-    else if(padding->_opts.mode == NTG_PADDING_ENABLE_ON_MIN)
+    else if(decorator->_opts.mode == NTG_PADDING_ENABLE_ON_MIN)
         extra_space = _ssub_size(size, child_data.min_size);
-    else if(padding->_opts.mode == NTG_PADDING_ENABLE_ALWAYS)
+    else if(decorator->_opts.mode == NTG_PADDING_ENABLE_ALWAYS)
         extra_space = size;
     else assert(0);
 
@@ -136,13 +137,13 @@ void _ntg_padding_constrain_fn(
     size_t caps[2];
     if(orientation == NTG_ORIENT_H)
     {
-        caps[0] = padding->_opts.width.west;
-        caps[1] = padding->_opts.width.east;
+        caps[0] = decorator->_opts.width.west;
+        caps[1] = decorator->_opts.width.east;
     }
     else
     {
-        caps[0] = padding->_opts.width.north;
-        caps[1] = padding->_opts.width.south;
+        caps[0] = decorator->_opts.width.north;
+        caps[1] = decorator->_opts.width.south;
     }
 
     ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_space, 2, arena);
@@ -163,16 +164,16 @@ void _ntg_padding_constrain_fn(
     ntg_object_size_map_set(out_sizes, child, child_size, NTG_OBJECT_SELF);
 }
 
-void _ntg_padding_arrange_fn(
-        const ntg_object* _padding,
+void _ntg_decorator_arrange_fn(
+        const ntg_object* _decorator,
         void* _layout_data,
         struct ntg_xy size,
         ntg_object_xy_map* out_positions,
         sarena* arena)
 {
-    // const ntg_padding* padding = (ntg_padding*)object;
-    const ntg_object* child = ntg_object_get_children(_padding)->data[0];
-    struct ntg_padding_ldata* layout_data = (struct ntg_padding_ldata*)_layout_data;
+    // const ntg_decorator* decorator = (ntg_decorator*)object;
+    const ntg_object* child = ntg_object_get_children(_decorator)->data[0];
+    struct ntg_decorator_ldata* layout_data = _layout_data;
     struct ntg_xy offset = ntg_xy(
             layout_data->final_width.west,
             layout_data->final_width.north);

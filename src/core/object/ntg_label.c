@@ -140,7 +140,7 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
     label->_opts = opts;
     ntg_object_set_background((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
 
-    _ntg_object_mark_change((ntg_object*)label);
+    ntg_entity_raise_event((ntg_entity*)label, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 struct ntg_strv ntg_label_get_text(const ntg_label* label)
@@ -187,7 +187,7 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
 
     if(label->_opts.autotrim) trim_text(label);
 
-    _ntg_object_mark_change((ntg_object*)label);
+    ntg_entity_raise_event((ntg_entity*)label, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */

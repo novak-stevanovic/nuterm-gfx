@@ -73,23 +73,13 @@ const ntg_entity_type NTG_ENTITY_DECORATOR = {
     ._size = sizeof(ntg_object)
 };
 
-const ntg_entity_type NTG_ENTITY_PADDING = {
-    .__parent = &NTG_ENTITY_DECORATOR,
-    ._size = sizeof(ntg_padding)
-};
-
 const ntg_entity_type NTG_ENTITY_DEF_PADDING = {
-    .__parent = &NTG_ENTITY_PADDING,
+    .__parent = &NTG_ENTITY_DECORATOR,
     ._size = sizeof(ntg_def_padding)
 };
 
-const ntg_entity_type NTG_ENTITY_BORDER = {
-    .__parent = &NTG_ENTITY_DECORATOR,
-    ._size = sizeof(ntg_padding)
-};
-
 const ntg_entity_type NTG_ENTITY_DEF_BORDER = {
-    .__parent = &NTG_ENTITY_BORDER,
+    .__parent = &NTG_ENTITY_DECORATOR,
     ._size = sizeof(ntg_def_border)
 };
 

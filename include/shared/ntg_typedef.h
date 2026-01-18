@@ -13,14 +13,6 @@
 struct ntg_event;
 struct nt_event;
 struct ntg_xy;
-struct ntg_object_measure_ctx;
-struct ntg_object_measure_out;
-struct ntg_object_constrain_ctx;
-struct ntg_object_constrain_out;
-struct ntg_object_arrange_ctx;
-struct ntg_object_arrange_out;
-struct ntg_object_draw_ctx;
-struct ntg_object_draw_out;;
 
 /* -------------------------------------------------------------------------- */
 /* STRUCT & ENUM */
@@ -82,23 +74,28 @@ typedef enum ntg_scene_event_mode ntg_scene_event_mode;
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
-typedef enum ntg_object_target ntg_object_target;
-typedef struct ntg_object_list ntg_object_list;
-typedef struct ntg_object_measure_map ntg_object_measure_map;
+typedef struct ntg_object_map ntg_object_map;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_xy_map ntg_object_xy_map;
 typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_temp_object_drawing ntg_temp_object_drawing;
-typedef struct ntg_object_map ntg_object_map;
+
+typedef struct ntg_widget ntg_widget;
+typedef struct ntg_widget_vec ntg_widget_vec;
+typedef struct ntg_widget_map ntg_widget_map;
+typedef struct ntg_widget_size_map ntg_widget_size_map;
+typedef struct ntg_widget_xy_map ntg_widget_xy_map;
+
+typedef struct ntg_decorator ntg_decorator;
+typedef enum ntg_decorator_enable_mode ntg_decorator_enable_mode;
+typedef struct ntg_def_padding ntg_def_padding;
+typedef struct ntg_def_border ntg_def_border;
+
 typedef struct ntg_label ntg_label;
 typedef struct ntg_color_block ntg_color_block;
 typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
 typedef struct ntg_border_box ntg_border_box;
-typedef struct ntg_padding ntg_padding;
-typedef enum ntg_padding_enable_mode ntg_padding_enable_mode;
-typedef struct ntg_def_padding ntg_def_padding;
-typedef struct ntg_def_border ntg_def_border;
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTION */
@@ -129,10 +126,8 @@ typedef bool (*ntg_loop_event_fn)(
 
 /* OBJECT ----------------------------------------------- */
 
-typedef bool (*ntg_object_event_fn)(
-        ntg_object* object,
-        struct nt_event event,
-        ntg_loop_ctx* ctx);
+typedef void* (*ntg_object_layout_data_init)(const ntg_object* object);
+typedef void (*ntg_object_layout_data_deinit)(void* data, const ntg_object* object);
 
 /* Measures how much space the object would require along one axis,
  * if the size is constrained for the other axis. */
@@ -163,6 +158,43 @@ typedef void (*ntg_object_arrange_fn)(
 /* Creates the `object` drawing. */
 typedef void (*ntg_object_draw_fn)(
         const ntg_object* object,
+        void* _layout_data,
+        struct ntg_xy size,
+        ntg_temp_object_drawing* out_drawing,
+        sarena* arena);
+
+typedef bool (*ntg_widget_event_fn)(
+        ntg_widget* widget,
+        struct nt_event event,
+        ntg_loop_ctx* ctx);
+
+typedef void* (*ntg_widget_layout_data_init)(const ntg_widget* widget);
+typedef void (*ntg_widget_layout_data_deinit)(void* data, const ntg_widget* widget);
+
+typedef struct ntg_widget_measure (*ntg_widget_measure_fn)(
+        const ntg_widget* widget,
+        void* _layout_data,
+        ntg_orientation orientation,
+        size_t for_size,
+        sarena* arena);
+
+typedef void (*ntg_widget_constrain_fn)(
+        const ntg_widget* widget,
+        void* _layout_data,
+        ntg_orientation orientation,
+        size_t size,
+        ntg_widget_size_map* out_sizes,
+        sarena* arena);
+
+typedef void (*ntg_widget_arrange_fn)(
+        const ntg_widget* widget,
+        void* _layout_data,
+        struct ntg_xy size,
+        ntg_widget_xy_map* out_positions,
+        sarena* arena);
+
+typedef void (*ntg_widget_draw_fn)(
+        const ntg_widget* widget,
         void* _layout_data,
         struct ntg_xy size,
         ntg_temp_object_drawing* out_drawing,

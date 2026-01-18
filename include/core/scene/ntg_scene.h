@@ -25,7 +25,7 @@ struct ntg_scene
 
     struct
     {
-        ntg_object* _root;
+        ntg_widget* _root;
         ntg_scene_layout_fn __layout_fn;
     };
 
@@ -48,12 +48,10 @@ struct ntg_scene
 /* -------------------------------------------------------------------------- */
 
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
-void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
+void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root);
 
-bool ntg_scene_feed_event(
-        ntg_scene* scene,
-        struct nt_event event,
-        ntg_loop_ctx* loop_ctx);
+bool ntg_scene_feed_event(ntg_scene* scene,
+        struct nt_event event, ntg_loop_ctx* ctx);
 
 void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn);
 void ntg_scene_set_event_mode(ntg_scene* scene, ntg_scene_event_mode mode);

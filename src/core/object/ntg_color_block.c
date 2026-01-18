@@ -12,7 +12,8 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
 
     color_block->__color = color;
 
-    _ntg_object_mark_change((ntg_object*)color_block);
+    ntg_entity_raise_event((ntg_entity*)color_block, NULL,
+            NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 ntg_color_block* ntg_color_block_new(ntg_entity_system* system)

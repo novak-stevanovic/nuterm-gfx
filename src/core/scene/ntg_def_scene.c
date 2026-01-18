@@ -8,6 +8,8 @@
 struct object_data
 {
     bool measure1, constrain1, measure2, constrain2, arrange, draw;
+    struct ntg_object_measure old_hmeasure, old_vmeasure;
+    struct ntg_xy old_size, old_pos;
 };
 
 struct object_data_hh
@@ -18,7 +20,7 @@ struct object_data_hh
 };
 
 static void scene_map_add(ntg_def_scene* scene, ntg_object* object);
-static struct object_data* scene_map_get_(ntg_def_scene* scene, ntg_object* object);
+static struct object_data* scene_map_get(ntg_def_scene* scene, ntg_object* object);
 static void scene_map_del(ntg_def_scene* scene, ntg_object* object);
 static void scene_map_del_all(ntg_def_scene* scene);
 
@@ -98,7 +100,7 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* are
 
     ntg_def_scene* scene = (ntg_def_scene*)_scene;
 
-    if(_scene->_root == NULL)
+    if(->_root == NULL)
     {
         scene->__last_size = size;
         scene->__detected_changes = false;
@@ -116,15 +118,13 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* are
         .size = size
     };
 
-    ntg_object* root = ntg_object_get_group_root_(_scene->_root);
-    ntg_object_set_position(root, ntg_xy(0, 0), NTG_OBJECT_SELF);
+    ntg_object* root = ntg_widget_get_group_root_(_scene->_root);
+    struct object_data* root_data = scene_map_get(scene, root);
+    assert(root_data != NULL);
+    ntg_object_root_layout(root, size);
 
-    struct ntg_xy root_size = ntg_object_get_size(root, NTG_OBJECT_SELF);
-    if(!(ntg_xy_are_equal(root_size, size)))
+    if(!(ntg_xy_are_equal(root_data->old_size, size)))
     {
-        ntg_object_set_size(root, size, NTG_OBJECT_SELF);
-        struct object_data* root_data = scene_map_get_(scene, root);
-        assert(root_data != NULL);
         root_data->constrain1 = true;
         root_data->constrain2 = true;
         root_data->arrange = true;
@@ -158,7 +158,11 @@ static void scene_map_add(ntg_def_scene* scene, ntg_object* object)
         .measure2 = true,
         .constrain2 = true,
         .arrange = true,
-        .draw = true
+        .draw = true,
+        .old_hmeasure = (struct ntg_object_measure) {0},
+        .old_vmeasure = (struct ntg_object_measure) {0},
+        .old_size = ntg_xy(0, 0),
+        .old_pos = ntg_xy(0, 0)
     };
 
     struct object_data_hh* head = (struct object_data_hh*)scene->__map;
@@ -166,7 +170,7 @@ static void scene_map_add(ntg_def_scene* scene, ntg_object* object)
     scene->__map = head;
 }
 
-static struct object_data* scene_map_get_(ntg_def_scene* scene, ntg_object* object)
+static struct object_data* scene_map_get(ntg_def_scene* scene, ntg_object* object)
 {
     struct object_data_hh* head = (struct object_data_hh*)scene->__map;
 
@@ -211,37 +215,36 @@ static void measure1_fn(ntg_object* object, void* _layout_data)
     ntg_def_scene* scene = layout_data->scene; 
     sarena* arena = layout_data->arena; 
     // ntg_scene* _scene = (ntg_scene*)scene;
-    struct object_data* object_data = scene_map_get_(scene, object);
+    struct object_data* object_data = scene_map_get(scene, object);
 
     if(!object_data->measure1) return;
 
-    ntg_object* parent = ntg_object_get_parent_(object, true);
+    ntg_object* parent = object->_parent;
     if(parent == NULL)
     {
         object_data->measure1 = false;
+        object_data->old_hmeasure = (struct ntg_object_measure) {0};
         return;
     }
-    struct object_data* parent_data = scene_map_get_(scene, parent);
+    struct object_data* parent_data = scene_map_get(scene, parent);
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M1 | %p", object);
 
-    struct ntg_object_measure result = ntg_object_measure(object,
-            NTG_ORIENT_H, NTG_SIZE_MAX, arena);
+    ntg_object_measure(object, NTG_ORIENT_H, NTG_SIZE_MAX, arena);
 
-    struct ntg_object_measure old_measure = ntg_object_get_measure(object,
-            NTG_ORIENT_H, NTG_OBJECT_SELF);
+    struct ntg_object_measure new_measure;
+    new_measure = ntg_object_get_measure(object, NTG_ORIENT_H);
 
-    if((old_measure.min_size != result.min_size) ||
-            (old_measure.natural_size != result.natural_size) ||
-            (old_measure.max_size != result.max_size) ||
-            (old_measure.grow != result.grow))
+    struct ntg_object_measure old_measure;
+    old_measure = object_data->old_hmeasure;
+
+    if(!(ntg_object_measure_are_equal(old_measure, new_measure)))
     {
         parent_data->measure1 = true;
         parent_data->measure2 = true;
         parent_data->constrain1 = true;
         parent_data->constrain2 = true;
-
-        ntg_object_set_measure(object, result, NTG_ORIENT_H, NTG_OBJECT_SELF);
+        object_data->old_hmeasure = new_measure;
     }
 
     object_data->measure1 = false;
@@ -253,13 +256,12 @@ static void constrain1_fn(ntg_object* object, void* _layout_data)
     ntg_def_scene* scene = layout_data->scene; 
     sarena* arena = layout_data->arena; 
     ntg_scene* _scene = (ntg_scene*)scene;
-    struct object_data* object_data = scene_map_get_(scene, object);
-    const ntg_object_vec* children = ntg_object_get_children(object);
-    size_t child_count = children->size;
+    struct object_data* object_data = scene_map_get(scene, object);
+    const ntg_object_vec* children = object->_children;
 
     if(!object_data->constrain1) return;
 
-    if(child_count == 0)
+    if(children->size == 0)
     {
         object_data->constrain1 = false;
         return;
@@ -267,31 +269,29 @@ static void constrain1_fn(ntg_object* object, void* _layout_data)
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C1 | %p", object);
 
-    ntg_object_size_map* _sizes = ntg_object_size_map_new(child_count, arena);
-    size_t size = ntg_object_get_size(object, NTG_OBJECT_SELF).x;
-    ntg_object_constrain(object, NTG_ORIENT_H, size, _sizes, arena);
+    ntg_object_constrain(object, NTG_ORIENT_H, size, arena);
 
     size_t i;
     ntg_object* it_child;
-    struct object_data* it_object_data;
+    struct object_data* it_child_data;
     struct ntg_xy it_old_size;
     size_t it_size;
-    for(i = 0; i < child_count; i++)
+    for(i = 0; i < children->size; i++)
     {
         it_child = children->data[i];
-        it_object_data = scene_map_get_(scene, it_child);
-        it_old_size = ntg_object_get_size(it_child, NTG_OBJECT_SELF);
-        it_size = ntg_object_size_map_get(_sizes, it_child, NTG_OBJECT_SELF);
+        it_child_data = scene_map_get(scene, it_child);
+        it_old_size = it_child_data.old_size.x;
+        it_size = it_child->_size.x;
 
-        if(it_old_size.x != it_size)
+        if(it_old_size != it_size)
         {
-            ntg_object_set_size(it_child, ntg_xy(it_size, it_old_size.y), NTG_OBJECT_SELF);
-            it_object_data->constrain1 = true;
-            it_object_data->measure2 = true;
-            it_object_data->constrain2 = true;
-            it_object_data->arrange = true;
-            it_object_data->draw = true;
+            it_child_data->constrain1 = true;
+            it_child_data->measure2 = true;
+            it_child_data->constrain2 = true;
+            it_child_data->arrange = true;
+            it_child_data->draw = true;
             object_data->arrange = true;
+            it_child_data->old_size = it_size;
         }
     }
 
@@ -304,35 +304,34 @@ static void measure2_fn(ntg_object* object, void* _layout_data)
     ntg_def_scene* scene = layout_data->scene; 
     sarena* arena = layout_data->arena; 
     ntg_scene* _scene = (ntg_scene*)scene;
-    struct object_data* object_data = scene_map_get_(scene, object);
+    struct object_data* object_data = scene_map_get(scene, object);
 
     if(!object_data->measure2) return;
 
-    ntg_object* parent = ntg_object_get_parent_(object, true);
+    ntg_object* parent = object->_parent;
     if(parent == NULL)
     {
         object_data->measure2 = false;
+        object_data->old_vmeasure = (struct ntg_object_measure) {0};
         return;
     }
-    struct object_data* parent_data = scene_map_get_(scene, parent);
+    struct object_data* parent_data = scene_map_get(scene, parent);
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M2 | %p", object);
 
-    size_t size = ntg_object_get_size(object, NTG_OBJECT_SELF).x;
-    struct ntg_object_measure result = ntg_object_measure(object, NTG_ORIENT_V, size, arena);
+    ntg_object_measure(object, NTG_ORIENT_V, object->_size.x, arena);
 
-    struct ntg_object_measure old_measure = ntg_object_get_measure(object,
-            NTG_ORIENT_V, NTG_OBJECT_SELF);
+    struct ntg_object_measure new_measure;
+    new_measure = ntg_object_get_measure(object, NTG_ORIENT_V);
 
-    if((old_measure.min_size != result.min_size) ||
-            (old_measure.natural_size != result.natural_size) ||
-            (old_measure.max_size != result.max_size) ||
-            (old_measure.grow != result.grow))
+    struct ntg_object_measure old_measure;
+    old_measure = object_data->old_hmeasure;
+
+    if(!(ntg_object_measure_are_equal(old_measure, new_measure)))
     {
         parent_data->measure2 = true;
         parent_data->constrain2 = true;
-
-        ntg_object_set_measure(object, result, NTG_ORIENT_V, NTG_OBJECT_SELF);
+        object_data->old_vmeasure = new_measure;
     }
 
     object_data->measure2 = false;
@@ -344,13 +343,12 @@ static void constrain2_fn(ntg_object* object, void* _layout_data)
     ntg_def_scene* scene = layout_data->scene; 
     sarena* arena = layout_data->arena; 
     ntg_scene* _scene = (ntg_scene*)scene;
-    struct object_data* object_data = scene_map_get_(scene, object);
-    const ntg_object_vec* children = ntg_object_get_children(object);
-    size_t child_count = children->size;
+    struct object_data* object_data = scene_map_get(scene, object);
+    const ntg_object_vec* children = object->_children;
 
     if(!object_data->constrain2) return;
 
-    if(child_count == 0)
+    if(children->size == 0)
     {
         object_data->constrain2 = false;
         return;
@@ -358,29 +356,27 @@ static void constrain2_fn(ntg_object* object, void* _layout_data)
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C2 | %p", object);
 
-    ntg_object_size_map* _sizes = ntg_object_size_map_new(child_count, arena);
-    size_t size = ntg_object_get_size(object, NTG_OBJECT_SELF).y;
-    ntg_object_constrain(object, NTG_ORIENT_V, size, _sizes, arena);
+    ntg_object_constrain(object, NTG_ORIENT_V, object->_size.y, arena);
 
     size_t i;
     ntg_object* it_child;
-    struct object_data* it_object_data;
+    struct object_data* it_child_data;
     struct ntg_xy it_old_size;
     size_t it_size;
-    for(i = 0; i < child_count; i++)
+    for(i = 0; i < children->size; i++)
     {
         it_child = children->data[i];
-        it_object_data = scene_map_get_(scene, it_child);
-        it_old_size = ntg_object_get_size(it_child, NTG_OBJECT_SELF);
-        it_size = ntg_object_size_map_get(_sizes, it_child, NTG_OBJECT_SELF);
+        it_child_data = scene_map_get(scene, it_child);
+        it_old_size = it_child_data.old_size.y;
+        it_size = it_child->_size.y;
 
-        if(it_old_size.y != it_size)
+        if(it_old_size != it_size)
         {
-            ntg_object_set_size(it_child, ntg_xy(it_old_size.x, it_size), NTG_OBJECT_SELF);
-            it_object_data->constrain2 = true;
-            it_object_data->arrange = true;
-            it_object_data->draw = true;
+            it_child_data->constrain2 = true;
+            it_child_data->arrange = true;
+            it_child_data->draw = true;
             object_data->arrange = true;
+            it_child_data->old_size.y = it_size;
         }
     }
 
@@ -393,13 +389,12 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     ntg_def_scene* scene = layout_data->scene; 
     sarena* arena = layout_data->arena; 
     ntg_scene* _scene = (ntg_scene*)scene;
-    struct object_data* object_data = scene_map_get_(scene, object);
-    const ntg_object_vec* children = ntg_object_get_children(object);
-    size_t child_count = children->size;
+    struct object_data* object_data = scene_map_get(scene, object);
+    const ntg_object_vec* children = object->_children;
 
     if(!object_data->arrange) return;
 
-    if(child_count == 0)
+    if(children->size == 0)
     {
         object_data->arrange = false;
         return;
@@ -407,20 +402,20 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | A | %p", object);
 
-    ntg_object_xy_map* _positions = ntg_object_xy_map_new(child_count, arena);
-
-    struct ntg_xy size = ntg_object_get_size(object, NTG_OBJECT_SELF);
-    ntg_object_arrange(object, size, _positions, arena);
+    ntg_object_arrange(object, object->_size, arena);
 
     size_t i;
     ntg_object* it_child;
-    struct ntg_xy it_pos;
-    for(i = 0; i < child_count; i++)
+    struct object_data* it_child_data;
+    struct ntg_xy it_old_pos, it_pos;
+    for(i = 0; i < children->size; i++)
     {
         it_child = children->data[i];
+        it_child_data = scene_map_get(scene, it_child);
+        it_old_pos = it_child_data->old_pos;
+        it_pos = it_child->_position;
 
-        it_pos = ntg_object_xy_map_get(_positions, it_child, NTG_OBJECT_SELF);
-        ntg_object_set_position(it_child, it_pos, NTG_OBJECT_SELF);
+        it_child_data->old_pos = it_pos;
     }
 
     object_data->arrange = false;
@@ -432,20 +427,13 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     ntg_def_scene* scene = layout_data->scene; 
     sarena* arena = layout_data->arena; 
     ntg_scene* _scene = (ntg_scene*)scene;
-    struct object_data* object_data = scene_map_get_(scene, object);
+    struct object_data* object_data = scene_map_get(scene, object);
 
     if(!object_data->draw) return;
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | D | %p", object);
 
-    struct ntg_xy size = ntg_object_get_size(object, NTG_OBJECT_SELF);
-
-    ntg_temp_object_drawing _temp_drawing;
-    ntg_temp_object_drawing_init(&_temp_drawing, size, arena);
-
-    ntg_object_draw(object, size, &_temp_drawing, arena);
-
-    ntg_object_update_drawing(object, &_temp_drawing, layout_data->size, NTG_OBJECT_SELF);
+    ntg_object_draw(object, arena);
 
     object_data->draw = false;
 }
@@ -481,15 +469,13 @@ static void observe_fn(ntg_entity* entity, struct ntg_event event)
 
         ntg_object* source_object = (ntg_object*)event.source;
 
-        struct object_data* data = scene_map_get_(scene, source_object);
+        struct object_data* data = scene_map_get(scene, source_object);
 
-        (*data) = (struct object_data) {
-            .measure1 = true,
-            .constrain1 = true,
-            .measure2 = true,
-            .constrain2 = true,
-            .arrange = true,
-            .draw = true
-        };
+        data->measure1 = true,
+        data->constrain1 = true,
+        data->measure2 = true,
+        data->constrain2 = true,
+        data->arrange = true,
+        data->draw = true
     }
 }

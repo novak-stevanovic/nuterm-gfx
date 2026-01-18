@@ -28,19 +28,16 @@ void ntg_object_map_init(ntg_object_map* ctx, size_t capacity,
     }
 }
 
-void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* data,
-        bool decor)
+void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* data)
 {
     assert(ctx != NULL);
     assert(object != NULL);
     assert(ctx->__keys != NULL);
 
-    const ntg_object* target = decor ? object : ntg_object_get_group_root(object);
-
     size_t i;
     for(i = 0; i < ctx->__count; i++)
     {
-        if(ctx->__keys[i] == target) break;
+        if(ctx->__keys[i] == object) break;
     }
 
     if(i < ctx->__count)
@@ -51,7 +48,7 @@ void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* dat
     {
         assert(ctx->__count < ctx->__capacity);
 
-        ctx->__keys[ctx->__count] = target;
+        ctx->__keys[ctx->__count] = object;
 
         memcpy(ctx->__values + (ctx->__data_size * ctx->__count),
                 data,
@@ -62,19 +59,16 @@ void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* dat
 
 }
 
-void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object,
-        bool decor)
+void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object)
 {
     assert(ctx != NULL);
     assert(object != NULL);
     assert(ctx->__keys != NULL);
 
-    const ntg_object* target = decor ? object : ntg_object_get_group_root(object);
-
     size_t i;
     for(i = 0; i < ctx->__count; i++)
     {
-        if(ctx->__keys[i] == target)
+        if(ctx->__keys[i] == object)
             return (ctx->__values + (i * ctx->__data_size));
     }
 

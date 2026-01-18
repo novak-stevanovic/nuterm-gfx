@@ -66,7 +66,7 @@ void ntg_def_border_set_style(ntg_def_border* border, struct ntg_def_border_styl
 
     border->_style = style;
 
-    _ntg_object_mark_change((ntg_object*)border);
+    ntg_entity_raise_event((ntg_entity*)border, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* ------------------------------------------------------ */

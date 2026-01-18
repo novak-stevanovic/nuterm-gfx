@@ -1,7 +1,7 @@
 #ifndef NTG_DEF_BORDER_H
 #define NTG_DEF_BORDER_H
 
-#include "core/object/ntg_padding.h"
+#include "core/object/ntg_decorator.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

@@ -3,86 +3,13 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child);
-static void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child);
-
-/* ---------------------------------------------------------------- */
-/* IDENTITY */
-/* ---------------------------------------------------------------- */
-
-bool ntg_object_is_widget(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    return ntg_entity_instance_of(((const ntg_entity*)object)->_type, &NTG_ENTITY_WIDGET);
-}
-
-bool ntg_object_is_decorator(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    return ntg_entity_instance_of(((const ntg_entity*)object)->_type, &NTG_ENTITY_DECORATOR);
-}
-
-bool ntg_object_is_border(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    return ntg_entity_instance_of(((const ntg_entity*)object)->_type, &NTG_ENTITY_BORDER);
-}
-
-bool ntg_object_is_padding(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    return ntg_entity_instance_of(((const ntg_entity*)object)->_type, &NTG_ENTITY_PADDING);
-}
+static void set_scene(ntg_object* object, ntg_scene* scene);
 
 /* ---------------------------------------------------------------- */
 /* OBJECT TREE */
 /* ---------------------------------------------------------------- */
 
-ntg_scene* ntg_object_get_scene(ntg_object* object)
-{
-    assert(object != NULL);
-
-    return object->__scene;
-}
-
-const ntg_object* ntg_object_get_group_root(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    const ntg_object* it_obj = object;
-    while(true)
-    {
-        if((it_obj->__parent == NULL) || ntg_object_is_widget(it_obj->__parent))
-        {
-            return it_obj;
-        }
-
-        it_obj = it_obj->__parent;
-    }
-}
-
-ntg_object* ntg_object_get_group_root_(ntg_object* object)
-{
-    assert(object != NULL);
-
-    ntg_object* it_obj = object;
-
-    while(true)
-    {
-        if((it_obj->__parent == NULL) || ntg_object_is_widget(it_obj->__parent))
-        {
-            return it_obj;
-        }
-
-        it_obj = it_obj->__parent;
-    }
-}
-
-const ntg_object* ntg_object_get_root(const ntg_object* object, bool incl_dcr)
+const ntg_object* ntg_object_get_root(const ntg_object* object)
 {
     assert(object != NULL);
 
@@ -91,7 +18,7 @@ const ntg_object* ntg_object_get_root(const ntg_object* object, bool incl_dcr)
     while(true)
     {
         prev = it_obj;
-        it_obj = ntg_object_get_parent(object, incl_dcr);
+        it_obj = it_obj->_parent;
         
         if(it_obj == NULL) return prev;
     }
@@ -99,78 +26,11 @@ const ntg_object* ntg_object_get_root(const ntg_object* object, bool incl_dcr)
     return NULL;
 }
 
-ntg_object* ntg_object_get_root_(ntg_object* object, bool incl_dcr)
+ntg_object* ntg_object_get_root_(ntg_object* object)
 {
     assert(object != NULL);
 
-    ntg_object* it_obj = object;
-    ntg_object* prev = NULL;
-    while(true)
-    {
-        prev = it_obj;
-        it_obj = ntg_object_get_parent_(object, incl_dcr);
-        
-        if(it_obj == NULL) return prev;
-    }
-
-    return NULL;
-}
-
-const ntg_object* ntg_object_get_parent(const ntg_object* object, bool incl_dcr)
-{
-    assert(object != NULL);
-
-    const ntg_object* group_root;
-    if(incl_dcr)
-        return object->__parent;
-    else
-    {
-         group_root = ntg_object_get_group_root(object);
-         return group_root->__parent;
-    }
-}
-
-ntg_object* ntg_object_get_parent_(ntg_object* object, bool incl_dcr)
-{
-    assert(object != NULL);
-
-    ntg_object* group_root;
-    if(incl_dcr)
-        return object->__parent;
-    else
-    {
-        group_root = ntg_object_get_group_root_(object);
-        return group_root->__parent;
-    }
-}
-
-const ntg_object* ntg_object_get_base_widget(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    const ntg_object* it_obj = object;
-    while(ntg_object_is_decorator(it_obj))
-        it_obj = it_obj->__children.data[0];
-
-    return it_obj;
-}
-
-ntg_object* ntg_object_get_base_widget_(ntg_object* object)
-{
-    assert(object != NULL);
-
-    ntg_object* it_obj = object;
-    while(ntg_object_is_decorator(it_obj))
-        it_obj = it_obj->__children.data[0];
-
-    return it_obj;
-}
-
-const ntg_object_vec* ntg_object_get_children(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    return &object->__children;
+    return (ntg_object*)ntg_object_get_root(object);
 }
 
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor)
@@ -183,7 +43,7 @@ bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor
     {
         if(it_object == ancestor) return true;
 
-        it_object = it_object->__parent;
+        it_object = it_object->_parent;
     }
     
     return false;
@@ -198,233 +58,20 @@ bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descen
 }
 
 /* ---------------------------------------------------------------- */
-/* SIZE CONTROL */
-/* ---------------------------------------------------------------- */
-
-void ntg_object_set_user_min_size(ntg_object* object, struct ntg_xy size)
-{
-    assert(object != NULL);
-
-    object->_user_min_size = size;
-
-    _ntg_object_mark_change(object);
-}
-
-void ntg_object_set_user_max_size(ntg_object* object, struct ntg_xy size)
-{
-    assert(object != NULL);
-
-    object->_user_max_size = size;
-
-    _ntg_object_mark_change(object);
-}
-
-void ntg_object_set_user_grow(ntg_object* object, struct ntg_xy grow)
-{
-    assert(object != NULL);
-
-    object->_user_grow = grow;
-
-    _ntg_object_mark_change(object);
-}
-
-/* ---------------------------------------------------------------- */
-/* PADDING & BORDER */
-/* ---------------------------------------------------------------- */
-
-/* Assumes that widget exists in the object group */
-static void separate_object_group(ntg_object* group_root, ntg_object** border,
-        ntg_object** padding, ntg_object** widget)
-{
-    assert(group_root != NULL);
-    assert(border != NULL);
-    assert(padding != NULL);
-    assert(widget != NULL);
-
-    ntg_object* _border;
-    ntg_object* _padding;
-    ntg_object* _widget;
-
-    if(ntg_object_is_border(group_root))
-    {
-        _border = group_root;
-
-        if(!ntg_object_is_widget(group_root->__children.data[0])) // padding
-        {
-            _padding = _border->__children.data[0];
-            _widget = _padding->__children.data[0];
-
-            _ntg_object_rm_child_dcr(_border, _padding);
-            _ntg_object_rm_child_dcr(_padding, _widget);
-        }
-        else // widget
-        {
-            _padding = NULL;
-            _widget = _border->__children.data[0];
-
-            _ntg_object_rm_child_dcr(_border, _widget);
-        }
-    }
-    else if(ntg_object_is_padding(group_root))
-    {
-        _border = NULL;
-        _padding = group_root;
-        _widget = _padding->__children.data[0];
-
-        _ntg_object_rm_child_dcr(_padding, _widget);
-    }
-    else // group_root->__type is widget
-    {
-        _border = NULL;
-        _padding = NULL;
-        _widget = group_root;
-    }
-
-    (*border) = _border;
-    (*padding) = _padding;
-    (*widget) = _widget;
-}
-
-// returns group root
-static ntg_object* join_object_group(ntg_object* border,
-        ntg_object* padding, ntg_object* widget)
-{
-    assert(widget != NULL);
-
-    if(border != NULL)
-    {
-        if(padding != NULL)
-        {
-            _ntg_object_add_child_dcr(border, padding);
-            _ntg_object_add_child_dcr(padding, widget);
-            return border;
-        }
-        else // border == NULL
-        {
-            _ntg_object_add_child_dcr(border, widget);
-            return border;
-        }
-    }
-    else
-    {
-        if(padding != NULL)
-        {
-            _ntg_object_add_child_dcr(padding, widget);
-            return padding;
-        }
-        else // padding == NULL
-        {
-            return widget;
-        }
-    }
-}
-
-const ntg_padding* ntg_object_get_padding(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    const ntg_object* parent = ntg_object_get_parent(object, true);
-    if((parent == NULL) || (!ntg_object_is_padding(parent)))
-        return NULL;
-    else return (ntg_padding*)parent;
-}
-
-ntg_padding* ntg_object_get_padding_(ntg_object* object)
-{
-    assert(object != NULL);
-
-    ntg_object* parent = ntg_object_get_parent_(object, true);
-    if((parent == NULL) || (!ntg_object_is_padding(parent)))
-        return NULL;
-    else return (ntg_padding*)parent;
-}
-
-void ntg_object_set_padding(ntg_object* object, ntg_padding* padding)
-{
-    assert(object != NULL);
-    assert((padding == NULL) || (padding != ntg_object_get_border(object)));
-    if(padding == ntg_object_get_padding(object)) return;
-
-    ntg_object* root = ntg_object_get_group_root_(object);
-
-    ntg_object* root_parent = root->__parent;
-    if(root_parent != NULL)
-        _ntg_object_rm_child_dcr(root_parent, root);
-
-    ntg_object *_border, *_padding, *_widget;
-    separate_object_group(root, &_border, &_padding, &_widget);
-    ntg_object* new_root = join_object_group(_border, (ntg_object*)padding, _widget);
-
-    if(root_parent != NULL)
-        _ntg_object_add_child_dcr(root_parent, new_root);
-
-    struct ntg_event_object_padchng data = {
-        .old = (ntg_padding*)_padding,
-        .new = padding
-    };
-    ntg_entity_raise_event((ntg_entity*)object, NULL,
-            NTG_EVENT_OBJECT_PADCHNG, &data);
-}
-
-const ntg_padding* ntg_object_get_border(const ntg_object* object)
-{
-    assert(object != NULL);
-
-    const ntg_object* root = ntg_object_get_group_root(object);
-    if(!ntg_object_is_border(root)) return NULL;
-    else return (ntg_padding*)root;
-}
-
-ntg_padding* ntg_object_get_border_(ntg_object* object)
-{
-    assert(object != NULL);
-
-    ntg_object* root = ntg_object_get_group_root_(object);
-    if(!ntg_object_is_border(root)) return NULL;
-    else return (ntg_padding*)root;
-}
-
-void ntg_object_set_border(ntg_object* object, ntg_padding* border)
-{
-    assert(object != NULL);
-    assert((border == NULL) || (border != ntg_object_get_padding(object)));
-    if(border == ntg_object_get_border(object)) return;
-
-    ntg_object* root = ntg_object_get_group_root_(object);
-
-    ntg_object* root_parent = root->__parent;
-    if(root_parent != NULL)
-        _ntg_object_rm_child_dcr(root_parent, root);
-
-    ntg_object *_border, *_padding, *_widget;
-    separate_object_group(root, &_border, &_padding, &_widget);
-    ntg_object* new_root = join_object_group((ntg_object*)border, _padding, _widget);
-
-    if(root_parent != NULL)
-        _ntg_object_add_child_dcr(root_parent, new_root);
-
-    struct ntg_event_object_bordchng data = {
-        .old = (ntg_padding*)_border,
-        .new = border
-    };
-    ntg_entity_raise_event((ntg_entity*)object, NULL,
-            NTG_EVENT_OBJECT_BORDCHNG, &data);
-}
-
-void ntg_object_set_background(ntg_object* object, struct ntg_vcell background)
-{
-    assert(object != NULL);
-
-    object->_background = background;
-    _ntg_object_mark_change(object);
-}
-
-/* ---------------------------------------------------------------- */
 /* LAYOUT */
 /* ---------------------------------------------------------------- */
 
-struct ntg_object_measure ntg_object_measure(
-        const ntg_object* object,
+void ntg_object_root_layout(ntg_object* root, struct ntg_xy size)
+{
+    assert(root != NULL);
+    assert(root->_parent == NULL);
+
+    root->_position = ntg_xy(0, 0);
+    root->_size = size;
+}
+
+void ntg_object_measure(
+        ntg_object* object,
         ntg_orientation orientation,
         size_t for_size,
         sarena* arena)
@@ -432,224 +79,121 @@ struct ntg_object_measure ntg_object_measure(
     assert(object != NULL);
     assert(arena != NULL);
 
-    size_t user_grow = (orientation == NTG_ORIENT_H) ?
-        object->_user_grow.x : object->_user_grow.y;
+    struct ntg_object_layout_ops layout_ops = object->__layout_ops;
 
-    if(for_size == 0) return (struct ntg_object_measure) {
-        .min_size = 0,
-        .natural_size = 0,
-        .max_size = 0,
-        .grow = user_grow
-    };
-
-    struct ntg_object_measure result;
+    struct ntg_object_measure measure = {0};
     if(object->__layout_ops.measure_fn != NULL)
-
     {
-        result = object->__layout_ops.measure_fn(object, object->layout_data,
-                orientation, for_size, arena);
+        measure = layout_ops.measure_fn(object,
+            object->__layout_data, orientation, arena);
     }
-    else result = (struct ntg_object_measure) {0};
 
-    size_t user_min_size = (orientation == NTG_ORIENT_H) ?
-        object->_user_min_size.x :
-        object->_user_min_size.y;
-    size_t user_max_size = (orientation == NTG_ORIENT_H) ?
-        object->_user_max_size.x :
-        object->_user_max_size.y;
-
-    user_min_size = _min2_size(user_min_size, user_max_size);
-
-    if(user_max_size < result.min_size)
-        result.min_size = user_max_size;
-    else
-        result.min_size = _max2_size(result.min_size, user_min_size);
-
-    if(user_min_size > result.max_size)
-        result.max_size = user_min_size;
-    else
-        result.max_size = _min2_size(result.max_size, user_max_size);
-
-    result.natural_size = _clamp_size(result.min_size,
-            result.natural_size, result.max_size);
-
-    result.grow = user_grow;
-
-    return result;
+    if(orientation == NTG_ORIENT_H)
+    {
+        object->_min_size.x = measure.min_size;
+        object->_nat_size.x = measure.nat_size;
+        object->_max_size.x = measure.max_size;
+        object->_grow.x = measure.grow;
+    }
+    else // NTG_ORIENT_V
+    {
+        object->_min_size.y = measure.min_size;
+        object->_nat_size.y = measure.nat_size;
+        object->_max_size.y = measure.max_size;
+        object->_grow.y = measure.grow;
+    }
 }
 
 void ntg_object_constrain(
-        const ntg_object* object,
+        ntg_object* object,
         ntg_orientation orientation,
         size_t size,
-        ntg_object_size_map* out_sizes,
         sarena* arena)
 {
     assert(object != NULL);
-    assert(out_sizes != NULL);
     assert(arena != NULL);
 
-    /* Check if to call wrapped constrain fn */
-    if((size == 0) || (object->__layout_ops.constrain_fn == NULL))
-    {
-        const ntg_object_vec* children = &object->__children;
+    struct ntg_object_layout_ops layout_ops = object->__layout_ops;
+    ntg_object_vec* children = &object->_children;
 
+    if((size == 0) || (layout_ops.constrain_fn == NULL))
+    {
         size_t i;
         for(i = 0; i < children->size; i++)
-            ntg_object_size_map_set(out_sizes, children->data[i], 0, true);
+        {
+            if(orientation == NTG_ORIENT_H)
+                children->data[i]._size.x = 0;
+            else
+                children->data[i]._size.y = 0;
+        }
     }
     else
     {
-        object->__layout_ops.constrain_fn(object, object->layout_data,
-                orientation, size, out_sizes, arena);
+        ntg_object_size_map* _sizes = ntg_object_size_map_new(children->size, arena);
+        layout_ops.constrain_fn(object, object->__layout_data,
+                orientation, size, _sizes, arena);
     }
 }
 
 void ntg_object_arrange(
-        const ntg_object* object,
+        ntg_object* object,
         struct ntg_xy size,
-        ntg_object_xy_map* out_positions,
         sarena* arena)
 {
     assert(object != NULL);
-    assert(out_positions != NULL);
     assert(arena != NULL);
 
-    if(ntg_xy_size_is_zero(size) || (object->__layout_ops.arrange_fn == NULL))
-    {
-        const ntg_object_vec* children = &object->__children;
+    struct ntg_object_layout_ops layout_ops = object->__layout_ops;
+    ntg_object_vec* children = &object->_children;
 
+    if(ntg_xy_size_is_zero(size) || (layout_ops.arrange_fn == NULL))
+    {
         size_t i;
         for(i = 0; i < children->size; i++)
-            ntg_object_xy_map_set(out_positions, children->data[i], ntg_xy(0, 0), true);
+            children->data[i]._position = ntg_xy(0, 0);
     }
     else
     {
-        object->__layout_ops.arrange_fn(object, object->layout_data,
-                size, out_positions, arena);
+        ntg_object_xy_map* _positions = ntg_object_xy_map_new(children->size, arena);
+        layout_ops.arrange_fn(object, object->__layout_data, size, _positions, arena);
     }
 }
 
 void ntg_object_draw(
         const ntg_object* object,
-        struct ntg_xy size,
-        ntg_temp_object_drawing* out_drawing,
         sarena* arena)
 {
     assert(object != NULL);
-    assert(out_drawing != NULL);
     assert(arena != NULL);
+
+    struct ntg_xy size = object->_size;
+
     if(ntg_xy_size_is_zero(size)) return;
 
+    struct ntg_object_layout_ops layout_ops = object->__layout_ops;
+
+    ntg_temp_object_drawing _drawing;
+    ntg_temp_object_drawing_init(&_drawing, size, arena);
+
+    if(layout_ops.draw_fn != NULL)
+        layout_ops.draw_fn(object, object->__layout_data, size, &_drawing, arena);
+
+    ntg_object_drawing_set_size(&object->_drawing, size);
     size_t i, j;
     struct ntg_vcell* it_cell;
+    struct ntg_vcell* it_temp_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_cell = ntg_temp_object_drawing_at_(out_drawing, ntg_xy(j, i));
-            (*it_cell) = object->_background;
+            it_cell = ntg_object_drawing_at_(&object->_drawing, ntg_xy(j, i));
+            it_temp_cell = ntg_temp_object_drawing_at_(&_drawing, ntg_xy(j, i));
+            (*it_cell) = (*it_temp_cell);
         }
     }
-
-    if(object->__layout_ops.draw_fn != NULL)
-        object->__layout_ops.draw_fn(object, object->layout_data, size, out_drawing, arena);
 }
 
-struct ntg_object_measure ntg_object_get_measure(
-        const ntg_object* object,
-        ntg_orientation orientation,
-        ntg_object_target mode)
-{
-    assert(object != NULL);
-
-    const ntg_object* s = (mode == NTG_OBJECT_GROUP_ROOT) ?
-        ntg_object_get_group_root(object) :
-        object;
-
-    if(orientation == NTG_ORIENT_H)
-    {
-        return (struct ntg_object_measure) {
-            .min_size = s->__min_size.x,
-            .natural_size = s->__nat_size.x,
-            .max_size = s->__max_size.x,
-            .grow = s->__grow.x
-        };
-    }
-    else
-    {
-        return (struct ntg_object_measure) {
-            .min_size = s->__min_size.y,
-            .natural_size = s->__nat_size.y,
-            .max_size = s->__max_size.y,
-            .grow = s->__grow.y
-        };
-    }
-}
-
-void ntg_object_set_measure(
-        ntg_object* object,
-        struct ntg_object_measure measure,
-        ntg_orientation orientation,
-        ntg_object_target mode)
-{
-    ntg_object* s = (mode == NTG_OBJECT_GROUP_ROOT) ?
-        ntg_object_get_group_root_(object) :
-        object;
-
-    if(orientation == NTG_ORIENT_H)
-    {
-        s->__min_size.x = measure.min_size;
-        s->__nat_size.x = measure.natural_size;
-        s->__max_size.x = measure.max_size;
-        s->__grow.x = measure.grow;
-    }
-    else
-    {
-        s->__min_size.y = measure.min_size;
-        s->__nat_size.y = measure.natural_size;
-        s->__max_size.y = measure.max_size;
-        s->__grow.y = measure.grow;
-    }
-}
-
-struct ntg_xy ntg_object_get_size(const ntg_object* object, ntg_object_target mode)
-{
-    assert(object != NULL);
-
-    const ntg_object* s = (mode == NTG_OBJECT_GROUP_ROOT) ?
-        ntg_object_get_group_root(object) :
-        object;
-
-    return s->__size;
-}
-
-void ntg_object_set_size(ntg_object* object, struct ntg_xy size,
-        ntg_object_target mode)
-{
-    assert(object != NULL);
-
-    ntg_object* s = (mode == NTG_OBJECT_GROUP_ROOT) ?
-        ntg_object_get_group_root_(object) :
-        object;
-
-    s->__size = size;
-}
-
-struct ntg_xy ntg_object_get_position(const ntg_object* object,
-        ntg_object_target mode)
-{
-    assert(object != NULL);
-
-    const ntg_object* s = (mode == NTG_OBJECT_GROUP_ROOT) ?
-        ntg_object_get_group_root(object) :
-        object;
-
-    return s->__position;
-}
-
-struct ntg_xy ntg_object_get_position_abs(const ntg_object* object,
-        ntg_object_target mode)
+struct ntg_xy ntg_object_get_position_abs(const ntg_object* object)
 {
     assert(object != NULL);
 
@@ -668,238 +212,171 @@ struct ntg_xy ntg_object_get_position_abs(const ntg_object* object,
     return pos;
 }
 
-void ntg_object_set_position(ntg_object* object, struct ntg_xy position,
-        ntg_object_target mode)
-{
-    assert(object != NULL);
-
-    ntg_object* s = (mode == NTG_OBJECT_GROUP_ROOT) ?
-        ntg_object_get_group_root_(object) :
-        object;
-
-    s->__position = position;
-}
-
-const ntg_object_drawing* ntg_object_get_drawing(const ntg_object* object,
-        ntg_object_target mode)
-{
-    assert(object != NULL);
-
-    const ntg_object* s = (mode == NTG_OBJECT_GROUP_ROOT) ?
-        ntg_object_get_group_root(object) :
-        object;
-
-    return &(s->__drawing);
-}
-
-void ntg_object_update_drawing(ntg_object* object,
-        const ntg_temp_object_drawing* drawing,
-        struct ntg_xy size_cap,
-        ntg_object_target mode)
-{
-    assert(object != NULL);
-    assert(drawing != NULL);
-
-    ntg_object* s = (mode == NTG_OBJECT_GROUP_ROOT) ?
-        ntg_object_get_group_root_(object) :
-        object;
-
-    ntg_object_drawing_set_size(&s->__drawing, drawing->_size, size_cap);
-
-    size_t i, j;
-    struct ntg_vcell *it_cell;
-    const struct ntg_vcell *it_temp_cell;
-    for(i = 0; i < drawing->_size.y; i++)
-    {
-        for(j = 0; j < drawing->_size.x; j++)
-        {
-            it_cell = ntg_object_drawing_at_(&s->__drawing, ntg_xy(j, i));
-            it_temp_cell = ntg_temp_object_drawing_at(drawing, ntg_xy(j, i));
-            (*it_cell) = (*it_temp_cell);
-        }
-    }
-}
-
-/* ------------------------------------------------------ */
-/* EVENT */
-/* ------------------------------------------------------ */
-
-bool ntg_object_feed_event(
-        ntg_object* object,
-        struct nt_event event,
-        ntg_loop_ctx* ctx)
-{
-    assert(object != NULL);
-
-    if(object->__event_fn != NULL)
-        return object->__event_fn(object, event, ctx);
-    else
-        return false;
-}
-
-void ntg_object_set_event_fn(
-        ntg_object* object,
-        ntg_object_event_fn fn)
-{
-    assert(object != NULL);
-
-    object->__event_fn = fn;
-}
-
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-static void _init_default_values(ntg_object* object);
+static void init_default_values(ntg_object* object);
 
-void _ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops)
+void ntg_object_init(ntg_object* object,
+        struct ntg_object_layout_ops layout_ops,
+        struct ntg_object_hooks hooks)
 {
     assert(object != NULL);
 
-    _init_default_values(object);
+    init_default_values(object);
 
-    ntg_object_vec_init(&object->__children, 5, NULL);
-    object->_background = ntg_vcell_default();
-    object->__scene = NULL;
+    ntg_object_vec_init(&object->_children, 2, NULL);
+    object->_scene = NULL;
     object->__layout_ops = layout_ops;
-    object->__event_fn = NULL;
+    object->__hooks = hooks;
     ntg_object_drawing_init(&object->__drawing);
 }
 
-static void _init_default_values(ntg_object* object)
+static void init_default_values(ntg_object* object)
 {
-    object->__parent = NULL;
-    object->__children = (ntg_object_vec) {0};
-    object->__scene = NULL;
-
-    object->_user_min_size = ntg_xy(0, 0);
-    object->_user_max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
-    object->_user_grow = ntg_xy(1, 1);
+    object->_parent = NULL;
+    object->_children = (ntg_object_vec) {0};
+    object->_scene = NULL;
 
     object->__layout_ops = (struct ntg_object_layout_ops) {0};
+    object->__hooks = (struct ntg_object_hooks) {0};
+    object->__layout_data = NULL;
 
-    object->__min_size = ntg_xy(0, 0);
-    object->__max_size = ntg_xy(0, 0);
-    object->__nat_size = ntg_xy(0, 0);
-    object->__grow = ntg_xy(0, 0);
-    object->__size = ntg_xy(0, 0);
-    object->__position = ntg_xy(0, 0);
-    object->__grow = ntg_xy(0, 0);
-    object->layout_data = NULL;
+    object->_min_size = ntg_xy(0, 0);
+    object->_max_size = ntg_xy(0, 0);
+    object->_nat_size = ntg_xy(0, 0);
+    object->_size = ntg_xy(0, 0);
+    object->_position = ntg_xy(0, 0);
+    object->__layout_data = NULL;
 }
 
-void _ntg_object_deinit_fn(ntg_entity* entity)
+void ntg_object_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
     ntg_object* object = (ntg_object*)entity;
-    ntg_object_vec_deinit(&object->__children, NULL);
-    ntg_object_drawing_deinit(&object->__drawing);
+    ntg_object_vec_deinit(&object->_children, NULL);
+    ntg_object_drawing_deinit(&object->_drawing);
 
-    _init_default_values(object);
+    init_default_values(object);
 }
 
-void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene)
+// enum ntg_object_addchld_status 
+// ntg_object_validate_add_child(ntg_object* parent, ntg_object* child)
+// {
+//     assert(parent != NULL);
+//     assert(child != NULL);
+//     
+//     if(ntg_object_vec_exists(&parent->_children, child, NULL))
+//         return NTG_OBJECT_ADDCHLD_ALR_CHILD;
+//     else if(child->_parent != NULL)
+//         return NTG_OBJECT_ADDCHLD_HAS_PARENT;
+//     else if(parent == child)
+//         return NTG_OBJECT_ADDCHLD_SELF;
+// 
+//     return NTG_OBJECT_ADDCHLD_SUCCESS;
+// }
+
+void ntg_object_add_child(ntg_object* parent, ntg_object* child)
 {
-    assert(object != NULL);
+    assert(parent != NULL);
+    assert(child != NULL);
+    assert(parent != child);
+    if(child->_parent == parent) return;
 
-    if(object->__scene == scene) return;
+    if(child->_parent != NULL)
+        ntg_object_rm_child(child->_parent, child);
 
-    object->__scene = scene;
+    ntg_object_vec_pushb(parent, child, NULL);
 
-    object->__min_size = ntg_xy(0, 0);
-    object->__nat_size = ntg_xy(0, 0);
-    object->__max_size = ntg_xy(0, 0);
-    object->__grow = ntg_xy(0, 0);
-    object->__size = ntg_xy(0, 0);
-    object->__position = ntg_xy(0, 0);
-    ntg_object_drawing_set_size(&object->__drawing, ntg_xy(0, 0), ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX));
+    child->_parent = parent;
+
+    struct ntg_event_object_chldadd_data data1 = { .child = child };
+    ntg_entity_raise_event((ntg_entity*)parent, NULL,
+            NTG_EVENT_OBJECT_CHLDADD, &data1);
+
+    struct ntg_event_object_prntchng data2 = {
+        .old = NULL,
+        .new = parent
+    };
+    ntg_entity_raise_event((ntg_entity*)child, NULL,
+            NTG_EVENT_OBJECT_PRNTCHNG, &data2);
+
+    if(parent->_scene != NULL)
+        set_scene(child, parent->_scene);
 }
 
-bool _ntg_object_validate_add_child(ntg_object* object, ntg_object* child)
+void ntg_object_rm_child(ntg_object* parent, ntg_object* child)
 {
-    if((object == NULL) || (child == NULL)) return false;
+    assert(parent != NULL);
+    assert(child != NULL);
+    assert(parent != child);
+    assert(child->_parent == parent);
 
-    if(!ntg_object_is_widget(object)) return false;
-    if(!ntg_object_is_widget(child)) return false;
+    ntg_object_vec_rm(parent, child, NULL);
 
-    ntg_object* child_parent = ntg_object_get_parent_(child, false);
-    if(child_parent != NULL) return false;
+    child->_parent = NULL;
 
-    if((child->__scene != NULL) && (child->__scene->_root == child))
-        return false;
+    if(parent->__hooks.rm_child_fn != NULL)
+    {
+        parent->__hooks.rm_child_fn(parent, child);
+    }
 
-    return true;
-}
+    struct ntg_event_object_chldrm_data data1 = { .child = child };
+    ntg_entity_raise_event((ntg_entity*)parent, NULL,
+            NTG_EVENT_OBJECT_CHLDRM, &data1);
 
-void _ntg_object_add_child(ntg_object* object, ntg_object* child)
-{
-    ntg_object* child_root = ntg_object_get_group_root_(child);
+    struct ntg_event_object_parent_change data2 = {
+        .old = parent,
+        .new = NULL
+    };
+    ntg_entity_raise_event((ntg_entity*)child, NULL,
+            NTG_EVENT_OBJECT_PRNTCHNG, &data2);
 
-    _ntg_object_add_child_dcr(object, child_root);
-
-    struct ntg_event_object_chldadd_data data = { .child = child };
-    ntg_entity_raise_event((ntg_entity*)object, NULL,
-            NTG_EVENT_OBJECT_CHLDADD, &data);
-}
-
-void _ntg_object_rm_child(ntg_object* object, ntg_object* child)
-{
-    ntg_object* child_root = ntg_object_get_group_root_(child);
-    assert(ntg_object_vec_exists(&object->__children, child_root, NULL));
-
-    _ntg_object_rm_child_dcr(object, child_root);
-
-    child->__parent = object;
-
-    struct ntg_event_object_chldrm_data data = { .child = child };
-    ntg_entity_raise_event((ntg_entity*)object, NULL,
-            NTG_EVENT_OBJECT_CHLDRM, &data);
-}
-
-void _ntg_object_mark_change(ntg_object* object)
-{
-    ntg_entity_raise_event((ntg_entity*)object, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    if(child->_scene != NULL)
+        set_scene(child, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
 
-static void _ntg_object_add_child_dcr(ntg_object* object, ntg_object* child)
+static void set_scene(ntg_object* object, ntg_scene* scene)
 {
-    assert(object != NULL);
-    assert(child != NULL);
+    ntg_scene* scene = (ntg_scene*)_scene;
+    object->_scene = scene;
 
-    ntg_object* child_parent = ntg_object_get_parent_(child, true);
-    assert(child_parent == NULL);
+    struct ntg_object_layout_ops layout_ops = object->__layout_ops;
+    if(scene != NULL)
+    {
+        object->__layout_data = layout_ops.init_fn(object);
+    }
+    else
+    {
+        layout_ops.deinit_fn(object->__layout_data, object);
+        object->__layout_data = NULL;
+    }
 
-    ntg_object_vec_pushb(&object->__children, child, NULL);
-
-    child->__parent = object;
-
-    struct ntg_event_object_chldadd_dcr_data data = { .child = child };
+    struct ntg_event_object_scnchng data = {
+        .old = object->_scene,
+        .new = scene
+    };
     ntg_entity_raise_event((ntg_entity*)object, NULL,
-            NTG_EVENT_OBJECT_CHLDADD_DCR, &data);
-
-    _ntg_object_mark_change(object);
+            NTG_EVENT_OBJECT_SCNCHNG, &data);
 }
 
-static void _ntg_object_rm_child_dcr(ntg_object* object, ntg_object* child)
+static void set_scene_fn(ntg_object* object, void* _scene)
 {
-    assert(object != NULL);
-    assert(child != NULL);
+    set_scene(object, (ntg_scene*)_scene);
+}
 
-    ntg_object* child_parent = ntg_object_get_parent_(child, true);
-    assert(child_parent != NULL);
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(set_scene_tree, set_scene_fn);
 
-    ntg_object_vec_rm(&object->__children, child, NULL);
+void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene)
+{
+    assert(root != NULL);
+    assert(root->_parent == NULL);
 
-    child->__parent = NULL;
-
-    struct ntg_event_object_chldrm_dcr_data data = { .child = child };
-    ntg_entity_raise_event((ntg_entity*)object, NULL,
-            NTG_EVENT_OBJECT_CHLDRM_DCR, &data);
-
-    _ntg_object_mark_change(object);
+    set_scene_tree(root, scene);
 }

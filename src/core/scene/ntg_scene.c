@@ -4,9 +4,12 @@
 
 static void on_object_register(ntg_scene* scene, ntg_object* object);
 static void on_object_unregister(ntg_scene* scene, ntg_object* object);
-static void inline on_object_register_fn(ntg_object* object, void* _scene);
-static void inline on_object_unregister_fn(ntg_object* object, void* _scene);
+static void on_object_register_fn(ntg_object* object, void* _scene);
+static void on_object_unregister_fn(ntg_object* object, void* _scene);
 static void object_observe_fn(ntg_entity* scene, struct ntg_event event);
+
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_register_fn_tree, on_object_register_fn)
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_unregister_fn_tree, on_object_unregister_fn)
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -16,43 +19,44 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
 {
     assert(scene != NULL);
 
-    if(scene->_root != NULL)
-        scene->__layout_fn(scene, size, arena);
+    scene->__layout_fn(scene, size, arena);
 }
 
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_register_fn_tree, on_object_register_fn)
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_unregister_fn_tree, on_object_unregister_fn)
-
-void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
+void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
 {
     assert(scene != NULL);
     if(scene->_root == root) return;
-    if(root != NULL) assert(ntg_object_get_parent(root, false) == NULL);
-    assert(ntg_object_get_scene(root) == NULL);
+    if(root != NULL) assert(ntg_widget_get_parent(root) == NULL);
 
-    ntg_object* old_root = scene->_root;
+    ntg_widget* old_root = scene->_root;
 
     if(old_root != NULL)
     {
-        ntg_object* old_root_gr = ntg_object_get_group_root_(old_root);
+        ntg_object* old_root_gr = ntg_widget_get_group_root_(old_root);
         on_object_unregister_fn_tree(old_root_gr, scene);
+        _ntg_object_root_set_scene(old_root_gr, NULL);
     }
 
     if(root != NULL)
     {
-        ntg_object* root_gr = ntg_object_get_group_root_(root);
+        ntg_object* root_gr = ntg_widget_get_group_root_(root);
         on_object_register_fn_tree(root_gr, scene);
+        _ntg_object_root_set_scene(root_gr, scene);
     }
 
     scene->_root = root;
 
+    struct ntg_event_scene_rootchng_data data = {
+        .old = old_root,
+        .new = root
+    };
+
+    ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_ROOTCHNG, &data);
     ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_DIFF, NULL);
 }
 
-bool ntg_scene_feed_event(
-        ntg_scene* scene,
-        struct nt_event event,
-        ntg_loop_ctx* loop_ctx)
+bool ntg_scene_feed_event(ntg_scene* scene,
+        struct nt_event event, ntg_loop_ctx* ctx)
 {
     assert(scene != NULL);
 
@@ -118,15 +122,12 @@ void _ntg_scene_deinit_fn(ntg_entity* entity)
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
 {
     assert(scene != NULL);
-
     scene->_stage = stage;
 }
 
 static void on_object_register(ntg_scene* scene, ntg_object* object)
 {
     ntg_entity_observe((ntg_entity*)scene, (ntg_entity*)object, object_observe_fn);
-
-    _ntg_object_set_scene(object, scene);
 
     struct ntg_event_scene_objadd_data data = { .object = object };
     ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_OBJADD, &data);
@@ -138,20 +139,18 @@ static void on_object_unregister(ntg_scene* scene, ntg_object* object)
 {
     ntg_entity_stop_observing((ntg_entity*)scene, (ntg_entity*)object, object_observe_fn);
 
-    _ntg_object_set_scene(object, NULL);
-
     struct ntg_event_scene_objrm_data data = { .object = object };
     ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_OBJRM, &data);
 
     ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_DIFF, NULL);
 }
 
-static void inline on_object_register_fn(ntg_object* object, void* _scene)
+static void on_object_register_fn(ntg_object* object, void* _scene)
 {
     on_object_register((ntg_scene*)_scene, object);
 }
 
-static void inline on_object_unregister_fn(ntg_object* object, void* _scene)
+static void on_object_unregister_fn(ntg_object* object, void* _scene)
 {
     on_object_unregister((ntg_scene*)_scene, object);
 }
@@ -178,20 +177,26 @@ static void object_observe_fn(ntg_entity* _scene, struct ntg_event event)
     {
         struct ntg_event_object_padchng* data = event.data;
 
-        if(data->old != NULL)
-            on_object_unregister(scene, (ntg_object*)data->old);
+        if(scene->_root == event.source)
+        {
+            if(data->old != NULL)
+                on_object_unregister(scene, (ntg_object*)data->old);
 
-        if(data->new != NULL)
-            on_object_register(scene, (ntg_object*)data->new);
+            if(data->new != NULL)
+                on_object_register(scene, (ntg_object*)data->new);
+        }
     }
     else if(event.type == NTG_EVENT_OBJECT_BORDCHNG)
     {
         struct ntg_event_object_bordchng* data = event.data;
 
-        if(data->old != NULL)
-            on_object_unregister(scene, (ntg_object*)data->old);
+        if(scene->_root == event.source)
+        {
+            if(data->old != NULL)
+                on_object_unregister(scene, (ntg_object*)data->old);
 
-        if(data->new != NULL)
-            on_object_register(scene, (ntg_object*)data->new);
+            if(data->new != NULL)
+                on_object_register(scene, (ntg_object*)data->new);
+        }
     }
 }

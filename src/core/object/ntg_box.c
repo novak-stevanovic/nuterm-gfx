@@ -71,7 +71,7 @@ void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
     
     box->_opts = opts;
 
-    _ntg_object_mark_change((ntg_object*)box);
+    ntg_entity_raise_event((ntg_entity*)box, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child)

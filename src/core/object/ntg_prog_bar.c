@@ -49,7 +49,7 @@ void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage)
 
     prog_bar->__percentage = _min2_double(1.0, percentage);
 
-    _ntg_object_mark_change((ntg_object*)prog_bar);
+    ntg_entity_raise_event((ntg_entity*)prog_bar, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void _ntg_prog_bar_deinit_fn(ntg_entity* entity)
