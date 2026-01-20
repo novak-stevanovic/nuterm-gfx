@@ -1,7 +1,7 @@
 #ifndef NTG_SAP_H
 #define NTG_SAP_H
 
-#include "shared/sarena.h"
+#include "thirdparty/sarena.h"
 #include <stddef.h>
 
 // #include "shared/ntg_typedef.h"

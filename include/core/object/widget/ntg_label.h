@@ -41,7 +41,7 @@ struct ntg_label
 {
     ntg_widget __base;
 
-    struct ntg_str __text;
+    struct ntg_str _text;
     struct ntg_label_opts _opts;
 };
 
@@ -53,8 +53,6 @@ ntg_label* ntg_label_new(ntg_entity_system* system);
 void ntg_label_init(ntg_label* label);
 
 void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts);
-
-struct ntg_strv ntg_label_get_text(const ntg_label* label);
 void ntg_label_set_text(ntg_label* label, struct ntg_strv text);
 
 /* -------------------------------------------------------------------------- */

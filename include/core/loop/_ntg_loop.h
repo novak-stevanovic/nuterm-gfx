@@ -3,7 +3,7 @@
 
 #include "core/entity/ntg_entity.h"
 #include "core/loop/ntg_loop.h"
-#include "shared/genc.h"
+#include "thirdparty/genc.h"
 
 /* -------------------------------------------------------------------------- */
 /* LOOP */

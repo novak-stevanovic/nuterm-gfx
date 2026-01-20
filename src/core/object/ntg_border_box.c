@@ -67,6 +67,17 @@ void ntg_border_box_set(ntg_border_box* box,
 {
     assert(box != NULL);
 
+    if(box->_children[pos] == widget) return;
+
+    if(box->_children[pos] != NULL)
+        ntg_widget_detach(box->_children[pos]);
+
+    if(widget != NULL)
+    {
+        ntg_widget_attach((ntg_widget*)box, widget);
+        box->_children[pos] = widget;
+    }
+
     ntg_entity_raise_event((ntg_entity*)box, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 

@@ -6,7 +6,7 @@
 #include "shared/ntg_xy.h"
 #include "base/ntg_cell.h"
 #include "core/object/shared/ntg_object_drawing.h"
-#include "shared/genc.h"
+#include "thirdparty/genc.h"
 #include "core/object/shared/ntg_object_measure.h"
 
 /* -------------------------------------------------------------------------- */
@@ -25,11 +25,6 @@ struct ntg_object_layout_ops
     ntg_object_draw_fn draw_fn;
 };
 
-struct ntg_object_hooks
-{
-    void (*rm_child_fn)(ntg_object* object, ntg_object* child);
-};
-
 /* ------------------------------------------------------ */
 
 struct ntg_object
@@ -46,7 +41,6 @@ struct ntg_object
     struct
     {
         struct ntg_object_layout_ops __layout_ops;
-        struct ntg_object_hooks __hooks;
         void* __layout_data;
     };
 
@@ -137,21 +131,23 @@ size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
 //     NTG_OBJECT_ADDCHLD_SELF
 // };
 
-void ntg_object_init(ntg_object* object,
-        struct ntg_object_layout_ops layout_ops,
-        struct ntg_object_hooks hooks);
+void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops);
 void ntg_object_deinit_fn(ntg_entity* entity);
 
 // enum ntg_object_addchld_status 
 // ntg_object_validate_add_child(ntg_object* parent, ntg_object* child);
 
-void ntg_object_add_child(ntg_object* parent, ntg_object* child);
-void ntg_object_rm_child(ntg_object* parent, ntg_object* child);
+/* Updates only the tree. Called internally by types extending ntg_object. */
+void ntg_object_attach(ntg_object* parent, ntg_object* child);
+
+/* Updates only the tree. Called internally by types extending ntg_object. */
+void ntg_object_detach(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
 
+// Called internally by ntg_scene. Updates only the object's state
 void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene);
 
 #endif // NTG_OBJECT_H

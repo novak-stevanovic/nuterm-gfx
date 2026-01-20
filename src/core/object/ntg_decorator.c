@@ -55,21 +55,36 @@ void ntg_decorator_init(ntg_decorator* decorator, ntg_object_draw_fn draw_fn)
         .deinit_fn = _ntg_decorator_layout_data_deinit_fn
     };
 
-    struct ntg_object_hooks hooks = {0};
-
-    ntg_object_init((ntg_object*)decorator, object_data, hooks);
+    ntg_object_init((ntg_object*)decorator, object_data);
 
     decorator->_opts = ntg_decorator_opts_def();
 }
 
-void _ntg_decorator_deinit_fn(ntg_entity* entity)
+void ntg_decorator_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
     ntg_decorator* decorator = (ntg_decorator*)entity;
     decorator->_opts = ntg_decorator_opts_def();
 
+    if(decorator->_widget != NULL)
+    {
+        if(decorator->_widget->_padding == decorator)
+            ntg_widget_set_padding(decorator->_widget, NULL);
+
+        if(decorator->_widget->_border == decorator)
+            ntg_widget_set_border(decorator->_widget, NULL);
+    }
+
     ntg_object_deinit_fn(entity);
+}
+
+void _ntg_decorator_decorate(ntg_decorator* decorator, ntg_widget* widget)
+{
+    assert(decorator != NULL);
+    assert(decorator->_widget != widget);
+
+    decorator->_widget = widget;
 }
 
 void* _ntg_decorator_layout_data_init_fn(const ntg_object* _decorator)
@@ -96,6 +111,8 @@ struct ntg_object_measure _ntg_decorator_measure_fn(
         sarena* arena)
 {
     const ntg_decorator* decorator = (ntg_decorator*)_decorator;
+    if(_decorator->_children.size == 0) return (struct ntg_object_measure) {0};
+
     const ntg_object* child = _decorator->_children.data[0];
     struct ntg_object_measure child_data;
     // struct ntg_decorator_ldata* layout_data = _layout_data;

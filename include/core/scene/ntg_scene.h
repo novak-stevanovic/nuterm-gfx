@@ -68,6 +68,7 @@ void _ntg_scene_deinit_fn(ntg_entity* entity);
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
 
+// Called internally by ntg_stage. Updates only the scene's state
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);
 
 #endif // NTG_SCENE_H

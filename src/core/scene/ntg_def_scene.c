@@ -1,7 +1,7 @@
 #include "ntg.h"
 #include <assert.h>
 #include <stdlib.h>
-#include "shared/_uthash.h"
+#include "thirdparty/uthash.h"
 
 #define DEBUG 1
 

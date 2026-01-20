@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "shared/sarena.h"
+#include "thirdparty/sarena.h"
 
 /* -------------------------------------------------------------------------- */
 /* FORWARD DECLARE */

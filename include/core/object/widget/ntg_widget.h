@@ -2,7 +2,7 @@
 #define NTG_WIDGET_H
 
 #include "core/object/ntg_object.h"
-#include "shared/genc.h"
+#include "thirdparty/genc.h"
 
 struct ntg_widget_layout_ops
 {
@@ -41,7 +41,9 @@ struct ntg_widget
 /* CONTROL */
 /* -------------------------------------------------------------------------- */
 
-#define NTG_WIDGET_USER_GROW_UNSET SIZE_MAX
+#define NTG_WIDGET_MIN_SIZE_UNSET 0
+#define NTG_WIDGET_MAX_SIZE_UNSET NTG_SIZE_MAX
+#define NTG_WIDGET_GROW_UNSET NTG_SIZE_MAX
 
 void ntg_widget_set_user_min_size(ntg_widget* widget, struct ntg_xy size);
 void ntg_widget_set_user_max_size(ntg_widget* widget, struct ntg_xy size);
@@ -126,8 +128,11 @@ void ntg_widget_init(ntg_widget* widget,
         struct ntg_widget_hooks hooks);
 void ntg_widget_deinit_fn(ntg_entity* _widget);
 
-void ntg_widget_add_child(ntg_widget* parent, ntg_widget* child);
-void ntg_widget_rm_child(ntg_widget* parent, ntg_widget* child);
+/* Updates the object tree. Called internally by types extending ntg_widget. */
+void ntg_widget_attach(ntg_widget* parent, ntg_widget* child);
+
+/* Performs full detaching of widget. Called internally by types extending ntg_widget. */
+void ntg_widget_detach(ntg_widget* widget);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */

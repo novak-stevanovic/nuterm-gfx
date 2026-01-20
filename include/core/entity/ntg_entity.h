@@ -2,7 +2,7 @@
 #define NTG_ENTITY_H
 
 #include "shared/ntg_typedef.h"
-#include "shared/genc.h"
+#include "thirdparty/genc.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

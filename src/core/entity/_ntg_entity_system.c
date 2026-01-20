@@ -2,8 +2,8 @@
 #include <assert.h>
 
 #include "ntg.h"
-#include "shared/_uthash.h"
-#include "shared/genc.h"
+#include "thirdparty/uthash.h"
+#include "thirdparty/genc.h"
 
 struct ntg_event_obs
 {

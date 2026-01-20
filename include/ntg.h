@@ -3,17 +3,17 @@
 
 #include "nt_gfx.h"
 #include "nt_event.h"
-#include "shared/sarena.h"
-#include "shared/uconv.h"
+#include "thirdparty/sarena.h"
+#include "thirdparty/uconv.h"
 
 #include "shared/ntg_status.h"
 #include "shared/ntg_typedef.h"
-#include "shared/uconv.h"
+#include "thirdparty/uconv.h"
 #include "shared/ntg_xy.h"
 #include "shared/ntg_string.h"
 #include "shared/ntg_shared.h"
-#include "shared/sarena.h"
-#include "shared/genc.h"
+#include "thirdparty/sarena.h"
+#include "thirdparty/genc.h"
 #include "shared/ntg_vecgrid.h"
 #include "shared/ntg_log.h"
 #include "base/ntg_cell.h"
@@ -70,9 +70,6 @@ void ntg_wait();
 /* -------------------------------------------------------------------------- */
 
 // ACTIVE: ntg_widget refactor. | **
-// REMINDER: deattach object on deinit
-// REMINDER: implement children for border_box, box.
-// REMINDER: implement padding/border fot ntg_widget
 
 // TODO: implement modals on scene, object focus managers | **
 

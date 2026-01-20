@@ -45,14 +45,6 @@ void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
     size_t size_cap_prod = size_cap.x * size_cap.y;
     size_t shrink_threshold = vecgrid->_capacity / modifier;
 
-    // ntg_log_log("VECGRID SET SIZE | %p | OLD SIZE: %d %d - %d | CAPACITY: %d | NEW SIZE: %d %d - %d | SIZE_CAP: %d %d - %d | SHRINK_THRESHOLD: %d",
-    //     vecgrid,
-    //     vecgrid->_size.x, vecgrid->_size.y, old_size_prod,
-    //     vecgrid->_capacity,
-    //     size.x, size.y, size_prod,
-    //     size_cap.x, size_cap.y, size_cap_prod,
-    //     shrink_threshold);
-
     if((size_prod > vecgrid->_capacity) || (size_prod <= shrink_threshold))
     {
         size_t new_cap;
@@ -79,27 +71,7 @@ void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
 
             curr_alloced += vecgrid->_capacity;
         }
-
-        ntg_log_log("RESIZE | CURR_ALLOCED: %d", curr_alloced);
     }
-
-    // if(size_prod == 0)
-    // {
-    //     // ntg_log_log("VECGRID SET SIZE | FREEING");
-    //     if(vecgrid->_capacity > 0)
-    //         free(vecgrid->_data);
-
-    //     vecgrid->_data = 0;
-    //     vecgrid->_capacity = 0;
-    // }
-    // else
-    // {
-    //     if(vecgrid->_capacity > 0)
-    //         vecgrid->_data = realloc(vecgrid->_data, size_prod * data_size);
-    //     else
-    //         vecgrid->_data = malloc(size_prod * data_size);
-    // }
-
 
     vecgrid->_size = size;
 }

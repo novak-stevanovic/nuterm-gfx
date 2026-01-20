@@ -129,7 +129,6 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     {
         status = NTG_LOOP_CLEAN_FINISH;
         _ntg_platform_deinit(&platform);
-        // TODO: end tasks?
         _ntg_task_runner_deinit(&task_runner);
     }
     else

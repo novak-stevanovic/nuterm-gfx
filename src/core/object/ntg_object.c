@@ -4,6 +4,11 @@
 #include <stdlib.h>
 
 static void set_scene(ntg_object* object, ntg_scene* scene);
+static void set_scene_fn(ntg_object* object, void* _scene)
+{
+    set_scene(object, (ntg_scene*)_scene);
+}
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(set_scene_tree, set_scene_fn);
 
 /* ---------------------------------------------------------------- */
 /* OBJECT TREE */
@@ -246,9 +251,7 @@ size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient)
 
 static void init_default_values(ntg_object* object);
 
-void ntg_object_init(ntg_object* object,
-        struct ntg_object_layout_ops layout_ops,
-        struct ntg_object_hooks hooks)
+void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops)
 {
     assert(object != NULL);
 
@@ -257,7 +260,6 @@ void ntg_object_init(ntg_object* object,
     ntg_object_vec_init(&object->_children, 2, NULL);
     object->_scene = NULL;
     object->__layout_ops = layout_ops;
-    object->__hooks = hooks;
     ntg_object_drawing_init(&object->_drawing);
 }
 
@@ -268,7 +270,6 @@ static void init_default_values(ntg_object* object)
     object->_scene = NULL;
 
     object->__layout_ops = (struct ntg_object_layout_ops) {0};
-    object->__hooks = (struct ntg_object_hooks) {0};
     object->__layout_data = NULL;
 
     object->_min_size = ntg_xy(0, 0);
@@ -307,23 +308,26 @@ void ntg_object_deinit_fn(ntg_entity* entity)
 //     return NTG_OBJECT_ADDCHLD_SUCCESS;
 // }
 
-void ntg_object_add_child(ntg_object* parent, ntg_object* child)
+void ntg_object_attach(ntg_object* parent, ntg_object* child)
 {
     assert(parent != NULL);
     assert(child != NULL);
     assert(parent != child);
-    if(child->_parent == parent) return;
+    assert(child->_parent == NULL);
 
     if(child->_parent != NULL)
-        ntg_object_rm_child(child->_parent, child);
+        ntg_object_detach(child);
 
     ntg_object_vec_pushb(&parent->_children, child, NULL);
 
     child->_parent = parent;
 
+    if(parent->_scene != NULL)
+        set_scene(child, parent->_scene);
+
     struct ntg_event_object_chldadd_data data1 = { .child = child };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
-            NTG_EVENT_OBJECT_CHLDADD, &data1);
+                           NTG_EVENT_OBJECT_CHLDADD, &data1);
 
     struct ntg_event_object_prntchng_data data2 = {
         .old = NULL,
@@ -331,45 +335,45 @@ void ntg_object_add_child(ntg_object* parent, ntg_object* child)
     };
     ntg_entity_raise_event((ntg_entity*)child, NULL,
             NTG_EVENT_OBJECT_PRNTCHNG, &data2);
-
-    if(parent->_scene != NULL)
-        set_scene(child, parent->_scene);
 }
 
-void ntg_object_rm_child(ntg_object* parent, ntg_object* child)
+void ntg_object_detach(ntg_object* widget)
 {
-    assert(parent != NULL);
-    assert(child != NULL);
-    assert(parent != child);
-    assert(child->_parent == parent);
+    assert(widget != NULL);
 
-    ntg_object_vec_rm(&parent->_children, child, NULL);
+    ntg_object* parent = widget->_parent;
+    if(parent == NULL) return;
 
-    child->_parent = NULL;
+    ntg_object_vec_rm(&parent->_children, widget, NULL);
 
-    if(parent->__hooks.rm_child_fn != NULL)
-    {
-        parent->__hooks.rm_child_fn(parent, child);
-    }
+    widget->_parent = NULL;
 
-    struct ntg_event_object_chldrm_data data1 = { .child = child };
+    if(widget->_scene != NULL)
+        set_scene(widget, NULL);
+
+    struct ntg_event_object_chldrm_data data1 = { .child = widget };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
-            NTG_EVENT_OBJECT_CHLDRM, &data1);
+                           NTG_EVENT_OBJECT_CHLDRM, &data1);
 
     struct ntg_event_object_prntchng_data data2 = {
         .old = parent,
         .new = NULL
     };
-    ntg_entity_raise_event((ntg_entity*)child, NULL,
+    ntg_entity_raise_event((ntg_entity*)widget, NULL,
             NTG_EVENT_OBJECT_PRNTCHNG, &data2);
-
-    if(child->_scene != NULL)
-        set_scene(child, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
+
+void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene)
+{
+    assert(root != NULL);
+    assert(root->_parent == NULL);
+
+    set_scene_tree(root, scene);
+}
 
 static void set_scene(ntg_object* object, ntg_scene* scene)
 {
@@ -392,19 +396,4 @@ static void set_scene(ntg_object* object, ntg_scene* scene)
     };
     ntg_entity_raise_event((ntg_entity*)object, NULL,
             NTG_EVENT_OBJECT_SCNCHNG, &data);
-}
-
-static void set_scene_fn(ntg_object* object, void* _scene)
-{
-    set_scene(object, (ntg_scene*)_scene);
-}
-
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(set_scene_tree, set_scene_fn);
-
-void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene)
-{
-    assert(root != NULL);
-    assert(root->_parent == NULL);
-
-    set_scene_tree(root, scene);
 }

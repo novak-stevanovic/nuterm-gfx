@@ -70,8 +70,11 @@ void ntg_box_add_child(ntg_box* box, ntg_widget* child)
     assert(box != NULL);
     assert(child != NULL);
 
-    // TODO
-    assert(0);
+    ntg_widget_attach((ntg_widget*)box, child);
+
+    ntg_widget_vec_pushb(&box->_children, child, NULL);
+
+    ntg_entity_raise_event((ntg_entity*)box, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_widget* child)
@@ -79,8 +82,11 @@ void ntg_box_rm_child(ntg_box* box, ntg_widget* child)
     assert(box != NULL);
     assert(child != NULL);
 
-    // TODO
-    assert(0);
+    ntg_widget_detach(child);
+
+    ntg_widget_vec_rm(&box->_children, child, NULL);
+
+    ntg_entity_raise_event((ntg_entity*)box, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -113,13 +113,13 @@ typedef int (*genc_cmp_fn)(const void* container_data, const void* user_data);
  * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
  * 2) GENC_ERR_OUT_OF_BOUNDS - vector is empty.
  *
- * void <name>_ins() inserts `data` at pos `pos`. If pos == size, insertion appends.
+ * void <name>_ins() inserts `data` at position `pos`. If pos == size, insertion appends.
  * ERRORS:
  * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
  * 2) GENC_ERR_OUT_OF_BOUNDS - `pos` is greater than the size of the vector,
  * 3) GENC_ERR_ALLOC_FAIL - vector attempted to grow, allocation/realloc failed.
  *
- * void <name>_rm_at() removes the element at pos `pos`.
+ * void <name>_rm_at() removes the element at position `pos`.
  * ERRORS:
  * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
  * 2) GENC_ERR_OUT_OF_BOUNDS - `pos` is greater than or equal to the size of the vector.
@@ -129,7 +129,7 @@ typedef int (*genc_cmp_fn)(const void* container_data, const void* user_data);
  * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
  * 2) GENC_ERR_NO_DATA - found no matching `data` in `vec`.
  *
- * size_t <name>_find() searches for `data` and returns the pos of the
+ * size_t <name>_find() searches for `data` and returns the position of the
  * first occurrence. On failure it returns `SIZE_MAX`.
  * ERRORS:
  * 1) GENC_ERR_INVALID_ARG - `vec` is NULL.

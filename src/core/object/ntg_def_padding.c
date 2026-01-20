@@ -31,7 +31,7 @@ void ntg_def_padding_init(ntg_def_padding* def_padding)
 
 void _ntg_def_padding_deinit_fn(ntg_entity* entity)
 {
-    _ntg_decorator_deinit_fn(entity);
+    ntg_decorator_deinit_fn(entity);
 }
 
 void _ntg_def_padding_draw_fn(

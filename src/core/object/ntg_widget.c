@@ -6,6 +6,11 @@
 static void init_default_values(ntg_widget* widget);
 static void object_rm_child_fn(ntg_object* _widget, ntg_object* child);
 
+static void padding_remove(ntg_widget* widget);
+static void padding_add(ntg_widget* widget, ntg_decorator* padding);
+static void border_remove(ntg_widget* widget);
+static void border_add(ntg_widget* widget, ntg_decorator* border);
+
 /* -------------------------------------------------------------------------- */
 /* CONTROL */
 /* -------------------------------------------------------------------------- */
@@ -359,8 +364,15 @@ void ntg_widget_set_padding(ntg_widget* widget, ntg_decorator* padding)
     assert(widget != NULL);
     assert(padding != NULL);
 
-    // TODO:
-    assert(0);
+    if(widget->_padding == padding) return;
+
+    if(padding->_widget->_padding != NULL)
+        padding_remove(padding->_widget);
+
+    if(widget->_padding != NULL)
+        padding_remove(widget);
+
+    padding_add(widget, padding);
 }
 
 void ntg_widget_set_border(ntg_widget* widget, ntg_decorator* border)
@@ -368,8 +380,15 @@ void ntg_widget_set_border(ntg_widget* widget, ntg_decorator* border)
     assert(widget != NULL);
     assert(border != NULL);
 
-    // TODO:
-    assert(0);
+    if(widget->_border == border) return;
+
+    if(border->_widget->_border != NULL)
+        border_remove(border->_widget);
+
+    if(widget->_border != NULL)
+        border_remove(widget);
+
+    border_add(widget, border);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -389,14 +408,10 @@ void ntg_widget_init(ntg_widget* widget,
         .arrange_fn = layout_ops.arrange_fn ? _ntg_widget_arrange_fn : NULL,
         .draw_fn = _ntg_widget_draw_fn,
         .init_fn = _ntg_widget_layout_data_init_fn,
-        .deinit_fn = _ntg_widget_layout_data_deinit_fn
+        .deinit_fn = _ntg_widget_layout_data_deinit_fn,
     };
 
-    struct ntg_object_hooks _hooks = {
-        .rm_child_fn = object_rm_child_fn
-    };
-
-    ntg_object_init((ntg_object*)widget, _layout_ops, _hooks);
+    ntg_object_init((ntg_object*)widget, _layout_ops);
 
     init_default_values(widget);
 
@@ -406,12 +421,19 @@ void ntg_widget_init(ntg_widget* widget,
 
 void ntg_widget_deinit_fn(ntg_entity* _widget)
 {
+    ntg_widget* widget = (ntg_widget*)_widget;
+
     init_default_values((ntg_widget*)_widget);
+
+    if(widget->_padding != NULL)
+        padding_remove(widget);
+    if(widget->_border != NULL)
+        border_remove(widget);
 
     ntg_object_deinit_fn(_widget);
 }
 
-void ntg_widget_add_child(ntg_widget* parent, ntg_widget* child)
+void ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
 {
     assert(parent != NULL);
     assert(child != NULL);
@@ -420,7 +442,7 @@ void ntg_widget_add_child(ntg_widget* parent, ntg_widget* child)
 
     ntg_object* group_root = ntg_widget_get_group_root_(child);
 
-    ntg_object_add_child((ntg_object*)parent, group_root);
+    ntg_object_attach((ntg_object*)parent, group_root);
 
     struct ntg_event_widget_chldadd_data data1 = { .child = child };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
@@ -434,18 +456,22 @@ void ntg_widget_add_child(ntg_widget* parent, ntg_widget* child)
             NTG_EVENT_WIDGET_PRNTCHNG, &data2);
 }
 
-void ntg_widget_rm_child(ntg_widget* parent, ntg_widget* child)
+void ntg_widget_detach(ntg_widget* widget)
 {
-    assert(parent != NULL);
-    assert(child != NULL);
-    assert(parent != child);
-    assert(ntg_widget_get_parent(child) == parent);
+    assert(widget != NULL);
 
-    ntg_object* group_root = ntg_widget_get_group_root_(child);
+    ntg_widget* parent = ntg_widget_get_parent_(widget);
 
-    ntg_object_rm_child((ntg_object*)parent, group_root);
+    if(parent == NULL) return;
 
-    struct ntg_event_widget_chldrm_data data1 = { .child = child };
+    ntg_object* group_root = ntg_widget_get_group_root_(widget);
+
+    ntg_object_detach(group_root);
+
+    if(widget->__hooks.rm_child_fn != NULL)
+        widget->__hooks.rm_child_fn(parent, widget);
+
+    struct ntg_event_widget_chldrm_data data1 = { .child = widget };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
             NTG_EVENT_WIDGET_CHLDRM, &data1);
 
@@ -453,7 +479,7 @@ void ntg_widget_rm_child(ntg_widget* parent, ntg_widget* child)
         .old = parent,
         .new = NULL
     };
-    ntg_entity_raise_event((ntg_entity*)child, NULL,
+    ntg_entity_raise_event((ntg_entity*)widget, NULL,
             NTG_EVENT_WIDGET_PRNTCHNG, &data2);
 }
 
@@ -513,7 +539,7 @@ struct ntg_object_measure _ntg_widget_measure_fn(
             measure.nat_size, measure.max_size);
  
     size_t user_grow = ntg_xy_get(widget->_user_grow, orient);
-    measure.grow = (user_grow != NTG_WIDGET_USER_GROW_UNSET) ?
+    measure.grow = (user_grow != NTG_WIDGET_GROW_UNSET) ?
             user_grow : measure.grow;
 
     return measure;
@@ -613,26 +639,133 @@ static void init_default_values(ntg_widget* widget)
     widget->__layout_ops = (struct ntg_widget_layout_ops) {0};
     widget->__hooks = (struct ntg_widget_hooks) {0};
     widget->_background = ntg_vcell_default();
-    widget->_user_min_size = ntg_xy(0, 0);
-    widget->_user_max_size = ntg_xy(NTG_SIZE_MAX, NTG_SIZE_MAX);
-    widget->_user_grow = ntg_xy(1, 1);
+    widget->_user_min_size = ntg_xy(NTG_WIDGET_MIN_SIZE_UNSET, NTG_WIDGET_MIN_SIZE_UNSET);
+    widget->_user_max_size = ntg_xy(NTG_WIDGET_MAX_SIZE_UNSET, NTG_WIDGET_MAX_SIZE_UNSET);
+    widget->_user_grow = ntg_xy(NTG_WIDGET_GROW_UNSET, NTG_WIDGET_GROW_UNSET);
     widget->_border = NULL;
     widget->_padding = NULL;
     widget->__event_fn = NULL;
     widget->data = NULL;
 }
 
-static void object_rm_child_fn(ntg_object* _widget, ntg_object* child)
+static void padding_remove(ntg_widget* widget)
 {
-    ntg_widget* widget = (ntg_widget*)_widget;
-    
-    ntg_object* it = child;
-    ntg_entity* _it = (ntg_entity*)it;
-    while(!ntg_entity_instance_of(_it->_type, &NTG_ENTITY_WIDGET))
+    assert(widget->_padding != NULL);
+
+    ntg_object* _widget = (ntg_object*)widget;
+
+    ntg_decorator* padding = widget->_padding;
+    ntg_object* _padding = (ntg_object*)padding;
+    ntg_object* padding_parent = (widget->_border != NULL) ?
+            (ntg_object*)widget->_border :
+            (ntg_object*)ntg_widget_get_parent_(widget);
+
+    ntg_object_detach(_widget);
+
+    if(padding_parent != NULL)
     {
-        it = it->_children.data[0];
-        _it = (ntg_entity*)it;
+        ntg_object_detach(_padding);
+        ntg_object_attach(padding_parent, _widget);
     }
 
-    widget->__hooks.rm_child_fn(widget, (ntg_widget*)it);
+    _ntg_decorator_decorate(padding, NULL);
+    widget->_padding = NULL;
+
+    struct ntg_event_widget_padchng_data data = {
+        .old = padding,
+        .new = NULL
+    };
+
+    ntg_entity_raise_event((ntg_entity*)widget, NULL,
+                           NTG_EVENT_WIDGET_PADCHNG, &data);
+}
+
+static void padding_add(ntg_widget* widget, ntg_decorator* padding)
+{
+    assert(widget->_padding == NULL);
+
+    ntg_object* _widget = (ntg_object*)widget;
+
+    ntg_object* _padding = (ntg_object*)padding;
+    ntg_object* padding_parent = (widget->_border != NULL) ?
+            (ntg_object*)widget->_border :
+            (ntg_object*)ntg_widget_get_parent_(widget);
+
+    ntg_object_detach(_widget);
+    if(padding_parent != NULL)
+        ntg_object_attach(padding_parent, _padding);
+    ntg_object_attach(_padding, _widget);
+
+    _ntg_decorator_decorate(padding, widget);
+    widget->_padding = padding;
+
+    struct ntg_event_widget_padchng_data data = {
+        .old = NULL,
+        .new = padding
+    };
+
+    ntg_entity_raise_event((ntg_entity*)widget, NULL,
+                           NTG_EVENT_WIDGET_PADCHNG, &data);
+}
+
+static void border_remove(ntg_widget* widget)
+{
+    assert(widget->_border != NULL);
+
+    ntg_object* _widget = (ntg_object*)widget;
+
+    ntg_decorator* border = widget->_border;
+    ntg_object* _border = (ntg_object*)border;
+    ntg_object* border_parent = (ntg_object*)ntg_widget_get_parent_(widget);
+    ntg_object* border_child = (widget->_padding != NULL) ?
+            (ntg_object*)widget->_padding : _widget;
+
+    ntg_object_detach(border_child);
+
+    if(border_parent != NULL)
+    {
+        ntg_object_detach(_border);
+        ntg_object_attach(border_parent, border_child);
+    }
+
+    _ntg_decorator_decorate(border, NULL);
+    widget->_border = NULL;
+
+    struct ntg_event_widget_bordchng_data data = {
+        .old = border,
+        .new = NULL
+    };
+
+    ntg_entity_raise_event((ntg_entity*)widget, NULL,
+                           NTG_EVENT_WIDGET_BORDCHNG, &data);
+}
+
+static void border_add(ntg_widget* widget, ntg_decorator* border)
+{
+    assert(widget->_border == NULL);
+
+    ntg_object* _widget = (ntg_object*)widget;
+
+    ntg_object* _border = (ntg_object*)border;
+    ntg_object* border_parent = (ntg_object*)ntg_widget_get_parent_(widget);
+    ntg_object* border_child = (widget->_padding != NULL) ?
+            (ntg_object*)widget->_padding : _widget;
+
+    if(border_parent != NULL)
+    {
+        ntg_object_detach(border_child);
+        ntg_object_attach(border_parent, _border);
+    }
+    ntg_object_attach(_border, border_child);
+
+    _ntg_decorator_decorate(border, widget);
+    widget->_border = border;
+
+    struct ntg_event_widget_bordchng_data data = {
+        .old = NULL,
+        .new = border
+    };
+
+    ntg_entity_raise_event((ntg_entity*)widget, NULL,
+                           NTG_EVENT_WIDGET_BORDCHNG, &data);
 }

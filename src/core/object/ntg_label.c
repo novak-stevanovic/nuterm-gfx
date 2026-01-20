@@ -8,74 +8,35 @@
 
 #define DEFAULT_SIZE 1
 
-static void get_wrap_rows_nowrap(struct ntg_strv_utf32 row,
+static struct ntg_object_measure 
+measure_nowrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
+        size_t row_count, ntg_orient orient, size_t for_size, sarena* arena);
+
+static struct ntg_object_measure 
+measure_wrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
+        size_t row_count, ntg_orient orient, size_t for_size, sarena* arena);
+
+static struct ntg_object_measure
+measure_wwrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
+        size_t row_count, ntg_orient orient, size_t for_size, sarena* arena);
+
+static size_t get_wrap_rows_nowrap(const struct ntg_strv_utf32 row,
         size_t for_size, struct ntg_strv_utf32** out_wrap_rows,
-        size_t* out_wrap_row_count, sarena* arena);
-static void get_wrap_rows_wrap(struct ntg_strv_utf32 row,
+        sarena* arena);
+static size_t get_wrap_rows_wrap(const struct ntg_strv_utf32 row,
         size_t for_size, struct ntg_strv_utf32** out_wrap_rows,
-        size_t* out_wrap_row_count, sarena* arena);
-static void get_wrap_rows_wwrap(struct ntg_strv_utf32 row,
+        sarena* arena);
+static size_t get_wrap_rows_wwrap(const struct ntg_strv_utf32 row,
         size_t for_size, struct ntg_strv_utf32** out_wwrap_rows,
-        size_t* out_wwrap_row_count, sarena* arena);
+        sarena* arena);
 
-static struct ntg_object_measure measure_nowrap_fn(const struct ntg_strv_utf32* rows,
-        size_t row_count, ntg_orient label_orient, size_t indent,
-        ntg_orient orient, size_t for_size, sarena* arena);
-static struct ntg_object_measure measure_wrap_fn(const struct ntg_strv_utf32* rows,
-        size_t row_count, ntg_orient label_orient, size_t indent,
-        ntg_orient orient, size_t for_size, sarena* arena);
-static struct ntg_object_measure measure_wwrap_fn(const struct ntg_strv_utf32* rows,
-        size_t row_count, ntg_orient label_orient, size_t indent,
-        ntg_orient orient, size_t for_size, sarena* arena);
-
-static void trim_text(ntg_label* label)
-{
-    assert(label != NULL);
-    if((label->__text.len == 0) || (label->__text.data == NULL)) return;
-
-    sarena* arena = sarena_create(10000);
-    assert(arena != NULL);
-
-    struct ntg_str_split_out words = ntg_str_split(
-            ntg_str_to_view(label->__text), ' ', arena);
-
-    size_t space_needed = 0;
-
-    size_t i;
-    for(i = 0; i < words.count; i++)
-    {
-        if(words.views[i].len > 0)
-        {
-            memmove(label->__text.data + space_needed,
-                    words.views[i].data,
-                    words.views[i].len);
-
-            if(i < (words.count - 1))
-            {
-                label->__text.data[space_needed + words.views[i].len] = ' ';
-                space_needed += (1 + words.views[i].len);
-            }
-            else
-                space_needed += words.views[i].len;
-            
-        }
-    }
-
-    if((space_needed > 0) && (label->__text.data[space_needed - 1] == ' '))
-        space_needed--;
-
-    label->__text.data = realloc(label->__text.data, space_needed);
-    assert(label->__text.data != NULL);
-    label->__text.len = space_needed;
-
-    sarena_destroy(arena);
-}
+static void trim_text(ntg_label* label);
 
 /* -------------------------------------------------------------------------- */
 
 static void init_default_values(ntg_label* label)
 {
-    label->__text = (struct ntg_str) {0};
+    label->_text = (struct ntg_str) {0};
     label->_opts = ntg_label_opts_def();
 }
 
@@ -147,44 +108,32 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
     ntg_entity_raise_event((ntg_entity*)label, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
-struct ntg_strv ntg_label_get_text(const ntg_label* label)
-{
-    assert(label != NULL);
-
-    if((label->__text.len == 0) || (label->__text.data == NULL))
-    {
-        return (struct ntg_strv) {
-            .data = "",
-            .len = 0
-        };
-    }
-    else
-    {
-        return (struct ntg_strv) {
-            .data = label->__text.data,
-            .len = label->__text.len
-        };
-    }
-}
-
 void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
 {
     assert(label != NULL);
 
     if((text.len == 0) || (text.data == NULL))
     {
-        label->__text = (struct ntg_str) {0};
+        label->_text = (struct ntg_str) {0};
         return;
     }
 
+    // TODO
     assert(text.len < 1000000);
 
-    char* text_copy = (char*)malloc(text.len);
+    if(label->_text.data != NULL)
+    {
+        free(label->_text.data);
+        label->_text.data = NULL;
+        label->_text.len = 0;
+    }
+
+    char* text_copy = malloc(text.len);
     assert(text_copy != NULL);
 
     memmove(text_copy, text.data, text.len);
 
-    label->__text = (struct ntg_str) {
+    label->_text = (struct ntg_str) {
         .data = text_copy,
         .len = text.len
     };
@@ -204,8 +153,8 @@ void _ntg_label_deinit_fn(ntg_entity* entity)
 
     ntg_label* label = (ntg_label*)entity;
 
-    if(label->__text.data != NULL)
-        free(label->__text.data);
+    if(label->_text.data != NULL)
+        free(label->_text.data);
 
     init_default_values(label);
 
@@ -222,48 +171,44 @@ struct ntg_object_measure _ntg_label_measure_fn(
     const ntg_label* label = (const ntg_label*)_label;
     size_t for_size = ntg_widget_get_cont_for_size(_label, orient, constrained);
     
-    if(label->__text.len == 0) return (struct ntg_object_measure) {0};
+    if(label->_text.len == 0) return (struct ntg_object_measure) {0};
 
     /* Get UTF-32 text */
-    size_t utf32_cap = label->__text.len;
-    uint32_t* text_utf32 = (uint32_t*)sarena_malloc(arena,
-            sizeof(uint32_t) * utf32_cap);
+    size_t utf32_cap = label->_text.len;
+    uint32_t* text_utf32 = sarena_malloc(arena, sizeof(uint32_t) * utf32_cap);
     assert(text_utf32 != NULL);
 
     size_t _width;
     int _status;
-    uc_utf8_to_utf32((uint8_t*)label->__text.data, utf32_cap, text_utf32,
-            label->__text.len, 0, &_width, &_status);
+    uc_utf8_to_utf32((uint8_t*)label->_text.data, utf32_cap, text_utf32,
+                     label->_text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
 
     struct ntg_strv_utf32 view = {
         .data = text_utf32,
-        .count = _width
+        .len = _width
     };
-
-    /* Split by rows */
-    struct ntg_str_utf32_split_out rows = ntg_str_utf32_split(view, '\n', arena);
-    assert(rows.views != NULL);
-
-    if(rows.count == 0) return (struct ntg_object_measure) {0};
+    size_t row_count = ntg_str_utf32_count(view, '\n') + 1;
+    struct ntg_strv_utf32* rows;
+    rows = sarena_malloc(arena, row_count * sizeof(struct ntg_strv_utf32));
+    assert(rows != NULL);
+    ntg_str_utf32_split(view, '\n', rows, row_count);
+    if(row_count == 0) return (struct ntg_object_measure) {0};
 
     struct ntg_object_measure result;
     switch(label->_opts.wrap)
     {
         case NTG_LABEL_TEXT_WRAP_NONE:
-            result = measure_nowrap_fn(rows.views, rows.count, 
-                    label->_opts.orient, label->_opts.indent,
-                    orient, for_size, arena);
+            result = measure_nowrap_fn(label, rows, row_count, orient,
+                                       for_size, arena);
             break;
         case NTG_LABEL_TEXT_WRAP_CHAR:
-            result = measure_wrap_fn(rows.views, rows.count,
-                    label->_opts.orient, label->_opts.indent, orient,
-                    for_size, arena);
+            result = measure_wrap_fn(label, rows, row_count, orient,
+                                     for_size, arena);
             break;
         case NTG_LABEL_TEXT_WRAP_WORD:
-            result = measure_wwrap_fn(rows.views, rows.count,
-                    label->_opts.orient, label->_opts.indent, orient,
-                    for_size, arena);
+            result = measure_wwrap_fn(label, rows, row_count, orient,
+                                      for_size, arena);
             break;
 
         default: assert(0);
@@ -281,7 +226,7 @@ void _ntg_label_draw_fn(
     const ntg_label* label = (const ntg_label*)_label;
     struct ntg_xy size = ntg_widget_get_cont_size(_label);
 
-    if((label->__text.len == 0) || (label->__text.data == NULL)) return;
+    if((label->_text.len == 0) || (label->_text.data == NULL)) return;
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
     /* Init cont matrix */
@@ -296,26 +241,25 @@ void _ntg_label_draw_fn(
     for(i = 0; i < cont_size_prod; i++) cont_buff[i] = NTG_CELL_EMPTY;
 
     /* Get UTF-32 text */
-    size_t utf32_cap = label->__text.len;
-    uint32_t* text_utf32 = (uint32_t*)sarena_malloc(arena,
-            sizeof(uint32_t) * utf32_cap);
+    size_t utf32_cap = label->_text.len;
+    uint32_t* text_utf32 = sarena_malloc(arena, sizeof(uint32_t) * utf32_cap);
     assert(text_utf32 != NULL);
 
     size_t _width;
     int _status;
-    uc_utf8_to_utf32((uint8_t*)label->__text.data, utf32_cap, text_utf32,
-            label->__text.len, 0, &_width, &_status);
+    uc_utf8_to_utf32((uint8_t*)label->_text.data, utf32_cap, text_utf32,
+            label->_text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
 
     struct ntg_strv_utf32 view = {
         .data = text_utf32,
-        .count = _width
+        .len = _width
     };
-
-    /* Split by rows */
-    struct ntg_str_utf32_split_out rows = ntg_str_utf32_split(view, '\n', arena);
-    assert(rows.views != NULL);
-    if(rows.count == 0) return;
+    size_t row_count = ntg_str_utf32_count(view, '\n') + 1;
+    struct ntg_strv_utf32* rows;
+    rows = sarena_malloc(arena, row_count * sizeof(struct ntg_strv_utf32));
+    assert(rows != NULL);
+    ntg_str_utf32_split(view, '\n', rows, row_count);
 
     size_t capped_indent = _min2_size(label->_opts.indent, cont_size.x);
 
@@ -330,23 +274,23 @@ void _ntg_label_draw_fn(
     /* justify variables */
     size_t it_wrap_row_cont_space, it_wrap_row_extra_space,
            it_wrap_row_space_count, it_wrap_row_space_counter;
-    for(i = 0; i < rows.count; i++)
+    for(i = 0; i < row_count; i++)
     {
         _it_wrap_rows = NULL;
         _it_wrap_rows_count = 0;
         switch(label->_opts.wrap)
         {
             case NTG_LABEL_TEXT_WRAP_NONE:
-               get_wrap_rows_nowrap(rows.views[i], cont_size.x, &_it_wrap_rows,
-                       &_it_wrap_rows_count, arena); 
+               _it_wrap_rows_count = get_wrap_rows_nowrap(rows[i], cont_size.x,
+                                                          &_it_wrap_rows, arena); 
                 break;
             case NTG_LABEL_TEXT_WRAP_CHAR:
-               get_wrap_rows_wrap(rows.views[i], cont_size.x, &_it_wrap_rows,
-                       &_it_wrap_rows_count, arena); 
+               _it_wrap_rows_count = get_wrap_rows_wrap(rows[i], cont_size.x,
+                                                        &_it_wrap_rows, arena); 
                 break;
             case NTG_LABEL_TEXT_WRAP_WORD:
-               get_wrap_rows_wwrap(rows.views[i], cont_size.x, &_it_wrap_rows,
-                       &_it_wrap_rows_count, arena); 
+               _it_wrap_rows_count = get_wrap_rows_wwrap(rows[i], cont_size.x,
+                                                         &_it_wrap_rows, arena); 
                 break;
             default: assert(0);
         }
@@ -356,7 +300,7 @@ void _ntg_label_draw_fn(
             if(cont_i >= cont_size.y) break;
 
             /* Avoid overflow in switch statement */
-            _it_wrap_rows[j].count = _min2_size(_it_wrap_rows[j].count, cont_size.x);
+            _it_wrap_rows[j].len = _min2_size(_it_wrap_rows[j].len, cont_size.x);
 
             switch(label->_opts.palign)
             {
@@ -364,10 +308,10 @@ void _ntg_label_draw_fn(
                     it_row_align_indent = 0;
                     break;
                 case NTG_LABEL_TEXT_ALIGN_2:
-                    it_row_align_indent = (cont_size.x -_it_wrap_rows[j].count) / 2;
+                    it_row_align_indent = (cont_size.x -_it_wrap_rows[j].len) / 2;
                     break;
                 case NTG_LABEL_TEXT_ALIGN_3:
-                    it_row_align_indent = (cont_size.x -_it_wrap_rows[j].count);
+                    it_row_align_indent = (cont_size.x -_it_wrap_rows[j].len);
                     break;
                 case NTG_LABEL_TEXT_ALIGN_JUSTIFY:
                     it_row_align_indent = 0;
@@ -383,9 +327,9 @@ void _ntg_label_draw_fn(
 
             it_wrap_row_space_counter = 0;
             it_wrap_row_space_count = ntg_str_utf32_count(_it_wrap_rows[j], ' ');
-            it_wrap_row_cont_space = _it_wrap_rows[j].count + it_row_effective_indent;
+            it_wrap_row_cont_space = _it_wrap_rows[j].len + it_row_effective_indent;
             it_wrap_row_extra_space = _ssub_size(cont_size.x, it_wrap_row_cont_space);
-            for(k = 0; k < _it_wrap_rows[j].count; k++)
+            for(k = 0; k < _it_wrap_rows[j].len; k++)
             {
                 if(_it_wrap_rows[j].data[k] == ' ')
                 {
@@ -443,16 +387,12 @@ void _ntg_label_draw_fn(
 
 /* -------------------------------------------------------------------------- */
 
-static struct ntg_object_measure measure_nowrap_fn(
-        const struct ntg_strv_utf32* rows,
-        size_t row_count,
-        ntg_orient label_orient,
-        size_t indent,
-        ntg_orient orient,
-        size_t for_size,
-        sarena* arena)
+static struct ntg_object_measure 
+measure_nowrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
+        size_t row_count, ntg_orient orient, size_t for_size, sarena* arena)
 {
-    assert(rows != NULL);
+    size_t indent = label->_opts.indent;
+    size_t label_orient = label->_opts.orient;
 
     if(label_orient == orient)
     {
@@ -460,9 +400,9 @@ static struct ntg_object_measure measure_nowrap_fn(
         size_t max_row_len = 0;
         for(i = 0; i < row_count; i++)
         {
-            if(rows[i].count == 0) continue;
+            if(rows[i].len == 0) continue;
 
-            max_row_len = _max2_size(max_row_len, rows[i].count + indent);
+            max_row_len = _max2_size(max_row_len, rows[i].len + indent);
         }
 
         return (struct ntg_object_measure) {
@@ -481,14 +421,12 @@ static struct ntg_object_measure measure_nowrap_fn(
     }
 }
 
-static struct ntg_object_measure measure_wrap_fn(
-        const struct ntg_strv_utf32* rows, size_t row_count,
-        ntg_orient label_orient,
-        size_t indent,
-        ntg_orient orient, size_t for_size,
-        sarena* arena)
+static struct ntg_object_measure 
+measure_wrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
+        size_t row_count, ntg_orient orient, size_t for_size, sarena* arena)
 {
-    assert(rows != NULL);
+    size_t indent = label->_opts.indent;
+    size_t label_orient = label->_opts.orient;
 
     size_t i;
     if(label_orient == orient)
@@ -497,9 +435,9 @@ static struct ntg_object_measure measure_wrap_fn(
         size_t max_row_len = 0;
         for(i = 0; i < row_count; i++)
         {
-            if(rows[i].count == 0) continue;
+            if(rows[i].len == 0) continue;
 
-            max_row_len = _max2_size(max_row_len, rows[i].count + indent);
+            max_row_len = _max2_size(max_row_len, rows[i].len + indent);
         }
 
         return (struct ntg_object_measure) {
@@ -515,8 +453,8 @@ static struct ntg_object_measure measure_wrap_fn(
         size_t it_row_wrap_row_count;
         for(i = 0; i < row_count; i++)
         {
-            get_wrap_rows_wrap(rows[i], for_size, &it_row_wrap_rows,
-                    &it_row_wrap_row_count, arena);
+            it_row_wrap_row_count = get_wrap_rows_wrap(rows[i], for_size,
+                    &it_row_wrap_rows, arena);
 
             row_counter += it_row_wrap_row_count;
         }
@@ -529,19 +467,16 @@ static struct ntg_object_measure measure_wrap_fn(
     }
 }
 
-static struct ntg_object_measure measure_wwrap_fn(
-        const struct ntg_strv_utf32* rows,
-        size_t row_count,
-        ntg_orient label_orient,
-        size_t indent,
-        ntg_orient orient,
-        size_t for_size,
-        sarena* arena)
+static struct ntg_object_measure 
+measure_wwrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
+        size_t row_count, ntg_orient orient, size_t for_size, sarena* arena)
 {
-    assert(rows != NULL);
+    size_t indent = label->_opts.indent;
+    size_t label_orient = label->_opts.orient;
 
     size_t i, j;
-    struct ntg_str_utf32_split_out it_words;
+    struct ntg_strv_utf32* it_words;
+    size_t it_word_count;
     if(label_orient == orient)
     {
         size_t max_row_len = 0;
@@ -549,24 +484,25 @@ static struct ntg_object_measure measure_wwrap_fn(
         size_t j_word_adj_indent;
         for(i = 0; i < row_count; i++)
         {
-            if(rows[i].count == 0) continue;
+            if(rows[i].len == 0) continue;
 
-            max_row_len = _max2_size(max_row_len, rows[i].count + indent);
+            max_row_len = _max2_size(max_row_len, rows[i].len + indent);
 
-            it_words = ntg_str_utf32_split(rows[i], ' ', arena);
-            assert(it_words.views != NULL);
+            it_word_count = ntg_str_utf32_count(rows[i], ' ') + 1;
+            it_words = sarena_malloc(arena, sizeof(struct ntg_strv_utf32) *
+                                     it_word_count);
+            ntg_str_utf32_split(rows[i], ' ', it_words, it_word_count);
 
-            for(j = 0; j < it_words.count; j++)
+            for(j = 0; j < it_word_count; j++)
             {
                 // if first word in row, count indent
                 j_word_adj_indent = (j == 0) ? indent : 0;
 
                 max_word_len = _max2_size(max_word_len,
-                        it_words.views[j].count + j_word_adj_indent);
+                        it_words[j].len + j_word_adj_indent);
             }
-
-            it_words.views = NULL;
-            it_words.count = 0;
+            it_words = NULL;
+            it_word_count = 0;
         }
 
         return (struct ntg_object_measure) {
@@ -582,8 +518,8 @@ static struct ntg_object_measure measure_wwrap_fn(
         size_t it_row_wrap_row_count;
         for(i = 0; i < row_count; i++)
         {
-            get_wrap_rows_wwrap(rows[i], for_size, &it_row_wrap_rows,
-                    &it_row_wrap_row_count, arena);
+            it_row_wrap_row_count = get_wrap_rows_wwrap(rows[i], for_size,
+                    &it_row_wrap_rows, arena);
 
             row_counter += it_row_wrap_row_count;
         }
@@ -596,61 +532,53 @@ static struct ntg_object_measure measure_wwrap_fn(
     }
 }
 
-static void get_wrap_rows_nowrap(struct ntg_strv_utf32 row,
+static size_t get_wrap_rows_nowrap(const struct ntg_strv_utf32 row,
         size_t for_size, struct ntg_strv_utf32** out_wrap_rows,
-        size_t* out_wrap_row_count, sarena* arena)
+        sarena* arena)
 {
     assert(out_wrap_rows != NULL);
-    assert(out_wrap_row_count != NULL);
     assert(for_size != 0);
 
-
-    if((row.count == 0) || (row.data == NULL))
+    if((row.len == 0) || (row.data == NULL))
     {
-        (*out_wrap_rows) = (struct ntg_strv_utf32*)sarena_malloc(
-                arena, sizeof(struct ntg_strv_utf32));
-        assert(out_wrap_rows != NULL);
+        (*out_wrap_rows) = sarena_malloc(arena, sizeof(struct ntg_strv_utf32));
+        assert((*out_wrap_rows) != NULL);
         (*out_wrap_rows)[0] = (struct ntg_strv_utf32) {
             .data = row.data,
-            .count = 0
+            .len = 0
         };
-        (*out_wrap_row_count) = 1;
-        return; 
+        return 1;
     }
 
-    (*out_wrap_rows) = (struct ntg_strv_utf32*)sarena_malloc(
-            arena, sizeof(struct ntg_strv_utf32));
+    (*out_wrap_rows) = sarena_malloc(arena, sizeof(struct ntg_strv_utf32));
     assert(out_wrap_rows != NULL);
     (*out_wrap_rows)[0] = (struct ntg_strv_utf32) {
         .data = row.data,
-        .count = _min2_size(for_size, row.count)
+        .len = _min2_size(for_size, row.len)
     };
-    (*out_wrap_row_count) = 1;
+    return 1;
 }
 
-static void get_wrap_rows_wrap(struct ntg_strv_utf32 row,
+static size_t get_wrap_rows_wrap(const struct ntg_strv_utf32 row,
         size_t for_size, struct ntg_strv_utf32** out_wrap_rows,
-        size_t* out_wrap_row_count, sarena* arena)
+        sarena* arena)
 {
     assert(out_wrap_rows != NULL);
-    assert(out_wrap_row_count != NULL);
     assert(for_size != 0);
 
-    if((row.count == 0) || (row.data == NULL))
+    if((row.len == 0) || (row.data == NULL))
     {
-        (*out_wrap_rows) = (struct ntg_strv_utf32*)sarena_malloc(arena,
-                sizeof(struct ntg_strv_utf32));
-        assert(out_wrap_rows != NULL);
+        (*out_wrap_rows) = sarena_malloc(arena, sizeof(struct ntg_strv_utf32));
+        assert((*out_wrap_rows) != NULL);
         (*out_wrap_rows)[0] = (struct ntg_strv_utf32) {
             .data = row.data,
-            .count = 0
+            .len = 0
         };
-        (*out_wrap_row_count) = 1;
-        return; 
+        return 1;
     }
 
-    size_t wrap_row_count = ceil((1.0 * row.count) / for_size);
-    struct ntg_strv_utf32* wrap_rows = (struct ntg_strv_utf32*)sarena_malloc(arena,
+    size_t wrap_row_count = ceil((1.0 * row.len) / for_size);
+    struct ntg_strv_utf32* wrap_rows = sarena_malloc(arena,
             wrap_row_count * sizeof(struct ntg_strv_utf32));
     assert(wrap_rows != NULL);
 
@@ -658,78 +586,79 @@ static void get_wrap_rows_wrap(struct ntg_strv_utf32 row,
     size_t it_start = 0, it_end;
     for(i = 0; i < wrap_row_count; i++)
     {
-        it_end = it_start + _min2_size(for_size, row.count - it_start);
+        it_end = it_start + _min2_size(for_size, row.len - it_start);
 
         wrap_rows[i] = (struct ntg_strv_utf32) {
             .data = &(row.data[it_start]),
-            .count = it_end - it_start
+            .len = it_end - it_start
         };
 
         it_start = it_end;
     }
 
     (*out_wrap_rows) = wrap_rows;
-    (*out_wrap_row_count) = wrap_row_count;
+    return wrap_row_count;
 }
 
-static void get_wrap_rows_wwrap(struct ntg_strv_utf32 row,
-        size_t for_size, struct ntg_strv_utf32** out_wwrap_rows,
-        size_t* out_wwrap_row_count, sarena* arena)
+static size_t get_wrap_rows_wwrap(const struct ntg_strv_utf32 row,
+        size_t for_size, struct ntg_strv_utf32** out_wrap_rows,
+        sarena* arena)
 {
-    assert(out_wwrap_rows != NULL);
-    assert(out_wwrap_row_count != NULL);
+    assert(out_wrap_rows != NULL);
     assert(for_size != 0);
 
-    if((row.count == 0) || (row.data == NULL))
+    if((row.len == 0) || (row.data == NULL))
     {
-        (*out_wwrap_rows) = (struct ntg_strv_utf32*)sarena_malloc(
+        (*out_wrap_rows) = (struct ntg_strv_utf32*)sarena_malloc(
                 arena, sizeof(struct ntg_strv_utf32));
-        assert(out_wwrap_rows != NULL);
-        (*out_wwrap_rows)[0] = (struct ntg_strv_utf32) {
+        assert((*out_wrap_rows) != NULL);
+        (*out_wrap_rows)[0] = (struct ntg_strv_utf32) {
             .data = row.data,
-            .count = 0
+            .len = 0
         };
-        (*out_wwrap_row_count) = 1;
-        return; 
+        return 1;
     }
 
-    struct ntg_str_utf32_split_out words = ntg_str_utf32_split(row, ' ', arena);
-    size_t wwrap_row_max_count = words.count;
+    size_t word_count = ntg_str_utf32_count(row, ' ') + 1;
+    struct ntg_strv_utf32* words = sarena_malloc(arena, word_count *
+                                                 sizeof(struct ntg_strv_utf32));
+    ntg_str_utf32_split(row, ' ', words, word_count);
+    size_t wrap_row_max_count = word_count;
 
-    struct ntg_strv_utf32* wwrap_rows = (struct ntg_strv_utf32*)sarena_malloc(
-            arena, wwrap_row_max_count * sizeof(struct ntg_strv_utf32));
-    assert(wwrap_rows != NULL);
+    struct ntg_strv_utf32* wrap_rows = sarena_malloc(arena, wrap_row_max_count *
+                                                     sizeof(struct ntg_strv_utf32));
+    assert(wrap_rows != NULL);
     size_t i;
     struct ntg_strv_utf32 it_word;
     size_t it_row_len = 0;
     size_t it_row_word_count = 0;
-    size_t wwrap_row_counter = 0;
-    struct ntg_strv_utf32 it_row_start_word = words.views[0];
+    size_t wrap_row_counter = 0;
+    struct ntg_strv_utf32 it_row_start_word = words[0];
     struct ntg_strv_utf32 it_row_end_word;
     size_t effective_space;
-    for(i = 0; i < words.count; i++)
+    for(i = 0; i < word_count; i++)
     {
         effective_space = (it_row_word_count == 0) ? 0 : 1;
-        it_word = words.views[i];
-        if((it_row_len + it_word.count + effective_space) <= for_size)
+        it_word = words[i];
+        if((it_row_len + it_word.len + effective_space) <= for_size)
         {
-            it_row_len += (effective_space + it_word.count);
+            it_row_len += (effective_space + it_word.len);
             it_row_word_count++;
 
-            if(i == (words.count - 1))
+            if(i == (word_count - 1))
             {
                 /* process last row */
 
-                it_row_end_word = words.views[i];
+                it_row_end_word = words[i];
 
-                wwrap_rows[wwrap_row_counter] = (struct ntg_strv_utf32) {
+                wrap_rows[wrap_row_counter] = (struct ntg_strv_utf32) {
                     .data = it_row_start_word.data,
-                    .count = &(it_row_end_word.data[it_row_end_word.count]) -
+                    .len = &(it_row_end_word.data[it_row_end_word.len]) -
                         &(it_row_start_word.data[0])
                 };
 
-                wwrap_row_counter++;
-                // it_row_start_word = words.views[i];
+                wrap_row_counter++;
+                // it_row_start_word = words[i];
             }
         }
         else
@@ -738,56 +667,56 @@ static void get_wrap_rows_wwrap(struct ntg_strv_utf32 row,
 
             if(it_row_word_count > 0)
             {
-                it_row_end_word = words.views[i - 1];
+                it_row_end_word = words[i - 1];
 
-                wwrap_rows[wwrap_row_counter] = (struct ntg_strv_utf32) {
+                wrap_rows[wrap_row_counter] = (struct ntg_strv_utf32) {
                     .data = it_row_start_word.data,
-                    .count = &(it_row_end_word.data[it_row_end_word.count]) -
+                    .len = &(it_row_end_word.data[it_row_end_word.len]) -
                         &(it_row_start_word.data[0])
                 };
 
-                it_row_start_word = words.views[i];
+                it_row_start_word = words[i];
 
-                wwrap_row_counter++;
+                wrap_row_counter++;
             }
 
-            if(it_word.count < for_size) // can fit in next row
+            if(it_word.len < for_size) // can fit in next row
             {
-                it_row_len = it_word.count;
+                it_row_len = it_word.len;
                 it_row_word_count = 1;
 
                 /* process last row */
-                if(i == (words.count - 1))
+                if(i == (word_count - 1))
                 {
-                    it_row_end_word = words.views[i];
+                    it_row_end_word = words[i];
 
-                    wwrap_rows[wwrap_row_counter] = (struct ntg_strv_utf32) {
+                    wrap_rows[wrap_row_counter] = (struct ntg_strv_utf32) {
                         .data = it_row_start_word.data,
-                            .count = &(it_row_end_word.data[it_row_end_word.count]) -
+                            .len = &(it_row_end_word.data[it_row_end_word.len]) -
                                 &(it_row_start_word.data[0])
                     };
 
-                    // it_row_start_word = words.views[i];
+                    // it_row_start_word = words[i];
 
-                    wwrap_row_counter++;
+                    wrap_row_counter++;
                 }
             }
             else // can't fit in next row(or can, but just right)
             {
                 /* next row, again */
 
-                it_row_end_word = words.views[i];
+                it_row_end_word = words[i];
 
-                wwrap_rows[wwrap_row_counter] = (struct ntg_strv_utf32) {
+                wrap_rows[wrap_row_counter] = (struct ntg_strv_utf32) {
                     .data = it_row_start_word.data,
-                    .count = &(it_row_end_word.data[for_size]) -
+                    .len = &(it_row_end_word.data[for_size]) -
                         &(it_row_start_word.data[0])
                 };
 
-                if(i < (words.count - 1))
-                    it_row_start_word = words.views[i + 1];
+                if(i < (word_count - 1))
+                    it_row_start_word = words[i + 1];
 
-                wwrap_row_counter++;
+                wrap_row_counter++;
 
                 it_row_len = 0;
                 it_row_word_count = 0;
@@ -795,6 +724,63 @@ static void get_wrap_rows_wwrap(struct ntg_strv_utf32 row,
         }
     }
 
-    (*out_wwrap_rows) = wwrap_rows;
-    (*out_wwrap_row_count) = wwrap_row_counter;
+    (*out_wrap_rows) = wrap_rows;
+    return wrap_row_counter;
+}
+
+static void trim_text(ntg_label* label)
+{
+    assert(label != NULL);
+    if((label->_text.len == 0) || (label->_text.data == NULL)) return;
+
+    struct ntg_strv view = {
+        .data = label->_text.data,
+        .len = label->_text.len
+    };
+
+    size_t word_count = ntg_str_count(view, ' ') + 1;
+    struct ntg_strv* words = malloc(word_count * sizeof(struct ntg_strv));
+    assert(words != NULL);
+    ntg_str_split(view, ' ', words, word_count);
+
+    size_t space_needed = 0;
+
+    size_t i;
+    for(i = 0; i < word_count; i++)
+    {
+        if(words[i].len > 0)
+        {
+            memmove(label->_text.data + space_needed,
+                    words[i].data,
+                    words[i].len);
+
+            if(i < (word_count - 1))
+            {
+                label->_text.data[space_needed + words[i].len] = ' ';
+                space_needed += (1 + words[i].len);
+            }
+            else
+                space_needed += words[i].len;
+            
+        }
+    }
+
+    if((space_needed > 0) && (label->_text.data[space_needed - 1] == ' '))
+        space_needed--;
+
+    if (space_needed == 0)
+    {
+        free(label->_text.data);
+        label->_text.data = NULL;
+        label->_text.len = 0;
+    }
+    else
+    {
+        char *tmp = realloc(label->_text.data, space_needed);
+        assert(tmp != NULL);
+        label->_text.data = tmp;
+        label->_text.len = space_needed;
+    }
+
+    free(words);
 }

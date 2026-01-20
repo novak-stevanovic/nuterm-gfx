@@ -7,13 +7,13 @@
 #include "core/loop/_ntg_loop.h"
 
 #define UCONV_IMPLEMENTATION
-#include "shared/uconv.h"
+#include "thirdparty/uconv.h"
 
 #define SARENA_IMPLEMENTATION
-#include "shared/sarena.h"
+#include "thirdparty/sarena.h"
 
 #define GENC_IMPLEMENTATION
-#include "shared/genc.h"
+#include "thirdparty/genc.h"
 
 /* -------------------------------------------------------------------------- */
 

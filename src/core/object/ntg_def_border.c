@@ -112,7 +112,7 @@ void _ntg_def_border_deinit_fn(ntg_entity* entity)
     ntg_def_border* border = (ntg_def_border*)entity;
 
     border->_style = (struct ntg_def_border_style) {0};
-    _ntg_decorator_deinit_fn(entity);
+    ntg_decorator_deinit_fn(entity);
 }
 
 void _ntg_def_border_draw_fn(

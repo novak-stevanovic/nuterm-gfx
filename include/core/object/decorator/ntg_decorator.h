@@ -51,7 +51,10 @@ void ntg_decorator_set_opts(ntg_decorator* decorator, struct ntg_decorator_opts 
 
 void ntg_decorator_init(ntg_decorator* decorator, ntg_object_draw_fn draw_fn);
 
-void _ntg_decorator_deinit_fn(ntg_entity* object);
+void ntg_decorator_deinit_fn(ntg_entity* object);
+
+// Called internally by ntg_widget. Updates only the decorator's state
+void _ntg_decorator_decorate(ntg_decorator* decorator, ntg_widget* widget);
 
 void* _ntg_decorator_layout_data_init_fn(const ntg_object* _decorator);
 void _ntg_decorator_layout_data_deinit_fn(void* data, const ntg_object* _decorator);
