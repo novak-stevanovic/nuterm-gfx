@@ -3,13 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static void set_scene(ntg_object* object, ntg_scene* scene);
-static void set_scene_fn(ntg_object* object, void* _scene)
-{
-    set_scene(object, (ntg_scene*)_scene);
-}
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(set_scene_tree, set_scene_fn);
-
 /* ---------------------------------------------------------------- */
 /* OBJECT TREE */
 /* ---------------------------------------------------------------- */
@@ -118,9 +111,9 @@ void ntg_object_constrain(ntg_object* object,
 
     size_t size = ntg_object_get_size_1d(object, orient);
 
+    size_t i;
     if((size == 0) || (layout_ops.constrain_fn == NULL))
     {
-        size_t i;
         for(i = 0; i < children->size; i++)
         {
             if(orient == NTG_ORIENT_H)
@@ -132,8 +125,17 @@ void ntg_object_constrain(ntg_object* object,
     else
     {
         ntg_object_size_map* _sizes = ntg_object_size_map_new(children->size, arena);
-        layout_ops.constrain_fn(object, object->__layout_data,
-                orient, _sizes, arena);
+        layout_ops.constrain_fn(object, object->__layout_data, orient, _sizes, arena);
+
+        size_t it_size;
+        for(i = 0; i < children->size; i++)
+        {
+            it_size = ntg_object_size_map_get(_sizes, children->data[i]);
+            if(orient == NTG_ORIENT_H)
+                children->data[i]->_size.x = it_size;
+            else
+                children->data[i]->_size.y = it_size;
+        }
     }
 }
 
@@ -147,9 +149,9 @@ void ntg_object_arrange(ntg_object* object, sarena* arena)
     struct ntg_object_layout_ops layout_ops = object->__layout_ops;
     ntg_object_vec* children = &object->_children;
 
+    size_t i;
     if(ntg_xy_size_is_zero(size) || (layout_ops.arrange_fn == NULL))
     {
-        size_t i;
         for(i = 0; i < children->size; i++)
             children->data[i]->_pos = ntg_xy(0, 0);
     }
@@ -157,6 +159,14 @@ void ntg_object_arrange(ntg_object* object, sarena* arena)
     {
         ntg_object_xy_map* _poss = ntg_object_xy_map_new(children->size, arena);
         layout_ops.arrange_fn(object, object->__layout_data, _poss, arena);
+
+        struct ntg_xy it_pos;
+        for(i = 0; i < children->size; i++)
+        {
+            it_pos = ntg_object_xy_map_get(_poss, children->data[i]);
+
+            children->data[i]->_pos = it_pos;
+        }
     }
 }
 
@@ -203,7 +213,7 @@ struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object)
     while(it_obj != NULL)
     {
         pos = ntg_xy_add(pos, it_obj->_pos);
-        it_obj = object->_parent;
+        it_obj = it_obj->_parent;
     }
 
     return pos;
@@ -322,9 +332,6 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
 
     child->_parent = parent;
 
-    if(parent->_scene != NULL)
-        set_scene(child, parent->_scene);
-
     struct ntg_event_object_chldadd_data data1 = { .child = child };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
                            NTG_EVENT_OBJECT_CHLDADD, &data1);
@@ -335,6 +342,9 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
     };
     ntg_entity_raise_event((ntg_entity*)child, NULL,
             NTG_EVENT_OBJECT_PRNTCHNG, &data2);
+
+    ntg_entity_raise_event((ntg_entity*)parent, NULL,
+            NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_object_detach(ntg_object* widget)
@@ -348,9 +358,6 @@ void ntg_object_detach(ntg_object* widget)
 
     widget->_parent = NULL;
 
-    if(widget->_scene != NULL)
-        set_scene(widget, NULL);
-
     struct ntg_event_object_chldrm_data data1 = { .child = widget };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
                            NTG_EVENT_OBJECT_CHLDRM, &data1);
@@ -361,22 +368,20 @@ void ntg_object_detach(ntg_object* widget)
     };
     ntg_entity_raise_event((ntg_entity*)widget, NULL,
             NTG_EVENT_OBJECT_PRNTCHNG, &data2);
+
+    ntg_entity_raise_event((ntg_entity*)parent, NULL,
+            NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene)
+void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene)
 {
-    assert(root != NULL);
-    assert(root->_parent == NULL);
+    assert(object != NULL);
 
-    set_scene_tree(root, scene);
-}
-
-static void set_scene(ntg_object* object, ntg_scene* scene)
-{
+    ntg_scene* old = object->_scene;
     object->_scene = scene;
 
     struct ntg_object_layout_ops layout_ops = object->__layout_ops;
@@ -391,7 +396,7 @@ static void set_scene(ntg_object* object, ntg_scene* scene)
     }
 
     struct ntg_event_object_scnchng_data data = {
-        .old = object->_scene,
+        .old = old,
         .new = scene
     };
     ntg_entity_raise_event((ntg_entity*)object, NULL,

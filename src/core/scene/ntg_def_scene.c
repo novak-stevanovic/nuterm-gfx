@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "thirdparty/uthash.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 struct object_data
 {
@@ -220,13 +220,6 @@ static void measure1_fn(ntg_object* object, void* _layout_data)
     if(!object_data->measure1) return;
 
     ntg_object* parent = object->_parent;
-    if(parent == NULL)
-    {
-        object_data->measure1 = false;
-        object_data->old_hmeasure = (struct ntg_object_measure) {0};
-        return;
-    }
-    struct object_data* parent_data = scene_map_get(scene, parent);
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M1 | %p", object);
 
@@ -240,10 +233,14 @@ static void measure1_fn(ntg_object* object, void* _layout_data)
 
     if(!(ntg_object_measure_are_equal(old_measure, new_measure)))
     {
-        parent_data->measure1 = true;
-        parent_data->measure2 = true;
-        parent_data->constrain1 = true;
-        parent_data->constrain2 = true;
+        if(parent != NULL)
+        {
+            struct object_data* parent_data = scene_map_get(scene, parent);
+            parent_data->measure1 = true;
+            parent_data->measure2 = true;
+            parent_data->constrain1 = true;
+            parent_data->constrain2 = true;
+        }
         object_data->old_hmeasure = new_measure;
     }
 
@@ -309,13 +306,6 @@ static void measure2_fn(ntg_object* object, void* _layout_data)
     if(!object_data->measure2) return;
 
     ntg_object* parent = object->_parent;
-    if(parent == NULL)
-    {
-        object_data->measure2 = false;
-        object_data->old_vmeasure = (struct ntg_object_measure) {0};
-        return;
-    }
-    struct object_data* parent_data = scene_map_get(scene, parent);
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M2 | %p", object);
 
@@ -329,8 +319,12 @@ static void measure2_fn(ntg_object* object, void* _layout_data)
 
     if(!(ntg_object_measure_are_equal(old_measure, new_measure)))
     {
-        parent_data->measure2 = true;
-        parent_data->constrain2 = true;
+        if(parent)
+        {
+            struct object_data* parent_data = scene_map_get(scene, parent);
+            parent_data->measure2 = true;
+            parent_data->constrain2 = true;
+        }
         object_data->old_vmeasure = new_measure;
     }
 

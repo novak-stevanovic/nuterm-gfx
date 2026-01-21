@@ -408,7 +408,8 @@ measure_nowrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
         return (struct ntg_object_measure) {
             .min_size = _max2_size(max_row_len, DEFAULT_SIZE),
             .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
-            .max_size = NTG_SIZE_MAX
+            .max_size = NTG_SIZE_MAX,
+            .grow = 1
         };
     }
     else
@@ -416,7 +417,8 @@ measure_nowrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
         return (struct ntg_object_measure) {
             .min_size = _max2_size(row_count, DEFAULT_SIZE),
             .nat_size = _max2_size(row_count, DEFAULT_SIZE),
-            .max_size = NTG_SIZE_MAX
+            .max_size = NTG_SIZE_MAX,
+            .grow = 1
         };
     }
 }
@@ -443,7 +445,8 @@ measure_wrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
         return (struct ntg_object_measure) {
             .min_size = DEFAULT_SIZE,
             .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
-            .max_size = NTG_SIZE_MAX
+            .max_size = NTG_SIZE_MAX,
+            .grow = 1
         };
     }
     else
@@ -462,7 +465,8 @@ measure_wrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
         return (struct ntg_object_measure) {
             .min_size = _max2_size(row_counter, DEFAULT_SIZE),
             .nat_size = _max2_size(row_counter, DEFAULT_SIZE),
-            .max_size = NTG_SIZE_MAX
+            .max_size = NTG_SIZE_MAX,
+            .grow = 1
         };
     }
 }
@@ -508,7 +512,8 @@ measure_wwrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
         return (struct ntg_object_measure) {
             .min_size = _max2_size(max_word_len, DEFAULT_SIZE),
             .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
-            .max_size = NTG_SIZE_MAX
+            .max_size = NTG_SIZE_MAX,
+            .grow = 1
         };
     }
     else
@@ -527,7 +532,8 @@ measure_wwrap_fn(const ntg_label* label, const struct ntg_strv_utf32* rows,
         return (struct ntg_object_measure) {
             .min_size = _max2_size(row_counter, DEFAULT_SIZE),
             .nat_size = _max2_size(row_counter, DEFAULT_SIZE),
-            .max_size = NTG_SIZE_MAX
+            .max_size = NTG_SIZE_MAX,
+            .grow = 1
         };
     }
 }

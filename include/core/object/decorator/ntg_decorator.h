@@ -18,8 +18,8 @@ struct ntg_decorator_width ntg_decorator_width(
 
 enum ntg_decorator_enable_mode
 {
-    NTG_DECORATOR_ENABLE_ON_NATURAL,
     NTG_DECORATOR_ENABLE_ON_MIN,
+    NTG_DECORATOR_ENABLE_ON_NAT,
     NTG_DECORATOR_ENABLE_ALWAYS
 };
 

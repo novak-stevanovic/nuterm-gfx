@@ -4,7 +4,6 @@
 #include "shared/_ntg_shared.h"
 
 static void init_default_values(ntg_widget* widget);
-static void object_rm_child_fn(ntg_object* _widget, ntg_object* child);
 
 static void padding_remove(ntg_widget* widget);
 static void padding_add(ntg_widget* widget, ntg_decorator* padding);
@@ -362,33 +361,33 @@ size_t ntg_widget_get_children_(ntg_widget* widget,
 void ntg_widget_set_padding(ntg_widget* widget, ntg_decorator* padding)
 {
     assert(widget != NULL);
-    assert(padding != NULL);
 
     if(widget->_padding == padding) return;
 
-    if(padding->_widget->_padding != NULL)
+    if(padding && padding->_widget && padding->_widget->_padding)
         padding_remove(padding->_widget);
 
     if(widget->_padding != NULL)
         padding_remove(widget);
 
-    padding_add(widget, padding);
+    if(padding)
+        padding_add(widget, padding);
 }
 
 void ntg_widget_set_border(ntg_widget* widget, ntg_decorator* border)
 {
     assert(widget != NULL);
-    assert(border != NULL);
 
     if(widget->_border == border) return;
 
-    if(border->_widget->_border != NULL)
+    if(border && border->_widget && border->_widget->_border)
         border_remove(border->_widget);
 
     if(widget->_border != NULL)
         border_remove(widget);
 
-    border_add(widget, border);
+    if(border)
+        border_add(widget, border);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -440,9 +439,14 @@ void ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
     assert(parent != child);
     assert(ntg_widget_get_parent(child) == NULL);
 
+    ntg_object* _child = (ntg_object*)child;
+    ntg_object* _parent = (ntg_object*)parent;
+
+    assert(!(_child->_scene && (_child->_scene->_root == child)));
+
     ntg_object* group_root = ntg_widget_get_group_root_(child);
 
-    ntg_object_attach((ntg_object*)parent, group_root);
+    ntg_object_attach(_parent, group_root);
 
     struct ntg_event_widget_chldadd_data data1 = { .child = child };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
@@ -630,8 +634,6 @@ void _ntg_widget_draw_fn(
     struct ntg_widget_layout_ops layout_ops = widget->__layout_ops;
     if(layout_ops.draw_fn != NULL)
         layout_ops.draw_fn(widget, _layout_data, out_drawing, arena);
-
-    assert(0);
 }
 
 static void init_default_values(ntg_widget* widget)

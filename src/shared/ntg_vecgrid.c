@@ -52,7 +52,6 @@ void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
         if(size_prod == 0)
         {
             new_cap = 0;
-            // ntg_log_log("VECGRID SET SIZE | FREEING");
             if(vecgrid->_capacity > 0)
                 free(vecgrid->_data);
 

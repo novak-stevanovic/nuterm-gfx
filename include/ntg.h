@@ -3,19 +3,19 @@
 
 #include "nt_gfx.h"
 #include "nt_event.h"
-#include "thirdparty/sarena.h"
+
 #include "thirdparty/uconv.h"
+#include "thirdparty/sarena.h"
+#include "thirdparty/genc.h"
 
 #include "shared/ntg_status.h"
 #include "shared/ntg_typedef.h"
-#include "thirdparty/uconv.h"
 #include "shared/ntg_xy.h"
 #include "shared/ntg_string.h"
 #include "shared/ntg_shared.h"
-#include "thirdparty/sarena.h"
-#include "thirdparty/genc.h"
 #include "shared/ntg_vecgrid.h"
 #include "shared/ntg_log.h"
+#include "shared/ntg_convenience.h"
 #include "base/ntg_cell.h"
 #include "base/ntg_sap.h"
 #include "core/renderer/ntg_def_renderer.h"

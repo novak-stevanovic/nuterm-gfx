@@ -35,6 +35,8 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     ctx._task_runner = &task_runner;
     ctx.data = data.ctx_data;
 
+    size_t resize_counter = 0, sigwinch_counter = 0;
+
     /* loop */
     unsigned int timeout = 1000 / data.framerate;
     struct timespec ts_start, ts_end;
@@ -43,6 +45,7 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     const ntg_stage_drawing* drawing;
 
     struct nt_event event;
+    struct nt_resize_event resize_event;
     unsigned int event_elapsed;
     struct ntg_event_loop_event_data loop_event_data;
 
@@ -56,13 +59,17 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         assert(_status == NT_SUCCESS);
         clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
+        if(event.type == NT_EVENT_RESIZE)
+        {
+            resize_event = *(struct nt_resize_event*)event.data;
+            ctx._app_size.x = resize_event.new_x;
+            ctx._app_size.y = resize_event.new_y;
+
+            resize_counter++;
+        }
         if(event.type == NT_EVENT_SIGNAL)
         {
-            unsigned int signum = *(unsigned int*)event.data;
-            if(signum == SIGWINCH) // RESIZE
-            {
-                nt_get_term_size(&ctx._app_size.x, &ctx._app_size.y);
-            }
+            sigwinch_counter++;
         }
 
         // Process/dispatch event
@@ -137,6 +144,8 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         _ntg_platform_invalidate(&platform);
         _ntg_task_runner_invalidate(&task_runner);
     }
+
+    ntg_log_log("%d %d", resize_counter, sigwinch_counter);
 
     sarena_destroy(ctx._arena);
     // ctx = (struct ntg_loop_ctx) {0};

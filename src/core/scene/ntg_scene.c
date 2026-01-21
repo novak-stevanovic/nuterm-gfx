@@ -35,14 +35,12 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
     {
         ntg_object* old_root_gr = ntg_widget_get_group_root_(old_root);
         on_object_unregister_fn_tree(old_root_gr, scene);
-        _ntg_object_root_set_scene(old_root_gr, NULL);
     }
 
     if(root != NULL)
     {
         ntg_object* root_gr = ntg_widget_get_group_root_(root);
         on_object_register_fn_tree(root_gr, scene);
-        _ntg_object_root_set_scene(root_gr, scene);
     }
 
     scene->_root = root;
@@ -129,6 +127,7 @@ void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
 
 static void on_object_register(ntg_scene* scene, ntg_object* object)
 {
+    _ntg_object_set_scene(object, scene);
     ntg_entity_observe((ntg_entity*)scene, (ntg_entity*)object, object_observe_fn);
 
     struct ntg_event_scene_objadd_data data = { .object = object };
@@ -139,6 +138,7 @@ static void on_object_register(ntg_scene* scene, ntg_object* object)
 
 static void on_object_unregister(ntg_scene* scene, ntg_object* object)
 {
+    _ntg_object_set_scene(object, NULL);
     ntg_entity_stop_observing((ntg_entity*)scene, (ntg_entity*)object, object_observe_fn);
 
     struct ntg_event_scene_objrm_data data = { .object = object };
@@ -169,6 +169,7 @@ static void object_observe_fn(ntg_entity* _scene, struct ntg_event event)
     else if(event.type == NTG_EVENT_OBJECT_CHLDRM)
     {
         struct ntg_event_object_chldrm_data* data = event.data;
+        if(((ntg_widget*)data->child) == scene->_root) return;
         on_object_unregister_fn_tree(data->child, _scene);
     }
     else if(event.type == NTG_EVENT_OBJECT_DIFF)

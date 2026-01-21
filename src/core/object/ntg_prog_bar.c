@@ -78,7 +78,8 @@ struct ntg_object_measure _ntg_prog_bar_measure_fn(
         return (struct ntg_object_measure) {
             .min_size = 10,
             .nat_size = 10,
-            .max_size = SIZE_MAX 
+            .max_size = SIZE_MAX,
+            .grow = 1
         };
     }
     else
@@ -86,7 +87,8 @@ struct ntg_object_measure _ntg_prog_bar_measure_fn(
         return (struct ntg_object_measure) {
             .min_size = 1,
             .nat_size = 1,
-            .max_size = SIZE_MAX 
+            .max_size = SIZE_MAX,
+            .grow = 1
         };
     }
 }

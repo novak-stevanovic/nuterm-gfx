@@ -98,6 +98,7 @@ static void fn_name(ntg_object* object, void* data)                            \
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
+// Set size and position of root
 void ntg_object_root_layout(ntg_object* root, struct ntg_xy size);
 
 void ntg_object_measure(ntg_object* object,
@@ -137,10 +138,12 @@ void ntg_object_deinit_fn(ntg_entity* entity);
 // enum ntg_object_addchld_status 
 // ntg_object_validate_add_child(ntg_object* parent, ntg_object* child);
 
-/* Updates only the tree. Called internally by types extending ntg_object. */
+/* Updates only the tree. Does not update scene. 
+ * Called internally by types extending ntg_object. */
 void ntg_object_attach(ntg_object* parent, ntg_object* child);
 
-/* Updates only the tree. Called internally by types extending ntg_object. */
+/* Updates only the tree. Does not update scene.
+ * Called internally by types extending ntg_object. */
 void ntg_object_detach(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
@@ -148,6 +151,6 @@ void ntg_object_detach(ntg_object* object);
 /* -------------------------------------------------------------------------- */
 
 // Called internally by ntg_scene. Updates only the object's state
-void _ntg_object_root_set_scene(ntg_object* root, ntg_scene* scene);
+void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene);
 
 #endif // NTG_OBJECT_H

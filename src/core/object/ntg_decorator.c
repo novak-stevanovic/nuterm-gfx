@@ -5,7 +5,7 @@
 
 struct ntg_decorator_ldata
 {
-    struct ntg_decorator_width final_width;
+    struct ntg_decorator_width width; // calculated width
 };
 
 struct ntg_decorator_width ntg_decorator_width(
@@ -23,7 +23,7 @@ struct ntg_decorator_width ntg_decorator_width(
 struct ntg_decorator_opts ntg_decorator_opts_def()
 {
     return (struct ntg_decorator_opts) {
-        .mode = NTG_DECORATOR_ENABLE_ON_NATURAL,
+        .mode = NTG_DECORATOR_ENABLE_ON_MIN,
         .width = ntg_decorator_width(1, 1, 1, 1)
     };
 }
@@ -89,11 +89,11 @@ void _ntg_decorator_decorate(ntg_decorator* decorator, ntg_widget* widget)
 
 void* _ntg_decorator_layout_data_init_fn(const ntg_object* _decorator)
 {
-    struct ntg_decorator_ldata* layout_data = malloc(
-            sizeof(struct ntg_decorator_ldata));
+    struct ntg_decorator_ldata* layout_data;
+    layout_data = malloc(sizeof(struct ntg_decorator_ldata));
     assert(layout_data != NULL);
 
-    layout_data->final_width = (struct ntg_decorator_width) {0};
+    layout_data->width = (struct ntg_decorator_width) {0};
 
     return layout_data;
 }
@@ -103,12 +103,9 @@ void _ntg_decorator_layout_data_deinit_fn(void* data, const ntg_object* _decorat
     free(data);
 }
 
-struct ntg_object_measure _ntg_decorator_measure_fn(
-        const ntg_object* _decorator,
-        void* _layout_data,
-        ntg_orient orient,
-        bool constrained,
-        sarena* arena)
+struct ntg_object_measure 
+_ntg_decorator_measure_fn(const ntg_object* _decorator, void* _layout_data,
+                          ntg_orient orient, bool constrained, sarena* arena)
 {
     const ntg_decorator* decorator = (ntg_decorator*)_decorator;
     if(_decorator->_children.size == 0) return (struct ntg_object_measure) {0};
@@ -152,18 +149,28 @@ void _ntg_decorator_constrain_fn(
     const ntg_decorator* decorator = (ntg_decorator*)_decorator;
     const ntg_object* child = _decorator->_children.data[0];
     struct ntg_object_measure child_data;
-    struct ntg_decorator_ldata* layout_data = _layout_data;
     child_data = ntg_object_get_measure(child, orient);
+    struct ntg_decorator_ldata* layout_data = _layout_data;
     size_t size = ntg_object_get_size_1d(_decorator, orient);
 
     size_t extra_space;
-    if(decorator->_opts.mode == NTG_DECORATOR_ENABLE_ON_NATURAL)
-        extra_space = _ssub_size(size, child_data.nat_size);
-    else if(decorator->_opts.mode == NTG_DECORATOR_ENABLE_ON_NATURAL)
-        extra_space = _ssub_size(size, child_data.min_size);
-    else if(decorator->_opts.mode == NTG_DECORATOR_ENABLE_ON_NATURAL)
-        extra_space = size;
-    else assert(0);
+    if(orient == NTG_ORIENT_V)
+    {
+        size_t pref, final;
+        pref = decorator->_opts.width.west + decorator->_opts.width.east;
+        final = layout_data->width.west + layout_data->width.east;
+
+        if((pref > 0) && (final == 0)) extra_space = 0;
+        else extra_space = size;
+    }
+    else
+    {
+        if(decorator->_opts.mode == NTG_DECORATOR_ENABLE_ON_MIN)
+            extra_space = _ssub_size(size, child_data.min_size);
+        else if(decorator->_opts.mode == NTG_DECORATOR_ENABLE_ON_NAT)
+            extra_space = _ssub_size(size, child_data.nat_size);
+        else extra_space = size;
+    }
 
     size_t _sizes[2] = {0};
     size_t caps[2];
@@ -182,13 +189,13 @@ void _ntg_decorator_constrain_fn(
 
     if(orient == NTG_ORIENT_H)
     {
-        layout_data->final_width.west = _sizes[0];
-        layout_data->final_width.east = _sizes[1];
+        layout_data->width.west = _sizes[0];
+        layout_data->width.east = _sizes[1];
     }
     else
     {
-        layout_data->final_width.north = _sizes[0];
-        layout_data->final_width.south = _sizes[1];
+        layout_data->width.north = _sizes[0];
+        layout_data->width.south = _sizes[1];
     }
 
     size_t child_size = size - _sizes[0] - _sizes[1];
@@ -206,8 +213,8 @@ void _ntg_decorator_arrange_fn(
     const ntg_object* child = _decorator->_children.data[0];
     struct ntg_decorator_ldata* layout_data = _layout_data;
     struct ntg_xy offset = ntg_xy(
-            layout_data->final_width.west,
-            layout_data->final_width.north);
+            layout_data->width.west,
+            layout_data->width.north);
 
     ntg_object_xy_map_set(out_pos_map, child, offset);
 }
