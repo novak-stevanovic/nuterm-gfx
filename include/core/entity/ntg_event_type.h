@@ -8,6 +8,12 @@
 /* OBJECT */
 /* -------------------------------------------------------------------------- */
 
+#define NTG_EVENT_ENTITY_DESTROY 1
+
+/* -------------------------------------------------------------------------- */
+/* OBJECT */
+/* -------------------------------------------------------------------------- */
+
 #define NTG_EVENT_OBJECT_CHLDADD 4
 struct ntg_event_object_chldadd_data
 {
@@ -108,7 +114,7 @@ struct ntg_event_stage_scnchng_data
 /* LOOP*/
 /* -------------------------------------------------------------------------- */
 
-#define NTG_EVENT_LOOP_EVENT 1
+#define NTG_EVENT_LOOP_EVENT 1000
 struct ntg_event_loop_event_data
 {
     struct nt_event event;

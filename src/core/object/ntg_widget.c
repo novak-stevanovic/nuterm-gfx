@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "ntg.h"
 #include "core/entity/ntg_entity_type.h"
 #include "shared/_ntg_shared.h"
@@ -420,16 +421,33 @@ void ntg_widget_init(ntg_widget* widget,
 
 void ntg_widget_deinit_fn(ntg_entity* _widget)
 {
+    ntg_object* object = (ntg_object*)_widget;
     ntg_widget* widget = (ntg_widget*)_widget;
 
-    init_default_values((ntg_widget*)_widget);
+    if(object->_scene && (object->_scene->_root == widget))
+        ntg_scene_set_root(object->_scene, NULL);
 
     if(widget->_padding != NULL)
         padding_remove(widget);
     if(widget->_border != NULL)
         border_remove(widget);
 
+    ntg_widget* parent = ntg_widget_get_parent_(widget);
+    if(parent != NULL) ntg_widget_detach(widget);
+
+    size_t child_count = ntg_widget_get_children_count(widget);
+    ntg_widget** buffer = malloc(sizeof(void*) * child_count);
+    assert(buffer != NULL);
+    ntg_widget_get_children_(widget, buffer, child_count);
+    size_t i;
+    for(i = 0; i < child_count; i++)
+        ntg_widget_detach(buffer[i]);
+
+    init_default_values((ntg_widget*)_widget);
+
     ntg_object_deinit_fn(_widget);
+
+    free(buffer);
 }
 
 void ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
@@ -437,7 +455,12 @@ void ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
     assert(parent != NULL);
     assert(child != NULL);
     assert(parent != child);
-    assert(ntg_widget_get_parent(child) == NULL);
+
+    ntg_widget* curr_parent = ntg_widget_get_parent_(child);
+    if(curr_parent != NULL)
+    {
+        ntg_widget_detach(child);
+    }
 
     ntg_object* _child = (ntg_object*)child;
     ntg_object* _parent = (ntg_object*)parent;
@@ -472,8 +495,8 @@ void ntg_widget_detach(ntg_widget* widget)
 
     ntg_object_detach(group_root);
 
-    if(widget->__hooks.rm_child_fn != NULL)
-        widget->__hooks.rm_child_fn(parent, widget);
+    if(parent->__hooks.rm_child_fn != NULL)
+        parent->__hooks.rm_child_fn(parent, widget);
 
     struct ntg_event_widget_chldrm_data data1 = { .child = widget };
     ntg_entity_raise_event((ntg_entity*)parent, NULL,
@@ -562,8 +585,7 @@ void _ntg_widget_constrain_fn(
     size_t i;
     size_t child_count = ntg_widget_get_children_count(widget);
 
-    const ntg_widget** buffer = (const ntg_widget**)sarena_malloc(
-            arena, sizeof(void*) * child_count);
+    const ntg_widget** buffer = sarena_malloc(arena, sizeof(void*) * child_count);
     assert(buffer != NULL);
     ntg_widget_get_children(widget, buffer, child_count);
 

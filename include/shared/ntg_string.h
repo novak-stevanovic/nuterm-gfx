@@ -47,6 +47,33 @@ ntg_strv_cstr(const char* cstr)
     };
 }
 
+static inline struct ntg_strv
+ntg_strv_str(struct ntg_str str)
+{
+    return (struct ntg_strv) {
+        .data = str.data,
+        .len = str.len
+    };
+}
+
+static inline struct ntg_strv_utf32
+ntg_strv_utf32(const uint32_t* str, size_t len)
+{
+    return (struct ntg_strv_utf32) {
+        .data = str,
+        .len = len
+    };
+}
+
+static inline struct ntg_strv_utf32
+ntg_strv_str_utf32(struct ntg_str_utf32 str)
+{
+    return (struct ntg_strv_utf32) {
+        .data = str.data,
+        .len = str.len
+    };
+}
+
 size_t ntg_str_count(struct ntg_strv str, char sep);
 size_t ntg_str_utf32_count(struct ntg_strv_utf32 str, uint32_t sep);
 

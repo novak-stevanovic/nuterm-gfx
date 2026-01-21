@@ -30,7 +30,7 @@ static size_t get_wrap_rows_wwrap(const struct ntg_strv_utf32 row,
         size_t for_size, struct ntg_strv_utf32** out_wwrap_rows,
         sarena* arena);
 
-static void trim_text(ntg_label* label);
+static void trim_text(struct ntg_str* text);
 
 /* -------------------------------------------------------------------------- */
 
@@ -38,6 +38,9 @@ static void init_default_values(ntg_label* label)
 {
     label->_text = (struct ntg_str) {0};
     label->_opts = ntg_label_opts_def();
+    label->__utf32_text = (struct ntg_str_utf32) {0};
+    label->__utf32_row_count = 0;
+    label->__utf32_rows = NULL;
 }
 
 struct ntg_label_opts ntg_label_opts_def()
@@ -45,9 +48,9 @@ struct ntg_label_opts ntg_label_opts_def()
     return (struct ntg_label_opts) {
         .orient = NTG_ORIENT_H,
         .gfx = NT_GFX_DEFAULT,
-        .palign = NTG_LABEL_TEXT_ALIGN_1,
+        .palign = NTG_LABEL_ALIGN_1,
         .salign = NTG_ALIGN_1,
-        .wrap = NTG_LABEL_TEXT_WRAP_NONE,
+        .wrap = NTG_LABEL_WRAP_NONE,
         .autotrim = true,
         .indent = false
     };
@@ -89,6 +92,8 @@ void ntg_label_init(ntg_label* label)
     ntg_widget_init((ntg_widget*)label, widget_data, hooks);
 
     init_default_values(label);
+
+    ntg_label_set_text(label, ntg_strv_cstr(""));
 }
 
 struct ntg_label_opts ntg_label_get_opts(const ntg_label* label)
@@ -112,33 +117,62 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
 {
     assert(label != NULL);
 
-    if((text.len == 0) || (text.data == NULL))
+    text.len = _min2_size(text.len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
+
+    char* new_text = realloc(label->_text.data, text.len + 1);
+    assert(new_text != NULL);
+    label->_text.data = new_text;
+    label->_text.len = text.len;
+    label->_text.data[label->_text.len] = 0;
+
+    memmove(label->_text.data, text.data, text.len);
+
+    if(label->_opts.autotrim) trim_text(&label->_text);
+
+    if(label->_text.len == 0)
     {
-        label->_text = (struct ntg_str) {0};
+        if(label->__utf32_text.data)
+            free(label->__utf32_text.data);
+        if(label->__utf32_rows)
+            free(label->__utf32_rows);
+
+        label->__utf32_text.data = NULL;
+        label->__utf32_text.len = 0;
+        label->__utf32_rows = NULL;
+
         return;
     }
 
-    // TODO
-    assert(text.len < 1000000);
+    // UTF-32 cache
 
-    if(label->_text.data != NULL)
-    {
-        free(label->_text.data);
-        label->_text.data = NULL;
-        label->_text.len = 0;
-    }
+    size_t utf32_cap = label->_text.len;
+    uint32_t* new_utf32_text = realloc(label->__utf32_text.data,
+                                       sizeof(uint32_t) * utf32_cap);
+    assert(new_utf32_text != NULL);
 
-    char* text_copy = malloc(text.len);
-    assert(text_copy != NULL);
+    size_t _width;
+    int _status;
+    uc_utf8_to_utf32((uint8_t*)label->_text.data, utf32_cap, new_utf32_text,
+                     label->_text.len, 0, &_width, &_status);
+    assert(_status == UC_SUCCESS);
 
-    memmove(text_copy, text.data, text.len);
+    label->__utf32_text.data = new_utf32_text;
+    label->__utf32_text.len = _width;
+    uint32_t* shrunk_utf32_text = realloc(label->__utf32_text.data,
+                                          sizeof(uint32_t) * _width);
+    assert(shrunk_utf32_text != NULL);
 
-    label->_text = (struct ntg_str) {
-        .data = text_copy,
-        .len = text.len
-    };
+    label->__utf32_text.data = shrunk_utf32_text;
 
-    if(label->_opts.autotrim) trim_text(label);
+    struct ntg_strv_utf32 view = ntg_strv_str_utf32(label->__utf32_text);
+    size_t row_count = ntg_str_utf32_count(view, '\n') + 1;
+    struct ntg_strv_utf32* new_rows = realloc(label->__utf32_rows, row_count *
+                                              sizeof(struct ntg_strv_utf32));
+    assert(new_rows != NULL);
+    ntg_str_utf32_split(view, '\n', new_rows, row_count);
+
+    label->__utf32_rows = new_rows;
+    label->__utf32_row_count = row_count;
 
     ntg_entity_raise_event((ntg_entity*)label, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
 }
@@ -155,6 +189,12 @@ void _ntg_label_deinit_fn(ntg_entity* entity)
 
     if(label->_text.data != NULL)
         free(label->_text.data);
+
+    if(label->__utf32_text.data)
+        free(label->__utf32_text.data);
+
+    if(label->__utf32_rows)
+        free(label->__utf32_rows);
 
     init_default_values(label);
 
@@ -184,29 +224,22 @@ struct ntg_object_measure _ntg_label_measure_fn(
                      label->_text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
 
-    struct ntg_strv_utf32 view = {
-        .data = text_utf32,
-        .len = _width
-    };
-    size_t row_count = ntg_str_utf32_count(view, '\n') + 1;
-    struct ntg_strv_utf32* rows;
-    rows = sarena_malloc(arena, row_count * sizeof(struct ntg_strv_utf32));
-    assert(rows != NULL);
-    ntg_str_utf32_split(view, '\n', rows, row_count);
+    size_t row_count = label->__utf32_row_count;
+    struct ntg_strv_utf32* rows = label->__utf32_rows;
     if(row_count == 0) return (struct ntg_object_measure) {0};
 
     struct ntg_object_measure result;
     switch(label->_opts.wrap)
     {
-        case NTG_LABEL_TEXT_WRAP_NONE:
+        case NTG_LABEL_WRAP_NONE:
             result = measure_nowrap_fn(label, rows, row_count, orient,
                                        for_size, arena);
             break;
-        case NTG_LABEL_TEXT_WRAP_CHAR:
+        case NTG_LABEL_WRAP_CHAR:
             result = measure_wrap_fn(label, rows, row_count, orient,
                                      for_size, arena);
             break;
-        case NTG_LABEL_TEXT_WRAP_WORD:
+        case NTG_LABEL_WRAP_WORD:
             result = measure_wwrap_fn(label, rows, row_count, orient,
                                       for_size, arena);
             break;
@@ -251,15 +284,8 @@ void _ntg_label_draw_fn(
             label->_text.len, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
 
-    struct ntg_strv_utf32 view = {
-        .data = text_utf32,
-        .len = _width
-    };
-    size_t row_count = ntg_str_utf32_count(view, '\n') + 1;
-    struct ntg_strv_utf32* rows;
-    rows = sarena_malloc(arena, row_count * sizeof(struct ntg_strv_utf32));
-    assert(rows != NULL);
-    ntg_str_utf32_split(view, '\n', rows, row_count);
+    size_t row_count = label->__utf32_row_count;
+    struct ntg_strv_utf32* rows = label->__utf32_rows;
 
     size_t capped_indent = _min2_size(label->_opts.indent, cont_size.x);
 
@@ -280,15 +306,15 @@ void _ntg_label_draw_fn(
         _it_wrap_rows_count = 0;
         switch(label->_opts.wrap)
         {
-            case NTG_LABEL_TEXT_WRAP_NONE:
+            case NTG_LABEL_WRAP_NONE:
                _it_wrap_rows_count = get_wrap_rows_nowrap(rows[i], cont_size.x,
                                                           &_it_wrap_rows, arena); 
                 break;
-            case NTG_LABEL_TEXT_WRAP_CHAR:
+            case NTG_LABEL_WRAP_CHAR:
                _it_wrap_rows_count = get_wrap_rows_wrap(rows[i], cont_size.x,
                                                         &_it_wrap_rows, arena); 
                 break;
-            case NTG_LABEL_TEXT_WRAP_WORD:
+            case NTG_LABEL_WRAP_WORD:
                _it_wrap_rows_count = get_wrap_rows_wwrap(rows[i], cont_size.x,
                                                          &_it_wrap_rows, arena); 
                 break;
@@ -304,16 +330,16 @@ void _ntg_label_draw_fn(
 
             switch(label->_opts.palign)
             {
-                case NTG_LABEL_TEXT_ALIGN_1:
+                case NTG_LABEL_ALIGN_1:
                     it_row_align_indent = 0;
                     break;
-                case NTG_LABEL_TEXT_ALIGN_2:
+                case NTG_LABEL_ALIGN_2:
                     it_row_align_indent = (cont_size.x -_it_wrap_rows[j].len) / 2;
                     break;
-                case NTG_LABEL_TEXT_ALIGN_3:
+                case NTG_LABEL_ALIGN_3:
                     it_row_align_indent = (cont_size.x -_it_wrap_rows[j].len);
                     break;
-                case NTG_LABEL_TEXT_ALIGN_JUSTIFY:
+                case NTG_LABEL_ALIGN_JUSTIFY:
                     it_row_align_indent = 0;
                     break;
                 default: assert(0);
@@ -333,7 +359,7 @@ void _ntg_label_draw_fn(
             {
                 if(_it_wrap_rows[j].data[k] == ' ')
                 {
-                    if(label->_opts.palign == NTG_LABEL_TEXT_ALIGN_JUSTIFY)
+                    if((j < (_it_wrap_rows_count - 1)) && label->_opts.palign == NTG_LABEL_ALIGN_JUSTIFY)
                     {
                         size_t space_justified_count = (it_wrap_row_extra_space / it_wrap_row_space_count) +
                             (it_wrap_row_space_counter < (it_wrap_row_extra_space % it_wrap_row_space_count)); 
@@ -734,14 +760,13 @@ static size_t get_wrap_rows_wwrap(const struct ntg_strv_utf32 row,
     return wrap_row_counter;
 }
 
-static void trim_text(ntg_label* label)
+static void trim_text(struct ntg_str* text)
 {
-    assert(label != NULL);
-    if((label->_text.len == 0) || (label->_text.data == NULL)) return;
+    if((text->len == 0) || (text->data == NULL)) return;
 
     struct ntg_strv view = {
-        .data = label->_text.data,
-        .len = label->_text.len
+        .data = text->data,
+        .len = text->len
     };
 
     size_t word_count = ntg_str_count(view, ' ') + 1;
@@ -756,13 +781,13 @@ static void trim_text(ntg_label* label)
     {
         if(words[i].len > 0)
         {
-            memmove(label->_text.data + space_needed,
+            memmove(text->data + space_needed,
                     words[i].data,
                     words[i].len);
 
             if(i < (word_count - 1))
             {
-                label->_text.data[space_needed + words[i].len] = ' ';
+                text->data[space_needed + words[i].len] = ' ';
                 space_needed += (1 + words[i].len);
             }
             else
@@ -771,22 +796,14 @@ static void trim_text(ntg_label* label)
         }
     }
 
-    if((space_needed > 0) && (label->_text.data[space_needed - 1] == ' '))
+    if((space_needed > 0) && (text->data[space_needed - 1] == ' '))
         space_needed--;
 
-    if (space_needed == 0)
-    {
-        free(label->_text.data);
-        label->_text.data = NULL;
-        label->_text.len = 0;
-    }
-    else
-    {
-        char *tmp = realloc(label->_text.data, space_needed);
-        assert(tmp != NULL);
-        label->_text.data = tmp;
-        label->_text.len = space_needed;
-    }
+    char *tmp = realloc(text->data, space_needed + 1);
+    tmp[space_needed] = 0;
+    assert(tmp != NULL);
+    text->data = tmp;
+    text->len = space_needed;
 
     free(words);
 }

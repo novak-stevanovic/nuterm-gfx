@@ -9,28 +9,28 @@
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-enum ntg_label_text_wrap
+enum ntg_label_wrap
 {
-    NTG_LABEL_TEXT_WRAP_NONE,
-    NTG_LABEL_TEXT_WRAP_CHAR,
-    NTG_LABEL_TEXT_WRAP_WORD
+    NTG_LABEL_WRAP_NONE,
+    NTG_LABEL_WRAP_CHAR,
+    NTG_LABEL_WRAP_WORD
 };
 
-enum ntg_label_text_align
+enum ntg_label_align
 {
-    NTG_LABEL_TEXT_ALIGN_1,
-    NTG_LABEL_TEXT_ALIGN_2,
-    NTG_LABEL_TEXT_ALIGN_3,
-    NTG_LABEL_TEXT_ALIGN_JUSTIFY
+    NTG_LABEL_ALIGN_1,
+    NTG_LABEL_ALIGN_2,
+    NTG_LABEL_ALIGN_3,
+    NTG_LABEL_ALIGN_JUSTIFY
 };
 
 struct ntg_label_opts
 {
     ntg_orient orient;
     struct nt_gfx gfx;
-    enum ntg_label_text_align palign;
+    ntg_label_align palign;
     ntg_align salign;
-    enum ntg_label_text_wrap wrap;
+    enum ntg_label_wrap wrap;
     bool autotrim;
     size_t indent;
 };
@@ -43,6 +43,13 @@ struct ntg_label
 
     struct ntg_str _text;
     struct ntg_label_opts _opts;
+
+    struct // used for layout
+    {
+        struct ntg_str_utf32 __utf32_text;
+        size_t __utf32_row_count;
+        struct ntg_strv_utf32* __utf32_rows;
+    };
 };
 
 /* -------------------------------------------------------------------------- */

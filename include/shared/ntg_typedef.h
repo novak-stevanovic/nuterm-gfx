@@ -92,6 +92,8 @@ typedef struct ntg_def_padding ntg_def_padding;
 typedef struct ntg_def_border ntg_def_border;
 
 typedef struct ntg_label ntg_label;
+typedef enum ntg_label_wrap ntg_label_wrap;
+typedef enum ntg_label_align ntg_label_align;
 typedef struct ntg_color_block ntg_color_block;
 typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;

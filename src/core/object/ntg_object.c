@@ -294,8 +294,17 @@ static void init_default_values(ntg_object* object)
 void ntg_object_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
-
+    
     ntg_object* object = (ntg_object*)entity;
+
+    if(object->_parent)
+        ntg_object_detach(object);
+
+    while(object->_children.size > 0)
+    {
+        ntg_object_detach(object->_children.data[0]);
+    }
+
     ntg_object_vec_deinit(&object->_children, NULL);
     ntg_object_drawing_deinit(&object->_drawing);
 

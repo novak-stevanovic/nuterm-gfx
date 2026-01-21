@@ -34,7 +34,6 @@ struct ntg_stage
 /* -------------------------------------------------------------------------- */
 
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena);
-const ntg_stage_drawing* ntg_stage_get_drawing(const ntg_stage* stage);
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 

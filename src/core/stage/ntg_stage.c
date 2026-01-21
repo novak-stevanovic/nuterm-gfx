@@ -14,28 +14,31 @@ void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
     stage->__compose_fn(stage, size, arena);
 }
 
-const ntg_stage_drawing* ntg_stage_get_drawing(const ntg_stage* stage)
-{
-    assert(stage != NULL);
-
-    return ((const ntg_stage_drawing*)&stage->_drawing);
-}
-
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 {
     assert(stage != NULL);
     if(stage->_scene == scene) return;
 
     ntg_scene* old_scene = stage->_scene;
-    ntg_stage* old_stage = scene->_stage;
 
-    if(old_stage != NULL)
-        old_stage->_scene = NULL;
-
-    if(scene != NULL)
-        _ntg_scene_set_stage(scene, stage);
+    if(old_scene)
+    {
+        _ntg_scene_set_stage(old_scene, NULL);
+    }
 
     stage->_scene = scene;
+
+    if(scene)
+    {
+        ntg_stage* old_stage = scene->_stage;
+
+        if(old_stage)
+        {
+            ntg_stage_set_scene(old_stage, NULL);
+        }
+
+        _ntg_scene_set_stage(scene, stage);
+    }
 
     struct ntg_event_stage_scnchng_data data = {
         .old = old_scene,
@@ -115,6 +118,12 @@ void _ntg_stage_deinit_fn(ntg_entity* entity)
     assert(entity != NULL);
 
     ntg_stage* stage = (ntg_stage*)entity;
+
+    if(stage->_scene)
+    {
+        ntg_stage_set_scene(stage, NULL);
+    }
+
     ntg_stage_drawing_deinit(&stage->_drawing);
 
     stage->_scene = NULL;

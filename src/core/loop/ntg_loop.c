@@ -101,7 +101,7 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
             if(ctx._stage != NULL)
             {
                 ntg_stage_compose(ctx._stage, ctx._app_size, ctx._arena);
-                drawing = ntg_stage_get_drawing(ctx._stage);
+                drawing = &ctx._stage->_drawing;
             }
             else drawing = NULL;
 

@@ -112,6 +112,16 @@ void _ntg_scene_deinit_fn(ntg_entity* entity)
     assert(entity != NULL);
 
     ntg_scene* scene = (ntg_scene*)entity;
+
+    if(scene->_stage)
+        ntg_stage_set_scene(scene->_stage, NULL);
+
+    if(scene->_root)
+    {
+        ntg_object* root_gr = ntg_widget_get_group_root_(scene->_root);
+        on_object_unregister_fn_tree(root_gr, scene);
+    }
+
     init_default_values(scene);
 }
 

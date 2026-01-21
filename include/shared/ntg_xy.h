@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include "shared/ntg_typedef.h"
 
-#define NTG_SIZE_MAX 10000
+#define NTG_SIZE_MAX 2000
 
 struct ntg_xy
 {

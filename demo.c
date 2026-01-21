@@ -2,8 +2,6 @@
 #include <unistd.h>
 #include <assert.h>
 
-const char* test_str = "A\n\nB\n\nC\nD\n\n\nDFSDA\n\nasda";
-
 const char* lorem = 
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi ullamcorper "
 "a diam ut mollis. Sed sed diam eu erat consequat finibus pulvinar eu eros. "
@@ -95,6 +93,26 @@ bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
             ntg_scene_set_root(ntg_scn(scene), NULL);
             return true;
         }
+        if(nt_key_event_utf32_check(key, '5', false))
+        {
+            ntg_entity_destroy(ntg_ent(scene));
+            return true;
+        }
+        if(nt_key_event_utf32_check(key, '6', false))
+        {
+            ntg_entity_destroy(ntg_ent(label));
+            return true;
+        }
+        if(nt_key_event_utf32_check(key, '7', false))
+        {
+            ntg_entity_destroy(ntg_ent(label_border));
+            return true;
+        }
+        if(nt_key_event_utf32_check(key, '8', false))
+        {
+            ntg_entity_destroy(ntg_ent(border_box));
+            return true;
+        }
     }
 
     return false;
@@ -123,9 +141,9 @@ void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
     struct ntg_label_opts opts = {
         .orient = NTG_ORIENT_H,
         .gfx = label_gfx,
-        .palign = NTG_ALIGN_1,
+        .palign = NTG_LABEL_ALIGN_JUSTIFY,
         .salign = NTG_ALIGN_1,
-        .wrap = NTG_LABEL_TEXT_WRAP_WORD,
+        .wrap = NTG_LABEL_WRAP_WORD,
         .autotrim = true,
         .indent = 2
     };
@@ -139,11 +157,26 @@ void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
     ntg_border_box* border_box = ntg_border_box_new(es);
     ntg_border_box_init(border_box);
 
-    ntg_scene_set_root(ntg_scn(scene), ntg_wdg(border_box));
+    ntg_color_block* west = ntg_color_block_new(es);
+    ntg_color_block_init(west);
+    ntg_color_block_set_color(west, nt_color_new_auto(nt_rgb_new(200, 0, 40)));
+
+    ntg_color_block* east = ntg_color_block_new(es);
+    ntg_color_block_init(east);
+    ntg_color_block_set_color(east, nt_color_new_auto(nt_rgb_new(40, 0, 200)));
+
+    ntg_widget_set_user_min_size(ntg_wdg(west), ntg_xy(5, NTG_WIDGET_MIN_SIZE_UNSET));
+    ntg_widget_set_user_min_size(ntg_wdg(east), ntg_xy(5, NTG_WIDGET_MIN_SIZE_UNSET));
+
+    ntg_box* center = ntg_box_new(es);
+    ntg_box_init(center);
 
     ntg_border_box_set(border_box, ntg_wdg(label), NTG_BORDER_BOX_NORTH);
+    ntg_border_box_set(border_box, ntg_wdg(west), NTG_BORDER_BOX_WEST);
+    ntg_border_box_set(border_box, ntg_wdg(east), NTG_BORDER_BOX_EAST);
 
     ntg_stage_set_scene(ntg_stg(stage), ntg_scn(scene));
+    ntg_scene_set_root(ntg_scn(scene), ntg_wdg(border_box));
 
     struct ctx_data ctx_data = {
         .label = label,
@@ -163,6 +196,7 @@ void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
     };
 
     ntg_loop_run(loop, loop_data);
+
 }
 
 int main(int argc, char *argv[])

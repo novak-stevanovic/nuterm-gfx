@@ -2,6 +2,8 @@
 #include "shared/_ntg_shared.h"
 #include <assert.h>
 
+static void rm_child_fn(ntg_widget* _border_box, ntg_widget* child);
+
 static void get_children(const ntg_border_box* box, ntg_widget** out_north,
         ntg_widget** out_east, ntg_widget** out_south,
         ntg_widget** out_west, ntg_widget** out_center)
@@ -54,7 +56,9 @@ void ntg_border_box_init(ntg_border_box* box)
         .deinit_fn = NULL
     };
 
-    struct ntg_widget_hooks hooks = {0};
+    struct ntg_widget_hooks hooks = {
+        .rm_child_fn = rm_child_fn
+    };
 
     ntg_widget_init((ntg_widget*)box, layout_ops, hooks);
 
@@ -384,4 +388,16 @@ void _ntg_border_box_arrange_fn(
         ntg_widget_xy_map_set(out_pos_map, west, west_pos);
     if(center != NULL)
         ntg_widget_xy_map_set(out_pos_map, center, center_pos);
+}
+
+static void rm_child_fn(ntg_widget* _border_box, ntg_widget* child)
+{
+    ntg_border_box* border_box = (ntg_border_box*)_border_box;
+
+    size_t i;
+    for(i = 0; i < 5; i++)
+    {
+        if(border_box->_children[i] == child)
+            border_box->_children[i] = NULL;
+    }
 }
