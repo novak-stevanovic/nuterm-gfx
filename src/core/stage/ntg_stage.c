@@ -1,6 +1,9 @@
 #include "ntg.h"
 #include <assert.h>
 
+static void init_default(ntg_stage* stage);
+static bool event_fn_def(ntg_stage* stage, struct nt_event event, ntg_loop_ctx* ctx);
+
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
 {
     assert(stage != NULL);
@@ -48,69 +51,34 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
             NTG_EVENT_STAGE_SCNCHNG, &data);
 }
 
-bool ntg_stage_feed_event(
-        ntg_stage* stage,
-        struct nt_event event,
-        ntg_loop_ctx* loop_ctx)
+bool ntg_stage_feed_event(ntg_stage* stage, struct nt_event event,
+                          ntg_loop_ctx* ctx)
 {
     assert(stage != NULL);
 
-    bool consumed = false;
-    if(stage->__event_mode == NTG_STAGE_EVENT_PROCESS_FIRST)
-    {
-        if(stage->__event_fn != NULL)
-            consumed = stage->__event_fn(stage, event, loop_ctx);
-
-        if(!consumed && (stage->_scene != NULL))
-            ntg_scene_feed_event(stage->_scene, event, loop_ctx);
-    }
-    else // stage->__event_mode = NTG_STAGE_EVENT_DISPATCH_FIRST
-    {
-        if(stage->_scene != NULL)
-            consumed = ntg_scene_feed_event(stage->_scene, event, loop_ctx);
-
-        if(!consumed && (stage->__event_fn != NULL))
-            consumed = stage->__event_fn(stage, event, loop_ctx);
-    }
-
-    return consumed;
+    return stage->__event_fn(stage, event, ctx);
 }
 
 void ntg_stage_set_event_fn(ntg_stage* stage, ntg_stage_event_fn fn)
 {
     assert(stage != NULL);
 
-    stage->__event_fn = fn;
-}
-
-void ntg_stage_set_event_mode(ntg_stage* stage, ntg_stage_event_mode mode)
-{
-    assert(stage != NULL);
-
-    stage->__event_mode = mode;
+    stage->__event_fn = fn ? fn : event_fn_def;
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_stage_init(ntg_stage* stage, ntg_loop* loop,
-        ntg_stage_compose_fn compose_fn)
+void _ntg_stage_init(ntg_stage* stage, ntg_stage_compose_fn compose_fn)
 {
     assert(stage != NULL);
     assert(compose_fn != NULL);
-    assert(loop != NULL);
 
-    stage->_loop = loop;
-    stage->_scene = NULL;
+    init_default(stage);
 
     ntg_stage_drawing_init(&stage->_drawing);
     stage->__compose_fn = compose_fn;
-
-    stage->__event_fn = NULL;
-    stage->__event_mode = NTG_STAGE_EVENT_DISPATCH_FIRST;
-
-    stage->data = NULL;
 }
 
 void _ntg_stage_deinit_fn(ntg_entity* entity)
@@ -126,8 +94,22 @@ void _ntg_stage_deinit_fn(ntg_entity* entity)
 
     ntg_stage_drawing_deinit(&stage->_drawing);
 
+    init_default(stage);
+}
+
+static void init_default(ntg_stage* stage)
+{
     stage->_scene = NULL;
     stage->__compose_fn = NULL;
+    stage->_drawing = (struct ntg_stage_drawing) {0};
+    stage->__event_fn = event_fn_def;
     stage->data = NULL;
-    stage->_loop = NULL;
+}
+
+static bool event_fn_def(ntg_stage* stage, struct nt_event event, ntg_loop_ctx* ctx)
+{
+    if(stage->_scene && ((event.type == NT_EVENT_KEY) || (event.type == NT_EVENT_MOUSE)))
+        return ntg_scene_feed_event(stage->_scene, event, ctx);
+    else
+        return false;
 }

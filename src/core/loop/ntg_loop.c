@@ -5,6 +5,8 @@
 #include "nt.h"
 #include "core/loop/_ntg_loop.h"
 
+static void event_fn_def(struct nt_event event, ntg_loop_ctx* ctx);
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -15,13 +17,14 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
     assert(data.renderer != NULL);
     assert(data.stage != NULL);
-    assert(data.worker_threads <= NTG_LOOP_WORKER_THREADS_MAX);
+    assert(data.workers <= NTG_LOOP_WORKERS_MAX);
+    if(!data.event_fn) data.event_fn = event_fn_def;
     if(data.framerate > 300) data.framerate = 300;
 
     ntg_platform platform;
     _ntg_platform_init(&platform);
     ntg_task_runner task_runner;
-    _ntg_task_runner_init(&task_runner, &platform, data.worker_threads);
+    _ntg_task_runner_init(&task_runner, &platform, data.workers);
 
     ntg_loop_ctx ctx;
     ctx._stage = data.stage;
@@ -74,22 +77,7 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
         // Process/dispatch event
         bool consumed = false;
-        if(data.event_mode == NTG_LOOP_EVENT_PROCESS_FIRST)
-        {
-            if(data.event_fn != NULL)
-                consumed = data.event_fn(&ctx, event);
-
-            if((!consumed) && (data.stage != NULL))
-                ntg_stage_feed_event(data.stage, event, &ctx);
-        }
-        else // data.event_mode = NTG_LOOP_EVENT_DISPATCH_FIRST
-        {
-            if(data.stage != NULL)
-                consumed = ntg_stage_feed_event(data.stage, event, &ctx);
-
-            if((!consumed) && (data.event_fn != NULL))
-                data.event_fn(&ctx, event);
-        }
+        data.event_fn(event, &ctx);
 
         // Frame end
         if(event.type == NT_EVENT_TIMEOUT)
@@ -195,4 +183,10 @@ void ntg_platform_execute_later(ntg_platform* platform,
         .data = data
     };
     _ntg_platform_execute_later(platform, task);
+}
+
+static void event_fn_def(struct nt_event event, ntg_loop_ctx* ctx)
+{
+    if(ctx->_stage && ((event.type == NT_EVENT_KEY) || (event.type == NT_EVENT_MOUSE)))
+        ntg_stage_feed_event(ctx->_stage, event, ctx);
 }

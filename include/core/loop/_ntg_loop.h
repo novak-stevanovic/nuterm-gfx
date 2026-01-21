@@ -69,7 +69,7 @@ struct ntg_task_runner
 
     ntg_platform* __platform;
 
-    pthread_t __threads[NTG_LOOP_WORKER_THREADS_MAX];
+    pthread_t __threads[NTG_LOOP_WORKERS_MAX];
     size_t __thread_count;
 
     pthread_cond_t __cond;

@@ -57,7 +57,7 @@ struct ctx_data
     ntg_border_box* border_box;
 };
 
-bool loop_event_fn(ntg_loop_ctx* ctx, struct nt_event event)
+bool loop_event_fn(struct nt_event event, ntg_loop_ctx* ctx)
 {
     struct ctx_data ctx_data = *(struct ctx_data*)ctx->data;
     ntg_label* label = ctx_data.label;
@@ -127,7 +127,7 @@ void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
     ntg_def_scene_init(scene);
 
     ntg_def_stage* stage = ntg_def_stage_new(es);
-    ntg_def_stage_init(stage, loop);
+    ntg_def_stage_init(stage);
 
     ntg_def_renderer* renderer = ntg_def_renderer_new(es);
     ntg_def_renderer_init(renderer);
@@ -187,11 +187,10 @@ void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
 
     struct ntg_loop_run_data loop_data = {
         .event_fn = loop_event_fn,
-        .event_mode = NTG_LOOP_EVENT_DISPATCH_FIRST,
         .stage = ntg_stg(stage),
         .renderer = ntg_rdr(renderer),
         .framerate = 60,
-        .worker_threads = 4,
+        .workers = 4,
         .ctx_data = &ctx_data
     };
 

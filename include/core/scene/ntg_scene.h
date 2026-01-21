@@ -8,12 +8,6 @@
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-enum ntg_scene_event_mode
-{
-    NTG_SCENE_EVENT_PROCESS_FIRST,
-    NTG_SCENE_EVENT_DISPATCH_FIRST
-};
-
 struct ntg_scene
 {
     ntg_entity __base;
@@ -32,7 +26,6 @@ struct ntg_scene
 
     struct
     {
-        ntg_scene_event_mode __event_mode;
         ntg_scene_event_fn __event_fn;
     };
 
@@ -51,11 +44,9 @@ struct ntg_scene
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
 void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root);
 
-bool ntg_scene_feed_event(ntg_scene* scene,
-        struct nt_event event, ntg_loop_ctx* ctx);
+bool ntg_scene_feed_event(ntg_scene* scene, struct nt_event event, ntg_loop_ctx* ctx);
 
 void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn);
-void ntg_scene_set_event_mode(ntg_scene* scene, ntg_scene_event_mode mode);
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */

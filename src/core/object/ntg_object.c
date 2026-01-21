@@ -259,13 +259,13 @@ size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient)
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-static void init_default_values(ntg_object* object);
+static void init_default(ntg_object* object);
 
 void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops)
 {
     assert(object != NULL);
 
-    init_default_values(object);
+    init_default(object);
 
     ntg_object_vec_init(&object->_children, 2, NULL);
     object->_scene = NULL;
@@ -273,7 +273,7 @@ void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops
     ntg_object_drawing_init(&object->_drawing);
 }
 
-static void init_default_values(ntg_object* object)
+static void init_default(ntg_object* object)
 {
     object->_parent = NULL;
     object->_children = (ntg_object_vec) {0};
@@ -308,7 +308,7 @@ void ntg_object_deinit_fn(ntg_entity* entity)
     ntg_object_vec_deinit(&object->_children, NULL);
     ntg_object_drawing_deinit(&object->_drawing);
 
-    init_default_values(object);
+    init_default(object);
 }
 
 // enum ntg_object_addchld_status 

@@ -66,6 +66,7 @@ void ntg_def_scene_init(ntg_def_scene* scene)
     scene->__detected_changes = true;
     scene->__last_size = ntg_xy(0, 0);
     scene->__map = NULL;
+    scene->data = NULL;
     
     ntg_entity_observe((ntg_entity*)scene, (ntg_entity*)scene, observe_fn);
 }
@@ -90,6 +91,7 @@ void _ntg_def_scene_deinit_fn(ntg_entity* entity)
     scene->__detected_changes = true;
     scene->__last_size = ntg_xy(0, 0);
     scene->__map = NULL;
+    scene->data = NULL;
 
     _ntg_scene_deinit_fn(entity);
 }

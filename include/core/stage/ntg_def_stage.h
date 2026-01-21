@@ -15,6 +15,7 @@ struct ntg_def_stage
 
     struct ntg_xy __old_size;
     bool __detected_changes;
+    void* data;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -22,7 +23,7 @@ struct ntg_def_stage
 /* -------------------------------------------------------------------------- */
 
 ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system);
-void ntg_def_stage_init(ntg_def_stage* stage, ntg_loop* loop);
+void ntg_def_stage_init(ntg_def_stage* stage);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

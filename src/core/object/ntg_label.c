@@ -34,7 +34,7 @@ static void trim_text(struct ntg_str* text);
 
 /* -------------------------------------------------------------------------- */
 
-static void init_default_values(ntg_label* label)
+static void init_default(ntg_label* label)
 {
     label->_text = (struct ntg_str) {0};
     label->_opts = ntg_label_opts_def();
@@ -91,7 +91,7 @@ void ntg_label_init(ntg_label* label)
 
     ntg_widget_init((ntg_widget*)label, widget_data, hooks);
 
-    init_default_values(label);
+    init_default(label);
 
     ntg_label_set_text(label, ntg_strv_cstr(""));
 }
@@ -196,7 +196,7 @@ void _ntg_label_deinit_fn(ntg_entity* entity)
     if(label->__utf32_rows)
         free(label->__utf32_rows);
 
-    init_default_values(label);
+    init_default(label);
 
     ntg_widget_deinit_fn(entity);
 }

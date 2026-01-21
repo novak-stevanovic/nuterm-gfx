@@ -19,6 +19,8 @@ struct ntg_def_scene
     struct ntg_xy __last_size;
 
     void* __map;
+
+    void* data;
 };
 
 /* -------------------------------------------------------------------------- */

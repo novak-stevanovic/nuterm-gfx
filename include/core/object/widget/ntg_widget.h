@@ -128,7 +128,9 @@ void ntg_widget_init(ntg_widget* widget,
         struct ntg_widget_hooks hooks);
 void ntg_widget_deinit_fn(ntg_entity* _widget);
 
-/* Updates the object tree. Called internally by types extending ntg_widget. */
+/* If child is already attached, performs full detachment. Then it updates the
+ * object tree in accordance with the new state.
+ * Called internally by types extending ntg_widget. */
 void ntg_widget_attach(ntg_widget* parent, ntg_widget* child);
 
 /* Performs full detaching of widget. Called internally by types extending ntg_widget. */

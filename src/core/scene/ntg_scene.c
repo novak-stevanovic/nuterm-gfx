@@ -8,8 +8,10 @@ static void on_object_register_fn(ntg_object* object, void* _scene);
 static void on_object_unregister_fn(ntg_object* object, void* _scene);
 static void object_observe_fn(ntg_entity* scene, struct ntg_event event);
 
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_register_fn_tree, on_object_register_fn)
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_unregister_fn_tree, on_object_unregister_fn)
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_register_fn_tree, on_object_register_fn);
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_unregister_fn_tree, on_object_unregister_fn);
+
+static bool event_fn_def(ntg_scene* scene, struct nt_event event, ntg_loop_ctx* ctx);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -54,36 +56,25 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
     ntg_entity_raise_event((ntg_entity*)scene, NULL, NTG_EVENT_SCENE_DIFF, NULL);
 }
 
-bool ntg_scene_feed_event(ntg_scene* scene,
-        struct nt_event event, ntg_loop_ctx* ctx)
+bool ntg_scene_feed_event(ntg_scene* scene, struct nt_event event, ntg_loop_ctx* ctx)
 {
     assert(scene != NULL);
 
-    return false;
-    // TODO
-
-    // return consumed;
+    return scene->__event_fn(scene, event, ctx);
 }
 
 void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn)
 {
     assert(scene != NULL);
 
-    scene->__event_fn = fn;
-}
-
-void ntg_scene_set_event_mode(ntg_scene* scene, ntg_scene_event_mode mode)
-{
-    assert(scene != NULL);
-
-    scene->__event_mode = mode;
+    scene->__event_fn = fn ? fn : event_fn_def;
 }
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-static void init_default_values(ntg_scene* scene)
+static void init_default(ntg_scene* scene)
 {
     scene->_stage = NULL;
 
@@ -91,8 +82,7 @@ static void init_default_values(ntg_scene* scene)
     scene->_root = NULL;
     scene->__layout_fn = NULL;
 
-    scene->__event_fn = NULL;
-    scene->__event_mode = NTG_SCENE_EVENT_DISPATCH_FIRST;
+    scene->__event_fn = event_fn_def;
 
     scene->data = NULL;
 }
@@ -102,7 +92,7 @@ void _ntg_scene_init(ntg_scene* scene, ntg_scene_layout_fn layout_fn)
     assert(scene != NULL);
     assert(layout_fn != NULL);
 
-    init_default_values(scene);
+    init_default(scene);
 
     scene->__layout_fn = layout_fn;
 }
@@ -122,7 +112,7 @@ void _ntg_scene_deinit_fn(ntg_entity* entity)
         on_object_unregister_fn_tree(root_gr, scene);
     }
 
-    init_default_values(scene);
+    init_default(scene);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -212,4 +202,9 @@ static void object_observe_fn(ntg_entity* _scene, struct ntg_event event)
                 on_object_register(scene, (ntg_object*)data->new);
         }
     }
+}
+
+static bool event_fn_def(ntg_scene* scene, struct nt_event event, ntg_loop_ctx* ctx)
+{
+    return false;
 }

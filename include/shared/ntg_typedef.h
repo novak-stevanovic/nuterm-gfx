@@ -54,7 +54,6 @@ typedef struct ntg_entity_type ntg_entity_type;
 
 typedef struct ntg_loop ntg_loop;
 typedef struct ntg_loop_ctx ntg_loop_ctx;
-typedef enum ntg_loop_event_mode ntg_loop_event_mode;
 typedef struct ntg_task_runner ntg_task_runner;
 typedef struct ntg_task_list ntg_task_list;
 typedef struct ntg_ptask_list ntg_ptask_list;
@@ -66,11 +65,9 @@ typedef struct ntg_def_renderer ntg_def_renderer;
 typedef struct ntg_stage ntg_stage;
 typedef struct ntg_def_stage ntg_def_stage;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
-typedef enum ntg_stage_event_mode ntg_stage_event_mode;
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_def_scene ntg_def_scene;
-typedef enum ntg_scene_event_mode ntg_scene_event_mode;
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
@@ -122,9 +119,7 @@ typedef void (*ntg_event_handler_fn)(ntg_entity* observer, struct ntg_event even
 
 /* LOOP ------------------------------------------------- */
 
-typedef bool (*ntg_loop_event_fn)(
-        ntg_loop_ctx* ctx,
-        struct nt_event event);
+typedef bool (*ntg_loop_event_fn)(struct nt_event event, ntg_loop_ctx* ctx);
 
 /* OBJECT ----------------------------------------------- */
 

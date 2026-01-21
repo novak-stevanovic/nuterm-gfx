@@ -5,7 +5,7 @@
 #include "shared/ntg_typedef.h"
 #include "shared/ntg_xy.h"
 
-#define NTG_LOOP_WORKER_THREADS_MAX 32
+#define NTG_LOOP_WORKERS_MAX 32
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -31,12 +31,6 @@ enum ntg_loop_status
     NTG_LOOP_FORCE_FINISH
 };
 
-enum ntg_loop_event_mode
-{
-    NTG_LOOP_EVENT_DISPATCH_FIRST,
-    NTG_LOOP_EVENT_PROCESS_FIRST
-};
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -44,11 +38,10 @@ enum ntg_loop_event_mode
 struct ntg_loop_run_data
 {
     ntg_loop_event_fn event_fn;
-    ntg_loop_event_mode event_mode;
     ntg_stage* stage;
     ntg_renderer* renderer; // non-NULL
     unsigned int framerate;
-    unsigned int worker_threads;
+    unsigned int workers;
 
     void* ctx_data;
 };
@@ -56,16 +49,16 @@ struct ntg_loop_run_data
 enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data);
 
 /* Used to stop the main loop. When this function is called, an issue may occur
-if the task runner is still running tasks on worker threads. In this case,
-behavior of the function depends on `force_break` parameter.
-
-If `force_break` is false, the function will fail and will return `false`.
-If `force_break` is true, the function will not deinitalize the task runner
-or the platform. This will signal `ntg_loop_return` to return
-NTG_LOOP_FORCE_FINISH. The user should then clean up and terminate the program.
-
-This will leave the threads running. If any of the tasks use
-`ntg_platform_execute_later`, the request will be ignored. */
+ * if the task runner is still running tasks on worker threads. In this case,
+ * behavior of the function depends on `force_break` parameter.
+ * 
+ * If `force_break` is false, the function will fail and will return `false`.
+ * If `force_break` is true, the function will not deinitalize the task runner
+ * or the platform. This will signal `ntg_loop_return` to return
+ * NTG_LOOP_FORCE_FINISH. The user should then clean up and terminate the program.
+ * 
+ * This will leave the threads running. If any of the tasks use
+ * `ntg_platform_execute_later`, the request will be ignored. */
 bool ntg_loop_ctx_break(ntg_loop_ctx* ctx, bool force_break);
 
 void ntg_task_runner_execute(ntg_task_runner* task_runner, 

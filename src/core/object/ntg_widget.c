@@ -4,7 +4,7 @@
 #include "core/entity/ntg_entity_type.h"
 #include "shared/_ntg_shared.h"
 
-static void init_default_values(ntg_widget* widget);
+static void init_default(ntg_widget* widget);
 
 static void padding_remove(ntg_widget* widget);
 static void padding_add(ntg_widget* widget, ntg_decorator* padding);
@@ -413,7 +413,7 @@ void ntg_widget_init(ntg_widget* widget,
 
     ntg_object_init((ntg_object*)widget, _layout_ops);
 
-    init_default_values(widget);
+    init_default(widget);
 
     widget->__layout_ops = layout_ops;
     widget->__hooks = hooks;
@@ -443,7 +443,7 @@ void ntg_widget_deinit_fn(ntg_entity* _widget)
     for(i = 0; i < child_count; i++)
         ntg_widget_detach(buffer[i]);
 
-    init_default_values((ntg_widget*)_widget);
+    init_default((ntg_widget*)_widget);
 
     ntg_object_deinit_fn(_widget);
 
@@ -658,7 +658,7 @@ void _ntg_widget_draw_fn(
         layout_ops.draw_fn(widget, _layout_data, out_drawing, arena);
 }
 
-static void init_default_values(ntg_widget* widget)
+static void init_default(ntg_widget* widget)
 {
     widget->__layout_ops = (struct ntg_widget_layout_ops) {0};
     widget->__hooks = (struct ntg_widget_hooks) {0};

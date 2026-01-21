@@ -120,7 +120,7 @@ void _ntg_task_runner_init(ntg_task_runner* task_runner,
 {
     assert(task_runner != NULL);
     assert(platform != NULL);
-    assert(worker_threads < NTG_LOOP_WORKER_THREADS_MAX);
+    assert(worker_threads < NTG_LOOP_WORKERS_MAX);
 
     task_runner->__platform = platform;
     task_runner->__thread_count = worker_threads;

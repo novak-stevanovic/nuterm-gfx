@@ -21,14 +21,15 @@ ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system)
     return new;
 }
 
-void ntg_def_stage_init(ntg_def_stage* stage, ntg_loop* loop)
+void ntg_def_stage_init(ntg_def_stage* stage)
 {
     assert(stage != NULL);
 
-    _ntg_stage_init((ntg_stage*)stage, loop, _ntg_def_stage_compose_fn);
+    _ntg_stage_init((ntg_stage*)stage, _ntg_def_stage_compose_fn);
 
     stage->__detected_changes = true;
     stage->__old_size = ntg_xy(0, 0);
+    stage->data = NULL;
 
     ntg_entity_observe((ntg_entity*)stage, (ntg_entity*)stage, observe_fn);
 }
@@ -44,6 +45,7 @@ void _ntg_def_stage_deinit_fn(ntg_entity* entity)
     ntg_def_stage* stage = (ntg_def_stage*)entity;
     stage->__detected_changes = true;
     stage->__old_size = ntg_xy(0, 0);
+    stage->data = NULL;
 
     _ntg_stage_deinit_fn(entity);
 }
