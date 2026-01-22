@@ -104,8 +104,6 @@ ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
             sigwinch_counter++;
         }
 
-        // Process/dispatch event
-        bool consumed = false;
         data.process_fn(loop, event, &ctx);
 
         // Frame end

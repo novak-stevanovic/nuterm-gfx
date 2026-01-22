@@ -9,7 +9,7 @@ ntg_def_padding* ntg_def_padding_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_DEF_PADDING,
-        .deinit_fn = ntg_def_padding_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_def_padding_deinit,
         .system = system
     };
     ntg_def_padding* new = (ntg_def_padding*)ntg_entity_create(entity_data);
@@ -29,9 +29,9 @@ void ntg_def_padding_init(ntg_def_padding* def_padding)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_def_padding_deinit_fn(ntg_entity* entity)
+void ntg_def_padding_deinit(ntg_def_padding* padding)
 {
-    ntg_decorator_deinit_fn(entity);
+    ntg_decorator_deinit((ntg_decorator*)padding);
 }
 
 void _ntg_def_padding_draw_fn(

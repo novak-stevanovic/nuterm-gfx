@@ -28,6 +28,6 @@ void ntg_renderer_render(ntg_renderer* renderer,
 /* -------------------------------------------------------------------------- */
 
 void ntg_renderer_init(ntg_renderer* renderer, ntg_renderer_render_fn render_fn);
-void ntg_renderer_deinit_fn(ntg_entity* entity);
+void ntg_renderer_deinit(ntg_renderer* renderer);
 
 #endif // NTG_RENDERER_H

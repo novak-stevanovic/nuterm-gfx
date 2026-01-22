@@ -23,7 +23,7 @@ void ntg_def_padding_init(ntg_def_padding* def_padding);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_def_padding_deinit_fn(ntg_entity* entity);
+void ntg_def_padding_deinit(ntg_def_padding* padding);
 
 void _ntg_def_padding_draw_fn(
         const ntg_object* _padding,

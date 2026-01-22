@@ -11,7 +11,7 @@ ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_DEF_STAGE,
-        .deinit_fn = ntg_def_stage_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_def_stage_deinit,
         .system = system
     };
 
@@ -38,16 +38,13 @@ void ntg_def_stage_init(ntg_def_stage* stage)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_def_stage_deinit_fn(ntg_entity* entity)
+void ntg_def_stage_deinit(ntg_def_stage* stage)
 {
-    assert(entity != NULL);
-
-    ntg_def_stage* stage = (ntg_def_stage*)entity;
     stage->__detected_changes = true;
     stage->__old_size = ntg_xy(0, 0);
     stage->data = NULL;
 
-    ntg_stage_deinit_fn(entity);
+    ntg_stage_deinit((ntg_stage*)stage);
 }
 
 static void draw_fn(ntg_object* object, void* _stage)

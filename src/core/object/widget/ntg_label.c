@@ -74,7 +74,7 @@ ntg_label* ntg_label_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_LABEL,
-        .deinit_fn = ntg_label_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_label_deinit,
         .system = system
     };
 
@@ -191,12 +191,8 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_label_deinit_fn(ntg_entity* entity)
+void ntg_label_deinit(ntg_label* label)
 {
-    assert(entity != NULL);
-
-    ntg_label* label = (ntg_label*)entity;
-
     if(label->_text.data != NULL)
         free(label->_text.data);
 
@@ -208,7 +204,7 @@ void ntg_label_deinit_fn(ntg_entity* entity)
 
     init_default(label);
 
-    ntg_widget_deinit_fn(entity);
+    ntg_widget_deinit((ntg_widget*)label);
 }
 
 struct ntg_object_measure _ntg_label_measure_fn(

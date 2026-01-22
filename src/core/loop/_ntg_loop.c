@@ -14,7 +14,7 @@ ntg_loop* _ntg_loop_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_LOOP,
-        .deinit_fn = _ntg_loop_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)_ntg_loop_deinit,
         .system = system
     };
 
@@ -29,7 +29,7 @@ void _ntg_loop_init(ntg_loop* loop)
     assert(loop != NULL);
 }
 
-void _ntg_loop_deinit_fn(ntg_entity* entity) {}
+void _ntg_loop_deinit(ntg_loop* loop) {}
 
 /* -------------------------------------------------------------------------- */
 /* PLATFORM */

@@ -51,7 +51,7 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
-        .deinit_fn = ntg_def_scene_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_def_scene_deinit,
         .type = &NTG_ENTITY_DEF_SCENE,
         .system = system
     };
@@ -86,10 +86,8 @@ struct ntg_layout_data
     struct ntg_xy size;
 };
 
-void ntg_def_scene_deinit_fn(ntg_entity* entity)
+void ntg_def_scene_deinit(ntg_def_scene* scene)
 {
-    ntg_def_scene* scene = (ntg_def_scene*)entity;
-
     scene_map_del_all(scene);
 
     scene->__detected_changes = true;
@@ -97,7 +95,7 @@ void ntg_def_scene_deinit_fn(ntg_entity* entity)
     scene->__map = NULL;
     scene->data = NULL;
 
-    ntg_scene_deinit_fn(entity);
+    ntg_scene_deinit((ntg_scene*)scene);
 }
 
 void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,

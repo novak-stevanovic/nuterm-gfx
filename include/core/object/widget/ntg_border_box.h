@@ -46,7 +46,7 @@ void ntg_border_box_set(ntg_border_box* box,
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_border_box_deinit_fn(ntg_entity* entity);
+void ntg_border_box_deinit(ntg_border_box* box);
 
 struct ntg_object_measure _ntg_border_box_measure_fn(
         const ntg_widget* _border_box,

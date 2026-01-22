@@ -123,7 +123,7 @@ size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
 /* -------------------------------------------------------------------------- */
 
 void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops);
-void ntg_object_deinit_fn(ntg_entity* entity);
+void ntg_object_deinit(ntg_object* object);
 
 /* Updates only the tree. Does not update scene. 
  * Called internally by types extending ntg_object. */

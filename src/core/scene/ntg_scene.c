@@ -71,10 +71,11 @@ bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event,
 bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event,
                             ntg_loop_ctx* ctx)
 {
-    struct ntg_widget_slist_node* head = scene->__focus_ctx_stack.head;
+    struct ntg_focus_ctx_list_node* head = scene->__focus_ctx_stack.head;
+    struct ntg_focus_ctx fctx = *(head->data);
 
     if(head != NULL)
-        return ntg_widget_feed_event(*(head->data), event, ctx);
+        return ntg_focus_mgr_feed_event(fctx.mgr, event, ctx);
     else
         return false;
 }
@@ -86,19 +87,19 @@ void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn)
     scene->__process_fn = fn ? fn : ntg_scene_dispatch_def;
 }
 
-void ntg_scene_focus_ctx_push(ntg_scene* scene, ntg_widget* widget)
+void ntg_scene_focus_ctx_push(ntg_scene* scene, struct ntg_focus_ctx ctx)
 {
     assert(scene != NULL);
-    assert(widget != NULL);
+    assert(ctx.mgr != NULL);
 
-    ntg_widget_slist_pushf(&scene->__focus_ctx_stack, widget, NULL);
+    ntg_focus_ctx_list_pushf(&scene->__focus_ctx_stack, ctx, NULL);
 }
 
 void ntg_scene_focus_ctx_pop(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    ntg_widget_slist_popf(&scene->__focus_ctx_stack, NULL);
+    ntg_focus_ctx_list_popf(&scene->__focus_ctx_stack, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -126,15 +127,11 @@ void ntg_scene_init(ntg_scene* scene, ntg_scene_layout_fn layout_fn)
     init_default(scene);
 
     scene->__layout_fn = layout_fn;
-    ntg_widget_slist_init(&scene->__focus_ctx_stack, NULL);
+    ntg_focus_ctx_list_init(&scene->__focus_ctx_stack, NULL);
 }
 
-void ntg_scene_deinit_fn(ntg_entity* entity)
+void ntg_scene_deinit(ntg_scene* scene)
 {
-    assert(entity != NULL);
-
-    ntg_scene* scene = (ntg_scene*)entity;
-
     if(scene->_stage)
         ntg_stage_set_scene(scene->_stage, NULL);
 
@@ -144,7 +141,7 @@ void ntg_scene_deinit_fn(ntg_entity* entity)
         on_object_unregister_fn_tree(root_gr, scene);
     }
 
-    ntg_widget_slist_deinit(&scene->__focus_ctx_stack, NULL);
+    ntg_focus_ctx_list_deinit(&scene->__focus_ctx_stack, NULL);
 
     init_default(scene);
 }

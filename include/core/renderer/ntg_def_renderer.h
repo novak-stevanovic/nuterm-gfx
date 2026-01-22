@@ -29,7 +29,7 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_def_renderer_deinit_fn(ntg_entity* entity);
+void ntg_def_renderer_deinit(ntg_def_renderer* renderer);
 
 void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
                                  const ntg_stage_drawing* stage_drawing,

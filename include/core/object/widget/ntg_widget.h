@@ -20,7 +20,6 @@ struct ntg_widget_hooks
 };
 
 GENC_VECTOR_GENERATE(ntg_widget_vec, ntg_widget*, 1.5, NULL);
-GENC_SIMPLE_LIST_GENERATE(ntg_widget_slist, ntg_widget*);
 
 struct ntg_widget
 {
@@ -132,7 +131,7 @@ void ntg_widget_set_border(ntg_widget* widget, ntg_decorator* border);
 void ntg_widget_init(ntg_widget* widget,
                      struct ntg_widget_layout_ops layout_ops,
                      struct ntg_widget_hooks hooks);
-void ntg_widget_deinit_fn(ntg_entity* _widget);
+void ntg_widget_deinit(ntg_widget* widget);
 
 /* If child is already attached, performs full detachment. Then it updates the
  * object tree in accordance with the new state.

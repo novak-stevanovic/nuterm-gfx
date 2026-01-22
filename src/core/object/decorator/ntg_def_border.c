@@ -37,7 +37,7 @@ ntg_def_border* ntg_def_border_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_DEF_BORDER,
-        .deinit_fn = ntg_def_border_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_def_border_deinit,
         .system = system
     };
 
@@ -235,12 +235,10 @@ ntg_def_border_style_ascii(struct nt_gfx gfx)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_def_border_deinit_fn(ntg_entity* entity)
+void ntg_def_border_deinit(ntg_def_border* border)
 {
-    ntg_def_border* border = (ntg_def_border*)entity;
-
     border->_style = (struct ntg_def_border_style) {0};
-    ntg_decorator_deinit_fn(entity);
+    ntg_decorator_deinit((ntg_decorator*)border);
 }
 
 void _ntg_def_border_draw_fn(

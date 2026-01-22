@@ -19,7 +19,7 @@ ntg_color_block* ntg_color_block_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_COLOR_BLOCK,
-        .deinit_fn = ntg_color_block_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_color_block_deinit,
         .system = system
     };
 
@@ -54,14 +54,10 @@ void ntg_color_block_init(ntg_color_block* color_block)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_color_block_deinit_fn(ntg_entity* entity)
+void ntg_color_block_deinit(ntg_color_block* block)
 {
-    assert(entity != NULL);
-
-    ntg_color_block* color_block = (ntg_color_block*)entity;
-
-    color_block->__color = NT_COLOR_DEFAULT;
-    ntg_widget_deinit_fn(entity);
+    block->__color = NT_COLOR_DEFAULT;
+    ntg_widget_deinit((ntg_widget*)block);
 }
 
 struct ntg_object_measure _ntg_color_block_measure_fn(

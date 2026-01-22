@@ -60,11 +60,8 @@ void ntg_decorator_init(ntg_decorator* decorator, ntg_object_draw_fn draw_fn)
     decorator->_opts = ntg_decorator_opts_def();
 }
 
-void ntg_decorator_deinit_fn(ntg_entity* entity)
+void ntg_decorator_deinit(ntg_decorator* decorator)
 {
-    assert(entity != NULL);
-
-    ntg_decorator* decorator = (ntg_decorator*)entity;
     decorator->_opts = ntg_decorator_opts_def();
 
     if(decorator->_widget != NULL)
@@ -76,7 +73,7 @@ void ntg_decorator_deinit_fn(ntg_entity* entity)
             ntg_widget_set_border(decorator->_widget, NULL);
     }
 
-    ntg_object_deinit_fn(entity);
+    ntg_object_deinit((ntg_object*)decorator);
 }
 
 void _ntg_decorator_decorate(ntg_decorator* decorator, ntg_widget* widget)

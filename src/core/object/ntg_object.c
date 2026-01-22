@@ -289,12 +289,8 @@ static void init_default(ntg_object* object)
     object->__layout_data = NULL;
 }
 
-void ntg_object_deinit_fn(ntg_entity* entity)
+void ntg_object_deinit(ntg_object* object)
 {
-    assert(entity != NULL);
-    
-    ntg_object* object = (ntg_object*)entity;
-
     if(object->_parent)
         ntg_object_detach(object);
 

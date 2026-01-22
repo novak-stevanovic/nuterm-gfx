@@ -70,7 +70,7 @@ ntg_def_border_style_ascii(struct nt_gfx gfx);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_def_border_deinit_fn(ntg_entity* entity);
+void ntg_def_border_deinit(ntg_def_border* border);
 
 void _ntg_def_border_draw_fn(
         const ntg_object* _border,

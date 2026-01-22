@@ -39,7 +39,7 @@ struct ntg_prog_bar
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_prog_bar_deinit_fn(ntg_entity* entity);
+void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar);
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(
         const ntg_widget* _prog_bar,

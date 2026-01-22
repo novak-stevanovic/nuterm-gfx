@@ -26,7 +26,7 @@ ntg_box* ntg_box_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_BOX,
-        .deinit_fn = ntg_box_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_box_deinit,
         .system = system
     };
 
@@ -98,14 +98,10 @@ void ntg_box_rm_child(ntg_box* box, ntg_widget* child)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_box_deinit_fn(ntg_entity* entity)
+void ntg_box_deinit(ntg_box* box)
 {
-    assert(entity != NULL);
-
-    ntg_box* box = (ntg_box*)entity;
-
     box->_opts = ntg_box_opts_def();
-    ntg_widget_deinit_fn(entity);
+    ntg_widget_deinit((ntg_widget*)box);
 }
 
 struct ntg_object_measure _ntg_box_measure_fn(

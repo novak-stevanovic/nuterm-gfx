@@ -27,11 +27,8 @@ void ntg_renderer_init(ntg_renderer* renderer, ntg_renderer_render_fn render_fn)
     renderer->data = NULL;
 }
 
-void ntg_renderer_deinit_fn(ntg_entity* entity)
+void ntg_renderer_deinit(ntg_renderer* renderer)
 {
-    assert(entity != NULL);
-
-    ntg_renderer* renderer = (ntg_renderer*)entity;
     renderer->__render_fn = NULL;
     renderer->data = NULL;
 }

@@ -1,6 +1,6 @@
 #include "ntg.h"
 #include <assert.h>
-#include "core/object/widget/shared/ntg_widget_map.h"
+#include "core/object/shared/ntg_widget_map.h"
 
 void ntg_widget_map_init(ntg_widget_map* ctx, size_t capacity, size_t data_size,
                          sarena* arena)

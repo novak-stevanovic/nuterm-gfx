@@ -17,7 +17,7 @@ ntg_prog_bar* ntg_prog_bar_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_PROG_BAR,
-        .deinit_fn = ntg_prog_bar_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_prog_bar_deinit,
         .system = system
     };
 
@@ -56,12 +56,11 @@ void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage)
     ntg_entity_raise_event_((ntg_entity*)prog_bar, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
-void ntg_prog_bar_deinit_fn(ntg_entity* entity)
+void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 {
-    ntg_prog_bar* prog_bar = (ntg_prog_bar*)entity;
     prog_bar->__opts = ntg_prog_bar_opts_def();
 
-    ntg_widget_deinit_fn(entity);
+    ntg_widget_deinit((ntg_widget*)prog_bar);
 }
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(

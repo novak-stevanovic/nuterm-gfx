@@ -10,7 +10,7 @@ ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_DEF_RENDERER,
-        .deinit_fn = ntg_def_renderer_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_def_renderer_deinit,
         .system = system
     };
 
@@ -50,17 +50,13 @@ full_render(ntg_def_renderer* renderer,
 
 /* -------------------------------------------------------------------------- */
 
-void ntg_def_renderer_deinit_fn(ntg_entity* entity)
+void ntg_def_renderer_deinit(ntg_def_renderer* renderer)
 {
-    assert(entity != NULL);
-
-    ntg_def_renderer* renderer = (ntg_def_renderer*)entity;
-
     ntg_stage_drawing_deinit(&renderer->__backbuff);
 
     renderer->__old_size = ntg_xy(0, 0);
 
-    ntg_renderer_deinit_fn(entity);
+    ntg_renderer_deinit((ntg_renderer*)renderer);
 }
 
 void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,

@@ -68,6 +68,9 @@ typedef struct ntg_stage_drawing ntg_stage_drawing;
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_def_scene ntg_def_scene;
+typedef struct ntg_focus_ctx_list ntg_focus_ctx_list;
+typedef enum ntg_focus_ctx_window_mode ntg_focus_ctx_window_mode;
+typedef enum ntg_focus_ctx_push_mode ntg_focus_ctx_push_mode;
 
 typedef struct ntg_object ntg_object;
 typedef struct ntg_object_vec ntg_object_vec;
@@ -78,8 +81,8 @@ typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_tmp_object_drawing ntg_tmp_object_drawing;
 
 typedef struct ntg_widget ntg_widget;
+typedef struct ntg_focus_mgr ntg_focus_mgr;
 typedef struct ntg_widget_vec ntg_widget_vec;
-typedef struct ntg_widget_slist ntg_widget_slist;
 typedef struct ntg_widget_map ntg_widget_map;
 typedef struct ntg_widget_size_map ntg_widget_size_map;
 typedef struct ntg_widget_xy_map ntg_widget_xy_map;
@@ -199,6 +202,11 @@ typedef void (*ntg_widget_draw_fn)(
         void* _layout_data,
         ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
+
+typedef bool (*ntg_focus_mgr_process_fn)(
+        ntg_focus_mgr* mgr,
+        struct ntg_event event,
+        ntg_loop_ctx* ctx);
 
 /* SCENE ------------------------------------------------ */
 

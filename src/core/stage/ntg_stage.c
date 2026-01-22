@@ -97,12 +97,8 @@ void ntg_stage_init(ntg_stage* stage, ntg_stage_compose_fn compose_fn)
     stage->__compose_fn = compose_fn;
 }
 
-void ntg_stage_deinit_fn(ntg_entity* entity)
+void ntg_stage_deinit(ntg_stage* stage)
 {
-    assert(entity != NULL);
-
-    ntg_stage* stage = (ntg_stage*)entity;
-
     if(stage->_scene)
     {
         ntg_stage_set_scene(stage, NULL);

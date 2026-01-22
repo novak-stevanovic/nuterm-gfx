@@ -66,7 +66,7 @@ void ntg_label_set_text(ntg_label* label, struct ntg_strv text);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_label_deinit_fn(ntg_entity* entity);
+void ntg_label_deinit(ntg_label* label);
 
 struct ntg_object_measure _ntg_label_measure_fn(
         const ntg_widget* _label,

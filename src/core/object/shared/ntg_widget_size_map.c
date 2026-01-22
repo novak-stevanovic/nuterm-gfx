@@ -1,4 +1,4 @@
-#include "core/object/widget/shared/ntg_widget_map.h"
+#include "core/object/shared/ntg_widget_map.h"
 #include "ntg.h"
 #include <assert.h>
 

@@ -42,6 +42,6 @@ void ntg_stage_set_process_fn(ntg_stage* stage, ntg_stage_process_fn fn);
 /* -------------------------------------------------------------------------- */
 
 void ntg_stage_init(ntg_stage* stage, ntg_stage_compose_fn compose_fn);
-void ntg_stage_deinit_fn(ntg_entity* entity);
+void ntg_stage_deinit(ntg_stage* stage);
 
 #endif // NTG_STAGE_H

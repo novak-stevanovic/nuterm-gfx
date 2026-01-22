@@ -42,7 +42,7 @@ void ntg_box_rm_child(ntg_box* box, ntg_widget* child);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_box_deinit_fn(ntg_entity* entity);
+void ntg_box_deinit(ntg_box* box);
 
 struct ntg_object_measure _ntg_box_measure_fn(
         const ntg_widget* _box,

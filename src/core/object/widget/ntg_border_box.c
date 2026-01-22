@@ -27,7 +27,7 @@ ntg_border_box* ntg_border_box_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_BORDER_BOX,
-        .deinit_fn = ntg_border_box_deinit_fn,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_border_box_deinit,
         .system = system
     };
 
@@ -83,12 +83,10 @@ void ntg_border_box_set(ntg_border_box* box,
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_border_box_deinit_fn(ntg_entity* entity)
+void ntg_border_box_deinit(ntg_border_box* box)
 {
-    assert(entity != NULL);
-
-    init_default((ntg_border_box*)entity);
-    ntg_widget_deinit_fn(entity);
+    init_default(box);
+    ntg_widget_deinit((ntg_widget*)box);
 }
 
 struct ntg_object_measure _ntg_border_box_measure_fn(

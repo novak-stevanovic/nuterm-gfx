@@ -424,10 +424,9 @@ void ntg_widget_init(ntg_widget* widget,
     widget->__hooks = hooks;
 }
 
-void ntg_widget_deinit_fn(ntg_entity* _widget)
+void ntg_widget_deinit(ntg_widget* widget)
 {
-    ntg_object* object = (ntg_object*)_widget;
-    ntg_widget* widget = (ntg_widget*)_widget;
+    ntg_object* object = (ntg_object*)widget;
 
     if(object->_scene && (object->_scene->_root == widget))
         ntg_scene_set_root(object->_scene, NULL);
@@ -448,9 +447,9 @@ void ntg_widget_deinit_fn(ntg_entity* _widget)
     for(i = 0; i < child_count; i++)
         ntg_widget_detach(buffer[i]);
 
-    init_default((ntg_widget*)_widget);
+    init_default(widget);
 
-    ntg_object_deinit_fn(_widget);
+    ntg_object_deinit((ntg_object*)widget);
 
     free(buffer);
 }

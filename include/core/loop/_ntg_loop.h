@@ -16,7 +16,7 @@ struct ntg_loop
 
 ntg_loop* _ntg_loop_new(ntg_entity_system* system);
 void _ntg_loop_init(ntg_loop* loop);
-void _ntg_loop_deinit_fn(ntg_entity* entity);
+void _ntg_loop_deinit(ntg_loop* loop);
 
 /* -------------------------------------------------------------------------- */
 /* PLATFORM */
