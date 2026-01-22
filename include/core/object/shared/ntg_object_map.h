@@ -10,10 +10,11 @@ struct ntg_object_map
     size_t __data_size, __count, __capacity;
 };
 
-void ntg_object_map_init(ntg_object_map* ctx, size_t capacity,
-        size_t data_size, sarena* arena);
+void ntg_object_map_init(ntg_object_map* ctx, size_t capacity, size_t data_size,
+                         sarena* arena);
 
-void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object, void* data);
+void ntg_object_map_set(ntg_object_map* ctx, const ntg_object* object,
+                        void* data);
 
 void* ntg_object_map_get(const ntg_object_map* ctx, const ntg_object* object);
 

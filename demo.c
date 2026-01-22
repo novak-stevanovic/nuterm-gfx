@@ -57,7 +57,7 @@ struct ctx_data
     ntg_border_box* border_box;
 };
 
-bool loop_event_fn(struct nt_event event, ntg_loop_ctx* ctx)
+bool loop_event_fn(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx)
 {
     struct ctx_data ctx_data = *(struct ctx_data*)ctx->data;
     ntg_label* label = ctx_data.label;

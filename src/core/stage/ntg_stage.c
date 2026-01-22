@@ -2,7 +2,9 @@
 #include <assert.h>
 
 static void init_default(ntg_stage* stage);
-static bool event_fn_def(ntg_stage* stage, struct nt_event event, ntg_loop_ctx* ctx);
+
+static bool 
+event_fn_def(ntg_stage* stage, struct ntg_event event, ntg_loop_ctx* ctx);
 
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
 {
@@ -47,11 +49,10 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         .old = old_scene,
         .new = scene
     };
-    ntg_entity_raise_event((ntg_entity*)stage, NULL,
-            NTG_EVENT_STAGE_SCNCHNG, &data);
+    ntg_entity_raise_event_((ntg_entity*)stage, NTG_EVENT_STAGE_SCNCHNG, &data);
 }
 
-bool ntg_stage_feed_event(ntg_stage* stage, struct nt_event event,
+bool ntg_stage_feed_event(ntg_stage* stage, struct ntg_event event,
                           ntg_loop_ctx* ctx)
 {
     assert(stage != NULL);
@@ -70,7 +71,7 @@ void ntg_stage_set_event_fn(ntg_stage* stage, ntg_stage_event_fn fn)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_stage_init(ntg_stage* stage, ntg_stage_compose_fn compose_fn)
+void ntg_stage_init(ntg_stage* stage, ntg_stage_compose_fn compose_fn)
 {
     assert(stage != NULL);
     assert(compose_fn != NULL);
@@ -81,7 +82,7 @@ void _ntg_stage_init(ntg_stage* stage, ntg_stage_compose_fn compose_fn)
     stage->__compose_fn = compose_fn;
 }
 
-void _ntg_stage_deinit_fn(ntg_entity* entity)
+void ntg_stage_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
@@ -106,10 +107,20 @@ static void init_default(ntg_stage* stage)
     stage->data = NULL;
 }
 
-static bool event_fn_def(ntg_stage* stage, struct nt_event event, ntg_loop_ctx* ctx)
+static bool 
+event_fn_def(ntg_stage* stage, struct ntg_event event, ntg_loop_ctx* ctx)
 {
-    if(stage->_scene && ((event.type == NT_EVENT_KEY) || (event.type == NT_EVENT_MOUSE)))
-        return ntg_scene_feed_event(stage->_scene, event, ctx);
-    else
-        return false;
+    if(stage->_scene)
+    {
+        if(event.type == NTG_EVENT_LOOP_KEY)
+        {
+            return ntg_scene_feed_event(stage->_scene, event, ctx);
+        }
+        else if(event.type == NTG_EVENT_LOOP_MOUSE)
+        {
+            return ntg_scene_feed_event(stage->_scene, event, ctx);
+        }
+        else return false;
+    }
+    else return false;
 }

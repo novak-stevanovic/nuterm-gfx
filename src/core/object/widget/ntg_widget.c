@@ -21,7 +21,7 @@ void ntg_widget_set_user_min_size(ntg_widget* widget, struct ntg_xy size)
 
     widget->_user_min_size = size;
 
-    ntg_entity_raise_event((ntg_entity*)widget, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_widget_set_user_max_size(ntg_widget* widget, struct ntg_xy size)
@@ -30,7 +30,7 @@ void ntg_widget_set_user_max_size(ntg_widget* widget, struct ntg_xy size)
 
     widget->_user_max_size = size;
 
-    ntg_entity_raise_event((ntg_entity*)widget, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_widget_set_user_grow(ntg_widget* widget, struct ntg_xy grow)
@@ -39,7 +39,7 @@ void ntg_widget_set_user_grow(ntg_widget* widget, struct ntg_xy grow)
 
     widget->_user_grow = grow;
 
-    ntg_entity_raise_event((ntg_entity*)widget, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background)
@@ -54,8 +54,8 @@ void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background)
         .old = old,
         .new = background
     };
-    ntg_entity_raise_event((ntg_entity*)widget, NULL, NTG_EVENT_WIDGET_BGCHNG, &data);
-    ntg_entity_raise_event((ntg_entity*)widget, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_WIDGET_BGCHNG, &data);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -63,8 +63,8 @@ void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background)
 /* -------------------------------------------------------------------------- */
 
 bool ntg_widget_feed_event(ntg_widget* widget,
-        struct nt_event event, 
-        ntg_loop_ctx* ctx)
+                           struct ntg_event event,
+                           ntg_loop_ctx* ctx)
 {
     assert(widget != NULL);
 
@@ -205,7 +205,8 @@ struct ntg_xy ntg_widget_get_cont_pos_abs(const ntg_widget* widget)
 /* LAYOUT PROCESS - CONVENIENCE */
 
 size_t ntg_widget_get_cont_for_size(const ntg_widget* widget,
-        ntg_orient orient, bool constrain)
+                                    ntg_orient orient,
+                                    bool constrain)
 {
     assert(widget != NULL);
 
@@ -256,7 +257,8 @@ size_t ntg_widget_get_cont_size_1d(const ntg_widget* widget, ntg_orient orient)
 /* WIDGET TREE */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_widget_is_ancestor(const ntg_widget* widget, const ntg_widget* ancestor)
+bool ntg_widget_is_ancestor(const ntg_widget* widget,
+                            const ntg_widget* ancestor)
 {
     assert(widget != NULL);
     assert(ancestor != NULL);
@@ -264,7 +266,8 @@ bool ntg_widget_is_ancestor(const ntg_widget* widget, const ntg_widget* ancestor
     return ntg_object_is_ancestor((const ntg_object*)widget,
             (const ntg_object*)ancestor);
 }
-bool ntg_widget_is_descendant(const ntg_widget* widget, const ntg_widget* descendant)
+bool ntg_widget_is_descendant(const ntg_widget* widget,
+                              const ntg_widget* descendant)
 {
     assert(widget != NULL);
     assert(descendant != NULL);
@@ -323,7 +326,8 @@ size_t ntg_widget_get_children_count(const ntg_widget* widget)
 }
 
 size_t ntg_widget_get_children(const ntg_widget* widget,
-        const ntg_widget** out_children, size_t cap)
+                               const ntg_widget** out_children,
+                               size_t cap)
 {
     assert(widget != NULL);
     assert(out_children != NULL);
@@ -351,7 +355,8 @@ size_t ntg_widget_get_children(const ntg_widget* widget,
 }
 
 size_t ntg_widget_get_children_(ntg_widget* widget,
-        ntg_widget** out_children, size_t cap)
+                                ntg_widget** out_children,
+                                size_t cap)
 {
     assert(widget != NULL);
     assert(out_children != NULL);
@@ -396,8 +401,8 @@ void ntg_widget_set_border(ntg_widget* widget, ntg_decorator* border)
 /* -------------------------------------------------------------------------- */
 
 void ntg_widget_init(ntg_widget* widget,
-        struct ntg_widget_layout_ops layout_ops,
-        struct ntg_widget_hooks hooks)
+                     struct ntg_widget_layout_ops layout_ops,
+                     struct ntg_widget_hooks hooks)
 {
     assert(widget != NULL);
 
@@ -472,15 +477,13 @@ void ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
     ntg_object_attach(_parent, group_root);
 
     struct ntg_event_widget_chldadd_data data1 = { .child = child };
-    ntg_entity_raise_event((ntg_entity*)parent, NULL,
-            NTG_EVENT_WIDGET_CHLDADD, &data1);
+    ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_WIDGET_CHLDADD, &data1);
 
     struct ntg_event_widget_prntchng_data data2 = {
         .old = NULL,
         .new = parent
     };
-    ntg_entity_raise_event((ntg_entity*)child, NULL,
-            NTG_EVENT_WIDGET_PRNTCHNG, &data2);
+    ntg_entity_raise_event_((ntg_entity*)child, NTG_EVENT_WIDGET_PRNTCHNG, &data2);
 }
 
 void ntg_widget_detach(ntg_widget* widget)
@@ -499,15 +502,13 @@ void ntg_widget_detach(ntg_widget* widget)
         parent->__hooks.rm_child_fn(parent, widget);
 
     struct ntg_event_widget_chldrm_data data1 = { .child = widget };
-    ntg_entity_raise_event((ntg_entity*)parent, NULL,
-            NTG_EVENT_WIDGET_CHLDRM, &data1);
+    ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_WIDGET_CHLDRM, &data1);
 
     struct ntg_event_widget_prntchng_data data2 = {
         .old = parent,
         .new = NULL
     };
-    ntg_entity_raise_event((ntg_entity*)widget, NULL,
-            NTG_EVENT_WIDGET_PRNTCHNG, &data2);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_WIDGET_PRNTCHNG, &data2);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -700,8 +701,7 @@ static void padding_remove(ntg_widget* widget)
         .new = NULL
     };
 
-    ntg_entity_raise_event((ntg_entity*)widget, NULL,
-                           NTG_EVENT_WIDGET_PADCHNG, &data);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_WIDGET_PADCHNG, &data);
 }
 
 static void padding_add(ntg_widget* widget, ntg_decorator* padding)
@@ -728,8 +728,7 @@ static void padding_add(ntg_widget* widget, ntg_decorator* padding)
         .new = padding
     };
 
-    ntg_entity_raise_event((ntg_entity*)widget, NULL,
-                           NTG_EVENT_WIDGET_PADCHNG, &data);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_WIDGET_PADCHNG, &data);
 }
 
 static void border_remove(ntg_widget* widget)
@@ -760,8 +759,7 @@ static void border_remove(ntg_widget* widget)
         .new = NULL
     };
 
-    ntg_entity_raise_event((ntg_entity*)widget, NULL,
-                           NTG_EVENT_WIDGET_BORDCHNG, &data);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_WIDGET_BORDCHNG, &data);
 }
 
 static void border_add(ntg_widget* widget, ntg_decorator* border)
@@ -790,6 +788,5 @@ static void border_add(ntg_widget* widget, ntg_decorator* border)
         .new = border
     };
 
-    ntg_entity_raise_event((ntg_entity*)widget, NULL,
-                           NTG_EVENT_WIDGET_BORDCHNG, &data);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_WIDGET_BORDCHNG, &data);
 }

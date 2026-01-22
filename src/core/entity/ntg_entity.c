@@ -3,6 +3,13 @@
 #include "core/entity/_ntg_entity_system.h"
 #include "ntg.h"
 
+struct ntg_event 
+ntg_event_new(ntg_entity* source, unsigned int type, void* data)
+{
+    return _ntg_entity_system_create_event(source->__system, source,
+                                           type, data);
+}
+
 ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data)
 {
     ntg_entity* entity = (ntg_entity*)malloc(init_data.type->_size);
@@ -42,13 +49,16 @@ unsigned int ntg_entity_get_id(const ntg_entity* entity)
 
 /* ------------------------------------------------------ */
 
-void ntg_entity_raise_event(
-        ntg_entity* entity,
-        ntg_entity* target,
-        unsigned int type, void* data)
+void ntg_entity_raise_event(ntg_entity* entity, struct ntg_event event)
 {
-    _ntg_entity_system_raise_event(entity->__system, entity, target,
-            type, data);
+    _ntg_entity_system_raise_event(entity->__system, entity, event);
+}
+
+void ntg_entity_raise_event_(ntg_entity* entity, unsigned int type, void* data)
+{
+    struct ntg_event event = ntg_event_new(entity, type, data);
+
+    ntg_entity_raise_event(entity, event);
 }
 
 void ntg_entity_observe(

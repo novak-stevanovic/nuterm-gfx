@@ -10,7 +10,7 @@ ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_DEF_RENDERER,
-        .deinit_fn = _ntg_def_renderer_deinit_fn,
+        .deinit_fn = ntg_def_renderer_deinit_fn,
         .system = system
     };
 
@@ -24,7 +24,7 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
 
-    _ntg_renderer_init((ntg_renderer*)renderer, _ntg_def_renderer_render_fn);
+    ntg_renderer_init((ntg_renderer*)renderer, _ntg_def_renderer_render_fn);
 
     ntg_stage_drawing_init(&renderer->__backbuff);
 
@@ -35,15 +35,22 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
-static void full_render(ntg_def_renderer* renderer,
-        const ntg_stage_drawing* drawing, struct ntg_xy size);
-static void optimized_render(ntg_def_renderer* renderer,
-        const ntg_stage_drawing* drawing, struct ntg_xy size);
+static void 
+full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
+
+static void 
+optimized_render(ntg_def_renderer* renderer,
+                 const ntg_stage_drawing* drawing,
+                 struct ntg_xy size);
+
+static void 
+full_render(ntg_def_renderer* renderer,
+            const ntg_stage_drawing* drawing,
+            struct ntg_xy size);
 
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_renderer_deinit_fn(ntg_entity* entity)
+void ntg_def_renderer_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
@@ -53,12 +60,12 @@ void _ntg_def_renderer_deinit_fn(ntg_entity* entity)
 
     renderer->__old_size = ntg_xy(0, 0);
 
-    _ntg_renderer_deinit_fn(entity);
+    ntg_renderer_deinit_fn(entity);
 }
 
 void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
-        const ntg_stage_drawing* stage_drawing,
-        sarena* arena)
+                                 const ntg_stage_drawing* stage_drawing,
+                                 sarena* arena)
 {
     assert(_renderer != NULL);
 
@@ -90,7 +97,8 @@ void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
 
 /* -------------------------------------------------------------------------- */
 
-static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
+static void 
+full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
 {
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
@@ -112,8 +120,10 @@ static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
     nt_erase_scrollback(NULL);
 }
 
-static void optimized_render(ntg_def_renderer* renderer,
-        const ntg_stage_drawing* drawing, struct ntg_xy size)
+static void 
+optimized_render(ntg_def_renderer* renderer,
+                 const ntg_stage_drawing* drawing,
+                 struct ntg_xy size)
 {
     struct ntg_xy old_back_buffer_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
@@ -142,8 +152,10 @@ static void optimized_render(ntg_def_renderer* renderer,
     }
 }
 
-static void full_render(ntg_def_renderer* renderer,
-        const ntg_stage_drawing* drawing, struct ntg_xy size)
+static void 
+full_render(ntg_def_renderer* renderer,
+            const ntg_stage_drawing* drawing,
+            struct ntg_xy size)
 {
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);

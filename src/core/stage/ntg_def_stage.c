@@ -11,7 +11,7 @@ ntg_def_stage* ntg_def_stage_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_DEF_STAGE,
-        .deinit_fn = _ntg_def_stage_deinit_fn,
+        .deinit_fn = ntg_def_stage_deinit_fn,
         .system = system
     };
 
@@ -25,7 +25,7 @@ void ntg_def_stage_init(ntg_def_stage* stage)
 {
     assert(stage != NULL);
 
-    _ntg_stage_init((ntg_stage*)stage, _ntg_def_stage_compose_fn);
+    ntg_stage_init((ntg_stage*)stage, _ntg_def_stage_compose_fn);
 
     stage->__detected_changes = true;
     stage->__old_size = ntg_xy(0, 0);
@@ -38,7 +38,7 @@ void ntg_def_stage_init(ntg_def_stage* stage)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_stage_deinit_fn(ntg_entity* entity)
+void ntg_def_stage_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
@@ -47,7 +47,7 @@ void _ntg_def_stage_deinit_fn(ntg_entity* entity)
     stage->__old_size = ntg_xy(0, 0);
     stage->data = NULL;
 
-    _ntg_stage_deinit_fn(entity);
+    ntg_stage_deinit_fn(entity);
 }
 
 static void draw_fn(ntg_object* object, void* _stage)
@@ -63,7 +63,8 @@ static void draw_fn(ntg_object* object, void* _stage)
 
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(draw_tree, draw_fn);
 
-void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size, sarena* arena)
+void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size,
+                               sarena* arena)
 {
     assert(_stage != NULL);
 

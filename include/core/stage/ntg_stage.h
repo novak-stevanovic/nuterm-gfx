@@ -29,10 +29,8 @@ void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena);
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 
-bool ntg_stage_feed_event(
-        ntg_stage* stage,
-        struct nt_event event,
-        ntg_loop_ctx* loop_ctx);
+bool ntg_stage_feed_event(ntg_stage* stage, struct ntg_event event,
+                          ntg_loop_ctx* ctx);
 
 void ntg_stage_set_event_fn(ntg_stage* stage, ntg_stage_event_fn fn);
 
@@ -40,7 +38,7 @@ void ntg_stage_set_event_fn(ntg_stage* stage, ntg_stage_event_fn fn);
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_stage_init(ntg_stage* stage, ntg_stage_compose_fn compose_fn);
-void _ntg_stage_deinit_fn(ntg_entity* entity);
+void ntg_stage_init(ntg_stage* stage, ntg_stage_compose_fn compose_fn);
+void ntg_stage_deinit_fn(ntg_entity* entity);
 
 #endif // NTG_STAGE_H

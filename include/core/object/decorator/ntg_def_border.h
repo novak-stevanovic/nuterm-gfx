@@ -28,20 +28,24 @@ struct ntg_def_border
 ntg_def_border* ntg_def_border_new(ntg_entity_system* system);
 void ntg_def_border_init(ntg_def_border* def_border);
 
-void ntg_def_border_set_style(ntg_def_border* border, struct ntg_def_border_style style);
+void ntg_def_border_set_style(ntg_def_border* border,
+                              struct ntg_def_border_style style);
 
 /* ------------------------------------------------------ */
 /* PRESETS */
 /* ------------------------------------------------------ */
 
-struct ntg_def_border_style ntg_def_border_style_def();
-struct ntg_def_border_style ntg_def_border_style_monochrome(nt_color color);
+struct ntg_def_border_style 
+ntg_def_border_style_def();
+
+struct ntg_def_border_style 
+ntg_def_border_style_monochrome(nt_color color);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_border_deinit_fn(ntg_entity* entity);
+void ntg_def_border_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_border_draw_fn(
         const ntg_object* _border,

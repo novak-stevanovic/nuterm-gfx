@@ -13,6 +13,11 @@ struct ntg_box_opts ntg_box_opts_def()
     };
 }
 
+static inline size_t 
+calculate_total_spacing(size_t spacing, size_t child_count);
+
+static void rm_child_fn(ntg_widget* _box, ntg_widget* child);
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -21,7 +26,7 @@ ntg_box* ntg_box_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_BOX,
-        .deinit_fn = _ntg_box_deinit_fn,
+        .deinit_fn = ntg_box_deinit_fn,
         .system = system
     };
 
@@ -62,7 +67,7 @@ void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
     
     box->_opts = opts;
 
-    ntg_entity_raise_event((ntg_entity*)box, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)box, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_widget* child)
@@ -74,7 +79,7 @@ void ntg_box_add_child(ntg_box* box, ntg_widget* child)
 
     ntg_widget_vec_pushb(&box->_children, child, NULL);
 
-    ntg_entity_raise_event((ntg_entity*)box, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)box, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_widget* child)
@@ -86,16 +91,14 @@ void ntg_box_rm_child(ntg_box* box, ntg_widget* child)
 
     ntg_widget_vec_rm(&box->_children, child, NULL);
 
-    ntg_entity_raise_event((ntg_entity*)box, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)box, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-static inline size_t calculate_total_spacing(size_t spacing, size_t child_count);
-
-void _ntg_box_deinit_fn(ntg_entity* entity)
+void ntg_box_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 
@@ -367,7 +370,15 @@ void _ntg_box_arrange_fn(
     }
 }
 
-static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
+static inline size_t 
+calculate_total_spacing(size_t spacing, size_t child_count)
 {
     return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
+}
+
+static void rm_child_fn(ntg_widget* _box, ntg_widget* child)
+{
+    ntg_box* box = (ntg_box*)_box;
+
+    ntg_box_rm_child(box, child);
 }

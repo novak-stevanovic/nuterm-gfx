@@ -11,7 +11,8 @@ struct ntg_event_obs
     ntg_event_handler_fn handler;
 };
 
-static int ntg_event_obs_cmp_fn(const void* _event_obs1, const void* _event_obs2)
+static int 
+ntg_event_obs_cmp_fn(const void* _event_obs1, const void* _event_obs2)
 {
     assert(_event_obs1 != NULL);
     assert(_event_obs2 != NULL);
@@ -38,18 +39,27 @@ struct entity_data_hh
     UT_hash_handle hh;
 };
 
-static void system_map_add(ntg_entity_system* system, ntg_entity* entity, unsigned int id);
-static struct entity_data* system_map_get(ntg_entity_system* system, const ntg_entity* entity);
-static void system_map_del(ntg_entity_system* system, ntg_entity* entity);
-static void system_map_del_all(ntg_entity_system* system);
-static void system_map_get_keys(ntg_entity_system* system, ntg_entity_vec* out_vec);
-
 struct ntg_entity_system
 {
     unsigned int entity_id_gen;
     unsigned int event_id_gen;
     struct entity_data_hh* map;
 };
+
+static void 
+system_map_add(ntg_entity_system* system, ntg_entity* entity, unsigned int id);
+
+static struct entity_data*
+system_map_get(ntg_entity_system* system, const ntg_entity* entity);
+
+static void 
+system_map_del(ntg_entity_system* system, ntg_entity* entity);
+
+static void 
+system_map_del_all(ntg_entity_system* system);
+
+static void 
+system_map_get_keys(ntg_entity_system* system, ntg_entity_vec* out_vec);
 
 ntg_entity_system* _ntg_entity_system_new()
 {
@@ -115,23 +125,29 @@ unsigned int _ntg_entity_system_get_id(ntg_entity_system* system, const ntg_enti
     return map_data->id;
 }
 
-void _ntg_entity_system_raise_event(
-        ntg_entity_system* system,
-        ntg_entity* source, 
-        ntg_entity* target,
-        unsigned int type, void* data)
+struct ntg_event 
+_ntg_entity_system_create_event(ntg_entity_system* system, ntg_entity* source,
+                                unsigned int type, void* data)
 {
     assert(system != NULL);
-    assert(source != NULL);
 
-    struct ntg_event event = {
+    return (struct ntg_event) {
         .id = (++system->event_id_gen),
         .type = type,
         .source = source,
         .data = data
     };
+}
 
-    struct entity_data* map_data = system_map_get(system, source);
+void _ntg_entity_system_raise_event(
+        ntg_entity_system* system,
+        ntg_entity* entity,
+        struct ntg_event event)
+{
+    assert(system != NULL);
+    assert(entity != NULL);
+
+    struct entity_data* map_data = system_map_get(system, entity);
     assert(map_data != NULL);
 
     ntg_event_obs_vec* subs = &(map_data->observers);
@@ -144,8 +160,7 @@ void _ntg_entity_system_raise_event(
         struct entity_data* it_map_data = system_map_get(system, it_obs.observer);
 
         // not deinited & (broadcast or target)
-        if((it_map_data != NULL) && ((target == NULL) || (target == it_obs.observer)))
-            it_obs.handler(it_obs.observer, event);
+        if(it_map_data != NULL) it_obs.handler(it_obs.observer, event);
     }
 }
 
@@ -242,7 +257,8 @@ bool _ntg_entity_system_has_observe(
         return false;
 }
 
-static void system_map_add(ntg_entity_system* system, ntg_entity* entity, unsigned int id)
+static void 
+system_map_add(ntg_entity_system* system, ntg_entity* entity, unsigned int id)
 {
     struct entity_data_hh* data_hh = malloc(sizeof(struct entity_data_hh));
     data_hh->key = entity;
@@ -251,7 +267,8 @@ static void system_map_add(ntg_entity_system* system, ntg_entity* entity, unsign
     HASH_ADD_PTR(system->map, key, data_hh);
 }
 
-static struct entity_data* system_map_get(ntg_entity_system* system, const ntg_entity* entity)
+static struct entity_data* 
+system_map_get(ntg_entity_system* system, const ntg_entity* entity)
 {
     struct entity_data_hh* found;
     HASH_FIND_PTR(system->map, &entity, found);
@@ -259,7 +276,8 @@ static struct entity_data* system_map_get(ntg_entity_system* system, const ntg_e
     return (found != NULL) ? &found->data : NULL;
 }
 
-static void system_map_del(ntg_entity_system* system, ntg_entity* entity)
+static void 
+system_map_del(ntg_entity_system* system, ntg_entity* entity)
 {
     struct entity_data_hh* found;
     HASH_FIND_PTR(system->map, &entity, found);
@@ -270,7 +288,8 @@ static void system_map_del(ntg_entity_system* system, ntg_entity* entity)
     free(found);
 }
 
-static void system_map_del_all(ntg_entity_system* system)
+static void 
+system_map_del_all(ntg_entity_system* system)
 {
     struct entity_data_hh *curr, *tmp;
 
@@ -282,7 +301,8 @@ static void system_map_del_all(ntg_entity_system* system)
     };
 }
 
-static void system_map_get_keys(ntg_entity_system* system, ntg_entity_vec* out_vec)
+static void 
+system_map_get_keys(ntg_entity_system* system, ntg_entity_vec* out_vec)
 {
     struct entity_data_hh *curr, *tmp;
 

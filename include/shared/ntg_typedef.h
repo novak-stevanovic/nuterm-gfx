@@ -119,7 +119,10 @@ typedef void (*ntg_event_handler_fn)(ntg_entity* observer, struct ntg_event even
 
 /* LOOP ------------------------------------------------- */
 
-typedef bool (*ntg_loop_event_fn)(struct nt_event event, ntg_loop_ctx* ctx);
+typedef bool (*ntg_loop_event_fn)(
+        ntg_loop* loop,
+        struct nt_event event,
+        ntg_loop_ctx* ctx);
 
 /* OBJECT ----------------------------------------------- */
 
@@ -159,7 +162,7 @@ typedef void (*ntg_object_draw_fn)(
 
 typedef bool (*ntg_widget_event_fn)(
         ntg_widget* widget,
-        struct nt_event event,
+        struct ntg_event event,
         ntg_loop_ctx* ctx);
 
 typedef void* (*ntg_widget_layout_data_init)(const ntg_widget* widget);
@@ -201,7 +204,7 @@ typedef void (*ntg_scene_layout_fn)(
 
 typedef bool (*ntg_scene_event_fn)(
         ntg_scene* scene,
-        struct nt_event event,
+        struct ntg_event event,
         ntg_loop_ctx* loop_ctx);
 
 /* STAGE ------------------------------------------------ */
@@ -214,7 +217,7 @@ typedef void (*ntg_stage_compose_fn)(
 
 typedef bool (*ntg_stage_event_fn)(
         ntg_stage* stage,
-        struct nt_event event,
+        struct ntg_event event,
         ntg_loop_ctx* loop_ctx);
 
 /* RENDERER --------------------------------------------- */

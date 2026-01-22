@@ -29,8 +29,9 @@ void ntg_def_stage_init(ntg_def_stage* stage);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_stage_deinit_fn(ntg_entity* entity);
+void ntg_def_stage_deinit_fn(ntg_entity* entity);
 
-void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size, sarena* arena);
+void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size,
+                               sarena* arena);
 
 #endif // NTG_DEF_STAGE_H

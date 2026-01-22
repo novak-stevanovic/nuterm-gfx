@@ -54,8 +54,8 @@ void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background);
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_widget_feed_event(ntg_widget* widget,
-        struct nt_event event, ntg_loop_ctx* ctx);
+bool ntg_widget_feed_event(ntg_widget* widget, struct ntg_event event,
+                           ntg_loop_ctx* ctx);
 
 void ntg_widget_set_event_fn(ntg_widget* widget, ntg_widget_event_fn event_fn);
 
@@ -85,7 +85,8 @@ struct ntg_xy ntg_widget_get_cont_pos_abs(const ntg_widget* widget);
 /* LAYOUT PROCESS - CONVENIENCE */
 
 size_t ntg_widget_get_cont_for_size(const ntg_widget* widget,
-        ntg_orient orient, bool constrain);
+                                    ntg_orient orient,
+                                    bool constrain);
 
 struct ntg_object_measure
 ntg_widget_get_measure(const ntg_widget* widget, ntg_orient orient);
@@ -100,8 +101,10 @@ size_t ntg_widget_get_cont_size_1d(const ntg_widget* widget, ntg_orient orient);
 /* WIDGET TREE */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_widget_is_ancestor(const ntg_widget* widget, const ntg_widget* ancestor);
-bool ntg_widget_is_descendant(const ntg_widget* widget, const ntg_widget* descendant);
+bool ntg_widget_is_ancestor(const ntg_widget* widget,
+                            const ntg_widget* ancestor);
+bool ntg_widget_is_descendant(const ntg_widget* widget,
+                              const ntg_widget* descendant);
 
 const ntg_widget* ntg_widget_get_parent(const ntg_widget* widget);
 ntg_widget* ntg_widget_get_parent_(ntg_widget* widget);
@@ -111,9 +114,11 @@ ntg_object* ntg_widget_get_group_root_(ntg_widget* widget);
 
 size_t ntg_widget_get_children_count(const ntg_widget* widget);
 size_t ntg_widget_get_children(const ntg_widget* widget,
-        const ntg_widget** out_children, size_t cap);
+                               const ntg_widget** out_children,
+                               size_t cap);
 size_t ntg_widget_get_children_(ntg_widget* widget,
-        ntg_widget** out_children, size_t cap);
+                                ntg_widget** out_children,
+                                size_t cap);
 
 void ntg_widget_set_padding(ntg_widget* widget, ntg_decorator* padding);
 
@@ -124,8 +129,8 @@ void ntg_widget_set_border(ntg_widget* widget, ntg_decorator* border);
 /* -------------------------------------------------------------------------- */
 
 void ntg_widget_init(ntg_widget* widget,
-        struct ntg_widget_layout_ops layout_ops,
-        struct ntg_widget_hooks hooks);
+                     struct ntg_widget_layout_ops layout_ops,
+                     struct ntg_widget_hooks hooks);
 void ntg_widget_deinit_fn(ntg_entity* _widget);
 
 /* If child is already attached, performs full detachment. Then it updates the

@@ -34,7 +34,7 @@ void ntg_decorator_set_opts(ntg_decorator* decorator, struct ntg_decorator_opts 
 
     decorator->_opts = opts;
 
-    ntg_entity_raise_event((ntg_entity*)decorator, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)decorator, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */

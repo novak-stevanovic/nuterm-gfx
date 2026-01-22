@@ -68,9 +68,8 @@ void ntg_object_root_layout(ntg_object* root, struct ntg_xy size)
     root->_size = size;
 }
 
-void ntg_object_measure(ntg_object* object,
-        ntg_orient orient,
-        bool constrained, sarena* arena)
+void ntg_object_measure(ntg_object* object, ntg_orient orient, bool constrained,
+                        sarena* arena)
 {
     assert(object != NULL);
     assert(arena != NULL);
@@ -100,8 +99,7 @@ void ntg_object_measure(ntg_object* object,
     }
 }
 
-void ntg_object_constrain(ntg_object* object,
-        ntg_orient orient, sarena* arena)
+void ntg_object_constrain(ntg_object* object, ntg_orient orient, sarena* arena)
 {
     assert(object != NULL);
     assert(arena != NULL);
@@ -342,18 +340,15 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
     child->_parent = parent;
 
     struct ntg_event_object_chldadd_data data1 = { .child = child };
-    ntg_entity_raise_event((ntg_entity*)parent, NULL,
-                           NTG_EVENT_OBJECT_CHLDADD, &data1);
+    ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_OBJECT_CHLDADD, &data1);
 
     struct ntg_event_object_prntchng_data data2 = {
         .old = NULL,
         .new = parent
     };
-    ntg_entity_raise_event((ntg_entity*)child, NULL,
-            NTG_EVENT_OBJECT_PRNTCHNG, &data2);
+    ntg_entity_raise_event_((ntg_entity*)child, NTG_EVENT_OBJECT_PRNTCHNG, &data2);
 
-    ntg_entity_raise_event((ntg_entity*)parent, NULL,
-            NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 void ntg_object_detach(ntg_object* widget)
@@ -368,18 +363,15 @@ void ntg_object_detach(ntg_object* widget)
     widget->_parent = NULL;
 
     struct ntg_event_object_chldrm_data data1 = { .child = widget };
-    ntg_entity_raise_event((ntg_entity*)parent, NULL,
-                           NTG_EVENT_OBJECT_CHLDRM, &data1);
+    ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_OBJECT_CHLDRM, &data1);
 
     struct ntg_event_object_prntchng_data data2 = {
         .old = parent,
         .new = NULL
     };
-    ntg_entity_raise_event((ntg_entity*)widget, NULL,
-            NTG_EVENT_OBJECT_PRNTCHNG, &data2);
+    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_OBJECT_PRNTCHNG, &data2);
 
-    ntg_entity_raise_event((ntg_entity*)parent, NULL,
-            NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -408,6 +400,5 @@ void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene)
         .old = old,
         .new = scene
     };
-    ntg_entity_raise_event((ntg_entity*)object, NULL,
-            NTG_EVENT_OBJECT_SCNCHNG, &data);
+    ntg_entity_raise_event_((ntg_entity*)object, NTG_EVENT_OBJECT_SCNCHNG, &data);
 }

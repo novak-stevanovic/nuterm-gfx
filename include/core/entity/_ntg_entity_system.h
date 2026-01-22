@@ -8,13 +8,18 @@ void _ntg_entity_system_destroy(ntg_entity_system* system);
 
 void _ntg_entity_system_register(ntg_entity_system* system, ntg_entity* entity);
 void _ntg_entity_system_unregister(ntg_entity_system* system, ntg_entity* entity);
-unsigned int _ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity);
+
+unsigned int 
+_ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity);
+
+struct ntg_event 
+_ntg_entity_system_create_event(ntg_entity_system* system, ntg_entity* source,
+                                unsigned int type, void* data);
 
 void _ntg_entity_system_raise_event(
         ntg_entity_system* system,
-        ntg_entity* source, 
-        ntg_entity* target,
-        unsigned int type, void* data);
+        ntg_entity* entity,
+        struct ntg_event event);
 void _ntg_entity_system_add_observe(
         ntg_entity_system* system,
         ntg_entity* observer,

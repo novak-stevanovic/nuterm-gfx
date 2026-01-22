@@ -29,10 +29,10 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_renderer_deinit_fn(ntg_entity* entity);
+void ntg_def_renderer_deinit_fn(ntg_entity* entity);
 
 void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
-        const ntg_stage_drawing* stage_drawing,
-        sarena* arena);
+                                 const ntg_stage_drawing* stage_drawing,
+                                 sarena* arena);
 
 #endif // NTG_DEF_RENDERER_H

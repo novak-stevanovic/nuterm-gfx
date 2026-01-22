@@ -20,14 +20,14 @@ struct ntg_renderer
 
 /* If `stage_drawing` is NULL, render empty */
 void ntg_renderer_render(ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing,
-        sarena* arena);
+                         const ntg_stage_drawing* stage_drawing,
+                         sarena* arena);
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_renderer_init(ntg_renderer* renderer, ntg_renderer_render_fn render_fn);
-void _ntg_renderer_deinit_fn(ntg_entity* entity);
+void ntg_renderer_init(ntg_renderer* renderer, ntg_renderer_render_fn render_fn);
+void ntg_renderer_deinit_fn(ntg_entity* entity);
 
 #endif // NTG_RENDERER_H

@@ -17,8 +17,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-static pthread_t __ntg_thread;
-static bool __launched = false;
+static pthread_t ntg_thread;
+static bool launched = false;
 
 static void* ntg_thread_fn(void* _data);
 
@@ -49,7 +49,7 @@ struct thread_fn_data
 
 void ntg_launch(ntg_gui_fn gui_fn, void* data)
 {
-    assert(__launched == false);
+    assert(launched == false);
     if(gui_fn == NULL) return;
 
     nt_alt_screen_enable(NULL);
@@ -61,18 +61,18 @@ void ntg_launch(ntg_gui_fn gui_fn, void* data)
     thread_fn_data->gui_fn = gui_fn;
     thread_fn_data->gui_fn_data = data;
 
-    int status = pthread_create(&__ntg_thread, NULL, ntg_thread_fn, thread_fn_data);
+    int status = pthread_create(&ntg_thread, NULL, ntg_thread_fn, thread_fn_data);
 
     assert(status == 0);
 
-    __launched = true;
+    launched = true;
 }
 
 void ntg_wait()
 {
-    if(!__launched) return;
+    if(!launched) return;
 
-    pthread_join(__ntg_thread, NULL);
+    pthread_join(ntg_thread, NULL);
 }
 
 void ntg_deinit()
@@ -81,7 +81,7 @@ void ntg_deinit()
     nt_alt_screen_disable(NULL);
     nt_deinit();
 
-   _ntg_log_deinit_();
+   ntg_log_deinit();
 }
 
 static void* ntg_thread_fn(void* _data)

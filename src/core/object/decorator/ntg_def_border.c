@@ -1,37 +1,33 @@
 #include "ntg.h"
 #include <assert.h>
 
-static struct ntg_decorator_width get_border_width(
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end);
-static void draw_padding(const ntg_def_border* border,
-        struct ntg_xy size, ntg_tmp_object_drawing* out_drawing);
-static void draw_north(const ntg_def_border* border,
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end,
-        ntg_tmp_object_drawing* out_drawing);
-static void draw_east(const ntg_def_border* border,
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end,
-        ntg_tmp_object_drawing* out_drawing);
-static void draw_south(const ntg_def_border* border,
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end,
-        ntg_tmp_object_drawing* out_drawing);
-static void draw_west(const ntg_def_border* border,
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end,
-        ntg_tmp_object_drawing* out_drawing);
+static struct ntg_decorator_width 
+get_border_width(struct ntg_xy size, struct ntg_xy child_start,
+                 struct ntg_xy child_size, struct ntg_xy child_end);
+
+static void 
+draw_padding(const ntg_def_border* border, struct ntg_xy size,
+             ntg_tmp_object_drawing* out_drawing);
+
+static void 
+draw_north(const ntg_def_border* border, struct ntg_xy size,
+           struct ntg_xy child_start, struct ntg_xy child_size,
+           struct ntg_xy child_end, ntg_tmp_object_drawing* out_drawing);
+
+static void 
+draw_east(const ntg_def_border* border, struct ntg_xy size,
+          struct ntg_xy child_start, struct ntg_xy child_size,
+          struct ntg_xy child_end, ntg_tmp_object_drawing* out_drawing);
+
+static void 
+draw_south(const ntg_def_border* border, struct ntg_xy size,
+           struct ntg_xy child_start, struct ntg_xy child_size,
+           struct ntg_xy child_end, ntg_tmp_object_drawing* out_drawing);
+
+static void 
+draw_west(const ntg_def_border* border, struct ntg_xy size,
+          struct ntg_xy child_start, struct ntg_xy child_size,
+          struct ntg_xy child_end, ntg_tmp_object_drawing* out_drawing);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -41,7 +37,7 @@ ntg_def_border* ntg_def_border_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_DEF_BORDER,
-        .deinit_fn = _ntg_def_border_deinit_fn,
+        .deinit_fn = ntg_def_border_deinit_fn,
         .system = system
     };
 
@@ -66,14 +62,15 @@ void ntg_def_border_set_style(ntg_def_border* border, struct ntg_def_border_styl
 
     border->_style = style;
 
-    ntg_entity_raise_event((ntg_entity*)border, NULL, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)border, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 /* ------------------------------------------------------ */
 /* PRESETS */
 /* ------------------------------------------------------ */
 
-struct ntg_def_border_style ntg_def_border_style_def()
+struct ntg_def_border_style 
+ntg_def_border_style_def()
 {
     return (struct ntg_def_border_style) {
         .top_left = ntg_vcell_default(),
@@ -88,7 +85,8 @@ struct ntg_def_border_style ntg_def_border_style_def()
     };
 }
 
-struct ntg_def_border_style ntg_def_border_style_monochrome(nt_color color)
+struct ntg_def_border_style 
+ntg_def_border_style_monochrome(nt_color color)
 {
     return (struct ntg_def_border_style) {
         .top_left = ntg_vcell_bg(color),
@@ -107,7 +105,7 @@ struct ntg_def_border_style ntg_def_border_style_monochrome(nt_color color)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_border_deinit_fn(ntg_entity* entity)
+void ntg_def_border_deinit_fn(ntg_entity* entity)
 {
     ntg_def_border* border = (ntg_def_border*)entity;
 
@@ -138,11 +136,9 @@ void _ntg_def_border_draw_fn(
 
 /* -------------------------------------------------------------------------- */
 
-static struct ntg_decorator_width get_border_width(
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end)
+static struct ntg_decorator_width 
+get_border_width(struct ntg_xy size, struct ntg_xy child_start,
+                 struct ntg_xy child_size, struct ntg_xy child_end)
 {
     return (struct ntg_decorator_width) {
         .north = child_start.y,
@@ -152,8 +148,9 @@ static struct ntg_decorator_width get_border_width(
     };
 }
 
-static void draw_padding(const ntg_def_border* border,
-        struct ntg_xy size, ntg_tmp_object_drawing* out_drawing)
+static void 
+draw_padding(const ntg_def_border* border, struct ntg_xy size,
+             ntg_tmp_object_drawing* out_drawing)
 {
     size_t i, j;
     struct ntg_vcell* it_cell;
@@ -167,12 +164,10 @@ static void draw_padding(const ntg_def_border* border,
     }
 }
 
-static void draw_north(const ntg_def_border* border,
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end,
-        ntg_tmp_object_drawing* out_drawing)
+static void 
+draw_north(const ntg_def_border* border, struct ntg_xy size,
+           struct ntg_xy child_start, struct ntg_xy child_size,
+           struct ntg_xy child_end, ntg_tmp_object_drawing* out_drawing)
 {
     struct ntg_decorator_width border_width;
     border_width = get_border_width(size, child_start, child_size, child_end);
@@ -210,12 +205,10 @@ static void draw_north(const ntg_def_border* border,
     }
 }
 
-static void draw_east(const ntg_def_border* border,
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end,
-        ntg_tmp_object_drawing* out_drawing)
+static void 
+draw_east(const ntg_def_border* border, struct ntg_xy size,
+          struct ntg_xy child_start, struct ntg_xy child_size,
+          struct ntg_xy child_end, ntg_tmp_object_drawing* out_drawing)
 {
 
     struct ntg_decorator_width border_width;
@@ -248,12 +241,10 @@ static void draw_east(const ntg_def_border* border,
     }
 }
 
-static void draw_south(const ntg_def_border* border,
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end,
-        ntg_tmp_object_drawing* out_drawing)
+static void 
+draw_south(const ntg_def_border* border, struct ntg_xy size,
+           struct ntg_xy child_start, struct ntg_xy child_size,
+           struct ntg_xy child_end, ntg_tmp_object_drawing* out_drawing)
 {
     struct ntg_decorator_width border_width;
     border_width = get_border_width(size, child_start, child_size, child_end);
@@ -291,12 +282,10 @@ static void draw_south(const ntg_def_border* border,
     }
 }
 
-static void draw_west(const ntg_def_border* border,
-        struct ntg_xy size,
-        struct ntg_xy child_start,
-        struct ntg_xy child_size,
-        struct ntg_xy child_end,
-        ntg_tmp_object_drawing* out_drawing)
+static void 
+draw_west(const ntg_def_border* border, struct ntg_xy size,
+          struct ntg_xy child_start, struct ntg_xy child_size,
+          struct ntg_xy child_end, ntg_tmp_object_drawing* out_drawing)
 {
     struct ntg_decorator_width border_width;
     border_width = get_border_width(size, child_start, child_size, child_end);

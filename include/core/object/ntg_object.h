@@ -63,6 +63,7 @@ struct ntg_object
 /* ------------------------------------------------------ */
 
 const ntg_object* ntg_object_get_root(const ntg_object* object);
+
 ntg_object* ntg_object_get_root_(ntg_object* object);
 
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
@@ -101,19 +102,17 @@ static void fn_name(ntg_object* object, void* data)                            \
 // Set size and position of root
 void ntg_object_root_layout(ntg_object* root, struct ntg_xy size);
 
-void ntg_object_measure(ntg_object* object,
-        ntg_orient orient,
-        bool constrained, sarena* arena);
-void ntg_object_constrain(ntg_object* object,
-        ntg_orient orient, sarena* arena);
+void ntg_object_measure(ntg_object* object, ntg_orient orient, bool constrained,
+                        sarena* arena);
+void ntg_object_constrain(ntg_object* object, ntg_orient orient, sarena* arena);
 void ntg_object_arrange(ntg_object* object, sarena* arena);
 void ntg_object_draw(ntg_object* object, sarena* arena);
 
 struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object);
 
 // Layout helpers
-size_t ntg_object_get_for_size(const ntg_object* object,
-        ntg_orient orient, bool constrained);
+size_t ntg_object_get_for_size(const ntg_object* object, ntg_orient orient,
+                               bool constrained);
 
 struct ntg_object_measure
 ntg_object_get_measure(const ntg_object* object, ntg_orient orient);

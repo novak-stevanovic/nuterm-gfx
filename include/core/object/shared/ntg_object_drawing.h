@@ -12,17 +12,23 @@ struct ntg_object_drawing
 void ntg_object_drawing_init(ntg_object_drawing* drawing);
 void ntg_object_drawing_deinit(ntg_object_drawing* drawing);
 
-struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing);
-void ntg_object_drawing_set_size(ntg_object_drawing* drawing,
-    struct ntg_xy size, struct ntg_xy size_cap);
+struct ntg_xy 
+ntg_object_drawing_get_size(const ntg_object_drawing* drawing);
+
+void ntg_object_drawing_set_size(ntg_object_drawing* drawing, struct ntg_xy size,
+                                 struct ntg_xy size_cap);
 
 void ntg_object_drawing_place(const ntg_object_drawing* src_drawing,
-        struct ntg_xy src_start_pos, struct ntg_xy src_box_size,
-        ntg_object_drawing* dest_drawing, struct ntg_xy dest_start_pos);
+                              struct ntg_xy src_start_pos,
+                              struct ntg_xy src_box_size,
+                              ntg_object_drawing* dest_drawing,
+                              struct ntg_xy dest_start_pos);
 
 void ntg_object_drawing_place_(const ntg_object_drawing* src_drawing,
-        struct ntg_xy src_start_pos, struct ntg_xy src_box_size,
-        ntg_stage_drawing* dest_drawing, struct ntg_xy dest_start_pos);
+                               struct ntg_xy src_start_pos,
+                               struct ntg_xy src_box_size,
+                               ntg_stage_drawing* dest_drawing,
+                               struct ntg_xy dest_start_pos);
 
 static inline const struct ntg_vcell*
 ntg_object_drawing_at(const ntg_object_drawing* drawing, struct ntg_xy pos)
@@ -47,7 +53,7 @@ struct ntg_tmp_object_drawing
 };
 
 void ntg_tmp_object_drawing_init(ntg_tmp_object_drawing* drawing,
-        struct ntg_xy size, sarena* arena);
+                                 struct ntg_xy size, sarena* arena);
 
 static inline const struct ntg_vcell*
 ntg_tmp_object_drawing_at(const ntg_tmp_object_drawing* drawing, struct ntg_xy pos)

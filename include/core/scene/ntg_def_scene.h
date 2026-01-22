@@ -35,8 +35,9 @@ void ntg_def_scene_init(ntg_def_scene* scene);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_def_scene_deinit_fn(ntg_entity* entity);
+void ntg_def_scene_deinit_fn(ntg_entity* entity);
 
-void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* arena);
+void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
+                              sarena* arena);
 
 #endif // NTG_DEF_SCENE_H

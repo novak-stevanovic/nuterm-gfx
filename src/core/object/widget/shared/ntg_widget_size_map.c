@@ -18,8 +18,8 @@ ntg_widget_size_map* ntg_widget_size_map_new(size_t child_count, sarena* arena)
     return new;
 }
 
-void ntg_widget_size_map_set(ntg_widget_size_map* map,
-        const ntg_widget* widget, size_t size)
+void ntg_widget_size_map_set(ntg_widget_size_map* map, const ntg_widget* widget,
+                             size_t size)
 {
     assert(map != NULL);
     assert(widget != NULL);
@@ -28,7 +28,7 @@ void ntg_widget_size_map_set(ntg_widget_size_map* map,
 }
 
 size_t ntg_widget_size_map_get(const ntg_widget_size_map* map,
-        const ntg_widget* widget)
+                               const ntg_widget* widget)
 {
     assert(map != NULL);
     assert(widget != NULL);

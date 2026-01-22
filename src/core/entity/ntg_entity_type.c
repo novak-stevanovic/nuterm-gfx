@@ -1,7 +1,8 @@
 #include "core/loop/_ntg_loop.h"
 #include "ntg.h"
 
-bool ntg_entity_instance_of(const ntg_entity_type* type, const ntg_entity_type* ancestor)
+bool ntg_entity_instance_of(const ntg_entity_type* type,
+                            const ntg_entity_type* ancestor)
 {
     const ntg_entity_type* it = type;
 
@@ -15,7 +16,8 @@ bool ntg_entity_instance_of(const ntg_entity_type* type, const ntg_entity_type* 
     return false;
 }
 
-bool ntg_entity_is_same_type(const ntg_entity_type* type, const ntg_entity_type* ancestor)
+bool ntg_entity_is_same_type(const ntg_entity_type* type,
+                             const ntg_entity_type* ancestor)
 {
     return (type == ancestor);
 }

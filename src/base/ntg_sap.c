@@ -3,13 +3,14 @@
 #include <assert.h>
 #include <math.h>
 
-static inline bool __is_equal_double(double x, double y)
+static inline bool is_equal_double(double x, double y)
 {
     return fabs(x - y) < 0.005;
 }
 
 size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
-        size_t* out_size_map, size_t space_pool, size_t count, sarena* arena)
+                               size_t* out_size_map, size_t space_pool,
+                               size_t count, sarena* arena)
 {
     assert(caps != NULL);
     assert(out_size_map != NULL);
@@ -51,7 +52,7 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
             if(it_grow_factor == 0) continue;
 
             /* Test space_left */
-            if(__is_equal_double(space_left, 0)) break;
+            if(is_equal_double(space_left, 0)) break;
             /* Test caps[i] */
             if(out_size_map[i] + distributed[i] >= caps[i]) continue;
 
@@ -59,7 +60,7 @@ size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
             it_to_distribute = _min2_double(
                     it_to_distribute,
                     caps[i] - out_size_map[i] - distributed[i]);
-            if(__is_equal_double(it_to_distribute, 0)) continue;
+            if(is_equal_double(it_to_distribute, 0)) continue;
 
             distributed[i] += it_to_distribute;
             distributed_total += it_to_distribute;

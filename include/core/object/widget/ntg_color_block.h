@@ -26,7 +26,7 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_color_block_deinit_fn(ntg_entity* entity);
+void ntg_color_block_deinit_fn(ntg_entity* entity);
 
 struct ntg_object_measure _ntg_color_block_measure_fn(
         const ntg_widget* _block,

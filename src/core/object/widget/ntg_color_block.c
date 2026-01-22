@@ -12,15 +12,14 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
 
     color_block->__color = color;
 
-    ntg_entity_raise_event((ntg_entity*)color_block, NULL,
-            NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_entity_raise_event_((ntg_entity*)color_block, NTG_EVENT_OBJECT_DIFF, NULL);
 }
 
 ntg_color_block* ntg_color_block_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
         .type = &NTG_ENTITY_COLOR_BLOCK,
-        .deinit_fn = _ntg_color_block_deinit_fn,
+        .deinit_fn = ntg_color_block_deinit_fn,
         .system = system
     };
 
@@ -55,7 +54,7 @@ void ntg_color_block_init(ntg_color_block* color_block)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_color_block_deinit_fn(ntg_entity* entity)
+void ntg_color_block_deinit_fn(ntg_entity* entity)
 {
     assert(entity != NULL);
 

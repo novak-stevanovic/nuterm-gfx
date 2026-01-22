@@ -23,7 +23,7 @@ void ntg_log_init(const char* filepath)
     ntg_log_log("NTG LOG BEGINNING");
 }
 
-void _ntg_log_deinit_()
+void ntg_log_deinit()
 {
     if (log_file != NULL)
     {

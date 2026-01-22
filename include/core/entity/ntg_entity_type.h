@@ -11,8 +11,10 @@ struct ntg_entity_type
     size_t _size;
 };
 
-bool ntg_entity_instance_of(const ntg_entity_type* type, const ntg_entity_type* ancestor);
-bool ntg_entity_is_same_type(const ntg_entity_type* type, const ntg_entity_type* ancestor);
+bool ntg_entity_instance_of(const ntg_entity_type* type,
+                            const ntg_entity_type* ancestor);
+bool ntg_entity_is_same_type(const ntg_entity_type* type,
+                             const ntg_entity_type* ancestor);
 
 extern const ntg_entity_type NTG_ENTITY;
 

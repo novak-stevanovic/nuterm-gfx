@@ -85,8 +85,8 @@ struct ntg_task_runner
     bool __invalid;
 };
 
-void _ntg_task_runner_init(ntg_task_runner* task_runner,
-        ntg_platform* platform, unsigned int worker_threads);
+void _ntg_task_runner_init(ntg_task_runner* task_runner, ntg_platform* platform,
+                           unsigned int worker_threads);
 
 // Make sure not to call deinit when the task runner is running tasks.
 // It will attempt to join with all of its threads. If any of the tasks are

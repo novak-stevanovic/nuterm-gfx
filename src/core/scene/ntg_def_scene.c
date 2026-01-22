@@ -20,8 +20,12 @@ struct object_data_hh
 };
 
 static void scene_map_add(ntg_def_scene* scene, ntg_object* object);
-static struct object_data* scene_map_get(ntg_def_scene* scene, ntg_object* object);
+
+static struct object_data* 
+scene_map_get(ntg_def_scene* scene, ntg_object* object);
+
 static void scene_map_del(ntg_def_scene* scene, ntg_object* object);
+
 static void scene_map_del_all(ntg_def_scene* scene);
 
 static void observe_fn(ntg_entity* entity, struct ntg_event event);
@@ -47,7 +51,7 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 ntg_def_scene* ntg_def_scene_new(ntg_entity_system* system)
 {
     struct ntg_entity_init_data entity_data = {
-        .deinit_fn = _ntg_def_scene_deinit_fn,
+        .deinit_fn = ntg_def_scene_deinit_fn,
         .type = &NTG_ENTITY_DEF_SCENE,
         .system = system
     };
@@ -61,7 +65,7 @@ void ntg_def_scene_init(ntg_def_scene* scene)
 {
     assert(scene != NULL);
 
-    _ntg_scene_init((ntg_scene*)scene, _ntg_def_scene_layout_fn);
+    ntg_scene_init((ntg_scene*)scene, _ntg_def_scene_layout_fn);
 
     scene->__detected_changes = true;
     scene->__last_size = ntg_xy(0, 0);
@@ -82,7 +86,7 @@ struct ntg_layout_data
     struct ntg_xy size;
 };
 
-void _ntg_def_scene_deinit_fn(ntg_entity* entity)
+void ntg_def_scene_deinit_fn(ntg_entity* entity)
 {
     ntg_def_scene* scene = (ntg_def_scene*)entity;
 
@@ -93,10 +97,11 @@ void _ntg_def_scene_deinit_fn(ntg_entity* entity)
     scene->__map = NULL;
     scene->data = NULL;
 
-    _ntg_scene_deinit_fn(entity);
+    ntg_scene_deinit_fn(entity);
 }
 
-void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size, sarena* arena)
+void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
+                              sarena* arena)
 {
     assert(_scene != NULL);
 
@@ -172,7 +177,8 @@ static void scene_map_add(ntg_def_scene* scene, ntg_object* object)
     scene->__map = head;
 }
 
-static struct object_data* scene_map_get(ntg_def_scene* scene, ntg_object* object)
+static struct object_data* 
+scene_map_get(ntg_def_scene* scene, ntg_object* object)
 {
     struct object_data_hh* head = (struct object_data_hh*)scene->__map;
 

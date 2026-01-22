@@ -5,13 +5,15 @@
 #include "nt.h"
 #include "core/loop/_ntg_loop.h"
 
-static void event_fn_def(struct nt_event event, ntg_loop_ctx* ctx);
+static void 
+event_fn_def(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
+enum ntg_loop_status 
+ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 {
     assert(loop != NULL);
 
@@ -50,7 +52,7 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     struct nt_event event;
     struct nt_resize_event resize_event;
     unsigned int event_elapsed;
-    struct ntg_event_loop_event_data loop_event_data;
+    struct ntg_event_loop_generic_data loop_event_data;
 
     nt_status _status;
 
@@ -77,7 +79,7 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
         // Process/dispatch event
         bool consumed = false;
-        data.event_fn(event, &ctx);
+        data.event_fn(loop, event, &ctx);
 
         // Frame end
         if(event.type == NT_EVENT_TIMEOUT)
@@ -103,9 +105,11 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
             timeout -= event_elapsed;
         }
 
+        // TODO
         loop_event_data.event = event;
-        ntg_entity_raise_event((ntg_entity*)loop, NULL,
-                NTG_EVENT_LOOP_EVENT, &loop_event_data);
+        loop_event_data.ctx = &ctx;
+        ntg_entity_raise_event_((ntg_entity*)loop, NTG_EVENT_LOOP_GENERIC,
+                               &loop_event_data);
 
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
@@ -122,13 +126,13 @@ enum ntg_loop_status ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     enum ntg_loop_status status;
     if(!ctx.__force_break)
     {
-        status = NTG_LOOP_CLEAN_FINISH;
+        status = NTG_LOOP_FINISH_CLEAN;
         _ntg_platform_deinit(&platform);
         _ntg_task_runner_deinit(&task_runner);
     }
     else
     {
-        status = NTG_LOOP_FORCE_FINISH;
+        status = NTG_LOOP_FINISH_FORCE;
         _ntg_platform_invalidate(&platform);
         _ntg_task_runner_invalidate(&task_runner);
     }
@@ -185,8 +189,30 @@ void ntg_platform_execute_later(ntg_platform* platform,
     _ntg_platform_execute_later(platform, task);
 }
 
-static void event_fn_def(struct nt_event event, ntg_loop_ctx* ctx)
+static void 
+event_fn_def(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx)
 {
-    if(ctx->_stage && ((event.type == NT_EVENT_KEY) || (event.type == NT_EVENT_MOUSE)))
-        ntg_stage_feed_event(ctx->_stage, event, ctx);
+    if(ctx->_stage)
+    {
+        struct ntg_event dispatch_event;
+
+        if(event.type == NT_EVENT_KEY)
+        {
+            struct nt_key_event key = *(struct nt_key_event*)event.data;
+            struct ntg_event_loop_key_data data = { .key = key };
+            dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_KEY,
+                                           &data);
+
+            ntg_stage_feed_event(ctx->_stage, dispatch_event, ctx);
+        }
+        else if(event.type == NT_EVENT_MOUSE)
+        {
+            struct nt_mouse_event mouse = *(struct nt_mouse_event*)event.data;
+            struct ntg_event_loop_mouse_data data = { .mouse = mouse };
+            dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_MOUSE,
+                                           &data);
+
+            ntg_stage_feed_event(ctx->_stage, dispatch_event, ctx);
+        }
+    }
 }

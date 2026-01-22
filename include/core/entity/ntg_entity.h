@@ -20,7 +20,7 @@ struct ntg_entity
     ntg_entity_system* __system;
 };
 
-// Extensible
+// Events should be instantiated via ntg_event_new()
 struct ntg_event
 {
     unsigned int id;
@@ -28,6 +28,9 @@ struct ntg_event
     ntg_entity* source;
     void* data;
 };
+
+struct ntg_event 
+ntg_event_new(ntg_entity* source, unsigned int type, void* data);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -47,10 +50,9 @@ unsigned int ntg_entity_get_id(const ntg_entity* entity);
 
 /* ------------------------------------------------------ */
 
-void ntg_entity_raise_event(
-        ntg_entity* entity,
-        ntg_entity* target,
-        unsigned int type, void* data);
+void ntg_entity_raise_event(ntg_entity* entity, struct ntg_event event);
+void ntg_entity_raise_event_(ntg_entity* entity, unsigned int type, void* data);
+
 void ntg_entity_observe(
         ntg_entity* observer,
         ntg_entity* observed,
@@ -63,8 +65,6 @@ bool ntg_entity_is_observing(
         ntg_entity* observer,
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
-
-/* ------------------------------------------------------ */
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
