@@ -3,6 +3,7 @@
 
 #include "core/entity/ntg_entity.h"
 #include "shared/ntg_xy.h"
+#include "core/object/widget/ntg_widget.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -26,12 +27,12 @@ struct ntg_scene
 
     struct
     {
-        ntg_scene_event_fn __event_fn;
+        ntg_scene_process_fn __process_fn;
     };
 
     struct
     {
-        // ntg_list
+        ntg_widget_slist __focus_ctx_stack;
     };
 
     void* data;
@@ -44,10 +45,15 @@ struct ntg_scene
 void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
 void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root);
 
+void ntg_scene_focus_ctx_push(ntg_scene* scene, ntg_widget* widget);
+void ntg_scene_focus_ctx_pop(ntg_scene* scene);
+
 bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event,
                           ntg_loop_ctx* ctx);
 
-void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn);
+bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event,
+                            ntg_loop_ctx* ctx);
+void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn);
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */

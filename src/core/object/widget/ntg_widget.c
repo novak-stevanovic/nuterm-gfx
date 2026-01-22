@@ -68,17 +68,17 @@ bool ntg_widget_feed_event(ntg_widget* widget,
 {
     assert(widget != NULL);
 
-    if(widget->__event_fn != NULL)
-        return widget->__event_fn(widget, event, ctx);
+    if(widget->__process_fn != NULL)
+        return widget->__process_fn(widget, event, ctx);
     else
         return false;
 }
 
-void ntg_widget_set_event_fn(ntg_widget* widget, ntg_widget_event_fn event_fn)
+void ntg_widget_set_process_fn(ntg_widget* widget, ntg_widget_process_fn process_fn)
 {
     assert(widget != NULL);
     
-    widget->__event_fn = event_fn;
+    widget->__process_fn = process_fn;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -669,7 +669,7 @@ static void init_default(ntg_widget* widget)
     widget->_user_grow = ntg_xy(NTG_WIDGET_GROW_UNSET, NTG_WIDGET_GROW_UNSET);
     widget->_border = NULL;
     widget->_padding = NULL;
-    widget->__event_fn = NULL;
+    widget->__process_fn = NULL;
     widget->data = NULL;
 }
 

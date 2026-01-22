@@ -15,9 +15,6 @@ static void object_observe_fn(ntg_entity* scene, struct ntg_event event);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_register_fn_tree, on_object_register_fn);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_unregister_fn_tree, on_object_unregister_fn);
 
-static bool 
-event_fn_def(ntg_scene* scene, struct ntg_event event, ntg_loop_ctx* ctx);
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -66,14 +63,42 @@ bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event,
 {
     assert(scene != NULL);
 
-    return scene->__event_fn(scene, event, ctx);
+    ntg_log_log("Scene received event");
+
+    return scene->__process_fn(scene, event, ctx);
 }
 
-void ntg_scene_set_event_fn(ntg_scene* scene, ntg_scene_event_fn fn)
+bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event,
+                            ntg_loop_ctx* ctx)
+{
+    struct ntg_widget_slist_node* head = scene->__focus_ctx_stack.head;
+
+    if(head != NULL)
+        return ntg_widget_feed_event(*(head->data), event, ctx);
+    else
+        return false;
+}
+
+void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn)
 {
     assert(scene != NULL);
 
-    scene->__event_fn = fn ? fn : event_fn_def;
+    scene->__process_fn = fn ? fn : ntg_scene_dispatch_def;
+}
+
+void ntg_scene_focus_ctx_push(ntg_scene* scene, ntg_widget* widget)
+{
+    assert(scene != NULL);
+    assert(widget != NULL);
+
+    ntg_widget_slist_pushf(&scene->__focus_ctx_stack, widget, NULL);
+}
+
+void ntg_scene_focus_ctx_pop(ntg_scene* scene)
+{
+    assert(scene != NULL);
+
+    ntg_widget_slist_popf(&scene->__focus_ctx_stack, NULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,7 +113,7 @@ static void init_default(ntg_scene* scene)
     scene->_root = NULL;
     scene->__layout_fn = NULL;
 
-    scene->__event_fn = event_fn_def;
+    scene->__process_fn = ntg_scene_dispatch_def;
 
     scene->data = NULL;
 }
@@ -101,6 +126,7 @@ void ntg_scene_init(ntg_scene* scene, ntg_scene_layout_fn layout_fn)
     init_default(scene);
 
     scene->__layout_fn = layout_fn;
+    ntg_widget_slist_init(&scene->__focus_ctx_stack, NULL);
 }
 
 void ntg_scene_deinit_fn(ntg_entity* entity)
@@ -118,6 +144,8 @@ void ntg_scene_deinit_fn(ntg_entity* entity)
         on_object_unregister_fn_tree(root_gr, scene);
     }
 
+    ntg_widget_slist_deinit(&scene->__focus_ctx_stack, NULL);
+
     init_default(scene);
 }
 
@@ -128,6 +156,7 @@ void ntg_scene_deinit_fn(ntg_entity* entity)
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
 {
     assert(scene != NULL);
+
     scene->_stage = stage;
 }
 
@@ -208,10 +237,4 @@ static void object_observe_fn(ntg_entity* _scene, struct ntg_event event)
                 on_object_register(scene, (ntg_object*)data->new);
         }
     }
-}
-
-static bool 
-event_fn_def(ntg_scene* scene, struct ntg_event event, ntg_loop_ctx* ctx)
-{
-    return false;
 }

@@ -79,6 +79,7 @@ typedef struct ntg_tmp_object_drawing ntg_tmp_object_drawing;
 
 typedef struct ntg_widget ntg_widget;
 typedef struct ntg_widget_vec ntg_widget_vec;
+typedef struct ntg_widget_slist ntg_widget_slist;
 typedef struct ntg_widget_map ntg_widget_map;
 typedef struct ntg_widget_size_map ntg_widget_size_map;
 typedef struct ntg_widget_xy_map ntg_widget_xy_map;
@@ -119,7 +120,12 @@ typedef void (*ntg_event_handler_fn)(ntg_entity* observer, struct ntg_event even
 
 /* LOOP ------------------------------------------------- */
 
-typedef bool (*ntg_loop_event_fn)(
+typedef bool (*ntg_loop_process_fn)(
+        ntg_loop* loop,
+        struct nt_event event,
+        ntg_loop_ctx* ctx);
+
+typedef bool (*ntg_loop_process_fn)(
         ntg_loop* loop,
         struct nt_event event,
         ntg_loop_ctx* ctx);
@@ -160,7 +166,7 @@ typedef void (*ntg_object_draw_fn)(
         ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 
-typedef bool (*ntg_widget_event_fn)(
+typedef bool (*ntg_widget_process_fn)(
         ntg_widget* widget,
         struct ntg_event event,
         ntg_loop_ctx* ctx);
@@ -202,7 +208,7 @@ typedef void (*ntg_scene_layout_fn)(
         struct ntg_xy size,
         sarena* arena);
 
-typedef bool (*ntg_scene_event_fn)(
+typedef bool (*ntg_scene_process_fn)(
         ntg_scene* scene,
         struct ntg_event event,
         ntg_loop_ctx* loop_ctx);
@@ -215,7 +221,7 @@ typedef void (*ntg_stage_compose_fn)(
         struct ntg_xy size,
         sarena* arena);
 
-typedef bool (*ntg_stage_event_fn)(
+typedef bool (*ntg_stage_process_fn)(
         ntg_stage* stage,
         struct ntg_event event,
         ntg_loop_ctx* loop_ctx);

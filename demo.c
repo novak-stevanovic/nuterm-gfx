@@ -57,7 +57,7 @@ struct ctx_data
     ntg_border_box* border_box;
 };
 
-bool loop_event_fn(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx)
+bool loop_process_fn(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx)
 {
     struct ctx_data ctx_data = *(struct ctx_data*)ctx->data;
     ntg_label* label = ctx_data.label;
@@ -115,7 +115,7 @@ bool loop_event_fn(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx)
         }
     }
 
-    return false;
+    return ntg_loop_dispatch_def(loop, event, ctx);
 }
 
 void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
@@ -149,10 +149,18 @@ void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
     };
     ntg_label_set_opts(label, opts);
 
+    ntg_def_padding* label_padding = ntg_def_padding_new(es);
+    ntg_def_padding_init(label_padding);
+    ntg_widget_set_padding(ntg_wdg(label), ntg_dcr(label_padding));
+
     ntg_def_border* label_border = ntg_def_border_new(es);
     ntg_def_border_init(label_border);
-    ntg_def_border_set_style(label_border, ntg_def_border_style_monochrome(
-                             nt_color_new_auto(nt_rgb_new(60, 0, 107))));
+    struct nt_gfx border_gfx = {
+        .bg = nt_color_new_auto(nt_rgb_new(143, 0, 255)),
+        .fg = nt_color_new_auto(nt_rgb_new(200, 200, 200)),
+        .style = NT_STYLE_DEFAULT
+    };
+    ntg_def_border_set_style(label_border, ntg_def_border_style_single(border_gfx));
 
     ntg_border_box* border_box = ntg_border_box_new(es);
     ntg_border_box_init(border_box);
@@ -186,7 +194,7 @@ void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
     };
 
     struct ntg_loop_run_data loop_data = {
-        .event_fn = loop_event_fn,
+        .process_fn = loop_process_fn,
         .stage = ntg_stg(stage),
         .renderer = ntg_rdr(renderer),
         .framerate = 60,

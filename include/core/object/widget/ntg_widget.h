@@ -20,6 +20,7 @@ struct ntg_widget_hooks
 };
 
 GENC_VECTOR_GENERATE(ntg_widget_vec, ntg_widget*, 1.5, NULL);
+GENC_SIMPLE_LIST_GENERATE(ntg_widget_slist, ntg_widget*);
 
 struct ntg_widget
 {
@@ -33,7 +34,7 @@ struct ntg_widget
 
     ntg_decorator *_padding, *_border;
 
-    ntg_widget_event_fn __event_fn;
+    ntg_widget_process_fn __process_fn;
     void* data;
 };
 
@@ -57,7 +58,7 @@ void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background);
 bool ntg_widget_feed_event(ntg_widget* widget, struct ntg_event event,
                            ntg_loop_ctx* ctx);
 
-void ntg_widget_set_event_fn(ntg_widget* widget, ntg_widget_event_fn event_fn);
+void ntg_widget_set_process_fn(ntg_widget* widget, ntg_widget_process_fn process_fn);
 
 /* -------------------------------------------------------------------------- */
 /* SCENE STATE */

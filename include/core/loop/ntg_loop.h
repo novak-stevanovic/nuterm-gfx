@@ -37,7 +37,7 @@ enum ntg_loop_status
 
 struct ntg_loop_run_data
 {
-    ntg_loop_event_fn event_fn;
+    ntg_loop_process_fn process_fn;
     ntg_stage* stage;
     ntg_renderer* renderer; // non-NULL
     unsigned int framerate;
@@ -45,6 +45,9 @@ struct ntg_loop_run_data
 
     void* ctx_data;
 };
+
+bool ntg_loop_dispatch_def(ntg_loop* loop, struct nt_event event,
+                           ntg_loop_ctx* ctx);
 
 enum ntg_loop_status 
 ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data);

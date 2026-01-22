@@ -46,7 +46,6 @@ struct ntg_object
 
     struct
     {
-
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
         struct ntg_xy _pos;
@@ -123,19 +122,8 @@ size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-// enum ntg_object_addchld_status
-// {
-//     NTG_OBJECT_ADDCHLD_SUCCESS = 0,
-//     NTG_OBJECT_ADDCHLD_ALR_CHILD,
-//     NTG_OBJECT_ADDCHLD_HAS_PARENT,
-//     NTG_OBJECT_ADDCHLD_SELF
-// };
-
 void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops);
 void ntg_object_deinit_fn(ntg_entity* entity);
-
-// enum ntg_object_addchld_status 
-// ntg_object_validate_add_child(ntg_object* parent, ntg_object* child);
 
 /* Updates only the tree. Does not update scene. 
  * Called internally by types extending ntg_object. */

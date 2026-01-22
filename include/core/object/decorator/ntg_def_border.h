@@ -2,6 +2,7 @@
 #define NTG_DEF_BORDER_H
 
 #include "core/object/decorator/ntg_decorator.h"
+#include "nt_gfx.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
@@ -10,8 +11,8 @@
 struct ntg_def_border_style
 {
     struct ntg_vcell top_left, top, top_right,
-             right, bottom_right, bottom,
-             bottom_left, left, padding;
+                     right, bottom_right, bottom,
+                     bottom_left, left, padding;
 };
 
 struct ntg_def_border
@@ -40,6 +41,30 @@ ntg_def_border_style_def();
 
 struct ntg_def_border_style 
 ntg_def_border_style_monochrome(nt_color color);
+
+struct ntg_def_border_style
+ntg_def_border_style_uniform(struct nt_gfx gfx, uint32_t codepoint);
+
+struct ntg_def_border_style
+ntg_def_border_style_uniform_edge(struct nt_gfx gfx, uint32_t codepoint);
+
+struct ntg_def_border_style
+ntg_def_border_style_single(struct nt_gfx gfx);
+
+struct ntg_def_border_style
+ntg_def_border_style_double(struct nt_gfx gfx);
+
+struct ntg_def_border_style
+ntg_def_border_style_rounded(struct nt_gfx gfx);
+
+struct ntg_def_border_style
+ntg_def_border_style_heavy(struct nt_gfx gfx);
+
+struct ntg_def_border_style
+ntg_def_border_style_dashed(struct nt_gfx gfx);
+
+struct ntg_def_border_style
+ntg_def_border_style_ascii(struct nt_gfx gfx);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

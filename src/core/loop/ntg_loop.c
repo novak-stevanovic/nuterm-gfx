@@ -5,12 +5,39 @@
 #include "nt.h"
 #include "core/loop/_ntg_loop.h"
 
-static void 
-event_fn_def(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx);
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
+
+bool ntg_loop_dispatch_def(ntg_loop* loop, struct nt_event event,
+                           ntg_loop_ctx* ctx)
+{
+    if(ctx->_stage)
+    {
+        struct ntg_event dispatch_event;
+
+        if(event.type == NT_EVENT_KEY)
+        {
+            struct nt_key_event key = *(struct nt_key_event*)event.data;
+            struct ntg_event_loop_key_data data = { .key = key };
+            dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_KEY,
+                                           &data);
+
+            return ntg_stage_feed_event(ctx->_stage, dispatch_event, ctx);
+        }
+        else if(event.type == NT_EVENT_MOUSE)
+        {
+            struct nt_mouse_event mouse = *(struct nt_mouse_event*)event.data;
+            struct ntg_event_loop_mouse_data data = { .mouse = mouse };
+            dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_MOUSE,
+                                           &data);
+
+            return ntg_stage_feed_event(ctx->_stage, dispatch_event, ctx);
+        }
+        else return false;
+    }
+    else return false;
+}
 
 enum ntg_loop_status 
 ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
@@ -20,7 +47,7 @@ ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
     assert(data.renderer != NULL);
     assert(data.stage != NULL);
     assert(data.workers <= NTG_LOOP_WORKERS_MAX);
-    if(!data.event_fn) data.event_fn = event_fn_def;
+    if(!data.process_fn) data.process_fn = ntg_loop_dispatch_def;
     if(data.framerate > 300) data.framerate = 300;
 
     ntg_platform platform;
@@ -79,7 +106,7 @@ ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
         // Process/dispatch event
         bool consumed = false;
-        data.event_fn(loop, event, &ctx);
+        data.process_fn(loop, event, &ctx);
 
         // Frame end
         if(event.type == NT_EVENT_TIMEOUT)
@@ -189,30 +216,3 @@ void ntg_platform_execute_later(ntg_platform* platform,
     _ntg_platform_execute_later(platform, task);
 }
 
-static void 
-event_fn_def(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx)
-{
-    if(ctx->_stage)
-    {
-        struct ntg_event dispatch_event;
-
-        if(event.type == NT_EVENT_KEY)
-        {
-            struct nt_key_event key = *(struct nt_key_event*)event.data;
-            struct ntg_event_loop_key_data data = { .key = key };
-            dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_KEY,
-                                           &data);
-
-            ntg_stage_feed_event(ctx->_stage, dispatch_event, ctx);
-        }
-        else if(event.type == NT_EVENT_MOUSE)
-        {
-            struct nt_mouse_event mouse = *(struct nt_mouse_event*)event.data;
-            struct ntg_event_loop_mouse_data data = { .mouse = mouse };
-            dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_MOUSE,
-                                           &data);
-
-            ntg_stage_feed_event(ctx->_stage, dispatch_event, ctx);
-        }
-    }
-}

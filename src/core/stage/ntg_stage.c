@@ -3,9 +3,6 @@
 
 static void init_default(ntg_stage* stage);
 
-static bool 
-event_fn_def(ntg_stage* stage, struct ntg_event event, ntg_loop_ctx* ctx);
-
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
 {
     assert(stage != NULL);
@@ -57,14 +54,32 @@ bool ntg_stage_feed_event(ntg_stage* stage, struct ntg_event event,
 {
     assert(stage != NULL);
 
-    return stage->__event_fn(stage, event, ctx);
+    return stage->__process_fn(stage, event, ctx);
 }
 
-void ntg_stage_set_event_fn(ntg_stage* stage, ntg_stage_event_fn fn)
+bool ntg_stage_dispatch_def(ntg_stage* stage, struct ntg_event event,
+                            ntg_loop_ctx* ctx)
+{
+    if(stage->_scene)
+    {
+        if(event.type == NTG_EVENT_LOOP_KEY)
+        {
+            return ntg_scene_feed_event(stage->_scene, event, ctx);
+        }
+        else if(event.type == NTG_EVENT_LOOP_MOUSE)
+        {
+            return ntg_scene_feed_event(stage->_scene, event, ctx);
+        }
+        else return false;
+    }
+    else return false;
+}
+
+void ntg_stage_set_process_fn(ntg_stage* stage, ntg_stage_process_fn fn)
 {
     assert(stage != NULL);
 
-    stage->__event_fn = fn ? fn : event_fn_def;
+    stage->__process_fn = ntg_stage_dispatch_def;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -103,24 +118,6 @@ static void init_default(ntg_stage* stage)
     stage->_scene = NULL;
     stage->__compose_fn = NULL;
     stage->_drawing = (struct ntg_stage_drawing) {0};
-    stage->__event_fn = event_fn_def;
+    stage->__process_fn = ntg_stage_dispatch_def;
     stage->data = NULL;
-}
-
-static bool 
-event_fn_def(ntg_stage* stage, struct ntg_event event, ntg_loop_ctx* ctx)
-{
-    if(stage->_scene)
-    {
-        if(event.type == NTG_EVENT_LOOP_KEY)
-        {
-            return ntg_scene_feed_event(stage->_scene, event, ctx);
-        }
-        else if(event.type == NTG_EVENT_LOOP_MOUSE)
-        {
-            return ntg_scene_feed_event(stage->_scene, event, ctx);
-        }
-        else return false;
-    }
-    else return false;
 }

@@ -101,6 +101,136 @@ ntg_def_border_style_monochrome(nt_color color)
     };
 }
 
+struct ntg_def_border_style
+ntg_def_border_style_uniform(struct nt_gfx gfx, uint32_t codepoint)
+{
+    return (struct ntg_def_border_style) {
+        .top_left = ntg_vcell_full(codepoint, gfx),
+        .top = ntg_vcell_full(codepoint, gfx),
+        .top_right = ntg_vcell_full(codepoint, gfx),
+        .right = ntg_vcell_full(codepoint, gfx),
+        .bottom_right = ntg_vcell_full(codepoint, gfx),
+        .bottom = ntg_vcell_full(codepoint, gfx),
+        .bottom_left = ntg_vcell_full(codepoint, gfx),
+        .left = ntg_vcell_full(codepoint, gfx),
+        .padding = ntg_vcell_full(codepoint, gfx),
+    };
+}
+
+struct ntg_def_border_style
+ntg_def_border_style_uniform_edge(struct nt_gfx gfx, uint32_t codepoint)
+{
+    return (struct ntg_def_border_style) {
+        .top_left = ntg_vcell_full(codepoint, gfx),
+        .top = ntg_vcell_full(codepoint, gfx),
+        .top_right = ntg_vcell_full(codepoint, gfx),
+        .right = ntg_vcell_full(codepoint, gfx),
+        .bottom_right = ntg_vcell_full(codepoint, gfx),
+        .bottom = ntg_vcell_full(codepoint, gfx),
+        .bottom_left = ntg_vcell_full(codepoint, gfx),
+        .left = ntg_vcell_full(codepoint, gfx),
+        .padding = ntg_vcell_full(' ', gfx),
+    };
+}
+
+struct ntg_def_border_style
+ntg_def_border_style_single(struct nt_gfx gfx)
+{
+    return (struct ntg_def_border_style) {
+        .top_left    = ntg_vcell_full(0x250C, gfx), /* ┌ */
+        .top         = ntg_vcell_full(0x2500, gfx), /* ─ */
+        .top_right   = ntg_vcell_full(0x2510, gfx), /* ┐ */
+        .right       = ntg_vcell_full(0x2502, gfx), /* │ */
+        .bottom_right= ntg_vcell_full(0x2518, gfx), /* ┘ */
+        .bottom      = ntg_vcell_full(0x2500, gfx), /* ─ */
+        .bottom_left = ntg_vcell_full(0x2514, gfx), /* └ */
+        .left        = ntg_vcell_full(0x2502, gfx), /* │ */
+        .padding     = ntg_vcell_full((uint32_t)' ', gfx)
+    };
+}
+
+struct ntg_def_border_style
+ntg_def_border_style_double(struct nt_gfx gfx)
+{
+    return (struct ntg_def_border_style) {
+        .top_left    = ntg_vcell_full(0x2554, gfx), /* ╔ */
+        .top         = ntg_vcell_full(0x2550, gfx), /* ═ */
+        .top_right   = ntg_vcell_full(0x2557, gfx), /* ╗ */
+        .right       = ntg_vcell_full(0x2551, gfx), /* ║ */
+        .bottom_right= ntg_vcell_full(0x255D, gfx), /* ╝ */
+        .bottom      = ntg_vcell_full(0x2550, gfx), /* ═ */
+        .bottom_left = ntg_vcell_full(0x255A, gfx), /* ╚ */
+        .left        = ntg_vcell_full(0x2551, gfx), /* ║ */
+        .padding     = ntg_vcell_full((uint32_t)' ', gfx)
+    };
+}
+
+struct ntg_def_border_style
+ntg_def_border_style_rounded(struct nt_gfx gfx)
+{
+    return (struct ntg_def_border_style) {
+        .top_left    = ntg_vcell_full(0x256D, gfx), /* ╭ */
+        .top         = ntg_vcell_full(0x2500, gfx), /* ─ */
+        .top_right   = ntg_vcell_full(0x256E, gfx), /* ╮ */
+        .right       = ntg_vcell_full(0x2502, gfx), /* │ */
+        .bottom_right= ntg_vcell_full(0x256F, gfx), /* ╯ */
+        .bottom      = ntg_vcell_full(0x2500, gfx), /* ─ */
+        .bottom_left = ntg_vcell_full(0x2570, gfx), /* ╰ */
+        .left        = ntg_vcell_full(0x2502, gfx), /* │ */
+        .padding     = ntg_vcell_full((uint32_t)' ', gfx)
+    };
+}
+
+/* Heavy / bold */
+struct ntg_def_border_style
+ntg_def_border_style_heavy(struct nt_gfx gfx)
+{
+    return (struct ntg_def_border_style) {
+        .top_left    = ntg_vcell_full(0x250F, gfx), /* ┏ */
+        .top         = ntg_vcell_full(0x2501, gfx), /* ━ */
+        .top_right   = ntg_vcell_full(0x2513, gfx), /* ┓ */
+        .right       = ntg_vcell_full(0x2503, gfx), /* ┃ */
+        .bottom_right= ntg_vcell_full(0x251B, gfx), /* ┛ */
+        .bottom      = ntg_vcell_full(0x2501, gfx), /* ━ */
+        .bottom_left = ntg_vcell_full(0x2517, gfx), /* ┗ */
+        .left        = ntg_vcell_full(0x2503, gfx), /* ┃ */
+        .padding     = ntg_vcell_full((uint32_t)' ', gfx)
+    };
+}
+
+struct ntg_def_border_style
+ntg_def_border_style_dashed(struct nt_gfx gfx)
+{
+    return (struct ntg_def_border_style) {
+        .top_left    = ntg_vcell_full(0x250C, gfx), /* fallback ┌ */
+        .top         = ntg_vcell_full(0x254C, gfx), /* ╌ dash (U+254C) */
+        .top_right   = ntg_vcell_full(0x2510, gfx), /* ┐ */
+        .right       = ntg_vcell_full(0x254E, gfx), /* ╎ vertical dashed (U+254E) */
+        .bottom_right= ntg_vcell_full(0x2518, gfx),
+        .bottom      = ntg_vcell_full(0x254C, gfx),
+        .bottom_left = ntg_vcell_full(0x2514, gfx),
+        .left        = ntg_vcell_full(0x254E, gfx),
+        .padding     = ntg_vcell_full((uint32_t)' ', gfx)
+    };
+}
+
+struct ntg_def_border_style
+ntg_def_border_style_ascii(struct nt_gfx gfx)
+{
+    /* use '|' '-' '+' and space with same gfx */
+    return (struct ntg_def_border_style) {
+        .top_left    = ntg_vcell_full((uint32_t)'+', gfx),
+        .top         = ntg_vcell_full((uint32_t)'-', gfx),
+        .top_right   = ntg_vcell_full((uint32_t)'+', gfx),
+        .right       = ntg_vcell_full((uint32_t)'|', gfx),
+        .bottom_right= ntg_vcell_full((uint32_t)'+', gfx),
+        .bottom      = ntg_vcell_full((uint32_t)'-', gfx),
+        .bottom_left = ntg_vcell_full((uint32_t)'+', gfx),
+        .left        = ntg_vcell_full((uint32_t)'|', gfx),
+        .padding     = ntg_vcell_full((uint32_t)' ', gfx)
+    };
+}
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
@@ -266,7 +396,7 @@ draw_south(const ntg_def_border* border, struct ntg_xy size,
             }
 
             it_cell = ntg_tmp_object_drawing_at_(out_drawing, ntg_xy(size.x - 1, size.y - 1));
-            (*it_cell) = border->_style.top_right;
+            (*it_cell) = border->_style.bottom_right;
         }
     }
     else if(size.x >= 1)
