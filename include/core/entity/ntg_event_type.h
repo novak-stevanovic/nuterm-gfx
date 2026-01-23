@@ -112,7 +112,6 @@ struct ntg_event_stage_scnchng_data
 struct ntg_event_loop_generic_data
 {
     struct nt_event event;
-    ntg_loop_ctx* ctx;
 };
 
 #define NTG_EVENT_LOOP_KEY 301

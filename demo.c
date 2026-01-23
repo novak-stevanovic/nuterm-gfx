@@ -49,7 +49,7 @@ const char* lorem =
 "dolor ut euismod tempor. In hac habitasse platea dictumst. Proin eget "
 "vestibulum diam.";
 
-struct ctx_data
+struct loop_data
 {
     ntg_label* label;
     ntg_def_border* label_border;
@@ -57,20 +57,20 @@ struct ctx_data
     ntg_border_box* border_box;
 };
 
-bool loop_process_fn(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx)
+bool loop_process_fn(ntg_loop* loop, struct nt_event event)
 {
-    struct ctx_data ctx_data = *(struct ctx_data*)ctx->data;
-    ntg_label* label = ctx_data.label;
-    ntg_def_border* label_border = ctx_data.label_border;
-    ntg_def_scene* scene = ctx_data.scene;
-    ntg_border_box* border_box = ctx_data.border_box;
+    struct loop_data loop_data = *(struct loop_data*)loop->data;
+    ntg_label* label = loop_data.label;
+    ntg_def_border* label_border = loop_data.label_border;
+    ntg_def_scene* scene = loop_data.scene;
+    ntg_border_box* border_box = loop_data.border_box;
 
     if(event.type == NT_EVENT_KEY)
     {
         struct nt_key_event key = *(struct nt_key_event*)event.data;
         if(nt_key_event_utf32_check(key, 'q', false))
         {
-            ntg_loop_ctx_break(ctx, false);
+            ntg_loop_break(loop, false);
             return true;
         }
         if(nt_key_event_utf32_check(key, '1', false))
@@ -115,10 +115,10 @@ bool loop_process_fn(ntg_loop* loop, struct nt_event event, ntg_loop_ctx* ctx)
         }
     }
 
-    return ntg_loop_dispatch_def(loop, event, ctx);
+    return ntg_loop_dispatch_def(loop, event);
 }
 
-void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
+void gui_fn1(ntg_entity_system* es, void* _)
 {
     ntg_label* label = ntg_label_new(es);
     ntg_label_init(label);
@@ -186,24 +186,20 @@ void gui_fn1(ntg_entity_system* es, ntg_loop* loop, void* _)
     ntg_stage_set_scene(ntg_stg(stage), ntg_scn(scene));
     ntg_scene_set_root(ntg_scn(scene), ntg_wdg(border_box));
 
-    struct ctx_data ctx_data = {
+    struct loop_data loop_data = {
         .label = label,
         .label_border = label_border,
         .scene = scene,
         .border_box = border_box
     };
 
-    struct ntg_loop_run_data loop_data = {
-        .process_fn = loop_process_fn,
-        .stage = ntg_stg(stage),
-        .renderer = ntg_rdr(renderer),
-        .framerate = 60,
-        .workers = 4,
-        .ctx_data = &ctx_data
-    };
+    ntg_loop* loop = ntg_loop_new(es);
+    ntg_loop_init(loop, ntg_stg(stage), ntg_rdr(renderer),
+                  loop_process_fn, 60, 4);
 
-    ntg_loop_run(loop, loop_data);
+    loop->data = &loop_data;
 
+    ntg_loop_run(loop);
 }
 
 int main(int argc, char *argv[])

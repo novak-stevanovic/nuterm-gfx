@@ -13,7 +13,6 @@ struct ntg_focus_mgr
 void ntg_focus_mgr_init(ntg_focus_mgr* mgr, ntg_focus_mgr_process_fn process_fn);
 void ntg_focus_mgr_deinit(ntg_focus_mgr* mgr);
 
-bool ntg_focus_mgr_feed_event(ntg_focus_mgr* mgr, struct ntg_event event,
-                              ntg_loop_ctx* ctx);
+bool ntg_focus_mgr_feed_event(ntg_focus_mgr* mgr, struct ntg_event event);
 
 #endif // NTG_FOCUS_MGR_H

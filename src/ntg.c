@@ -90,9 +90,7 @@ static void* ntg_thread_fn(void* _data)
 
     ntg_entity_system* es = _ntg_entity_system_new();
 
-    ntg_loop* loop = _ntg_loop_new(es);
-
-    data->gui_fn(es, loop, data->gui_fn_data);
+    data->gui_fn(es, data->gui_fn_data);
 
     _ntg_entity_system_destroy(es);
 

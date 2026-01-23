@@ -4,15 +4,87 @@
 #include "ntg.h"
 #include "nt.h"
 #include "core/loop/_ntg_loop.h"
+#include <stdlib.h>
+
+static void init_default(ntg_loop* loop);
+// function assumes that pending_stage_flag = true
+static void update_stage(ntg_loop* loop);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_loop_dispatch_def(ntg_loop* loop, struct nt_event event,
-                           ntg_loop_ctx* ctx)
+ntg_loop* ntg_loop_new(ntg_entity_system* system)
 {
-    if(ctx->_stage)
+    struct ntg_entity_init_data entity_data = {
+        .type = &NTG_ENTITY_LOOP,
+        .deinit_fn = (ntg_entity_deinit_fn)ntg_loop_deinit,
+        .system = system
+    };
+
+    ntg_loop* new = (ntg_loop*)ntg_entity_create(entity_data);
+    assert(new != NULL);
+
+    return new;
+}
+
+void ntg_loop_init(ntg_loop* loop, ntg_stage* init_stage, ntg_renderer* renderer,
+                   ntg_loop_process_fn process_fn, unsigned int framerate,
+                   unsigned int workers)
+{
+    assert(loop != NULL);
+    assert(!init_stage->_loop);
+    assert(init_stage != NULL);
+    assert(renderer != NULL);
+
+    init_default(loop);
+
+    loop->_stage = init_stage;
+    loop->__process_fn = process_fn ? process_fn : ntg_loop_dispatch_def;
+    loop->_framerate = (framerate <= NTG_LOOP_FRAMERATE_MAX) ?
+        framerate : NTG_LOOP_FRAMERATE_MAX;;
+    loop->_arena = sarena_create(1000000);
+    assert(loop->_arena);
+
+    loop->_renderer = renderer;
+
+    loop->_task_runner = malloc(sizeof(ntg_task_runner));
+    assert(loop->_task_runner);
+    loop->_platform = malloc(sizeof(ntg_platform));
+    assert(loop->_platform);
+
+    workers = (workers <= NTG_LOOP_WORKERS_MAX) ? workers : NTG_LOOP_WORKERS_MAX;
+    _ntg_platform_init(loop->_platform, loop);
+    _ntg_task_runner_init(loop->_task_runner, loop->_platform, workers, loop);
+    
+    ntg_loop_set_stage(loop, init_stage);
+}
+
+void ntg_loop_deinit(ntg_loop* loop)
+{
+    assert(loop != NULL);
+    assert(!loop->_running);
+    if(loop->_running) return;
+
+    sarena_destroy(loop->_arena);
+
+    if(!loop->__force_break)
+    {
+        _ntg_task_runner_deinit(loop->_task_runner);
+        _ntg_platform_deinit(loop->_platform);
+
+        free(loop->_platform);
+        free(loop->_task_runner);
+    }
+
+    ntg_loop_set_stage(loop, NULL);
+
+    init_default(loop);
+}
+
+bool ntg_loop_dispatch_def(ntg_loop* loop, struct nt_event event)
+{
+    if(loop->_stage)
     {
         struct ntg_event dispatch_event;
 
@@ -23,7 +95,7 @@ bool ntg_loop_dispatch_def(ntg_loop* loop, struct nt_event event,
             dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_KEY,
                                            &data);
 
-            return ntg_stage_feed_event(ctx->_stage, dispatch_event, ctx);
+            return ntg_stage_feed_event(loop->_stage, dispatch_event);
         }
         else if(event.type == NT_EVENT_MOUSE)
         {
@@ -32,45 +104,22 @@ bool ntg_loop_dispatch_def(ntg_loop* loop, struct nt_event event,
             dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_MOUSE,
                                            &data);
 
-            return ntg_stage_feed_event(ctx->_stage, dispatch_event, ctx);
+            return ntg_stage_feed_event(loop->_stage, dispatch_event);
         }
         else return false;
     }
     else return false;
 }
 
-enum ntg_loop_status 
-ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
+enum ntg_loop_end_status ntg_loop_run(ntg_loop* loop)
 {
     assert(loop != NULL);
-
-    assert(data.renderer != NULL);
-    assert(data.stage != NULL);
-    assert(data.workers <= NTG_LOOP_WORKERS_MAX);
-    if(!data.process_fn) data.process_fn = ntg_loop_dispatch_def;
-    if(data.framerate > 300) data.framerate = 300;
-
-    ntg_platform platform;
-    _ntg_platform_init(&platform);
-    ntg_task_runner task_runner;
-    _ntg_task_runner_init(&task_runner, &platform, data.workers);
-
-    ntg_loop_ctx ctx;
-    ctx._stage = data.stage;
-    nt_get_term_size(&ctx._app_size.x, &ctx._app_size.y);
-    ctx.__loop = true;
-    ctx.__force_break = false;
-    ctx._elapsed = 0;
-    ctx._frame = 0;
-    ctx._arena = sarena_create(1000000);
-    ctx._platform = &platform;
-    ctx._task_runner = &task_runner;
-    ctx.data = data.ctx_data;
+    assert(!loop->_running);
 
     size_t resize_counter = 0, sigwinch_counter = 0;
 
     /* loop */
-    unsigned int timeout = 1000 / data.framerate;
+    unsigned int timeout = 1000 / loop->_framerate;
     struct timespec ts_start, ts_end;
     int64_t process_elapsed_ns;
     uint64_t process_elapsed_ms;
@@ -83,9 +132,18 @@ ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
     nt_status _status;
 
+    loop->_running = true;
+    loop->__loop = true;
+    loop->__force_break = false;
+    nt_get_term_size(&loop->_app_size.x, &loop->_app_size.y);
+
     while(true)
     {
-        if(!(ctx.__loop)) break;
+        if(!(loop->__loop)) break;
+        if(loop->__pending_stage_flag)
+        {
+            update_stage(loop);
+        }
 
         event_elapsed = nt_event_wait(&event, timeout, &_status);
         assert(_status == NT_SUCCESS);
@@ -94,8 +152,8 @@ ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         if(event.type == NT_EVENT_RESIZE)
         {
             resize_event = *(struct nt_resize_event*)event.data;
-            ctx._app_size.x = resize_event.new_x;
-            ctx._app_size.y = resize_event.new_y;
+            loop->_app_size.x = resize_event.new_x;
+            loop->_app_size.y = resize_event.new_y;
 
             resize_counter++;
         }
@@ -104,26 +162,26 @@ ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
             sigwinch_counter++;
         }
 
-        data.process_fn(loop, event, &ctx);
+        loop->__process_fn(loop, event);
 
         // Frame end
         if(event.type == NT_EVENT_TIMEOUT)
         {
-            _ntg_platform_execute_all(&platform, &ctx);
+            _ntg_platform_execute_all(loop->_platform);
 
-            timeout = 1000 / data.framerate;
+            timeout = 1000 / loop->_framerate;
 
-            if(ctx._stage != NULL)
+            if(loop->_stage != NULL)
             {
-                ntg_stage_compose(ctx._stage, ctx._app_size, ctx._arena);
-                drawing = &ctx._stage->_drawing;
+                ntg_stage_compose(loop->_stage, loop->_app_size, loop->_arena);
+                drawing = &loop->_stage->_drawing;
             }
             else drawing = NULL;
 
-            ntg_renderer_render(data.renderer, drawing, ctx._arena);
+            ntg_renderer_render(loop->_renderer, drawing, loop->_arena);
 
-            sarena_rewind(ctx._arena);
-            ctx._frame++;
+            sarena_rewind(loop->_arena);
+            (loop->_frame)++;
         }
         else
         {
@@ -132,7 +190,6 @@ ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
 
         // TODO
         loop_event_data.event = event;
-        loop_event_data.ctx = &ctx;
         ntg_entity_raise_event_((ntg_entity*)loop, NTG_EVENT_LOOP_GENERIC,
                                &loop_event_data);
 
@@ -144,51 +201,74 @@ ntg_loop_run(ntg_loop* loop, struct ntg_loop_run_data data)
         // process_elapsed_ns = (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
 
         process_elapsed_ms = process_elapsed_ns / 1000000LL;
-        ctx._elapsed += (event_elapsed + process_elapsed_ms);
+        loop->_elapsed += (event_elapsed + process_elapsed_ms);
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
 
-    enum ntg_loop_status status;
-    if(!ctx.__force_break)
+    enum ntg_loop_end_status status;
+    if(!loop->__force_break)
     {
-        status = NTG_LOOP_FINISH_CLEAN;
-        _ntg_platform_deinit(&platform);
-        _ntg_task_runner_deinit(&task_runner);
+        status = NTG_LOOP_END_CLEAN;
     }
     else
     {
-        status = NTG_LOOP_FINISH_FORCE;
-        _ntg_platform_invalidate(&platform);
-        _ntg_task_runner_invalidate(&task_runner);
+        status = NTG_LOOP_END_FORCE;
+        _ntg_platform_invalidate(loop->_platform);
+        _ntg_task_runner_invalidate(loop->_task_runner);
     }
 
     ntg_log_log("%d %d", resize_counter, sigwinch_counter);
 
-    sarena_destroy(ctx._arena);
-    // ctx = (struct ntg_loop_ctx) {0};
     return status;
 }
 
-bool ntg_loop_ctx_break(ntg_loop_ctx* ctx, bool force_break)
+bool ntg_loop_break(ntg_loop* loop, bool force_break)
 {
-    assert(ctx != NULL);
+    assert(loop != NULL);
 
     if(force_break)
     {
-        ctx->__loop = false;
-        ctx->__force_break = true;
+        loop->__loop = false;
+        loop->_running = false;
+        loop->__force_break = true;
 
         return true;
     }
     else
     {
-        if(!_ntg_task_runner_is_running(ctx->_task_runner))
+        if(!_ntg_task_runner_is_running(loop->_task_runner))
         {
-            ctx->__loop = false;
+            loop->__loop = false;
+            loop->_running = false;
+
             return true;
         }
 
         return false;
+    }
+}
+
+void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
+{
+    assert(loop != NULL);
+
+    if(loop->_running)
+    {
+        loop->__pending_stage_flag = true;
+        loop->__pending_stage = stage;
+    }
+    else
+    {
+        loop->_stage = stage;
+
+        if(loop->_stage)
+        {
+            _ntg_stage_set_loop(loop->_stage, NULL);
+        }
+        if(stage)
+        {
+            _ntg_stage_set_loop(stage, loop);
+        }
     }
 }
 
@@ -204,8 +284,8 @@ void ntg_task_runner_execute(ntg_task_runner* task_runner,
 }
 
 void ntg_platform_execute_later(ntg_platform* platform, 
-        void (*task_fn)(void* data, ntg_loop_ctx* ctx),
-        void* data)
+                                void (*task_fn)(void* data),
+                                void* data)
 {
     struct ntg_ptask task = {
         .task_fn = task_fn,
@@ -214,3 +294,49 @@ void ntg_platform_execute_later(ntg_platform* platform,
     _ntg_platform_execute_later(platform, task);
 }
 
+
+static void init_default(ntg_loop* loop)
+{
+    loop->__process_fn = ntg_loop_dispatch_def;
+
+    loop->_framerate = 0;
+    loop->_running = false;
+    loop->_app_size = ntg_xy(0, 0);
+    loop->_stage = NULL;
+    loop->_renderer = NULL;
+    loop->_elapsed = 0;
+    loop->_frame = 0;
+    loop->_arena = NULL;
+
+    loop->_platform = NULL;
+    loop->_task_runner = NULL;
+
+    loop->__loop = false;
+    loop->__force_break = false;
+    loop->__pending_stage = NULL;
+    loop->__pending_stage_flag = false;
+
+    loop->data = NULL;
+}
+
+static void update_stage(ntg_loop* loop)
+{
+    ntg_stage* old = loop->_stage;
+    ntg_stage* new = loop->__pending_stage;
+
+    ntg_loop* new_old_loop = new->_loop;
+    assert(!new_old_loop);
+
+    if(old)
+    {
+        _ntg_stage_set_loop(old, NULL);
+    }
+    if(new)
+    {
+        _ntg_stage_set_loop(new, loop);
+    }
+
+    loop->_stage = new;
+    loop->__pending_stage = NULL;
+    loop->__pending_stage_flag = false;
+}

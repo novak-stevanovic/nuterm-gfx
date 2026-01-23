@@ -61,7 +61,7 @@ void ntg_deinit();
 /* LAUNCH */
 /* -------------------------------------------------------------------------- */
 
-typedef void (*ntg_gui_fn)(ntg_entity_system* system, ntg_loop* loop, void* data);
+typedef void (*ntg_gui_fn)(ntg_entity_system* system, void* data);
 
 void ntg_launch(ntg_gui_fn gui_fn, void* data);
 

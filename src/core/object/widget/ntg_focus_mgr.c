@@ -16,10 +16,9 @@ void ntg_focus_mgr_deinit(ntg_focus_mgr* mgr)
     mgr->__process_fn = NULL;
 }
 
-bool ntg_focus_mgr_feed_event(ntg_focus_mgr* mgr, struct ntg_event event,
-                              ntg_loop_ctx* ctx)
+bool ntg_focus_mgr_feed_event(ntg_focus_mgr* mgr, struct ntg_event event)
 {
     assert(mgr != NULL);
 
-    return mgr->__process_fn(mgr, event, ctx);
+    return mgr->__process_fn(mgr, event);
 }

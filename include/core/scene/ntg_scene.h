@@ -50,11 +50,9 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root);
 void ntg_scene_focus_ctx_push(ntg_scene* scene, struct ntg_focus_ctx ctx);
 void ntg_scene_focus_ctx_pop(ntg_scene* scene);
 
-bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event,
-                          ntg_loop_ctx* ctx);
+bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event);
 
-bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event,
-                            ntg_loop_ctx* ctx);
+bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event);
 void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn);
 
 /* -------------------------------------------------------------------------- */

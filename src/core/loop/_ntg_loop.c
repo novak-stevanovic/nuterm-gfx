@@ -2,48 +2,21 @@
 #include <string.h>
 #include <assert.h>
 #include "core/loop/_ntg_loop.h"
-#include "core/entity/ntg_entity_type.h"
-#include "core/entity/ntg_entity.h"
-#include "core/entity/ntg_entity_type.h"
-
-/* -------------------------------------------------------------------------- */
-/* LOOP */
-/* -------------------------------------------------------------------------- */
-
-ntg_loop* _ntg_loop_new(ntg_entity_system* system)
-{
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_LOOP,
-        .deinit_fn = (ntg_entity_deinit_fn)_ntg_loop_deinit,
-        .system = system
-    };
-
-    ntg_loop* new = (ntg_loop*)ntg_entity_create(entity_data);
-    assert(new != NULL);
-
-    return new;
-}
-
-void _ntg_loop_init(ntg_loop* loop)
-{
-    assert(loop != NULL);
-}
-
-void _ntg_loop_deinit(ntg_loop* loop) {}
 
 /* -------------------------------------------------------------------------- */
 /* PLATFORM */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_platform_init(ntg_platform* platform)
+void _ntg_platform_init(ntg_platform* platform, ntg_loop* loop)
 {
     assert(platform != NULL);
+    assert(loop != NULL);
 
     pthread_mutex_init(&platform->__lock, NULL);
 
     ntg_ptask_list_init(&platform->__tasks, NULL);
 
-    platform->__invalid = false;
+    platform->__loop = loop;
 }
 
 void _ntg_platform_deinit(ntg_platform* platform)
@@ -54,7 +27,7 @@ void _ntg_platform_deinit(ntg_platform* platform)
 
     ntg_ptask_list_deinit(&platform->__tasks, NULL);
 
-    platform->__invalid = true;
+    platform->__loop = NULL;
 }
 
 void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
@@ -63,7 +36,7 @@ void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
 
     pthread_mutex_lock(&platform->__lock);
 
-    if(platform->__invalid)
+    if(!platform->__loop)
     {
         pthread_mutex_unlock(&platform->__lock);
         return;
@@ -74,14 +47,13 @@ void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
     pthread_mutex_unlock(&platform->__lock);
 }
 
-void _ntg_platform_execute_all(ntg_platform* platform, ntg_loop_ctx* loop_ctx)
+void _ntg_platform_execute_all(ntg_platform* platform)
 {
     assert(platform != NULL);
-    assert(loop_ctx != NULL);
 
     pthread_mutex_lock(&platform->__lock);
 
-    if(platform->__invalid)
+    if(!platform->__loop)
     {
         pthread_mutex_unlock(&platform->__lock);
         return;
@@ -91,7 +63,7 @@ void _ntg_platform_execute_all(ntg_platform* platform, ntg_loop_ctx* loop_ctx)
 
     while(it_node != NULL)
     {
-        it_node->data->task_fn(it_node->data->data, loop_ctx);
+        it_node->data->task_fn(it_node->data->data);
         it_node = it_node->next;
 
         ntg_ptask_list_popf(&platform->__tasks, NULL);
@@ -105,8 +77,21 @@ void _ntg_platform_invalidate(ntg_platform* platform)
     assert(platform != NULL);
 
     pthread_mutex_lock(&platform->__lock);
-    platform->__invalid = true;
+    platform->__loop = NULL;
     pthread_mutex_unlock(&platform->__lock);
+}
+
+bool _ntg_platform_is_valid(ntg_platform* platform)
+{
+    assert(platform != NULL);
+
+    bool valid;
+
+    pthread_mutex_lock(&platform->__lock);
+    valid = (platform->__loop != NULL);
+    pthread_mutex_unlock(&platform->__lock);
+
+    return valid;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -116,7 +101,7 @@ void _ntg_platform_invalidate(ntg_platform* platform)
 static void* worker_fn(void* _data);
 
 void _ntg_task_runner_init(ntg_task_runner* task_runner, ntg_platform* platform,
-                           unsigned int worker_threads)
+                           unsigned int worker_threads, ntg_loop* loop)
 {
     assert(task_runner != NULL);
     assert(platform != NULL);
@@ -144,7 +129,7 @@ void _ntg_task_runner_init(ntg_task_runner* task_runner, ntg_platform* platform,
         assert(status == 0);
     }
 
-    task_runner->__invalid = false;
+    task_runner->__loop = loop;
 }
 
 void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
@@ -170,7 +155,7 @@ void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
     ntg_task_list_deinit(&task_runner->__tasks, NULL);
 
     task_runner->__running = 0;
-    task_runner->__invalid = true;
+    task_runner->__loop = NULL;
 }
 
 bool _ntg_task_runner_is_running(ntg_task_runner* task_runner)
@@ -196,7 +181,7 @@ void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task
 
     pthread_mutex_lock(&task_runner->__lock);
 
-    if(task_runner->__invalid)
+    if(!task_runner->__loop)
     {
         pthread_mutex_unlock(&task_runner->__lock);
         return;
@@ -214,8 +199,21 @@ void _ntg_task_runner_invalidate(ntg_task_runner* task_runner)
     assert(task_runner != NULL);
 
     pthread_mutex_lock(&task_runner->__lock);
-    task_runner->__invalid = true;
+    task_runner->__loop = false;
     pthread_mutex_unlock(&task_runner->__lock);
+}
+
+bool _ntg_task_runner_is_valid(ntg_task_runner* task_runner)
+{
+    assert(task_runner != NULL);
+
+    bool valid;
+
+    pthread_mutex_lock(&task_runner->__lock);
+    valid = (task_runner->__loop != NULL);
+    pthread_mutex_unlock(&task_runner->__lock);
+
+    return valid;
 }
 
 static void* worker_fn(void* _data)

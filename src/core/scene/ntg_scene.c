@@ -58,24 +58,24 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
     ntg_entity_raise_event_((ntg_entity*)scene, NTG_EVENT_SCENE_DIFF, NULL);
 }
 
-bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event,
-                          ntg_loop_ctx* ctx)
+bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event)
 {
     assert(scene != NULL);
 
     ntg_log_log("Scene received event");
 
-    return scene->__process_fn(scene, event, ctx);
+    return scene->__process_fn(scene, event);
 }
 
-bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event,
-                            ntg_loop_ctx* ctx)
+bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event)
 {
+    if(scene->__focus_ctx_stack.size == 0) return false;
+
     struct ntg_focus_ctx_list_node* head = scene->__focus_ctx_stack.head;
     struct ntg_focus_ctx fctx = *(head->data);
 
     if(head != NULL)
-        return ntg_focus_mgr_feed_event(fctx.mgr, event, ctx);
+        return ntg_focus_mgr_feed_event(fctx.mgr, event);
     else
         return false;
 }

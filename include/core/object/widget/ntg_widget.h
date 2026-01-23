@@ -54,9 +54,7 @@ void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background);
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_widget_feed_event(ntg_widget* widget, struct ntg_event event,
-                           ntg_loop_ctx* ctx);
-
+bool ntg_widget_feed_event(ntg_widget* widget, struct ntg_event event);
 void ntg_widget_set_process_fn(ntg_widget* widget, ntg_widget_process_fn process_fn);
 
 /* -------------------------------------------------------------------------- */

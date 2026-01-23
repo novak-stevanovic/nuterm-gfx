@@ -62,14 +62,12 @@ void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background)
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_widget_feed_event(ntg_widget* widget,
-                           struct ntg_event event,
-                           ntg_loop_ctx* ctx)
+bool ntg_widget_feed_event(ntg_widget* widget, struct ntg_event event)
 {
     assert(widget != NULL);
 
     if(widget->__process_fn != NULL)
-        return widget->__process_fn(widget, event, ctx);
+        return widget->__process_fn(widget, event);
     else
         return false;
 }
