@@ -1,7 +1,7 @@
+#include <stdlib.h>
+#include <assert.h>
 #include "ntg.h"
 #include "shared/_ntg_shared.h"
-#include <assert.h>
-#include <stdlib.h>
 
 /* ---------------------------------------------------------------- */
 /* OBJECT TREE */
@@ -53,6 +53,26 @@ bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descen
     assert(descendant != NULL);
 
     return ntg_object_is_ancestor(descendant, object);
+}
+
+static void count_fn(ntg_object* object, void* _counter)
+{
+    if(!object) return;
+
+    size_t* counter = _counter;
+    (*counter)++;
+}
+
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(count_tree, count_fn);
+
+size_t ntg_object_get_tree_size(const ntg_object* root)
+{
+    assert(root);
+
+    size_t counter = 0;
+    count_tree((ntg_object*)root, &counter);
+
+    return counter;
 }
 
 /* ---------------------------------------------------------------- */
@@ -253,6 +273,15 @@ size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient)
     return ntg_xy_get(object->_size, orient);
 }
 
+void ntg_object_set_z_index(ntg_object* object, int z_index)
+{
+    assert(object != NULL);
+
+    object->_z_index = z_index;
+
+    ntg_entity_raise_event_((ntg_entity*)object, NTG_EVENT_OBJECT_DIFF, NULL);
+}
+
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
@@ -287,6 +316,7 @@ static void init_default(ntg_object* object)
     object->_size = ntg_xy(0, 0);
     object->_pos = ntg_xy(0, 0);
     object->__layout_data = NULL;
+    object->_z_index = 0;
 }
 
 void ntg_object_deinit(ntg_object* object)

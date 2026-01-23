@@ -44,7 +44,7 @@ struct ntg_scene
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
+bool ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
 void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root);
 
 void ntg_scene_focus_ctx_push(ntg_scene* scene, struct ntg_focus_ctx ctx);

@@ -19,12 +19,12 @@ NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(on_object_unregister_fn_tree, on_object_unre
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
+bool ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
 {
     assert(scene != NULL);
 
     scene->_size = size;
-    scene->__layout_fn(scene, size, arena);
+    return scene->__layout_fn(scene, size, arena);
 }
 
 void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
@@ -55,7 +55,6 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
     };
 
     ntg_entity_raise_event_((ntg_entity*)scene, NTG_EVENT_SCENE_ROOTCHNG, &data);
-    ntg_entity_raise_event_((ntg_entity*)scene, NTG_EVENT_SCENE_DIFF, NULL);
 }
 
 bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event)
@@ -228,8 +227,6 @@ static void on_object_register(ntg_scene* scene, ntg_object* object)
 
     struct ntg_event_scene_objadd_data data = { .object = object };
     ntg_entity_raise_event_((ntg_entity*)scene, NTG_EVENT_SCENE_OBJADD, &data);
-
-    ntg_entity_raise_event_((ntg_entity*)scene, NTG_EVENT_SCENE_DIFF, NULL);
 }
 
 static void on_object_unregister(ntg_scene* scene, ntg_object* object)
@@ -239,8 +236,6 @@ static void on_object_unregister(ntg_scene* scene, ntg_object* object)
 
     struct ntg_event_scene_objrm_data data = { .object = object };
     ntg_entity_raise_event_((ntg_entity*)scene, NTG_EVENT_SCENE_OBJRM, &data);
-
-    ntg_entity_raise_event_((ntg_entity*)scene, NTG_EVENT_SCENE_DIFF, NULL);
 }
 
 static void on_object_register_fn(ntg_object* object, void* _scene)
@@ -267,10 +262,6 @@ static void object_observe_fn(ntg_entity* _scene, struct ntg_event event)
         struct ntg_event_object_chldrm_data* data = event.data;
         if(((ntg_widget*)data->child) == scene->_root) return;
         on_object_unregister_fn_tree(data->child, _scene);
-    }
-    else if(event.type == NTG_EVENT_OBJECT_DIFF)
-    {
-        ntg_entity_raise_event_(_scene, NTG_EVENT_SCENE_DIFF, NULL);
     }
     else if(event.type == NTG_EVENT_WIDGET_PADCHNG)
     {

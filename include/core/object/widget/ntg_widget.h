@@ -80,6 +80,9 @@ struct ntg_xy ntg_widget_get_pos_abs(const ntg_widget* widget);
 struct ntg_xy ntg_widget_get_cont_pos(const ntg_widget* widget);
 struct ntg_xy ntg_widget_get_cont_pos_abs(const ntg_widget* widget);
 
+int ntg_widget_get_z_index(const ntg_widget* widget);
+void ntg_widget_set_z_index(ntg_widget* widget, int z_index);
+
 /* LAYOUT PROCESS - CONVENIENCE */
 
 size_t ntg_widget_get_cont_for_size(const ntg_widget* widget,

@@ -98,7 +98,7 @@ void ntg_def_scene_deinit(ntg_def_scene* scene)
     ntg_scene_deinit((ntg_scene*)scene);
 }
 
-void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
+bool _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
                               sarena* arena)
 {
     assert(_scene != NULL);
@@ -109,11 +109,11 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
     {
         scene->__last_size = size;
         scene->__detected_changes = false;
-        return;
+        return false;
     }
 
     if(ntg_xy_are_equal(scene->__last_size, size) && !(scene->__detected_changes))
-        return;
+        return false;
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE: Layout unoptimized");
 
@@ -145,6 +145,8 @@ void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
 
     scene->__last_size = size;
     scene->__detected_changes = false;
+
+    return true;
 }
 
 /* -------------------------------------------------------------------------- */

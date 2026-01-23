@@ -49,6 +49,7 @@ struct ntg_object
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
         struct ntg_xy _pos;
+        int _z_index;
         ntg_object_drawing _drawing;
     };
 };
@@ -67,6 +68,12 @@ ntg_object* ntg_object_get_root_(ntg_object* object);
 
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
 bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant);
+
+// Returns total count of objects in tree, including root
+size_t ntg_object_get_tree_size(const ntg_object* root);
+
+// TODO
+// ntg_object* ntg_object_get_children_by_z
 
 #define NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fn_name, perform_fn)               \
 static void fn_name(ntg_object* object, void* data)                            \
@@ -117,6 +124,8 @@ struct ntg_object_measure
 ntg_object_get_measure(const ntg_object* object, ntg_orient orient);
 
 size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
+
+void ntg_object_set_z_index(ntg_object* object, int z_index);
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */

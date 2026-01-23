@@ -13,8 +13,6 @@ struct ntg_def_stage
 {
     ntg_stage __base;
 
-    struct ntg_xy __old_size;
-    bool __detected_changes;
     void* data;
 };
 

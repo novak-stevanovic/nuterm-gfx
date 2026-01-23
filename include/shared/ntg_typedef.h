@@ -196,7 +196,7 @@ typedef bool (*ntg_focus_mgr_process_fn)(ntg_focus_mgr* mgr, struct ntg_event ev
 /* SCENE ------------------------------------------------ */
 
 /* Performs logical layout of the scene. */
-typedef void (*ntg_scene_layout_fn)(
+typedef bool (*ntg_scene_layout_fn)(
         ntg_scene* scene,
         struct ntg_xy size,
         sarena* arena);

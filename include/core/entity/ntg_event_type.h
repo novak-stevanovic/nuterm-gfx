@@ -86,8 +86,6 @@ struct ntg_event_scene_objrm_data
     ntg_object* object;
 };
 
-#define NTG_EVENT_SCENE_DIFF 102
-
 #define NTG_EVENT_SCENE_ROOTCHNG 103
 struct ntg_event_scene_rootchng_data
 {

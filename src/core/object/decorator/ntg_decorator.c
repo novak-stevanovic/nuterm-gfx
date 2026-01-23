@@ -82,6 +82,8 @@ void _ntg_decorator_decorate(ntg_decorator* decorator, ntg_widget* widget)
     assert(decorator->_widget != widget);
 
     decorator->_widget = widget;
+    int z_index = widget ? ntg_widget_get_z_index(widget) : 0;
+    ntg_object_set_z_index((ntg_object*)decorator, z_index);
 }
 
 void* _ntg_decorator_layout_data_init_fn(const ntg_object* _decorator)

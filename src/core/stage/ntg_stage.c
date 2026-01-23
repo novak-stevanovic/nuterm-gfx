@@ -10,10 +10,12 @@ void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap);
 
+    bool compose;
     if(stage->_scene != NULL)
-        ntg_scene_layout(stage->_scene, size, arena);
+        compose = ntg_scene_layout(stage->_scene, size, arena);
 
-    stage->__compose_fn(stage, size, arena);
+    if(compose)
+        stage->__compose_fn(stage, size, arena);
 }
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)

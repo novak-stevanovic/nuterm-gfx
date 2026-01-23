@@ -201,6 +201,26 @@ struct ntg_xy ntg_widget_get_cont_pos_abs(const ntg_widget* widget)
     return ntg_object_get_pos_abs(_widget);
 }
 
+int ntg_widget_get_z_index(const ntg_widget* widget)
+{
+    assert(widget != NULL);
+
+    const ntg_object* _widget = (const ntg_object*)widget;
+
+    return _widget->_z_index;
+}
+
+void ntg_widget_set_z_index(ntg_widget* widget, int z_index)
+{
+    assert(widget != NULL);
+
+    ntg_object_set_z_index((ntg_object*)widget, z_index);
+    if(widget->_padding)
+        ntg_object_set_z_index((ntg_object*)widget->_padding, z_index);
+    if(widget->_border)
+        ntg_object_set_z_index((ntg_object*)widget->_border, z_index);
+}
+
 /* LAYOUT PROCESS - CONVENIENCE */
 
 size_t ntg_widget_get_cont_for_size(const ntg_widget* widget,

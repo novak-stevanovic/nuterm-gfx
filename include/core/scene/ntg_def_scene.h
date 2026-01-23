@@ -37,7 +37,7 @@ void ntg_def_scene_init(ntg_def_scene* scene);
 
 void ntg_def_scene_deinit(ntg_def_scene* scene);
 
-void _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
+bool _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
                               sarena* arena);
 
 #endif // NTG_DEF_SCENE_H

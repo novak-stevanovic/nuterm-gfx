@@ -1,8 +1,6 @@
 #include "ntg.h"
 #include <assert.h>
 
-static void observe_fn(ntg_entity* entity, struct ntg_event event);
-
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -27,11 +25,7 @@ void ntg_def_stage_init(ntg_def_stage* stage)
 
     ntg_stage_init((ntg_stage*)stage, _ntg_def_stage_compose_fn);
 
-    stage->__detected_changes = true;
-    stage->__old_size = ntg_xy(0, 0);
     stage->data = NULL;
-
-    ntg_entity_observe((ntg_entity*)stage, (ntg_entity*)stage, observe_fn);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -40,25 +34,69 @@ void ntg_def_stage_init(ntg_def_stage* stage)
 
 void ntg_def_stage_deinit(ntg_def_stage* stage)
 {
-    stage->__detected_changes = true;
-    stage->__old_size = ntg_xy(0, 0);
     stage->data = NULL;
 
     ntg_stage_deinit((ntg_stage*)stage);
 }
 
-static void draw_fn(ntg_object* object, void* _stage)
+struct collect_data
 {
-    ntg_stage* stage = (ntg_stage*)_stage;
+    ntg_object** array;
+    size_t counter;
+    sarena* arena;
+};
 
+static void collect_by_z_tree(ntg_object* object, void* _data)
+{
+    struct collect_data* data = _data;
+    ntg_object** array = data->array;
+    size_t* counter = &(data->counter);
+    sarena* arena = data->arena;
+
+    array[*counter] = object;
+    (*counter)++;
+
+    const ntg_object_vec* children = &(object->_children);
+
+    if(children->size == 0) return;
+
+    ntg_object** tmp_children = sarena_malloc(arena, sizeof(void*) *
+                                              children->size);
+    
+    size_t i, j;
+
+    for(i = 0; i < children->size; i++)
+        tmp_children[i] = children->data[i];
+
+    ntg_object* tmp_obj;
+    for(i = 0; i < children->size - 1; i++)
+    {
+        for(j = i + 1; j < children->size; j++)
+        {
+            if((tmp_children[j])->_z_index < (tmp_children[i])->_z_index)
+            {
+                tmp_obj = tmp_children[i];
+                tmp_children[i] = tmp_children[j];
+                tmp_children[j] = tmp_obj;
+            }
+        }
+    }
+
+    for(i = 0; i < children->size; i++)
+    {
+        collect_by_z_tree(tmp_children[i], _data);
+    }
+}
+
+static void draw(ntg_object* object, ntg_def_stage* stage)
+{
+    ntg_stage* _stage = (ntg_stage*)stage;
     const ntg_object_drawing* drawing = &(object->_drawing);
     struct ntg_xy size = object->_size;
     struct ntg_xy pos = ntg_object_get_pos_abs(object);
 
-    ntg_object_drawing_place_(drawing, ntg_xy(0, 0), size, &stage->_drawing, pos);
+    ntg_object_drawing_place_(drawing, ntg_xy(0, 0), size, &_stage->_drawing, pos);
 }
-
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(draw_tree, draw_fn);
 
 void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size,
                                sarena* arena)
@@ -66,9 +104,6 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size,
     assert(_stage != NULL);
 
     ntg_def_stage* stage = (ntg_def_stage*)_stage;
-
-    if(ntg_xy_are_equal(size, stage->__old_size) && !stage->__detected_changes)
-        return;
 
     size_t i, j;
     struct ntg_cell* it_cell;
@@ -86,31 +121,18 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size,
         if(_stage->_scene->_root != NULL)
         {
             ntg_object* root = ntg_widget_get_group_root_(_stage->_scene->_root);
-            draw_tree(root, stage);
+
+            size_t tree_size = ntg_object_get_tree_size(root);
+            ntg_object** array = sarena_malloc(arena, sizeof(void*) *
+                                               tree_size);
+            struct collect_data data = {
+                .array = array,
+                .counter = 0,
+                .arena = arena
+            };
+            collect_by_z_tree(root, &data);
+
+            for(i = 0; i < tree_size; i++) draw(array[i], stage);
         }
-    }
-
-    stage->__detected_changes = false;
-    stage->__old_size = size;
-}
-
-static void observe_fn(ntg_entity* entity, struct ntg_event event)
-{
-    ntg_def_stage* stage = (ntg_def_stage*)entity;
-
-    if(event.type == NTG_EVENT_SCENE_DIFF)
-    {
-        stage->__detected_changes = true;
-    }
-    else if(event.type == NTG_EVENT_STAGE_SCNCHNG)
-    {
-        struct ntg_event_stage_scnchng_data* data = event.data;
-
-        if(data->old != NULL)
-            ntg_entity_stop_observing((ntg_entity*)stage, (ntg_entity*)data->old, observe_fn);
-        if(data->new != NULL)
-            ntg_entity_observe((ntg_entity*)stage, (ntg_entity*)data->new, observe_fn);
-
-        stage->__detected_changes = true;
     }
 }
