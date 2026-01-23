@@ -110,13 +110,8 @@ ntg_widget* ntg_widget_get_parent_(ntg_widget* widget);
 const ntg_object* ntg_widget_get_group_root(const ntg_widget* widget);
 ntg_object* ntg_widget_get_group_root_(ntg_widget* widget);
 
-size_t ntg_widget_get_children_count(const ntg_widget* widget);
-size_t ntg_widget_get_children(const ntg_widget* widget,
-                               const ntg_widget** out_children,
-                               size_t cap);
-size_t ntg_widget_get_children_(ntg_widget* widget,
-                                ntg_widget** out_children,
-                                size_t cap);
+// uninited vec
+void ntg_widget_get_children(const ntg_widget* widget, ntg_widget_vec* out_vec);
 
 void ntg_widget_set_padding(ntg_widget* widget, ntg_decorator* padding);
 

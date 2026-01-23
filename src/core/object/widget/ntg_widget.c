@@ -15,6 +15,7 @@ static void border_add(ntg_widget* widget, ntg_decorator* border);
 /* CONTROL */
 /* -------------------------------------------------------------------------- */
 
+// uninited vec
 void ntg_widget_set_user_min_size(ntg_widget* widget, struct ntg_xy size)
 {
     assert(widget != NULL);
@@ -314,52 +315,33 @@ ntg_object* ntg_widget_get_group_root_(ntg_widget* widget)
     return (ntg_object*)ntg_widget_get_group_root(widget);
 }
 
-size_t ntg_widget_get_children_count(const ntg_widget* widget)
+void ntg_widget_get_children(const ntg_widget* widget, ntg_widget_vec* out_vec)
 {
     assert(widget != NULL);
+    assert(out_vec != NULL);
 
-    const ntg_object* _widget = (const ntg_object*)widget;
+    ntg_object* _widget = (ntg_object*)widget;
 
-    return _widget->_children.size;
-}
+    size_t init_cap = (_widget->_children.size > 0) ?
+        _widget->_children.size : 1;
+    ntg_widget_vec_init(out_vec, init_cap, NULL);
 
-size_t ntg_widget_get_children(const ntg_widget* widget,
-                               const ntg_widget** out_children,
-                               size_t cap)
-{
-    assert(widget != NULL);
-    assert(out_children != NULL);
-
-    const ntg_object* _widget = (const ntg_object*)widget;
-
-    const ntg_object* it;
-    const ntg_entity* _it;
+    ntg_object* it;
+    ntg_entity* _it;
     size_t i;
-    for(i = 0; ((i < cap) && (i < _widget->_children.size)); i++)
+    for(i = 0; i < _widget->_children.size; i++)
     {
         it = _widget->_children.data[i];
-        _it = (const ntg_entity*)it;
+        _it = (ntg_entity*)it;
 
         while(!ntg_entity_instance_of(_it->_type, &NTG_ENTITY_WIDGET))
         {
             it = it->_children.data[0];
-            _it = (const ntg_entity*)it;
+            _it = (ntg_entity*)it;
         }
 
-        out_children[i] = (const ntg_widget*)it;
+        ntg_widget_vec_pushb(out_vec, (ntg_widget*)it, NULL);
     }
-
-    return i;
-}
-
-size_t ntg_widget_get_children_(ntg_widget* widget,
-                                ntg_widget** out_children,
-                                size_t cap)
-{
-    assert(widget != NULL);
-    assert(out_children != NULL);
-
-    return ntg_widget_get_children(widget, (const ntg_widget**)out_children, cap);
 }
 
 void ntg_widget_set_padding(ntg_widget* widget, ntg_decorator* padding)
@@ -437,19 +419,18 @@ void ntg_widget_deinit(ntg_widget* widget)
     ntg_widget* parent = ntg_widget_get_parent_(widget);
     if(parent != NULL) ntg_widget_detach(widget);
 
-    size_t child_count = ntg_widget_get_children_count(widget);
-    ntg_widget** buffer = malloc(sizeof(void*) * child_count);
-    assert(buffer != NULL);
-    ntg_widget_get_children_(widget, buffer, child_count);
+    ntg_widget_vec children;
+    ntg_widget_get_children(widget, &children);
+
     size_t i;
-    for(i = 0; i < child_count; i++)
-        ntg_widget_detach(buffer[i]);
+    for(i = 0; i < children.size; i++)
+        ntg_widget_detach(children.data[i]);
+
+    ntg_widget_vec_deinit(&children, NULL);
 
     init_default(widget);
 
     ntg_object_deinit((ntg_object*)widget);
-
-    free(buffer);
 }
 
 void ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
@@ -580,25 +561,26 @@ void _ntg_widget_constrain_fn(
     const ntg_widget* widget = (const ntg_widget*)_widget;
     struct ntg_xy size = _widget->_size;
 
-    size_t i;
-    size_t child_count = ntg_widget_get_children_count(widget);
-
-    const ntg_widget** buffer = sarena_malloc(arena, sizeof(void*) * child_count);
-    assert(buffer != NULL);
-    ntg_widget_get_children(widget, buffer, child_count);
+    ntg_widget_vec children;
+    ntg_widget_get_children(widget, &children);
 
     ntg_widget_size_map* _sizes;
-    _sizes = ntg_widget_size_map_new(child_count, arena);
-    for(i = 0; i < child_count; i++) ntg_widget_size_map_set(_sizes, buffer[i], 0);
+    _sizes = ntg_widget_size_map_new(children.size, arena);
+    size_t i;
+    for(i = 0; i < children.size; i++)
+            ntg_widget_size_map_set(_sizes, children.data[i], 0);
 
     struct ntg_widget_layout_ops layout_ops = widget->__layout_ops;
     layout_ops.constrain_fn(widget, _layout_data, orient, _sizes, arena);
 
-    for(i = 0; i < child_count; i++)
+    for(i = 0; i < children.size; i++)
     {
-        ntg_object_size_map_set(out_size_map, ntg_widget_get_group_root(buffer[i]),
-                ntg_widget_size_map_get(_sizes, buffer[i]));
+        ntg_object_size_map_set(out_size_map,
+                                ntg_widget_get_group_root(children.data[i]),
+                                ntg_widget_size_map_get(_sizes, children.data[i]));
     }
+
+    ntg_widget_vec_deinit(&children, NULL);
 }
 
 void _ntg_widget_arrange_fn(
@@ -610,25 +592,25 @@ void _ntg_widget_arrange_fn(
     const ntg_widget* widget = (const ntg_widget*)_widget;
     struct ntg_xy size = _widget->_size;
 
-    size_t i;
-    size_t child_count = ntg_widget_get_children_count(widget);
-
-    const ntg_widget** buffer = sarena_malloc(arena, sizeof(void*) * child_count);
-    assert(buffer != NULL);
-    ntg_widget_get_children(widget, buffer, child_count);
+    ntg_widget_vec children;
+    ntg_widget_get_children(widget, &children);
 
     ntg_widget_xy_map* _poss;
-    _poss = ntg_widget_xy_map_new(child_count, arena);
-    for(i = 0; i < child_count; i++) ntg_widget_xy_map_set(_poss, buffer[i], ntg_xy(0, 0));
+    _poss = ntg_widget_xy_map_new(children.size, arena);
+    size_t i;
+    for(i = 0; i < children.size; i++)
+            ntg_widget_xy_map_set(_poss, children.data[i], ntg_xy(0, 0));
 
     struct ntg_widget_layout_ops layout_ops = widget->__layout_ops;
     layout_ops.arrange_fn(widget, _layout_data, _poss, arena);
 
-    for(i = 0; i < child_count; i++)
+    for(i = 0; i < children.size; i++)
     {
-        ntg_object_xy_map_set(out_pos_map, ntg_widget_get_group_root(buffer[i]),
-                ntg_widget_xy_map_get(_poss, buffer[i]));
+        ntg_object_xy_map_set(out_pos_map,
+                              ntg_widget_get_group_root(children.data[i]),
+                              ntg_widget_xy_map_get(_poss, children.data[i]));
     }
+    ntg_widget_vec_deinit(&children, NULL);
 }
 
 void _ntg_widget_draw_fn(

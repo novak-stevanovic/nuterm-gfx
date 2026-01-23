@@ -69,15 +69,40 @@ bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event)
 
 bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event)
 {
-    if(scene->__focus_ctx_stack.size == 0) return false;
+    if(event.type == NTG_EVENT_LOOP_MOUSE)
+    {
+        bool dispatch = false;
+        if(scene->__focus_ctx_stack.size == 0) dispatch = true;
 
-    struct ntg_focus_ctx_list_node* head = scene->__focus_ctx_stack.head;
-    struct ntg_focus_ctx fctx = *(head->data);
+        struct ntg_focus_ctx_list_node* head = scene->__focus_ctx_stack.head;
+        struct ntg_focus_ctx fctx = *(head->data);
 
-    if(head != NULL)
-        return ntg_focus_mgr_feed_event(fctx.mgr, event);
-    else
-        return false;
+        dispatch |= (fctx.window_mode == NTG_FOCUS_CTX_WINDOW_MODELESS);
+
+        struct ntg_event_loop_mouse_data* data = event.data;
+        if(dispatch)
+        {
+            struct ntg_xy pos = ntg_xy(data->mouse.x, data->mouse.y);
+            ntg_widget* widget = ntg_scene_get_widget_at(scene, pos);
+
+            assert(widget != NULL);
+            return ntg_widget_feed_event(widget, event);
+        }
+        else return false;
+    }
+    else if(event.type == NTG_EVENT_LOOP_KEY)
+    {
+        if(scene->__focus_ctx_stack.size == 0) return false;
+
+        struct ntg_focus_ctx_list_node* head = scene->__focus_ctx_stack.head;
+        struct ntg_focus_ctx fctx = *(head->data);
+
+        if(head != NULL)
+            return ntg_focus_mgr_feed_event(fctx.mgr, event);
+        else
+            return false;
+    }
+    else return false;
 }
 
 void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn)
@@ -85,6 +110,45 @@ void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn)
     assert(scene != NULL);
 
     scene->__process_fn = fn ? fn : ntg_scene_dispatch_def;
+}
+
+ntg_widget* ntg_scene_get_widget_at(ntg_scene* scene, struct ntg_xy pos)
+{
+    assert(scene != NULL);
+    if(!scene->_root) return NULL;
+    
+    struct ntg_xy root_start, root_end;
+    root_start = ntg_widget_get_pos_abs(scene->_root);
+    root_end = ntg_xy_add(root_start, ntg_widget_get_size(scene->_root));
+    
+    if(!(ntg_xy_is_in_rectagle(root_start, root_end, pos))) return NULL;
+
+    ntg_widget* it_widget = scene->_root;
+    ntg_widget_vec it_children;
+    ntg_widget* it_child;
+    struct ntg_xy it_child_start, it_child_end;
+    size_t i;
+    bool loop = true;
+    while(loop)
+    {
+        loop = false;
+        ntg_widget_get_children(it_widget, &it_children);
+        for(i = 0; i < it_children.size; i++)
+        {
+            it_child = it_children.data[i];
+            it_child_start = ntg_widget_get_pos_abs(it_child);
+            it_child_end = ntg_xy_add(it_child_start, ntg_widget_get_size(it_child));
+            if(ntg_xy_is_in_rectagle(it_child_start, it_child_end, pos))
+            {
+                it_widget = it_child;
+                loop = true;
+                break;
+            }
+        }
+        ntg_widget_vec_deinit(&it_children, NULL);
+    }
+
+    return it_widget;
 }
 
 void ntg_scene_focus_ctx_push(ntg_scene* scene, struct ntg_focus_ctx ctx)

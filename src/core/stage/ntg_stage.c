@@ -99,7 +99,7 @@ void ntg_stage_deinit(ntg_stage* stage)
 {
     if(stage->_loop)
     {
-        ntg_loop_set_stage(stage->_loop, stage);
+        ntg_loop_set_stage(stage->_loop, NULL);
     }
 
     if(stage->_scene)

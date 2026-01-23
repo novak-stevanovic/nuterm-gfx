@@ -33,16 +33,15 @@ void ntg_loop_init(ntg_loop* loop, ntg_stage* init_stage, ntg_renderer* renderer
                    unsigned int workers)
 {
     assert(loop != NULL);
-    assert(!init_stage->_loop);
     assert(init_stage != NULL);
+    assert(!init_stage->_loop);
     assert(renderer != NULL);
 
     init_default(loop);
 
-    loop->_stage = init_stage;
     loop->__process_fn = process_fn ? process_fn : ntg_loop_dispatch_def;
     loop->_framerate = (framerate <= NTG_LOOP_FRAMERATE_MAX) ?
-        framerate : NTG_LOOP_FRAMERATE_MAX;;
+        framerate : NTG_LOOP_FRAMERATE_MAX;
     loop->_arena = sarena_create(1000000);
     assert(loop->_arena);
 
@@ -185,6 +184,7 @@ enum ntg_loop_end_status ntg_loop_run(ntg_loop* loop)
         }
         else
         {
+            event_elapsed = (timeout >= event_elapsed) ? event_elapsed : timeout;
             timeout -= event_elapsed;
         }
 
@@ -259,8 +259,6 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
     }
     else
     {
-        loop->_stage = stage;
-
         if(loop->_stage)
         {
             _ntg_stage_set_loop(loop->_stage, NULL);
@@ -269,6 +267,8 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
         {
             _ntg_stage_set_loop(stage, loop);
         }
+
+        loop->_stage = stage;
     }
 }
 
@@ -324,15 +324,14 @@ static void update_stage(ntg_loop* loop)
     ntg_stage* old = loop->_stage;
     ntg_stage* new = loop->__pending_stage;
 
-    ntg_loop* new_old_loop = new->_loop;
-    assert(!new_old_loop);
-
     if(old)
     {
         _ntg_stage_set_loop(old, NULL);
     }
     if(new)
     {
+        assert(!new->_loop);
+
         _ntg_stage_set_loop(new, loop);
     }
 

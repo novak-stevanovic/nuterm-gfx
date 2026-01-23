@@ -55,6 +55,8 @@ bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event);
 bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event);
 void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn);
 
+ntg_widget* ntg_scene_get_widget_at(ntg_scene* scene, struct ntg_xy pos);
+
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */

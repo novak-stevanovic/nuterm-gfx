@@ -55,12 +55,14 @@ static const struct ntg_dxy NTG_DXY_UNSET = { 0, 0 };
 
 /* -------------------------------------------------------------------------- */
 
-static inline struct ntg_xy ntg_xy(size_t x, size_t y)
+static inline struct ntg_xy
+ntg_xy(size_t x, size_t y)
 {
     return (struct ntg_xy) { .x = x, .y = y };
 }
 
-static inline void ntg_xy_size_(struct ntg_xy* xy)
+static inline void
+ntg_xy_size_(struct ntg_xy* xy)
 {
     if(xy == NULL) return;
 
@@ -71,18 +73,21 @@ static inline void ntg_xy_size_(struct ntg_xy* xy)
     }
 }
 
-static inline struct ntg_xy ntg_xy_size(struct ntg_xy xy)
+static inline struct 
+ntg_xy ntg_xy_size(struct ntg_xy xy)
 {
     ntg_xy_size_(&xy);
     return xy;
 }
 
-static inline struct ntg_xy ntg_xy_add(struct ntg_xy a, struct ntg_xy b)
+static inline struct 
+ntg_xy ntg_xy_add(struct ntg_xy a, struct ntg_xy b)
 {
     return (struct ntg_xy) { .x = a.x + b.x, .y = a.y + b.y };
 }
 
-static inline struct ntg_xy ntg_xy_sub(struct ntg_xy a, struct ntg_xy b)
+static inline struct ntg_xy
+ntg_xy_sub(struct ntg_xy a, struct ntg_xy b)
 {
     return (struct ntg_xy) { 
         .x = (a.x > b.x) ? (a.x - b.x) : 0,
@@ -90,32 +95,38 @@ static inline struct ntg_xy ntg_xy_sub(struct ntg_xy a, struct ntg_xy b)
     };
 }
 
-static inline struct ntg_xy ntg_xy_from_dxy(struct ntg_dxy xy)
+static inline struct ntg_xy
+ntg_xy_from_dxy(struct ntg_dxy xy)
 {
     return (struct ntg_xy) { .x = (size_t)xy.x, .y = (size_t)xy.y };
 }
 
-static inline bool ntg_xy_is_greater(struct ntg_xy a, struct ntg_xy b)
+static inline bool
+ntg_xy_is_greater(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x > b.x) && (a.y > b.y));
 }
 
-static inline bool ntg_xy_is_lesser(struct ntg_xy a, struct ntg_xy b)
+static inline bool
+ntg_xy_is_lesser(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x < b.x) && (a.y < b.y));
 }
 
-static inline bool ntg_xy_is_greater_eq(struct ntg_xy a, struct ntg_xy b)
+static inline bool
+ntg_xy_is_greater_eq(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x >= b.x) && (a.y >= b.y));
 }
 
-static inline bool ntg_xy_are_equal(struct ntg_xy a, struct ntg_xy b)
+static inline bool
+ntg_xy_are_equal(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x == b.x) && (a.y == b.y));
 }
 
-static inline struct ntg_xy ntg_xy_clamp(struct ntg_xy min, struct ntg_xy val,
+static inline struct
+ntg_xy ntg_xy_clamp(struct ntg_xy min, struct ntg_xy val,
         struct ntg_xy max)
 {
     if(val.x < min.x) val.x = min.x;
@@ -127,17 +138,20 @@ static inline struct ntg_xy ntg_xy_clamp(struct ntg_xy min, struct ntg_xy val,
     return val;
 }
 
-static inline bool ntg_xy_is_zero(struct ntg_xy size)
+static inline bool
+ntg_xy_is_zero(struct ntg_xy size)
 {
     return ((size.x == 0) && (size.y == 0));
 }
 
-static inline bool ntg_xy_size_is_zero(struct ntg_xy size)
+static inline bool
+ntg_xy_size_is_zero(struct ntg_xy size)
 {
     return ((size.x == 0) || (size.y == 0));
 }
 
-static inline struct ntg_xy ntg_xy_transpose(struct ntg_xy xy)
+static inline struct ntg_xy
+ntg_xy_transpose(struct ntg_xy xy)
 {
     return (struct ntg_xy) {
         .x = xy.y,
@@ -145,35 +159,40 @@ static inline struct ntg_xy ntg_xy_transpose(struct ntg_xy xy)
     };
 }
 
-static inline size_t ntg_xy_get(struct ntg_xy xy, ntg_orient orient)
+static inline size_t
+ntg_xy_get(struct ntg_xy xy, ntg_orient orient)
 {
     return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
 }
 
 /* -------------------------------------------------------------------------- */
 
-static inline struct ntg_dxy ntg_dxy(ssize_t x, ssize_t y)
+static inline struct ntg_dxy
+ntg_dxy(ssize_t x, ssize_t y)
 {
     return (struct ntg_dxy) { .x = x, .y = y };
 }
 
-static inline struct ntg_dxy ntg_dxy_from_xy(struct ntg_xy xy)
+static inline struct ntg_dxy
+ntg_dxy_from_xy(struct ntg_xy xy)
 {
     return (struct ntg_dxy) { .x = (ssize_t)xy.x, .y = (ssize_t)xy.y };
 }
 
-static inline struct ntg_dxy ntg_dxy_add(struct ntg_dxy a, struct ntg_dxy b)
+static inline struct ntg_dxy
+ntg_dxy_add(struct ntg_dxy a, struct ntg_dxy b)
 {
     return (struct ntg_dxy) { .x = a.x + b.x, .y = a.y + b.y };
 }
 
-static inline struct ntg_dxy ntg_dxy_sub(struct ntg_dxy a, struct ntg_dxy b)
+static inline struct ntg_dxy
+ntg_dxy_sub(struct ntg_dxy a, struct ntg_dxy b)
 {
     return (struct ntg_dxy) { .x = a.x - b.x, .y = a.y - b.y };
 }
 
-static inline struct ntg_dxy ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy val,
-        struct ntg_dxy max)
+static inline struct ntg_dxy
+ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy val, struct ntg_dxy max)
 {
     if(val.x < min.x) val.x = min.x;
     else if(val.x > max.x) val.x = max.x;
@@ -184,23 +203,24 @@ static inline struct ntg_dxy ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy va
     return val;
 }
 
-static inline size_t ntg_dxy_get(struct ntg_dxy xy, ntg_orient orient)
+static inline size_t
+ntg_dxy_get(struct ntg_dxy xy, ntg_orient orient)
 {
     return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
 }
 
 /* -------------------------------------------------------------------------- */
 
-static inline ntg_orient ntg_orient_get_other(ntg_orient ort)
+static inline ntg_orient
+ntg_orient_get_other(ntg_orient ort)
 {
-    return (ort == NTG_ORIENT_H) ?
-        NTG_ORIENT_V :
-        NTG_ORIENT_H;
+    return (ort == NTG_ORIENT_H) ? NTG_ORIENT_V : NTG_ORIENT_H;
 }
 
 /* -------------------------------------------------------------------------- */
 
-static inline struct ntg_xy ntg_xy_from_oxy(struct ntg_oxy orient_xy)
+static inline struct ntg_xy
+ntg_xy_from_oxy(struct ntg_oxy orient_xy)
 {
     if(orient_xy.orient == NTG_ORIENT_H)
         return ntg_xy(orient_xy.prim_val, orient_xy.sec_val);
@@ -208,8 +228,8 @@ static inline struct ntg_xy ntg_xy_from_oxy(struct ntg_oxy orient_xy)
         return ntg_xy(orient_xy.sec_val, orient_xy.prim_val);
 }
 
-static inline struct ntg_oxy ntg_oxy(size_t prim_val, size_t sec_val,
-        ntg_orient orient)
+static inline struct ntg_oxy
+ntg_oxy(size_t prim_val, size_t sec_val, ntg_orient orient)
 {
     return (struct ntg_oxy) {
         .prim_val = prim_val,
@@ -218,7 +238,8 @@ static inline struct ntg_oxy ntg_oxy(size_t prim_val, size_t sec_val,
     };
 }
 
-static inline struct ntg_oxy ntg_oxy_size(struct ntg_oxy oxy)
+static inline struct ntg_oxy
+ntg_oxy_size(struct ntg_oxy oxy)
 {
     if((oxy.prim_val == 0) || (oxy.sec_val == 0))
         return ntg_oxy(0, 0, oxy.orient);
@@ -226,8 +247,8 @@ static inline struct ntg_oxy ntg_oxy_size(struct ntg_oxy oxy)
         return oxy;
 }
 
-static inline struct ntg_oxy ntg_oxy_from_xy(struct ntg_xy xy,
-        ntg_orient orient)
+static inline struct ntg_oxy
+ntg_oxy_from_xy(struct ntg_xy xy, ntg_orient orient)
 {
     if(orient == NTG_ORIENT_H)
         return ntg_oxy(xy.x, xy.y, NTG_ORIENT_H);
@@ -236,5 +257,13 @@ static inline struct ntg_oxy ntg_oxy_from_xy(struct ntg_xy xy,
 }
 
 /* -------------------------------------------------------------------------- */
+
+static inline bool 
+ntg_xy_is_in_rectagle(struct ntg_xy rec_start, struct ntg_xy rec_end,
+                      struct ntg_xy pos)
+{
+    return ((pos.x >= rec_start.x) && (pos.y >= rec_start.y) &&
+    (pos.x < rec_end.x) && (pos.y < rec_end.y));
+}
 
 #endif // NTG_XY_H
