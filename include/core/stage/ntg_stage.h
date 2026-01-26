@@ -16,9 +16,13 @@ struct ntg_stage
     ntg_stage_compose_fn __compose_fn;
     ntg_stage_drawing _drawing;
 
-    ntg_stage_process_fn __process_fn;
-
     ntg_loop* _loop;
+
+    struct
+    {
+        bool (*on_key_fn)(ntg_stage* stage, struct nt_key_event key);
+        bool (*on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse);
+    };
 
     void* data;
 };
@@ -31,11 +35,9 @@ void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena);
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 
-bool ntg_stage_feed_event(ntg_stage* stage, struct ntg_event event);
-
-bool ntg_stage_dispatch_def(ntg_stage* stage, struct ntg_event event);
-
-void ntg_stage_set_process_fn(ntg_stage* stage, ntg_stage_process_fn fn);
+// Default implementations of `on_key_fn` and `on_mouse_fn`. Dispatches to scene
+bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key);
+bool ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */

@@ -50,21 +50,21 @@ void ntg_border_box_deinit(ntg_border_box* box);
 
 struct ntg_object_measure _ntg_border_box_measure_fn(
         const ntg_widget* _border_box,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         bool constrained,
         sarena* arena);
 
 void _ntg_border_box_constrain_fn(
         const ntg_widget* _border_box,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         ntg_widget_size_map* out_size_map,
         sarena* arena);
 
 void _ntg_border_box_arrange_fn(
         const ntg_widget* _border_box,
-        void* _layout_data,
+        void* _ldata,
         ntg_widget_xy_map* out_pos_map,
         sarena* arena);
 

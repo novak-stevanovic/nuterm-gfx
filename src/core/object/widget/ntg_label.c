@@ -209,7 +209,7 @@ void ntg_label_deinit(ntg_label* label)
 
 struct ntg_object_measure _ntg_label_measure_fn(
         const ntg_widget* _label,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         bool constrained,
         sarena* arena)
@@ -258,7 +258,7 @@ struct ntg_object_measure _ntg_label_measure_fn(
 
 void _ntg_label_draw_fn(
         const ntg_widget* _label,
-        void* _layout_data,
+        void* _ldata,
         ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {

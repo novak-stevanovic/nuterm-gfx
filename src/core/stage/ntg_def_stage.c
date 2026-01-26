@@ -51,41 +51,22 @@ static void collect_by_z_tree(ntg_object* object, void* _data)
     struct collect_data* data = _data;
     ntg_object** array = data->array;
     size_t* counter = &(data->counter);
-    sarena* arena = data->arena;
 
     array[*counter] = object;
     (*counter)++;
 
-    const ntg_object_vec* children = &(object->_children);
+    if(object->_children.size == 0) return;
 
-    if(children->size == 0) return;
+    ntg_object_vec sorted_children;
+    ntg_object_get_children_by_z(object, &sorted_children);
 
-    ntg_object** tmp_children = sarena_malloc(arena, sizeof(void*) *
-                                              children->size);
-    
-    size_t i, j;
-
-    for(i = 0; i < children->size; i++)
-        tmp_children[i] = children->data[i];
-
-    ntg_object* tmp_obj;
-    for(i = 0; i < children->size - 1; i++)
+    size_t i;
+    for(i = 0; i < sorted_children.size; i++)
     {
-        for(j = i + 1; j < children->size; j++)
-        {
-            if((tmp_children[j])->_z_index < (tmp_children[i])->_z_index)
-            {
-                tmp_obj = tmp_children[i];
-                tmp_children[i] = tmp_children[j];
-                tmp_children[j] = tmp_obj;
-            }
-        }
+        collect_by_z_tree(sorted_children.data[i], _data);
     }
 
-    for(i = 0; i < children->size; i++)
-    {
-        collect_by_z_tree(tmp_children[i], _data);
-    }
+    ntg_object_vec_deinit(&sorted_children, NULL);
 }
 
 static void draw(ntg_object* object, ntg_def_stage* stage)
@@ -118,21 +99,18 @@ void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size,
 
     if((_stage->_scene != NULL) && (_stage->_scene->_root != NULL))
     {
-        if(_stage->_scene->_root != NULL)
-        {
-            ntg_object* root = ntg_widget_get_group_root_(_stage->_scene->_root);
+        ntg_object* root = ntg_widget_get_group_root_(_stage->_scene->_root);
 
-            size_t tree_size = ntg_object_get_tree_size(root);
-            ntg_object** array = sarena_malloc(arena, sizeof(void*) *
-                                               tree_size);
-            struct collect_data data = {
-                .array = array,
-                .counter = 0,
-                .arena = arena
-            };
-            collect_by_z_tree(root, &data);
+        size_t tree_size = ntg_object_get_tree_size(root);
+        ntg_object** array = sarena_malloc(arena, sizeof(void*) *
+                                           tree_size);
+        struct collect_data data = {
+            .array = array,
+            .counter = 0,
+            .arena = arena
+        };
+        collect_by_z_tree(root, &data);
 
-            for(i = 0; i < tree_size; i++) draw(array[i], stage);
-        }
+        for(i = 0; i < tree_size; i++) draw(array[i], stage);
     }
 }

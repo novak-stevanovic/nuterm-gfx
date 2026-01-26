@@ -30,12 +30,12 @@ static void scene_map_del_all(ntg_def_scene* scene);
 
 static void observe_fn(ntg_entity* entity, struct ntg_event event);
 
-static void measure1_fn(ntg_object* object, void* _layout_data);
-static void constrain1_fn(ntg_object* object, void* _layout_data);
-static void measure2_fn(ntg_object* object, void* _layout_data);
-static void constrain2_fn(ntg_object* object, void* _layout_data);
-static void arrange_fn(ntg_object* object, void* _layout_data);
-static void draw_fn(ntg_object* object, void* _layout_data);
+static void measure1_fn(ntg_object* object, void* _ldata);
+static void constrain1_fn(ntg_object* object, void* _ldata);
+static void measure2_fn(ntg_object* object, void* _ldata);
+static void constrain2_fn(ntg_object* object, void* _ldata);
+static void arrange_fn(ntg_object* object, void* _ldata);
+static void draw_fn(ntg_object* object, void* _ldata);
 
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(measure1_tree, measure1_fn);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(constrain1_tree, constrain1_fn);
@@ -79,7 +79,7 @@ void ntg_def_scene_init(ntg_def_scene* scene)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_layout_data
+struct ntg_ldata
 {
     ntg_def_scene* scene;
     sarena* arena;
@@ -108,8 +108,12 @@ bool _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
     if(_scene->_root == NULL)
     {
         scene->__last_size = size;
-        scene->__detected_changes = false;
-        return false;
+        if(scene->__detected_changes)
+        {
+            scene->__detected_changes = false;
+            return true;
+        }
+        else return false;
     }
 
     if(ntg_xy_are_equal(scene->__last_size, size) && !(scene->__detected_changes))
@@ -117,7 +121,7 @@ bool _ntg_def_scene_layout_fn(ntg_scene* _scene, struct ntg_xy size,
 
     if(DEBUG) ntg_log_log("NTG_DEF_SCENE: Layout unoptimized");
 
-    struct ntg_layout_data data = {
+    struct ntg_ldata data = {
         .scene = scene,
         .arena = arena,
         .size = size
@@ -217,11 +221,11 @@ static void scene_map_del_all(ntg_def_scene* scene)
     scene->__map = head;
 }
 
-static void measure1_fn(ntg_object* object, void* _layout_data)
+static void measure1_fn(ntg_object* object, void* _ldata)
 {
-    struct ntg_layout_data* layout_data = (struct ntg_layout_data*)_layout_data;
-    ntg_def_scene* scene = layout_data->scene; 
-    sarena* arena = layout_data->arena; 
+    struct ntg_ldata* ldata = (struct ntg_ldata*)_ldata;
+    ntg_def_scene* scene = ldata->scene; 
+    sarena* arena = ldata->arena; 
     // ntg_scene* _scene = (ntg_scene*)scene;
     struct object_data* object_data = scene_map_get(scene, object);
 
@@ -255,11 +259,11 @@ static void measure1_fn(ntg_object* object, void* _layout_data)
     object_data->measure1 = false;
 }
 
-static void constrain1_fn(ntg_object* object, void* _layout_data)
+static void constrain1_fn(ntg_object* object, void* _ldata)
 {
-    struct ntg_layout_data* layout_data = (struct ntg_layout_data*)_layout_data;
-    ntg_def_scene* scene = layout_data->scene; 
-    sarena* arena = layout_data->arena; 
+    struct ntg_ldata* ldata = (struct ntg_ldata*)_ldata;
+    ntg_def_scene* scene = ldata->scene; 
+    sarena* arena = ldata->arena; 
     // ntg_scene* _scene = (ntg_scene*)scene;
     struct object_data* object_data = scene_map_get(scene, object);
     const ntg_object_vec* children = &(object->_children);
@@ -303,11 +307,11 @@ static void constrain1_fn(ntg_object* object, void* _layout_data)
     object_data->constrain1 = false;
 }
 
-static void measure2_fn(ntg_object* object, void* _layout_data)
+static void measure2_fn(ntg_object* object, void* _ldata)
 {
-    struct ntg_layout_data* layout_data = (struct ntg_layout_data*)_layout_data;
-    ntg_def_scene* scene = layout_data->scene; 
-    sarena* arena = layout_data->arena; 
+    struct ntg_ldata* ldata = (struct ntg_ldata*)_ldata;
+    ntg_def_scene* scene = ldata->scene; 
+    sarena* arena = ldata->arena; 
     // ntg_scene* _scene = (ntg_scene*)scene;
     struct object_data* object_data = scene_map_get(scene, object);
 
@@ -339,11 +343,11 @@ static void measure2_fn(ntg_object* object, void* _layout_data)
     object_data->measure2 = false;
 }
 
-static void constrain2_fn(ntg_object* object, void* _layout_data)
+static void constrain2_fn(ntg_object* object, void* _ldata)
 {
-    struct ntg_layout_data* layout_data = (struct ntg_layout_data*)_layout_data;
-    ntg_def_scene* scene = layout_data->scene; 
-    sarena* arena = layout_data->arena; 
+    struct ntg_ldata* ldata = (struct ntg_ldata*)_ldata;
+    ntg_def_scene* scene = ldata->scene; 
+    sarena* arena = ldata->arena; 
     // ntg_scene* _scene = (ntg_scene*)scene;
     struct object_data* object_data = scene_map_get(scene, object);
     const ntg_object_vec* children = &(object->_children);
@@ -385,11 +389,11 @@ static void constrain2_fn(ntg_object* object, void* _layout_data)
     object_data->constrain2 = false;
 }
 
-static void arrange_fn(ntg_object* object, void* _layout_data)
+static void arrange_fn(ntg_object* object, void* _ldata)
 {
-    struct ntg_layout_data* layout_data = (struct ntg_layout_data*)_layout_data;
-    ntg_def_scene* scene = layout_data->scene; 
-    sarena* arena = layout_data->arena; 
+    struct ntg_ldata* ldata = (struct ntg_ldata*)_ldata;
+    ntg_def_scene* scene = ldata->scene; 
+    sarena* arena = ldata->arena; 
     // ntg_scene* _scene = (ntg_scene*)scene;
     struct object_data* object_data = scene_map_get(scene, object);
     const ntg_object_vec* children = &(object->_children);
@@ -423,11 +427,11 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     object_data->arrange = false;
 }
 
-static void draw_fn(ntg_object* object, void* _layout_data)
+static void draw_fn(ntg_object* object, void* _ldata)
 {
-    struct ntg_layout_data* layout_data = (struct ntg_layout_data*)_layout_data;
-    ntg_def_scene* scene = layout_data->scene; 
-    sarena* arena = layout_data->arena; 
+    struct ntg_ldata* ldata = (struct ntg_ldata*)_ldata;
+    ntg_def_scene* scene = ldata->scene; 
+    sarena* arena = ldata->arena; 
     // ntg_scene* _scene = (ntg_scene*)scene;
     struct object_data* object_data = scene_map_get(scene, object);
 
@@ -479,5 +483,9 @@ static void observe_fn(ntg_entity* entity, struct ntg_event event)
         data->constrain2 = true,
         data->arrange = true,
         data->draw = true;
+    }
+    else if(event.type == NTG_EVENT_SCENE_ROOTCHNG)
+    {
+        scene->__detected_changes = true;
     }
 }

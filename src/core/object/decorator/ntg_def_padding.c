@@ -36,7 +36,7 @@ void ntg_def_padding_deinit(ntg_def_padding* padding)
 
 void _ntg_def_padding_draw_fn(
         const ntg_object* _padding,
-        void* _layout_data,
+        void* _ldata,
         ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {

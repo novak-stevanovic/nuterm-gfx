@@ -1,10 +1,10 @@
+#include <stdlib.h>
 #include <time.h>
 #include <signal.h>
 #include <assert.h>
 #include "ntg.h"
 #include "nt.h"
 #include "core/loop/_ntg_loop.h"
-#include <stdlib.h>
 
 static void init_default(ntg_loop* loop);
 // function assumes that pending_stage_flag = true
@@ -29,8 +29,7 @@ ntg_loop* ntg_loop_new(ntg_entity_system* system)
 }
 
 void ntg_loop_init(ntg_loop* loop, ntg_stage* init_stage, ntg_renderer* renderer,
-                   ntg_loop_process_fn process_fn, unsigned int framerate,
-                   unsigned int workers)
+                   unsigned int framerate, unsigned int workers)
 {
     assert(loop != NULL);
     assert(init_stage != NULL);
@@ -39,7 +38,6 @@ void ntg_loop_init(ntg_loop* loop, ntg_stage* init_stage, ntg_renderer* renderer
 
     init_default(loop);
 
-    loop->__process_fn = process_fn ? process_fn : ntg_loop_dispatch_def;
     loop->_framerate = (framerate <= NTG_LOOP_FRAMERATE_MAX) ?
         framerate : NTG_LOOP_FRAMERATE_MAX;
     loop->_arena = sarena_create(1000000);
@@ -81,36 +79,37 @@ void ntg_loop_deinit(ntg_loop* loop)
     init_default(loop);
 }
 
-bool ntg_loop_dispatch_def(ntg_loop* loop, struct nt_event event)
+bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
 {
     if(loop->_stage)
     {
-        struct ntg_event dispatch_event;
-
+        ntg_stage* stage = loop->_stage;
         if(event.type == NT_EVENT_KEY)
         {
             struct nt_key_event key = *(struct nt_key_event*)event.data;
-            struct ntg_event_loop_key_data data = { .key = key };
-            dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_KEY,
-                                           &data);
 
-            return ntg_stage_feed_event(loop->_stage, dispatch_event);
+            if(stage->on_key_fn)
+                return stage->on_key_fn(stage, key);
+            else
+                return false;
         }
         else if(event.type == NT_EVENT_MOUSE)
         {
             struct nt_mouse_event mouse = *(struct nt_mouse_event*)event.data;
-            struct ntg_event_loop_mouse_data data = { .mouse = mouse };
-            dispatch_event = ntg_event_new((ntg_entity*)loop, NTG_EVENT_LOOP_MOUSE,
-                                           &data);
 
-            return ntg_stage_feed_event(loop->_stage, dispatch_event);
+            if(stage->on_mouse_fn)
+                return stage->on_mouse_fn(stage, mouse);
+            else
+                return false;
         }
-        else return false;
+        else
+            return false;
     }
-    else return false;
+    else
+        return false;
 }
 
-enum ntg_loop_end_status ntg_loop_run(ntg_loop* loop)
+ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
 {
     assert(loop != NULL);
     assert(!loop->_running);
@@ -161,7 +160,7 @@ enum ntg_loop_end_status ntg_loop_run(ntg_loop* loop)
             sigwinch_counter++;
         }
 
-        loop->__process_fn(loop, event);
+        loop->on_event_fn(loop, event);
 
         // Frame end
         if(event.type == NT_EVENT_TIMEOUT)
@@ -205,7 +204,7 @@ enum ntg_loop_end_status ntg_loop_run(ntg_loop* loop)
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
 
-    enum ntg_loop_end_status status;
+    enum ntg_loop_end_mode status;
     if(!loop->__force_break)
     {
         status = NTG_LOOP_END_CLEAN;
@@ -222,11 +221,11 @@ enum ntg_loop_end_status ntg_loop_run(ntg_loop* loop)
     return status;
 }
 
-bool ntg_loop_break(ntg_loop* loop, bool force_break)
+bool ntg_loop_break(ntg_loop* loop, ntg_loop_end_mode end_mode)
 {
     assert(loop != NULL);
 
-    if(force_break)
+    if(end_mode == NTG_LOOP_END_FORCE)
     {
         loop->__loop = false;
         loop->_running = false;
@@ -297,7 +296,7 @@ void ntg_platform_execute_later(ntg_platform* platform,
 
 static void init_default(ntg_loop* loop)
 {
-    loop->__process_fn = ntg_loop_dispatch_def;
+    loop->on_event_fn = ntg_loop_dispatch_event;
 
     loop->_framerate = 0;
     loop->_running = false;

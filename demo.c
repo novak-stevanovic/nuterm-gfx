@@ -115,7 +115,18 @@ bool loop_process_fn(ntg_loop* loop, struct nt_event event)
         }
     }
 
-    return ntg_loop_dispatch_def(loop, event);
+    return ntg_loop_dispatch_event(loop, event);
+}
+
+bool scene_on_key_fn(ntg_scene* scene, struct nt_key_event key)
+{
+    if(nt_key_event_utf32_check(key, 'd', true))
+    {
+        ntg_loop_break(scene->_stage->_loop, NTG_LOOP_END_CLEAN);
+        return true;
+    }
+
+    return false;
 }
 
 void gui_fn1(ntg_entity_system* es, void* _)
@@ -125,6 +136,7 @@ void gui_fn1(ntg_entity_system* es, void* _)
 
     ntg_def_scene* scene = ntg_def_scene_new(es);
     ntg_def_scene_init(scene);
+    ntg_scn(scene)->on_key_fn = scene_on_key_fn;
 
     ntg_def_stage* stage = ntg_def_stage_new(es);
     ntg_def_stage_init(stage);
@@ -194,8 +206,8 @@ void gui_fn1(ntg_entity_system* es, void* _)
     };
 
     ntg_loop* loop = ntg_loop_new(es);
-    ntg_loop_init(loop, ntg_stg(stage), ntg_rdr(renderer),
-                  loop_process_fn, 60, 4);
+    ntg_loop_init(loop, ntg_stg(stage), ntg_rdr(renderer), 60, 4);
+    loop->on_event_fn = loop_process_fn;
 
     loop->data = &loop_data;
 

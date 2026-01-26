@@ -29,13 +29,15 @@ struct ntg_scene
 
     struct
     {
-        ntg_scene_process_fn __process_fn;
+        ntg_focus_ctx_list __focus_ctx_stack;
     };
 
     struct
     {
-        ntg_focus_ctx_list __focus_ctx_stack;
+        bool (*on_key_fn)(ntg_scene* scene, struct nt_key_event key);
+        bool (*on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse);
     };
+
 
     void* data;
 };
@@ -50,12 +52,10 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root);
 void ntg_scene_focus_ctx_push(ntg_scene* scene, struct ntg_focus_ctx ctx);
 void ntg_scene_focus_ctx_pop(ntg_scene* scene);
 
-bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event);
+bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key);
+bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 
-bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event);
-void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn);
-
-ntg_widget* ntg_scene_get_widget_at(ntg_scene* scene, struct ntg_xy pos);
+ntg_widget* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos);
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */

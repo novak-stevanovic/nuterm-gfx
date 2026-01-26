@@ -56,26 +56,26 @@ void ntg_decorator_deinit(ntg_decorator* decorator);
 // Called internally by ntg_widget. Updates only the decorator's state
 void _ntg_decorator_decorate(ntg_decorator* decorator, ntg_widget* widget);
 
-void* _ntg_decorator_layout_data_init_fn(const ntg_object* _decorator);
-void _ntg_decorator_layout_data_deinit_fn(void* data, const ntg_object* _decorator);
+void* _ntg_decorator_ldata_init_fn(const ntg_object* _decorator);
+void _ntg_decorator_ldata_deinit_fn(void* data, const ntg_object* _decorator);
 
 struct ntg_object_measure _ntg_decorator_measure_fn(
         const ntg_object* _decorator,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         bool constrained,
         sarena* arena);
 
 void _ntg_decorator_constrain_fn(
         const ntg_object* _decorator,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena);
 
 void _ntg_decorator_arrange_fn(
         const ntg_object* _decorator,
-        void* _layout_data,
+        void* _ldata,
         ntg_object_xy_map* out_pos_map,
         sarena* arena);
 

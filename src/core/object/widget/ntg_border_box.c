@@ -2,7 +2,7 @@
 #include "shared/_ntg_shared.h"
 #include <assert.h>
 
-static void rm_child_fn(ntg_widget* _border_box, ntg_widget* child);
+static void on_rm_child_fn(ntg_widget* _border_box, ntg_widget* child);
 
 static void 
 get_children(const ntg_border_box* box, ntg_widget** out_north,
@@ -51,7 +51,7 @@ void ntg_border_box_init(ntg_border_box* box)
     };
 
     struct ntg_widget_hooks hooks = {
-        .rm_child_fn = rm_child_fn
+        .on_rm_child_fn = on_rm_child_fn
     };
 
     ntg_widget_init((ntg_widget*)box, layout_ops, hooks);
@@ -91,7 +91,7 @@ void ntg_border_box_deinit(ntg_border_box* box)
 
 struct ntg_object_measure _ntg_border_box_measure_fn(
         const ntg_widget* _border_box,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         bool constrained,
         sarena* arena)
@@ -159,7 +159,7 @@ struct ntg_object_measure _ntg_border_box_measure_fn(
 
 void _ntg_border_box_constrain_fn(
         const ntg_widget* _border_box,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         ntg_widget_size_map* out_size_map,
         sarena* arena)
@@ -339,7 +339,7 @@ void _ntg_border_box_constrain_fn(
 
 void _ntg_border_box_arrange_fn(
         const ntg_widget* _border_box,
-        void* _layout_data,
+        void* _ldata,
         ntg_widget_xy_map* out_pos_map,
         sarena* arena)
 {
@@ -394,7 +394,7 @@ get_children(const ntg_border_box* box, ntg_widget** out_north,
     (*out_center) = box->_children[NTG_BORDER_BOX_CENTER];
 }
 
-static void rm_child_fn(ntg_widget* _border_box, ntg_widget* child)
+static void on_rm_child_fn(ntg_widget* _border_box, ntg_widget* child)
 {
     ntg_border_box* border_box = (ntg_border_box*)_border_box;
 

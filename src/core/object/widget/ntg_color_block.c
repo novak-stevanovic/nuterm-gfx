@@ -62,7 +62,7 @@ void ntg_color_block_deinit(ntg_color_block* block)
 
 struct ntg_object_measure _ntg_color_block_measure_fn(
         const ntg_widget* _block,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         bool constrained,
         sarena* arena)
@@ -77,7 +77,7 @@ struct ntg_object_measure _ntg_color_block_measure_fn(
 
 void _ntg_color_block_draw_fn(
         const ntg_widget* _block,
-        void* _layout_data,
+        void* _ldata,
         ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {

@@ -6,8 +6,8 @@
 
 struct ntg_widget_layout_ops
 {
-    ntg_widget_layout_data_init init_fn;
-    ntg_widget_layout_data_deinit deinit_fn;
+    ntg_widget_layout_init init_fn;
+    ntg_widget_layout_deinit deinit_fn;
     ntg_widget_measure_fn measure_fn;
     ntg_widget_constrain_fn constrain_fn;
     ntg_widget_arrange_fn arrange_fn;
@@ -16,7 +16,7 @@ struct ntg_widget_layout_ops
 
 struct ntg_widget_hooks
 {
-    void (*rm_child_fn)(ntg_widget* widget, ntg_widget* child);
+    void (*on_rm_child_fn)(ntg_widget* widget, ntg_widget* child);
 };
 
 GENC_VECTOR_GENERATE(ntg_widget_vec, ntg_widget*, 1.5, NULL);
@@ -33,7 +33,15 @@ struct ntg_widget
 
     ntg_decorator *_padding, *_border;
 
-    ntg_widget_process_fn __process_fn;
+    struct
+    {
+        // void (*on_focus_gained_fn)(ntg_widget* widget);
+        // void (*on_focus_lost_fn)(ntg_widget* widget);
+        // void (*on_focus_out_of_scope_fn)(ntg_widget* widget);
+        bool (*on_key_fn)(ntg_widget* widget, struct nt_key_event key);
+        bool (*on_mouse_fn)(ntg_widget* widget, struct nt_mouse_event mouse);
+    };
+
     void* data;
 };
 
@@ -54,8 +62,8 @@ void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background);
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_widget_feed_event(ntg_widget* widget, struct ntg_event event);
-void ntg_widget_set_process_fn(ntg_widget* widget, ntg_widget_process_fn process_fn);
+bool ntg_widget_on_key_def(ntg_widget* widget, struct nt_key_event key);
+bool ntg_widget_on_mouse_def(ntg_widget* widget, struct nt_mouse_event mouse);
 
 /* -------------------------------------------------------------------------- */
 /* SCENE STATE */
@@ -116,6 +124,8 @@ ntg_object* ntg_widget_get_group_root_(ntg_widget* widget);
 // uninited vec
 void ntg_widget_get_children(const ntg_widget* widget, ntg_widget_vec* out_vec);
 
+void ntg_widget_get_children_by_z(const ntg_widget* widget, ntg_widget_vec* out_vec);
+
 void ntg_widget_set_padding(ntg_widget* widget, ntg_decorator* padding);
 
 void ntg_widget_set_border(ntg_widget* widget, ntg_decorator* border);
@@ -143,32 +153,32 @@ void ntg_widget_detach(ntg_widget* widget);
 
 // void _ntg_widget_make_scene_root(ntg_widget* widget, ntg_scene* scene);
 
-void* _ntg_widget_layout_data_init_fn(const ntg_object* _widget);
-void _ntg_widget_layout_data_deinit_fn(void* data, const ntg_object* _widget);
+void* _ntg_widget_layout_init_fn(const ntg_object* _widget);
+void _ntg_widget_layout_deinit_fn(void* data, const ntg_object* _widget);
 
 struct ntg_object_measure _ntg_widget_measure_fn(
         const ntg_object* _widget,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         bool constrained,
         sarena* arena);
 
 void _ntg_widget_constrain_fn(
         const ntg_object* _widget,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena);
 
 void _ntg_widget_arrange_fn(
         const ntg_object* _widget,
-        void* _layout_data,
+        void* _ldata,
         ntg_object_xy_map* out_pos_map,
         sarena* arena);
 
 void _ntg_widget_draw_fn(
         const ntg_object* _widget,
-        void* _layout_data,
+        void* _ldata,
         ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 

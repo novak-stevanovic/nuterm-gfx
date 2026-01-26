@@ -32,11 +32,11 @@ struct ntg_loop
 
     bool __pending_stage_flag;
     ntg_stage* __pending_stage;
-    ntg_loop_process_fn __process_fn;
+    bool (*on_event_fn)(ntg_loop* loop, struct nt_event event);
     bool __loop, __force_break;
 };
 
-enum ntg_loop_end_status
+enum ntg_loop_end_mode
 {
     NTG_LOOP_END_CLEAN,
     NTG_LOOP_END_FORCE,
@@ -48,24 +48,25 @@ enum ntg_loop_end_status
 
 ntg_loop* ntg_loop_new(ntg_entity_system* system);
 void ntg_loop_init(ntg_loop* loop, ntg_stage* init_stage, ntg_renderer* renderer,
-                   ntg_loop_process_fn process_fn, unsigned int framerate,
-                   unsigned int workers);
+                   unsigned int framerate, unsigned int workers);
 void ntg_loop_deinit(ntg_loop* loop);
 
-bool ntg_loop_dispatch_def(ntg_loop* loop, struct nt_event event);
-enum ntg_loop_end_status ntg_loop_run(ntg_loop* loop);
+enum ntg_loop_end_mode ntg_loop_run(ntg_loop* loop);
 
 /* Used to stop the main loop. When this function is called, an issue may occur
  * if the task runner is still running tasks on worker threads. In this case,
- * behavior of the function depends on `force_break` parameter.
+ * behavior of the function depends on `end_mode` parameter.
  * 
- * If `force_break` is false, the function will fail and will return `false`.
-
- * If `force_break` is true, `ntg_loop_return` will return NTG_LOOP_FINISH_FORCE.
+ * If `end_mode` == NTG_LOOP_END_CLEAN, the function will fail and will return
+ * false.
+ *
+ * If `end_mode` == NTG_LOOP_END_FORCE, the function will succeed regardless and
+ * will return true. `ntg_loop_run()` will return NTG_LOOP_END_FORCE.
+ *
  * The user should then clean up and terminate the program. This will leave the
  * threads running. If any of the tasks use `ntg_platform_execute_later`, the
  * request will be ignored. */
-bool ntg_loop_break(ntg_loop* loop, bool force_break);
+bool ntg_loop_break(ntg_loop* loop, ntg_loop_end_mode end_mode);
 void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage);
 
 void ntg_task_runner_execute(ntg_task_runner* task_runner, 
@@ -75,6 +76,9 @@ void ntg_task_runner_execute(ntg_task_runner* task_runner,
 void ntg_platform_execute_later(ntg_platform* platform, 
                                 void (*task_fn)(void* data),
                                 void* data);
+
+// Default implementation of `on_event_fn` - dispatches key/mouse event to stage
+bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

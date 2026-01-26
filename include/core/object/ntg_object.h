@@ -17,12 +17,18 @@ GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
 struct ntg_object_layout_ops
 {
-    ntg_object_layout_data_init init_fn;
-    ntg_object_layout_data_deinit deinit_fn;
+    ntg_object_layout_init_fn init_fn;
+    ntg_object_layout_deinit_fn deinit_fn;
     ntg_object_measure_fn measure_fn;
     ntg_object_constrain_fn constrain_fn;
     ntg_object_arrange_fn arrange_fn;
     ntg_object_draw_fn draw_fn;
+};
+
+enum ntg_object_type
+{
+    NTG_OBJECT_BASE,
+    NTG_OBJECT_DECORATOR
 };
 
 /* ------------------------------------------------------ */
@@ -30,6 +36,8 @@ struct ntg_object_layout_ops
 struct ntg_object
 {
     ntg_entity __base;
+
+    enum ntg_object_type _type;
 
     struct
     {
@@ -41,7 +49,7 @@ struct ntg_object
     struct
     {
         struct ntg_object_layout_ops __layout_ops;
-        void* __layout_data;
+        void* __ldata;
     };
 
     struct
@@ -72,8 +80,8 @@ bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descen
 // Returns total count of objects in tree, including root
 size_t ntg_object_get_tree_size(const ntg_object* root);
 
-// TODO
-// ntg_object* ntg_object_get_children_by_z
+// Ascending
+void ntg_object_get_children_by_z(const ntg_object* object, ntg_object_vec* out_vec);
 
 #define NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fn_name, perform_fn)               \
 static void fn_name(ntg_object* object, void* data)                            \
@@ -131,7 +139,8 @@ void ntg_object_set_z_index(ntg_object* object, int z_index);
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops);
+void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops,
+                     ntg_object_type type);
 void ntg_object_deinit(ntg_object* object);
 
 /* Updates only the tree. Does not update scene. 

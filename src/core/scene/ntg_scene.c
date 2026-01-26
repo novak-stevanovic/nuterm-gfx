@@ -24,6 +24,7 @@ bool ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
     assert(scene != NULL);
 
     scene->_size = size;
+
     return scene->__layout_fn(scene, size, arena);
 }
 
@@ -57,61 +58,7 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
     ntg_entity_raise_event_((ntg_entity*)scene, NTG_EVENT_SCENE_ROOTCHNG, &data);
 }
 
-bool ntg_scene_feed_event(ntg_scene* scene, struct ntg_event event)
-{
-    assert(scene != NULL);
-
-    ntg_log_log("Scene received event");
-
-    return scene->__process_fn(scene, event);
-}
-
-bool ntg_scene_dispatch_def(ntg_scene* scene, struct ntg_event event)
-{
-    if(event.type == NTG_EVENT_LOOP_MOUSE)
-    {
-        bool dispatch = false;
-        if(scene->__focus_ctx_stack.size == 0) dispatch = true;
-
-        struct ntg_focus_ctx_list_node* head = scene->__focus_ctx_stack.head;
-        struct ntg_focus_ctx fctx = *(head->data);
-
-        dispatch |= (fctx.window_mode == NTG_FOCUS_CTX_WINDOW_MODELESS);
-
-        struct ntg_event_loop_mouse_data* data = event.data;
-        if(dispatch)
-        {
-            struct ntg_xy pos = ntg_xy(data->mouse.x, data->mouse.y);
-            ntg_widget* widget = ntg_scene_get_widget_at(scene, pos);
-
-            assert(widget != NULL);
-            return ntg_widget_feed_event(widget, event);
-        }
-        else return false;
-    }
-    else if(event.type == NTG_EVENT_LOOP_KEY)
-    {
-        if(scene->__focus_ctx_stack.size == 0) return false;
-
-        struct ntg_focus_ctx_list_node* head = scene->__focus_ctx_stack.head;
-        struct ntg_focus_ctx fctx = *(head->data);
-
-        if(head != NULL)
-            return ntg_focus_mgr_feed_event(fctx.mgr, event);
-        else
-            return false;
-    }
-    else return false;
-}
-
-void ntg_scene_set_process_fn(ntg_scene* scene, ntg_scene_process_fn fn)
-{
-    assert(scene != NULL);
-
-    scene->__process_fn = fn ? fn : ntg_scene_dispatch_def;
-}
-
-ntg_widget* ntg_scene_get_widget_at(ntg_scene* scene, struct ntg_xy pos)
+ntg_widget* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos)
 {
     assert(scene != NULL);
     if(!scene->_root) return NULL;
@@ -131,8 +78,9 @@ ntg_widget* ntg_scene_get_widget_at(ntg_scene* scene, struct ntg_xy pos)
     while(loop)
     {
         loop = false;
-        ntg_widget_get_children(it_widget, &it_children);
-        for(i = 0; i < it_children.size; i++)
+        if(ntg_obj(it_widget)->_children.size == 0) continue;
+        ntg_widget_get_children_by_z(it_widget, &it_children);
+        for(i = it_children.size - 1; i >= 0; i--)
         {
             it_child = it_children.data[i];
             it_child_start = ntg_widget_get_pos_abs(it_child);
@@ -165,6 +113,59 @@ void ntg_scene_focus_ctx_pop(ntg_scene* scene)
     ntg_focus_ctx_list_popf(&scene->__focus_ctx_stack, NULL);
 }
 
+bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key)
+{
+    assert(scene);
+
+    ntg_focus_ctx_list* fcs = &(scene->__focus_ctx_stack);
+
+    if(fcs->size == 0) return false;
+
+    struct ntg_focus_ctx_list_node* head = fcs->head;
+
+    ntg_focus_mgr* mgr = head->data->mgr;
+    if(mgr->on_key_fn)
+        return mgr->on_key_fn(mgr, key);
+    else
+        return false;
+}
+
+bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
+{
+    assert(scene);
+
+    ntg_focus_ctx_list* fcs = &(scene->__focus_ctx_stack);
+
+    struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
+    ntg_widget* hit = ntg_scene_hit_test(scene, pos);
+    assert(hit);
+    struct ntg_xy pos_adj = ntg_xy_sub(pos, ntg_widget_get_pos_abs(hit));
+    mouse.x = pos_adj.x;
+    mouse.y = pos_adj.y;
+    if(fcs->size == 0)
+    {
+        if(hit->on_mouse_fn)
+            return hit->on_mouse_fn(hit, mouse);
+        else
+            return false;
+    }
+    else
+    {
+        struct ntg_focus_ctx_list_node* head = fcs->head;
+        struct ntg_focus_ctx data = *(head->data);
+        bool desc = ntg_widget_is_descendant(hit, data.root);
+        if((data.window_mode == NTG_FOCUS_CTX_WINDOW_MODELESS) || desc)
+        {
+            if(data.mgr->on_mouse_fn)
+                return data.mgr->on_mouse_fn(data.mgr, mouse);
+            else
+                return false;
+        }
+        else
+            return false;
+    }
+}
+
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
@@ -177,7 +178,8 @@ static void init_default(ntg_scene* scene)
     scene->_root = NULL;
     scene->__layout_fn = NULL;
 
-    scene->__process_fn = ntg_scene_dispatch_def;
+    scene->on_key_fn = ntg_scene_dispatch_key;
+    scene->on_mouse_fn = ntg_scene_dispatch_mouse;
 
     scene->data = NULL;
 }

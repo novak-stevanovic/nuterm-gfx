@@ -74,7 +74,7 @@ void ntg_def_border_deinit(ntg_def_border* border);
 
 void _ntg_def_border_draw_fn(
         const ntg_object* _border,
-        void* _layout_data,
+        void* _ldata,
         ntg_tmp_object_drawing* out_drawing,
         sarena* arena);
 

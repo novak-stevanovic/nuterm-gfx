@@ -16,7 +16,7 @@ struct ntg_box_opts ntg_box_opts_def()
 static inline size_t 
 calculate_total_spacing(size_t spacing, size_t child_count);
 
-static void rm_child_fn(ntg_widget* _box, ntg_widget* child);
+static void on_rm_child_fn(ntg_widget* _box, ntg_widget* child);
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
@@ -106,7 +106,7 @@ void ntg_box_deinit(ntg_box* box)
 
 struct ntg_object_measure _ntg_box_measure_fn(
         const ntg_widget* _box,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         bool constrained,
         sarena* arena)
@@ -158,7 +158,7 @@ struct ntg_object_measure _ntg_box_measure_fn(
 
 void _ntg_box_constrain_fn(
         const ntg_widget* _box,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         ntg_widget_size_map* out_size_map,
         sarena* arena)
@@ -264,7 +264,7 @@ void _ntg_box_constrain_fn(
 
 void _ntg_box_arrange_fn(
         const ntg_widget* _box,
-        void* _layout_data,
+        void* _ldata,
         ntg_widget_xy_map* out_pos_map,
         sarena* arena)
 {
@@ -372,7 +372,7 @@ calculate_total_spacing(size_t spacing, size_t child_count)
     return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
 }
 
-static void rm_child_fn(ntg_widget* _box, ntg_widget* child)
+static void on_rm_child_fn(ntg_widget* _box, ntg_widget* child)
 {
     ntg_box* box = (ntg_box*)_box;
 

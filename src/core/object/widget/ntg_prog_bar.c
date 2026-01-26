@@ -65,7 +65,7 @@ void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 
 struct ntg_object_measure _ntg_prog_bar_measure_fn(
         const ntg_widget* _prog_bar,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         bool constrained,
         sarena* arena)
@@ -94,7 +94,7 @@ struct ntg_object_measure _ntg_prog_bar_measure_fn(
 
 void _ntg_prog_bar_draw_fn(
         const ntg_widget* _prog_bar,
-        void* _layout_data,
+        void* _ldata,
         ntg_tmp_object_drawing* out_drawing,
         sarena* arena)
 {

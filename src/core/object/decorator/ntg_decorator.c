@@ -51,11 +51,11 @@ void ntg_decorator_init(ntg_decorator* decorator, ntg_object_draw_fn draw_fn)
         .constrain_fn = _ntg_decorator_constrain_fn,
         .arrange_fn = _ntg_decorator_arrange_fn,
         .draw_fn = draw_fn,
-        .init_fn = _ntg_decorator_layout_data_init_fn,
-        .deinit_fn = _ntg_decorator_layout_data_deinit_fn
+        .init_fn = _ntg_decorator_ldata_init_fn,
+        .deinit_fn = _ntg_decorator_ldata_deinit_fn
     };
 
-    ntg_object_init((ntg_object*)decorator, object_data);
+    ntg_object_init((ntg_object*)decorator, object_data, NTG_OBJECT_DECORATOR);
 
     decorator->_opts = ntg_decorator_opts_def();
 }
@@ -86,24 +86,24 @@ void _ntg_decorator_decorate(ntg_decorator* decorator, ntg_widget* widget)
     ntg_object_set_z_index((ntg_object*)decorator, z_index);
 }
 
-void* _ntg_decorator_layout_data_init_fn(const ntg_object* _decorator)
+void* _ntg_decorator_ldata_init_fn(const ntg_object* _decorator)
 {
-    struct ntg_decorator_ldata* layout_data;
-    layout_data = malloc(sizeof(struct ntg_decorator_ldata));
-    assert(layout_data != NULL);
+    struct ntg_decorator_ldata* ldata;
+    ldata = malloc(sizeof(struct ntg_decorator_ldata));
+    assert(ldata != NULL);
 
-    layout_data->width = (struct ntg_decorator_width) {0};
+    ldata->width = (struct ntg_decorator_width) {0};
 
-    return layout_data;
+    return ldata;
 }
 
-void _ntg_decorator_layout_data_deinit_fn(void* data, const ntg_object* _decorator)
+void _ntg_decorator_ldata_deinit_fn(void* data, const ntg_object* _decorator)
 {
     free(data);
 }
 
 struct ntg_object_measure 
-_ntg_decorator_measure_fn(const ntg_object* _decorator, void* _layout_data,
+_ntg_decorator_measure_fn(const ntg_object* _decorator, void* _ldata,
                           ntg_orient orient, bool constrained, sarena* arena)
 {
     const ntg_decorator* decorator = (ntg_decorator*)_decorator;
@@ -111,7 +111,7 @@ _ntg_decorator_measure_fn(const ntg_object* _decorator, void* _layout_data,
 
     const ntg_object* child = _decorator->_children.data[0];
     struct ntg_object_measure child_data;
-    // struct ntg_decorator_ldata* layout_data = _layout_data;
+    // struct ntg_decorator_ldata* ldata = _ldata;
     child_data = ntg_object_get_measure(child, orient);
 
     if(orient == NTG_ORIENT_H)
@@ -140,7 +140,7 @@ _ntg_decorator_measure_fn(const ntg_object* _decorator, void* _layout_data,
 
 void _ntg_decorator_constrain_fn(
         const ntg_object* _decorator,
-        void* _layout_data,
+        void* _ldata,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena)
@@ -149,7 +149,7 @@ void _ntg_decorator_constrain_fn(
     const ntg_object* child = _decorator->_children.data[0];
     struct ntg_object_measure child_data;
     child_data = ntg_object_get_measure(child, orient);
-    struct ntg_decorator_ldata* layout_data = _layout_data;
+    struct ntg_decorator_ldata* ldata = _ldata;
     size_t size = ntg_object_get_size_1d(_decorator, orient);
 
     size_t extra_space;
@@ -157,7 +157,7 @@ void _ntg_decorator_constrain_fn(
     {
         size_t pref, final;
         pref = decorator->_opts.width.west + decorator->_opts.width.east;
-        final = layout_data->width.west + layout_data->width.east;
+        final = ldata->width.west + ldata->width.east;
 
         if((pref > 0) && (final == 0)) extra_space = 0;
         else extra_space = size;
@@ -188,13 +188,13 @@ void _ntg_decorator_constrain_fn(
 
     if(orient == NTG_ORIENT_H)
     {
-        layout_data->width.west = _sizes[0];
-        layout_data->width.east = _sizes[1];
+        ldata->width.west = _sizes[0];
+        ldata->width.east = _sizes[1];
     }
     else
     {
-        layout_data->width.north = _sizes[0];
-        layout_data->width.south = _sizes[1];
+        ldata->width.north = _sizes[0];
+        ldata->width.south = _sizes[1];
     }
 
     size_t child_size = size - _sizes[0] - _sizes[1];
@@ -204,16 +204,16 @@ void _ntg_decorator_constrain_fn(
 
 void _ntg_decorator_arrange_fn(
         const ntg_object* _decorator,
-        void* _layout_data,
+        void* _ldata,
         ntg_object_xy_map* out_pos_map,
         sarena* arena)
 {
     // const ntg_decorator* decorator = (ntg_decorator*)object;
     const ntg_object* child = _decorator->_children.data[0];
-    struct ntg_decorator_ldata* layout_data = _layout_data;
+    struct ntg_decorator_ldata* ldata = _ldata;
     struct ntg_xy offset = ntg_xy(
-            layout_data->width.west,
-            layout_data->width.north);
+            ldata->width.west,
+            ldata->width.north);
 
     ntg_object_xy_map_set(out_pos_map, child, offset);
 }

@@ -51,35 +51,38 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     ntg_entity_raise_event_((ntg_entity*)stage, NTG_EVENT_STAGE_SCNCHNG, &data);
 }
 
-bool ntg_stage_feed_event(ntg_stage* stage, struct ntg_event event)
+bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key)
 {
     assert(stage != NULL);
 
-    return stage->__process_fn(stage, event);
-}
-
-bool ntg_stage_dispatch_def(ntg_stage* stage, struct ntg_event event)
-{
     if(stage->_scene)
     {
-        if(event.type == NTG_EVENT_LOOP_KEY)
-        {
-            return ntg_scene_feed_event(stage->_scene, event);
-        }
-        else if(event.type == NTG_EVENT_LOOP_MOUSE)
-        {
-            return ntg_scene_feed_event(stage->_scene, event);
-        }
-        else return false;
+        ntg_scene* scene = stage->_scene;
+
+        if(scene->on_key_fn)
+            return scene->on_key_fn(scene, key);
+        else
+            return false;
     }
-    else return false;
+    else
+        return false;
 }
 
-void ntg_stage_set_process_fn(ntg_stage* stage, ntg_stage_process_fn fn)
+bool ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 {
     assert(stage != NULL);
 
-    stage->__process_fn = ntg_stage_dispatch_def;
+    if(stage->_scene)
+    {
+        ntg_scene* scene = stage->_scene;
+
+        if(scene->on_mouse_fn)
+            return scene->on_mouse_fn(scene, mouse);
+        else
+            return false;
+    }
+    else
+        return false;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -126,7 +129,8 @@ static void init_default(ntg_stage* stage)
     stage->_scene = NULL;
     stage->__compose_fn = NULL;
     stage->_drawing = (struct ntg_stage_drawing) {0};
-    stage->__process_fn = ntg_stage_dispatch_def;
+    stage->on_key_fn = ntg_stage_dispatch_key;
+    stage->on_mouse_fn = ntg_stage_dispatch_mouse;
     stage->_loop = NULL;
     stage->data = NULL;
 }
