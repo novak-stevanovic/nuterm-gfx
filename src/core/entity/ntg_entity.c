@@ -6,8 +6,7 @@
 struct ntg_event 
 ntg_event_new(ntg_entity* source, unsigned int type, void* data)
 {
-    return _ntg_entity_system_create_event(source->__system, source,
-                                           type, data);
+    return _ntg_entity_system_create_event(source->__system, source, type, data);
 }
 
 ntg_entity* ntg_entity_create(struct ntg_entity_init_data init_data)
@@ -66,8 +65,8 @@ void ntg_entity_observe(
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn)
 {
-    _ntg_entity_system_add_observe(observer->__system, observer, observed,
-            handler_fn);
+    _ntg_entity_system_add_observe(observer->__system, observer,
+            observed, handler_fn);
 }
 
 void ntg_entity_stop_observing(

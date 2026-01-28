@@ -2,8 +2,11 @@
 #include <assert.h>
 #include "core/object/shared/ntg_widget_map.h"
 
-void ntg_widget_map_init(ntg_widget_map* ctx, size_t capacity, size_t data_size,
-                         sarena* arena)
+void ntg_widget_map_init(
+        ntg_widget_map* ctx,
+        size_t capacity,
+        size_t data_size,
+        sarena* arena)
 {
     assert(ctx != NULL);
     assert(data_size > 0);
@@ -28,8 +31,7 @@ void ntg_widget_map_init(ntg_widget_map* ctx, size_t capacity, size_t data_size,
     }
 }
 
-void ntg_widget_map_set(ntg_widget_map* ctx, const ntg_widget* widget,
-                        void* data)
+void ntg_widget_map_set(ntg_widget_map* ctx, const ntg_widget* widget, void* data)
 {
     assert(ctx != NULL);
     assert(widget != NULL);

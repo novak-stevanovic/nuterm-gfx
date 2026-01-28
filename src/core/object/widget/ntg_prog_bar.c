@@ -53,7 +53,7 @@ void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage)
 
     prog_bar->__percentage = _min2_double(1.0, percentage);
 
-    ntg_entity_raise_event_((ntg_entity*)prog_bar, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_DRAW);
 }
 
 void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)

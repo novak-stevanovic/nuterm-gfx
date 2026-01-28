@@ -12,11 +12,12 @@ struct ntg_stage_drawing
 void ntg_stage_drawing_init(ntg_stage_drawing* drawing);
 void ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
 
-struct ntg_xy 
-ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing);
+struct ntg_xy ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing);
 
-void ntg_stage_drawing_set_size(ntg_stage_drawing* drawing,
-    struct ntg_xy size, struct ntg_xy size_cap);
+void ntg_stage_drawing_set_size(
+        ntg_stage_drawing* drawing,
+        struct ntg_xy size,
+        struct ntg_xy size_cap);
 
 static inline const struct ntg_cell* 
 ntg_stage_drawing_at(const ntg_stage_drawing* drawing, struct ntg_xy pos)

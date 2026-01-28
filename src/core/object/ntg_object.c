@@ -3,6 +3,21 @@
 #include "ntg.h"
 #include "shared/_ntg_shared.h"
 
+static void object_register_fn(ntg_object* object, void* _scene)
+{
+    if(_scene)
+        _ntg_scene_object_register((ntg_scene*)_scene, object);
+}
+
+static void object_unregister_fn(ntg_object* object, void* _)
+{
+    if(object->_scene)
+        _ntg_scene_object_unregister(object->_scene, object);
+}
+
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(object_register_tree, object_register_fn);
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(object_unregister_tree, object_unregister_fn);
+
 /* ---------------------------------------------------------------- */
 /* OBJECT TREE */
 /* ---------------------------------------------------------------- */
@@ -47,12 +62,22 @@ bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor
     return false;
 }
 
+bool ntg_object_is_ancestor_eq(const ntg_object* object, const ntg_object* ancestor)
+{
+    return ((object == ancestor) || ntg_object_is_ancestor(object, ancestor));
+}
+
 bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant)
 {
     assert(object != NULL);
     assert(descendant != NULL);
 
     return ntg_object_is_ancestor(descendant, object);
+}
+
+bool ntg_object_is_descendant_eq(const ntg_object* object, const ntg_object* descendant)
+{
+    return ((object == descendant) || ntg_object_is_descendant(object, descendant));
 }
 
 static void count_fn(ntg_object* object, void* _counter)
@@ -75,32 +100,96 @@ size_t ntg_object_get_tree_size(const ntg_object* root)
     return counter;
 }
 
-void ntg_object_get_children_by_z(const ntg_object* object, ntg_object_vec* out_vec)
+size_t ntg_object_get_children_by_z(const ntg_object* object, ntg_object** out_buff)
 {
     assert(object);
-    assert(out_vec);
 
-    const ntg_object_vec* children = &object->_children;
-    ntg_object_vec_init(out_vec, object->_children.size + 1, NULL);
-    
-    size_t i, j;
+    ntg_object_vec* children = &object->_children;
+    if(children->size == 0) return 0;
 
-    for(i = 0; i < children->size; i++)
-        ntg_object_vec_pushb(out_vec, children->data[i], NULL);
-
-    ntg_object* tmp_obj;
-    for(i = 0; i < children->size - 1; i++)
+    if(out_buff)
     {
-        for(j = i + 1; j < children->size; j++)
+        size_t i, j;
+
+        for(i = 0; i < children->size; i++)
+            out_buff[i] = children->data[i];
+
+        ntg_object* tmp_obj;
+        for(i = 0; i < children->size - 1; i++)
         {
-            if((out_vec->data[j])->_z_index < (out_vec->data[i])->_z_index)
+            for(j = i + 1; j < children->size; j++)
             {
-                tmp_obj = out_vec->data[i];
-                out_vec->data[i] = out_vec->data[j];
-                out_vec->data[j] = tmp_obj;
+                if((out_buff[j])->_z_index < (out_buff[i])->_z_index)
+                {
+                    tmp_obj = out_buff[i];
+                    out_buff[i] = out_buff[j];
+                    out_buff[j] = tmp_obj;
+                }
             }
         }
     }
+
+    return children->size;
+}
+
+struct ntg_xy ntg_object_map_to_ancestor_space(
+        const ntg_object* object_space,
+        const ntg_object* ancestor_space,
+        struct ntg_xy point)
+{
+    assert(object_space != NULL);
+
+    if(object_space == ancestor_space)
+        return point;
+
+    struct ntg_xy out = point;
+
+    const ntg_object* it = object_space;
+    while(it != NULL && it != ancestor_space)
+    {
+        out = ntg_xy_add(out, it->_pos);
+        it = it->_parent;
+    }
+
+    /* If ancestor_space is non-NULL, it must be reached (must be an ancestor). */
+    if(ancestor_space != NULL)
+        assert(it == ancestor_space);
+
+    return out;
+}
+
+struct ntg_xy ntg_object_map_to_descendant_space(
+        const ntg_object* object_space,
+        const ntg_object* descendant_space,
+        struct ntg_xy point)
+{
+    assert(descendant_space != NULL);
+
+    if(object_space == descendant_space)
+        return point;
+
+    struct ntg_xy desc_pos = ntg_object_map_to_ancestor_space(
+            descendant_space, object_space, ntg_xy(0, 0));
+
+    return ntg_xy_sub(point, desc_pos);
+}
+
+struct ntg_xy ntg_object_map_to_scene_space(
+        const ntg_object* object_space,
+        struct ntg_xy point)
+{
+    assert(object_space != NULL);
+
+    return ntg_object_map_to_ancestor_space(object_space, NULL, point);
+}
+
+struct ntg_xy ntg_object_map_from_scene_space(
+        const ntg_object* object_space,
+        struct ntg_xy point)
+{
+    assert(object_space != NULL);
+
+    return ntg_object_map_to_descendant_space(NULL, object_space, point);
 }
 
 /* ---------------------------------------------------------------- */
@@ -116,19 +205,30 @@ void ntg_object_root_layout(ntg_object* root, struct ntg_xy size)
     root->_size = size;
 }
 
-void ntg_object_measure(ntg_object* object, ntg_orient orient, bool constrained,
-                        sarena* arena)
+void ntg_object_measure(
+        ntg_object* object,
+        ntg_orient orient,
+        bool constrained,
+        sarena* arena)
 {
     assert(object != NULL);
     assert(arena != NULL);
 
     struct ntg_object_layout_ops layout_ops = object->__layout_ops;
 
+    struct ntg_object_measure old = ntg_object_get_measure(object, orient);
+
     struct ntg_object_measure measure = {0};
     if(object->__layout_ops.measure_fn != NULL)
     {
         measure = layout_ops.measure_fn(object, object->__ldata,
                 orient, constrained, arena);
+    }
+
+    if(object->_parent && !ntg_object_measure_are_equal(old, measure))
+    {
+        object->_parent->dirty |= (NTG_OBJECT_DIRTY_MEASURE |
+                NTG_OBJECT_DIRTY_CONSTRAIN);
     }
 
     if(orient == NTG_ORIENT_H)
@@ -173,14 +273,26 @@ void ntg_object_constrain(ntg_object* object, ntg_orient orient, sarena* arena)
         ntg_object_size_map* _sizes = ntg_object_size_map_new(children->size, arena);
         layout_ops.constrain_fn(object, object->__ldata, orient, _sizes, arena);
 
-        size_t it_size;
+        size_t old_size, it_size;
         for(i = 0; i < children->size; i++)
         {
             it_size = ntg_object_size_map_get(_sizes, children->data[i]);
             if(orient == NTG_ORIENT_H)
+            {
+                old_size = children->data[i]->_size.x;
                 children->data[i]->_size.x = it_size;
+            }
             else
+            {
+                old_size = children->data[i]->_size.y;
                 children->data[i]->_size.y = it_size;
+            }
+            if(old_size != it_size)
+            {
+                children->data[i]->dirty = (NTG_OBJECT_DIRTY_MEASURE |
+                NTG_OBJECT_DIRTY_CONSTRAIN | NTG_OBJECT_DIRTY_ARRANGE |
+                NTG_OBJECT_DIRTY_DRAW);
+            }
         }
     }
 }
@@ -252,21 +364,34 @@ void ntg_object_draw(ntg_object* object, sarena* arena)
 
 struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object)
 {
-    assert(object != NULL);
-
-    const ntg_object* it_obj = object;
-    struct ntg_xy pos = ntg_xy(0, 0);
-    while(it_obj != NULL)
-    {
-        pos = ntg_xy_add(pos, it_obj->_pos);
-        it_obj = it_obj->_parent;
-    }
-
-    return pos;
+    return ntg_object_map_to_scene_space(object, ntg_xy(0, 0));
 }
 
-size_t ntg_object_get_for_size(const ntg_object* object,
-        ntg_orient orient, bool constrained)
+struct ntg_xy 
+ntg_object_get_pos_in_space(const ntg_object* object, const ntg_object* space)
+{
+    assert(object != NULL);
+    assert(space != NULL);
+
+    if(object == space) return ntg_xy(0, 0);
+    assert(ntg_object_is_descendant(space, object));
+
+    struct ntg_xy out = ntg_xy(0, 0);
+
+    const ntg_object* it = object;
+    while(it != NULL && it != space)
+    {
+        out = ntg_xy_add(out, it->_pos);
+        it = it->_parent;
+    }
+
+    return out;
+}
+
+size_t ntg_object_get_for_size(
+        const ntg_object* object,
+        ntg_orient orient,
+        bool constrained)
 {
     assert(object != NULL);
 
@@ -306,8 +431,13 @@ void ntg_object_set_z_index(ntg_object* object, int z_index)
     assert(object != NULL);
 
     object->_z_index = z_index;
+}
 
-    ntg_entity_raise_event_((ntg_entity*)object, NTG_EVENT_OBJECT_DIFF, NULL);
+void ntg_object_add_dirty(ntg_object* object, uint8_t dirty)
+{
+    assert(object != NULL);
+
+    object->dirty |= dirty;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -316,8 +446,9 @@ void ntg_object_set_z_index(ntg_object* object, int z_index)
 
 static void init_default(ntg_object* object);
 
-void ntg_object_init(ntg_object* object, struct ntg_object_layout_ops layout_ops,
-                     ntg_object_type type)
+void ntg_object_init(ntg_object* object,
+        struct ntg_object_layout_ops layout_ops,
+        ntg_object_type type)
 {
     assert(object != NULL);
 
@@ -339,6 +470,8 @@ static void init_default(ntg_object* object)
 
     object->__layout_ops = (struct ntg_object_layout_ops) {0};
     object->__ldata = NULL;
+    object->dirty = NTG_OBJECT_DIRTY_MEASURE | NTG_OBJECT_DIRTY_CONSTRAIN |
+    NTG_OBJECT_DIRTY_ARRANGE | NTG_OBJECT_DIRTY_DRAW;
 
     object->_min_size = ntg_xy(0, 0);
     object->_max_size = ntg_xy(0, 0);
@@ -396,6 +529,11 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
 
     child->_parent = parent;
 
+    if(parent->_scene)
+    {
+        object_register_tree(child, parent->_scene);
+    }
+
     struct ntg_event_object_chldadd_data data1 = { .child = child };
     ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_OBJECT_CHLDADD, &data1);
 
@@ -405,30 +543,49 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
     };
     ntg_entity_raise_event_((ntg_entity*)child, NTG_EVENT_OBJECT_PRNTCHNG, &data2);
 
-    ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty(parent, NTG_OBJECT_DIRTY_FULL);
 }
 
-void ntg_object_detach(ntg_object* widget)
+void ntg_object_detach(ntg_object* object)
 {
-    assert(widget != NULL);
+    assert(object != NULL);
 
-    ntg_object* parent = widget->_parent;
+    ntg_object* parent = object->_parent;
     if(parent == NULL) return;
 
-    ntg_object_vec_rm(&parent->_children, widget, NULL);
+    ntg_object_vec_rm(&parent->_children, object, NULL);
 
-    widget->_parent = NULL;
+    object->_parent = NULL;
 
-    struct ntg_event_object_chldrm_data data1 = { .child = widget };
+    if(object->_scene)
+        object_unregister_tree(object, object->_scene);
+
+    struct ntg_event_object_chldrm_data data1 = { .child = object };
     ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_OBJECT_CHLDRM, &data1);
 
     struct ntg_event_object_prntchng_data data2 = {
         .old = parent,
         .new = NULL
     };
-    ntg_entity_raise_event_((ntg_entity*)widget, NTG_EVENT_OBJECT_PRNTCHNG, &data2);
+    ntg_entity_raise_event_((ntg_entity*)object, NTG_EVENT_OBJECT_PRNTCHNG, &data2);
 
-    ntg_entity_raise_event_((ntg_entity*)parent, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty((ntg_object*)parent, NTG_OBJECT_DIRTY_FULL);
+}
+
+void _ntg_object_attach_scene(ntg_object* root, ntg_scene* scene)
+{
+    assert(root);
+    assert(!root->_parent);
+
+    object_register_tree(root, scene);
+}
+
+void _ntg_object_detach_scene(ntg_object* root)
+{
+    assert(root);
+    assert(!root->_parent);
+
+    object_unregister_tree(root, NULL);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -16,8 +16,7 @@ void ntg_stage_drawing_deinit(ntg_stage_drawing* drawing)
     ntg_cell_vecgrid_deinit(&drawing->__data);
 }
 
-struct ntg_xy 
-ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing)
+struct ntg_xy ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing)
 {
     return (drawing != NULL) ?
         ntg_cell_vecgrid_get_size(&drawing->__data) :

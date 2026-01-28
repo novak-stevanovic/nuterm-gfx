@@ -13,27 +13,32 @@ unsigned int
 _ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity);
 
 struct ntg_event 
-_ntg_entity_system_create_event(ntg_entity_system* system, ntg_entity* source,
-                                unsigned int type, void* data);
+_ntg_entity_system_create_event(
+        ntg_entity_system* system,
+        ntg_entity* source,
+        unsigned int type,
+        void* data);
 
 void _ntg_entity_system_raise_event(
         ntg_entity_system* system,
         ntg_entity* entity,
         struct ntg_event event);
+
 void _ntg_entity_system_add_observe(
         ntg_entity_system* system,
         ntg_entity* observer,
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
+
 void _ntg_entity_system_rm_observe(
         ntg_entity_system* system,
         ntg_entity* observer,
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
+
 bool _ntg_entity_system_has_observe(
         ntg_entity_system* system,
-        ntg_entity* observer,
-        ntg_entity* observed,
+        ntg_entity* observer, ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
 
 #endif // _NTG_ENTITY_SYSTEM_H_

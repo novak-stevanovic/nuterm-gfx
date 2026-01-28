@@ -136,7 +136,7 @@ void gui_fn1(ntg_entity_system* es, void* _)
 
     ntg_def_scene* scene = ntg_def_scene_new(es);
     ntg_def_scene_init(scene);
-    ntg_scn(scene)->on_key_fn = scene_on_key_fn;
+    ntg_scene_set_on_key_fn(ntg_scn(scene), scene_on_key_fn);
 
     ntg_def_stage* stage = ntg_def_stage_new(es);
     ntg_def_stage_init(stage);
@@ -185,8 +185,8 @@ void gui_fn1(ntg_entity_system* es, void* _)
     ntg_color_block_init(east);
     ntg_color_block_set_color(east, nt_color_new_auto(nt_rgb_new(40, 0, 200)));
 
-    ntg_widget_set_user_min_size(ntg_wdg(west), ntg_xy(5, NTG_WIDGET_MIN_SIZE_UNSET));
-    ntg_widget_set_user_min_size(ntg_wdg(east), ntg_xy(5, NTG_WIDGET_MIN_SIZE_UNSET));
+    ntg_widget_set_cont_min_size(ntg_wdg(west), ntg_xy(5, NTG_WIDGET_MIN_SIZE_UNSET));
+    ntg_widget_set_cont_min_size(ntg_wdg(east), ntg_xy(5, NTG_WIDGET_MIN_SIZE_UNSET));
 
     ntg_box* center = ntg_box_new(es);
     ntg_box_init(center);
@@ -206,8 +206,7 @@ void gui_fn1(ntg_entity_system* es, void* _)
     };
 
     ntg_loop* loop = ntg_loop_new(es);
-    ntg_loop_init(loop, ntg_stg(stage), ntg_rdr(renderer), 60, 4);
-    loop->on_event_fn = loop_process_fn;
+    ntg_loop_init(loop, ntg_stg(stage), ntg_rdr(renderer), 60, 4, loop_process_fn);
 
     loop->data = &loop_data;
 

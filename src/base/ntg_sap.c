@@ -8,9 +8,13 @@ static inline bool is_equal_double(double x, double y)
     return fabs(x - y) < 0.005;
 }
 
-size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
-                               size_t* out_size_map, size_t space_pool,
-                               size_t count, sarena* arena)
+size_t ntg_sap_cap_round_robin(
+        const size_t* caps,
+        const size_t* grows,
+        size_t* out_size_map,
+        size_t space_pool,
+        size_t count,
+        sarena* arena)
 {
     assert(caps != NULL);
     assert(out_size_map != NULL);

@@ -29,7 +29,9 @@ void ntg_def_stage_init(ntg_def_stage* stage);
 
 void ntg_def_stage_deinit(ntg_def_stage* stage);
 
-void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size,
-                               sarena* arena);
+void _ntg_def_stage_compose_fn(
+        ntg_stage* _stage,
+        struct ntg_xy size,
+        sarena* arena);
 
 #endif // NTG_DEF_STAGE_H

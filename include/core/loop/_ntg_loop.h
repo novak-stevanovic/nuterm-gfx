@@ -68,8 +68,11 @@ struct ntg_task_runner
     size_t __running;
 };
 
-void _ntg_task_runner_init(ntg_task_runner* task_runner, ntg_platform* platform,
-                           unsigned int worker_threads, ntg_loop* loop);
+void _ntg_task_runner_init(
+        ntg_task_runner* task_runner,
+        ntg_platform* platform,
+        unsigned int worker_threads,
+        ntg_loop* loop);
 
 // Make sure not to call deinit when the task runner is running tasks.
 // It will attempt to join with all of its threads. If any of the tasks are

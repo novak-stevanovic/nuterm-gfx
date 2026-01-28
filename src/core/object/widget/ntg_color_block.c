@@ -12,7 +12,7 @@ void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
 
     color_block->__color = color;
 
-    ntg_entity_raise_event_((ntg_entity*)color_block, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty((ntg_object*)color_block, NTG_OBJECT_DIRTY_DRAW);
 }
 
 ntg_color_block* ntg_color_block_new(ntg_entity_system* system)

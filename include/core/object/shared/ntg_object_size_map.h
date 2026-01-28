@@ -5,10 +5,13 @@
 
 ntg_object_size_map* ntg_object_size_map_new(size_t child_count, sarena* arena);
 
-void ntg_object_size_map_set(ntg_object_size_map* map, const ntg_object* object,
-                             size_t size);
+void ntg_object_size_map_set(
+        ntg_object_size_map* map,
+        const ntg_object* object,
+        size_t size);
 
-size_t ntg_object_size_map_get(const ntg_object_size_map* map,
-                               const ntg_object* object);
+size_t ntg_object_size_map_get(
+        const ntg_object_size_map* map,
+        const ntg_object* object);
 
 #endif // NTG_OBJECT_SIZE_MAP_H

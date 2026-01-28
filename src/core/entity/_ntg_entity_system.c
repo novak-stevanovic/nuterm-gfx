@@ -47,9 +47,12 @@ struct ntg_entity_system
 };
 
 static void 
-system_map_add(ntg_entity_system* system, ntg_entity* entity, unsigned int id);
+system_map_add(
+        ntg_entity_system* system,
+        ntg_entity* entity,
+        unsigned int id);
 
-static struct entity_data*
+static struct entity_data* 
 system_map_get(ntg_entity_system* system, const ntg_entity* entity);
 
 static void 
@@ -114,7 +117,9 @@ void _ntg_entity_system_unregister(ntg_entity_system* system, ntg_entity* entity
     system_map_del(system, entity);
 }
 
-unsigned int _ntg_entity_system_get_id(ntg_entity_system* system, const ntg_entity* entity)
+unsigned int _ntg_entity_system_get_id(
+        ntg_entity_system* system,
+        const ntg_entity* entity)
 {
     assert(system != NULL);
     assert(entity != NULL);
@@ -125,9 +130,10 @@ unsigned int _ntg_entity_system_get_id(ntg_entity_system* system, const ntg_enti
     return map_data->id;
 }
 
-struct ntg_event 
-_ntg_entity_system_create_event(ntg_entity_system* system, ntg_entity* source,
-                                unsigned int type, void* data)
+struct ntg_event _ntg_entity_system_create_event(
+        ntg_entity_system* system,
+        ntg_entity* source,
+        unsigned int type, void* data)
 {
     assert(system != NULL);
 
@@ -232,8 +238,7 @@ void _ntg_entity_system_rm_observe(
 
 bool _ntg_entity_system_has_observe(
         ntg_entity_system* system,
-        ntg_entity* observer,
-        ntg_entity* observed,
+        ntg_entity* observer, ntg_entity* observed,
         ntg_event_handler_fn handler_fn)
 {
     assert(system != NULL);

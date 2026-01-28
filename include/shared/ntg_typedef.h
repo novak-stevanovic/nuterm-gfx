@@ -53,6 +53,7 @@ typedef struct ntg_event_obs_vec ntg_event_obs_vec;
 typedef struct ntg_entity_type ntg_entity_type;
 
 typedef struct ntg_loop ntg_loop;
+typedef enum ntg_loop_status ntg_loop_status;
 typedef enum ntg_loop_end_mode ntg_loop_end_mode;
 typedef struct ntg_task_runner ntg_task_runner;
 typedef struct ntg_task_list ntg_task_list;
@@ -68,9 +69,9 @@ typedef struct ntg_stage_drawing ntg_stage_drawing;
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_def_scene ntg_def_scene;
-typedef struct ntg_focus_ctx_list ntg_focus_ctx_list;
-typedef enum ntg_focus_ctx_window_mode ntg_focus_ctx_window_mode;
-typedef enum ntg_focus_ctx_push_mode ntg_focus_ctx_push_mode;
+typedef struct ntg_scene_focus_list ntg_scene_focus_list;
+typedef enum ntg_focus_scope_window_mode ntg_focus_scope_window_mode;
+typedef enum ntg_focus_scope_push_mode ntg_focus_scope_push_mode;
 
 typedef struct ntg_object ntg_object;
 typedef enum ntg_object_type ntg_object_type;
@@ -82,7 +83,6 @@ typedef struct ntg_object_drawing ntg_object_drawing;
 typedef struct ntg_tmp_object_drawing ntg_tmp_object_drawing;
 
 typedef struct ntg_widget ntg_widget;
-typedef struct ntg_focus_mgr ntg_focus_mgr;
 typedef struct ntg_widget_vec ntg_widget_vec;
 typedef struct ntg_widget_map ntg_widget_map;
 typedef struct ntg_widget_size_map ntg_widget_size_map;

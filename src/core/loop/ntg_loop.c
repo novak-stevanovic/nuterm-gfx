@@ -7,7 +7,6 @@
 #include "core/loop/_ntg_loop.h"
 
 static void init_default(ntg_loop* loop);
-// function assumes that pending_stage_flag = true
 static void update_stage(ntg_loop* loop);
 
 /* -------------------------------------------------------------------------- */
@@ -28,8 +27,12 @@ ntg_loop* ntg_loop_new(ntg_entity_system* system)
     return new;
 }
 
-void ntg_loop_init(ntg_loop* loop, ntg_stage* init_stage, ntg_renderer* renderer,
-                   unsigned int framerate, unsigned int workers)
+void ntg_loop_init(ntg_loop* loop,
+        ntg_stage* init_stage,
+        ntg_renderer* renderer,
+        unsigned int framerate,
+        unsigned int workers,
+        bool (*on_event_fn)(ntg_loop* loop, struct nt_event event))
 {
     assert(loop != NULL);
     assert(init_stage != NULL);
@@ -55,17 +58,18 @@ void ntg_loop_init(ntg_loop* loop, ntg_stage* init_stage, ntg_renderer* renderer
     _ntg_task_runner_init(loop->_task_runner, loop->_platform, workers, loop);
     
     ntg_loop_set_stage(loop, init_stage);
+
+    loop->__on_event_fn = on_event_fn;
 }
 
 void ntg_loop_deinit(ntg_loop* loop)
 {
     assert(loop != NULL);
-    assert(!loop->_running);
-    if(loop->_running) return;
+    assert(loop->_status != NTG_LOOP_RUNNING);
 
     sarena_destroy(loop->_arena);
 
-    if(!loop->__force_break)
+    if(!loop->_force_end)
     {
         _ntg_task_runner_deinit(loop->_task_runner);
         _ntg_platform_deinit(loop->_platform);
@@ -87,32 +91,22 @@ bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
         if(event.type == NT_EVENT_KEY)
         {
             struct nt_key_event key = *(struct nt_key_event*)event.data;
-
-            if(stage->on_key_fn)
-                return stage->on_key_fn(stage, key);
-            else
-                return false;
+            return ntg_stage_on_key(stage, key);
         }
         else if(event.type == NT_EVENT_MOUSE)
         {
             struct nt_mouse_event mouse = *(struct nt_mouse_event*)event.data;
-
-            if(stage->on_mouse_fn)
-                return stage->on_mouse_fn(stage, mouse);
-            else
-                return false;
+            return ntg_stage_on_mouse(stage, mouse);
         }
-        else
-            return false;
+        else return false;
     }
-    else
-        return false;
+    else return false;
 }
 
 ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
 {
     assert(loop != NULL);
-    assert(!loop->_running);
+    assert(loop->_status != NTG_LOOP_RUNNING);
 
     size_t resize_counter = 0, sigwinch_counter = 0;
 
@@ -130,18 +124,14 @@ ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
 
     nt_status _status;
 
-    loop->_running = true;
-    loop->__loop = true;
-    loop->__force_break = false;
+    loop->_status = NTG_LOOP_RUNNING;
     nt_get_term_size(&loop->_app_size.x, &loop->_app_size.y);
 
     while(true)
     {
-        if(!(loop->__loop)) break;
-        if(loop->__pending_stage_flag)
-        {
-            update_stage(loop);
-        }
+        if(loop->_status == NTG_LOOP_END) break;
+
+        update_stage(loop);
 
         event_elapsed = nt_event_wait(&event, timeout, &_status);
         assert(_status == NT_SUCCESS);
@@ -160,7 +150,7 @@ ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
             sigwinch_counter++;
         }
 
-        loop->on_event_fn(loop, event);
+        loop->__on_event_fn(loop, event);
 
         // Frame end
         if(event.type == NT_EVENT_TIMEOUT)
@@ -205,7 +195,7 @@ ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
     }
 
     enum ntg_loop_end_mode status;
-    if(!loop->__force_break)
+    if(!loop->_force_end)
     {
         status = NTG_LOOP_END_CLEAN;
     }
@@ -227,9 +217,8 @@ bool ntg_loop_break(ntg_loop* loop, ntg_loop_end_mode end_mode)
 
     if(end_mode == NTG_LOOP_END_FORCE)
     {
-        loop->__loop = false;
-        loop->_running = false;
-        loop->__force_break = true;
+        loop->_status = NTG_LOOP_END;
+        loop->_force_end = true;
 
         return true;
     }
@@ -237,8 +226,8 @@ bool ntg_loop_break(ntg_loop* loop, ntg_loop_end_mode end_mode)
     {
         if(!_ntg_task_runner_is_running(loop->_task_runner))
         {
-            loop->__loop = false;
-            loop->_running = false;
+            loop->_status = NTG_LOOP_END;
+            loop->_force_end = false;
 
             return true;
         }
@@ -251,13 +240,14 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
 {
     assert(loop != NULL);
 
-    if(loop->_running)
+    if(loop->_status == NTG_LOOP_RUNNING)
     {
-        loop->__pending_stage_flag = true;
         loop->__pending_stage = stage;
     }
     else
     {
+        if(loop->_stage == stage) return;
+
         if(loop->_stage)
         {
             _ntg_stage_set_loop(loop->_stage, NULL);
@@ -268,10 +258,12 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
         }
 
         loop->_stage = stage;
+        loop->__pending_stage = stage;
     }
 }
 
-void ntg_task_runner_execute(ntg_task_runner* task_runner, 
+void ntg_task_runner_execute(
+        ntg_task_runner* task_runner, 
         void (*task_fn)(void* data, ntg_platform* platform),
         void* data)
 {
@@ -282,9 +274,10 @@ void ntg_task_runner_execute(ntg_task_runner* task_runner,
     _ntg_task_runner_execute(task_runner, task);
 }
 
-void ntg_platform_execute_later(ntg_platform* platform, 
-                                void (*task_fn)(void* data),
-                                void* data)
+void ntg_platform_execute_later(
+        ntg_platform* platform, 
+        void (*task_fn)(void* data),
+        void* data)
 {
     struct ntg_ptask task = {
         .task_fn = task_fn,
@@ -296,10 +289,11 @@ void ntg_platform_execute_later(ntg_platform* platform,
 
 static void init_default(ntg_loop* loop)
 {
-    loop->on_event_fn = ntg_loop_dispatch_event;
+    loop->__on_event_fn = ntg_loop_dispatch_event;
 
+    loop->_status = NTG_LOOP_READY;
+    loop->_force_end = false;
     loop->_framerate = 0;
-    loop->_running = false;
     loop->_app_size = ntg_xy(0, 0);
     loop->_stage = NULL;
     loop->_renderer = NULL;
@@ -310,10 +304,7 @@ static void init_default(ntg_loop* loop)
     loop->_platform = NULL;
     loop->_task_runner = NULL;
 
-    loop->__loop = false;
-    loop->__force_break = false;
     loop->__pending_stage = NULL;
-    loop->__pending_stage_flag = false;
 
     loop->data = NULL;
 }
@@ -322,6 +313,8 @@ static void update_stage(ntg_loop* loop)
 {
     ntg_stage* old = loop->_stage;
     ntg_stage* new = loop->__pending_stage;
+
+    if(old == new) return;
 
     if(old)
     {
@@ -335,6 +328,5 @@ static void update_stage(ntg_loop* loop)
     }
 
     loop->_stage = new;
-    loop->__pending_stage = NULL;
-    loop->__pending_stage_flag = false;
+    loop->__pending_stage = loop->_stage;
 }

@@ -13,8 +13,7 @@ struct ntg_decorator_width
 };
 
 struct ntg_decorator_width 
-ntg_decorator_width(size_t north, size_t east,
-                    size_t south, size_t west);
+ntg_decorator_width(size_t north, size_t east, size_t south, size_t west);
 
 enum ntg_decorator_enable_mode
 {
@@ -43,8 +42,9 @@ struct ntg_decorator
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_decorator_set_opts(ntg_decorator* decorator,
-                            struct ntg_decorator_opts opts);
+void ntg_decorator_set_opts(
+        ntg_decorator* decorator,
+        struct ntg_decorator_opts opts);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

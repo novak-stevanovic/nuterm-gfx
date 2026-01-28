@@ -4,10 +4,9 @@
 
 static void on_rm_child_fn(ntg_widget* _border_box, ntg_widget* child);
 
-static void 
-get_children(const ntg_border_box* box, ntg_widget** out_north,
-             ntg_widget** out_east, ntg_widget** out_south,
-             ntg_widget** out_west, ntg_widget** out_center);
+static void get_children(const ntg_border_box* box, ntg_widget** out_north,
+        ntg_widget** out_east, ntg_widget** out_south, ntg_widget** out_west,
+        ntg_widget** out_center);
 
 struct ntg_border_box_opts ntg_border_box_opts_def()
 {
@@ -59,7 +58,8 @@ void ntg_border_box_init(ntg_border_box* box)
     init_default(box);
 }
 
-void ntg_border_box_set(ntg_border_box* box,
+void ntg_border_box_set(
+        ntg_border_box* box,
         ntg_widget* widget,
         enum ntg_border_box_pos pos)
 {
@@ -76,7 +76,7 @@ void ntg_border_box_set(ntg_border_box* box,
         box->_children[pos] = widget;
     }
 
-    ntg_entity_raise_event_((ntg_entity*)box, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -382,10 +382,9 @@ void _ntg_border_box_arrange_fn(
         ntg_widget_xy_map_set(out_pos_map, center, center_pos);
 }
 
-static void 
-get_children(const ntg_border_box* box, ntg_widget** out_north,
-             ntg_widget** out_east, ntg_widget** out_south,
-             ntg_widget** out_west, ntg_widget** out_center)
+static void get_children(const ntg_border_box* box, ntg_widget** out_north,
+        ntg_widget** out_east, ntg_widget** out_south, ntg_widget** out_west,
+        ntg_widget** out_center)
 {
     (*out_north) = box->_children[NTG_BORDER_BOX_NORTH];
     (*out_east) = box->_children[NTG_BORDER_BOX_EAST];

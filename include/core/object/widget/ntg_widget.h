@@ -29,7 +29,7 @@ struct ntg_widget
     struct ntg_widget_hooks __hooks;
 
     struct ntg_vcell _background;
-    struct ntg_xy _user_min_size, _user_max_size, _user_grow;
+    struct ntg_xy _cont_min_size, _cont_max_size, _grow;
 
     ntg_decorator *_padding, *_border;
 
@@ -38,8 +38,8 @@ struct ntg_widget
         // void (*on_focus_gained_fn)(ntg_widget* widget);
         // void (*on_focus_lost_fn)(ntg_widget* widget);
         // void (*on_focus_out_of_scope_fn)(ntg_widget* widget);
-        bool (*on_key_fn)(ntg_widget* widget, struct nt_key_event key);
-        bool (*on_mouse_fn)(ntg_widget* widget, struct nt_mouse_event mouse);
+        bool (*__on_key_fn)(ntg_widget* widget, struct nt_key_event key);
+        bool (*__on_mouse_fn)(ntg_widget* widget, struct nt_mouse_event mouse);
     };
 
     void* data;
@@ -53,17 +53,23 @@ struct ntg_widget
 #define NTG_WIDGET_MAX_SIZE_UNSET NTG_SIZE_MAX
 #define NTG_WIDGET_GROW_UNSET NTG_SIZE_MAX
 
-void ntg_widget_set_user_min_size(ntg_widget* widget, struct ntg_xy size);
-void ntg_widget_set_user_max_size(ntg_widget* widget, struct ntg_xy size);
-void ntg_widget_set_user_grow(ntg_widget* widget, struct ntg_xy grow);
+void ntg_widget_set_cont_min_size(ntg_widget* widget, struct ntg_xy size);
+void ntg_widget_set_cont_max_size(ntg_widget* widget, struct ntg_xy size);
+void ntg_widget_set_grow(ntg_widget* widget, struct ntg_xy grow);
 void ntg_widget_set_background(ntg_widget* widget, struct ntg_vcell background);
 
 /* -------------------------------------------------------------------------- */
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_widget_on_key_def(ntg_widget* widget, struct nt_key_event key);
-bool ntg_widget_on_mouse_def(ntg_widget* widget, struct nt_mouse_event mouse);
+void ntg_widget_set_on_key_fn(ntg_widget* widget,
+        bool (*on_key_fn)(ntg_widget* widget, struct nt_key_event key));
+
+void ntg_widget_set_on_mouse_fn(ntg_widget* widget,
+        bool (*on_mouse_fn)(ntg_widget* widget, struct nt_mouse_event mouse));
+
+bool ntg_widget_on_key(ntg_widget* widget, struct nt_key_event key);
+bool ntg_widget_on_mouse(ntg_widget* widget, struct nt_mouse_event mouse);
 
 /* -------------------------------------------------------------------------- */
 /* SCENE STATE */
@@ -93,9 +99,10 @@ void ntg_widget_set_z_index(ntg_widget* widget, int z_index);
 
 /* LAYOUT PROCESS - CONVENIENCE */
 
-size_t ntg_widget_get_cont_for_size(const ntg_widget* widget,
-                                    ntg_orient orient,
-                                    bool constrain);
+size_t ntg_widget_get_cont_for_size(
+        const ntg_widget* widget,
+        ntg_orient orient,
+        bool constrain);
 
 struct ntg_object_measure
 ntg_widget_get_measure(const ntg_widget* widget, ntg_orient orient);
@@ -110,10 +117,10 @@ size_t ntg_widget_get_cont_size_1d(const ntg_widget* widget, ntg_orient orient);
 /* WIDGET TREE */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_widget_is_ancestor(const ntg_widget* widget,
-                            const ntg_widget* ancestor);
-bool ntg_widget_is_descendant(const ntg_widget* widget,
-                              const ntg_widget* descendant);
+bool ntg_widget_is_ancestor(const ntg_widget* widget, const ntg_widget* ancestor);
+bool ntg_widget_is_ancestor_eq(const ntg_widget* widget, const ntg_widget* ancestor);
+bool ntg_widget_is_descendant(const ntg_widget* widget, const ntg_widget* descendant);
+bool ntg_widget_is_descendant_eq(const ntg_widget* widget, const ntg_widget* descendant);
 
 const ntg_widget* ntg_widget_get_parent(const ntg_widget* widget);
 ntg_widget* ntg_widget_get_parent_(ntg_widget* widget);
@@ -121,22 +128,38 @@ ntg_widget* ntg_widget_get_parent_(ntg_widget* widget);
 const ntg_object* ntg_widget_get_group_root(const ntg_widget* widget);
 ntg_object* ntg_widget_get_group_root_(ntg_widget* widget);
 
-// uninited vec
-void ntg_widget_get_children(const ntg_widget* widget, ntg_widget_vec* out_vec);
-
-void ntg_widget_get_children_by_z(const ntg_widget* widget, ntg_widget_vec* out_vec);
+size_t ntg_widget_get_children(const ntg_widget* widget, ntg_widget** out_buff);
+size_t ntg_widget_get_children_by_z(const ntg_widget* widget, ntg_widget** out_buff);
 
 void ntg_widget_set_padding(ntg_widget* widget, ntg_decorator* padding);
 
 void ntg_widget_set_border(ntg_widget* widget, ntg_decorator* border);
+
+struct ntg_xy ntg_widget_map_to_ancestor_space(
+        const ntg_widget* widget_space,
+        const ntg_widget* ancestor_space,
+        struct ntg_xy point);
+
+struct ntg_xy ntg_widget_map_to_descendant_space(
+        const ntg_widget* widget_space,
+        const ntg_widget* descendant_space,
+        struct ntg_xy point);
+
+struct ntg_xy ntg_widget_map_to_scene_space(
+        const ntg_widget* widget_space,
+        struct ntg_xy point);
+
+struct ntg_xy ntg_widget_map_from_scene_space(
+        const ntg_widget* widget_space,
+        struct ntg_xy point);
 
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
 
 void ntg_widget_init(ntg_widget* widget,
-                     struct ntg_widget_layout_ops layout_ops,
-                     struct ntg_widget_hooks hooks);
+        struct ntg_widget_layout_ops layout_ops,
+        struct ntg_widget_hooks hooks);
 void ntg_widget_deinit(ntg_widget* widget);
 
 /* If child is already attached, performs full detachment. Then it updates the

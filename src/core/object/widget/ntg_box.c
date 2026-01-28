@@ -13,8 +13,7 @@ struct ntg_box_opts ntg_box_opts_def()
     };
 }
 
-static inline size_t 
-calculate_total_spacing(size_t spacing, size_t child_count);
+static inline size_t calculate_total_spacing(size_t spacing, size_t child_count);
 
 static void on_rm_child_fn(ntg_widget* _box, ntg_widget* child);
 
@@ -49,7 +48,9 @@ void ntg_box_init(ntg_box* box)
         .deinit_fn = NULL
     };
 
-    struct ntg_widget_hooks hooks = {0};
+    struct ntg_widget_hooks hooks = {
+        .on_rm_child_fn = on_rm_child_fn
+    };
 
     ntg_widget_init((ntg_widget*)box, layout_ops, hooks);
 }
@@ -67,7 +68,7 @@ void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
     
     box->_opts = opts;
 
-    ntg_entity_raise_event_((ntg_entity*)box, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_widget* child)
@@ -79,7 +80,7 @@ void ntg_box_add_child(ntg_box* box, ntg_widget* child)
 
     ntg_widget_vec_pushb(&box->_children, child, NULL);
 
-    ntg_entity_raise_event_((ntg_entity*)box, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_widget* child)
@@ -91,7 +92,7 @@ void ntg_box_rm_child(ntg_box* box, ntg_widget* child)
 
     ntg_widget_vec_rm(&box->_children, child, NULL);
 
-    ntg_entity_raise_event_((ntg_entity*)box, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -366,8 +367,7 @@ void _ntg_box_arrange_fn(
     }
 }
 
-static inline size_t 
-calculate_total_spacing(size_t spacing, size_t child_count)
+static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 {
     return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
 }

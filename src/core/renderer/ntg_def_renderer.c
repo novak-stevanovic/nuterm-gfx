@@ -35,18 +35,17 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer)
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-static void 
-full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
+static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
 
-static void 
-optimized_render(ntg_def_renderer* renderer,
-                 const ntg_stage_drawing* drawing,
-                 struct ntg_xy size);
+static void optimized_render(
+        ntg_def_renderer* renderer,
+        const ntg_stage_drawing* drawing,
+        struct ntg_xy size);
 
-static void 
-full_render(ntg_def_renderer* renderer,
-            const ntg_stage_drawing* drawing,
-            struct ntg_xy size);
+static void full_render(
+        ntg_def_renderer* renderer,
+        const ntg_stage_drawing* drawing,
+        struct ntg_xy size);
 
 /* -------------------------------------------------------------------------- */
 
@@ -59,9 +58,10 @@ void ntg_def_renderer_deinit(ntg_def_renderer* renderer)
     ntg_renderer_deinit((ntg_renderer*)renderer);
 }
 
-void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
-                                 const ntg_stage_drawing* stage_drawing,
-                                 sarena* arena)
+void _ntg_def_renderer_render_fn(
+        ntg_renderer* _renderer,
+        const ntg_stage_drawing* stage_drawing,
+        sarena* arena)
 {
     assert(_renderer != NULL);
 
@@ -93,8 +93,7 @@ void _ntg_def_renderer_render_fn(ntg_renderer* _renderer,
 
 /* -------------------------------------------------------------------------- */
 
-static void 
-full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
+static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
 {
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
@@ -116,12 +115,13 @@ full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
     nt_erase_scrollback(NULL);
 }
 
-static void 
-optimized_render(ntg_def_renderer* renderer,
-                 const ntg_stage_drawing* drawing,
-                 struct ntg_xy size)
+static void optimized_render(
+        ntg_def_renderer* renderer,
+        const ntg_stage_drawing* drawing,
+        struct ntg_xy size)
 {
-    struct ntg_xy old_back_buffer_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
+    struct ntg_xy old_back_buffer_size;
+    old_back_buffer_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
 
@@ -135,7 +135,8 @@ optimized_render(ntg_def_renderer* renderer,
 
             if((i < old_back_buffer_size.y) && (j < old_back_buffer_size.x))
             {
-                it_back_buffer_cell = ntg_stage_drawing_at_(&renderer->__backbuff, ntg_xy(j, i));
+                it_back_buffer_cell = ntg_stage_drawing_at_(&renderer->__backbuff,
+                        ntg_xy(j, i));
                 if(ntg_cell_are_equal(*it_back_buffer_cell, it_drawing_cell))
                 {
                     continue;
@@ -148,10 +149,10 @@ optimized_render(ntg_def_renderer* renderer,
     }
 }
 
-static void 
-full_render(ntg_def_renderer* renderer,
-            const ntg_stage_drawing* drawing,
-            struct ntg_xy size)
+static void full_render(
+        ntg_def_renderer* renderer,
+        const ntg_stage_drawing* drawing,
+        struct ntg_xy size)
 {
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
@@ -163,10 +164,12 @@ full_render(ntg_def_renderer* renderer,
         for(j = 0; j < size.x; j++)
         {
             it_drawing_cell = *(ntg_stage_drawing_at(drawing, ntg_xy(j, i)));
-            it_back_buffer_cell = ntg_stage_drawing_at_(&renderer->__backbuff, ntg_xy(j, i));
+            it_back_buffer_cell = ntg_stage_drawing_at_(&renderer->__backbuff,
+                    ntg_xy(j, i));
 
             (*it_back_buffer_cell) = it_drawing_cell;
-            nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx, j, i, NULL);
+            nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx,
+                    j, i, NULL);
         }
     }
 }

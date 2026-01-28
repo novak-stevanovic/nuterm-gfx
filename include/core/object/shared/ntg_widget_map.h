@@ -10,11 +10,13 @@ struct ntg_widget_map
     size_t __data_size, __count, __capacity;
 };
 
-void ntg_widget_map_init(ntg_widget_map* ctx, size_t capacity, size_t data_size,
-                         sarena* arena);
+void ntg_widget_map_init(
+        ntg_widget_map* ctx,
+        size_t capacity,
+        size_t data_size,
+        sarena* arena);
 
-void ntg_widget_map_set(ntg_widget_map* ctx, const ntg_widget* widget,
-                        void* data);
+void ntg_widget_map_set(ntg_widget_map* ctx, const ntg_widget* widget, void* data);
 
 void* ntg_widget_map_get(const ntg_widget_map* ctx, const ntg_widget* widget);
 

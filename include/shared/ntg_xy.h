@@ -258,9 +258,10 @@ ntg_oxy_from_xy(struct ntg_xy xy, ntg_orient orient)
 
 /* -------------------------------------------------------------------------- */
 
-static inline bool 
-ntg_xy_is_in_rectagle(struct ntg_xy rec_start, struct ntg_xy rec_end,
-                      struct ntg_xy pos)
+static inline bool ntg_xy_is_in_rectagle(
+        struct ntg_xy pos,
+        struct ntg_xy rec_start,
+        struct ntg_xy rec_end)
 {
     return ((pos.x >= rec_start.x) && (pos.y >= rec_start.y) &&
     (pos.x < rec_end.x) && (pos.y < rec_end.y));

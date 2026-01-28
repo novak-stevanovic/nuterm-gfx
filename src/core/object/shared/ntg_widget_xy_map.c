@@ -19,8 +19,10 @@ ntg_widget_xy_map* ntg_widget_xy_map_new(size_t child_count, sarena* arena)
     return new;
 }
 
-void ntg_widget_xy_map_set(ntg_widget_xy_map* map, const ntg_widget* widget,
-                           struct ntg_xy xy)
+void ntg_widget_xy_map_set(
+        ntg_widget_xy_map* map,
+        const ntg_widget* widget,
+        struct ntg_xy xy)
 {
     assert(map != NULL);
     assert(widget != NULL);
@@ -28,8 +30,9 @@ void ntg_widget_xy_map_set(ntg_widget_xy_map* map, const ntg_widget* widget,
     ntg_widget_map_set(&map->__base, widget, &xy);
 }
 
-struct ntg_xy 
-ntg_widget_xy_map_get(const ntg_widget_xy_map* map, const ntg_widget* widget)
+struct ntg_xy ntg_widget_xy_map_get(
+        const ntg_widget_xy_map* map,
+        const ntg_widget* widget)
 {
     assert(map != NULL);
     assert(widget != NULL);

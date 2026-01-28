@@ -57,10 +57,12 @@ void ntg_entity_observe(
         ntg_entity* observer,
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
+
 void ntg_entity_stop_observing(
         ntg_entity* observer,
         ntg_entity* observed,
         ntg_event_handler_fn handler_fn);
+
 bool ntg_entity_is_observing(
         ntg_entity* observer,
         ntg_entity* observed,

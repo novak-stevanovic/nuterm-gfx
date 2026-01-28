@@ -100,8 +100,11 @@ bool _ntg_platform_is_valid(ntg_platform* platform)
 
 static void* worker_fn(void* _data);
 
-void _ntg_task_runner_init(ntg_task_runner* task_runner, ntg_platform* platform,
-                           unsigned int worker_threads, ntg_loop* loop)
+void _ntg_task_runner_init(
+        ntg_task_runner* task_runner,
+        ntg_platform* platform,
+        unsigned int worker_threads,
+        ntg_loop* loop)
 {
     assert(task_runner != NULL);
     assert(platform != NULL);

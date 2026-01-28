@@ -16,8 +16,12 @@
  * If `grows` is NULL, all allocations will be treated equally.
  * 
  * RETURN VALUE: Total amount of distributed space. */
-size_t ntg_sap_cap_round_robin(const size_t* caps, const size_t* grows,
-                               size_t* out_size_map, size_t space_pool,
-                               size_t count, sarena* arena);
+size_t ntg_sap_cap_round_robin(
+        const size_t* caps,
+        const size_t* grows,
+        size_t* out_size_map,
+        size_t space_pool,
+        size_t count,
+        sarena* arena);
 
 #endif // NTG_SAP_H

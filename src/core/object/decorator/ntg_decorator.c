@@ -8,9 +8,8 @@ struct ntg_decorator_ldata
     struct ntg_decorator_width width; // calculated width
 };
 
-struct ntg_decorator_width ntg_decorator_width(
-        size_t north, size_t east,
-        size_t south, size_t west)
+struct ntg_decorator_width 
+ntg_decorator_width(size_t north, size_t east, size_t south, size_t west)
 {
     return (struct ntg_decorator_width) {
         .north = north,
@@ -28,13 +27,15 @@ struct ntg_decorator_opts ntg_decorator_opts_def()
     };
 }
 
-void ntg_decorator_set_opts(ntg_decorator* decorator, struct ntg_decorator_opts opts)
+void ntg_decorator_set_opts(
+        ntg_decorator* decorator,
+        struct ntg_decorator_opts opts)
 {
     assert(decorator != NULL);
 
     decorator->_opts = opts;
 
-    ntg_entity_raise_event_((ntg_entity*)decorator, NTG_EVENT_OBJECT_DIFF, NULL);
+    ntg_object_add_dirty((ntg_object*)decorator, NTG_OBJECT_DIRTY_FULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -102,9 +103,12 @@ void _ntg_decorator_ldata_deinit_fn(void* data, const ntg_object* _decorator)
     free(data);
 }
 
-struct ntg_object_measure 
-_ntg_decorator_measure_fn(const ntg_object* _decorator, void* _ldata,
-                          ntg_orient orient, bool constrained, sarena* arena)
+struct ntg_object_measure _ntg_decorator_measure_fn(
+        const ntg_object* _decorator,
+        void* _ldata,
+        ntg_orient orient,
+        bool constrained,
+        sarena* arena)
 {
     const ntg_decorator* decorator = (ntg_decorator*)_decorator;
     if(_decorator->_children.size == 0) return (struct ntg_object_measure) {0};

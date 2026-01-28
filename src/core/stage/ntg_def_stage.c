@@ -51,22 +51,25 @@ static void collect_by_z_tree(ntg_object* object, void* _data)
     struct collect_data* data = _data;
     ntg_object** array = data->array;
     size_t* counter = &(data->counter);
+    sarena* arena = data->arena;
 
     array[*counter] = object;
     (*counter)++;
 
-    if(object->_children.size == 0) return;
+    size_t children_size = object->_children.size;
 
-    ntg_object_vec sorted_children;
-    ntg_object_get_children_by_z(object, &sorted_children);
+    if(children_size == 0) return;
+
+    ntg_object** sorted_children = sarena_malloc(arena, sizeof(void*) *
+            children_size);
+    assert(sorted_children);
+    ntg_object_get_children_by_z(object, sorted_children);
 
     size_t i;
-    for(i = 0; i < sorted_children.size; i++)
+    for(i = 0; i < children_size; i++)
     {
-        collect_by_z_tree(sorted_children.data[i], _data);
+        collect_by_z_tree(sorted_children[i], _data);
     }
-
-    ntg_object_vec_deinit(&sorted_children, NULL);
 }
 
 static void draw(ntg_object* object, ntg_def_stage* stage)
@@ -79,8 +82,10 @@ static void draw(ntg_object* object, ntg_def_stage* stage)
     ntg_object_drawing_place_(drawing, ntg_xy(0, 0), size, &_stage->_drawing, pos);
 }
 
-void _ntg_def_stage_compose_fn(ntg_stage* _stage, struct ntg_xy size,
-                               sarena* arena)
+void _ntg_def_stage_compose_fn(
+        ntg_stage* _stage,
+        struct ntg_xy size,
+        sarena* arena)
 {
     assert(_stage != NULL);
 

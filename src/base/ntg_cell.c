@@ -19,8 +19,10 @@ void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
     ntg_vecgrid_deinit(&vecgrid->__base);
 }
 
-void ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid, struct ntg_xy size,
-                               struct ntg_xy size_cap)
+void ntg_cell_vecgrid_set_size(
+        ntg_cell_vecgrid* vecgrid,
+        struct ntg_xy size,
+        struct ntg_xy size_cap)
 {
     assert(vecgrid != NULL);
 
@@ -40,8 +42,7 @@ void ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid, struct ntg_xy size,
     }
 }
 
-struct ntg_xy 
-ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid)
+struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid)
 {
     assert(vecgrid != NULL);
 
@@ -62,8 +63,10 @@ void ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
     ntg_vecgrid_deinit(&vecgrid->__base);
 }
 
-void ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid, struct ntg_xy size,
-                                struct ntg_xy size_cap)
+void ntg_vcell_vecgrid_set_size(
+        ntg_vcell_vecgrid* vecgrid,
+        struct ntg_xy size,
+        struct ntg_xy size_cap)
 {
     assert(vecgrid != NULL);
 
@@ -83,8 +86,7 @@ void ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid, struct ntg_xy size,
     }
 }
 
-struct ntg_xy 
-ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid)
+struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid)
 {
     assert(vecgrid != NULL);
 
