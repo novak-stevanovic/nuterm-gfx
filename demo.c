@@ -53,7 +53,7 @@ struct loop_data
 {
     ntg_label* label;
     ntg_def_border* label_border;
-    ntg_def_scene* scene;
+    ntg_scene* scene;
     ntg_border_box* border_box;
 };
 
@@ -62,7 +62,7 @@ bool loop_process_fn(ntg_loop* loop, struct nt_event event)
     struct loop_data loop_data = *(struct loop_data*)loop->data;
     ntg_label* label = loop_data.label;
     ntg_def_border* label_border = loop_data.label_border;
-    ntg_def_scene* scene = loop_data.scene;
+    ntg_scene* scene = loop_data.scene;
     ntg_border_box* border_box = loop_data.border_box;
 
     if(event.type == NT_EVENT_KEY)
@@ -85,32 +85,12 @@ bool loop_process_fn(ntg_loop* loop, struct nt_event event)
         }
         if(nt_key_event_utf32_check(key, '3', false))
         {
-            ntg_scene_set_root(ntg_scn(scene), ntg_wdg(border_box));
+            ntg_scene_set_root(scene, ntg_wdg(border_box));
             return true;
         }
         if(nt_key_event_utf32_check(key, '4', false))
         {
-            ntg_scene_set_root(ntg_scn(scene), NULL);
-            return true;
-        }
-        if(nt_key_event_utf32_check(key, '5', false))
-        {
-            ntg_entity_destroy(ntg_ent(scene));
-            return true;
-        }
-        if(nt_key_event_utf32_check(key, '6', false))
-        {
-            ntg_entity_destroy(ntg_ent(label));
-            return true;
-        }
-        if(nt_key_event_utf32_check(key, '7', false))
-        {
-            ntg_entity_destroy(ntg_ent(label_border));
-            return true;
-        }
-        if(nt_key_event_utf32_check(key, '8', false))
-        {
-            ntg_entity_destroy(ntg_ent(border_box));
+            ntg_scene_set_root(scene, NULL);
             return true;
         }
     }
@@ -129,17 +109,17 @@ bool scene_on_key_fn(ntg_scene* scene, struct nt_key_event key)
     return false;
 }
 
-void gui_fn1(ntg_entity_system* es, void* _)
+void gui_fn1(void* _)
 {
     ntg_label* label = ntg_label_new(es);
     ntg_label_init(label);
 
-    ntg_def_scene* scene = ntg_def_scene_new(es);
-    ntg_def_scene_init(scene);
-    ntg_scene_set_on_key_fn(ntg_scn(scene), scene_on_key_fn);
+    ntg_scene* scene = ntg_scene_new(es);
+    ntg_scene_init(scene);
+    ntg_scene_set_on_key_fn(scene, scene_on_key_fn);
 
-    ntg_def_stage* stage = ntg_def_stage_new(es);
-    ntg_def_stage_init(stage);
+    ntg_stage* stage = ntg_stage_new(es);
+    ntg_stage_init(stage);
 
     ntg_def_renderer* renderer = ntg_def_renderer_new(es);
     ntg_def_renderer_init(renderer);
@@ -195,8 +175,8 @@ void gui_fn1(ntg_entity_system* es, void* _)
     ntg_border_box_set(border_box, ntg_wdg(west), NTG_BORDER_BOX_WEST);
     ntg_border_box_set(border_box, ntg_wdg(east), NTG_BORDER_BOX_EAST);
 
-    ntg_stage_set_scene(ntg_stg(stage), ntg_scn(scene));
-    ntg_scene_set_root(ntg_scn(scene), ntg_wdg(border_box));
+    ntg_stage_set_scene(stage, scene);
+    ntg_scene_set_root(scene, ntg_wdg(border_box));
 
     struct loop_data loop_data = {
         .label = label,
@@ -206,7 +186,7 @@ void gui_fn1(ntg_entity_system* es, void* _)
     };
 
     ntg_loop* loop = ntg_loop_new(es);
-    ntg_loop_init(loop, ntg_stg(stage), ntg_rdr(renderer), 60, 4, loop_process_fn);
+    ntg_loop_init(loop, stage, ntg_rdr(renderer), 60, 4, loop_process_fn);
 
     loop->data = &loop_data;
 

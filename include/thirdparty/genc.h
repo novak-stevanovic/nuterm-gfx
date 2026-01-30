@@ -85,6 +85,7 @@ typedef int (*genc_cmp_fn)(const void* container_data, const void* user_data);
  * void <name>_popb(struct <name>* vec, int* out_status);
  * void <name>_ins(struct <name>* vec, <type> data, size_t pos, int* out_status);
  * void <name>_rm_at(struct <name>* vec, size_t pos, int* out_status);
+ * void <name>_empty(struct <name>* vec, int* out_status);
  * void <name>_rm(struct <name>* vec, <type> data, int* out_status);
  * size_t <name>_find(const struct <name>* vec, <type> data, int* out_status);
  * bool <name>_exists(const struct <name>* vec, <type> data, int* out_status);
@@ -123,6 +124,10 @@ typedef int (*genc_cmp_fn)(const void* container_data, const void* user_data);
  * ERRORS:
  * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
  * 2) GENC_ERR_OUT_OF_BOUNDS - `pos` is greater than or equal to the size of the vector.
+ *
+ * void <name>_empty() empties the vector.
+ * ERRORS:
+ * 1) GENC_ERR_INVALID_ARG - `vec` is NULL.
  *
  * void <name>_rm() removes the first occurrence of `data` found in the vector.
  * ERRORS:
@@ -165,6 +170,8 @@ void genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
 
 void genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz,
                        int* out_status);
+
+void genc_vector_empty(struct genc_vector* v, int* out_status);
 
 void genc_vector_fit(struct genc_vector* v, size_t _datasz, int* out_status);
 
@@ -218,6 +225,12 @@ static inline void                                                             \
 name##_rm_at(struct name * v, size_t pos, int* out)                            \
 {                                                                              \
     genc_vector_rm_at((struct genc_vector*)v, pos, sizeof( type ), out);       \
+}                                                                              \
+                                                                               \
+static inline void                                                             \
+name##_empty(struct name * v, int* out)                                        \
+{                                                                              \
+    genc_vector_empty((struct genc_vector*)v, out);                            \
 }                                                                              \
                                                                                \
 static inline void                                                             \
@@ -845,6 +858,19 @@ void genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz,
     }
 
     --(v->size);
+}
+
+void genc_vector_empty(struct genc_vector* v, int* out_status)
+{
+    GENC_SET_OUT(out_status, GENC_SUCCESS);
+
+    if(v == NULL)
+    {
+        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
+        return;
+    }
+
+    v->size = 0;
 }
 
 void genc_vector_fit(struct genc_vector* v, size_t _datasz, int* out_status)

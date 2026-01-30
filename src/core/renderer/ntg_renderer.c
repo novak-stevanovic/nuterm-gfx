@@ -1,13 +1,15 @@
 #include "ntg.h"
 #include <assert.h>
+#include "shared/ntg_shared_internal.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_renderer_render(ntg_renderer* renderer,
-                         const ntg_stage_drawing* stage_drawing,
-                         sarena* arena)
+void ntg_renderer_render(
+        ntg_renderer* renderer,
+        const ntg_stage_drawing* stage_drawing,
+        sarena* arena)
 {
     assert(renderer != NULL);
 

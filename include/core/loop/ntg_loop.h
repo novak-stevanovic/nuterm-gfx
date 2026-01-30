@@ -1,9 +1,7 @@
 #ifndef NTG_LOOP_H
 #define NTG_LOOP_H
 
-#include <stdint.h>
-#include "core/entity/ntg_entity.h"
-#include "shared/ntg_xy.h"
+#include "shared/ntg_shared.h"
 
 #define NTG_LOOP_WORKERS_MAX 32
 #define NTG_LOOP_FRAMERATE_MAX 500
@@ -16,23 +14,29 @@ enum ntg_loop_status
 {
     NTG_LOOP_READY,
     NTG_LOOP_RUNNING,
+    NTG_LOOP_STOPPING,
     NTG_LOOP_END
 };
 
-enum ntg_loop_end_mode
+enum ntg_loop_stop_mode
 {
-    NTG_LOOP_END_CLEAN,
-    NTG_LOOP_END_FORCE,
+    NTG_LOOP_STOP_CLEAN,
+    NTG_LOOP_STOP_FORCE
+};
+
+enum ntg_loop_exit_status
+{
+    NTG_LOOP_EXIT_CLEAN,
+    NTG_LOOP_EXIT_PREMATURE
 };
 
 struct ntg_loop
 {
-    ntg_entity __base;
-
+    ntg_type _type;
     enum ntg_loop_status _status;
 
     struct ntg_xy _app_size;
-    bool _force_end;
+    ntg_loop_exit_status __exit_status;
     ntg_stage* _stage;
     unsigned int _framerate;
     uint64_t _elapsed; // elapsed ms since loop started
@@ -53,8 +57,6 @@ struct ntg_loop
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-ntg_loop* ntg_loop_new(ntg_entity_system* system);
-
 void ntg_loop_init(ntg_loop* loop,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
@@ -64,22 +66,23 @@ void ntg_loop_init(ntg_loop* loop,
 
 void ntg_loop_deinit(ntg_loop* loop);
 
-ntg_loop_end_mode ntg_loop_run(ntg_loop* loop);
+ntg_loop_exit_status ntg_loop_run(ntg_loop* loop);
 
 /* Used to stop the main loop. When this function is called, an issue may occur
  * if the task runner is still running tasks on worker threads. In this case,
- * behavior of the function depends on `end_mode` parameter.
+ * behavior of the function depends on `stop_mode` parameter.
  * 
- * If `end_mode` == NTG_LOOP_END_CLEAN, the function will fail and will return
+ * If `stop_mode` == NTG_LOOP_STOP_CLEAN, the function will fail and will return
  * false.
  *
- * If `end_mode` == NTG_LOOP_END_FORCE, the function will succeed regardless and
- * will return true. `ntg_loop_run()` will return NTG_LOOP_END_FORCE.
+ * If `stop_mode` == NTG_LOOP_STOP_FORCE, the function will succeed regardless and
+ * will return true. `ntg_loop_run()` will return NTG_LOOP_EXIT_PREMATURE if there
+ * were running tasks.
  *
  * The user should then clean up and terminate the program. This will leave the
  * threads running. If any of the tasks use `ntg_platform_execute_later`, the
  * request will be ignored. */
-bool ntg_loop_break(ntg_loop* loop, ntg_loop_end_mode end_mode);
+bool ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode);
 void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage);
 
 bool ntg_loop_is_running(const ntg_loop* loop);

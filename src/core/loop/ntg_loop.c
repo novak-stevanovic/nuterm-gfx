@@ -4,7 +4,8 @@
 #include <assert.h>
 #include "ntg.h"
 #include "nt.h"
-#include "core/loop/_ntg_loop.h"
+#include "core/loop/ntg_loop_internal.h"
+#include "shared/ntg_shared_internal.h"
 
 static void init_default(ntg_loop* loop);
 static void update_stage(ntg_loop* loop);
@@ -12,20 +13,6 @@ static void update_stage(ntg_loop* loop);
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
-
-ntg_loop* ntg_loop_new(ntg_entity_system* system)
-{
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_LOOP,
-        .deinit_fn = (ntg_entity_deinit_fn)ntg_loop_deinit,
-        .system = system
-    };
-
-    ntg_loop* new = (ntg_loop*)ntg_entity_create(entity_data);
-    assert(new != NULL);
-
-    return new;
-}
 
 void ntg_loop_init(ntg_loop* loop,
         ntg_stage* init_stage,
@@ -69,7 +56,7 @@ void ntg_loop_deinit(ntg_loop* loop)
 
     sarena_destroy(loop->_arena);
 
-    if(!loop->_force_end)
+    if(loop->__exit_status == NTG_LOOP_EXIT_CLEAN)
     {
         _ntg_task_runner_deinit(loop->_task_runner);
         _ntg_platform_deinit(loop->_platform);
@@ -103,7 +90,7 @@ bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
     else return false;
 }
 
-ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
+ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
 {
     assert(loop != NULL);
     assert(loop->_status != NTG_LOOP_RUNNING);
@@ -120,7 +107,6 @@ ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
     struct nt_event event;
     struct nt_resize_event resize_event;
     unsigned int event_elapsed;
-    struct ntg_event_loop_generic_data loop_event_data;
 
     nt_status _status;
 
@@ -177,11 +163,6 @@ ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
             timeout -= event_elapsed;
         }
 
-        // TODO
-        loop_event_data.event = event;
-        ntg_entity_raise_event_((ntg_entity*)loop, NTG_EVENT_LOOP_GENERIC,
-                               &loop_event_data);
-
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
         // Subtract time taken inside the loop iteration
@@ -194,31 +175,34 @@ ntg_loop_end_mode ntg_loop_run(ntg_loop* loop)
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
 
-    enum ntg_loop_end_mode status;
-    if(!loop->_force_end)
+    loop->_status = NTG_LOOP_END;
+    if(loop->__exit_status == NTG_LOOP_EXIT_PREMATURE)
     {
-        status = NTG_LOOP_END_CLEAN;
-    }
-    else
-    {
-        status = NTG_LOOP_END_FORCE;
         _ntg_platform_invalidate(loop->_platform);
         _ntg_task_runner_invalidate(loop->_task_runner);
     }
 
     ntg_log_log("%d %d", resize_counter, sigwinch_counter);
 
-    return status;
+    return loop->__exit_status;
 }
 
-bool ntg_loop_break(ntg_loop* loop, ntg_loop_end_mode end_mode)
+bool ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode)
 {
     assert(loop != NULL);
 
-    if(end_mode == NTG_LOOP_END_FORCE)
+    if(stop_mode == NTG_LOOP_STOP_FORCE)
     {
-        loop->_status = NTG_LOOP_END;
-        loop->_force_end = true;
+        if(_ntg_task_runner_is_running(loop->_task_runner))
+        {
+            loop->_status = NTG_LOOP_STOPPING;
+            loop->__exit_status = NTG_LOOP_EXIT_PREMATURE;
+        }
+        else
+        {
+            loop->_status = NTG_LOOP_STOPPING;
+            loop->__exit_status = NTG_LOOP_EXIT_CLEAN;
+        }
 
         return true;
     }
@@ -226,8 +210,8 @@ bool ntg_loop_break(ntg_loop* loop, ntg_loop_end_mode end_mode)
     {
         if(!_ntg_task_runner_is_running(loop->_task_runner))
         {
-            loop->_status = NTG_LOOP_END;
-            loop->_force_end = false;
+            loop->_status = NTG_LOOP_STOPPING;
+            loop->__exit_status = NTG_LOOP_EXIT_CLEAN;
 
             return true;
         }
@@ -240,7 +224,7 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
 {
     assert(loop != NULL);
 
-    if(loop->_status == NTG_LOOP_RUNNING)
+    if((loop->_status == NTG_LOOP_RUNNING) || (loop->_status == NTG_LOOP_STOPPING))
     {
         loop->__pending_stage = stage;
     }
@@ -292,7 +276,7 @@ static void init_default(ntg_loop* loop)
     loop->__on_event_fn = ntg_loop_dispatch_event;
 
     loop->_status = NTG_LOOP_READY;
-    loop->_force_end = false;
+    loop->__exit_status = NTG_LOOP_EXIT_CLEAN;
     loop->_framerate = 0;
     loop->_app_size = ntg_xy(0, 0);
     loop->_stage = NULL;

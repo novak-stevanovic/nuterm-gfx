@@ -1,9 +1,6 @@
 #include "ntg.h"
+#include "shared/ntg_shared_internal.h"
 #include <assert.h>
-#include <stdlib.h>
-#include "shared/_ntg_shared.h"
-#include "nt.h"
-#include "base/ntg_cell.h"
 
 void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid)
 {
@@ -36,8 +33,7 @@ void ntg_cell_vecgrid_set_size(
     {
         for(j = old_size.x; j < size.x; j++)
         {
-            it_cell = ntg_cell_vecgrid_at_(vecgrid, ntg_xy(j, i));
-            (*it_cell) = ntg_cell_default();
+            ntg_cell_vecgrid_set(vecgrid, ntg_cell_default(), ntg_xy(j, i));
         }
     }
 }
@@ -80,8 +76,7 @@ void ntg_vcell_vecgrid_set_size(
     {
         for(j = old_size.x; j < size.x; j++)
         {
-            it_cell = ntg_vcell_vecgrid_at_(vecgrid, ntg_xy(j, i));
-            (*it_cell) = ntg_vcell_default();
+            ntg_vcell_vecgrid_set(vecgrid, ntg_vcell_default(), ntg_xy(j, i));
         }
     }
 }

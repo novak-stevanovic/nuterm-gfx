@@ -1,12 +1,11 @@
 #ifndef NTG_CELL_H
 #define NTG_CELL_H
 
-#include <stdint.h>
-#include <string.h>
-#include "shared/ntg_typedef.h"
-#include "shared/ntg_vecgrid.h"
-#include "nt_gfx.h"
-#include "shared/ntg_xy.h"
+#include "shared/ntg_shared.h"
+#include "base/ntg_vecgrid.h"
+#include <assert.h>
+
+// TODO: remove include assert
 
 #define NTG_CELL_EMPTY ' '
 
@@ -63,7 +62,10 @@ struct ntg_vcell
             nt_style style;
         } overlay;
 
-        struct {} transparent;
+        struct 
+        {
+            size_t placeholder;
+        } transparent;
     };
     ntg_vcell_type type;
 };
@@ -129,7 +131,7 @@ ntg_vcell_bg(nt_color color)
     };
 }
 
-static inline bool 
+static inline bool
 ntg_vcell_are_equal(struct ntg_vcell c1, struct ntg_vcell c2)
 {
     if(c1.type != c2.type) return false;
@@ -148,7 +150,7 @@ ntg_vcell_are_equal(struct ntg_vcell c1, struct ntg_vcell c2)
     else return true;
 }
 
-static inline struct ntg_cell 
+static inline struct ntg_cell
 ntg_vcell_overwrite(struct ntg_vcell overwriting, struct ntg_cell overwritten)
 {
     if(overwriting.type == NTG_VCELL_FULL)
@@ -156,7 +158,7 @@ ntg_vcell_overwrite(struct ntg_vcell overwriting, struct ntg_cell overwritten)
         overwritten.codepoint = overwriting.full.codepoint;
         overwritten.gfx = overwriting.full.gfx;
     }
-    else if(NTG_VCELL_OVERLAY)
+    else if(overwriting.type == NTG_VCELL_OVERLAY)
     {
         overwritten.codepoint = overwriting.overlay.codepoint;
         overwritten.gfx.fg = overwriting.overlay.fg;
@@ -185,32 +187,34 @@ void ntg_cell_vecgrid_set_size(
         struct ntg_xy size_cap);
 struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid);
 
-static inline const struct ntg_cell*
-ntg_cell_vecgrid_at(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
+static inline struct ntg_cell
+ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
 {
-    if(vecgrid == NULL) return NULL;
+    assert(vecgrid);
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
         size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        return &(((const struct ntg_cell*)vecgrid->__base._data))[idx];
+        return (((const struct ntg_cell*)vecgrid->__base._data))[idx];
     }
     else
-        return NULL;
+    {
+        assert(0);
+        return ntg_cell_default();
+    }
 }
 
-static inline struct ntg_cell*
-ntg_cell_vecgrid_at_(ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
+static inline void
+ntg_cell_vecgrid_set(ntg_cell_vecgrid* vecgrid, struct ntg_cell cell, struct ntg_xy pos)
 {
-    if(vecgrid == NULL) return NULL;
+    assert(vecgrid);
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
         size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        return &(((struct ntg_cell*)vecgrid->__base._data))[idx];
+        ((struct ntg_cell*)vecgrid->__base._data)[idx] = cell;
     }
-    else
-        return NULL;
+    else assert(0);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -232,32 +236,34 @@ void ntg_vcell_vecgrid_set_size(
 
 struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid);
 
-static inline const struct ntg_vcell*
-ntg_vcell_vecgrid_at(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
+static inline struct ntg_vcell
+ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
 {
-    if(vecgrid == NULL) return NULL;
+    assert(vecgrid);
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
         size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        return &(((const struct ntg_vcell*)vecgrid->__base._data))[idx];
+        return (((const struct ntg_vcell*)vecgrid->__base._data))[idx];
     }
     else
-        return NULL;
+    {
+        assert(0);
+        return ntg_vcell_default();
+    }
 }
 
-static inline struct ntg_vcell*
-ntg_vcell_vecgrid_at_(ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
+static inline void
+ntg_vcell_vecgrid_set(ntg_vcell_vecgrid* vecgrid, struct ntg_vcell cell, struct ntg_xy pos)
 {
-    if(vecgrid == NULL) return NULL;
+    assert(vecgrid);
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
         size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        return &(((struct ntg_vcell*)vecgrid->__base._data))[idx];
+        ((struct ntg_vcell*)vecgrid->__base._data)[idx] = cell;
     }
-    else
-        return NULL;
+    else assert(0);
 }
 
 #endif // NTG_CELL_H

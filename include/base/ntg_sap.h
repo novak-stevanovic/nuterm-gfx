@@ -1,8 +1,7 @@
 #ifndef NTG_SAP_H
 #define NTG_SAP_H
 
-#include "thirdparty/sarena.h"
-#include <stddef.h>
+#include "shared/ntg_shared.h"
 
 /* Generic Space Allocation Policies. */
 

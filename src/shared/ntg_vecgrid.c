@@ -1,9 +1,10 @@
-#include "shared/ntg_vecgrid.h"
-#include "shared/_ntg_shared.h"
+#include "base/ntg_vecgrid.h"
+#include "shared/ntg_shared_internal.h"
 #include "shared/ntg_log.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include "shared/ntg_shared_internal.h"
 
 void ntg_vecgrid_init(ntg_vecgrid* vecgrid)
 {

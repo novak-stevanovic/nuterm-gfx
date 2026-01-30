@@ -1,24 +1,11 @@
 #include "nt.h"
 #include "ntg.h"
 #include <assert.h>
+#include "shared/ntg_shared_internal.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
-
-ntg_def_renderer* ntg_def_renderer_new(ntg_entity_system* system)
-{
-    struct ntg_entity_init_data entity_data = {
-        .type = &NTG_ENTITY_DEF_RENDERER,
-        .deinit_fn = (ntg_entity_deinit_fn)ntg_def_renderer_deinit,
-        .system = system
-    };
-
-    ntg_def_renderer* new = (ntg_def_renderer*)ntg_entity_create(entity_data);
-    assert(new != NULL);
-
-    return new;
-}
 
 void ntg_def_renderer_init(ntg_def_renderer* renderer)
 {
@@ -99,15 +86,15 @@ static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
 
     size_t i, j;
-    struct ntg_cell it_drawing_cell, *it_back_buffer_cell;
+    struct ntg_cell it_drawing_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_drawing_cell = ntg_cell_default();
-            it_back_buffer_cell = ntg_stage_drawing_at_(&renderer->__backbuff, ntg_xy(j, i));
-
-            (*it_back_buffer_cell) = it_drawing_cell;
+            ntg_stage_drawing_set(
+                    &renderer->__backbuff,
+                    ntg_cell_default(),
+                    ntg_xy(j, i));
         }
     }
 
@@ -126,24 +113,24 @@ static void optimized_render(
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
 
     size_t i, j;
-    struct ntg_cell it_drawing_cell, *it_back_buffer_cell;
+    struct ntg_cell it_drawing_cell;
+    struct ntg_cell it_backbuff_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_drawing_cell = *(ntg_stage_drawing_at(drawing, ntg_xy(j, i)));
+            it_drawing_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, i));
 
             if((i < old_back_buffer_size.y) && (j < old_back_buffer_size.x))
             {
-                it_back_buffer_cell = ntg_stage_drawing_at_(&renderer->__backbuff,
-                        ntg_xy(j, i));
-                if(ntg_cell_are_equal(*it_back_buffer_cell, it_drawing_cell))
+                it_backbuff_cell = ntg_stage_drawing_get(&renderer->__backbuff, ntg_xy(j, i));
+                if(ntg_cell_are_equal(it_backbuff_cell, it_drawing_cell))
                 {
                     continue;
                 }
             }
 
-            (*it_back_buffer_cell) = it_drawing_cell;
+            ntg_stage_drawing_set(&renderer->__backbuff, it_drawing_cell, ntg_xy(j, i));
             nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx, j, i, NULL);
         }
     }
@@ -158,18 +145,16 @@ static void full_render(
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
 
     size_t i, j;
-    struct ntg_cell it_drawing_cell, *it_back_buffer_cell;
+    struct ntg_cell it_drawing_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            it_drawing_cell = *(ntg_stage_drawing_at(drawing, ntg_xy(j, i)));
-            it_back_buffer_cell = ntg_stage_drawing_at_(&renderer->__backbuff,
-                    ntg_xy(j, i));
+            it_drawing_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, i));
 
-            (*it_back_buffer_cell) = it_drawing_cell;
-            nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx,
-                    j, i, NULL);
+            ntg_stage_drawing_set(&renderer->__backbuff, it_drawing_cell, ntg_xy(j, i));
+
+            nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx, j, i, NULL);
         }
     }
 }

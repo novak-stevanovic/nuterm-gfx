@@ -1,7 +1,6 @@
 #ifndef NTG_STRING_H
 #define NTG_STRING_H
 
-#include "shared/ntg_typedef.h"
 #include <stdint.h>
 #include <string.h>
 

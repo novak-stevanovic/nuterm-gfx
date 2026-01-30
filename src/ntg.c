@@ -3,8 +3,8 @@
 #include <pthread.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "core/entity/_ntg_entity_system.h"
-#include "core/loop/_ntg_loop.h"
+#include "core/loop/ntg_loop_internal.h"
+#include "shared/ntg_shared_internal.h"
 
 #define UCONV_IMPLEMENTATION
 #include "thirdparty/uconv.h"
@@ -88,11 +88,7 @@ static void* ntg_thread_fn(void* _data)
 {
     struct thread_fn_data* data = (struct thread_fn_data*)_data;
 
-    ntg_entity_system* es = _ntg_entity_system_new();
-
-    data->gui_fn(es, data->gui_fn_data);
-
-    _ntg_entity_system_destroy(es);
+    data->gui_fn(data->gui_fn_data);
 
     free(data);
 

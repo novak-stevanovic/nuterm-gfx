@@ -1,90 +1,115 @@
 #ifndef NTG_OBJECT_H
 #define NTG_OBJECT_H
 
-#include <stddef.h>
-#include "core/entity/ntg_entity.h"
-#include "shared/ntg_xy.h"
-#include "base/ntg_cell.h"
-#include "core/object/shared/ntg_object_drawing.h"
+#include "shared/ntg_shared.h"
+#include "core/object/ntg_object_drawing.h"
 #include "thirdparty/genc.h"
-#include "core/object/shared/ntg_object_measure.h"
+#include "core/object/ntg_object_layout.h"
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC DEFINITIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
 
 GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
-struct ntg_object_layout_ops
+/* -------------------------------------------------------------------------- */
+/* BORDER & PADDING */
+/* -------------------------------------------------------------------------- */
+
+enum ntg_object_dcr_enable
 {
-    ntg_object_layout_init_fn init_fn;
-    ntg_object_layout_deinit_fn deinit_fn;
-    ntg_object_measure_fn measure_fn;
-    ntg_object_constrain_fn constrain_fn;
-    ntg_object_arrange_fn arrange_fn;
-    ntg_object_draw_fn draw_fn;
+    NTG_OBJECT_DCR_ENABLE_MIN,
+    NTG_OBJECT_DCR_ENABLE_NAT,
+    NTG_OBJECT_DCR_ENABLE_ALWAYS
 };
 
-enum ntg_object_type
+struct ntg_object_border_style
 {
-    NTG_OBJECT_BASE,
-    NTG_OBJECT_DECORATOR
+    void* data;
+    void (*draw_fn)(struct ntg_xy size,
+            struct ntg_insets border_size,
+            ntg_object_tmp_drawing* out_drawing);
+    void (*free_fn)(void* data);
 };
 
-#define NTG_OBJECT_DIRTY_NONE 0
-#define NTG_OBJECT_DIRTY_MEASURE (1 << 0)
-#define NTG_OBJECT_DIRTY_CONSTRAIN (1 << 1)
-#define NTG_OBJECT_DIRTY_ARRANGE (1 << 2)
-#define NTG_OBJECT_DIRTY_DRAW (1 << 3)
-#define NTG_OBJECT_DIRTY_FULL ( \
-    NTG_OBJECT_DIRTY_MEASURE   | \
-    NTG_OBJECT_DIRTY_CONSTRAIN | \
-    NTG_OBJECT_DIRTY_ARRANGE   | \
-    NTG_OBJECT_DIRTY_DRAW )
+struct ntg_object_border_opts
+{
+    struct ntg_insets pref_size;
+    ntg_object_dcr_enable enable;
+};
 
-/* ------------------------------------------------------ */
+struct ntg_object_padding_opts
+{
+    ntg_object_dcr_enable enable;
+    struct ntg_insets pref_size;
+};
+
+/* -------------------------------------------------------------------------- */
+/* OBJECT */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_object
 {
-    ntg_entity __base;
-
-    enum ntg_object_type _type;
+    const ntg_type* _type;
 
     struct
     {
-        ntg_scene* _scene;
+        ntg_scene_layer* __scene_layer; // only root holds
         ntg_object* _parent;
         ntg_object_vec _children;
     };
 
     struct
     {
+        struct ntg_xy _user_min_size, _user_max_size, _user_grow;
+        struct ntg_vcell _def_bg;
+        int _z_index;
+    };
+
+    struct
+    {
         struct ntg_object_layout_ops __layout_ops;
-        void* __ldata;
+        void* __lctx;
+        struct ntg_xy _min_size, _nat_size, _max_size, _grow;
+        struct ntg_xy _size;
+        struct ntg_xy _pos;
+        ntg_object_drawing _drawing;
         uint8_t dirty;
     };
 
     struct
     {
-        struct ntg_xy _min_size, _nat_size, _max_size, _grow;
-        struct ntg_xy _size;
-        struct ntg_xy _pos;
-        int _z_index;
-        ntg_object_drawing _drawing;
+        struct
+        {
+            struct ntg_object_border_opts opts;
+            struct ntg_object_border_style style;
+            struct ntg_insets size;
+        } _border;
+
+        struct
+        {
+            struct ntg_object_padding_opts opts;
+            struct ntg_insets size;
+        } _padding;
     };
 };
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC API */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
 
-/* ------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
 /* OBJECT TREE */
-/* ------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
 
 const ntg_object* ntg_object_get_root(const ntg_object* object);
-
 ntg_object* ntg_object_get_root_(ntg_object* object);
+
+ntg_scene_layer* ntg_object_get_scene_layer_(ntg_object* object);
+const ntg_scene_layer* ntg_object_get_scene_layer(const ntg_object* object);
+
+ntg_scene* ntg_object_get_scene_(ntg_object* object);
+const ntg_scene* ntg_object_get_scene(const ntg_object* object);
 
 bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
 bool ntg_object_is_ancestor_eq(const ntg_object* object, const ntg_object* ancestor);
@@ -94,25 +119,73 @@ bool ntg_object_is_descendant_eq(const ntg_object* object, const ntg_object* des
 // Returns total count of objects in tree, including root
 size_t ntg_object_get_tree_size(const ntg_object* root);
 
-size_t ntg_object_get_children_by_z(const ntg_object* object, ntg_object** out_buff);
+size_t ntg_object_get_children_by_z(
+        const ntg_object* object,
+        ntg_object** out_buff,
+        size_t cap);
 
-struct ntg_xy ntg_object_map_to_ancestor_space(
-        const ntg_object* object_space,
-        const ntg_object* ancestor_space,
-        struct ntg_xy point);
+ntg_object* ntg_object_hit_test(
+        ntg_object* object,
+        struct ntg_xy pos,
+        struct ntg_xy* out_local_pos);
 
-struct ntg_xy ntg_object_map_to_descendant_space(
-        const ntg_object* object_space,
-        const ntg_object* descendant_space,
-        struct ntg_xy point);
+/* -------------------------------------------------------------------------- */
+/* CONTROL */
+/* -------------------------------------------------------------------------- */
 
-struct ntg_xy ntg_object_map_to_scene_space(
-        const ntg_object* object_space,
-        struct ntg_xy point);
+#define NTG_OBJECT_MIN_SIZE_UNSET 0
+#define NTG_OBJECT_MAX_SIZE_UNSET NTG_SIZE_MAX
+#define NTG_OBJECT_GROW_UNSET NTG_SIZE_MAX
 
-struct ntg_xy ntg_object_map_from_scene_space(
-        const ntg_object* object_space,
-        struct ntg_xy point);
+void ntg_object_set_user_min_size(ntg_object* object, struct ntg_xy size);
+void ntg_object_set_user_max_size(ntg_object* object, struct ntg_xy size);
+void ntg_object_set_user_grow(ntg_object* object, struct ntg_xy grow);
+void ntg_object_set_z_index(ntg_object* object, int z_index);
+void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg);
+
+void ntg_object_set_border_opts(
+        ntg_object* object,
+        struct ntg_object_border_opts opts);
+void ntg_object_set_border_style(
+        ntg_object* object,
+        struct ntg_object_border_style style);
+void ntg_object_set_padding_opts(
+        ntg_object* object,
+        struct ntg_object_padding_opts opts);
+
+/* -------------------------------------------------------------------------- */
+/* SPACE MAPPING */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_dxy ntg_object_map_to_ancestor(
+        const ntg_object* object,
+        const ntg_object* ancestor,
+        struct ntg_dxy point);
+
+struct ntg_dxy ntg_object_map_to_descendant(
+        const ntg_object* object,
+        const ntg_object* descendant,
+        struct ntg_dxy point);
+
+struct ntg_dxy ntg_object_map_to_scene_layer(
+        const ntg_object* object,
+        struct ntg_dxy point);
+
+struct ntg_dxy ntg_object_map_from_scene_layer(
+        const ntg_object* object,
+        struct ntg_dxy point);
+
+struct ntg_dxy ntg_object_map_to_scene(
+        const ntg_object* object,
+        struct ntg_dxy point);
+
+struct ntg_dxy ntg_object_map_from_scene(
+        const ntg_object* object,
+        struct ntg_dxy point);
+
+/* -------------------------------------------------------------------------- */
+/* TRAVERSE HELPERS */
+/* -------------------------------------------------------------------------- */
 
 #define NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fn_name, perform_fn)               \
 static void fn_name(ntg_object* object, void* data)                            \
@@ -140,65 +213,28 @@ static void fn_name(ntg_object* object, void* data)                            \
     perform_fn(object, data);                                                  \
 }                                                                              \
 
-/* ------------------------------------------------------ */
-/* LAYOUT */
-/* ------------------------------------------------------ */
-
-// Set size and position of root
-void ntg_object_root_layout(ntg_object* root, struct ntg_xy size);
-
-void ntg_object_measure(
-        ntg_object* object,
-        ntg_orient orient,
-        bool constrained,
-        sarena* arena);
-
-void ntg_object_constrain(ntg_object* object, ntg_orient orient, sarena* arena);
-void ntg_object_arrange(ntg_object* object, sarena* arena);
-void ntg_object_draw(ntg_object* object, sarena* arena);
-
-struct ntg_xy ntg_object_get_pos_abs(const ntg_object* object);
-
-// Layout helpers
-size_t ntg_object_get_for_size(
-        const ntg_object* object,
-        ntg_orient orient,
-        bool constrained);
-
-struct ntg_object_measure
-ntg_object_get_measure(const ntg_object* object, ntg_orient orient);
-
-size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
-
-void ntg_object_set_z_index(ntg_object* object, int z_index);
-
-void ntg_object_add_dirty(ntg_object* object, uint8_t dirty);
-
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* PROTECTED */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
-void ntg_object_init(ntg_object* object,
+void ntg_object_init(
+        ntg_object* object,
         struct ntg_object_layout_ops layout_ops,
-        ntg_object_type type);
+        const ntg_type* type);
 void ntg_object_deinit(ntg_object* object);
 
-/* Updates only the tree. Does not update scene. 
+/* Updates only the tree.
  * Called internally by types extending ntg_object. */
 void ntg_object_attach(ntg_object* parent, ntg_object* child);
 
-/* Updates only the tree. Does not update scene.
+/* Updates only the tree.
  * Called internally by types extending ntg_object. */
 void ntg_object_detach(ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* INTERNAL */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
-void _ntg_object_attach_scene(ntg_object* root, ntg_scene* scene);
-void _ntg_object_detach_scene(ntg_object* root);
-
-// Called internally by ntg_scene. Updates only the object's state
-void _ntg_object_set_scene(ntg_object* object, ntg_scene* scene);
+void _ntg_object_root_set_scene_layer(ntg_object* object, ntg_scene_layer* layer);
 
 #endif // NTG_OBJECT_H

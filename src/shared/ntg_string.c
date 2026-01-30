@@ -1,5 +1,6 @@
 #include "ntg.h"
 #include <assert.h>
+#include "shared/ntg_shared_internal.h"
 
 size_t ntg_str_count(struct ntg_strv str, char sep)
 {
