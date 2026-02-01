@@ -303,7 +303,7 @@ void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg)
 
 void ntg_object_set_border_opts(
         ntg_object* object,
-        struct ntg_object_border_opts opts)
+        struct ntg_border_opts opts)
 {
     assert(object != NULL);
 
@@ -312,20 +312,9 @@ void ntg_object_set_border_opts(
     object->dirty |= NTG_OBJECT_DIRTY_FULL;
 }
 
-void ntg_object_set_border_style(
-        ntg_object* object,
-        struct ntg_object_border_style style)
-{
-    assert(object != NULL);
-
-    object->_border.style = style;
-
-    object->dirty |= NTG_OBJECT_DIRTY_DRAW;
-}
-
 void ntg_object_set_padding_opts(
         ntg_object* object,
-        struct ntg_object_padding_opts opts)
+        struct ntg_padding_opts opts)
 {
     assert(object != NULL);
 
@@ -448,6 +437,7 @@ static void init_default(ntg_object* object)
 void ntg_object_init(
         ntg_object* object,
         struct ntg_object_layout_ops layout_ops,
+        struct ntg_object_hooks hooks,
         const ntg_type* type)
 {
     assert(object != NULL);
@@ -461,6 +451,8 @@ void ntg_object_init(
 
     object->__layout_ops = layout_ops;
     ntg_object_drawing_init(&object->_drawing);
+
+    object->__hooks = hooks;
 
     object->_def_bg = ntg_vcell_default();
     object->_user_min_size = ntg_xy(
@@ -716,16 +708,16 @@ void _ntg_object_lctx_init(ntg_object* object)
 {
     assert(object);
 
-    if(object->__layout_ops.lctx_init_fn)
-        object->__lctx = object->__layout_ops.lctx_init_fn(object);
+    if(object->__layout_ops.init_fn)
+        object->__lctx = object->__layout_ops.init_fn(object);
     else
         object->__lctx = NULL;
 }
 
 void _ntg_object_lctx_deinit(ntg_object* object)
 {
-    if(object->__layout_ops.lctx_deinit_fn)
-        object->__layout_ops.lctx_deinit_fn(object->__lctx, object);
+    if(object->__layout_ops.deinit_fn)
+        object->__layout_ops.deinit_fn(object->__lctx, object);
 
     object->__lctx = NULL;
 }
@@ -736,9 +728,10 @@ void _ntg_object_hmeasure(ntg_object* object, sarena* arena)
     assert(arena);
 
     struct ntg_object_measure measure = {0};
-    if(object->__layout_ops.hmeasure_fn)
+    if(object->__layout_ops.measure_fn)
     {
-        measure = object->__layout_ops.hmeasure_fn(object, object->__lctx, arena);
+        measure = object->__layout_ops.measure_fn(object,
+                NTG_ORIENT_H, object->__lctx, arena);
 
         size_t extra = ntg_insets_hsum(object->_padding.opts.pref_size) +
                 ntg_insets_hsum(object->_border.opts.pref_size);
@@ -776,13 +769,14 @@ void _ntg_object_hconstrain(ntg_object* object, sarena* arena)
     assert(object);
     assert(arena);
 
-    ntg_object* it_obj;
-
     ntg_object_size_map map;
     size_map_init(&map, &object->_children, arena);
 
-    if(object->__layout_ops.hconstrain_fn)
-        object->__layout_ops.hconstrain_fn(object, &map, object->__lctx, arena);
+    if(object->__layout_ops.constrain_fn)
+    {
+        object->__layout_ops.constrain_fn(object, NTG_ORIENT_H,
+                &map, object->__lctx, arena);
+    }
 
     size_t i;
     ntg_object* it_child;
@@ -810,9 +804,10 @@ void _ntg_object_vmeasure(ntg_object* object, sarena* arena)
     assert(arena);
 
     struct ntg_object_measure measure = {0};
-    if(object->__layout_ops.vmeasure_fn)
+    if(object->__layout_ops.measure_fn)
     {
-        measure = object->__layout_ops.vmeasure_fn(object, object->__lctx, arena);
+        measure = object->__layout_ops.measure_fn(object,
+                NTG_ORIENT_V, object->__lctx, arena);
 
         size_t extra = ntg_insets_vsum(object->_padding.opts.pref_size) +
                 ntg_insets_vsum(object->_border.opts.pref_size);
@@ -851,13 +846,14 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena)
     assert(object);
     assert(arena);
 
-    ntg_object* it_obj;
-
     ntg_object_size_map map;
     size_map_init(&map, &object->_children, arena);
 
-    if(object->__layout_ops.vconstrain_fn)
-        object->__layout_ops.vconstrain_fn(object, &map, object->__lctx, arena);
+    if(object->__layout_ops.constrain_fn)
+    {
+        object->__layout_ops.constrain_fn(object, NTG_ORIENT_V,
+                &map, object->__lctx, arena);
+    }
 
     size_t i;
     ntg_object* it_child;
@@ -885,8 +881,6 @@ void _ntg_object_arrange(ntg_object* object, sarena* arena)
 {
     assert(object);
     assert(arena);
-
-    ntg_object* it_obj;
 
     ntg_object_pos_map map;
     pos_map_init(&map, &object->_children, arena);
@@ -936,9 +930,9 @@ void _ntg_object_draw(ntg_object* object, sarena* arena)
     tmp_drawing_init(&object_drawing, object_size, bg, arena);
 
     // Draw border
-    if(object->_border.style.draw_fn)
+    if(object->_border.opts.style.draw_fn)
     {
-        object->_border.style.draw_fn(object_size, bsize, &object_drawing);
+        object->_border.opts.style.draw_fn(object_size, bsize, &object_drawing);
     }
 
     size_t i, j;

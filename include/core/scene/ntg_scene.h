@@ -2,6 +2,7 @@
 #define NTG_SCENE_H
 
 #include "shared/ntg_shared.h"
+#include "base/ntg_xy.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

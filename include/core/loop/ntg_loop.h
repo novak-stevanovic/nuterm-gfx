@@ -1,7 +1,10 @@
 #ifndef NTG_LOOP_H
 #define NTG_LOOP_H
 
+#include <stdint.h>
 #include "shared/ntg_shared.h"
+#include "base/ntg_type.h"
+#include "base/ntg_xy.h"
 
 #define NTG_LOOP_WORKERS_MAX 32
 #define NTG_LOOP_FRAMERATE_MAX 500

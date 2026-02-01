@@ -2,6 +2,7 @@
 #define NTG_OBJECT_LAYOUT_H
 
 #include "shared/ntg_shared.h"
+#include <stdint.h>
 
 /* ========================================================================== */
 /* PUBLIC - TYPES */
@@ -9,12 +10,10 @@
 
 struct ntg_object_layout_ops
 {
-    ntg_object_lctx_init_fn lctx_init_fn;
-    ntg_object_lctx_deinit_fn lctx_deinit_fn;
-    ntg_object_hmeasure_fn hmeasure_fn;
-    ntg_object_hconstrain_fn hconstrain_fn;
-    ntg_object_vmeasure_fn vmeasure_fn;
-    ntg_object_vconstrain_fn vconstrain_fn;
+    ntg_object_lctx_init_fn init_fn;
+    ntg_object_lctx_deinit_fn deinit_fn;
+    ntg_object_measure_fn measure_fn;
+    ntg_object_constrain_fn constrain_fn;
     ntg_object_arrange_fn arrange_fn;
     ntg_object_draw_fn draw_fn;
 };
@@ -100,8 +99,10 @@ void ntg_object_tmp_drawing_set(
 // To fetch measure/size for the whole object(including border and padding),
 // access object fields directly or use on of these helpers:
 
-struct ntg_object_measure ntg_object_get_hmeasure(const ntg_object* object);
-struct ntg_object_measure ntg_object_get_vmeasure(const ntg_object* object);
+struct ntg_object_measure 
+ntg_object_get_measure(const ntg_object* object, ntg_orient orient);
+size_t ntg_object_get_for_size(const ntg_object* object, ntg_orient orient);
+size_t ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
 
 // To fetch measure/size for object excluding border and padding, use one
 // of these functions:
@@ -109,9 +110,10 @@ struct ntg_object_measure ntg_object_get_vmeasure(const ntg_object* object);
 struct ntg_xy ntg_object_get_min_size_cont(const ntg_object* object);
 struct ntg_xy ntg_object_get_nat_size_cont(const ntg_object* object);
 struct ntg_xy ntg_object_get_max_size_cont(const ntg_object* object);
-struct ntg_object_measure ntg_object_get_hmeasure_cont(const ntg_object* object);
-struct ntg_object_measure ntg_object_get_vmeasure_cont(const ntg_object* object);
+struct ntg_object_measure
+ntg_object_get_measure_cont(const ntg_object* object, ntg_orient orient);
 struct ntg_xy ntg_object_get_size_cont(const ntg_object* object);
+size_t ntg_object_get_size_1d_cont(const ntg_object* object, ntg_orient orient);
 
 // To fetch measure/size for object excluding border, use one of these
 // functions:
@@ -119,8 +121,8 @@ struct ntg_xy ntg_object_get_size_cont(const ntg_object* object);
 struct ntg_xy ntg_object_get_min_size_pad(const ntg_object* object);
 struct ntg_xy ntg_object_get_nat_size_pad(const ntg_object* object);
 struct ntg_xy ntg_object_get_max_size_pad(const ntg_object* object);
-struct ntg_object_measure ntg_object_get_hmeasure_pad(const ntg_object* object);
-struct ntg_object_measure ntg_object_get_vmeasure_pad(const ntg_object* object);
+struct ntg_object_measure 
+ntg_object_get_measure_pad(const ntg_object* object, ntg_orient orient);
 struct ntg_xy ntg_object_get_size_pad(const ntg_object* object);
 
 /* ========================================================================== */

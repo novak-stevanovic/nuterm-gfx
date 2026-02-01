@@ -2,6 +2,7 @@
 #define NTG_SCENE_LAYER_H
 
 #include "shared/ntg_shared.h"
+#include "base/ntg_xy.h"
 
 struct ntg_scene_layer
 {

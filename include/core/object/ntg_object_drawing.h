@@ -2,6 +2,7 @@
 #define NTG_OBJECT_DRAWING_H
 
 #include "shared/ntg_shared.h"
+#include "base/ntg_cell.h"
 
 struct ntg_object_drawing
 {

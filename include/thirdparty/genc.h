@@ -1688,8 +1688,14 @@ void genc_simple_list_popf(struct genc_simple_list* list, int* out_status)
         GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
         return;
     }
-
+    
     if(list->size == 0)
+    {
+        GENC_SET_OUT(out_status, GENC_ERR_NO_DATA);
+        return;
+    }
+
+    if(list->size == 1)
     {
         free(list->head->data);
         free(list->head);

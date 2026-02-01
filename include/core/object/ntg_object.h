@@ -23,7 +23,7 @@ enum ntg_object_dcr_enable
     NTG_OBJECT_DCR_ENABLE_ALWAYS
 };
 
-struct ntg_object_border_style
+struct ntg_border_style
 {
     void* data;
     void (*draw_fn)(struct ntg_xy size,
@@ -32,13 +32,14 @@ struct ntg_object_border_style
     void (*free_fn)(void* data);
 };
 
-struct ntg_object_border_opts
+struct ntg_border_opts
 {
+    struct ntg_border_style style;
     struct ntg_insets pref_size;
     ntg_object_dcr_enable enable;
 };
 
-struct ntg_object_padding_opts
+struct ntg_padding_opts
 {
     ntg_object_dcr_enable enable;
     struct ntg_insets pref_size;
@@ -47,6 +48,11 @@ struct ntg_object_padding_opts
 /* -------------------------------------------------------------------------- */
 /* OBJECT */
 /* -------------------------------------------------------------------------- */
+
+struct ntg_object_hooks
+{
+    void (*on_child_rm_fn)(ntg_object* object, ntg_object* child);
+};
 
 struct ntg_object
 {
@@ -77,18 +83,19 @@ struct ntg_object
         uint8_t dirty;
     };
 
+    struct ntg_object_hooks __hooks;
+
     struct
     {
         struct
         {
-            struct ntg_object_border_opts opts;
-            struct ntg_object_border_style style;
+            struct ntg_border_opts opts;
             struct ntg_insets size;
         } _border;
 
         struct
         {
-            struct ntg_object_padding_opts opts;
+            struct ntg_padding_opts opts;
             struct ntg_insets size;
         } _padding;
     };
@@ -145,13 +152,10 @@ void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg);
 
 void ntg_object_set_border_opts(
         ntg_object* object,
-        struct ntg_object_border_opts opts);
-void ntg_object_set_border_style(
-        ntg_object* object,
-        struct ntg_object_border_style style);
+        struct ntg_border_opts opts);
 void ntg_object_set_padding_opts(
         ntg_object* object,
-        struct ntg_object_padding_opts opts);
+        struct ntg_padding_opts opts);
 
 /* -------------------------------------------------------------------------- */
 /* SPACE MAPPING */
@@ -214,12 +218,57 @@ static void fn_name(ntg_object* object, void* data)                            \
 }                                                                              \
 
 /* ========================================================================== */
+/* BORDER STYLE */
+/* ========================================================================== */
+
+struct ntg_def_border_style_data
+{
+    struct ntg_vcell top_left, top,
+    top_right, right, bottom_right,
+    bottom, bottom_left, left, pad;
+};
+
+static inline struct ntg_border_style 
+ntg_def_border_style(struct ntg_def_border_style_data def_style);
+
+struct ntg_border_style 
+ntg_border_style_def();
+
+struct ntg_border_style 
+ntg_border_style_monochrome(nt_color color);
+
+struct ntg_border_style
+ntg_border_style_uniform(struct nt_gfx gfx, uint32_t codepoint);
+
+struct ntg_border_style
+ntg_border_style_uniform_edge(struct nt_gfx gfx, uint32_t codepoint);
+
+struct ntg_border_style
+ntg_border_style_single(struct nt_gfx gfx);
+
+struct ntg_border_style
+ntg_border_style_double(struct nt_gfx gfx);
+
+struct ntg_border_style
+ntg_border_style_rounded(struct nt_gfx gfx);
+
+struct ntg_border_style
+ntg_border_style_heavy(struct nt_gfx gfx);
+
+struct ntg_border_style
+ntg_border_style_dashed(struct nt_gfx gfx);
+
+struct ntg_border_style
+ntg_border_style_ascii(struct nt_gfx gfx);
+
+/* ========================================================================== */
 /* PROTECTED */
 /* ========================================================================== */
 
 void ntg_object_init(
         ntg_object* object,
         struct ntg_object_layout_ops layout_ops,
+        struct ntg_object_hooks hooks,
         const ntg_type* type);
 void ntg_object_deinit(ntg_object* object);
 

@@ -2,6 +2,7 @@
 #define NTG_STAGE_H
 
 #include "shared/ntg_shared.h"
+#include "core/stage/ntg_stage_drawing.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */

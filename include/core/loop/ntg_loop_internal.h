@@ -3,6 +3,7 @@
 
 #include "shared/ntg_shared.h"
 #include "core/loop/ntg_loop.h"
+#include "thirdparty/genc.h"
 
 /* -------------------------------------------------------------------------- */
 /* PLATFORM */

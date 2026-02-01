@@ -18,6 +18,8 @@
 
 struct ntg_event;
 struct nt_event;
+struct nt_mouse_event;
+struct nt_key_event;
 struct ntg_xy;
 struct ntg_object_measure;
 
@@ -73,6 +75,7 @@ typedef struct ntg_object_vec ntg_object_vec;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_pos_map ntg_object_pos_map;
 typedef struct ntg_object_drawing ntg_object_drawing;
+typedef struct ntg_tmp_object_drawing ntg_tmp_object_drawing;
 typedef struct ntg_object_tmp_drawing ntg_object_tmp_drawing;
 
 typedef struct ntg_widget ntg_widget;
@@ -81,10 +84,10 @@ typedef struct ntg_widget_vec ntg_widget_vec;
 typedef struct ntg_label ntg_label;
 typedef enum ntg_label_wrap ntg_label_wrap;
 typedef enum ntg_label_align ntg_label_align;
-typedef struct ntg_color_block ntg_color_block;
-typedef struct ntg_prog_bar ntg_prog_bar;
+typedef struct ntg_cblock ntg_cblock;
+typedef struct ntg_pbar ntg_pbar;
 typedef struct ntg_box ntg_box;
-typedef struct ntg_border_box ntg_border_box;
+typedef struct ntg_bbox ntg_bbox;
 
 typedef void* (*ntg_object_lctx_init_fn)(
         const ntg_object* object);
@@ -93,24 +96,15 @@ typedef void (*ntg_object_lctx_deinit_fn)(
         void* lctx,
         const ntg_object* object);
 
-typedef struct ntg_object_measure (*ntg_object_hmeasure_fn)(
+typedef struct ntg_object_measure (*ntg_object_measure_fn)(
         const ntg_object* object,
+        ntg_orient orient,
         void* lctx,
         sarena* arena);
 
-typedef struct ntg_object_measure (*ntg_object_vmeasure_fn)(
+typedef void (*ntg_object_constrain_fn)(
         const ntg_object* object,
-        void* lctx,
-        sarena* arena);
-
-typedef void (*ntg_object_hconstrain_fn)(
-        const ntg_object* object,
-        ntg_object_size_map* out_size_map,
-        void* lctx,
-        sarena* arena);
-
-typedef void (*ntg_object_vconstrain_fn)(
-        const ntg_object* object,
+        ntg_orient orient,
         ntg_object_size_map* out_size_map,
         void* lctx,
         sarena* arena);

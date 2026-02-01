@@ -1,8 +1,9 @@
 #ifndef NTG_STRING_H
 #define NTG_STRING_H
 
+#include "shared/ntg_shared.h"
+#include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 struct ntg_str
 {

@@ -1,9 +1,11 @@
 #ifndef NTG_CELL_H
 #define NTG_CELL_H
 
+#include <stdint.h>
+#include <assert.h>
 #include "shared/ntg_shared.h"
 #include "base/ntg_vecgrid.h"
-#include <assert.h>
+#include "nt_gfx.h"
 
 // TODO: remove include assert
 

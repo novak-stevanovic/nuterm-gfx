@@ -39,9 +39,9 @@ const ntg_type NTG_OBJECT = {
 //     ._size = sizeof(ntg_box)
 // };
 // 
-// const ntg_type NTG_BORDER_BOX = {
+// const ntg_type NTG_BBOX = {
 //     .__parent = &NTG_WIDGET,
-//     ._size = sizeof(ntg_border_box)
+//     ._size = sizeof(ntg_bbox)
 // };
 // 
 // const ntg_type NTG_LABEL = {
@@ -49,14 +49,14 @@ const ntg_type NTG_OBJECT = {
 //     ._size = sizeof(ntg_label)
 // };
 // 
-// const ntg_type NTG_COLOR_BLOCK = {
+// const ntg_type NTG_CBLOCK = {
 //     .__parent = &NTG_WIDGET,
-//     ._size = sizeof(ntg_color_block)
+//     ._size = sizeof(ntg_cblock)
 // };
 // 
-// const ntg_type NTG_PROG_BAR = {
+// const ntg_type NTG_PBAR = {
 //     .__parent = &NTG_WIDGET,
-//     ._size = sizeof(ntg_prog_bar)
+//     ._size = sizeof(ntg_pbar)
 // };
 
 /* -------------------------------------------------------------------------- */
