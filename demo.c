@@ -3,7 +3,7 @@
 #include <assert.h>
 
 const char* lorem = 
-"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi ullamcorper "
+"Lorem ipsum dolor sit amet, consew9eiufhewioufhewoihfi0ewfioehwiofhewiohfctetur adipiscing elit. Morbi ullamcorper "
 "a diam ut mollis. Sed sed diam eu erat consequat finibus pulvinar eu eros. "
 "Donec accumsan scelerisque dolor. Aenean consequat ac massa et fringilla. "
 "Aliquam sem leo, tincidunt convallis lorem sed, laoreet lacinia urna. "
@@ -49,82 +49,53 @@ const char* lorem =
 "dolor ut euismod tempor. In hac habitasse platea dictumst. Proin eget "
 "vestibulum diam.";
 
-struct loop_data
+bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
 {
-    ntg_label* label;
-    ntg_def_border* label_border;
-    ntg_scene* scene;
-    ntg_border_box* border_box;
-};
-
-bool loop_process_fn(ntg_loop* loop, struct nt_event event)
-{
-    struct loop_data loop_data = *(struct loop_data*)loop->data;
-    ntg_label* label = loop_data.label;
-    ntg_def_border* label_border = loop_data.label_border;
-    ntg_scene* scene = loop_data.scene;
-    ntg_border_box* border_box = loop_data.border_box;
-
     if(event.type == NT_EVENT_KEY)
     {
         struct nt_key_event key = *(struct nt_key_event*)event.data;
         if(nt_key_event_utf32_check(key, 'q', false))
         {
-            ntg_loop_break(loop, false);
+            ntg_loop_break(loop, true);
             return true;
         }
-        if(nt_key_event_utf32_check(key, '1', false))
-        {
-            ntg_widget_set_border(ntg_wdg(label), ntg_dcr(label_border));
-            return true;
-        }
-        if(nt_key_event_utf32_check(key, '2', false))
-        {
-            ntg_widget_set_border(ntg_wdg(label), NULL);
-            return true;
-        }
-        if(nt_key_event_utf32_check(key, '3', false))
-        {
-            ntg_scene_set_root(scene, ntg_wdg(border_box));
-            return true;
-        }
-        if(nt_key_event_utf32_check(key, '4', false))
-        {
-            ntg_scene_set_root(scene, NULL);
-            return true;
-        }
-    }
-
-    return ntg_loop_dispatch_event(loop, event);
-}
-
-bool scene_on_key_fn(ntg_scene* scene, struct nt_key_event key)
-{
-    if(nt_key_event_utf32_check(key, 'd', true))
-    {
-        ntg_loop_break(scene->_stage->_loop, NTG_LOOP_END_CLEAN);
-        return true;
     }
 
     return false;
 }
 
+// bool scene_on_key_fn(ntg_scene* scene, struct nt_key_event key)
+// {
+//     if(nt_key_event_utf32_check(key, 'd', true))
+//     {
+//         ntg_loop_break(scene->_stage->_loop, NTG_LOOP_STOP_CLEAN);
+//         return true;
+//     }
+// 
+//     return false;
+// }
+
 void gui_fn1(void* _)
 {
-    ntg_label* label = ntg_label_new(es);
-    ntg_label_init(label);
+    ntg_cleanup_batch* batch = ntg_cleanup_batch_new();
 
-    ntg_scene* scene = ntg_scene_new(es);
-    ntg_scene_init(scene);
-    ntg_scene_set_on_key_fn(scene, scene_on_key_fn);
+    ntg_label label;
+    ntg_label_init(&label);
 
-    ntg_stage* stage = ntg_stage_new(es);
-    ntg_stage_init(stage);
+    ntg_scene scene;
+    ntg_scene_init(&scene);
+    // ntg_scene_set_on_key_fn(&scene, scene_on_key_fn);
 
-    ntg_def_renderer* renderer = ntg_def_renderer_new(es);
-    ntg_def_renderer_init(renderer);
+    ntg_stage stage;
+    ntg_stage_init(&stage);
 
-    ntg_label_set_text(label, ntg_strv_cstr(lorem));
+    ntg_def_renderer renderer;
+    ntg_def_renderer_init(&renderer);
+
+    ntg_scene_layer layer;
+    ntg_scene_layer_init(&layer);
+
+    ntg_label_set_text(&label, lorem, strlen(lorem));
     struct nt_gfx label_gfx = {
         .fg = nt_color_new_auto(nt_rgb_new(255, 255, 255)),
         .bg = nt_color_new_auto(nt_rgb_new(143, 0, 255)),
@@ -139,58 +110,61 @@ void gui_fn1(void* _)
         .autotrim = true,
         .indent = 2
     };
-    ntg_label_set_opts(label, opts);
+    ntg_label_set_opts(&label, opts);
 
-    ntg_def_padding* label_padding = ntg_def_padding_new(es);
-    ntg_def_padding_init(label_padding);
-    ntg_widget_set_padding(ntg_wdg(label), ntg_dcr(label_padding));
-
-    ntg_def_border* label_border = ntg_def_border_new(es);
-    ntg_def_border_init(label_border);
-    struct nt_gfx border_gfx = {
-        .bg = nt_color_new_auto(nt_rgb_new(143, 0, 255)),
-        .fg = nt_color_new_auto(nt_rgb_new(200, 200, 200)),
-        .style = NT_STYLE_DEFAULT
+    struct ntg_border_style label_border_style = ntg_def_border_style_new(
+            ntg_def_border_style_single(NT_GFX_DEFAULT));
+    struct ntg_border_opts label_border_opts = {
+        .style = label_border_style,
+        .enable = NTG_OBJECT_DCR_ENABLE_MIN,
+        .pref_size = ntg_insets(1, 1, 1, 1)
     };
-    ntg_def_border_set_style(label_border, ntg_def_border_style_single(border_gfx));
+    ntg_object_set_border_opts(ntg_obj(&label), label_border_opts);
 
-    ntg_border_box* border_box = ntg_border_box_new(es);
-    ntg_border_box_init(border_box);
+    ntg_main_panel main_panel;
+    ntg_main_panel_init(&main_panel);
 
-    ntg_color_block* west = ntg_color_block_new(es);
-    ntg_color_block_init(west);
-    ntg_color_block_set_color(west, nt_color_new_auto(nt_rgb_new(200, 0, 40)));
+    ntg_color_block west;
+    ntg_color_block_init(&west);
+    ntg_color_block_set_color(&west, nt_color_new_auto(nt_rgb_new(200, 0, 40)));
 
-    ntg_color_block* east = ntg_color_block_new(es);
-    ntg_color_block_init(east);
-    ntg_color_block_set_color(east, nt_color_new_auto(nt_rgb_new(40, 0, 200)));
+    ntg_color_block east;
+    ntg_color_block_init(&east);
+    ntg_color_block_set_color(&east, nt_color_new_auto(nt_rgb_new(40, 0, 200)));
 
-    ntg_widget_set_cont_min_size(ntg_wdg(west), ntg_xy(5, NTG_WIDGET_MIN_SIZE_UNSET));
-    ntg_widget_set_cont_min_size(ntg_wdg(east), ntg_xy(5, NTG_WIDGET_MIN_SIZE_UNSET));
+    ntg_object_set_user_min_size(ntg_obj(&west), ntg_xy(5, NTG_OBJECT_MIN_SIZE_UNSET));
+    ntg_object_set_user_min_size(ntg_obj(&east), ntg_xy(5, NTG_OBJECT_MIN_SIZE_UNSET));
 
-    ntg_box* center = ntg_box_new(es);
-    ntg_box_init(center);
+    ntg_box center;
+    ntg_box_init(&center);
 
-    ntg_border_box_set(border_box, ntg_wdg(label), NTG_BORDER_BOX_NORTH);
-    ntg_border_box_set(border_box, ntg_wdg(west), NTG_BORDER_BOX_WEST);
-    ntg_border_box_set(border_box, ntg_wdg(east), NTG_BORDER_BOX_EAST);
+    ntg_main_panel_set(&main_panel, ntg_obj(&label), NTG_MAIN_PANEL_NORTH);
+    ntg_main_panel_set(&main_panel, ntg_obj(&west), NTG_MAIN_PANEL_WEST);
+    ntg_main_panel_set(&main_panel, ntg_obj(&east), NTG_MAIN_PANEL_EAST);
 
-    ntg_stage_set_scene(stage, scene);
-    ntg_scene_set_root(scene, ntg_wdg(border_box));
+    ntg_stage_set_scene(&stage, &scene);
+    ntg_scene_layer_set_root(&layer, ntg_obj(&main_panel));
+    ntg_scene_attach_layer(&scene, &layer, NULL, NTG_SCENE_ATTACH_POLICY_ROOT);
 
-    struct loop_data loop_data = {
-        .label = label,
-        .label_border = label_border,
-        .scene = scene,
-        .border_box = border_box
-    };
+    ntg_loop loop;
+    ntg_loop_init(&loop, &stage, ntg_rnd(&renderer), 60, 4, loop_on_event_fn);
 
-    ntg_loop* loop = ntg_loop_new(es);
-    ntg_loop_init(loop, stage, ntg_rdr(renderer), 60, 4, loop_process_fn);
+    ntg_cleanup_batch_add_many(batch,
+        NTG_CLEANUP_PAIR(&loop, ntg_loop_deinit_),
+        NTG_CLEANUP_PAIR(&renderer, ntg_def_renderer_deinit_),
+        NTG_CLEANUP_PAIR(&stage, ntg_stage_deinit_),
+        NTG_CLEANUP_PAIR(&scene, ntg_scene_deinit_),
+        NTG_CLEANUP_PAIR(&layer, ntg_scene_layer_deinit_),
+        NTG_CLEANUP_PAIR(&center, ntg_box_deinit_),
+        NTG_CLEANUP_PAIR(&label, ntg_label_deinit_),
+        NTG_CLEANUP_PAIR(&west, ntg_color_block_deinit_),
+        NTG_CLEANUP_PAIR(&east, ntg_color_block_deinit_),
+        NTG_CLEANUP_PAIR(&main_panel, ntg_main_panel_deinit_),
+    );
 
-    loop->data = &loop_data;
+    ntg_log_log("LOOP END | STATUS: %d", ntg_loop_run(&loop));
 
-    ntg_loop_run(loop);
+    ntg_cleanup_batch_destroy(batch);
 }
 
 int main(int argc, char *argv[])

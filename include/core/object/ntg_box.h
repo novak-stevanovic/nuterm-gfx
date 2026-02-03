@@ -32,6 +32,7 @@ struct ntg_box
 
 void ntg_box_init(ntg_box* box);
 void ntg_box_deinit(ntg_box* box);
+void ntg_box_deinit_(void* _box);
 
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box);
 void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts);

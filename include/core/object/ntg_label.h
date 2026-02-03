@@ -43,15 +43,15 @@ struct ntg_label
 {
     ntg_object __base;
 
-    struct ntg_str _text;
     struct ntg_label_opts _opts;
 
-    struct // used for layout
+    struct
     {
-        struct ntg_str_utf32 __utf32_text;
-        size_t __utf32_row_count;
-        struct ntg_strv_utf32* __utf32_rows;
-    };
+        char* data;
+        size_t len;
+    } _text;
+
+    struct ntg_label_priv* __priv;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -60,8 +60,9 @@ struct ntg_label
 
 void ntg_label_init(ntg_label* label);
 void ntg_label_deinit(ntg_label* label);
+void ntg_label_deinit_(void* _label);
 
 void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts);
-void ntg_label_set_text(ntg_label* label, struct ntg_strv text);
+void ntg_label_set_text(ntg_label* label, const char* text, size_t len);
 
 #endif // NTG_LABEL_H

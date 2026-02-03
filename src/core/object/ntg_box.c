@@ -110,6 +110,11 @@ void ntg_box_deinit(ntg_box* box)
     ntg_object_deinit((ntg_object*)box);
 }
 
+void ntg_box_deinit_(void* _box)
+{
+    ntg_box_deinit(_box);
+}
+
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,
         ntg_orient orient,

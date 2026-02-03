@@ -68,6 +68,7 @@ void ntg_loop_init(ntg_loop* loop,
         bool (*on_event_fn)(ntg_loop* loop, struct nt_event event));
 
 void ntg_loop_deinit(ntg_loop* loop);
+void ntg_loop_deinit_(void* _loop);
 
 ntg_loop_exit_status ntg_loop_run(ntg_loop* loop);
 

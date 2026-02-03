@@ -84,10 +84,10 @@ typedef struct ntg_widget_vec ntg_widget_vec;
 typedef struct ntg_label ntg_label;
 typedef enum ntg_label_wrap ntg_label_wrap;
 typedef enum ntg_label_align ntg_label_align;
-typedef struct ntg_cblock ntg_cblock;
-typedef struct ntg_pbar ntg_pbar;
+typedef struct ntg_color_block ntg_color_block;
+typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
-typedef struct ntg_bbox ntg_bbox;
+typedef struct ntg_main_panel ntg_main_panel;
 
 typedef void* (*ntg_object_lctx_init_fn)(
         const ntg_object* object);

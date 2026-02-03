@@ -70,6 +70,11 @@ void ntg_loop_deinit(ntg_loop* loop)
     init_default(loop);
 }
 
+void ntg_loop_deinit_(void* _loop)
+{
+    ntg_loop_deinit(_loop);
+}
+
 bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
 {
     if(loop->_stage)
@@ -115,7 +120,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
 
     while(true)
     {
-        if(loop->_status == NTG_LOOP_END) break;
+        if(loop->_status == NTG_LOOP_STOPPING) break;
 
         update_stage(loop);
 
@@ -136,7 +141,8 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
             sigwinch_counter++;
         }
 
-        loop->__on_event_fn(loop, event);
+        if(loop->__on_event_fn)
+            loop->__on_event_fn(loop, event);
 
         // Frame end
         if(event.type == NT_EVENT_TIMEOUT)

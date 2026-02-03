@@ -4,15 +4,16 @@
 #include "shared/ntg_shared.h"
 #include "core/stage/ntg_stage_drawing.h"
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC DEFINITIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
 
 struct ntg_stage
 {
     ntg_scene* _scene;
 
     bool __compose;
+    struct ntg_xy _size;
     ntg_stage_drawing _drawing;
 
     ntg_loop* _loop;
@@ -26,12 +27,13 @@ struct ntg_stage
     void* data;
 };
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC API */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
 
 void ntg_stage_init(ntg_stage* stage);
 void ntg_stage_deinit(ntg_stage* stage);
+void ntg_stage_deinit_(void* _stage);
 
 void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena);
 
@@ -49,9 +51,9 @@ void ntg_stage_set_on_mouse_fn(ntg_stage* stage,
         bool (*on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse));
 bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* INTERNAL */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop);
 

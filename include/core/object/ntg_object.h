@@ -26,7 +26,9 @@ enum ntg_object_dcr_enable
 struct ntg_border_style
 {
     void* data;
-    void (*draw_fn)(struct ntg_xy size,
+    void (*draw_fn)(
+            void* data,
+            struct ntg_xy size,
             struct ntg_insets border_size,
             ntg_object_tmp_drawing* out_drawing);
     void (*free_fn)(void* data);
@@ -118,10 +120,12 @@ const ntg_scene_layer* ntg_object_get_scene_layer(const ntg_object* object);
 ntg_scene* ntg_object_get_scene_(ntg_object* object);
 const ntg_scene* ntg_object_get_scene(const ntg_object* object);
 
-bool ntg_object_is_ancestor(const ntg_object* object, const ntg_object* ancestor);
-bool ntg_object_is_ancestor_eq(const ntg_object* object, const ntg_object* ancestor);
-bool ntg_object_is_descendant(const ntg_object* object, const ntg_object* descendant);
-bool ntg_object_is_descendant_eq(const ntg_object* object, const ntg_object* descendant);
+bool ntg_object_is_descendant(
+        const ntg_object* object,
+        const ntg_object* descendant);
+bool ntg_object_is_descendant_eq(
+        const ntg_object* object,
+        const ntg_object* descendant);
 
 // Returns total count of objects in tree, including root
 size_t ntg_object_get_tree_size(const ntg_object* root);
@@ -171,21 +175,17 @@ struct ntg_dxy ntg_object_map_to_descendant(
         const ntg_object* descendant,
         struct ntg_dxy point);
 
-struct ntg_dxy ntg_object_map_to_scene_layer(
-        const ntg_object* object,
-        struct ntg_dxy point);
+struct ntg_dxy 
+ntg_object_map_to_scene_layer(const ntg_object* object, struct ntg_dxy point);
 
-struct ntg_dxy ntg_object_map_from_scene_layer(
-        const ntg_object* object,
-        struct ntg_dxy point);
+struct ntg_dxy 
+ntg_object_map_from_scene_layer(const ntg_object* object, struct ntg_dxy point);
 
-struct ntg_dxy ntg_object_map_to_scene(
-        const ntg_object* object,
-        struct ntg_dxy point);
+struct ntg_dxy 
+ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
 
-struct ntg_dxy ntg_object_map_from_scene(
-        const ntg_object* object,
-        struct ntg_dxy point);
+struct ntg_dxy 
+ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 
 /* -------------------------------------------------------------------------- */
 /* TRAVERSE HELPERS */
@@ -217,49 +217,46 @@ static void fn_name(ntg_object* object, void* data)                            \
     perform_fn(object, data);                                                  \
 }                                                                              \
 
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* BORDER STYLE */
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 
-struct ntg_def_border_style_data
+struct ntg_def_border_style_dt
 {
     struct ntg_vcell top_left, top,
-    top_right, right, bottom_right,
-    bottom, bottom_left, left, pad;
+        top_right, right, bottom_right,
+        bottom, bottom_left, left, padding;
 };
 
-static inline struct ntg_border_style 
-ntg_def_border_style(struct ntg_def_border_style_data def_style);
-
-struct ntg_border_style 
-ntg_border_style_def();
-
-struct ntg_border_style 
-ntg_border_style_monochrome(nt_color color);
-
 struct ntg_border_style
-ntg_border_style_uniform(struct nt_gfx gfx, uint32_t codepoint);
+ntg_def_border_style_new(struct ntg_def_border_style_dt data);
 
-struct ntg_border_style
-ntg_border_style_uniform_edge(struct nt_gfx gfx, uint32_t codepoint);
+struct ntg_def_border_style_dt
+ntg_def_border_style_monochrome(nt_color color);
 
-struct ntg_border_style
-ntg_border_style_single(struct nt_gfx gfx);
+struct ntg_def_border_style_dt
+ntg_def_border_style_uniform(struct nt_gfx gfx, uint32_t codepoint);
 
-struct ntg_border_style
-ntg_border_style_double(struct nt_gfx gfx);
+struct ntg_def_border_style_dt
+ntg_def_border_style_uniform_edge(struct nt_gfx gfx, uint32_t codepoint);
 
-struct ntg_border_style
-ntg_border_style_rounded(struct nt_gfx gfx);
+struct ntg_def_border_style_dt
+ntg_def_border_style_single(struct nt_gfx gfx);
 
-struct ntg_border_style
-ntg_border_style_heavy(struct nt_gfx gfx);
+struct ntg_def_border_style_dt
+ntg_def_border_style_double(struct nt_gfx gfx);
 
-struct ntg_border_style
-ntg_border_style_dashed(struct nt_gfx gfx);
+struct ntg_def_border_style_dt
+ntg_def_border_style_rounded(struct nt_gfx gfx);
 
-struct ntg_border_style
-ntg_border_style_ascii(struct nt_gfx gfx);
+struct ntg_def_border_style_dt
+ntg_def_border_style_heavy(struct nt_gfx gfx);
+
+struct ntg_def_border_style_dt
+ntg_def_border_style_dashed(struct nt_gfx gfx);
+
+struct ntg_def_border_style_dt
+ntg_def_border_style_ascii(struct nt_gfx gfx);
 
 /* ========================================================================== */
 /* PROTECTED */

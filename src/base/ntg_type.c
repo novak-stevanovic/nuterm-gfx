@@ -26,76 +26,76 @@ bool ntg_type_are_equal(const ntg_type* type1, const ntg_type* type2)
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-/* NTG_OBJECT */
+/* OBJECT */
 /* -------------------------------------------------------------------------- */
 
-const ntg_type NTG_OBJECT = {
+const ntg_type NTG_TYPE_OBJECT = {
     .__parent = NULL,
     ._size = sizeof(ntg_object)
 };
 
-// const ntg_type NTG_BOX = {
-//     .__parent = &NTG_WIDGET,
-//     ._size = sizeof(ntg_box)
-// };
-// 
-// const ntg_type NTG_BBOX = {
-//     .__parent = &NTG_WIDGET,
-//     ._size = sizeof(ntg_bbox)
-// };
-// 
-// const ntg_type NTG_LABEL = {
-//     .__parent = &NTG_WIDGET,
-//     ._size = sizeof(ntg_label)
-// };
-// 
-// const ntg_type NTG_CBLOCK = {
-//     .__parent = &NTG_WIDGET,
-//     ._size = sizeof(ntg_cblock)
-// };
-// 
-// const ntg_type NTG_PBAR = {
-//     .__parent = &NTG_WIDGET,
-//     ._size = sizeof(ntg_pbar)
-// };
+const ntg_type NTG_TYPE_BOX = {
+    .__parent = &NTG_TYPE_OBJECT,
+    ._size = sizeof(ntg_box)
+};
+
+const ntg_type NTG_TYPE_MAIN_PANEL = {
+    .__parent = &NTG_TYPE_OBJECT,
+    ._size = sizeof(ntg_main_panel)
+};
+
+const ntg_type NTG_TYPE_LABEL = {
+    .__parent = &NTG_TYPE_OBJECT,
+    ._size = sizeof(ntg_label)
+};
+
+const ntg_type NTG_TYPE_COLOR_BLOCK = {
+    .__parent = &NTG_TYPE_OBJECT,
+    ._size = sizeof(ntg_color_block)
+};
+
+const ntg_type NTG_TYPE_PROG_BAR = {
+    .__parent = &NTG_TYPE_OBJECT,
+    ._size = sizeof(ntg_prog_bar)
+};
 
 /* -------------------------------------------------------------------------- */
-/* NTG_SCENE */
+/* SCENE */
 /* -------------------------------------------------------------------------- */
 
-const ntg_type NTG_SCENE = {
+const ntg_type NTG_TYPE_SCENE = {
     .__parent = NULL,
     ._size = sizeof(ntg_scene)
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_STAGE */
+/* STAGE */
 /* -------------------------------------------------------------------------- */
 
-const ntg_type NTG_STAGE = {
+const ntg_type NTG_TYPE_STAGE = {
     .__parent = NULL,
     ._size = sizeof(ntg_stage)
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_RENDERER */
+/* RENDERER */
 /* -------------------------------------------------------------------------- */
 
-const ntg_type NTG_RENDERER = {
+const ntg_type NTG_TYPE_RENDERER = {
     .__parent = NULL,
     ._size = sizeof(ntg_renderer)
 };
 
-const ntg_type NTG_DEF_RENDERER = {
-    .__parent = &NTG_RENDERER,
+const ntg_type NTG_TYPE_DEF_RENDERER = {
+    .__parent = &NTG_TYPE_RENDERER,
     ._size = sizeof(ntg_def_renderer)
 };
 
 /* -------------------------------------------------------------------------- */
-/* NTG_LOOP */
+/* LOOP */
 /* -------------------------------------------------------------------------- */
 
-const ntg_type NTG_LOOP = {
+const ntg_type NTG_TYPE_LOOP = {
     .__parent = NULL,
     ._size = sizeof(ntg_loop)
 };

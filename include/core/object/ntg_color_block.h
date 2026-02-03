@@ -1,5 +1,5 @@
-#ifndef NTG_CBLOCK_H
-#define NTG_CBLOCK_H
+#ifndef NTG_COLOR_BLOCK_H
+#define NTG_COLOR_BLOCK_H
 
 #include "shared/ntg_shared.h"
 #include "core/object/ntg_object.h"
@@ -8,7 +8,7 @@
 /* PUBLIC DEFINITIONS */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_cblock
+struct ntg_color_block
 {
     ntg_object __base;
     nt_color __color;
@@ -18,9 +18,10 @@ struct ntg_cblock
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_cblock_init(ntg_cblock* cblock);
-void ntg_cblock_deinit(ntg_cblock* block);
+void ntg_color_block_init(ntg_color_block* color_block);
+void ntg_color_block_deinit(ntg_color_block* block);
+void ntg_color_block_deinit_(void* _block);
 
-void ntg_cblock_set_color(ntg_cblock* cblock, nt_color color);
+void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color);
 
-#endif // NTG_CBLOCK_H
+#endif // NTG_COLOR_BLOCK_H

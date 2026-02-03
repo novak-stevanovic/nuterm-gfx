@@ -19,18 +19,18 @@ static void draw_fn(
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_cblock_set_color(ntg_cblock* cblock, nt_color color)
+void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
 {
-    assert(cblock != NULL);
+    assert(color_block != NULL);
 
-    cblock->__color = color;
+    color_block->__color = color;
 
-    ntg_object_add_dirty((ntg_object*)cblock, NTG_OBJECT_DIRTY_DRAW);
+    ntg_object_add_dirty((ntg_object*)color_block, NTG_OBJECT_DIRTY_DRAW);
 }
 
-void ntg_cblock_init(ntg_cblock* cblock)
+void ntg_color_block_init(ntg_color_block* color_block)
 {
-    assert(cblock != NULL);
+    assert(color_block != NULL);
 
     struct ntg_object_layout_ops object_data = {
         .measure_fn = measure_fn,
@@ -43,20 +43,25 @@ void ntg_cblock_init(ntg_cblock* cblock)
 
     struct ntg_object_hooks hooks = {0};
 
-    ntg_object_init((ntg_object*)cblock, object_data,
-            hooks, &NTG_TYPE_CBLOCK);
+    ntg_object_init((ntg_object*)color_block, object_data,
+            hooks, &NTG_TYPE_COLOR_BLOCK);
 
-    cblock->__color = NT_COLOR_DEFAULT;
+    color_block->__color = NT_COLOR_DEFAULT;
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_cblock_deinit(ntg_cblock* block)
+void ntg_color_block_deinit(ntg_color_block* block)
 {
     block->__color = NT_COLOR_DEFAULT;
     ntg_object_deinit((ntg_object*)block);
+}
+
+void ntg_color_block_deinit_(void* _block)
+{
+    ntg_color_block_deinit(_block);
 }
 
 static struct ntg_object_measure measure_fn(
@@ -79,7 +84,7 @@ static void draw_fn(
         void* lctx,
         sarena* arena)
 {
-    ntg_cblock* cblock = (ntg_cblock*)_block;
+    ntg_color_block* color_block = (ntg_color_block*)_block;
     struct ntg_xy size = ntg_object_get_size_cont(_block);
 
     size_t i, j;
@@ -89,7 +94,7 @@ static void draw_fn(
         {
             ntg_object_tmp_drawing_set(
                     out_drawing,
-                    ntg_vcell_bg(cblock->__color),
+                    ntg_vcell_bg(color_block->__color),
                     ntg_xy(j, i));
         }
     }

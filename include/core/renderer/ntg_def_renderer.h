@@ -24,6 +24,7 @@ struct ntg_def_renderer
 
 void ntg_def_renderer_init(ntg_def_renderer* renderer);
 void ntg_def_renderer_deinit(ntg_def_renderer* renderer);
+void ntg_def_renderer_deinit_(void* _renderer);
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */

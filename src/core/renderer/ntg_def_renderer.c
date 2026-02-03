@@ -45,6 +45,11 @@ void ntg_def_renderer_deinit(ntg_def_renderer* renderer)
     ntg_renderer_deinit((ntg_renderer*)renderer);
 }
 
+void ntg_def_renderer_deinit_(void* _renderer)
+{
+    ntg_def_renderer_deinit(_renderer);
+}
+
 void _ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
@@ -56,9 +61,9 @@ void _ntg_def_renderer_render_fn(
     struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
     bool resize = !(ntg_xy_are_equal(renderer->__old_size, size));
 
-    void* buffer = sarena_malloc(arena, 20000);
+    void* buffer = sarena_malloc(arena, 50000);
     nt_status _status;
-    nt_buffer_enable(buffer, 20000, &_status);
+    nt_buffer_enable(buffer, 50000, &_status);
     assert(_status == NT_SUCCESS);
 
     if(stage_drawing == NULL)

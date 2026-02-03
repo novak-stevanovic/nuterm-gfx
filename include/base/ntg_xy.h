@@ -280,6 +280,16 @@ struct ntg_insets
     size_t n, e, s, w;
 };
 
+static inline struct ntg_insets ntg_insets(size_t n, size_t e, size_t s, size_t w)
+{
+    return (struct ntg_insets) {
+        .n = n,
+        .e = e,
+        .s = s,
+        .w = w
+    };
+}
+
 static inline size_t ntg_insets_hsum(struct ntg_insets insets)
 {
     return insets.e + insets.w;
@@ -288,6 +298,12 @@ static inline size_t ntg_insets_hsum(struct ntg_insets insets)
 static inline size_t ntg_insets_vsum(struct ntg_insets insets)
 {
     return insets.n + insets.s;
+}
+
+static inline bool ntg_insets_is_zero(struct ntg_insets insets)
+{
+    return ((insets.n == 0) && (insets.s == 0) &&
+            (insets.e == 0) && (insets.w == 0));
 }
 
 #endif // NTG_XY_H

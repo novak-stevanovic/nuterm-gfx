@@ -12,12 +12,8 @@ struct ntg_type
 bool ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor);
 bool ntg_type_are_equal(const ntg_type* type1, const ntg_type* type2);
 
-extern const ntg_type NTG_TYPE_OBJECT, NTG_TYPE_WIDGET,
-       NTG_TYPE_PBAR, NTG_TYPE_CBLOCK, NTG_TYPE_LABEL,
-       NTG_TYPE_BOX, NTG_TYPE_BBOX,
-       NTG_TYPE_DECORATOR, NTG_TYPE_PADDING,
-       NTG_TYPE_DEF_PADDING, NTG_TYPE_BORDER,
-       NTG_TYPE_DEF_BORDER, NTG_TYPE_FOCUS_MGR;
+extern const ntg_type NTG_TYPE_OBJECT, NTG_TYPE_PROG_BAR, NTG_TYPE_COLOR_BLOCK,
+        NTG_TYPE_LABEL, NTG_TYPE_BOX, NTG_TYPE_MAIN_PANEL;
 
 extern const ntg_type NTG_TYPE_SCENE;
 

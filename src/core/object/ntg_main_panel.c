@@ -21,27 +21,27 @@ static void arrange_fn(
         void* lctx,
         sarena* arena);
 
-static void on_child_rm_fn(ntg_object* _bbox, ntg_object* child);
+static void on_child_rm_fn(ntg_object* _main_panel, ntg_object* child);
 
-static void get_children(const ntg_bbox* box, ntg_object** out_north,
+static void get_children(const ntg_main_panel* box, ntg_object** out_north,
         ntg_object** out_east, ntg_object** out_south, ntg_object** out_west,
         ntg_object** out_center);
 
-struct ntg_bbox_opts ntg_bbox_opts_def()
+struct ntg_main_panel_opts ntg_main_panel_opts_def()
 {
-    return (struct ntg_bbox_opts) {0};
+    return (struct ntg_main_panel_opts) {0};
 }
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-static void init_default(ntg_bbox* box)
+static void init_default(ntg_main_panel* box)
 {
     memset(box->_children, 0, sizeof(ntg_object*) * 5);
 }
 
-void ntg_bbox_init(ntg_bbox* box)
+void ntg_main_panel_init(ntg_main_panel* box)
 {
     assert(box != NULL);
 
@@ -58,15 +58,15 @@ void ntg_bbox_init(ntg_bbox* box)
         .on_child_rm_fn = on_child_rm_fn
     };
 
-    ntg_object_init((ntg_object*)box, layout_ops, hooks, &NTG_TYPE_BBOX);
+    ntg_object_init((ntg_object*)box, layout_ops, hooks, &NTG_TYPE_MAIN_PANEL);
 
     init_default(box);
 }
 
-void ntg_bbox_set(
-        ntg_bbox* box,
+void ntg_main_panel_set(
+        ntg_main_panel* box,
         ntg_object* object,
-        enum ntg_bbox_pos pos)
+        enum ntg_main_panel_pos pos)
 {
     assert(box != NULL);
 
@@ -88,10 +88,15 @@ void ntg_bbox_set(
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_bbox_deinit(ntg_bbox* box)
+void ntg_main_panel_deinit(ntg_main_panel* box)
 {
     init_default(box);
     ntg_object_deinit((ntg_object*)box);
+}
+
+void ntg_main_panel_deinit_(void* _box)
+{
+    ntg_main_panel_deinit(_box);
 }
 
 static struct ntg_object_measure measure_fn(
@@ -100,10 +105,10 @@ static struct ntg_object_measure measure_fn(
         void* lctx,
         sarena* arena)
 {
-    const ntg_bbox* bbox = (const ntg_bbox*)_box;
+    const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;
 
     ntg_object *north, *east, *south, *west, *center;
-    get_children(bbox, &north, &east, &south, &west, &center);
+    get_children(main_panel, &north, &east, &south, &west, &center);
 
     struct ntg_object_measure north_msr = (north != NULL) ?
         ntg_object_get_measure(north, orient) :
@@ -168,11 +173,11 @@ static void constrain_fn(
         void* lctx,
         sarena* arena)
 {
-    const ntg_bbox* bbox = (const ntg_bbox*)_box;
+    const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;
     size_t size = ntg_object_get_size_1d_cont(_box, orient);
 
     ntg_object *north, *east, *south, *west, *center;
-    get_children(bbox, &north, &east, &south, &west, &center);
+    get_children(main_panel, &north, &east, &south, &west, &center);
 
     struct ntg_object_measure north_msr = (north != NULL) ?
         ntg_object_get_measure(north, orient) :
@@ -321,12 +326,12 @@ static void constrain_fn(
         if(alloced_size < size) // add more
             _sizes[1] = size - _sizes[0] - _sizes[2];
 
-        north_size =  _sizes[0];
-        south_size =  _sizes[2];
+        north_size = _sizes[0];
+        south_size = _sizes[2];
 
-        east_size =  _sizes[1];
-        west_size =  _sizes[1];
-        center_size =  _sizes[1];
+        east_size = _sizes[1];
+        west_size = _sizes[1];
+        center_size = _sizes[1];
     }
 
     if(north != NULL)
@@ -347,11 +352,11 @@ static void arrange_fn(
         void* lctx,
         sarena* arena)
 {
-    const ntg_bbox* bbox = (const ntg_bbox*)_box;
+    const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;
     struct ntg_xy size = ntg_object_get_size_cont(_box);
 
     ntg_object *north, *east, *south, *west, *center;
-    get_children(bbox, &north, &east, &south, &west, &center);
+    get_children(main_panel, &north, &east, &south, &west, &center);
 
     struct ntg_xy north_size = (north != NULL) ?
         north->_size : ntg_xy(0, 0);
@@ -386,25 +391,25 @@ static void arrange_fn(
         ntg_object_pos_map_set(out_pos_map, center, center_pos);
 }
 
-static void get_children(const ntg_bbox* box, ntg_object** out_north,
+static void get_children(const ntg_main_panel* box, ntg_object** out_north,
         ntg_object** out_east, ntg_object** out_south, ntg_object** out_west,
         ntg_object** out_center)
 {
-    (*out_north) = box->_children[NTG_BBOX_NORTH];
-    (*out_east) = box->_children[NTG_BBOX_EAST];
-    (*out_south) = box->_children[NTG_BBOX_SOUTH];
-    (*out_west) = box->_children[NTG_BBOX_WEST];
-    (*out_center) = box->_children[NTG_BBOX_CENTER];
+    (*out_north) = box->_children[NTG_MAIN_PANEL_NORTH];
+    (*out_east) = box->_children[NTG_MAIN_PANEL_EAST];
+    (*out_south) = box->_children[NTG_MAIN_PANEL_SOUTH];
+    (*out_west) = box->_children[NTG_MAIN_PANEL_WEST];
+    (*out_center) = box->_children[NTG_MAIN_PANEL_CENTER];
 }
 
-static void on_child_rm_fn(ntg_object* _bbox, ntg_object* child)
+static void on_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
 {
-    ntg_bbox* bbox = (ntg_bbox*)_bbox;
+    ntg_main_panel* main_panel = (ntg_main_panel*)_main_panel;
 
     size_t i;
     for(i = 0; i < 5; i++)
     {
-        if(bbox->_children[i] == child)
-            bbox->_children[i] = NULL;
+        if(main_panel->_children[i] == child)
+            main_panel->_children[i] = NULL;
     }
 }
