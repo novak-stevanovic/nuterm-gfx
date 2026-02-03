@@ -638,12 +638,22 @@ void ntg_object_init(
 void ntg_object_deinit(ntg_object* object)
 {
     assert(object);
-    assert(object->_children.size == 0);
-    assert(object->__scene_layer == NULL);
+
+    // Root AND is part of scene layer
+    if(object->__scene_layer)
+    {
+        ntg_scene_layer_set_root(object->__scene_layer, NULL);
+    }
 
     if(object->_parent)
     {
         ntg_object_detach(object);
+    }
+
+    size_t i;
+    for(i = 0; i < object->_children.size; i++)
+    {
+        ntg_object_detach(object->_children.data[i]);
     }
 
     if(object->_border.opts.style.free_fn)

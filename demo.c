@@ -81,19 +81,7 @@ void gui_fn1(void* _)
 
     ntg_label label;
     ntg_label_init(&label);
-
-    ntg_scene scene;
-    ntg_scene_init(&scene);
-    // ntg_scene_set_on_key_fn(&scene, scene_on_key_fn);
-
-    ntg_stage stage;
-    ntg_stage_init(&stage);
-
-    ntg_def_renderer renderer;
-    ntg_def_renderer_init(&renderer);
-
-    ntg_scene_layer layer;
-    ntg_scene_layer_init(&layer);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&label, ntg_label_deinit_));
 
     ntg_label_set_text(&label, lorem, strlen(lorem));
     struct nt_gfx label_gfx = {
@@ -121,22 +109,42 @@ void gui_fn1(void* _)
     };
     ntg_object_set_border_opts(ntg_obj(&label), label_border_opts);
 
+    ntg_scene scene;
+    ntg_scene_init(&scene);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&scene, ntg_scene_deinit_));
+    // ntg_scene_set_on_key_fn(&scene, scene_on_key_fn);
+
+    ntg_stage stage;
+    ntg_stage_init(&stage);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&stage, ntg_stage_deinit_));
+
+    ntg_def_renderer renderer;
+    ntg_def_renderer_init(&renderer);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&renderer, ntg_def_renderer_deinit_));
+
+    ntg_scene_layer layer;
+    ntg_scene_layer_init(&layer);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&layer, ntg_scene_layer_deinit_));
+
     ntg_main_panel main_panel;
     ntg_main_panel_init(&main_panel);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&main_panel, ntg_main_panel_deinit_));
 
     ntg_color_block west;
     ntg_color_block_init(&west);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&west, ntg_color_block_deinit_));
     ntg_color_block_set_color(&west, nt_color_new_auto(nt_rgb_new(200, 0, 40)));
 
     ntg_color_block east;
     ntg_color_block_init(&east);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&east, ntg_color_block_deinit_));
     ntg_color_block_set_color(&east, nt_color_new_auto(nt_rgb_new(40, 0, 200)));
-
     ntg_object_set_user_min_size(ntg_obj(&west), ntg_xy(5, NTG_OBJECT_MIN_SIZE_UNSET));
     ntg_object_set_user_min_size(ntg_obj(&east), ntg_xy(5, NTG_OBJECT_MIN_SIZE_UNSET));
 
     ntg_box center;
     ntg_box_init(&center);
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&center, ntg_box_deinit_));
 
     ntg_main_panel_set(&main_panel, ntg_obj(&label), NTG_MAIN_PANEL_NORTH);
     ntg_main_panel_set(&main_panel, ntg_obj(&west), NTG_MAIN_PANEL_WEST);
@@ -148,19 +156,7 @@ void gui_fn1(void* _)
 
     ntg_loop loop;
     ntg_loop_init(&loop, &stage, ntg_rnd(&renderer), 60, 4, loop_on_event_fn);
-
-    ntg_cleanup_batch_add_many(batch,
-        NTG_CLEANUP_PAIR(&loop, ntg_loop_deinit_),
-        NTG_CLEANUP_PAIR(&renderer, ntg_def_renderer_deinit_),
-        NTG_CLEANUP_PAIR(&stage, ntg_stage_deinit_),
-        NTG_CLEANUP_PAIR(&scene, ntg_scene_deinit_),
-        NTG_CLEANUP_PAIR(&layer, ntg_scene_layer_deinit_),
-        NTG_CLEANUP_PAIR(&center, ntg_box_deinit_),
-        NTG_CLEANUP_PAIR(&label, ntg_label_deinit_),
-        NTG_CLEANUP_PAIR(&west, ntg_color_block_deinit_),
-        NTG_CLEANUP_PAIR(&east, ntg_color_block_deinit_),
-        NTG_CLEANUP_PAIR(&main_panel, ntg_main_panel_deinit_),
-    );
+    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&loop, ntg_loop_deinit_));
 
     ntg_log_log("LOOP END | STATUS: %d", ntg_loop_run(&loop));
 

@@ -52,6 +52,11 @@ void ntg_scene_layer_deinit(ntg_scene_layer* layer)
 {
     assert(layer);
 
+    if(layer->_scene)
+    {
+        ntg_scene_detach_layer(layer->_scene, layer);
+    }
+
     if(layer->_root)
     {
         ntg_scene_layer_set_root(layer, NULL);
@@ -272,6 +277,8 @@ void _ntg_scene_layer_set_scene(ntg_scene_layer* layer, ntg_scene* scene)
     assert(layer);
 
     layer->_scene = scene;
+    layer->_pos = ntg_xy(0, 0);
+    layer->_size = ntg_xy(0, 0);
 
     if(scene) layer->__recompose = true;
 }

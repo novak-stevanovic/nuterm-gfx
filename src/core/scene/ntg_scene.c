@@ -399,6 +399,12 @@ static void layer_node_destroy(struct layer_node* node)
     if(node->data.policy.free_fn)
         node->data.policy.free_fn(node->data.policy.data);
 
+    ntg_scene_layer* layer = node->data.layer;
+    if(layer)
+    {
+        _ntg_scene_layer_set_scene(layer, NULL);
+    }
+
     (*node) = (struct layer_node) {0};
     free(node);
 }
