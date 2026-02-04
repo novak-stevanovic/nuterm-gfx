@@ -5,20 +5,20 @@
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 static void constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 static void arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 static void on_child_rm_fn(ntg_object* _main_panel, ntg_object* child);
@@ -102,7 +102,7 @@ void ntg_main_panel_deinit_(void* _box)
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;
@@ -170,7 +170,7 @@ static void constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;
@@ -349,7 +349,7 @@ static void constrain_fn(
 static void arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;

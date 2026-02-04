@@ -69,7 +69,7 @@ struct ntg_object
 
     struct
     {
-        struct ntg_xy _user_min_size, _user_max_size, _user_grow;
+        struct ntg_xy _user_min_size_cont, _user_max_size_cont, _user_grow;
         struct ntg_vcell _def_bg;
         int _z_index;
     };
@@ -77,12 +77,13 @@ struct ntg_object
     struct
     {
         struct ntg_object_layout_ops __layout_ops;
-        void* __lctx;
+        void* layout_ch;
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
         struct ntg_xy _pos;
         ntg_object_drawing _drawing;
-        uint8_t dirty;
+        uint8_t _dirty;
+        uint8_t __dirty_hdcr, __dirty_vdcr, __skip_fix;
     };
 
     struct ntg_object_hooks __hooks;
@@ -148,8 +149,8 @@ ntg_object* ntg_object_hit_test(
 #define NTG_OBJECT_MAX_SIZE_UNSET NTG_SIZE_MAX
 #define NTG_OBJECT_GROW_UNSET NTG_SIZE_MAX
 
-void ntg_object_set_user_min_size(ntg_object* object, struct ntg_xy size);
-void ntg_object_set_user_max_size(ntg_object* object, struct ntg_xy size);
+void ntg_object_set_user_min_size_cont(ntg_object* object, struct ntg_xy size);
+void ntg_object_set_user_max_size_cont(ntg_object* object, struct ntg_xy size);
 void ntg_object_set_user_grow(ntg_object* object, struct ntg_xy grow);
 void ntg_object_set_z_index(ntg_object* object, int z_index);
 void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg);
@@ -221,11 +222,13 @@ static void fn_name(ntg_object* object, void* data)                            \
 /* BORDER STYLE */
 /* -------------------------------------------------------------------------- */
 
+void ntg_object_mark_dirty(ntg_object* object, uint8_t dirty);
+
 struct ntg_def_border_style_dt
 {
     struct ntg_vcell top_left, top,
-        top_right, right, bottom_right,
-        bottom, bottom_left, left, padding;
+    top_right, right, bottom_right,
+    bottom, bottom_left, left, padding;
 };
 
 struct ntg_border_style
@@ -280,6 +283,8 @@ void ntg_object_detach(ntg_object* object);
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
+
+void _ntg_object_clean(ntg_object* object, uint8_t clean);
 
 void _ntg_object_root_set_scene_layer(ntg_object* object, ntg_scene_layer* layer);
 

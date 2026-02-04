@@ -17,7 +17,7 @@ struct ntg_scene_layer
     struct ntg_xy _pos;
     struct ntg_xy _size;
 
-    bool __recompose;
+    bool _dirty;
 
     int _z_index;
 
@@ -31,6 +31,8 @@ struct ntg_scene_layer
 void ntg_scene_layer_init(ntg_scene_layer* layer);
 void ntg_scene_layer_deinit(ntg_scene_layer* layer);
 void ntg_scene_layer_deinit_(void* _layer);
+
+void ntg_scene_layer_mark_dirty(ntg_scene_layer* layer);
 
 ntg_object* ntg_scene_layer_hit_test(
         ntg_scene_layer* layer,
@@ -54,10 +56,13 @@ ntg_scene_layer_map_from_scene(const ntg_scene_layer* layer, struct ntg_dxy pos)
 /* LAYOUT */
 /* -------------------------------------------------------------------------- */
 
+void _ntg_scene_layer_clean(ntg_scene_layer* layer);
+
 void _ntg_scene_layer_hmeasure(ntg_scene_layer* layer, sarena* arena);
 void _ntg_scene_layer_hconstrain(ntg_scene_layer* layer, sarena* arena);
 void _ntg_scene_layer_vmeasure(ntg_scene_layer* layer, sarena* arena);
 void _ntg_scene_layer_vconstrain(ntg_scene_layer* layer, sarena* arena);
+bool _ntg_scene_layer_post_constrain(ntg_scene_layer* layer, sarena* arena);
 void _ntg_scene_layer_arrange(ntg_scene_layer* layer, sarena* arena);
 void _ntg_scene_layer_draw(ntg_scene_layer* layer, sarena* arena);
 

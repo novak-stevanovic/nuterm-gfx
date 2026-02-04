@@ -16,26 +16,24 @@
 /* LAYER */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_scene_attach_ctx
+struct ntg_dock_ctx
 {
     ntg_orient orient;
     size_t layer_min_size, layer_nat_size, layer_max_size;
     size_t scene_size;
 };
 
-struct ntg_scene_attach_policy
+struct ntg_dock_plc
 {
     void* data;
-    void (*attach_fn)(
+    void (*dock_fn)(
             void* data,
-            struct ntg_scene_attach_ctx ctx,
+            struct ntg_dock_ctx ctx,
             size_t* out_size,
             size_t* out_pos,
             sarena* arena);
     void (*free_fn)(void* data);
 };
-
-extern const struct ntg_scene_attach_policy NTG_SCENE_ATTACH_POLICY_ROOT;
 
 /* -------------------------------------------------------------------------- */
 /* SCENE */
@@ -49,6 +47,8 @@ struct ntg_scene
     {
         ntg_stage* _stage;
     };
+
+    bool _dirty;
 
     struct
     {
@@ -74,26 +74,85 @@ void ntg_scene_init(ntg_scene* scene);
 void ntg_scene_deinit(ntg_scene* scene);
 void ntg_scene_deinit_(void* _scene);
 
-bool ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
+void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
+void ntg_scene_mark_dirty(ntg_scene* scene);
+void ntg_scene_layout(ntg_scene* scene, sarena* arena);
 ntg_object* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos);
 
 /* -------------------------------------------------------------------------- */
 /* LAYER */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_attach_layer(
+void ntg_scene_dock_layer(
         ntg_scene* scene,
         ntg_scene_layer* layer,
         ntg_scene_layer* base,
-        struct ntg_scene_attach_policy attach_policy);
+        struct ntg_dock_plc policy);
 
-void ntg_scene_detach_layer(ntg_scene* scene, ntg_scene_layer* layer);
+void ntg_scene_undock_layer(ntg_scene* scene, ntg_scene_layer* layer);
 
 size_t ntg_scene_get_layer_count(const ntg_scene* scene);
 void ntg_scene_get_layers_by_z(
         ntg_scene* scene,
         ntg_scene_layer** out_buff,
         size_t cap);
+
+/* -------------------------------------------------------------------------- */
+/* DOCK POLICY */
+/* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* ROOT */
+/* ------------------------------------------------------ */
+
+struct ntg_dock_plc ntg_dock_plc_root();
+
+/* ------------------------------------------------------ */
+/* DOCK */
+/* ------------------------------------------------------ */
+
+enum ntg_dock_plc_anchor_orient
+{
+    NTG_DOCK_PLC_ATTACH_ORIENT_N,
+    NTG_DOCK_PLC_ATTACH_ORIENT_E,
+    NTG_DOCK_PLC_ATTACH_ORIENT_S,
+    NTG_DOCK_PLC_ATTACH_ORIENT_W,
+    NTG_DOCK_PLC_ATTACH_ORIENT_C
+};
+
+enum ntg_dock_plc_anchor_size
+{
+    NTG_DOCK_PLC_ATTACH_SIZE_MEASURE,
+    NTG_DOCK_PLC_ATTACH_SIZE_DOCK
+};
+
+enum ntg_dock_plc_anchor_thresh
+{
+    NTG_DOCK_PLC_ATTACH_THRESH_MIN,
+    NTG_DOCK_PLC_ATTACH_THRESH_NAT,
+    NTG_DOCK_PLC_ATTACH_THRESH_ALWAYS,
+};
+
+enum ntg_dock_plc_anchor_enable
+{
+    NTG_DOCK_PLC_ATTACH_ENABLE_STATIC,
+    NTG_DOCK_PLC_ATTACH_ENABLE_DYNAMIC
+};
+
+struct ntg_dock_plc_anchor_dt
+{
+    ntg_scene_layer* base;
+    ntg_object* dock;
+    struct ntg_insets shrink;
+    ntg_align align;
+    enum ntg_dock_plc_anchor_orient orient;
+    enum ntg_dock_plc_anchor_size size;
+    enum ntg_dock_plc_anchor_thresh thresh;
+    enum ntg_dock_plc_anchor_enable enable;
+};
+
+struct ntg_dock_plc
+ntg_dock_plc_anchor(struct ntg_dock_plc_anchor_dt dt);
 
 /* -------------------------------------------------------------------------- */
 /* EVENT */
@@ -113,6 +172,8 @@ bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
+
+void _ntg_scene_clean(ntg_scene* scene);
 
 // Called internally by ntg_stage. Updates only the scene's state
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);

@@ -6,13 +6,13 @@
 static struct ntg_object_measure measure_fn(
         const ntg_object* _block,
         ntg_orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 static void draw_fn(
         const ntg_object* _block,
         ntg_object_tmp_drawing* out_drawing,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 /* -------------------------------------------------------------------------- */
@@ -67,7 +67,7 @@ void ntg_color_block_deinit_(void* _block)
 static struct ntg_object_measure measure_fn(
         const ntg_object* _block,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     return (struct ntg_object_measure) {
@@ -81,7 +81,7 @@ static struct ntg_object_measure measure_fn(
 static void draw_fn(
         const ntg_object* _block,
         ntg_object_tmp_drawing* out_drawing,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     ntg_color_block* color_block = (ntg_color_block*)_block;

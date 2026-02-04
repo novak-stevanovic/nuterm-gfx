@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "shared/ntg_shared_internal.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 /* ========================================================================== */
 /* TYPE DEFINITIONS */
@@ -12,6 +12,7 @@ struct layout_data
 {
     ntg_scene_layer* layer;
     sarena* arena;
+    bool repeat;
 };
 
 /* ========================================================================== */
@@ -23,6 +24,7 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data);
 static void hconstrain_fn(ntg_object* object, void* _layout_data);
 static void vmeasure_fn(ntg_object* object, void* _layout_data);
 static void vconstrain_fn(ntg_object* object, void* _layout_data);
+static void post_constrain_fn(ntg_object* object, void* _layout_data);
 static void arrange_fn(ntg_object* object, void* _layout_data);
 static void draw_fn(ntg_object* object, void* _layout_data);
 
@@ -30,6 +32,7 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(hmeasure_tree, hmeasure_fn);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(hconstrain_tree, hconstrain_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(vmeasure_tree, vmeasure_fn);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(vconstrain_tree, vconstrain_fn);
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(post_constrain_tree, post_constrain_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(arrange_tree, arrange_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 
@@ -54,7 +57,7 @@ void ntg_scene_layer_deinit(ntg_scene_layer* layer)
 
     if(layer->_scene)
     {
-        ntg_scene_detach_layer(layer->_scene, layer);
+        ntg_scene_undock_layer(layer->_scene, layer);
     }
 
     if(layer->_root)
@@ -68,6 +71,13 @@ void ntg_scene_layer_deinit(ntg_scene_layer* layer)
 void ntg_scene_layer_deinit_(void* _layer)
 {
     ntg_scene_layer_deinit(_layer);
+}
+
+void ntg_scene_layer_mark_dirty(ntg_scene_layer* layer)
+{
+    assert(layer);
+
+    layer->_dirty = true;
 }
 
 ntg_object* ntg_scene_layer_hit_test(
@@ -102,7 +112,7 @@ void ntg_scene_layer_set_root(ntg_scene_layer* layer, ntg_object* root)
     }
 
     layer->_root = root;
-    layer->__recompose = true;
+    ntg_scene_layer_mark_dirty(layer);
 }
 
 void ntg_scene_layer_set_z_index(ntg_scene_layer* layer, int z_index)
@@ -135,6 +145,13 @@ ntg_scene_layer_map_from_scene(
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
+
+void _ntg_scene_layer_clean(ntg_scene_layer* layer)
+{
+    assert(layer);
+
+    layer->_dirty = false;
+}
 
 void _ntg_scene_layer_hmeasure(ntg_scene_layer* layer, sarena* arena)
 {
@@ -171,7 +188,7 @@ void _ntg_scene_layer_hconstrain(ntg_scene_layer* layer, sarena* arena)
         .arena = arena
     };
     
-    _ntg_object_root_set_hsize(layer->_root, layer->_size.x);
+    _ntg_object_root_set_hsize(layer->_root, layer->_size.x, arena);
 
     hconstrain_tree(layer->_root, &data);
 }
@@ -211,9 +228,26 @@ void _ntg_scene_layer_vconstrain(ntg_scene_layer* layer, sarena* arena)
         .arena = arena
     };
 
-    _ntg_object_root_set_vsize(layer->_root, layer->_size.y);
+    _ntg_object_root_set_vsize(layer->_root, layer->_size.y, arena);
 
     vconstrain_tree(layer->_root, &data);
+}
+
+bool _ntg_scene_layer_post_constrain(ntg_scene_layer* layer, sarena* arena)
+{
+    assert(layer);
+
+    if(!layer->_root) return false;
+
+    struct layout_data data = {
+        .layer = layer,
+        .arena = arena,
+        .repeat = false
+    };
+
+    post_constrain_tree(layer->_root, &data);
+
+    return data.repeat;
 }
 
 void _ntg_scene_layer_arrange(ntg_scene_layer* layer, sarena* arena)
@@ -276,11 +310,13 @@ void _ntg_scene_layer_set_scene(ntg_scene_layer* layer, ntg_scene* scene)
 {
     assert(layer);
 
+    if(layer->_scene == scene) return;
+
+    ntg_scene_layer_mark_dirty(layer);
+
     layer->_scene = scene;
     layer->_pos = ntg_xy(0, 0);
     layer->_size = ntg_xy(0, 0);
-
-    if(scene) layer->__recompose = true;
 }
 
 void _ntg_scene_layer_register(ntg_scene_layer* layer, ntg_object* object)
@@ -288,8 +324,8 @@ void _ntg_scene_layer_register(ntg_scene_layer* layer, ntg_object* object)
     assert(layer != NULL);
     assert(object != NULL);
 
-    object->dirty = true;
-    _ntg_object_lctx_init(object);
+    object->dirty = NTG_OBJECT_DIRTY_FULL;
+    _ntg_object_layout_ch_init(object);
 }
 
 void _ntg_scene_layer_unregister(ntg_scene_layer* layer, ntg_object* object)
@@ -297,7 +333,7 @@ void _ntg_scene_layer_unregister(ntg_scene_layer* layer, ntg_object* object)
     assert(layer != NULL);
     assert(object != NULL);
 
-    _ntg_object_lctx_deinit(object);
+    _ntg_object_layout_ch_deinit(object);
 }
 
 void _ntg_scene_layer_register_tree(ntg_scene_layer* layer, ntg_object* root)
@@ -344,10 +380,12 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data)
     struct layout_data* layout_data = (struct layout_data*)_layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->dirty & NTG_OBJECT_DIRTY_MEASURE)
+    if(object->dirty & NTG_OBJECT_DIRTY_HMEASURE)
     {
         if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M1 | %p", object);
         _ntg_object_hmeasure(object, arena);
+
+        object->dirty &= ~NTG_OBJECT_DIRTY_HMEASURE;
     }
 }
 
@@ -356,11 +394,12 @@ static void hconstrain_fn(ntg_object* object, void* _layout_data)
     struct layout_data* layout_data = (struct layout_data*)_layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->dirty & NTG_OBJECT_DIRTY_CONSTRAIN)
+    if(object->dirty & NTG_OBJECT_DIRTY_HCONSTRAIN)
     {
         if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C1 | %p", object);
         _ntg_object_hconstrain(object, arena);
-        layout_data->layer->__recompose = true;
+        object->dirty &= ~NTG_OBJECT_DIRTY_HCONSTRAIN;
+        ntg_scene_layer_mark_dirty(layout_data->layer);
     }
 }
 
@@ -369,12 +408,12 @@ static void vmeasure_fn(ntg_object* object, void* _layout_data)
     struct layout_data* layout_data = (struct layout_data*)_layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->dirty & NTG_OBJECT_DIRTY_MEASURE)
+    if(object->dirty & NTG_OBJECT_DIRTY_VMEASURE)
     {
         if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M2 | %p", object);
         _ntg_object_vmeasure(object, arena);
 
-        object->dirty &= ~NTG_OBJECT_DIRTY_MEASURE;
+        object->dirty &= ~NTG_OBJECT_DIRTY_VMEASURE;
     }
 }
 
@@ -383,14 +422,23 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
     struct layout_data* layout_data = (struct layout_data*)_layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->dirty & NTG_OBJECT_DIRTY_CONSTRAIN)
+    if(object->dirty & NTG_OBJECT_DIRTY_VCONSTRAIN)
     {
         if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C2 | %p", object);
         _ntg_object_vconstrain(object, arena);
 
-        object->dirty &= ~NTG_OBJECT_DIRTY_CONSTRAIN;
-        layout_data->layer->__recompose = true;
+        object->dirty &= ~NTG_OBJECT_DIRTY_VCONSTRAIN;
+        ntg_scene_layer_mark_dirty(layout_data->layer);
     }
+}
+
+static void post_constrain_fn(ntg_object* object, void* _layout_data)
+{
+    struct layout_data* layout_data = (struct layout_data*)_layout_data;
+    sarena* arena = layout_data->arena; 
+    
+    bool repeat = _ntg_object_post_constrain(object, arena);
+    layout_data->repeat |= repeat;
 }
 
 static void arrange_fn(ntg_object* object, void* _layout_data)
@@ -404,7 +452,7 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
         _ntg_object_arrange(object, arena);
 
         object->dirty &= ~NTG_OBJECT_DIRTY_ARRANGE;
-        layout_data->layer->__recompose = true;
+        ntg_scene_layer_mark_dirty(layout_data->layer);
     }
 }
 
@@ -419,6 +467,6 @@ static void draw_fn(ntg_object* object, void* _layout_data)
         _ntg_object_draw(object, arena);
 
         object->dirty &= ~NTG_OBJECT_DIRTY_DRAW;
-        layout_data->layer->__recompose = true;
+        ntg_scene_layer_mark_dirty(layout_data->layer);
     }
 }

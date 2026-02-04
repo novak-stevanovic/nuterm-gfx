@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <sys/types.h>
+#include <stdint.h>
 #include "thirdparty/sarena.h"
 
 #ifdef NTG_EXPORT
@@ -89,36 +90,41 @@ typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
 typedef struct ntg_main_panel ntg_main_panel;
 
-typedef void* (*ntg_object_lctx_init_fn)(
+typedef void* (*ntg_object_layout_ch_init_fn)(
         const ntg_object* object);
 
-typedef void (*ntg_object_lctx_deinit_fn)(
-        void* lctx,
+typedef void (*ntg_object_layout_ch_deinit_fn)(
+        void* layout_ch,
         const ntg_object* object);
 
 typedef struct ntg_object_measure (*ntg_object_measure_fn)(
         const ntg_object* object,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 typedef void (*ntg_object_constrain_fn)(
         const ntg_object* object,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* lctx,
+        void* layout_ch,
+        sarena* arena);
+
+typedef uint8_t (*ntg_object_post_constrain_fn)(
+        const ntg_object*,
+        void* layout_ch,
         sarena* arena);
 
 typedef void (*ntg_object_arrange_fn)(
         const ntg_object* object,
         ntg_object_pos_map* out_pos_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 typedef void (*ntg_object_draw_fn)(
         const ntg_object* object,
         ntg_object_tmp_drawing* out_drawing,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 /* If `stage_drawing` is NULL, render empty */

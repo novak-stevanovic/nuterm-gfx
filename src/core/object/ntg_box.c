@@ -6,20 +6,20 @@
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 static void constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 static void arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 struct ntg_box_opts ntg_box_opts_def()
@@ -118,7 +118,7 @@ void ntg_box_deinit_(void* _box)
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;
@@ -170,7 +170,7 @@ static void constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;
@@ -275,7 +275,7 @@ static void constrain_fn(
 static void arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;

@@ -28,6 +28,8 @@ void ntg_stage_init(ntg_stage* stage)
     init_default(stage);
 
     ntg_stage_drawing_init(&stage->_drawing);
+    stage->__on_key_fn = ntg_stage_dispatch_key;
+    stage->__on_mouse_fn = ntg_stage_dispatch_mouse;
 }
 
 void ntg_stage_deinit(ntg_stage* stage)
@@ -52,19 +54,45 @@ void ntg_stage_deinit_(void* _stage)
     ntg_stage_deinit(_stage);
 }
 
-void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
+void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
+{
+    assert(stage);
+
+    if(!ntg_xy_are_equal(stage->_size, size))
+    {
+        ntg_stage_mark_dirty(stage);
+        stage->_size = size;
+        if(stage->_scene)
+        {
+            ntg_scene_set_size(stage->_scene, size);
+        }
+    }
+}
+
+void ntg_stage_mark_dirty(ntg_stage* stage)
+{
+    assert(stage);
+
+    stage->_dirty = true;
+}
+
+void ntg_stage_compose(ntg_stage* stage, sarena* arena)
 {
     assert(stage != NULL);
 
-    struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-    stage->_size = size;
-    ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap);
+    struct ntg_xy size = stage->_size;
 
-    bool compose = stage->__compose;
-    if(stage->_scene != NULL)
-        compose |= ntg_scene_layout(stage->_scene, size, arena);
+    struct ntg_xy drawing_size = ntg_stage_drawing_get_size(&stage->_drawing);
+    if(!ntg_xy_are_equal(stage->_size, drawing_size))
+    {
+        struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
+        ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap);
+    }
 
-    if(compose)
+    if((stage->_scene) && (stage->_scene->_dirty))
+        ntg_scene_layout(stage->_scene, arena);
+
+    if(stage->_dirty)
     {
         size_t i, j;
         for(i = 0; i < size.y; i++)
@@ -99,7 +127,7 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     assert(stage != NULL);
     if(stage->_scene == scene) return;
 
-    stage->__compose = true;
+    ntg_stage_mark_dirty(stage);
 
     ntg_scene* old_scene = stage->_scene;
 
@@ -183,11 +211,21 @@ bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 /* INTERNAL */
 /* ========================================================================== */
 
+void _ntg_stage_clean(ntg_stage* stage)
+{
+    assert(stage != NULL);
+
+    stage->_dirty = false;
+}
+
 void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
 {
     assert(stage != NULL);
 
+    if(stage->_loop == loop) return;
+
     stage->_loop = loop;
+    ntg_stage_mark_dirty(stage);
 }
 
 /* ========================================================================== */
@@ -196,14 +234,7 @@ void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
 
 static void init_default(ntg_stage* stage)
 {
-    stage->_size = ntg_xy(0, 0);
-    stage->_scene = NULL;
-    stage->__compose = true;
-    stage->_drawing = (struct ntg_stage_drawing) {0};
-    stage->__on_key_fn = ntg_stage_dispatch_key;
-    stage->__on_mouse_fn = ntg_stage_dispatch_mouse;
-    stage->_loop = NULL;
-    stage->data = NULL;
+    (*stage) = (ntg_stage) {0};
 }
 
 static void draw_object(ntg_stage* stage, ntg_object* object)

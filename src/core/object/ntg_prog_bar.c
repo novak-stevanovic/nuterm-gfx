@@ -6,13 +6,13 @@
 static struct ntg_object_measure measure_fn(
         const ntg_object* _prog_bar,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 static void draw_fn(
         const ntg_object* _prog_bar,
         ntg_object_tmp_drawing* out_drawing,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
@@ -71,7 +71,7 @@ void ntg_prog_bar_deinit_(void* _prog_bar)
 static struct ntg_object_measure measure_fn(
         const ntg_object* _prog_bar,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
@@ -99,7 +99,7 @@ static struct ntg_object_measure measure_fn(
 static void draw_fn(
         const ntg_object* _prog_bar,
         ntg_object_tmp_drawing* out_drawing,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;

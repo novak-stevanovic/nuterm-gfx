@@ -31,13 +31,13 @@ struct ntg_label_priv
 static struct ntg_object_measure measure_fn(
         const ntg_object* _label,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 static void draw_fn(
         const ntg_object* _label,
         ntg_object_tmp_drawing* out_drawing,
-        void* lctx,
+        void* layout_ch,
         sarena* arena);
 
 /* UGLY CODE - TODO: rewrite sometime */
@@ -301,7 +301,7 @@ void ntg_label_set_text(ntg_label* label, const char* text, size_t len)
 static struct ntg_object_measure measure_fn(
         const ntg_object* _label,
         ntg_orient orient,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_label* label = (const ntg_label*)_label;
@@ -343,7 +343,7 @@ static struct ntg_object_measure measure_fn(
 static void draw_fn(
         const ntg_object* _label,
         ntg_object_tmp_drawing* out_drawing,
-        void* lctx,
+        void* layout_ch,
         sarena* arena)
 {
     const ntg_label* label = (const ntg_label*)_label;

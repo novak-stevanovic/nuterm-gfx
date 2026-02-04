@@ -3,7 +3,9 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 
-#define DEBUG 0
+#define DEBUG 1
+
+#define LAYER_LAYOUT_MAX_IT 10
 
 /* ========================================================================== */
 /* TYPE DEFINITIONS */
@@ -16,7 +18,7 @@ GENC_VECTOR_GENERATE(layer_node_vec, struct layer_node*, 1.25, NULL);
 struct layer_node_data
 {
     ntg_scene_layer* layer;
-    struct ntg_scene_attach_policy policy;
+    struct ntg_dock_plc policy;
 };
 
 struct layer_node
@@ -36,8 +38,22 @@ struct ntg_scene_priv
 /* STATIC */
 /* ========================================================================== */
 
+static void dock_plc_root_fn(
+        void* _data,
+        struct ntg_dock_ctx ctx,
+        size_t* out_size,
+        size_t* out_pos,
+        sarena* arena);
+
+static void dock_plc_anchor_fn(
+        void* _data,
+        struct ntg_dock_ctx ctx,
+        size_t* out_size,
+        size_t* out_pos,
+        sarena* arena);
+
 static void
-node_layer_layout(ntg_scene* scene, struct layer_node* node, sarena* arena);
+node_layer_layout(ntg_scene* scene, struct layer_node* node, sarena* arena, int it);
 
 static void
 layer_tree_layout(ntg_scene* scene, struct layer_node* node, sarena* arena);
@@ -65,38 +81,13 @@ static void layer_tree_get_layers_preorder(
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-static void attach_policy_root_fn(
-        void* data,
-        struct ntg_scene_attach_ctx ctx,
-        size_t* out_size,
-        size_t* out_pos,
-        sarena* arena)
-{
-    (*out_size) = ctx.scene_size;
-    (*out_pos) = 0;
-}
-
-const struct ntg_scene_attach_policy NTG_SCENE_ATTACH_POLICY_ROOT = {
-    .data = NULL,
-    .attach_fn = attach_policy_root_fn,
-    .free_fn = NULL
-};
-
 /* ========================================================================== */
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
 static void init_default(ntg_scene* scene)
 {
-    scene->_stage = NULL;
-
-    scene->_size = ntg_xy(0, 0);
-
-    scene->__on_key_fn = ntg_scene_dispatch_key;
-    scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
-    scene->__priv->layer_root = NULL;
-
-    scene->data = NULL;
+    (*scene) = (ntg_scene) {0};
 }
 
 void ntg_scene_init(ntg_scene* scene)
@@ -111,12 +102,15 @@ void ntg_scene_init(ntg_scene* scene)
     // Layer tree
     struct layer_node_data data = {
         .layer = NULL,
-        .policy = NTG_SCENE_ATTACH_POLICY_ROOT
+        .policy = ntg_dock_plc_root()
     };
     struct layer_node* sentinel = layer_node_new(data);
     assert(sentinel);
 
     layer_tree_add(&scene->__priv->layer_root, sentinel, NULL);
+
+    scene->__on_key_fn = ntg_scene_dispatch_key;
+    scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -138,41 +132,55 @@ void ntg_scene_deinit_(void* _scene)
     ntg_scene_deinit(_scene);
 }
 
-bool ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
+void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
+{
+    assert(scene);
+
+    if(!ntg_xy_are_equal(scene->_size, size))
+    {
+        scene->_size = size;
+        ntg_scene_mark_dirty(scene);
+    }
+}
+
+void ntg_scene_mark_dirty(ntg_scene* scene)
+{
+    assert(scene);
+
+    scene->_dirty = true;
+}
+
+void ntg_scene_layout(ntg_scene* scene, sarena* arena)
 {
     assert(scene != NULL);
 
-    scene->_size = size;
-
     layer_tree_layout(scene, scene->__priv->layer_root, arena);
-
-    return true;
 }
 
 /* -------------------------------------------------------------------------- */
 /* LAYER */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_attach_layer(
+void ntg_scene_dock_layer(
         ntg_scene* scene,
         ntg_scene_layer* layer,
         ntg_scene_layer* base,
-        struct ntg_scene_attach_policy attach_policy)
+        struct ntg_dock_plc policy)
 {
     assert(scene);
     assert(layer);
-    assert(attach_policy.attach_fn);
+    assert(policy.dock_fn);
 
     if(layer->_scene == scene) return;
 
     if(layer->_scene)
     {
-        ntg_scene_detach_layer(layer->_scene, layer);
+        ntg_scene_undock_layer(layer->_scene, layer);
     }
 
     struct layer_node_data data = {
         .layer = layer,
-        .policy = attach_policy
+        .policy = policy
     };
 
     struct layer_node* base_node = base ?
@@ -186,10 +194,11 @@ void ntg_scene_attach_layer(
 
     layer_tree_add(&scene->__priv->layer_root, new, base_node);
 
+    ntg_scene_mark_dirty(scene);
     _ntg_scene_layer_set_scene(layer, scene);
 }
 
-void ntg_scene_detach_layer(ntg_scene* scene, ntg_scene_layer* layer)
+void ntg_scene_undock_layer(ntg_scene* scene, ntg_scene_layer* layer)
 {
     assert(scene);
     assert(layer);
@@ -197,6 +206,8 @@ void ntg_scene_detach_layer(ntg_scene* scene, ntg_scene_layer* layer)
 
     struct layer_node* node = layer_tree_find(scene->__priv->layer_root, layer);
     assert(node);
+
+    ntg_scene_mark_dirty(scene);
 
     layer_tree_rm(&scene->__priv->layer_root, node);
 
@@ -226,6 +237,7 @@ void ntg_scene_get_layers_by_z(
     
     layer_tree_get_layers_preorder(scene->__priv->layer_root, out_buff);
 
+    // Remove sentinel
     memmove(out_buff, out_buff + 1, layer_count * sizeof(ntg_scene_layer*));
 
     size_t i, j;
@@ -242,6 +254,37 @@ void ntg_scene_get_layers_by_z(
             }
         }
     }
+}
+
+/* -------------------------------------------------------------------------- */
+/* DOCK POLICY */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_dock_plc ntg_dock_plc_root()
+{
+    return (struct ntg_dock_plc) {
+        .data = NULL,
+        .dock_fn = dock_plc_root_fn,
+        .free_fn = NULL
+    };
+};
+
+struct ntg_dock_plc
+ntg_dock_plc_anchor(struct ntg_dock_plc_anchor_dt dt)
+{
+    assert(dt.dock);
+    assert(dt.base);
+
+    struct ntg_dock_plc_anchor_dt* dt_cpy = malloc(sizeof(*dt_cpy));
+    assert(dt_cpy);
+
+    (*dt_cpy) = dt;
+
+    return (struct ntg_dock_plc) {
+        .dock_fn = dock_plc_anchor_fn,
+        .data = dt_cpy,
+        .free_fn = free,
+    };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -262,7 +305,8 @@ bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
     return false;
 }
 
-void ntg_scene_set_on_key_fn(ntg_scene* scene,
+void ntg_scene_set_on_key_fn(
+        ntg_scene* scene,
         bool (*on_key_fn)(ntg_scene* scene, struct nt_key_event key))
 {
     assert(scene);
@@ -280,7 +324,8 @@ bool ntg_scene_on_key(ntg_scene* scene, struct nt_key_event key)
         return false;
 }
 
-void ntg_scene_set_on_mouse_fn(ntg_scene* scene,
+void ntg_scene_set_on_mouse_fn(
+        ntg_scene* scene,
         bool (*on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse))
 {
     assert(scene);
@@ -304,21 +349,53 @@ bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 /* INTERNAL */
 /* ========================================================================== */
 
+void _ntg_scene_clean(ntg_scene* scene)
+{
+    assert(scene);
+
+    scene->_dirty = false;
+}
+
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
 {
     assert(scene != NULL);
 
+    if(scene->_stage == stage) return;
+
     scene->_stage = stage;
+    ntg_scene_mark_dirty(scene);
 }
 
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
 
-static void 
+static void dock_plc_root_fn(void* _data,
+        struct ntg_dock_ctx ctx,
+        size_t* out_size,
+        size_t* out_pos,
+        sarena* arena)
+{
+    (*out_size) = ctx.scene_size;
+    (*out_pos) = 0;
+}
+
+static void dock_plc_anchor_fn(void* _data,
+        struct ntg_dock_ctx ctx,
+        size_t* out_size,
+        size_t* out_pos,
+        sarena* arena)
+{
+    struct ntg_dock_plc_anchor_dt* data = _data;
+}
+
+void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
+void ntg_scene_mark_dirty(ntg_scene* scene);
+
+static void
 layer_tree_layout(ntg_scene* scene, struct layer_node* node, sarena* arena)
 {
-    node_layer_layout(scene, node, arena);
+    node_layer_layout(scene, node, arena, 0);
 
     size_t i;
     for(i = 0; i < node->children.size; i++)
@@ -327,17 +404,25 @@ layer_tree_layout(ntg_scene* scene, struct layer_node* node, sarena* arena)
     }
 }
 
-static void 
-node_layer_layout(ntg_scene* scene, struct layer_node* node, sarena* arena)
+static void
+node_layer_layout(ntg_scene* scene, struct layer_node* node, sarena* arena, int it)
 {
     ntg_scene_layer* layer = node->data.layer;
 
     // Sentinel node just returns
     if(!layer) return;
 
+    if(!layer->_dirty)
+    {
+        ntg_log_log("LAYER OPTIMIZE");
+        return;
+    }
+
+    ntg_scene_mark_dirty(scene);
+
     _ntg_scene_layer_hmeasure(layer, arena);
 
-    struct ntg_scene_attach_ctx hattach_ctx = {
+    struct ntg_dock_ctx hdock_ctx = {
         .orient = NTG_ORIENT_H,
         .layer_min_size = layer->_min_size.x,
         .layer_nat_size = layer->_nat_size.x,
@@ -346,8 +431,8 @@ node_layer_layout(ntg_scene* scene, struct layer_node* node, sarena* arena)
     };
 
     size_t _hsize = 0, _hpos = 0;
-    node->data.policy.attach_fn(node->data.policy.data,
-            hattach_ctx, &_hsize, &_hpos, arena);
+    node->data.policy.dock_fn(node->data.policy.data,
+            hdock_ctx, &_hsize, &_hpos, arena);
 
     _hsize = _min2_size(scene->_size.x, _hsize);
     _hpos = (_hpos + _hsize <= scene->_size.x) ? _hpos : scene->_size.x - _hsize;
@@ -358,7 +443,7 @@ node_layer_layout(ntg_scene* scene, struct layer_node* node, sarena* arena)
 
     _ntg_scene_layer_vmeasure(layer, arena);
 
-    struct ntg_scene_attach_ctx vattach_ctx = {
+    struct ntg_dock_ctx vdock_ctx = {
         .orient = NTG_ORIENT_V,
         .layer_min_size = layer->_min_size.y,
         .layer_nat_size = layer->_nat_size.y,
@@ -367,8 +452,8 @@ node_layer_layout(ntg_scene* scene, struct layer_node* node, sarena* arena)
     };
 
     size_t _vsize = 0, _vpos = 0;
-    node->data.policy.attach_fn(node->data.policy.data,
-            vattach_ctx, &_vsize, &_vpos, arena);
+    node->data.policy.dock_fn(node->data.policy.data,
+            vdock_ctx, &_vsize, &_vpos, arena);
 
     _vsize = _min2_size(scene->_size.x, _vsize);
     _vpos = (_vpos + _vsize <= scene->_size.x) ? _vpos : scene->_size.x - _vsize;
@@ -377,8 +462,16 @@ node_layer_layout(ntg_scene* scene, struct layer_node* node, sarena* arena)
 
     _ntg_scene_layer_vconstrain(layer, arena);
 
-    _ntg_scene_layer_arrange(layer, arena);
-    _ntg_scene_layer_draw(layer, arena);
+    bool repeat = _ntg_scene_layer_post_constrain(layer, arena);
+    if(repeat && (it < LAYER_LAYOUT_MAX_IT))
+        node_layer_layout(scene, node, arena, it + 1);
+    else
+    {
+        _ntg_scene_layer_arrange(layer, arena);
+        _ntg_scene_layer_draw(layer, arena);
+        
+        _ntg_scene_layer_clean(layer);
+    }
 }
 
 static struct layer_node* layer_node_new(struct layer_node_data data)
