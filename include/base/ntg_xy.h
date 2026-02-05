@@ -35,6 +35,20 @@ enum ntg_align
     NTG_ALIGN_3
 };
 
+static inline size_t
+ntg_align_offset(size_t inner_size, size_t outer_size, ntg_align align)
+{
+    if(inner_size > outer_size) inner_size = outer_size;
+
+    if(align == NTG_ALIGN_1)
+        return 0;
+    else if(align == NTG_ALIGN_2)
+        return (outer_size - inner_size) / 2;
+    else
+        return (outer_size - inner_size);
+}
+
+
 struct ntg_oxy
 {
     size_t prim_val, sec_val;
@@ -300,10 +314,34 @@ static inline size_t ntg_insets_vsum(struct ntg_insets insets)
     return insets.n + insets.s;
 }
 
+static inline size_t ntg_insets_sum(struct ntg_insets insets, ntg_orient orient)
+{
+    if(orient == NTG_ORIENT_H)
+        return ntg_insets_hsum(insets);
+    else
+        return ntg_insets_vsum(insets);
+}
+
+static inline struct ntg_insets
+ntg_insets_add(struct ntg_insets i1, struct ntg_insets i2)
+{
+    return (struct ntg_insets) {
+        .n = i1.n + i2.n,
+        .e = i1.e + i2.e,
+        .s = i1.s + i2.s,
+        .w = i1.w + i2.w
+    };
+}
+
 static inline bool ntg_insets_is_zero(struct ntg_insets insets)
 {
     return ((insets.n == 0) && (insets.s == 0) &&
             (insets.e == 0) && (insets.w == 0));
+}
+
+static inline struct ntg_insets ntg_insets_zero(struct ntg_insets insets)
+{
+    return (struct ntg_insets) {0};
 }
 
 #endif // NTG_XY_H

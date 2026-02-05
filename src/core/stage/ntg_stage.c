@@ -11,7 +11,7 @@ static void init_default(ntg_stage* stage);
 static void draw_object(ntg_stage* stage, ntg_object* object);
 static void draw_object_fn(ntg_object* object, void* _stage);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(draw_object_tree, draw_object_fn);
-static void draw_layer(ntg_stage* stage, ntg_scene_layer* layer, sarena* arena);
+static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 
 /* ========================================================================== */
 /* PUBLIC - TYPES */
@@ -54,80 +54,53 @@ void ntg_stage_deinit_(void* _stage)
     ntg_stage_deinit(_stage);
 }
 
-void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
-{
-    assert(stage);
-
-    if(!ntg_xy_are_equal(stage->_size, size))
-    {
-        ntg_stage_mark_dirty(stage);
-        stage->_size = size;
-        if(stage->_scene)
-        {
-            ntg_scene_set_size(stage->_scene, size);
-        }
-    }
-}
-
-void ntg_stage_mark_dirty(ntg_stage* stage)
-{
-    assert(stage);
-
-    stage->_dirty = true;
-}
-
-void ntg_stage_compose(ntg_stage* stage, sarena* arena)
+void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
 {
     assert(stage != NULL);
 
-    struct ntg_xy size = stage->_size;
-
-    struct ntg_xy drawing_size = ntg_stage_drawing_get_size(&stage->_drawing);
-    if(!ntg_xy_are_equal(stage->_size, drawing_size))
+    if(!ntg_xy_are_equal(stage->_size, size))
     {
+        stage->_size = size;
         struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
         ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap);
     }
 
-    if((stage->_scene) && (stage->_scene->_dirty))
-        ntg_scene_layout(stage->_scene, arena);
-
-    if(stage->_dirty)
+    if(stage->_scene)
     {
-        size_t i, j;
-        for(i = 0; i < size.y; i++)
-        {
-            for(j = 0; j < size.x; j++)
-            {
-                ntg_stage_drawing_set(
-                        &stage->_drawing,
-                        ntg_cell_default(),
-                        ntg_xy(j, i));
-            }
-        }
-
-        if(!stage->_scene) return;
-
-        size_t layer_count = ntg_scene_get_layer_count(stage->_scene);
-        if(layer_count == 0) return;
-
-        ntg_scene_layer** layers = sarena_malloc(arena,
-                sizeof(ntg_scene_layer*) * layer_count);
-        assert(layers);
-
-        ntg_scene_get_layers_by_z(stage->_scene, layers, layer_count);
-
-        for(i = layer_count; i > 0; i--)
-            draw_layer(stage, layers[i - 1], arena);
+        ntg_scene_layout(stage->_scene, size, arena);
     }
+
+    size_t i, j;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            ntg_stage_drawing_set(
+                    &stage->_drawing,
+                    ntg_cell_default(),
+                    ntg_xy(j, i));
+        }
+    }
+
+    if(!stage->_scene) return;
+
+    size_t layer_count = ntg_scene_get_root_count(stage->_scene);
+    if(layer_count == 0) return;
+
+    ntg_object** layers = sarena_malloc(arena,
+            sizeof(ntg_object*) * layer_count);
+    assert(layers);
+
+    ntg_scene_get_roots_by_z(stage->_scene, layers, layer_count);
+
+    for(i = layer_count; i > 0; i--)
+        draw_layer(stage, layers[i - 1], arena);
 }
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 {
     assert(stage != NULL);
     if(stage->_scene == scene) return;
-
-    ntg_stage_mark_dirty(stage);
 
     ntg_scene* old_scene = stage->_scene;
 
@@ -211,13 +184,6 @@ bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 /* INTERNAL */
 /* ========================================================================== */
 
-void _ntg_stage_clean(ntg_stage* stage)
-{
-    assert(stage != NULL);
-
-    stage->_dirty = false;
-}
-
 void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
 {
     assert(stage != NULL);
@@ -225,7 +191,6 @@ void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
     if(stage->_loop == loop) return;
 
     stage->_loop = loop;
-    ntg_stage_mark_dirty(stage);
 }
 
 /* ========================================================================== */
@@ -248,6 +213,8 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
             object->_size,
             &stage->_drawing,
             abs_pos);
+
+    _ntg_object_clean(object, NTG_OBJECT_DIRTY_RENDER);
 }
 
 static void draw_object_fn(ntg_object* object, void* _stage)
@@ -255,8 +222,7 @@ static void draw_object_fn(ntg_object* object, void* _stage)
     draw_object((ntg_stage*)_stage, object);
 }
 
-static void draw_layer(ntg_stage* stage, ntg_scene_layer* layer, sarena* arena)
+static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena)
 {
-    if(layer->_root)
-        draw_object_tree(layer->_root, stage);
+    if(root) draw_object_tree(root, stage);
 }

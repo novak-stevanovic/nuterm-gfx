@@ -81,86 +81,92 @@ void gui_fn1(void* _)
 
     ntg_label label;
     ntg_label_init(&label);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&label, ntg_label_deinit_));
+    ntg_cleanup_batch_add(batch, &label, ntg_label_deinit_, NULL);
 
     ntg_label_set_text(&label, lorem, strlen(lorem));
     struct nt_gfx label_gfx = {
-        .fg = nt_color_new_auto(nt_rgb_new(255, 255, 255)),
-        .bg = nt_color_new_auto(nt_rgb_new(143, 0, 255)),
+        .fg = nt_color_new_auto(255, 255, 255),
+        .bg = nt_color_new_auto(143, 0, 255),
         .style = nt_style_new_uniform(NT_STYLE_VAL_BOLD)
     };
     struct ntg_label_opts opts = {
         .orient = NTG_ORIENT_H,
         .gfx = label_gfx,
-        .palign = NTG_LABEL_ALIGN_JUSTIFY,
-        .salign = NTG_ALIGN_1,
+        .mode = NTG_LABEL_ALIGN,
+        .prim_align = NTG_ALIGN_1,
+        .sec_align = NTG_ALIGN_1,
         .wrap = NTG_LABEL_WRAP_WORD,
         .autotrim = true,
         .indent = 2
     };
     ntg_label_set_opts(&label, opts);
 
-    struct ntg_border_style label_border_style = ntg_def_border_style_new(
-            ntg_def_border_style_single(NT_GFX_DEFAULT));
     struct ntg_border_opts label_border_opts = {
-        .style = label_border_style,
+        .style = ntg_border_style_new_single(NT_GFX_DEFAULT),
         .enable = NTG_OBJECT_DCR_ENABLE_MIN,
         .pref_size = ntg_insets(1, 1, 1, 1)
     };
+    struct ntg_padding_opts label_padding_opts = {
+        .enable = NTG_OBJECT_DCR_ENABLE_MIN,
+        .pref_size = ntg_insets(2, 2, 2, 2)
+    };
     ntg_object_set_border_opts(ntg_obj(&label), label_border_opts);
+    ntg_object_set_padding_opts(ntg_obj(&label), label_padding_opts);
 
     ntg_scene scene;
     ntg_scene_init(&scene);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&scene, ntg_scene_deinit_));
+    ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_, NULL);
     // ntg_scene_set_on_key_fn(&scene, scene_on_key_fn);
 
     ntg_stage stage;
     ntg_stage_init(&stage);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&stage, ntg_stage_deinit_));
+    ntg_cleanup_batch_add(batch, &stage, ntg_stage_deinit_, NULL);
 
     ntg_def_renderer renderer;
     ntg_def_renderer_init(&renderer);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&renderer, ntg_def_renderer_deinit_));
-
-    ntg_scene_layer layer;
-    ntg_scene_layer_init(&layer);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&layer, ntg_scene_layer_deinit_));
+    ntg_cleanup_batch_add(batch, &renderer, ntg_def_renderer_deinit_, NULL);
 
     ntg_main_panel main_panel;
     ntg_main_panel_init(&main_panel);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&main_panel, ntg_main_panel_deinit_));
+    ntg_cleanup_batch_add(batch, &main_panel, ntg_main_panel_deinit_, NULL);
+    struct ntg_border_opts root_border_opts = {
+        .style = ntg_border_style_new_rounded(NT_GFX_DEFAULT),
+        .enable = NTG_OBJECT_DCR_ENABLE_MIN,
+        .pref_size = ntg_insets(1, 1, 1, 1)
+    };
+    ntg_object_set_border_opts(ntg_obj(&main_panel), root_border_opts);
 
     ntg_color_block west;
     ntg_color_block_init(&west);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&west, ntg_color_block_deinit_));
-    ntg_color_block_set_color(&west, nt_color_new_auto(nt_rgb_new(200, 0, 40)));
+    ntg_cleanup_batch_add(batch, &west, ntg_color_block_deinit_, NULL);
+    ntg_color_block_set_color(&west, nt_color_new_auto(200, 0, 40));
 
     ntg_color_block east;
     ntg_color_block_init(&east);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&east, ntg_color_block_deinit_));
-    ntg_color_block_set_color(&east, nt_color_new_auto(nt_rgb_new(40, 0, 200)));
+    ntg_cleanup_batch_add(batch, &east, ntg_color_block_deinit_, NULL);
+    ntg_color_block_set_color(&east, nt_color_new_auto(40, 0, 200));
     ntg_object_set_user_min_size_cont(ntg_obj(&west), ntg_xy(10, NTG_OBJECT_MIN_SIZE_UNSET));
     ntg_object_set_user_min_size_cont(ntg_obj(&east), ntg_xy(10, NTG_OBJECT_MIN_SIZE_UNSET));
 
     ntg_box center;
     ntg_box_init(&center);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&center, ntg_box_deinit_));
+    ntg_cleanup_batch_add(batch, &center, ntg_box_deinit_, NULL);
 
     ntg_main_panel_set(&main_panel, ntg_obj(&label), NTG_MAIN_PANEL_NORTH);
     ntg_main_panel_set(&main_panel, ntg_obj(&west), NTG_MAIN_PANEL_WEST);
     ntg_main_panel_set(&main_panel, ntg_obj(&east), NTG_MAIN_PANEL_EAST);
 
+    ntg_scene_attach_root(&scene, ntg_obj(&main_panel), NULL, ntg_attach_policy_root());
     ntg_stage_set_scene(&stage, &scene);
-    ntg_scene_layer_set_root(&layer, ntg_obj(&main_panel));
-    ntg_scene_attach_layer(&scene, &layer, NULL, ntg_scene_attach_plc_root());
 
     ntg_loop loop;
     ntg_loop_init(&loop, &stage, ntg_rnd(&renderer), 60, 4, loop_on_event_fn);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&loop, ntg_loop_deinit_));
+    ntg_cleanup_batch_add(batch, &loop, ntg_loop_deinit_, NULL);
 
-    ntg_log_log("LOOP END | STATUS: %d", ntg_loop_run(&loop));
+    ntg_loop_exit_status loop_status = ntg_loop_run(&loop);
+    ntg_log_log("LOOP END | STATUS: %d", loop_status);
 
-    ntg_cleanup_batch_destroy(batch);
+    ntg_cleanup_batch_finish(batch);
 }
 
 void gui_fn2(void* _)
@@ -169,51 +175,41 @@ void gui_fn2(void* _)
 
     ntg_color_block root;
     ntg_color_block_init(&root);
-    ntg_color_block_set_color(&root, nt_color_new_auto(nt_rgb_new(255, 0, 0)));
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&root, ntg_color_block_deinit_));
+    ntg_color_block_set_color(&root, nt_color_new_auto(255, 0, 0));
+    ntg_cleanup_batch_add(batch, &root, ntg_color_block_deinit_, NULL);
 
     struct nt_gfx root_border_style_gfx = {
-        .fg = nt_color_new_auto(nt_rgb_new(255, 255, 255)),
-        .bg = nt_color_new_auto(nt_rgb_new(245, 245, 245)),
+        .fg = nt_color_new_auto(255, 255, 255),
+        .bg = nt_color_new_auto(245, 245, 245),
         .style = NT_STYLE_DEFAULT
     };
-    struct ntg_border_style root_border_style = ntg_def_border_style_new(
-            ntg_def_border_style_rounded(root_border_style_gfx));
     struct ntg_border_opts root_border_opts = {
+        .style = ntg_border_style_new_rounded(root_border_style_gfx),
         .enable = NTG_OBJECT_DCR_ENABLE_MIN,
         .pref_size = ntg_insets(1, 1, 1, 1),
-        .style = root_border_style
     };
     ntg_object_set_border_opts(ntg_obj(&root), root_border_opts);
     ntg_object_set_user_min_size_cont(ntg_obj(&root), ntg_xy(100, 10));
 
     ntg_scene scene;
     ntg_scene_init(&scene);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&scene, ntg_scene_deinit_));
+    ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_, NULL);
 
     ntg_stage stage;
     ntg_stage_init(&stage);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&stage, ntg_stage_deinit_));
+    ntg_cleanup_batch_add(batch, &stage, ntg_stage_deinit_, NULL);
 
     ntg_def_renderer renderer;
     ntg_def_renderer_init(&renderer);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&renderer, ntg_def_renderer_deinit_));
-
-    ntg_scene_layer layer;
-    ntg_scene_layer_init(&layer);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&layer, ntg_scene_layer_deinit_));
-
-    ntg_stage_set_scene(&stage, &scene);
-    ntg_scene_layer_set_root(&layer, ntg_obj(&root));
-    ntg_scene_attach_layer(&scene, &layer, NULL, ntg_scene_attach_plc_root());
+    ntg_cleanup_batch_add(batch, &renderer, ntg_def_renderer_deinit_, NULL);
 
     ntg_loop loop;
     ntg_loop_init(&loop, &stage, ntg_rnd(&renderer), 60, 4, loop_on_event_fn);
-    ntg_cleanup_batch_add(batch, NTG_CLEANUP_PAIR(&loop, ntg_loop_deinit_));
+    ntg_cleanup_batch_add(batch, &loop, ntg_loop_deinit_, NULL);
 
     ntg_loop_run(&loop);
 
-    ntg_cleanup_batch_destroy(batch);
+    ntg_cleanup_batch_finish(batch);
 }
 
 int main(int argc, char *argv[])

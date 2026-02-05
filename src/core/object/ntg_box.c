@@ -26,8 +26,8 @@ struct ntg_box_opts ntg_box_opts_def()
 {
     return (struct ntg_box_opts) {
         .orient = NTG_ORIENT_H,
-        .palign = NTG_ALIGN_1,
-        .salign = NTG_ALIGN_1,
+        .prim_align = NTG_ALIGN_1,
+        .sec_align = NTG_ALIGN_1,
         .spacing = 0
     };
 }
@@ -48,9 +48,7 @@ void ntg_box_init(ntg_box* box)
         .measure_fn = measure_fn,
         .constrain_fn = constrain_fn,
         .arrange_fn = arrange_fn,
-        .draw_fn = NULL,
-        .init_fn = NULL,
-        .deinit_fn = NULL
+        .draw_fn = NULL
     };
 
     struct ntg_object_hooks hooks = {
@@ -73,7 +71,7 @@ void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
     
     box->_opts = opts;
 
-    ntg_object_add_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
+    ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_box_add_child(ntg_box* box, ntg_object* child)
@@ -85,7 +83,7 @@ void ntg_box_add_child(ntg_box* box, ntg_object* child)
 
     ntg_object_vec_pushb(&box->_children, child, NULL);
 
-    ntg_object_add_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
+    ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_object* child)
@@ -97,7 +95,7 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 
     ntg_object_vec_rm(&box->_children, child, NULL);
 
-    ntg_object_add_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
+    ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -286,8 +284,8 @@ static void arrange_fn(
 
     /* Init */
     ntg_orient orient = box->_opts.orient;
-    ntg_align prim_align = box->_opts.palign;
-    ntg_align sec_align = box->_opts.salign;
+    ntg_align prim_align = box->_opts.prim_align;
+    ntg_align sec_align = box->_opts.sec_align;
 
     size_t i;
     const ntg_object* it_child;
@@ -332,20 +330,10 @@ static void arrange_fn(
             _children_size.sec_val, orient);
 
     /* Calculate base offset */
-    struct ntg_oxy _base_offset = ntg_oxy(0, 0, orient);
-    if(prim_align == NTG_ALIGN_1)
-        _base_offset.prim_val = 0;
-    else if(prim_align == NTG_ALIGN_2)
-        _base_offset.prim_val = (_size.prim_val - _cont_size.prim_val) / 2;
-    else
-        _base_offset.prim_val = _size.prim_val - _cont_size.prim_val;
-
-    if(sec_align == NTG_ALIGN_1)
-        _base_offset.sec_val = 0;
-    else if(sec_align == NTG_ALIGN_2)
-        _base_offset.sec_val = (_size.sec_val - _cont_size.sec_val) / 2;
-    else
-        _base_offset.sec_val = (_size.sec_val - _cont_size.sec_val);
+    struct ntg_oxy _base_offset = ntg_oxy(
+        ntg_align_offset(_cont_size.prim_val, _size.prim_val, prim_align),
+        ntg_align_offset(_cont_size.sec_val, _size.sec_val, sec_align),
+        orient);
 
     struct ntg_oxy _it_extra_offset = ntg_oxy(0, 0, orient);
     struct ntg_xy it_pos;
@@ -357,12 +345,10 @@ static void arrange_fn(
         _it_size = ntg_oxy_from_xy(it_size, orient);
 
         /* Calculate offset from secondary align */
-        if(sec_align == NTG_ALIGN_1)
-            _it_extra_offset.sec_val = 0;
-        else if(sec_align == NTG_ALIGN_2)
-            _it_extra_offset.sec_val = (_cont_size.sec_val - _it_size.sec_val) / 2;
-        else
-            _it_extra_offset.sec_val = (_cont_size.sec_val - _it_size.sec_val);
+        _it_extra_offset.sec_val = ntg_align_offset(
+                _cont_size.sec_val,
+                _it_size.sec_val,
+                sec_align);
 
         /* Set pos of child */
         it_pos = ntg_xy_add(

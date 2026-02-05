@@ -26,12 +26,12 @@ enum ntg_object_dcr_enable
 struct ntg_border_style
 {
     void* data;
-    void (*draw_fn)(
+    void  (*draw_fn)(
             void* data,
             struct ntg_xy size,
             struct ntg_insets border_size,
             ntg_object_tmp_drawing* out_drawing);
-    void (*free_fn)(void* data);
+    void  (*free_fn)(void* data);
 };
 
 struct ntg_border_opts
@@ -62,7 +62,7 @@ struct ntg_object
 
     struct
     {
-        ntg_scene_layer* __scene_layer; // only root holds
+        ntg_scene* __scene; // only root holds
         ntg_object* _parent;
         ntg_object_vec _children;
     };
@@ -77,13 +77,12 @@ struct ntg_object
     struct
     {
         struct ntg_object_layout_ops __layout_ops;
-        void* layout_ch;
+        void* layout_cache;
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
         struct ntg_xy _pos;
         ntg_object_drawing _drawing;
-        uint8_t _dirty;
-        uint8_t __dirty_hdcr, __dirty_vdcr, __skip_fix;
+        uint8_t _dirty, __skip_hborder, __skip_hpadding, __repeat;
     };
 
     struct ntg_object_hooks __hooks;
@@ -115,8 +114,8 @@ struct ntg_object
 const ntg_object* ntg_object_get_root(const ntg_object* object);
 ntg_object* ntg_object_get_root_(ntg_object* object);
 
-ntg_scene_layer* ntg_object_get_scene_layer_(ntg_object* object);
-const ntg_scene_layer* ntg_object_get_scene_layer(const ntg_object* object);
+ntg_scene* ntg_object_get_scene_(ntg_object* object);
+const ntg_scene* ntg_object_get_scene(const ntg_object* object);
 
 ntg_scene* ntg_object_get_scene_(ntg_object* object);
 const ntg_scene* ntg_object_get_scene(const ntg_object* object);
@@ -155,6 +154,7 @@ void ntg_object_set_user_grow(ntg_object* object, struct ntg_xy grow);
 void ntg_object_set_z_index(ntg_object* object, int z_index);
 void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg);
 
+// When the user sets a border style, the object becomes responsible for freeing
 void ntg_object_set_border_opts(
         ntg_object* object,
         struct ntg_border_opts opts);
@@ -175,12 +175,6 @@ struct ntg_dxy ntg_object_map_to_descendant(
         const ntg_object* object,
         const ntg_object* descendant,
         struct ntg_dxy point);
-
-struct ntg_dxy 
-ntg_object_map_to_scene_layer(const ntg_object* object, struct ntg_dxy point);
-
-struct ntg_dxy 
-ntg_object_map_from_scene_layer(const ntg_object* object, struct ntg_dxy point);
 
 struct ntg_dxy 
 ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
@@ -222,44 +216,51 @@ static void fn_name(ntg_object* object, void* data)                            \
 /* BORDER STYLE */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_mark_dirty(ntg_object* object, uint8_t dirty);
-
-struct ntg_def_border_style_dt
-{
-    struct ntg_vcell top_left, top,
-    top_right, right, bottom_right,
-    bottom, bottom_left, left, padding;
-};
+/* Functions below perform malloc(). Unless the border style is applied to an
+ * object, the user is responsible for calling `free_fn` of the created style. */
 
 struct ntg_border_style
-ntg_def_border_style_new(struct ntg_def_border_style_dt data);
+ntg_border_style_new_monochrome(struct nt_color color);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_monochrome(nt_color color);
+struct ntg_border_style
+ntg_border_style_new_uniform(struct nt_gfx gfx, uint32_t codepoint);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_uniform(struct nt_gfx gfx, uint32_t codepoint);
+struct ntg_border_style
+ntg_border_style_new_uniform_edge(struct nt_gfx gfx, uint32_t codepoint);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_uniform_edge(struct nt_gfx gfx, uint32_t codepoint);
+struct ntg_border_style
+ntg_border_style_new_single(struct nt_gfx gfx);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_single(struct nt_gfx gfx);
+struct ntg_border_style
+ntg_border_style_new_double(struct nt_gfx gfx);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_double(struct nt_gfx gfx);
+struct ntg_border_style
+ntg_border_style_new_rounded(struct nt_gfx gfx);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_rounded(struct nt_gfx gfx);
+struct ntg_border_style
+ntg_border_style_new_heavy(struct nt_gfx gfx);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_heavy(struct nt_gfx gfx);
+struct ntg_border_style
+ntg_border_style_new_dashed(struct nt_gfx gfx);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_dashed(struct nt_gfx gfx);
+struct ntg_border_style
+ntg_border_style_new_ascii(struct nt_gfx gfx);
 
-struct ntg_def_border_style_dt
-ntg_def_border_style_ascii(struct nt_gfx gfx);
+struct ntg_border_style
+ntg_border_style_new_transparent(struct nt_gfx gfx);
+
+struct ntg_border_style_custom_dt
+{
+    struct ntg_vcell top_left, top, top_right,
+        right, bottom_right, bottom, bottom_left,
+        left, padding;
+};
+
+/* For truly custom border styles, define your own implementation of
+ * ntg_border_style's `draw_fn` */
+
+struct ntg_border_style
+ntg_border_style_new_custom(const struct ntg_border_style_custom_dt* data);
 
 /* ========================================================================== */
 /* PROTECTED */
@@ -286,6 +287,10 @@ void ntg_object_detach(ntg_object* object);
 
 void _ntg_object_clean(ntg_object* object, uint8_t clean);
 
-void _ntg_object_root_set_scene_layer(ntg_object* object, ntg_scene_layer* layer);
+// Called by scene scene. Updates the root's field only
+void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
+
+// Called by scene scene when registering/unregistering objects from the scene.
+void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
 
 #endif // NTG_OBJECT_H

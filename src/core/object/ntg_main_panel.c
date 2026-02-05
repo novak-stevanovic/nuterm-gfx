@@ -49,9 +49,7 @@ void ntg_main_panel_init(ntg_main_panel* box)
         .measure_fn = measure_fn,
         .constrain_fn = constrain_fn,
         .arrange_fn = arrange_fn,
-        .draw_fn = NULL,
-        .init_fn = NULL,
-        .deinit_fn = NULL
+        .draw_fn = NULL
     };
 
     struct ntg_object_hooks hooks = {
@@ -81,7 +79,7 @@ void ntg_main_panel_set(
         box->_children[pos] = object;
     }
 
-    ntg_object_add_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
+    ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -19,13 +19,13 @@ static void draw_fn(
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_color_block_set_color(ntg_color_block* color_block, nt_color color)
+void ntg_color_block_set_color(ntg_color_block* color_block, struct nt_color color)
 {
     assert(color_block != NULL);
 
     color_block->__color = color;
 
-    ntg_object_add_dirty((ntg_object*)color_block, NTG_OBJECT_DIRTY_DRAW);
+    ntg_object_mark_dirty((ntg_object*)color_block, NTG_OBJECT_DIRTY_DRAW);
 }
 
 void ntg_color_block_init(ntg_color_block* color_block)
@@ -37,8 +37,6 @@ void ntg_color_block_init(ntg_color_block* color_block)
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = draw_fn,
-        .init_fn = NULL,
-        .deinit_fn = NULL
     };
 
     struct ntg_object_hooks hooks = {0};

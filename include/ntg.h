@@ -15,7 +15,6 @@
 #include "shared/ntg_log.h"
 #include "base/ntg_type.h"
 #include "base/ntg_cell.h"
-#include "base/ntg_cleanup.h"
 #include "base/ntg_xy.h"
 #include "base/ntg_sap.h"
 #include "base/ntg_event.h"
@@ -32,7 +31,6 @@
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
-#include "core/scene/ntg_scene_layer.h"
 #include "core/stage/ntg_stage_drawing.h"
 #include "core/stage/ntg_stage.h"
 
@@ -59,9 +57,12 @@ void ntg_wait();
 
 // ACTIVE: ntg_widget refactor. | **
 
+// ACTIVE:
 // TODO: implement modals on scene, object focus managers | **
-
 // TODO: ntg_scene: implement multi-root system | **
+
+// TODO: Swap struct in args to const struct*
+
 // TODO: ntg_label: coloring/styling specific words | **
 // TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **
 

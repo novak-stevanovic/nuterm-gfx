@@ -60,8 +60,8 @@ struct ntg_vcell
         struct
         {
             uint32_t codepoint;
-            nt_color fg;
-            nt_style style;
+            struct nt_color fg;
+            struct nt_style style;
         } overlay;
 
         struct 
@@ -97,7 +97,7 @@ ntg_vcell_full(uint32_t cp, struct nt_gfx gfx)
 }
 
 static inline struct ntg_vcell 
-ntg_vcell_overlay(uint32_t cp, nt_color fg, nt_style style)
+ntg_vcell_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_OVERLAY,
@@ -118,7 +118,7 @@ ntg_vcell_transparent()
 }
 
 static inline struct ntg_vcell 
-ntg_vcell_bg(nt_color color)
+ntg_vcell_bg(struct nt_color color)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,

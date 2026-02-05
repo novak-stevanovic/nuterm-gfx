@@ -135,10 +135,6 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
             loop->_app_size.y = resize_event.new_y;
 
             resize_counter++;
-            if(loop->_stage)
-            {
-                ntg_stage_set_size(loop->_stage, loop->_app_size);
-            }
         }
         if(event.type == NT_EVENT_SIGNAL)
         {
@@ -157,11 +153,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
 
             if(loop->_stage != NULL)
             {
-                if(loop->_stage->_dirty)
-                {
-                    ntg_stage_compose(loop->_stage, loop->_arena);
-                    _ntg_stage_clean(loop->_stage);
-                }
+                ntg_stage_compose(loop->_stage, loop->_app_size, loop->_arena);
                 drawing = &loop->_stage->_drawing;
             }
             else drawing = NULL;

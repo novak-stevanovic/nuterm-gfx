@@ -117,8 +117,9 @@ struct ntg_label_opts ntg_label_opts_def()
     return (struct ntg_label_opts) {
         .orient = NTG_ORIENT_H,
         .gfx = NT_GFX_DEFAULT,
-        .palign = NTG_LABEL_ALIGN_1,
-        .salign = NTG_ALIGN_1,
+        .mode = NTG_LABEL_ALIGN,
+        .prim_align = NTG_ALIGN_1,
+        .sec_align = NTG_ALIGN_1,
         .wrap = NTG_LABEL_WRAP_NONE,
         .autotrim = true,
         .indent = false
@@ -137,9 +138,7 @@ void ntg_label_init(ntg_label* label)
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
-        .draw_fn = draw_fn,
-        .init_fn = NULL,
-        .deinit_fn = NULL
+        .draw_fn = draw_fn
     };
 
     struct ntg_object_hooks hooks = {0};
@@ -195,7 +194,7 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
     label->_opts = opts;
     ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
 
-    ntg_object_add_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
+    ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_label_set_text(ntg_label* label, const char* text, size_t len)
@@ -291,7 +290,7 @@ void ntg_label_set_text(ntg_label* label, const char* text, size_t len)
     label->__priv->utf32_rows.count = row_count;
     label->__priv->utf32_rows.lens = new_rows;
 
-    ntg_object_add_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
+    ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -337,6 +336,7 @@ static struct ntg_object_measure measure_fn(
         default: assert(0);
     }
 
+    ntg_log_log("LABEL M: %d %d %d %d", result.min_size, result.nat_size, result.max_size);
     return result;
 }
 
@@ -409,22 +409,13 @@ static void draw_fn(
             /* Avoid overflow in switch statement */
             _it_wrows_lens[j] = _min2_size(_it_wrows_lens[j], cont_size.x);
 
-            switch(label->_opts.palign)
+            if(label->_opts.mode == NTG_LABEL_ALIGN)
             {
-                case NTG_LABEL_ALIGN_1:
-                    it_row_align_indent = 0;
-                    break;
-                case NTG_LABEL_ALIGN_2:
-                    it_row_align_indent = (cont_size.x -_it_wrows_lens[j]) / 2;
-                    break;
-                case NTG_LABEL_ALIGN_3:
-                    it_row_align_indent = (cont_size.x -_it_wrows_lens[j]);
-                    break;
-                case NTG_LABEL_ALIGN_JUSTIFY:
-                    it_row_align_indent = 0;
-                    break;
-                default: assert(0);
+                it_row_align_indent = ntg_align_offset(cont_size.x,
+                        _it_wrows_lens[j], label->_opts.prim_align);
             }
+            else
+                it_row_align_indent = 0;
 
             /* If true row, add capped indent */
             it_row_effective_indent = (j == 0) ?
@@ -440,7 +431,7 @@ static void draw_fn(
             {
                 if(_it_wrows[j][k] == ' ')
                 {
-                    if((j < (_it_wrows_count - 1)) && label->_opts.palign == NTG_LABEL_ALIGN_JUSTIFY)
+                    if((j < (_it_wrows_count - 1)) && label->_opts.mode == NTG_LABEL_JUSTIFY)
                     {
                         size_t space_justified_count = (it_wrow_extra_space / it_wrow_space_count) +
                             (it_wrow_space_counter < (it_wrow_extra_space % it_wrow_space_count)); 

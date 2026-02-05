@@ -11,8 +11,8 @@
 struct ntg_box_opts
 {
     ntg_orient orient;
-    ntg_align palign;
-    ntg_align salign;
+    ntg_align prim_align;
+    ntg_align sec_align;
     size_t spacing;
 };
 

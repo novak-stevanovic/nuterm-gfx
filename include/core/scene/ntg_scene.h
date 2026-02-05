@@ -13,25 +13,46 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-/* LAYER */
+/* ATTACH POLICY */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_dock_ctx
+struct ntg_attach_constrain_ctx
 {
-    ntg_orient orient;
-    size_t layer_min_size, layer_nat_size, layer_max_size;
+    const ntg_object* base_root;
     size_t scene_size;
 };
 
-struct ntg_dock_plc
+struct ntg_attach_fixup_ctx
 {
-    void* data;
-    void (*dock_fn)(
+    const ntg_object* base_root;
+    struct ntg_xy size;
+    struct ntg_xy scene_size;
+};
+
+struct ntg_attach_arrange_ctx
+{
+    const ntg_object* base_root;
+    struct ntg_xy size;
+    struct ntg_xy scene_size;
+};
+
+struct ntg_attach_policy
+{
+    size_t (*constrain_fn)(
             void* data,
-            struct ntg_dock_ctx ctx,
-            size_t* out_size,
-            size_t* out_pos,
+            ntg_orient orient,
+            struct ntg_attach_constrain_ctx ctx,
             sarena* arena);
+    bool (*fixup_fn)(
+            void* data,
+            struct ntg_attach_fixup_ctx ctx,
+            sarena* arena);
+    struct ntg_xy (*arrange_fn)(
+            void* data,
+            struct ntg_attach_arrange_ctx ctx,
+            sarena* arena);
+
+    void* data;
     void (*free_fn)(void* data);
 };
 
@@ -47,8 +68,6 @@ struct ntg_scene
     {
         ntg_stage* _stage;
     };
-
-    bool _dirty;
 
     struct
     {
@@ -74,85 +93,26 @@ void ntg_scene_init(ntg_scene* scene);
 void ntg_scene_deinit(ntg_scene* scene);
 void ntg_scene_deinit_(void* _scene);
 
-void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
-void ntg_scene_mark_dirty(ntg_scene* scene);
-void ntg_scene_layout(ntg_scene* scene, sarena* arena);
+void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
 ntg_object* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos);
 
 /* -------------------------------------------------------------------------- */
-/* LAYER */
-/* -------------------------------------------------------------------------- */
-
-void ntg_scene_dock_layer(
-        ntg_scene* scene,
-        ntg_scene_layer* layer,
-        ntg_scene_layer* base,
-        struct ntg_dock_plc policy);
-
-void ntg_scene_undock_layer(ntg_scene* scene, ntg_scene_layer* layer);
-
-size_t ntg_scene_get_layer_count(const ntg_scene* scene);
-void ntg_scene_get_layers_by_z(
-        ntg_scene* scene,
-        ntg_scene_layer** out_buff,
-        size_t cap);
-
-/* -------------------------------------------------------------------------- */
-/* DOCK POLICY */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
 /* ROOT */
-/* ------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
 
-struct ntg_dock_plc ntg_dock_plc_root();
+void ntg_scene_attach_root(
+        ntg_scene* scene,
+        ntg_object* root,
+        ntg_object* base_root,
+        struct ntg_attach_policy policy);
 
-/* ------------------------------------------------------ */
-/* DOCK */
-/* ------------------------------------------------------ */
+void ntg_scene_detach_root(ntg_scene* scene, ntg_object* root);
 
-enum ntg_dock_plc_anchor_orient
-{
-    NTG_DOCK_PLC_ATTACH_ORIENT_N,
-    NTG_DOCK_PLC_ATTACH_ORIENT_E,
-    NTG_DOCK_PLC_ATTACH_ORIENT_S,
-    NTG_DOCK_PLC_ATTACH_ORIENT_W,
-    NTG_DOCK_PLC_ATTACH_ORIENT_C
-};
-
-enum ntg_dock_plc_anchor_size
-{
-    NTG_DOCK_PLC_ATTACH_SIZE_MEASURE,
-    NTG_DOCK_PLC_ATTACH_SIZE_DOCK
-};
-
-enum ntg_dock_plc_anchor_thresh
-{
-    NTG_DOCK_PLC_ATTACH_THRESH_MIN,
-    NTG_DOCK_PLC_ATTACH_THRESH_NAT,
-    NTG_DOCK_PLC_ATTACH_THRESH_ALWAYS,
-};
-
-enum ntg_dock_plc_anchor_enable
-{
-    NTG_DOCK_PLC_ATTACH_ENABLE_STATIC,
-    NTG_DOCK_PLC_ATTACH_ENABLE_DYNAMIC
-};
-
-struct ntg_dock_plc_anchor_dt
-{
-    ntg_scene_layer* base;
-    ntg_object* dock;
-    struct ntg_insets shrink;
-    ntg_align align;
-    enum ntg_dock_plc_anchor_orient orient;
-    enum ntg_dock_plc_anchor_size size;
-    enum ntg_dock_plc_anchor_thresh thresh;
-    enum ntg_dock_plc_anchor_enable enable;
-};
-
-struct ntg_dock_plc
-ntg_dock_plc_anchor(struct ntg_dock_plc_anchor_dt dt);
+size_t ntg_scene_get_root_count(const ntg_scene* scene);
+void ntg_scene_get_roots_by_z(
+        ntg_scene* scene,
+        ntg_object** out_buff,
+        size_t cap);
 
 /* -------------------------------------------------------------------------- */
 /* EVENT */
@@ -169,13 +129,88 @@ void ntg_scene_set_on_mouse_fn(ntg_scene* scene,
         bool (*on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse));
 bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 
+/* -------------------------------------------------------------------------- */
+/* ATTACH POLICY */
+/* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* ROOT */
+/* ------------------------------------------------------ */
+
+struct ntg_attach_policy ntg_attach_policy_root();
+
+/* ------------------------------------------------------ */
+/* FLOAT */
+/* ------------------------------------------------------ */
+
+enum ntg_attach_policy_flt_enable
+{
+    NTG_ATTACH_POLICY_FLT_ENABLE_MIN,
+    NTG_ATTACH_POLICY_FLT_ENABLE_NAT,
+    NTG_ATTACH_POLICY_FLT_ENABLE_ALWAYS,
+};
+
+struct ntg_attach_policy_flt_dt
+{
+    // If base is not descendant_or_eq to base_root, size of attached root will be 0
+    ntg_object* base;
+    enum ntg_attach_policy_flt_enable enable;
+
+    struct ntg_insets shrink;
+    ntg_align prim_align, sec_align;
+};
+
+struct ntg_attach_policy
+ntg_attach_policy_flt_new(struct ntg_attach_policy_flt_dt dt);
+
+/* ------------------------------------------------------ */
+/* SIDE FLOAT */
+/* ------------------------------------------------------ */
+
+enum ntg_attach_policy_sflt_orient
+{
+    NTG_ATTACH_POLICY_SFLT_ORIENT_N,
+    NTG_ATTACH_POLICY_SFLT_ORIENT_E,
+    NTG_ATTACH_POLICY_SFLT_ORIENT_S,
+    NTG_ATTACH_POLICY_SFLT_ORIENT_W,
+};
+
+enum ntg_attach_policy_sflt_thresh
+{
+    NTG_ATTACH_POLICY_SFLT_THRESH_MIN,
+    NTG_ATTACH_POLICY_SFLT_THRESH_NAT,
+    NTG_ATTACH_POLICY_SFLT_THRESH_ALWAYS,
+};
+
+enum ntg_attach_policy_sflt_enable
+{
+    NTG_ATTACH_POLICY_SFLT_ENABLE_STATIC,
+    NTG_ATTACH_POLICY_SFLT_ENABLE_DYNAMIC
+};
+
+struct ntg_attach_policy_sflt_dt
+{
+    // If base is not descendant_or_eq to base_root, size of attached root will be 0
+    ntg_object* base;
+    ntg_align align;
+    enum ntg_attach_policy_sflt_orient orient;
+    enum ntg_attach_policy_sflt_thresh thresh;
+    enum ntg_attach_policy_sflt_enable enable;
+};
+
+struct ntg_attach_policy
+ntg_attach_policy_sflt_new(struct ntg_attach_policy_sflt_dt dt);
+
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
 
-void _ntg_scene_clean(ntg_scene* scene);
-
 // Called internally by ntg_stage. Updates only the scene's state
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);
+
+void _ntg_scene_register(ntg_scene* scene, ntg_object* root);
+void _ntg_scene_unregister(ntg_scene* scene, ntg_object* root);
+void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root);
+void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root);
 
 #endif // NTG_SCENE_H

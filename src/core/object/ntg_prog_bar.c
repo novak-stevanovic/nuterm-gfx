@@ -19,9 +19,9 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
 {
     return (struct ntg_prog_bar_opts) {
         .orient = NTG_ORIENT_H,
-        .complete_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(0, 255, 0))),
-        .uncomplete_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(255, 0, 0))),
-        .threshold_style = ntg_vcell_bg(nt_color_new_auto(nt_rgb_new(0, 255, 0))),
+        .complete_style = ntg_vcell_bg(nt_color_new_auto(0, 255, 0)),
+        .uncomplete_style = ntg_vcell_bg(nt_color_new_auto(255, 0, 0)),
+        .threshold_style = ntg_vcell_bg(nt_color_new_auto(0, 255, 0)),
     };
 }
 
@@ -33,9 +33,7 @@ void ntg_prog_bar_init(ntg_prog_bar* prog_bar)
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
-        .draw_fn = draw_fn,
-        .init_fn = NULL,
-        .deinit_fn = NULL
+        .draw_fn = draw_fn
     };
 
     struct ntg_object_hooks hooks = {0};
@@ -53,7 +51,7 @@ void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, struct ntg_prog_bar_opts opts
 
     prog_bar->_opts = opts;
 
-    ntg_object_add_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_FULL);
+    ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)

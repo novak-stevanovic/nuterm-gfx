@@ -67,7 +67,6 @@ typedef struct ntg_stage ntg_stage;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
 
 typedef struct ntg_scene ntg_scene;
-typedef struct ntg_scene_layer ntg_scene_layer;
 
 typedef struct ntg_object ntg_object;
 typedef enum ntg_object_dcr_enable ntg_object_dcr_enable;
@@ -84,7 +83,7 @@ typedef struct ntg_widget_vec ntg_widget_vec;
 
 typedef struct ntg_label ntg_label;
 typedef enum ntg_label_wrap ntg_label_wrap;
-typedef enum ntg_label_align ntg_label_align;
+typedef enum ntg_label_mode ntg_label_mode;
 typedef struct ntg_color_block ntg_color_block;
 typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
@@ -110,7 +109,7 @@ typedef void (*ntg_object_constrain_fn)(
         void* layout_ch,
         sarena* arena);
 
-typedef uint8_t (*ntg_object_post_constrain_fn)(
+typedef bool (*ntg_object_fixup_fn)(
         const ntg_object*,
         void* layout_ch,
         sarena* arena);

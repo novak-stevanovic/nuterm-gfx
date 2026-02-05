@@ -10,11 +10,9 @@
 
 struct ntg_object_layout_ops
 {
-    ntg_object_layout_ch_init_fn init_fn;
-    ntg_object_layout_ch_deinit_fn deinit_fn;
     ntg_object_measure_fn measure_fn;
     ntg_object_constrain_fn constrain_fn;
-    ntg_object_post_constrain_fn post_constrain_fn;
+    ntg_object_fixup_fn fixup_fn;
     ntg_object_arrange_fn arrange_fn;
     ntg_object_draw_fn draw_fn;
 };
@@ -26,6 +24,7 @@ struct ntg_object_layout_ops
 #define NTG_OBJECT_DIRTY_VCONSTRAIN (1 << 3)
 #define NTG_OBJECT_DIRTY_ARRANGE (1 << 4)
 #define NTG_OBJECT_DIRTY_DRAW (1 << 5)
+#define NTG_OBJECT_DIRTY_RENDER (1 << 6)
 
 #define NTG_OBJECT_DIRTY_MEASURE ( \
     NTG_OBJECT_DIRTY_HMEASURE | \
@@ -41,7 +40,8 @@ struct ntg_object_layout_ops
     NTG_OBJECT_DIRTY_VMEASURE | \
     NTG_OBJECT_DIRTY_VCONSTRAIN | \
     NTG_OBJECT_DIRTY_ARRANGE | \
-    NTG_OBJECT_DIRTY_DRAW )
+    NTG_OBJECT_DIRTY_DRAW | \
+    NTG_OBJECT_DIRTY_RENDER)
 
 /* -------------------------------------------------------------------------- */
 /* MEASURE PHASE */
@@ -124,6 +124,8 @@ static inline void ntg_object_tmp_drawing_set(
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
+void ntg_object_mark_dirty(ntg_object* object, uint8_t dirty);
+
 /* -------------------------------------------------------------------------- */
 /* MEASURE & SIZE HELPERS */
 /* -------------------------------------------------------------------------- */
@@ -170,25 +172,24 @@ size_t ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient);
 /* PROTECTED */
 /* ========================================================================== */
 
-void ntg_object_add_dirty(ntg_object* object, uint8_t dirty);
-
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
 
 // Called by scene layer - internal?
 
-void _ntg_object_layout_ch_init(ntg_object* object);
-void _ntg_object_layout_ch_deinit(ntg_object* object);
 void _ntg_object_hmeasure(ntg_object* object, sarena* arena);
 void _ntg_object_hconstrain(ntg_object* object, sarena* arena);
 void _ntg_object_vmeasure(ntg_object* object, sarena* arena);
 void _ntg_object_vconstrain(ntg_object* object, sarena* arena);
-bool _ntg_object_post_constrain(ntg_object* object, sarena* arena);
+bool _ntg_object_fixup(ntg_object* object, sarena* arena);
 void _ntg_object_arrange(ntg_object* object, sarena* arena);
 void _ntg_object_draw(ntg_object* object, sarena* arena);
 
-void _ntg_object_root_set_hsize(ntg_object* object, size_t size, sarena* arena);
-void _ntg_object_root_set_vsize(ntg_object* object, size_t size, sarena* arena);
+void _ntg_object_root_set_hsize(ntg_object* object, size_t size);
+void _ntg_object_root_set_vsize(ntg_object* object, size_t size);
+void _ntg_object_root_set_pos(ntg_object* object, struct ntg_xy pos);
+
+void _ntg_object_clean(ntg_object* object, uint8_t dirty);
 
 #endif // NTG_OBJECT_LAYOUT_H
