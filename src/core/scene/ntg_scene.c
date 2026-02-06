@@ -221,12 +221,20 @@ void ntg_scene_attach_root(
     assert(policy.constrain_fn);
     assert(policy.arrange_fn);
 
-    ntg_scene* old_scene = ntg_object_get_scene_(root);
-    if(old_scene == scene) return;
-
-    if(old_scene)
+    if(root->_parent)
     {
-        ntg_scene_detach_root(old_scene, root);
+        ntg_object_detach(root);
+    }
+    else
+    {
+        ntg_scene* old_scene = ntg_object_get_scene_(root);
+
+        if(old_scene == scene) return;
+
+        if(old_scene)
+        {
+            ntg_scene_detach_root(old_scene, root);
+        }
     }
 
     struct tree_node_data data = {

@@ -226,10 +226,10 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
 
     label->_opts = opts;
     // TODO
-    if(opts.bg_mode == NTG_LABEL_BG_FULL)
+    //// if(opts.bg_mode == NTG_LABEL_BG_FULL)
         ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
-    else
-        ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_transparent());
+    // else
+        // ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_overlay(' ', opts.gfx.fg, opts.gfx.style));
 
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }

@@ -34,6 +34,7 @@ typedef unsigned int ntg_status;
 /* BASE */
 /* -------------------------------------------------------------------------- */
 
+typedef enum ntg_vgfx_type ntg_vgfx_type;
 typedef struct ntg_cell_grid ntg_cell_grid;
 typedef struct ntg_vcell_grid ntg_vcell_grid;
 typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;

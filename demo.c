@@ -1,4 +1,5 @@
 #include "ntg.h"
+#include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
 
@@ -140,6 +141,7 @@ void gui_fn1(void* _)
     ntg_object_set_z_index(ntg_obj(&flabel), 1);
     struct ntg_label_opts flabel_opts = ntg_label_opts_def();
     flabel_opts.wrap = NTG_LABEL_WRAP_WORD;
+    flabel_opts.bg_mode = NTG_LABEL_BG_OVERLAY;
     ntg_label_set_opts(&flabel, flabel_opts);
     struct ntg_padding_opts flabel_padding_opts = {
         .pref_size = ntg_insets(2, 2, 2, 2)
@@ -182,7 +184,7 @@ void gui_fn1(void* _)
             ntg_attach_policy_new_root());
 
     struct ntg_attach_policy_flt_dt flt_dt = {
-        .base = ntg_obj(&cb2),
+        .base = ntg_obj(&north),
         .enable = NTG_ATTACH_POLICY_FLT_ENABLE_MIN,
         .shrink = ntg_insets(1, 1, 1, 1),
         .prim_align = NTG_ALIGN_2,
@@ -248,6 +250,8 @@ int main(int argc, char *argv[])
     ntg_wait();
 
     ntg_deinit();
+
+    printf("%lu", sizeof(struct nt_gfx));
 
     return 0;
 }

@@ -692,6 +692,9 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
     if(child->_parent != NULL)
         ntg_object_detach(child);
 
+    if(child->__scene)
+        ntg_scene_detach_root(child->__scene, child);
+
     ntg_scene* scene = ntg_object_get_scene_(parent);
 
     ntg_object_vec_pushb(&parent->_children, child, NULL);

@@ -58,6 +58,7 @@ void ntg_wait();
 // transfer FULL, OVERLAY, TRANSPARENT capabilities into struct ntg_gfx?
 // implement side float attach policy
 // Optimize scene compose - shouldnt happen if there are no changes in scene/size/scene replace
+// Make borders not owned by objects?
 
 // TODO: implement modals on scene, object focus managers | **
 // TODO: Swap struct in args to const struct*
