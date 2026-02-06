@@ -11,7 +11,6 @@
 #include "shared/ntg_shared.h"
 #include "shared/ntg_status.h"
 #include "shared/ntg_convenience.h"
-#include "shared/ntg_string.h"
 #include "shared/ntg_log.h"
 #include "base/ntg_type.h"
 #include "base/ntg_cell.h"

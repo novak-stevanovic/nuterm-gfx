@@ -5,7 +5,6 @@
 #include "core/object/ntg_object.h"
 #include "base/ntg_xy.h"
 #include "nt_gfx.h"
-#include "shared/ntg_string.h"
 
 /* -------------------------------------------------------------------------- */
 /* PUBLIC DEFINITIONS */
