@@ -24,14 +24,11 @@ void ntg_loop_init(ntg_loop* loop,
     assert(loop != NULL);
     assert(init_stage != NULL);
     assert(!init_stage->_loop);
-    assert(renderer != NULL);
 
     init_default(loop);
 
     loop->_framerate = (framerate <= NTG_LOOP_FRAMERATE_MAX) ?
         framerate : NTG_LOOP_FRAMERATE_MAX;
-    loop->_arena = sarena_create(1000000);
-    assert(loop->_arena);
 
     loop->_renderer = renderer;
 
@@ -101,6 +98,21 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
     assert(loop->_status != NTG_LOOP_RUNNING);
 
     size_t resize_counter = 0, sigwinch_counter = 0;
+
+    loop->_arena = sarena_create(1000000);
+    assert(loop->_arena);
+
+    bool owns_renderer;
+    if(!loop->_renderer)
+    {
+        loop->_renderer = malloc(sizeof(ntg_def_renderer));
+        assert(loop->_renderer);
+
+        ntg_def_renderer_init((ntg_def_renderer*)loop->_renderer);
+        owns_renderer = true;
+    }
+    else
+        owns_renderer = false;
 
     /* loop */
     unsigned int timeout = 1000 / loop->_framerate;
@@ -186,6 +198,13 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
     {
         _ntg_platform_invalidate(loop->_platform);
         _ntg_task_runner_invalidate(loop->_task_runner);
+    }
+
+    if(owns_renderer)
+    {
+        ntg_def_renderer_deinit((ntg_def_renderer*)loop->_renderer);
+        free(loop->_renderer);
+        loop->_renderer = NULL;
     }
 
     ntg_log_log("%d %d", resize_counter, sigwinch_counter);

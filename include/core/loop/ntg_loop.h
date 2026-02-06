@@ -44,9 +44,13 @@ struct ntg_loop
     unsigned int _framerate;
     uint64_t _elapsed; // elapsed ms since loop started
     uint64_t _frame; // frame counter
-    sarena* _arena; // rewinds on frame end, useful for layout
 
+    // initialized when the loop starts, rewinds on frame end, used for layout
+    sarena* _arena;
+
+    // if NULL in init(), creates ntg_def_renderer on start
     ntg_renderer* _renderer;
+
     ntg_task_runner* _task_runner;
     ntg_platform* _platform;
 
@@ -62,7 +66,7 @@ struct ntg_loop
 
 void ntg_loop_init(ntg_loop* loop,
         ntg_stage* init_stage,
-        ntg_renderer* renderer,
+        ntg_renderer* renderer, // Has default
         unsigned int framerate,
         unsigned int workers,
         bool (*on_event_fn)(ntg_loop* loop, struct nt_event event));

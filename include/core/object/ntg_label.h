@@ -18,19 +18,26 @@ enum ntg_label_wrap
     NTG_LABEL_WRAP_WORD
 };
 
-enum ntg_label_mode
+enum ntg_label_text_mode
 {
-    NTG_LABEL_ALIGN,
-    NTG_LABEL_JUSTIFY
+    NTG_LABEL_TEXT_ALIGN,
+    NTG_LABEL_TEXT_JUSTIFY
+};
+
+enum ntg_label_bg_mode
+{
+    NTG_LABEL_BG_FULL,
+    NTG_LABEL_BG_OVERLAY
 };
 
 struct ntg_label_opts
 {
     ntg_orient orient;
     struct nt_gfx gfx;
-    ntg_label_mode mode;
-    ntg_align prim_align; // Active only if NTG_LABEL_ALIGN
+    ntg_label_text_mode text_mode;
+    ntg_align prim_align; // Active only if NTG_LABEL_TEXT_ALIGN
     ntg_align sec_align;
+    ntg_label_bg_mode bg_mode;
     ntg_label_wrap wrap;
     bool autotrim;
     size_t indent;
@@ -62,6 +69,7 @@ void ntg_label_deinit(ntg_label* label);
 void ntg_label_deinit_(void* _label);
 
 void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts);
-void ntg_label_set_text(ntg_label* label, const char* text, size_t len);
+void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len);
+void ntg_label_set_text(ntg_label* label, const char* text);
 
 #endif // NTG_LABEL_H

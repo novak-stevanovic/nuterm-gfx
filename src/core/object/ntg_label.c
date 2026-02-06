@@ -117,7 +117,8 @@ struct ntg_label_opts ntg_label_opts_def()
     return (struct ntg_label_opts) {
         .orient = NTG_ORIENT_H,
         .gfx = NT_GFX_DEFAULT,
-        .mode = NTG_LABEL_ALIGN,
+        .text_mode = NTG_LABEL_TEXT_ALIGN,
+        .bg_mode = NTG_LABEL_BG_FULL,
         .prim_align = NTG_ALIGN_1,
         .sec_align = NTG_ALIGN_1,
         .wrap = NTG_LABEL_WRAP_NONE,
@@ -150,7 +151,7 @@ void ntg_label_init(ntg_label* label)
 
     init_default(label);
 
-    ntg_label_set_text(label, "", 0);
+    ntg_label_set_text(label, "");
 }
 
 void ntg_label_deinit(ntg_label* label)
@@ -192,12 +193,15 @@ void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
     assert(label != NULL);
 
     label->_opts = opts;
-    ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
+    if(opts.bg_mode == NTG_LABEL_BG_FULL)
+        ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
+    else
+        ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_transparent());
 
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
 
-void ntg_label_set_text(ntg_label* label, const char* text, size_t len)
+void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
 {
     assert(label != NULL);
 
@@ -293,6 +297,11 @@ void ntg_label_set_text(ntg_label* label, const char* text, size_t len)
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
 
+void ntg_label_set_text(ntg_label* label, const char* text)
+{
+    ntg_label_set_text_safe(label, text, strlen(text));
+}
+
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
@@ -352,9 +361,11 @@ static void draw_fn(
     struct ntg_xy size = ntg_object_get_size_cont(_label);
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
+    struct ntg_label_opts opts = label->_opts;
+
     /* Init cont matrix */
     struct ntg_xy cont_size = 
-        (label->_opts.orient == NTG_ORIENT_H) ?
+        (opts.orient == NTG_ORIENT_H) ?
         size :
         ntg_xy_transpose(size);
 
@@ -367,7 +378,7 @@ static void draw_fn(
     const uint32_t** rows = label->__priv->utf32_rows.data;
     const size_t* rows_lens = label->__priv->utf32_rows.lens;
 
-    size_t capped_indent = _min2_size(label->_opts.indent, cont_size.x);
+    size_t capped_indent = _min2_size(opts.indent, cont_size.x);
 
     /* Create cont matrix */
     size_t cont_i = 0, cont_j = 0;
@@ -385,7 +396,7 @@ static void draw_fn(
     {
         _it_wrows = NULL;
         _it_wrows_count = 0;
-        switch(label->_opts.wrap)
+        switch(opts.wrap)
         {
             case NTG_LABEL_WRAP_NONE:
                _it_wrows_count = get_wrows_nowrap(rows[i], rows_lens[i],
@@ -409,10 +420,10 @@ static void draw_fn(
             /* Avoid overflow in switch statement */
             _it_wrows_lens[j] = _min2_size(_it_wrows_lens[j], cont_size.x);
 
-            if(label->_opts.mode == NTG_LABEL_ALIGN)
+            if(opts.text_mode == NTG_LABEL_TEXT_ALIGN)
             {
                 it_row_align_indent = ntg_align_offset(cont_size.x,
-                        _it_wrows_lens[j], label->_opts.prim_align);
+                        _it_wrows_lens[j], opts.prim_align);
             }
             else
                 it_row_align_indent = 0;
@@ -431,7 +442,7 @@ static void draw_fn(
             {
                 if(_it_wrows[j][k] == ' ')
                 {
-                    if((j < (_it_wrows_count - 1)) && label->_opts.mode == NTG_LABEL_JUSTIFY)
+                    if((j < (_it_wrows_count - 1)) && opts.text_mode == NTG_LABEL_TEXT_JUSTIFY)
                     {
                         size_t space_justified_count = (it_wrow_extra_space / it_wrow_space_count) +
                             (it_wrow_space_counter < (it_wrow_extra_space % it_wrow_space_count)); 
@@ -454,32 +465,21 @@ static void draw_fn(
     }
 
     /* Transpose the cont matrix if needed */
-    if(label->_opts.orient == NTG_ORIENT_H)
+    struct ntg_vcell it_cell;
+    struct ntg_xy it_xy;
+    for(i = 0; i < cont_size.y; i++)
     {
-        for(i = 0; i < cont_size.y; i++)
+        for(j = 0; j < cont_size.x; j++)
         {
-            for(j = 0; j < cont_size.x; j++)
-            {
-                it_cont = &(cont_buff[cont_size.x * i + j]);
+            it_xy = (opts.orient == NTG_ORIENT_H) ? ntg_xy(j, i) : ntg_xy(i, j);
 
-                ntg_object_tmp_drawing_set(out_drawing,
-                        ntg_vcell_full(*it_cont, label->_opts.gfx),
-                        ntg_xy(j, i));
-            }
-        }
-    }
-    else // NTG_ORIENT_V
-    {
-        for(i = 0; i < cont_size.y; i++)
-        {
-            for(j = 0; j < cont_size.x; j++)
-            {
-                it_cont = &(cont_buff[cont_size.x * i + j]);
+            it_cont = &(cont_buff[cont_size.x * i + j]);
 
-                ntg_object_tmp_drawing_set(out_drawing,
-                        ntg_vcell_full(*it_cont, label->_opts.gfx),
-                        ntg_xy(i, j));
-            }
+            it_cell = (opts.bg_mode == NTG_LABEL_BG_FULL) ? 
+                    ntg_vcell_full(*it_cont, opts.gfx) :
+                    ntg_vcell_overlay(*it_cont, opts.gfx.fg, opts.gfx.style);
+
+            ntg_object_tmp_drawing_set(out_drawing, it_cell, it_xy);
         }
     }
 }
@@ -670,6 +670,7 @@ static size_t get_wrows_wwrap(
                 if(i == (word_count - 1))
                 {
                     it_row_end_word = words[i];
+                    it_row_end_word_len = words_lens[i];
 
                     wrows[wrow_counter] = it_row_start_word;
                     wrows_lens[wrow_counter] = it_row_end_word +

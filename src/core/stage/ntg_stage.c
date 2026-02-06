@@ -207,6 +207,8 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     struct ntg_xy abs_pos; 
     abs_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
 
+    if(ntg_xy_size_is_zero(object->_size)) return;
+
     ntg_object_drawing_place_(
             &object->_drawing,
             ntg_xy(0, 0),

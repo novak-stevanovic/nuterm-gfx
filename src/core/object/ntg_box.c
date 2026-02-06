@@ -58,6 +58,18 @@ void ntg_box_init(ntg_box* box)
     ntg_object_init((ntg_object*)box, layout_ops, hooks, &NTG_TYPE_BOX);
 }
 
+void ntg_box_deinit(ntg_box* box)
+{
+    box->_opts = ntg_box_opts_def();
+    ntg_object_deinit((ntg_object*)box);
+}
+
+void ntg_box_deinit_(void* _box)
+{
+    ntg_box_deinit(_box);
+}
+
+
 struct ntg_box_opts ntg_box_get_opts(const ntg_box* box)
 {
     assert(box != NULL);
@@ -74,14 +86,19 @@ void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
+const struct ntg_object_vec* ntg_box_get_children(const ntg_box* box)
+{
+    assert(box);
+
+    return &(((ntg_object*)box)->_children);
+}
+
 void ntg_box_add_child(ntg_box* box, ntg_object* child)
 {
     assert(box != NULL);
     assert(child != NULL);
 
     ntg_object_attach((ntg_object*)box, child);
-
-    ntg_object_vec_pushb(&box->_children, child, NULL);
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
@@ -93,25 +110,12 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 
     ntg_object_detach(child);
 
-    ntg_object_vec_rm(&box->_children, child, NULL);
-
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
-
-void ntg_box_deinit(ntg_box* box)
-{
-    box->_opts = ntg_box_opts_def();
-    ntg_object_deinit((ntg_object*)box);
-}
-
-void ntg_box_deinit_(void* _box)
-{
-    ntg_box_deinit(_box);
-}
 
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,
@@ -120,7 +124,7 @@ static struct ntg_object_measure measure_fn(
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;
-    const ntg_object_vec* children = &box->_children;
+    const ntg_object_vec* children = ntg_box_get_children(box);
 
     if(children->size == 0) return (struct ntg_object_measure) {0};
 
@@ -172,7 +176,7 @@ static void constrain_fn(
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;
-    const ntg_object_vec* children = &box->_children;
+    const ntg_object_vec* children = ntg_box_get_children(box);
     size_t size = ntg_object_get_size_1d_cont(_box, orient);
 
     if(children->size == 0) return;
@@ -263,7 +267,7 @@ static void constrain_fn(
                     (it_measure.grow > 0 ?
                      it_measure.max_size :
                      it_measure.nat_size));
-            it_size = (it_size > 0) ? it_size : 1;
+            it_size = (it_size > 0) ? it_size : (size > 0 ? 1 : 0);
 
             ntg_object_size_map_set(out_size_map, it_child, it_size);
         }
@@ -277,7 +281,7 @@ static void arrange_fn(
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;
-    const ntg_object_vec* children = &box->_children;
+    const ntg_object_vec* children = ntg_box_get_children(box);
     struct ntg_xy size = ntg_object_get_size_cont(_box);
 
     if(children->size == 0) return;
@@ -371,5 +375,5 @@ static void on_child_rm_fn(ntg_object* _box, ntg_object* child)
 {
     ntg_box* box = (ntg_box*)_box;
 
-    ntg_box_rm_child(box, child);
+    ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }

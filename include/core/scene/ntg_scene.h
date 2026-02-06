@@ -18,20 +18,23 @@
 
 struct ntg_attach_constrain_ctx
 {
-    const ntg_object* base_root;
+    const ntg_object* attacher_layer;
+    const ntg_object* base_layer;
     size_t scene_size;
 };
 
 struct ntg_attach_fixup_ctx
 {
-    const ntg_object* base_root;
+    const ntg_object* attacher_layer;
+    const ntg_object* base_layer;
     struct ntg_xy size;
     struct ntg_xy scene_size;
 };
 
 struct ntg_attach_arrange_ctx
 {
-    const ntg_object* base_root;
+    const ntg_object* attacher_layer;
+    const ntg_object* base_layer;
     struct ntg_xy size;
     struct ntg_xy scene_size;
 };
@@ -102,8 +105,8 @@ ntg_object* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos);
 
 void ntg_scene_attach_root(
         ntg_scene* scene,
-        ntg_object* root,
-        ntg_object* base_root,
+        ntg_object* attacher_layer,
+        ntg_object* base_layer,
         struct ntg_attach_policy policy);
 
 void ntg_scene_detach_root(ntg_scene* scene, ntg_object* root);
@@ -137,7 +140,7 @@ bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 /* ROOT */
 /* ------------------------------------------------------ */
 
-struct ntg_attach_policy ntg_attach_policy_root();
+struct ntg_attach_policy ntg_attach_policy_new_root();
 
 /* ------------------------------------------------------ */
 /* FLOAT */
@@ -146,7 +149,9 @@ struct ntg_attach_policy ntg_attach_policy_root();
 enum ntg_attach_policy_flt_enable
 {
     NTG_ATTACH_POLICY_FLT_ENABLE_MIN,
+    NTG_ATTACH_POLICY_FLT_ENABLE_BASE_MIN,
     NTG_ATTACH_POLICY_FLT_ENABLE_NAT,
+    NTG_ATTACH_POLICY_FLT_ENABLE_BASE_NAT,
     NTG_ATTACH_POLICY_FLT_ENABLE_ALWAYS,
 };
 
@@ -161,7 +166,7 @@ struct ntg_attach_policy_flt_dt
 };
 
 struct ntg_attach_policy
-ntg_attach_policy_flt_new(struct ntg_attach_policy_flt_dt dt);
+ntg_attach_policy_new_flt(struct ntg_attach_policy_flt_dt dt);
 
 /* ------------------------------------------------------ */
 /* SIDE FLOAT */
@@ -199,7 +204,7 @@ struct ntg_attach_policy_sflt_dt
 };
 
 struct ntg_attach_policy
-ntg_attach_policy_sflt_new(struct ntg_attach_policy_sflt_dt dt);
+ntg_attach_policy_new_sflt(struct ntg_attach_policy_sflt_dt dt);
 
 /* ========================================================================== */
 /* INTERNAL */

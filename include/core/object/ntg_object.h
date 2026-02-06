@@ -18,7 +18,7 @@ GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
 enum ntg_object_dcr_enable
 {
-    NTG_OBJECT_DCR_ENABLE_MIN,
+    NTG_OBJECT_DCR_ENABLE_MIN = 0,
     NTG_OBJECT_DCR_ENABLE_NAT,
     NTG_OBJECT_DCR_ENABLE_ALWAYS
 };
@@ -34,6 +34,8 @@ struct ntg_border_style
     void  (*free_fn)(void* data);
 };
 
+struct ntg_border_style ntg_border_style_def();
+
 struct ntg_border_opts
 {
     struct ntg_border_style style;
@@ -41,11 +43,15 @@ struct ntg_border_opts
     ntg_object_dcr_enable enable;
 };
 
+struct ntg_border_opts ntg_border_opts_def();
+
 struct ntg_padding_opts
 {
     ntg_object_dcr_enable enable;
     struct ntg_insets pref_size;
 };
+
+struct ntg_padding_opts ntg_padding_opts_def();
 
 /* -------------------------------------------------------------------------- */
 /* OBJECT */

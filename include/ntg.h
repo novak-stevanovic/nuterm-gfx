@@ -55,12 +55,12 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// ACTIVE: ntg_widget refactor. | **
-
 // ACTIVE:
-// TODO: implement modals on scene, object focus managers | **
-// TODO: ntg_scene: implement multi-root system | **
+// transfer FULL, OVERLAY, TRANSPARENT capabilities into struct ntg_gfx?
+// implement side float attach policy
+// Optimize scene compose - shouldnt happen if there are no changes in scene/size/scene replace
 
+// TODO: implement modals on scene, object focus managers | **
 // TODO: Swap struct in args to const struct*
 
 // TODO: ntg_label: coloring/styling specific words | **
