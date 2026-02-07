@@ -39,6 +39,8 @@ void ntg_log_log(const char* fmt, ...)
 {
     if (log_file == NULL) return;
 
+    return;
+
     va_list args;
     va_start(args, fmt);
 

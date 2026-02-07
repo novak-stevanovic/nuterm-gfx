@@ -75,7 +75,7 @@ struct ntg_vcell
 static inline struct ntg_vcell
 ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
 {
-    struct ntg_vcell rval;
+    struct ntg_vcell rval = {0};
     rval.type = type;
     if(type == NTG_VCELL_FULL)
     {
@@ -86,7 +86,7 @@ ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
     {
         rval.overlay.fg = gfx.fg;
         rval.overlay.style = gfx.style;
-        rval.full.codepoint = cp;
+        rval.overlay.codepoint = cp;
     }
 
     return rval;

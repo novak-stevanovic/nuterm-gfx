@@ -5,7 +5,7 @@
 
 static struct ntg_object_measure measure_fn(
         const ntg_object* _block,
-        ntg_orient,
+        ntg_orient orient,
         void* layout_ch,
         sarena* arena);
 
@@ -35,6 +35,7 @@ void ntg_color_block_init(ntg_color_block* color_block)
     struct ntg_object_layout_ops layout_ops = {
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
+        .fixup_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = draw_fn,
     };
@@ -50,15 +51,15 @@ void ntg_color_block_init(ntg_color_block* color_block)
     color_block->__color = NT_COLOR_DEFAULT;
 }
 
-/* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED */
-/* -------------------------------------------------------------------------- */
-
 void ntg_color_block_deinit(ntg_color_block* block)
 {
     block->__color = NT_COLOR_DEFAULT;
     ntg_object_deinit((ntg_object*)block);
 }
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL/PROTECTED */
+/* -------------------------------------------------------------------------- */
 
 void ntg_color_block_deinit_(void* _block)
 {

@@ -99,7 +99,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
 
     size_t resize_counter = 0, sigwinch_counter = 0;
 
-    loop->_arena = sarena_create(1000000);
+    loop->_arena = sarena_create(2000000);
     assert(loop->_arena);
 
     bool owns_renderer;

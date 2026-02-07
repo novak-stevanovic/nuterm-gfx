@@ -98,14 +98,15 @@ void gui_fn1(void* _)
 
     struct ntg_padding_opts north_pad_opts = ntg_padding_opts_def();
     north_pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
-    ntg_object_set_padding_opts(ntg_obj(&north), &north_pad_opts);
+    //ntg_object_set_padding_opts(ntg_obj(&north), &north_pad_opts);
 
     // CENTER 
 
     ntg_box center;
     ntg_box_init(&center);
     ntg_cleanup_batch_add(batch, &center, ntg_box_deinit_, NULL);
-    ntg_object_set_user_min_size_cont(ntg_obj(&center), ntg_xy(NTG_OBJECT_MIN_SIZE_UNSET, 15));
+    ntg_object_set_user_min_size_cont(ntg_obj(&center), ntg_xy(15, 15));
+    //15ntg_object_set_def_bg(ntg_obj(&center), ntg_vcell_bg(nt_color_new_auto(0, 25, 100)));
 
     ntg_color_block cb1;
     ntg_color_block_init(&cb1);
@@ -190,9 +191,15 @@ void gui_fn2(void* _)
     ntg_color_block root;
     ntg_color_block_init(&root);
     ntg_color_block_set_color(&root, nt_color_new_auto(255, 0, 0));
+    struct ntg_border_opts border_opts = ntg_border_opts_def();
+    border_opts.pref_size = ntg_insets(1, 1, 1, 1);
+    struct ntg_border_style style;
+    ntg_border_style_init_monochrome(&style, nt_color_new_auto(255, 255, 0));
+    border_opts.style = &style;
+    ntg_object_set_border_opts(ntg_obj(&root), &border_opts);
     ntg_cleanup_batch_add(batch, &root, ntg_color_block_deinit_, NULL);
 
-    ntg_object_set_user_min_size_cont(ntg_obj(&root), ntg_xy(100, 10));
+    // ntg_object_set_user_min_size_cont(ntg_obj(&root), ntg_xy(100, 10));
 
     ntg_scene scene;
     ntg_scene_init(&scene);
@@ -205,6 +212,9 @@ void gui_fn2(void* _)
     ntg_loop loop;
     ntg_loop_init(&loop, &stage, NULL, 60, 4, loop_on_event_fn);
     ntg_cleanup_batch_add(batch, &loop, ntg_loop_deinit_, NULL);
+
+    ntg_scene_attach_root(&scene, ntg_obj(&root), NULL, NULL);
+    ntg_stage_set_scene(&stage, &scene);
 
     ntg_loop_run(&loop);
 

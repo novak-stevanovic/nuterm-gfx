@@ -104,7 +104,7 @@ static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
     }
 
     nt_erase_screen(NULL);
-    nt_erase_scrollback(NULL);
+    // nt_erase_scrollback(NULL);
 }
 
 static void optimized_render(

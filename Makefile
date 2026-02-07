@@ -42,8 +42,8 @@ OPT_FLAG = -O$(OPT)
 
 DEBUG ?= 1
 ifeq ($(DEBUG),1)
-    DEBUG_CFLAGS = -g -fsanitize=address
-    DEBUG_LFLAGS = -fsanitize=address
+    DEBUG_CFLAGS = -g # -fsanitize=address
+    DEBUG_LFLAGS = # -fsanitize=address
     OPT_FLAG = -O0
 endif
 

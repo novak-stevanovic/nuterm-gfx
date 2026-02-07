@@ -242,6 +242,8 @@ void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
 {
     assert(label != NULL);
 
+    ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
+
     len = _min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
 
     char* new_text = realloc(label->_text.data, len + 1);
@@ -291,8 +293,8 @@ void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
     // Convert new text to UTF-32 and store in newly alloced buff
     size_t _width;
     int _status;
-    uc_utf8_to_utf32((uint8_t*)label->_text.data, utf32_cap,
-            new_utf32_text, label->_text.len, 0, &_width, &_status);
+    uc_utf8_to_utf32((uint8_t*)label->_text.data, label->_text.len,
+            new_utf32_text, utf32_cap, 0, &_width, &_status);
     assert(_status == UC_SUCCESS);
 
     // Shrink the new buffer to save memory
@@ -324,8 +326,6 @@ void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
     // Update cached rows and their lengths
     label->__priv->utf32_rows = new_rows;
     label->__priv->utf32_row_count = row_count;
-
-    ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_label_set_text(ntg_label* label, const char* text)
@@ -773,7 +773,7 @@ static size_t get_wrows_nowrap(
     }
 
     (*out_wrows) = sarena_malloc(arena, sizeof(struct str32_view));
-    assert(out_wrows != NULL);
+    assert((*out_wrows) != NULL);
     (*out_wrows)[0] = (struct str32_view) {
         .data = row.data,
         .len = _min2_size(for_size, row.len)
@@ -801,7 +801,7 @@ static size_t get_wrows_wrap(
         return 1;
     }
 
-    size_t wrow_count = ceil((1.0 * row.len) / for_size);
+    size_t wrow_count = (row.len + for_size - 1) / for_size;
     struct str32_view* wrows = sarena_malloc(arena,
             wrow_count * sizeof(struct str32_view));
     assert(wrows != NULL);
@@ -991,8 +991,8 @@ static void trim_text(struct str* text)
         space_needed--;
 
     char *tmp = realloc(text->data, space_needed + 1);
-    tmp[space_needed] = 0;
     assert(tmp != NULL);
+    tmp[space_needed] = 0;
     text->data = tmp;
     text->len = space_needed;
 

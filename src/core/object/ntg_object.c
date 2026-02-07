@@ -1425,10 +1425,10 @@ void _ntg_object_draw(ntg_object* object, sarena* arena)
     if(ntg_xy_size_is_zero(object->_size))
         return;
 
-    if(ntg_insets_hsum(object->_border.size) || ntg_insets_vsum(object->_border.size))
+    //if(ntg_insets_hsum(object->_border.size) || ntg_insets_vsum(object->_border.size))
         draw_unoptimized(object, arena);
-    else
-        draw_optimized(object, arena);
+    // else
+        // draw_optimized(object, arena);
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_RENDER);
 }
@@ -1824,8 +1824,6 @@ static void draw_optimized(ntg_object* object, sarena* arena)
 
     struct ntg_vcell bg = object->_def_bg;
     struct ntg_insets psize = object->_padding.size;
-
-    // TODO: what if content size is 0
 
     struct ntg_object_tmp_drawing content_drawing;
     tmp_drawing_init(&content_drawing, content_size, bg, arena);

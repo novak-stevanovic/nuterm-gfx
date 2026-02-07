@@ -106,7 +106,10 @@ ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy 
     if(ntg_xy_is_lesser(pos, drawing->size))
         return drawing->data[drawing->size.x * pos.y + pos.x];
     else
+    {
+        assert(0);
         return ntg_vcell_default();
+    }
 }
 
 static inline void ntg_object_tmp_drawing_set(
@@ -118,6 +121,7 @@ static inline void ntg_object_tmp_drawing_set(
 
     if(ntg_xy_is_lesser(pos, drawing->size))
         drawing->data[drawing->size.x * pos.y + pos.x] = cell;
+    else assert(0);
 }
 
 /* ========================================================================== */
@@ -190,8 +194,5 @@ void _ntg_object_root_set_vsize(ntg_object* object, size_t size);
 void _ntg_object_root_set_pos(ntg_object* object, struct ntg_xy pos);
 
 void _ntg_object_clean(ntg_object* object, uint8_t clean);
-uint8_t _ntg_object_get_dirty(const ntg_object* object);
-
-void _ntg_object_clean(ntg_object* object, uint8_t dirty);
 
 #endif // NTG_OBJECT_LAYOUT_H

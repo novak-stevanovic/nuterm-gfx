@@ -58,9 +58,6 @@ void ntg_wait();
 // implement side float attach policy
 
 // TODO: implement modals on scene, object focus managers | **
-// TODO: Swap struct in args to const struct*
-
-// TODO: ntg_label: coloring/styling specific words | **
 // TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **
 
 // RELEASE

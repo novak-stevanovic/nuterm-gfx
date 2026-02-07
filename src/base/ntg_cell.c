@@ -23,15 +23,25 @@ void ntg_cell_vecgrid_set_size(
 {
     assert(vecgrid != NULL);
 
-    struct ntg_xy old_size = vecgrid->__base._size;
+    struct ntg_xy old = vecgrid->__base._size;
 
     ntg_vecgrid_set_size(&vecgrid->__base, size, 2.5,
             size_cap, sizeof(struct ntg_cell));
 
     size_t i, j;
-    for(i = old_size.y; i < size.y; i++)
+
+    for (i = old.y; i < size.y; i++)
     {
-        for(j = old_size.x; j < size.x; j++)
+        for (j = 0; j < size.x; j++)
+        {
+            ntg_cell_vecgrid_set(vecgrid, ntg_cell_default(), ntg_xy(j, i));
+        }
+    }
+
+    size_t common_y = (old.y < size.y) ? old.y : size.y;
+    for (i = 0; i < common_y; i++)
+    {
+        for (j = old.x; j < size.x; j++)
         {
             ntg_cell_vecgrid_set(vecgrid, ntg_cell_default(), ntg_xy(j, i));
         }
@@ -66,15 +76,25 @@ void ntg_vcell_vecgrid_set_size(
 {
     assert(vecgrid != NULL);
 
-    struct ntg_xy old_size = vecgrid->__base._size;
+    struct ntg_xy old = vecgrid->__base._size;
 
     ntg_vecgrid_set_size(&vecgrid->__base, size, 2.5,
             size_cap, sizeof(struct ntg_vcell));
 
     size_t i, j;
-    for(i = old_size.y; i < size.y; i++)
+
+    for (i = old.y; i < size.y; i++)
     {
-        for(j = old_size.x; j < size.x; j++)
+        for (j = 0; j < size.x; j++)
+        {
+            ntg_vcell_vecgrid_set(vecgrid, ntg_vcell_default(), ntg_xy(j, i));
+        }
+    }
+
+    size_t common_y = (old.y < size.y) ? old.y : size.y;
+    for (i = 0; i < common_y; i++)
+    {
+        for (j = old.x; j < size.x; j++)
         {
             ntg_vcell_vecgrid_set(vecgrid, ntg_vcell_default(), ntg_xy(j, i));
         }

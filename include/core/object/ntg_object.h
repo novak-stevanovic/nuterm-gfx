@@ -35,7 +35,6 @@ struct ntg_border_style
             struct ntg_xy size,
             struct ntg_insets border_size,
             ntg_object_tmp_drawing* out_drawing);
-    void* extra_data;
 };
 
 const struct ntg_border_style* ntg_border_style_def();
