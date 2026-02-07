@@ -32,7 +32,7 @@ void ntg_color_block_init(ntg_color_block* color_block)
 {
     assert(color_block != NULL);
 
-    struct ntg_object_layout_ops object_data = {
+    struct ntg_object_layout_ops layout_ops = {
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
@@ -41,8 +41,11 @@ void ntg_color_block_init(ntg_color_block* color_block)
 
     struct ntg_object_hooks hooks = {0};
 
-    ntg_object_init((ntg_object*)color_block, object_data,
-            hooks, &NTG_TYPE_COLOR_BLOCK);
+    ntg_object_init(
+            (ntg_object*)color_block,
+            &layout_ops,
+            &hooks,
+            &NTG_TYPE_COLOR_BLOCK);
 
     color_block->__color = NT_COLOR_DEFAULT;
 }

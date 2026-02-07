@@ -28,8 +28,6 @@ void ntg_stage_init(ntg_stage* stage)
     init_default(stage);
 
     ntg_stage_drawing_init(&stage->_drawing);
-    stage->__on_key_fn = ntg_stage_dispatch_key;
-    stage->__on_mouse_fn = ntg_stage_dispatch_mouse;
 }
 
 void ntg_stage_deinit(ntg_stage* stage)
@@ -54,21 +52,44 @@ void ntg_stage_deinit_(void* _stage)
     ntg_stage_deinit(_stage);
 }
 
-void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena)
+void ntg_stage_mark_dirty(ntg_stage* stage)
 {
-    assert(stage != NULL);
+    stage->_dirty = true;
+}
 
+void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
+{
     if(!ntg_xy_are_equal(stage->_size, size))
     {
         stage->_size = size;
+        ntg_stage_mark_dirty(stage);
+    }
+
+    if(stage->_scene)
+        ntg_scene_set_size(stage->_scene, size);
+}
+
+void ntg_stage_compose(ntg_stage* stage, sarena* arena)
+{
+    assert(stage != NULL);
+
+    struct ntg_xy size = stage->_size;
+
+    if(!ntg_xy_are_equal(ntg_stage_drawing_get_size(&stage->_drawing), size))
+    {
         struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
         ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap);
     }
 
-    if(stage->_scene)
+    if(ntg_xy_size_is_zero(size)) return;
+
+    if(stage->_scene && stage->_scene->_dirty)
     {
-        ntg_scene_layout(stage->_scene, size, arena);
+        ntg_scene_layout(stage->_scene, arena);
+        _ntg_scene_clean(stage->_scene);
     }
+
+    if(ntg_xy_size_is_zero(size)) return;
 
     size_t i, j;
     for(i = 0; i < size.y; i++)
@@ -107,6 +128,8 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     if(old_scene)
     {
         _ntg_scene_set_stage(old_scene, NULL);
+
+        ntg_scene_set_size(old_scene, ntg_xy(0, 0));
     }
 
     stage->_scene = scene;
@@ -121,6 +144,8 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         }
 
         _ntg_scene_set_stage(scene, stage);
+        ntg_scene_set_size(scene, stage->_size);
+        ntg_scene_mark_dirty(scene);
     }
 }
 
@@ -191,6 +216,13 @@ void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
     if(stage->_loop == loop) return;
 
     stage->_loop = loop;
+    if(loop)
+        ntg_stage_mark_dirty(stage);
+}
+
+void _ntg_stage_clean(ntg_stage* stage)
+{
+    stage->_dirty = false;
 }
 
 /* ========================================================================== */
@@ -200,6 +232,9 @@ void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
 static void init_default(ntg_stage* stage)
 {
     (*stage) = (ntg_stage) {0};
+
+    stage->__on_key_fn = ntg_stage_dispatch_key;
+    stage->__on_mouse_fn = ntg_stage_dispatch_mouse;
 }
 
 static void draw_object(ntg_stage* stage, ntg_object* object)
@@ -207,12 +242,12 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     struct ntg_xy abs_pos; 
     abs_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
 
-    if(ntg_xy_size_is_zero(object->_size)) return;
+    struct ntg_xy draw_size = ntg_object_drawing_get_size(&object->_drawing);
 
     ntg_object_drawing_place_(
             &object->_drawing,
             ntg_xy(0, 0),
-            object->_size,
+            draw_size,
             &stage->_drawing,
             abs_pos);
 

@@ -130,6 +130,8 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
     loop->_status = NTG_LOOP_RUNNING;
     nt_get_term_size(&loop->_app_size.x, &loop->_app_size.y);
 
+    if(loop->_stage)
+        ntg_stage_set_size(loop->_stage, loop->_app_size);
     while(true)
     {
         if(loop->_status == NTG_LOOP_STOPPING) break;
@@ -145,6 +147,12 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
             resize_event = *(struct nt_resize_event*)event.data;
             loop->_app_size.x = resize_event.new_x;
             loop->_app_size.y = resize_event.new_y;
+
+            if(loop->_stage)
+            {
+                ntg_stage_set_size(loop->_stage, loop->_app_size);
+            }
+            ntg_log_log("RESIZE");
 
             resize_counter++;
         }
@@ -163,10 +171,18 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
 
             timeout = 1000 / loop->_framerate;
 
-            if(loop->_stage != NULL)
+            if(loop->_stage)
             {
-                ntg_stage_compose(loop->_stage, loop->_app_size, loop->_arena);
-                drawing = &loop->_stage->_drawing;
+                if(loop->_stage->_dirty)
+                {
+                    ntg_stage_compose(loop->_stage, loop->_arena);
+                    _ntg_stage_clean(loop->_stage);
+                }
+                else
+                {
+                    ntg_log_log("OPTIMIZE: Stage not composed");
+                }
+                drawing = &(loop->_stage->_drawing);
             }
             else drawing = NULL;
 
@@ -205,6 +221,11 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
         ntg_def_renderer_deinit((ntg_def_renderer*)loop->_renderer);
         free(loop->_renderer);
         loop->_renderer = NULL;
+    }
+
+    if(loop->_stage)
+    {
+        ntg_loop_set_stage(loop, NULL);
     }
 
     ntg_log_log("%d %d", resize_counter, sigwinch_counter);
@@ -260,10 +281,13 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
         if(loop->_stage)
         {
             _ntg_stage_set_loop(loop->_stage, NULL);
+            ntg_stage_set_size(loop->_stage, ntg_xy(0, 0));
         }
         if(stage)
         {
             _ntg_stage_set_loop(stage, loop);
+            ntg_stage_set_size(stage, loop->_app_size);
+            ntg_stage_mark_dirty(stage);
         }
 
         loop->_stage = stage;
@@ -328,12 +352,15 @@ static void update_stage(ntg_loop* loop)
     if(old)
     {
         _ntg_stage_set_loop(old, NULL);
+        ntg_stage_set_size(old, ntg_xy(0, 0));
     }
     if(new)
     {
         assert(!new->_loop);
 
         _ntg_stage_set_loop(new, loop);
+        ntg_stage_set_size(new, loop->_app_size);
+        ntg_stage_mark_dirty(new);
     }
 
     loop->_stage = new;

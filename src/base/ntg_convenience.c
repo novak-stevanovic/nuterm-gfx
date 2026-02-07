@@ -2,18 +2,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
-struct cleanup_data
+struct ntg_cleanup_data
 {
     void* data;
     void (*deinit_fn)(void* object);
     void (*free_fn)(void* object);
 };
 
-GENC_VECTOR_GENERATE(cleanup_data_vec, struct cleanup_data, 1.5, NULL);
+GENC_VECTOR_GENERATE(ntg_cleanup_data_vec, struct ntg_cleanup_data, 1.5, NULL);
 
 struct ntg_cleanup_batch
 {
-    struct cleanup_data_vec vec;
+    struct ntg_cleanup_data_vec vec;
 
     bool deinit, free;
 };
@@ -25,7 +25,7 @@ ntg_cleanup_batch* ntg_cleanup_batch_new()
     new->deinit = false;
     new->free = false;
 
-    cleanup_data_vec_init(&new->vec, 20, NULL);
+    ntg_cleanup_data_vec_init(&new->vec, 20, NULL);
 
     return new;
 }
@@ -37,7 +37,7 @@ void ntg_cleanup_batch_finish(ntg_cleanup_batch* batch)
     if(batch->deinit) return;
 
     size_t i;
-    struct cleanup_data it_data;
+    struct ntg_cleanup_data it_data;
     for(i = 0; i < batch->vec.size; i++)
     {
         it_data = batch->vec.data[i];
@@ -49,7 +49,7 @@ void ntg_cleanup_batch_finish(ntg_cleanup_batch* batch)
             it_data.free_fn(it_data.data);
     }
     
-    cleanup_data_vec_deinit(&batch->vec, NULL);
+    ntg_cleanup_data_vec_deinit(&batch->vec, NULL);
 
     free(batch);
 }
@@ -62,11 +62,11 @@ void ntg_cleanup_batch_add(
 {
     assert(batch);
 
-    struct cleanup_data cleanup_data = {
+    struct ntg_cleanup_data cleanup_data = {
         .data = data,
         .deinit_fn = deinit_fn,
         .free_fn = free_fn
     };
 
-    cleanup_data_vec_pushb(&batch->vec, cleanup_data, NULL);
+    ntg_cleanup_data_vec_pushb(&batch->vec, cleanup_data, NULL);
 }

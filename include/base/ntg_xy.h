@@ -180,6 +180,28 @@ ntg_xy_in_size(struct ntg_xy p, struct ntg_xy size)
     return (p.x < size.x) && (p.y < size.y);
 }
 
+static inline struct ntg_xy
+ntg_xy_pos_clamp(struct ntg_xy pos, struct ntg_xy size, struct ntg_xy parent_size)
+{
+    if(size.x >= parent_size.x)
+        pos.x = 0;
+    else
+    {
+        size_t max_x = parent_size.x - size.x;
+        if(pos.x > max_x) pos.x = max_x;
+    }
+
+    if(size.y >= parent_size.y)
+        pos.y = 0;
+    else
+    {
+        size_t max_y = parent_size.y - size.y;
+        if(pos.y > max_y) pos.y = max_y;
+    }
+
+    return pos;
+}
+
 /* -------------------------------------------------------------------------- */
 
 static inline struct ntg_dxy

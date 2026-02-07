@@ -55,7 +55,7 @@ void ntg_box_init(ntg_box* box)
         .on_child_rm_fn = on_child_rm_fn
     };
 
-    ntg_object_init((ntg_object*)box, layout_ops, hooks, &NTG_TYPE_BOX);
+    ntg_object_init((ntg_object*)box, &layout_ops, &hooks, &NTG_TYPE_BOX);
 }
 
 void ntg_box_deinit(ntg_box* box)
@@ -69,19 +69,11 @@ void ntg_box_deinit_(void* _box)
     ntg_box_deinit(_box);
 }
 
-
-struct ntg_box_opts ntg_box_get_opts(const ntg_box* box)
-{
-    assert(box != NULL);
-
-    return box->_opts;
-}
-
-void ntg_box_set_opts(ntg_box* box, struct ntg_box_opts opts)
+void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
 {
     assert(box != NULL);
     
-    box->_opts = opts;
+    box->_opts = (opts ? (*opts) : ntg_box_opts_def());
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }

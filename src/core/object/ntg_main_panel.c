@@ -56,7 +56,7 @@ void ntg_main_panel_init(ntg_main_panel* box)
         .on_child_rm_fn = on_child_rm_fn
     };
 
-    ntg_object_init((ntg_object*)box, layout_ops, hooks, &NTG_TYPE_MAIN_PANEL);
+    ntg_object_init((ntg_object*)box, &layout_ops, &hooks, &NTG_TYPE_MAIN_PANEL);
 
     init_default(box);
 }

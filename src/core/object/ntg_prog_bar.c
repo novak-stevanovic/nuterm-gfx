@@ -36,7 +36,7 @@ void ntg_prog_bar_init(ntg_prog_bar* prog_bar)
 {
     assert(prog_bar != NULL);
 
-    struct ntg_object_layout_ops object_data = {
+    struct ntg_object_layout_ops layout_ops = {
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
@@ -45,7 +45,7 @@ void ntg_prog_bar_init(ntg_prog_bar* prog_bar)
 
     struct ntg_object_hooks hooks = {0};
 
-    ntg_object_init((ntg_object*)prog_bar, object_data, hooks, &NTG_TYPE_PROG_BAR);
+    ntg_object_init((ntg_object*)prog_bar, &layout_ops, &hooks, &NTG_TYPE_PROG_BAR);
 
     prog_bar->_opts = ntg_prog_bar_opts_def();
     prog_bar->_opts.style = ntg_prog_bar_style_def();
@@ -64,11 +64,11 @@ void ntg_prog_bar_deinit_(void* _prog_bar)
     ntg_prog_bar_deinit(_prog_bar);
 }
 
-void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, struct ntg_prog_bar_opts opts)
+void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
 {
     assert(prog_bar != NULL);
 
-    prog_bar->_opts = opts;
+    prog_bar->_opts = (opts ? (*opts) : ntg_prog_bar_opts_def());
 
     ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_FULL);
 }

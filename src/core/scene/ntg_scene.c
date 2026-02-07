@@ -11,39 +11,36 @@
 /* TYPE DEFINITIONS */
 /* ========================================================================== */
 
-struct tree_node;
+struct ntg_scene_layer_node;
 
-GENC_VECTOR_GENERATE(tree_node_vec, struct tree_node*, 1.25, NULL);
+GENC_VECTOR_GENERATE(ntg_scene_layer_node_vec, struct ntg_scene_layer_node*, 1.25, NULL);
 
-struct tree_node_data
+struct ntg_scene_layer_node
 {
     ntg_object* root;
-    struct ntg_attach_policy policy;
+    const struct ntg_attach_policy* policy;
+
+    struct ntg_scene_layer_node* parent;
+    struct ntg_scene_layer_node_vec children;
 };
 
-struct tree_node
-{
-    struct tree_node_data data;
-
-    struct tree_node* parent;
-    struct tree_node_vec children;
-};
-
-struct ntg_scene_priv
-{
-    struct tree_node* tree_root; // sentinel
-};
-
-struct layout_data
+struct ntg_scene_layout_data
 {
     ntg_scene* scene;
     sarena* arena;
     bool repeat;
 };
 
-struct attach_policy_flt_dt_priv
+struct ntg_attach_policy_flt_dt
 {
-    struct ntg_attach_policy_flt_dt public;
+    ntg_object* base;
+    struct ntg_attach_policy_flt_opts opts;
+};
+
+struct ntg_attach_policy_sflt_dt
+{
+    ntg_object* base;
+    struct ntg_attach_policy_sflt_opts opts;
 };
 
 /* ========================================================================== */
@@ -54,24 +51,26 @@ struct attach_policy_flt_dt_priv
 /* TREE */
 /* -------------------------------------------------------------------------- */
 
-static struct tree_node* 
-tree_node_new(struct tree_node_data data);
+static struct ntg_scene_layer_node* 
+tree_node_new(ntg_object* root, const struct ntg_attach_policy* policy);
 
-static void tree_node_destroy(struct tree_node* node);
+static void tree_node_destroy(struct ntg_scene_layer_node* node);
 
-static struct tree_node* tree_find(struct tree_node* root, ntg_object* data);
+static struct ntg_scene_layer_node* 
+tree_find(struct ntg_scene_layer_node* root, ntg_object* data);
 
 static void tree_add(
-        struct tree_node** root,
-        struct tree_node* node,
-        struct tree_node* parent);
+        struct ntg_scene_layer_node** root,
+        struct ntg_scene_layer_node* node,
+        struct ntg_scene_layer_node* parent);
 
-static void tree_rm(struct tree_node** root, struct tree_node* node);
-static size_t tree_count(struct tree_node* root);
+static void 
+tree_rm(struct ntg_scene_layer_node** root, struct ntg_scene_layer_node* node);
 
+static size_t tree_count(struct ntg_scene_layer_node* root);
 // Make sure that capacity is equal to count at least
 static void tree_get_roots_preorder(
-        struct tree_node* node,
+        struct ntg_scene_layer_node* node,
         struct ntg_object** out_buff,
         size_t* counter);
 
@@ -80,10 +79,10 @@ static void tree_get_roots_preorder(
 /* -------------------------------------------------------------------------- */
 
 static void
-tree_node_layout(ntg_scene* scene, struct tree_node* node, sarena* arena, int it);
+tree_node_layout(ntg_scene* scene, struct ntg_scene_layer_node* node, sarena* arena, int it);
 
 static void
-tree_layout(ntg_scene* scene, struct tree_node* node, sarena* arena);
+tree_layout(ntg_scene* scene, struct ntg_scene_layer_node* node, sarena* arena);
 
 static void hmeasure_fn(ntg_object* object, void* _layout_data);
 static void hconstrain_fn(ntg_object* object, void* _layout_data);
@@ -109,35 +108,36 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 /* ROOT */
 /* ------------------------------------------------------ */
 
-static size_t attach_policy_root_constrain_fn(
-        void* _data,
+static size_t ap_root_constrain_fn(
+        const void* _data,
         ntg_orient orient,
-        struct ntg_attach_constrain_ctx ctx,
+        const struct ntg_attach_constrain_ctx* ctx,
         sarena* arena);
 
-static struct ntg_xy attach_policy_root_arrange_fn(
-        void* data,
-        struct ntg_attach_arrange_ctx ctx,
+static struct ntg_xy ap_root_arrange_fn(
+        const void* data,
+        const struct ntg_attach_arrange_ctx* ctx,
         sarena* arena);
+
+const struct ntg_attach_policy NTG_ATTACH_POLICY_ROOT = {
+    .data = {0},
+    .constrain_fn = ap_root_constrain_fn,
+    .arrange_fn = ap_root_arrange_fn
+};
 
 /* ------------------------------------------------------ */
 /* FLOAT */
 /* ------------------------------------------------------ */
 
-static bool attach_policy_flt_fixup_fn(
-        void* _data,
-        struct ntg_attach_fixup_ctx ctx,
-        sarena* arena);
-
-static size_t attach_policy_flt_constrain_fn(
-        void* _data,
+static size_t ap_flt_constrain_fn(
+        const void* _data,
         ntg_orient orient,
-        struct ntg_attach_constrain_ctx ctx,
+        const struct ntg_attach_constrain_ctx* ctx,
         sarena* arena);
 
-static struct ntg_xy attach_policy_flt_arrange_fn(
-        void* data,
-        struct ntg_attach_arrange_ctx,
+static struct ntg_xy ap_flt_arrange_fn(
+        const void* _data,
+        const struct ntg_attach_arrange_ctx* ctx,
         sarena* arena);
 
 /* ========================================================================== */
@@ -152,7 +152,7 @@ static void init_default(ntg_scene* scene)
 {
     scene->_stage = NULL;
     scene->_size = ntg_xy(0, 0);
-    scene->__priv->tree_root = NULL;
+    scene->__tree_root = NULL;
     scene->__on_key_fn = ntg_scene_dispatch_key;
     scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
     scene->data = NULL;
@@ -162,20 +162,13 @@ void ntg_scene_init(ntg_scene* scene)
 {
     assert(scene != NULL);
 
-    scene->__priv = malloc(sizeof(struct ntg_scene_priv));
-    assert(scene->__priv);
-
     init_default(scene);
 
     // Layer tree
-    struct tree_node_data data = {
-        .root = NULL,
-        .policy = ntg_attach_policy_new_root()
-    };
-    struct tree_node* sentinel = tree_node_new(data);
+    struct ntg_scene_layer_node* sentinel = tree_node_new(NULL, &NTG_ATTACH_POLICY_ROOT);
     assert(sentinel);
 
-    tree_add(&scene->__priv->tree_root, sentinel, NULL);
+    tree_add(&scene->__tree_root, sentinel, NULL);
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -185,11 +178,9 @@ void ntg_scene_deinit(ntg_scene* scene)
     if(scene->_stage)
         ntg_stage_set_scene(scene->_stage, NULL);
 
-    tree_rm(&scene->__priv->tree_root, scene->__priv->tree_root);
+    tree_rm(&scene->__tree_root, scene->__tree_root);
 
     init_default(scene);
-
-    if(scene->__priv) free(scene->__priv);
 }
 
 void ntg_scene_deinit_(void* _scene)
@@ -197,13 +188,39 @@ void ntg_scene_deinit_(void* _scene)
     ntg_scene_deinit(_scene);
 }
 
-void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
+void ntg_scene_mark_dirty(ntg_scene* scene)
+{
+    assert(scene);
+
+    scene->_dirty = true;
+
+    if(scene->_stage)
+    {
+        ntg_stage_mark_dirty(scene->_stage);
+    }
+}
+
+void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
+{
+    struct ntg_xy old_size = scene->_size;
+    if(!ntg_xy_are_equal(old_size, size))
+    {
+        scene->_size = size;
+        ntg_scene_mark_dirty(scene);
+
+        //if(old_size.x != size.x)
+        // {
+            // uint8_t dirty = NTG_OBJECT_DIRTY_HCONSTRAIN | NTG_OBJECT_DIRTY_
+            ////tree_mark_dirty(scene->__tree_root, 
+        //}
+    }
+}
+
+void ntg_scene_layout(ntg_scene* scene, sarena* arena)
 {
     assert(scene != NULL);
 
-    scene->_size = size;
-
-    return tree_layout(scene, scene->__priv->tree_root, arena);
+    tree_layout(scene, scene->__tree_root, arena);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -212,49 +229,49 @@ void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena)
 
 void ntg_scene_attach_root(
         ntg_scene* scene,
-        ntg_object* root,
-        ntg_object* base,
-        struct ntg_attach_policy policy)
+        ntg_object* attacher_layer,
+        ntg_object* base_layer,
+        const struct ntg_attach_policy* policy)
 {
     assert(scene);
-    assert(root);
-    assert(policy.constrain_fn);
-    assert(policy.arrange_fn);
 
-    if(root->_parent)
+    if(!policy)
+        policy = &NTG_ATTACH_POLICY_ROOT;
+
+    if(!attacher_layer) return;
+
+    if(attacher_layer->_parent)
     {
-        ntg_object_detach(root);
+        ntg_object_detach(attacher_layer);
     }
     else
     {
-        ntg_scene* old_scene = ntg_object_get_scene_(root);
+        ntg_scene* old_scene = ntg_object_get_scene_(attacher_layer);
 
         if(old_scene == scene) return;
 
         if(old_scene)
         {
-            ntg_scene_detach_root(old_scene, root);
+            ntg_scene_detach_root(old_scene, attacher_layer);
         }
     }
 
-    struct tree_node_data data = {
-        .root = root,
-        .policy = policy
-    };
-
-    struct tree_node* base_node = base ?
-            tree_find(scene->__priv->tree_root, base) :
-            scene->__priv->tree_root;
+    struct ntg_scene_layer_node* base_node = base_layer ?
+            tree_find(scene->__tree_root, base_layer) :
+            scene->__tree_root;
 
     assert(base_node);
 
-    struct tree_node* new = tree_node_new(data);
+    struct ntg_scene_layer_node* new = tree_node_new(attacher_layer, policy);
     assert(new);
 
-    tree_add(&scene->__priv->tree_root, new, base_node);
+    tree_add(&scene->__tree_root, new, base_node);
 
-    _ntg_object_root_set_scene(root, scene);
-    _ntg_scene_register_tree(scene, root);
+    _ntg_object_root_set_scene(attacher_layer, scene);
+    _ntg_scene_register_tree(scene, attacher_layer);
+
+    ntg_scene_mark_dirty(scene); // just in case
+    ntg_object_mark_dirty(attacher_layer, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_scene_detach_root(ntg_scene* scene, ntg_object* root)
@@ -267,10 +284,12 @@ void ntg_scene_detach_root(ntg_scene* scene, ntg_object* root)
 
     assert(scene == curr_scene);
 
-    struct tree_node* node = tree_find(scene->__priv->tree_root, root);
+    struct ntg_scene_layer_node* node = tree_find(scene->__tree_root, root);
     assert(node);
 
-    tree_rm(&scene->__priv->tree_root, node);
+    tree_rm(&scene->__tree_root, node);
+
+    ntg_scene_mark_dirty(scene); // just in case
 }
 
 size_t ntg_scene_get_root_count(const ntg_scene* scene)
@@ -278,7 +297,7 @@ size_t ntg_scene_get_root_count(const ntg_scene* scene)
     assert(scene);
 
     // Subtract 1 because of sentinel
-    return tree_count(scene->__priv->tree_root) - 1; 
+    return tree_count(scene->__tree_root) - 1; 
 }
 
 void ntg_scene_get_roots_by_z(
@@ -295,7 +314,7 @@ void ntg_scene_get_roots_by_z(
     if(root_count == 0) return;
 
     size_t counter = 0;
-    tree_get_roots_preorder(scene->__priv->tree_root, out_buff, &counter);
+    tree_get_roots_preorder(scene->__tree_root, out_buff, &counter);
 
     // Remove sentinel(no need)
     // memmove(out_buff, out_buff + 1, root_count * sizeof(ntg_object*));
@@ -374,7 +393,6 @@ bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
         return false;
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* ATTACH POLICY */
 /* -------------------------------------------------------------------------- */
@@ -383,41 +401,54 @@ bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 /* ROOT */
 /* ------------------------------------------------------ */
 
-struct ntg_attach_policy ntg_attach_policy_new_root()
+const struct ntg_attach_policy* ntg_attach_policy_root()
 {
-    return (struct ntg_attach_policy) {
-        .constrain_fn = attach_policy_root_constrain_fn,
-        .fixup_fn = NULL,
-        .arrange_fn = attach_policy_root_arrange_fn,
-        .data = NULL,
-        .free_fn = NULL
-    };
+    return &NTG_ATTACH_POLICY_ROOT;
 }
 
 /* ------------------------------------------------------ */
 /* FLOAT */
 /* ------------------------------------------------------ */
 
-struct ntg_attach_policy
-ntg_attach_policy_new_flt(struct ntg_attach_policy_flt_dt dt)
+struct ntg_attach_policy_flt_opts ntg_attach_policy_flt_opts_def()
 {
-    struct attach_policy_flt_dt_priv* dt_priv = malloc(sizeof(*dt_priv));
-    assert(dt_priv);
-
-    dt_priv->public = dt;
-
-    return (struct ntg_attach_policy) {
-        .constrain_fn = attach_policy_flt_constrain_fn,
-        .fixup_fn = attach_policy_flt_fixup_fn,
-        .arrange_fn = attach_policy_flt_arrange_fn,
-        .data = dt_priv,
-        .free_fn = free
+    return (struct ntg_attach_policy_flt_opts) {
+        .enable = NTG_ATTACH_POLICY_FLT_ENABLE_MIN,
+        .shrink = ntg_insets(0, 0, 0, 0),
+        .prim_align = NTG_ALIGN_1,
+        .sec_align = NTG_ALIGN_1
     };
+}
+
+void ntg_attach_policy_init_flt(
+        struct ntg_attach_policy* policy,
+        ntg_object* base,
+        const struct ntg_attach_policy_flt_opts* opts)
+{
+    assert(policy); 
+    assert(base);
+
+    struct ntg_attach_policy_flt_dt dt = {
+        .base = base,
+        .opts = (opts ? (*opts) : ntg_attach_policy_flt_opts_def())
+    };
+
+    memcpy(&policy->data, &dt, sizeof(dt));
+
+    policy->constrain_fn = ap_flt_constrain_fn;
+    policy->arrange_fn = ap_flt_arrange_fn;
 }
 
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
+
+void _ntg_scene_clean(ntg_scene* scene)
+{
+    assert(scene);
+
+    scene->_dirty = false;
+}
 
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
 {
@@ -434,12 +465,15 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
     assert(object != NULL);
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+    ntg_scene_mark_dirty(scene); // just in case
 }
 
 void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
 {
     assert(scene != NULL);
     assert(object != NULL);
+
+    ntg_scene_mark_dirty(scene);
 }
 
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
@@ -480,36 +514,38 @@ void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
 /* TREE */
 /* -------------------------------------------------------------------------- */
 
-static struct tree_node* tree_node_new(struct tree_node_data data)
+static struct ntg_scene_layer_node* 
+tree_node_new(ntg_object* root, const struct ntg_attach_policy* policy)
 {
-    struct tree_node* new = malloc(sizeof(struct tree_node));
+    struct ntg_scene_layer_node* new = malloc(sizeof(struct ntg_scene_layer_node));
     if(!new) return NULL;
 
-    new->data = data;
+    new->root = root;
+    new->policy = policy;
     new->parent = NULL;
-    tree_node_vec_init(&new->children, 2, NULL);
+    ntg_scene_layer_node_vec_init(&new->children, 2, NULL);
 
     return new;
 }
 
-static void tree_node_destroy(struct tree_node* node)
+static void tree_node_destroy(struct ntg_scene_layer_node* node)
 {
-    tree_node_vec_deinit(&node->children, NULL);
+    ntg_scene_layer_node_vec_deinit(&node->children, NULL);
 
-    (*node) = (struct tree_node) {0};
+    (*node) = (struct ntg_scene_layer_node) {0};
     free(node);
 }
 
-static struct tree_node*
-tree_find(struct tree_node* root, ntg_object* data)
+static struct ntg_scene_layer_node*
+tree_find(struct ntg_scene_layer_node* root_node, ntg_object* data)
 {
-    if(root->data.root == data) return root;
+    if(root_node->root == data) return root_node;
 
     size_t i;
-    struct tree_node* it_found;
-    for(i = 0; i < root->children.size; i++)
+    struct ntg_scene_layer_node* it_found;
+    for(i = 0; i < root_node->children.size; i++)
     {
-        it_found = tree_find(root->children.data[i], data);
+        it_found = tree_find(root_node->children.data[i], data);
         if(it_found) return it_found;
     }
 
@@ -517,44 +553,43 @@ tree_find(struct tree_node* root, ntg_object* data)
 }
 
 static void tree_add(
-        struct tree_node** root,
-        struct tree_node* node,
-        struct tree_node* parent)
+        struct ntg_scene_layer_node** root_node,
+        struct ntg_scene_layer_node* node,
+        struct ntg_scene_layer_node* parent)
 {
     // If sentinel, assert that root doesn't exist
-    if(!parent) assert(!(*root));
+    if(!parent) assert(!(*root_node));
 
     if(parent)
-        tree_node_vec_pushb(&parent->children, node, NULL);
+        ntg_scene_layer_node_vec_pushb(&parent->children, node, NULL);
 
     node->parent = parent;
 
-    if(!parent) *root = node;
+    if(!parent) *root_node = node;
 }
 
-static void tree_rm(struct tree_node** root, struct tree_node* node)
+static void 
+tree_rm(struct ntg_scene_layer_node** root_node, struct ntg_scene_layer_node* node)
 {
     size_t i;
     for(i = 0; i < node->children.size; i++)
     {
-        tree_rm(root, node->children.data[i]);
+        tree_rm(root_node, node->children.data[i]);
     }
 
-    struct tree_node* parent = node->parent;
+    struct ntg_scene_layer_node* parent = node->parent;
 
     if(parent)
-        tree_node_vec_rm(&parent->children, node, NULL);
+        ntg_scene_layer_node_vec_rm(&parent->children, node, NULL);
     else
-        *root = NULL;
+        *root_node = NULL;
 
-    if(node->data.root)
-        _ntg_object_root_set_scene(node->data.root, NULL);
-    if(node->data.policy.free_fn)
-        node->data.policy.free_fn(node->data.policy.data);
+    if(node->root)
+        _ntg_object_root_set_scene(node->root, NULL);
     tree_node_destroy(node);
 }
 
-static size_t tree_count(struct tree_node* root)
+static size_t tree_count(struct ntg_scene_layer_node* root)
 {
     size_t sum = 1;
 
@@ -568,13 +603,13 @@ static size_t tree_count(struct tree_node* root)
 }
 
 static void tree_get_roots_preorder(
-        struct tree_node* node,
+        struct ntg_scene_layer_node* node,
         struct ntg_object** out_buff,
         size_t* counter)
 {
-    if(node->data.root)
+    if(node->root)
     {
-        out_buff[*counter] = node->data.root;
+        out_buff[*counter] = node->root;
         (*counter)++;
     }
 
@@ -590,18 +625,18 @@ static void tree_get_roots_preorder(
 /* -------------------------------------------------------------------------- */
 
 static void
-tree_node_layout(ntg_scene* scene, struct tree_node* node, sarena* arena, int it)
+tree_node_layout(ntg_scene* scene, struct ntg_scene_layer_node* node, sarena* arena, int it)
 {
     if(!node) return;
 
-    ntg_object* root = node->data.root;
-    struct ntg_attach_policy policy = node->data.policy;
+    ntg_object* root = node->root;
+    const struct ntg_attach_policy* policy = node->policy;
 
     // Sentinel node just returns
     if(!root) return;
 
-    ntg_object* base_layer = node->parent->data.root;
-    struct layout_data layout_data = {
+    ntg_object* base_layer = node->parent->root;
+    struct ntg_scene_layout_data layout_data = {
         .scene = scene,
         .arena = arena,
         .repeat = false
@@ -615,20 +650,23 @@ tree_node_layout(ntg_scene* scene, struct tree_node* node, sarena* arena, int it
     // H CONSTRAIN
     
     size_t hsize = 0;
-    if(policy.constrain_fn)
+    if(policy->constrain_fn)
     {
         struct ntg_attach_constrain_ctx hconstrain_ctx = {
             .base_layer = base_layer,
             .attacher_layer = root,
             .scene_size = scene->_size.x
         };
-        hsize = policy.constrain_fn(policy.data,
-                NTG_ORIENT_H, hconstrain_ctx, arena);
+        hsize = policy->constrain_fn(policy->data,
+                NTG_ORIENT_H, &hconstrain_ctx, arena);
 
         hsize = _clamp_size(0, hsize, scene->_size.x);
     }
 
-    _ntg_object_root_set_hsize(root, hsize);
+    if(root->_size.x != hsize)
+    {
+        _ntg_object_root_set_hsize(root, hsize);
+    }
 
     hconstrain_tree(root, &layout_data);
 
@@ -639,20 +677,23 @@ tree_node_layout(ntg_scene* scene, struct tree_node* node, sarena* arena, int it
     // V CONSTRAIN
     
     size_t vsize = 0;
-    if(policy.constrain_fn)
+    if(policy->constrain_fn)
     {
         struct ntg_attach_constrain_ctx vconstrain_ctx = {
             .base_layer = base_layer,
             .attacher_layer = root,
             .scene_size = scene->_size.y
         };
-        vsize = policy.constrain_fn(policy.data,
-                NTG_ORIENT_V, vconstrain_ctx, arena);
+        vsize = policy->constrain_fn(policy->data,
+                NTG_ORIENT_V, &vconstrain_ctx, arena);
 
         vsize = _clamp_size(0, vsize, scene->_size.y);
     }
 
-    _ntg_object_root_set_vsize(root, vsize);
+    if(root->_size.y != vsize)
+    {
+        _ntg_object_root_set_vsize(root, vsize);
+    }
 
     vconstrain_tree(root, &layout_data);
 
@@ -660,29 +701,16 @@ tree_node_layout(ntg_scene* scene, struct tree_node* node, sarena* arena, int it
     
     // FIX UP
 
-    bool repeat = false;
-    if(policy.fixup_fn)
-    {
-        struct ntg_attach_fixup_ctx fixup_ctx = {
-            .base_layer = base_layer,
-            .attacher_layer = root,
-            .size = size,
-            .scene_size = scene->_size
-        };
-
-        repeat = policy.fixup_fn(policy.data, fixup_ctx, arena);
-    }
-
     fixup_tree(root, &layout_data);
 
-    if(repeat || layout_data.repeat)
+    if(layout_data.repeat)
     {
         tree_node_layout(scene, node, arena, it + 1);
     }
     else
     {
         struct ntg_xy pos = ntg_xy(0, 0);
-        if(policy.arrange_fn)
+        if(policy->arrange_fn)
         {
             struct ntg_attach_arrange_ctx arrange_ctx = {
                 .base_layer = base_layer,
@@ -690,13 +718,17 @@ tree_node_layout(ntg_scene* scene, struct tree_node* node, sarena* arena, int it
                 .scene_size = scene->_size
             };
 
-            pos = policy.arrange_fn(policy.data, arrange_ctx, arena);
+            pos = policy->arrange_fn(policy->data, &arrange_ctx, arena);
+            pos = ntg_xy_pos_clamp(pos, size, scene->_size);
 
             pos.x -= _ssub_size(pos.x + size.x, scene->_size.x);
             pos.y -= _ssub_size(pos.y + size.y, scene->_size.y);
         }
 
-        _ntg_object_root_set_pos(root, pos);
+        if(!ntg_xy_are_equal(root->_pos, pos))
+        {
+            _ntg_object_root_set_pos(root, pos);
+        }
 
         arrange_tree(root, &layout_data);
         draw_tree(root, &layout_data);
@@ -704,7 +736,7 @@ tree_node_layout(ntg_scene* scene, struct tree_node* node, sarena* arena, int it
 }
 
 static void
-tree_layout(ntg_scene* scene, struct tree_node* root, sarena* arena)
+tree_layout(ntg_scene* scene, struct ntg_scene_layer_node* root, sarena* arena)
 {
     tree_node_layout(scene, root, arena, 0);
 
@@ -717,7 +749,7 @@ tree_layout(ntg_scene* scene, struct tree_node* root, sarena* arena)
 
 static void hmeasure_fn(ntg_object* object, void* _layout_data)
 {
-    struct layout_data* layout_data = (struct layout_data*)_layout_data;
+    struct ntg_scene_layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
     if(object->_dirty & NTG_OBJECT_DIRTY_HMEASURE)
@@ -729,13 +761,13 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("OPTIMIZE: Object %p not dirty(HM)");
+        ntg_log_log("OPTIMIZE: Object %p not dirty(HM)", object);
     }
 }
 
 static void hconstrain_fn(ntg_object* object, void* _layout_data)
 {
-    struct layout_data* layout_data = (struct layout_data*)_layout_data;
+    struct ntg_scene_layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
     if(object->_dirty & NTG_OBJECT_DIRTY_HCONSTRAIN)
@@ -746,13 +778,13 @@ static void hconstrain_fn(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("OPTIMIZE: Object %p not dirty(HC)");
+        ntg_log_log("OPTIMIZE: Object %p not dirty(HC)", object);
     }
 }
 
 static void vmeasure_fn(ntg_object* object, void* _layout_data)
 {
-    struct layout_data* layout_data = (struct layout_data*)_layout_data;
+    struct ntg_scene_layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
     if(object->_dirty & NTG_OBJECT_DIRTY_VMEASURE)
@@ -764,13 +796,13 @@ static void vmeasure_fn(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("OPTIMIZE: Object %p not dirty(VM)");
+        ntg_log_log("OPTIMIZE: Object %p not dirty(VM)", object);
     }
 }
 
 static void vconstrain_fn(ntg_object* object, void* _layout_data)
 {
-    struct layout_data* layout_data = (struct layout_data*)_layout_data;
+    struct ntg_scene_layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
     if(object->_dirty & NTG_OBJECT_DIRTY_VCONSTRAIN)
@@ -781,25 +813,25 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("OPTIMIZE: Object %p not dirty(VC)");
+        ntg_log_log("OPTIMIZE: Object %p not dirty(VC)", object);
     }
 }
 
 static void fixup_fn(ntg_object* object, void* _layout_data)
 {
-    struct layout_data* layout_data = (struct layout_data*)_layout_data;
+    struct ntg_scene_layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
     if(_ntg_object_fixup(object, arena))
     {
-        ntg_log_log("Object: %p demanded repeat");
+        ntg_log_log("Object: %p demanded repeat", object);
         layout_data->repeat = true;
     }
 }
 
 static void arrange_fn(ntg_object* object, void* _layout_data)
 {
-    struct layout_data* layout_data = (struct layout_data*)_layout_data;
+    struct ntg_scene_layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
     if(object->_dirty & NTG_OBJECT_DIRTY_ARRANGE)
@@ -810,13 +842,13 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("OPTIMIZE: Object %p not dirty(AR)");
+        ntg_log_log("OPTIMIZE: Object %p not dirty(AR)", object);
     }
 }
 
 static void draw_fn(ntg_object* object, void* _layout_data)
 {
-    struct layout_data* layout_data = (struct layout_data*)_layout_data;
+    struct ntg_scene_layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
     if(object->_dirty & NTG_OBJECT_DIRTY_DRAW)
@@ -827,7 +859,7 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("OPTIMIZE: Object %p not dirty(DR)");
+        ntg_log_log("OPTIMIZE: Object %p not dirty(DR)", object);
     }
 }
 
@@ -839,18 +871,18 @@ static void draw_fn(ntg_object* object, void* _layout_data)
 /* ROOT */
 /* ------------------------------------------------------ */
 
-static size_t attach_policy_root_constrain_fn(
-        void* data,
+static size_t ap_root_constrain_fn(
+        const void* data,
         ntg_orient orient,
-        struct ntg_attach_constrain_ctx ctx,
+        const struct ntg_attach_constrain_ctx* ctx,
         sarena* arena)
 {
-    return ctx.scene_size;
+    return ctx->scene_size;
 }
 
-static struct ntg_xy attach_policy_root_arrange_fn(
-        void* data,
-        struct ntg_attach_arrange_ctx ctx,
+static struct ntg_xy ap_root_arrange_fn(
+        const void* data,
+        const struct ntg_attach_arrange_ctx* ctx,
         sarena* arena)
 {
     return ntg_xy(0, 0);
@@ -860,32 +892,31 @@ static struct ntg_xy attach_policy_root_arrange_fn(
 /* FLOAT */
 /* ------------------------------------------------------ */
 
-static size_t attach_policy_flt_constrain_fn(
-        void* _data,
+static size_t ap_flt_constrain_fn(
+        const void* _data,
         ntg_orient orient,
-        struct ntg_attach_constrain_ctx ctx,
+        const struct ntg_attach_constrain_ctx* ctx,
         sarena* arena)
 {
-    struct attach_policy_flt_dt_priv* priv_data = _data;
-    struct ntg_attach_policy_flt_dt* user_data = &priv_data->public;
+    const struct ntg_attach_policy_flt_dt* data = _data;
 
-    const ntg_object* base_layer = ctx.base_layer;
-    const ntg_object* attacher_layer = ctx.attacher_layer;
+    const ntg_object* base_layer = ctx->base_layer;
+    const ntg_object* attacher_layer = ctx->attacher_layer;
 
-    if(!base_layer || !ntg_object_is_descendant_eq(base_layer, user_data->base))
+    if(!base_layer || !ntg_object_is_descendant_eq(base_layer, data->base))
         return 0;
 
     size_t attacher_min_size = ntg_xy_get(attacher_layer->_min_size, orient);
     size_t attacher_nat_size = ntg_xy_get(attacher_layer->_nat_size, orient);
-    size_t base_min_size = ntg_xy_get(user_data->base->_min_size, orient);
-    size_t base_nat_size = ntg_xy_get(user_data->base->_nat_size, orient);
+    size_t base_min_size = ntg_xy_get(data->base->_min_size, orient);
+    size_t base_nat_size = ntg_xy_get(data->base->_nat_size, orient);
 
-    size_t base_size = ntg_xy_get(user_data->base->_size, orient);
-    size_t shrink = ntg_insets_sum(user_data->shrink, orient);
+    size_t base_size = ntg_xy_get(data->base->_size, orient);
+    size_t shrink = ntg_insets_sum(data->opts.shrink, orient);
     size_t size = _min2_size(_ssub_size(base_size, shrink), attacher_nat_size);
 
     size_t thresh;
-    switch(user_data->enable)
+    switch(data->opts.enable)
     {
         case NTG_ATTACH_POLICY_FLT_ENABLE_MIN:
             thresh = attacher_min_size;
@@ -907,52 +938,35 @@ static size_t attach_policy_flt_constrain_fn(
     return (size >= thresh) ? size : 0;
 }
 
-static bool attach_policy_flt_fixup_fn(
-        void* _data,
-        struct ntg_attach_fixup_ctx ctx,
+static struct ntg_xy ap_flt_arrange_fn(
+        const void* _data,
+        const struct ntg_attach_arrange_ctx* ctx,
         sarena* arena)
 {
-    struct attach_policy_flt_dt_priv* priv_data = _data;
-    struct ntg_attach_policy_flt_dt* user_data = &priv_data->public;
+    const struct ntg_attach_policy_flt_dt* data = _data;
 
-    const ntg_object* base_layer = ctx.base_layer;
+    const ntg_object* base_layer = ctx->base_layer;
 
-    if(!base_layer || !ntg_object_is_descendant_eq(base_layer, user_data->base))
-        return false;
-
-    return false;
-}
-
-static struct ntg_xy attach_policy_flt_arrange_fn(
-        void* _data,
-        struct ntg_attach_arrange_ctx ctx,
-        sarena* arena)
-{
-    struct attach_policy_flt_dt_priv* priv_data = _data;
-    struct ntg_attach_policy_flt_dt* user_data = &priv_data->public;
-
-    const ntg_object* base_layer = ctx.base_layer;
-
-    if(!base_layer || !ntg_object_is_descendant_eq(base_layer, user_data->base))
+    if(!base_layer || !ntg_object_is_descendant_eq(base_layer, data->base))
         return ntg_xy(0, 0);
 
-    if(ntg_xy_size_is_zero(ctx.size))
+    if(ntg_xy_size_is_zero(ctx->size))
         return ntg_xy(0, 0);
 
     struct ntg_xy shrink = ntg_xy(
-        ntg_insets_hsum(user_data->shrink),
-        ntg_insets_vsum(user_data->shrink));
-    struct ntg_xy base_size = ntg_xy_sub(user_data->base->_size, shrink);
+        ntg_insets_hsum(data->opts.shrink),
+        ntg_insets_vsum(data->opts.shrink));
+    struct ntg_xy base_size = ntg_xy_sub(data->base->_size, shrink);
 
     struct ntg_xy align_offset = ntg_xy(
-            ntg_align_offset(ctx.size.x, base_size.x, user_data->prim_align),
-            ntg_align_offset(ctx.size.y, base_size.y, user_data->sec_align));
+            ntg_align_offset(ctx->size.x, base_size.x, data->opts.prim_align),
+            ntg_align_offset(ctx->size.y, base_size.y, data->opts.sec_align));
 
-    align_offset.x += user_data->shrink.w;
-    align_offset.y += user_data->shrink.n;
+    align_offset.x += data->opts.shrink.w;
+    align_offset.y += data->opts.shrink.n;
 
     struct ntg_xy
-    pos = ntg_xy_from_dxy(ntg_object_map_to_scene(user_data->base, ntg_dxy(0, 0)));
+    pos = ntg_xy_from_dxy(ntg_object_map_to_scene(data->base, ntg_dxy(0, 0)));
 
     ntg_log_log("ARRANGE RETURNED: %d %d", pos.x, pos.y);
 

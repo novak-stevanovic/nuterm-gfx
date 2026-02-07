@@ -170,7 +170,7 @@ void ntg_label_init(ntg_label* label)
 {
     assert(label != NULL);
 
-    struct ntg_object_layout_ops object_data = {
+    struct ntg_object_layout_ops layout_ops = {
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
@@ -179,7 +179,7 @@ void ntg_label_init(ntg_label* label)
 
     struct ntg_object_hooks hooks = {0};
 
-    ntg_object_init((ntg_object*)label, object_data, hooks, &NTG_TYPE_LABEL);
+    ntg_object_init((ntg_object*)label, &layout_ops, &hooks, &NTG_TYPE_LABEL);
 
     label->__priv = malloc(sizeof(struct ntg_label_priv));
     assert(label->__priv);
@@ -220,16 +220,20 @@ struct ntg_label_opts ntg_label_get_opts(const ntg_label* label)
     return label->_opts;
 }
 
-void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts)
+void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 {
     assert(label != NULL);
 
-    label->_opts = opts;
-    // TODO
-    //// if(opts.bg_mode == NTG_LABEL_BG_FULL)
-        ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_bg(opts.gfx.bg));
-    // else
-        // ntg_object_set_def_bg((ntg_object*)label, ntg_vcell_overlay(' ', opts.gfx.fg, opts.gfx.style));
+    label->_opts = (opts ? (*opts) : ntg_label_opts_def());
+
+    struct nt_gfx gfx = label->_opts.gfx;
+
+    struct ntg_vcell cell =
+            (label->_opts.bg_mode == NTG_LABEL_BG_FULL) ?
+            ntg_vcell_bg(gfx.bg) :
+            ntg_vcell_overlay(' ',  gfx.fg, gfx.style);
+
+    ntg_object_set_def_bg((ntg_object*)label, cell);
 
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
@@ -368,7 +372,6 @@ static struct ntg_object_measure measure_fn(
         default: assert(0);
     }
 
-    ntg_log_log("LABEL M: %d %d %d %d", result.min_size, result.nat_size, result.max_size);
     return result;
 }
 

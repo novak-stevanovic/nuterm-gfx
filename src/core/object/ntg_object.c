@@ -4,11 +4,6 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 
-#define FORCE_NO_HBORDER (1 << 0)
-#define FORCE_NO_VBORDER (1 << 1)
-#define FORCE_NO_HPADDING (1 << 2)
-#define FORCE_NO_VPADDING (1 << 3)
-
 /* ========================================================================== */
 /* TYPE DEFINITIONS */
 /* ========================================================================== */
@@ -33,6 +28,10 @@ struct ntg_object_pos_map
 /* STATIC */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* LAYOUT OBJECT INIT */
+/* -------------------------------------------------------------------------- */
+
 static void size_map_init(
         ntg_object_size_map* map,
         const ntg_object_vec* children,
@@ -48,6 +47,10 @@ static void tmp_drawing_init(
         struct ntg_xy size,
         struct ntg_vcell def_bg,
         sarena* arena);
+
+/* -------------------------------------------------------------------------- */
+/* LAYOUT */
+/* -------------------------------------------------------------------------- */
 
 static struct ntg_object_measure incorporate_user_measure(
         struct ntg_object_measure measure,
@@ -74,14 +77,21 @@ static void calculate_padding_hsize(ntg_object* object,
 static void calculate_padding_vsize(ntg_object* object,
         sarena* arena, size_t* out_w, size_t* out_e);
 
+static void draw_optimized(ntg_object* object, sarena* arena);
+static void draw_unoptimized(ntg_object* object, sarena* arena);
+
+/* -------------------------------------------------------------------------- */
+/* BORDER DRAW FN */
+/* -------------------------------------------------------------------------- */
+
 static void border_def_style_draw_fn(
-        void* _,
+        const struct ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
         ntg_object_tmp_drawing* out_drawing);
 
-static void border_preset_style_draw_fn(
-        void* _data,
+static void border_9x_style_draw_fn(
+        const struct ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
         ntg_object_tmp_drawing* out_drawing);
@@ -90,13 +100,14 @@ static void border_preset_style_draw_fn(
 /* PUBLIC - TYPES (ntg_object.h) */
 /* ========================================================================== */
 
-struct ntg_border_style ntg_border_style_def()
+const struct ntg_border_style NTG_BORDER_STYLE_DEF = {
+    .draw_fn = border_def_style_draw_fn,
+    .data = {0}
+};
+
+const struct ntg_border_style* ntg_border_style_def()
 {
-    return (struct ntg_border_style) {
-        .draw_fn = border_def_style_draw_fn,
-        .data = NULL,
-        .free_fn = NULL
-    };
+    return &NTG_BORDER_STYLE_DEF;
 }
 
 struct ntg_border_opts ntg_border_opts_def()
@@ -325,27 +336,24 @@ void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg)
 
 void ntg_object_set_border_opts(
         ntg_object* object,
-        struct ntg_border_opts opts)
+        const struct ntg_border_opts* opts)
 {
     assert(object != NULL);
 
-    if(object->_border.opts.style.free_fn)
-    {
-        object->_border.opts.style.free_fn(object->_border.opts.style.data);
-    }
-
-    object->_border.opts = opts;
+    object->_border.opts = (opts ? (*opts) : ntg_border_opts_def()); 
+    if(!object->_border.opts.style)
+        object->_border.opts.style = ntg_border_style_def();
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_object_set_padding_opts(
         ntg_object* object,
-        struct ntg_padding_opts opts)
+        const struct ntg_padding_opts* opts)
 {
     assert(object != NULL);
 
-    object->_padding.opts = opts;
+    object->_padding.opts = (opts ? (*opts) : ntg_padding_opts_def()); 
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 }
@@ -416,198 +424,252 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point)
 /* BORDER STYLE */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_border_style
-ntg_border_style_new_monochrome(struct nt_color color)
+#define BORDER_STYLE_9X_SYM_DEF (struct ntg_border_style_9x_sym) { \
+        .top_left     = ' ', \
+        .top          = ' ', \
+        .top_right    = ' ', \
+        .right        = ' ', \
+        .bottom_right = ' ', \
+        .bottom       = ' ', \
+        .bottom_left  = ' ', \
+        .left         = ' ', \
+        .padding      = ' '  \
+        }
+
+void ntg_border_style_init_monochrome(
+        struct ntg_border_style* style,
+        struct nt_color color)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left = ntg_vcell_bg(color),
-        .top = ntg_vcell_bg(color),
-        .top_right = ntg_vcell_bg(color),
-        .right = ntg_vcell_bg(color),
-        .bottom_right = ntg_vcell_bg(color),
-        .bottom = ntg_vcell_bg(color),
-        .bottom_left = ntg_vcell_bg(color),
-        .left = ntg_vcell_bg(color),
-        .padding = ntg_vcell_bg(color),
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = BORDER_STYLE_9X_SYM_DEF;
+
+    struct nt_gfx gfx = (struct nt_gfx){
+        .fg = NT_COLOR_DEFAULT,
+        .bg = color,
+        .style = NT_STYLE_DEFAULT
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_border_style_init_custom_9x(style, NTG_VCELL_FULL, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_uniform(struct nt_gfx gfx, uint32_t codepoint)
+void ntg_border_style_init_basic(
+        struct ntg_border_style* style,
+        struct nt_gfx gfx,
+        uint32_t cp,
+        bool flt)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left = ntg_vcell_full(codepoint, gfx),
-        .top = ntg_vcell_full(codepoint, gfx),
-        .top_right = ntg_vcell_full(codepoint, gfx),
-        .right = ntg_vcell_full(codepoint, gfx),
-        .bottom_right = ntg_vcell_full(codepoint, gfx),
-        .bottom = ntg_vcell_full(codepoint, gfx),
-        .bottom_left = ntg_vcell_full(codepoint, gfx),
-        .left = ntg_vcell_full(codepoint, gfx),
-        .padding = ntg_vcell_full(codepoint, gfx),
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = cp,
+        .top          = cp,
+        .top_right    = cp,
+        .right        = cp,
+        .bottom_right = cp,
+        .bottom       = cp,
+        .bottom_left  = cp,
+        .left         = cp,
+        .padding      = cp
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_uniform_edge(struct nt_gfx gfx, uint32_t codepoint)
+void ntg_border_style_init_basic_edge(
+        struct ntg_border_style* style,
+        struct nt_gfx gfx,
+        uint32_t cp,
+        bool flt)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left = ntg_vcell_full(codepoint, gfx),
-        .top = ntg_vcell_full(codepoint, gfx),
-        .top_right = ntg_vcell_full(codepoint, gfx),
-        .right = ntg_vcell_full(codepoint, gfx),
-        .bottom_right = ntg_vcell_full(codepoint, gfx),
-        .bottom = ntg_vcell_full(codepoint, gfx),
-        .bottom_left = ntg_vcell_full(codepoint, gfx),
-        .left = ntg_vcell_full(codepoint, gfx),
-        .padding = ntg_vcell_full(' ', gfx),
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = cp,
+        .top          = cp,
+        .top_right    = cp,
+        .right        = cp,
+        .bottom_right = cp,
+        .bottom       = cp,
+        .bottom_left  = cp,
+        .left         = cp,
+        .padding      = ' '
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_single(struct nt_gfx gfx)
+void ntg_border_style_init_single(
+        struct ntg_border_style* style,
+        struct nt_gfx gfx,
+        bool flt)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left     = ntg_vcell_full(0x250C, gfx), /* ┌ */
-        .top          = ntg_vcell_full(0x2500, gfx), /* ─ */
-        .top_right    = ntg_vcell_full(0x2510, gfx), /* ┐ */
-        .right        = ntg_vcell_full(0x2502, gfx), /* │ */
-        .bottom_right = ntg_vcell_full(0x2518, gfx), /* ┘ */
-        .bottom       = ntg_vcell_full(0x2500, gfx), /* ─ */
-        .bottom_left  = ntg_vcell_full(0x2514, gfx), /* └ */
-        .left         = ntg_vcell_full(0x2502, gfx), /* │ */
-        .padding      = ntg_vcell_full((uint32_t)' ', gfx)
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = 0x250C, /* ┌ */
+        .top          = 0x2500, /* ─ */
+        .top_right    = 0x2510, /* ┐ */
+        .right        = 0x2502, /* │ */
+        .bottom_right = 0x2518, /* ┘ */
+        .bottom       = 0x2500, /* ─ */
+        .bottom_left  = 0x2514, /* └ */
+        .left         = 0x2502, /* │ */
+        .padding      = ' '
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_double(struct nt_gfx gfx)
+void ntg_border_style_init_double(
+        struct ntg_border_style* style,
+        struct nt_gfx gfx,
+        bool flt)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left     = ntg_vcell_full(0x2554, gfx), /* ╔ */
-        .top          = ntg_vcell_full(0x2550, gfx), /* ═ */
-        .top_right    = ntg_vcell_full(0x2557, gfx), /* ╗ */
-        .right        = ntg_vcell_full(0x2551, gfx), /* ║ */
-        .bottom_right = ntg_vcell_full(0x255D, gfx), /* ╝ */
-        .bottom       = ntg_vcell_full(0x2550, gfx), /* ═ */
-        .bottom_left  = ntg_vcell_full(0x255A, gfx), /* ╚ */
-        .left         = ntg_vcell_full(0x2551, gfx), /* ║ */
-        .padding      = ntg_vcell_full((uint32_t)' ', gfx)
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = 0x2554, /* ╔ */
+        .top          = 0x2550, /* ═ */
+        .top_right    = 0x2557, /* ╗ */
+        .right        = 0x2551, /* ║ */
+        .bottom_right = 0x255D, /* ╝ */
+        .bottom       = 0x2550, /* ═ */
+        .bottom_left  = 0x255A, /* ╚ */
+        .left         = 0x2551, /* ║ */
+        .padding      = ' '
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_rounded(struct nt_gfx gfx)
+void ntg_border_style_init_rounded(
+        struct ntg_border_style* style,
+        struct nt_gfx gfx,
+        bool flt)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left     = ntg_vcell_full(0x256D, gfx), /* ╭ */
-        .top          = ntg_vcell_full(0x2500, gfx), /* ─ */
-        .top_right    = ntg_vcell_full(0x256E, gfx), /* ╮ */
-        .right        = ntg_vcell_full(0x2502, gfx), /* │ */
-        .bottom_right = ntg_vcell_full(0x256F, gfx), /* ╯ */
-        .bottom       = ntg_vcell_full(0x2500, gfx), /* ─ */
-        .bottom_left  = ntg_vcell_full(0x2570, gfx), /* ╰ */
-        .left         = ntg_vcell_full(0x2502, gfx), /* │ */
-        .padding      = ntg_vcell_full((uint32_t)' ', gfx)
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = 0x256D, /* ╭ */
+        .top          = 0x2500, /* ─ */
+        .top_right    = 0x256E, /* ╮ */
+        .right        = 0x2502, /* │ */
+        .bottom_right = 0x256F, /* ╯ */
+        .bottom       = 0x2500, /* ─ */
+        .bottom_left  = 0x2570, /* ╰ */
+        .left         = 0x2502, /* │ */
+        .padding      = ' '
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_heavy(struct nt_gfx gfx)
+void ntg_border_style_init_heavy(
+        struct ntg_border_style* style,
+        struct nt_gfx gfx,
+        bool flt)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left     = ntg_vcell_full(0x250F, gfx), /* ┏ */
-        .top          = ntg_vcell_full(0x2501, gfx), /* ━ */
-        .top_right    = ntg_vcell_full(0x2513, gfx), /* ┓ */
-        .right        = ntg_vcell_full(0x2503, gfx), /* ┃ */
-        .bottom_right = ntg_vcell_full(0x251B, gfx), /* ┛ */
-        .bottom       = ntg_vcell_full(0x2501, gfx), /* ━ */
-        .bottom_left  = ntg_vcell_full(0x2517, gfx), /* ┗ */
-        .left         = ntg_vcell_full(0x2503, gfx), /* ┃ */
-        .padding      = ntg_vcell_full((uint32_t)' ', gfx)
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = 0x250F, /* ┏ */
+        .top          = 0x2501, /* ━ */
+        .top_right    = 0x2513, /* ┓ */
+        .right        = 0x2503, /* ┃ */
+        .bottom_right = 0x251B, /* ┛ */
+        .bottom       = 0x2501, /* ━ */
+        .bottom_left  = 0x2517, /* ┗ */
+        .left         = 0x2503, /* ┃ */
+        .padding      = ' '
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_dashed(struct nt_gfx gfx)
+void ntg_border_style_init_dashed(
+        struct ntg_border_style* style,
+        struct nt_gfx gfx,
+        bool flt)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left     = ntg_vcell_full(0x250C, gfx), /* fallback ┌ */
-        .top          = ntg_vcell_full(0x254C, gfx), /* ╌ dash (U+254C) */
-        .top_right    = ntg_vcell_full(0x2510, gfx), /* ┐ */
-        .right        = ntg_vcell_full(0x254E, gfx), /* ╎ vertical dashed (U+254E) */
-        .bottom_right = ntg_vcell_full(0x2518, gfx),
-        .bottom       = ntg_vcell_full(0x254C, gfx),
-        .bottom_left  = ntg_vcell_full(0x2514, gfx),
-        .left         = ntg_vcell_full(0x254E, gfx),
-        .padding      = ntg_vcell_full((uint32_t)' ', gfx)
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = 0x250C, /* fallback ┌ */
+        .top          = 0x254C, /* ╌ (U+254C) */
+        .top_right    = 0x2510, /* ┐ */
+        .right        = 0x254E, /* ╎ (U+254E) */
+        .bottom_right = 0x2518, /* ┘ */
+        .bottom       = 0x254C, /* ╌ */
+        .bottom_left  = 0x2514, /* └ */
+        .left         = 0x254E, /* ╎ */
+        .padding      = ' '
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_ascii(struct nt_gfx gfx)
+void ntg_border_style_init_ascii(
+        struct ntg_border_style* style,
+        struct nt_gfx gfx,
+        bool flt)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left     = ntg_vcell_full((uint32_t)'+', gfx),
-        .top          = ntg_vcell_full((uint32_t)'-', gfx),
-        .top_right    = ntg_vcell_full((uint32_t)'+', gfx),
-        .right        = ntg_vcell_full((uint32_t)'|', gfx),
-        .bottom_right = ntg_vcell_full((uint32_t)'+', gfx),
-        .bottom       = ntg_vcell_full((uint32_t)'-', gfx),
-        .bottom_left  = ntg_vcell_full((uint32_t)'+', gfx),
-        .left         = ntg_vcell_full((uint32_t)'|', gfx),
-        .padding      = ntg_vcell_full((uint32_t)' ', gfx)
+    if(!style) return;
+
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = (uint32_t)'+',
+        .top          = (uint32_t)'-',
+        .top_right    = (uint32_t)'+',
+        .right        = (uint32_t)'|',
+        .bottom_right = (uint32_t)'+',
+        .bottom       = (uint32_t)'-',
+        .bottom_left  = (uint32_t)'+',
+        .left         = (uint32_t)'|',
+        .padding      = ' '
     };
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_transparent(struct nt_gfx gfx)
+void ntg_border_style_init_transparent(
+        struct ntg_border_style* style)
 {
-    struct ntg_border_style_custom_dt dt = {
-        .top_left     = ntg_vcell_transparent(),
-        .top          = ntg_vcell_transparent(),
-        .top_right    = ntg_vcell_transparent(),
-        .right        = ntg_vcell_transparent(),
-        .bottom_right = ntg_vcell_transparent(),
-        .bottom       = ntg_vcell_transparent(),
-        .bottom_left  = ntg_vcell_transparent(),
-        .left         = ntg_vcell_transparent(),
-        .padding      = ntg_vcell_transparent()
-    };
+    struct ntg_border_style_9x_sym sym = BORDER_STYLE_9X_SYM_DEF;
 
-    return ntg_border_style_new_custom(&dt);
+    ntg_border_style_init_custom_9x(style, NTG_VCELL_TRANSPARENT, NT_GFX_DEFAULT, &sym);
 }
 
-struct ntg_border_style
-ntg_border_style_new_custom(const struct ntg_border_style_custom_dt* data)
+struct ntg_border_style_9x_dt
 {
-    struct ntg_border_style_custom_dt* data_cpy = malloc(sizeof(*data));
-    assert(data_cpy);
-    (*data_cpy) = (*data);
+    struct ntg_border_style_9x_sym symbols;
+    struct nt_gfx gfx;
+    ntg_vcell_type type;
+};
 
-    return (struct ntg_border_style) {
-        .data = data_cpy,
-        .draw_fn = border_preset_style_draw_fn,
-        .free_fn = free
+void ntg_border_style_init_custom_9x(
+        struct ntg_border_style* style,
+        ntg_vcell_type type,
+        struct nt_gfx gfx,
+        const struct ntg_border_style_9x_sym* symbols)
+{
+    if(!style) return;
+
+    struct ntg_border_style_9x_dt dt = {
+        .type = type,
+        .gfx = gfx,
+        .symbols = (symbols ? (*symbols) : BORDER_STYLE_9X_SYM_DEF)
     };
+    memcpy(&style->data, &dt, sizeof(dt));
+
+    style->draw_fn = border_9x_style_draw_fn;
 }
 
 /* ========================================================================== */
@@ -633,10 +695,13 @@ static void init_default(ntg_object* object)
     object->_padding.opts = ntg_padding_opts_def();
 }
 
+#define LAYOUT_OPS_DEF (struct ntg_object_layout_ops){0}
+#define HOOKS_DEF (struct ntg_object_hooks){0}
+
 void ntg_object_init(
         ntg_object* object,
-        struct ntg_object_layout_ops layout_ops,
-        struct ntg_object_hooks hooks,
+        const struct ntg_object_layout_ops* layout_ops,
+        const struct ntg_object_hooks* hooks,
         const ntg_type* type)
 {
     assert(object != NULL);
@@ -648,10 +713,10 @@ void ntg_object_init(
 
     ntg_object_vec_init(&object->_children, 2, NULL);
 
-    object->__layout_ops = layout_ops;
-    ntg_object_drawing_init(&object->_drawing);
+    object->__layout_ops = (layout_ops ? (*layout_ops) : LAYOUT_OPS_DEF);
+    object->__hooks = (hooks ? (*hooks) : HOOKS_DEF);
 
-    object->__hooks = hooks;
+    ntg_object_drawing_init(&object->_drawing);
 }
 
 void ntg_object_deinit(ntg_object* object)
@@ -673,9 +738,6 @@ void ntg_object_deinit(ntg_object* object)
     {
         ntg_object_detach(object->_children.data[0]);
     }
-
-    if(object->_border.opts.style.free_fn)
-        object->_border.opts.style.free_fn(object->_border.opts.style.data);
 
     ntg_object_vec_deinit(&object->_children, NULL);
     ntg_object_drawing_deinit(&object->_drawing);
@@ -718,11 +780,11 @@ void ntg_object_detach(ntg_object* object)
 
     object->_parent = NULL;
 
-    if(scene)
-        _ntg_scene_unregister_tree(scene, object);
-
     if(parent->__hooks.on_child_rm_fn)
         parent->__hooks.on_child_rm_fn(parent, object);
+
+    if(scene)
+        _ntg_scene_unregister_tree(scene, object);
 }
 
 /* ========================================================================== */
@@ -841,6 +903,10 @@ void ntg_object_mark_dirty(ntg_object* object, uint8_t dirty)
     assert(object);
 
     object->_dirty |= dirty;
+
+    ntg_scene* scene = ntg_object_get_scene_(object);
+    if(scene)
+        ntg_scene_mark_dirty(scene);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1282,21 +1348,22 @@ bool _ntg_object_fixup(ntg_object* object, sarena* arena)
     assert(object);
     assert(arena);
 
-    bool repeat = object->__repeat;
+    bool repeat_dcr = object->__repeat;
+    bool repeat_fn = false;
     if(object->__layout_ops.fixup_fn)
     {
-        repeat |= object->__layout_ops.fixup_fn(object,
+        repeat_fn = object->__layout_ops.fixup_fn(object,
                 object->layout_cache, arena);;
     }
 
-    if(repeat)
+    if(repeat_dcr || repeat_fn)
     {
         ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_HCONSTRAIN);
     }
 
     object->__repeat = false;
 
-    return repeat;
+    return (repeat_dcr || repeat_fn);
 }
 
 void _ntg_object_arrange(ntg_object* object, sarena* arena)
@@ -1339,8 +1406,7 @@ void _ntg_object_arrange(ntg_object* object, sarena* arena)
 
         it_pos = ntg_xy_add(it_pos, dcr_sum);
 
-        it_pos.x -= _ssub_size(it_pos.x + it_child->_size.x, object->_size.x);
-        it_pos.y -= _ssub_size(it_pos.y + it_child->_size.y, object->_size.y);
+        it_pos = ntg_xy_pos_clamp(it_pos, it_child->_size, object->_size);
 
         it_child->_pos.x = it_pos.x;
         it_child->_pos.y = it_pos.y;
@@ -1351,86 +1417,18 @@ void _ntg_object_draw(ntg_object* object, sarena* arena)
 {
     assert(object);
     assert(arena);
-
-    struct ntg_xy content_size = ntg_object_get_size_cont(object);
-    struct ntg_xy object_size = object->_size;
-
-    if(ntg_xy_size_is_zero(object->_size)) return;
-
-    struct ntg_vcell bg = object->_def_bg;
-    struct ntg_insets bsize = object->_border.size;
-    struct ntg_insets psize = object->_padding.size;
-    struct ntg_border_style border_style = object->_border.opts.style;
-
-    // TODO: what if content size is 0
-
-    struct ntg_object_tmp_drawing content_drawing;
-    tmp_drawing_init(&content_drawing, content_size, bg, arena);
-
-    struct ntg_object_tmp_drawing object_drawing;
-    tmp_drawing_init(&object_drawing, object_size, bg, arena);
-
-    // Draw border
-    if(border_style.draw_fn)
-    {
-        border_style.draw_fn(border_style.data, object_size, bsize, &object_drawing);
-    }
-
-    size_t i, j;
-
-    // Constrain border to its size
-    for(i = bsize.n; i < (object_size.y - bsize.s); i++)
-    {
-        for(j = bsize.w; j < (object_size.x - bsize.e); j++)
-        {
-            ntg_object_tmp_drawing_set(&object_drawing, bg, ntg_xy(j, i));
-        }
-    }
-
-    // Draw object content
-    if(object->__layout_ops.draw_fn)
-    {
-        object->__layout_ops.draw_fn(object, &content_drawing, object->layout_cache, arena);
-    }
-
-    struct ntg_vcell it_src_cell;
-
     // Set object drawing size
     
     const ntg_scene* scene = ntg_object_get_scene_(object);
-    ntg_object_drawing_set_size(&object->_drawing, object_size, scene->_size);
+    ntg_object_drawing_set_size(&object->_drawing, object->_size, scene->_size);
 
-    // Place content drawing onto border drawing
+    if(ntg_xy_size_is_zero(object->_size))
+        return;
 
-    struct ntg_xy offset = ntg_xy(bsize.w + psize.w, bsize.n + psize.n); 
-    struct ntg_xy ji;
-    for(i = 0; i < content_size.y; i++)
-    {
-        for(j = 0; j < content_size.x; j++)
-        {
-            ji = ntg_xy(j, i);
-
-            it_src_cell = ntg_object_tmp_drawing_get(&content_drawing, ji);
-
-            ntg_object_tmp_drawing_set(
-                    &object_drawing,
-                    it_src_cell,
-                    ntg_xy_add(offset, ji));
-        }
-    }
-
-    // Update object's actual drawing
-
-    for(i = 0; i < object_size.y; i++)
-    {
-        for(j = 0; j < object_size.x; j++)
-        {
-            ji = ntg_xy(j, i);
-
-            it_src_cell = ntg_object_tmp_drawing_get(&object_drawing, ji);
-            ntg_object_drawing_set(&object->_drawing, it_src_cell, ji);
-        }
-    }
+    if(ntg_insets_hsum(object->_border.size) || ntg_insets_vsum(object->_border.size))
+        draw_unoptimized(object, arena);
+    else
+        draw_optimized(object, arena);
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_RENDER);
 }
@@ -1493,6 +1491,10 @@ void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene)
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* LAYOUT OBJECT INIT */
+/* -------------------------------------------------------------------------- */
 
 static void size_map_init(
         ntg_object_size_map* map,
@@ -1566,6 +1568,10 @@ void tmp_drawing_init(
         }
     }
 }
+
+/* -------------------------------------------------------------------------- */
+/* LAYOUT */
+/* -------------------------------------------------------------------------- */
 
 static struct ntg_object_measure incorporate_user_measure(
         struct ntg_object_measure measure,
@@ -1811,8 +1817,135 @@ static void calculate_padding_vsize(ntg_object* object,
     (*out_s) = _sizes[1];
 }
 
+static void draw_optimized(ntg_object* object, sarena* arena)
+{
+    struct ntg_xy content_size = ntg_object_get_size_cont(object);
+    struct ntg_xy object_size = object->_size;
+
+    struct ntg_vcell bg = object->_def_bg;
+    struct ntg_insets psize = object->_padding.size;
+
+    // TODO: what if content size is 0
+
+    struct ntg_object_tmp_drawing content_drawing;
+    tmp_drawing_init(&content_drawing, content_size, bg, arena);
+
+    size_t i, j;
+
+    // Draw object content
+    if(object->__layout_ops.draw_fn)
+    {
+        object->__layout_ops.draw_fn(object, &content_drawing, object->layout_cache, arena);
+    }
+
+    struct ntg_vcell it_src_cell;
+
+    struct ntg_xy offset = ntg_xy(psize.w, psize.n); 
+    struct ntg_xy ji;
+
+    // Update object's actual drawing
+
+    for(i = 0; i < object_size.y; i++)
+    {
+        for(j = 0; j < object_size.x; j++)
+        {
+            ji = ntg_xy(j, i);
+            ntg_object_drawing_set(&object->_drawing, bg, ji);
+        }
+    }
+
+    for(i = 0; i < content_size.y; i++)
+    {
+        for(j = 0; j < content_size.x; j++)
+        {
+            ji = ntg_xy(j, i);
+
+            it_src_cell = ntg_object_tmp_drawing_get(&content_drawing, ji);
+            ntg_object_drawing_set(&object->_drawing, it_src_cell, ntg_xy_add(offset, ji));
+        }
+    }
+}
+
+static void draw_unoptimized(ntg_object* object, sarena* arena)
+{
+    struct ntg_xy content_size = ntg_object_get_size_cont(object);
+    struct ntg_xy object_size = object->_size;
+
+    struct ntg_vcell bg = object->_def_bg;
+    struct ntg_insets bsize = object->_border.size;
+    struct ntg_insets psize = object->_padding.size;
+    const struct ntg_border_style* border_style = object->_border.opts.style;
+
+    struct ntg_object_tmp_drawing content_drawing;
+    tmp_drawing_init(&content_drawing, content_size, bg, arena);
+
+    struct ntg_object_tmp_drawing object_drawing;
+    tmp_drawing_init(&object_drawing, object_size, bg, arena);
+
+    // Draw border
+    if(border_style->draw_fn)
+    {
+        border_style->draw_fn(border_style, object_size, bsize, &object_drawing);
+    }
+
+    size_t i, j;
+
+    // Constrain border to its size
+    for(i = bsize.n; i < (object_size.y - bsize.s); i++)
+    {
+        for(j = bsize.w; j < (object_size.x - bsize.e); j++)
+        {
+            ntg_object_tmp_drawing_set(&object_drawing, bg, ntg_xy(j, i));
+        }
+    }
+
+    // Draw object content
+    if(object->__layout_ops.draw_fn)
+    {
+        object->__layout_ops.draw_fn(object, &content_drawing, object->layout_cache, arena);
+    }
+
+    struct ntg_vcell it_src_cell;
+
+    // Place content drawing onto border drawing
+
+    struct ntg_xy offset = ntg_xy(bsize.w + psize.w, bsize.n + psize.n); 
+    struct ntg_xy ji;
+    for(i = 0; i < content_size.y; i++)
+    {
+        for(j = 0; j < content_size.x; j++)
+        {
+            ji = ntg_xy(j, i);
+
+            it_src_cell = ntg_object_tmp_drawing_get(&content_drawing, ji);
+
+            ntg_object_tmp_drawing_set(
+                    &object_drawing,
+                    it_src_cell,
+                    ntg_xy_add(offset, ji));
+        }
+    }
+
+    // Update object's actual drawing
+
+    for(i = 0; i < object_size.y; i++)
+    {
+        for(j = 0; j < object_size.x; j++)
+        {
+            ji = ntg_xy(j, i);
+
+            it_src_cell = ntg_object_tmp_drawing_get(&object_drawing, ji);
+            ntg_object_drawing_set(&object->_drawing, it_src_cell, ji);
+        }
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/* BORDER DRAW */
+/* -------------------------------------------------------------------------- */
+
 static void border_def_style_draw_fn(
-        void* _,
+        const struct ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
         ntg_object_tmp_drawing* out_drawing)
@@ -1833,8 +1966,8 @@ static void border_def_style_draw_fn(
     }
 }
 
-static void border_preset_style_draw_fn(
-        void* _data,
+static void border_9x_style_draw_fn(
+        const struct ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
         ntg_object_tmp_drawing* out_drawing)
@@ -1842,17 +1975,31 @@ static void border_preset_style_draw_fn(
     if(ntg_xy_size_is_zero(size)) return;
     if(ntg_insets_is_zero(border_size)) return;
 
+    struct ntg_border_style_9x_dt* dt = (struct ntg_border_style_9x_dt*)style->data;
+
     size_t i, j;
-    struct ntg_border_style_custom_dt* data = _data;
     size_t x_end = size.x - 1;
     size_t y_end = size.y - 1;
+
+    struct ntg_vcell top_left, top, top_right, right,
+    bottom_right, bottom, bottom_left, left, padding;
+
+    top_left = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.top_left);
+    top = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.top);
+    top_right = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.top_right);
+    right = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.right);
+    bottom_right = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.bottom_right);
+    bottom = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.bottom);
+    bottom_left = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.bottom_left);
+    left = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.left);
+    padding = ntg_vcell_new(dt->type, dt->gfx, dt->symbols.padding);
 
     // Draw padding
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            ntg_object_tmp_drawing_set(out_drawing, data->padding, ntg_xy(j, i));
+            ntg_object_tmp_drawing_set(out_drawing, padding, ntg_xy(j, i));
         }
     }
 
@@ -1863,14 +2010,14 @@ static void border_preset_style_draw_fn(
         {
             for(i = 0; i < size.y; i++)
             {
-                ntg_object_tmp_drawing_set(out_drawing, data->left, ntg_xy(0, i));
+                ntg_object_tmp_drawing_set(out_drawing, left, ntg_xy(0, i));
             }
         }
         if(border_size.e > 0)
         {
             for(i = 0; i < size.y; i++)
             {
-                ntg_object_tmp_drawing_set(out_drawing, data->right, ntg_xy(x_end, i));
+                ntg_object_tmp_drawing_set(out_drawing, right, ntg_xy(x_end, i));
             }
         }
     }
@@ -1880,21 +2027,21 @@ static void border_preset_style_draw_fn(
     {
         if(border_size.n > 0)
         {
-            ntg_object_tmp_drawing_set(out_drawing, data->top_left, ntg_xy(0, 0));
+            ntg_object_tmp_drawing_set(out_drawing, top_left, ntg_xy(0, 0));
             for(j = 1; j < x_end; j++)
             {
-                ntg_object_tmp_drawing_set(out_drawing, data->top, ntg_xy(j, 0));
+                ntg_object_tmp_drawing_set(out_drawing, top, ntg_xy(j, 0));
             }
-            ntg_object_tmp_drawing_set(out_drawing, data->top_right, ntg_xy(x_end, 0));
+            ntg_object_tmp_drawing_set(out_drawing, top_right, ntg_xy(x_end, 0));
         }
         if(border_size.s > 0)
         {
-            ntg_object_tmp_drawing_set(out_drawing, data->bottom_left, ntg_xy(0, y_end));
+            ntg_object_tmp_drawing_set(out_drawing, bottom_left, ntg_xy(0, y_end));
             for(j = 1; j < x_end; j++)
             {
-                ntg_object_tmp_drawing_set(out_drawing, data->bottom, ntg_xy(j, y_end));
+                ntg_object_tmp_drawing_set(out_drawing, bottom, ntg_xy(j, y_end));
             }
-            ntg_object_tmp_drawing_set(out_drawing, data->bottom_right, ntg_xy(x_end, y_end));
+            ntg_object_tmp_drawing_set(out_drawing, bottom_right, ntg_xy(x_end, y_end));
         }
     }
     else if(size.x >= 1)
@@ -1903,14 +2050,14 @@ static void border_preset_style_draw_fn(
         {
             for(j = 0; j < size.x; j++)
             {
-                ntg_object_tmp_drawing_set(out_drawing, data->top, ntg_xy(j, 0));
+                ntg_object_tmp_drawing_set(out_drawing, top, ntg_xy(j, 0));
             }
         }
         if(border_size.s > 0)
         {
             for(j = 0; j < size.x; j++)
             {
-                ntg_object_tmp_drawing_set(out_drawing, data->bottom, ntg_xy(j, y_end));
+                ntg_object_tmp_drawing_set(out_drawing, bottom, ntg_xy(j, y_end));
             }
         }
     }

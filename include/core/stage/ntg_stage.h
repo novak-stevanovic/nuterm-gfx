@@ -17,6 +17,8 @@ struct ntg_stage
 
     ntg_loop* _loop;
 
+    bool _dirty;
+
     struct
     {
         bool (*__on_key_fn)(ntg_stage* stage, struct nt_key_event key);
@@ -34,7 +36,9 @@ void ntg_stage_init(ntg_stage* stage);
 void ntg_stage_deinit(ntg_stage* stage);
 void ntg_stage_deinit_(void* _stage);
 
-void ntg_stage_compose(ntg_stage* stage, struct ntg_xy size, sarena* arena);
+void ntg_stage_mark_dirty(ntg_stage* stage);
+void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
+void ntg_stage_compose(ntg_stage* stage, sarena* arena);
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 
@@ -53,6 +57,8 @@ bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
+
+void _ntg_stage_clean(ntg_stage* stage);
 
 void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop);
 

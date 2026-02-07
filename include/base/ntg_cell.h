@@ -49,6 +49,7 @@ enum ntg_vcell_type
 
 struct ntg_vcell
 {
+    ntg_vcell_type type;
     union
     {
         struct
@@ -69,8 +70,27 @@ struct ntg_vcell
             size_t placeholder;
         } transparent;
     };
-    ntg_vcell_type type;
 };
+
+static inline struct ntg_vcell
+ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
+{
+    struct ntg_vcell rval;
+    rval.type = type;
+    if(type == NTG_VCELL_FULL)
+    {
+        rval.full.gfx = gfx;
+        rval.full.codepoint = cp;
+    }
+    else if(type == NTG_VCELL_OVERLAY)
+    {
+        rval.overlay.fg = gfx.fg;
+        rval.overlay.style = gfx.style;
+        rval.full.codepoint = cp;
+    }
+
+    return rval;
+}
 
 static inline struct ntg_vcell 
 ntg_vcell_default()

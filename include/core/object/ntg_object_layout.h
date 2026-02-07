@@ -177,7 +177,6 @@ size_t ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient);
 /* ========================================================================== */
 
 // Called by scene layer - internal?
-
 void _ntg_object_hmeasure(ntg_object* object, sarena* arena);
 void _ntg_object_hconstrain(ntg_object* object, sarena* arena);
 void _ntg_object_vmeasure(ntg_object* object, sarena* arena);
@@ -189,6 +188,9 @@ void _ntg_object_draw(ntg_object* object, sarena* arena);
 void _ntg_object_root_set_hsize(ntg_object* object, size_t size);
 void _ntg_object_root_set_vsize(ntg_object* object, size_t size);
 void _ntg_object_root_set_pos(ntg_object* object, struct ntg_xy pos);
+
+void _ntg_object_clean(ntg_object* object, uint8_t clean);
+uint8_t _ntg_object_get_dirty(const ntg_object* object);
 
 void _ntg_object_clean(ntg_object* object, uint8_t dirty);
 

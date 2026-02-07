@@ -26,7 +26,7 @@ enum ntg_label_text_mode
 enum ntg_label_bg_mode
 {
     NTG_LABEL_BG_FULL,
-    NTG_LABEL_BG_OVERLAY
+    NTG_LABEL_BG_FLT
 };
 
 struct ntg_label_opts
@@ -67,7 +67,7 @@ void ntg_label_init(ntg_label* label);
 void ntg_label_deinit(ntg_label* label);
 void ntg_label_deinit_(void* _label);
 
-void ntg_label_set_opts(ntg_label* label, struct ntg_label_opts opts);
+void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
 void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len);
 void ntg_label_set_text(ntg_label* label, const char* text);
 

@@ -23,14 +23,6 @@ struct ntg_attach_constrain_ctx
     size_t scene_size;
 };
 
-struct ntg_attach_fixup_ctx
-{
-    const ntg_object* attacher_layer;
-    const ntg_object* base_layer;
-    struct ntg_xy size;
-    struct ntg_xy scene_size;
-};
-
 struct ntg_attach_arrange_ctx
 {
     const ntg_object* attacher_layer;
@@ -41,43 +33,41 @@ struct ntg_attach_arrange_ctx
 
 struct ntg_attach_policy
 {
+    union
+    {
+        char data[128];
+        long double _align;
+    };
     size_t (*constrain_fn)(
-            void* data,
+            const void* data,
             ntg_orient orient,
-            struct ntg_attach_constrain_ctx ctx,
-            sarena* arena);
-    bool (*fixup_fn)(
-            void* data,
-            struct ntg_attach_fixup_ctx ctx,
+            const struct ntg_attach_constrain_ctx* ctx,
             sarena* arena);
     struct ntg_xy (*arrange_fn)(
-            void* data,
-            struct ntg_attach_arrange_ctx ctx,
+            const void* data,
+            const struct ntg_attach_arrange_ctx* ctx,
             sarena* arena);
-
-    void* data;
-    void (*free_fn)(void* data);
 };
+
+// Same
+const struct ntg_attach_policy* ntg_attach_policy_root();
 
 /* -------------------------------------------------------------------------- */
 /* SCENE */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_scene_priv;
+struct ntg_scene_layer_node;
 
 struct ntg_scene
 {
-    struct
-    {
-        ntg_stage* _stage;
-    };
+    ntg_stage* _stage;
 
-    struct
-    {
-        struct ntg_xy _size;
-    };
+    struct ntg_scene_layer_node* __tree_root;
 
-    struct ntg_scene_priv* __priv;
+    struct ntg_xy _size;
+
+    // Scene doesn't mark itself dirty ever
+    bool _dirty;
 
     struct
     {
@@ -96,7 +86,9 @@ void ntg_scene_init(ntg_scene* scene);
 void ntg_scene_deinit(ntg_scene* scene);
 void ntg_scene_deinit_(void* _scene);
 
-void ntg_scene_layout(ntg_scene* scene, struct ntg_xy size, sarena* arena);
+void ntg_scene_mark_dirty(ntg_scene* scene);
+void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
+void ntg_scene_layout(ntg_scene* scene, sarena* arena);
 ntg_object* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos);
 
 /* -------------------------------------------------------------------------- */
@@ -107,7 +99,7 @@ void ntg_scene_attach_root(
         ntg_scene* scene,
         ntg_object* attacher_layer,
         ntg_object* base_layer,
-        struct ntg_attach_policy policy);
+        const struct ntg_attach_policy* policy);
 
 void ntg_scene_detach_root(ntg_scene* scene, ntg_object* root);
 
@@ -137,12 +129,6 @@ bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 /* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
-/* ROOT */
-/* ------------------------------------------------------ */
-
-struct ntg_attach_policy ntg_attach_policy_new_root();
-
-/* ------------------------------------------------------ */
 /* FLOAT */
 /* ------------------------------------------------------ */
 
@@ -155,18 +141,21 @@ enum ntg_attach_policy_flt_enable
     NTG_ATTACH_POLICY_FLT_ENABLE_ALWAYS,
 };
 
-struct ntg_attach_policy_flt_dt
+struct ntg_attach_policy_flt_opts
 {
-    // If base is not descendant_or_eq to base_root, size of attached root will be 0
-    ntg_object* base;
     enum ntg_attach_policy_flt_enable enable;
 
     struct ntg_insets shrink;
     ntg_align prim_align, sec_align;
 };
 
-struct ntg_attach_policy
-ntg_attach_policy_new_flt(struct ntg_attach_policy_flt_dt dt);
+struct ntg_attach_policy_flt_opts ntg_attach_policy_flt_opts_def();
+
+// If `base` is not descendant_or_eq to base_root, attached layer will not appear
+void ntg_attach_policy_init_flt(
+        struct ntg_attach_policy* policy,
+        ntg_object* base,
+        const struct ntg_attach_policy_flt_opts* opts);
 
 /* ------------------------------------------------------ */
 /* SIDE FLOAT */
@@ -193,22 +182,28 @@ enum ntg_attach_policy_sflt_enable
     NTG_ATTACH_POLICY_SFLT_ENABLE_DYNAMIC
 };
 
-struct ntg_attach_policy_sflt_dt
+struct ntg_attach_policy_sflt_opts
 {
-    // If base is not descendant_or_eq to base_root, size of attached root will be 0
-    ntg_object* base;
     ntg_align align;
     enum ntg_attach_policy_sflt_orient orient;
     enum ntg_attach_policy_sflt_thresh thresh;
     enum ntg_attach_policy_sflt_enable enable;
 };
 
-struct ntg_attach_policy
-ntg_attach_policy_new_sflt(struct ntg_attach_policy_sflt_dt dt);
+struct ntg_attach_policy_sflt_opts ntg_attach_policy_sflt_opts_def();
+
+// If `base` is not descendant_or_eq to base_root, attached layer will not appear
+void ntg_attach_policy_init_sflt(
+        struct ntg_attach_policy* policy,
+        ntg_object* base,
+        const struct ntg_attach_policy_sflt_opts* opts);
 
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
+
+void _ntg_scene_clean(ntg_scene* scene);
+bool _ntg_scene_is_dirty(const ntg_scene* scene);
 
 // Called internally by ntg_stage. Updates only the scene's state
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);
