@@ -107,4 +107,3 @@ struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid)
 
     return vecgrid->__base._size;
 }
-

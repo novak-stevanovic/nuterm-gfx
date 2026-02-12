@@ -428,6 +428,8 @@ void ntg_attach_policy_init_flt(
     assert(policy); 
     assert(base);
 
+    (*policy) = (struct ntg_attach_policy) {0};
+
     struct ntg_attach_policy_flt_dt dt = {
         .base = base,
         .opts = (opts ? (*opts) : ntg_attach_policy_flt_opts_def())

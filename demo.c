@@ -105,7 +105,7 @@ void gui_fn1(void* _)
     ntg_box center;
     ntg_box_init(&center);
     ntg_cleanup_batch_add(batch, &center, ntg_box_deinit_, NULL);
-    ntg_object_set_user_min_size_cont(ntg_obj(&center), ntg_xy(15, 15));
+    ntg_object_set_user_min_size_cont(ntg_obj(&center), ntg_xy(NTG_OBJECT_MIN_SIZE_UNSET, 15));
     //15ntg_object_set_def_bg(ntg_obj(&center), ntg_vcell_bg(nt_color_new_auto(0, 25, 100)));
 
     ntg_color_block cb1;

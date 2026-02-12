@@ -662,6 +662,8 @@ void ntg_border_style_init_custom_9x(
 {
     if(!style) return;
 
+    (*style) = (struct ntg_border_style) {0};
+
     struct ntg_border_style_9x_dt dt = {
         .type = type,
         .gfx = gfx,
@@ -1417,6 +1419,7 @@ void _ntg_object_draw(ntg_object* object, sarena* arena)
 {
     assert(object);
     assert(arena);
+
     // Set object drawing size
     
     const ntg_scene* scene = ntg_object_get_scene_(object);
@@ -1782,7 +1785,7 @@ static void calculate_padding_hsize(ntg_object* object,
     size_t we_pref_size[2];
     we_pref_size[0] = object->_padding.opts.pref_size.w;
     we_pref_size[1] = object->_padding.opts.pref_size.e;
-    size_t _sizes[2];
+    size_t _sizes[2] = {0};
 
     get_dcr_size(
             object->_padding.opts.enable,
@@ -1803,7 +1806,7 @@ static void calculate_padding_vsize(ntg_object* object,
     ns_pref_size[0] = object->_padding.opts.pref_size.n;
     ns_pref_size[1] = object->_padding.opts.pref_size.s;
 
-    size_t _sizes[2];
+    size_t _sizes[2] = {0};
 
      get_dcr_size(
              object->_padding.opts.enable,

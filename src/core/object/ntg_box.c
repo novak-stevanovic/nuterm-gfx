@@ -3,23 +3,28 @@
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
+struct ntg_box_layout_cache
+{
+    struct ntg_object_measure measure[2];
+};
+
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena);
 
 static void constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena);
 
 static void arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena);
 
 struct ntg_box_opts ntg_box_opts_def()
@@ -56,11 +61,16 @@ void ntg_box_init(ntg_box* box)
     };
 
     ntg_object_init((ntg_object*)box, &layout_ops, &hooks, &NTG_TYPE_BOX);
+
+    ((ntg_object*)box)->layout_cache = malloc(sizeof(struct ntg_box_layout_cache));
+    box->_opts = ntg_box_opts_def();
 }
 
 void ntg_box_deinit(ntg_box* box)
 {
     box->_opts = ntg_box_opts_def();
+    free(((ntg_object*)box)->layout_cache);
+
     ntg_object_deinit((ntg_object*)box);
 }
 
@@ -112,11 +122,12 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
+    struct ntg_box_layout_cache* layout_cache = _layout_cache;
 
     if(children->size == 0) return (struct ntg_object_measure) {0};
 
@@ -157,26 +168,27 @@ static struct ntg_object_measure measure_fn(
         .grow = 1
     };
 
-     return measure;
+    layout_cache->measure[orient] = measure;
+
+    return measure;
 }
 
 static void constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
     size_t size = ntg_object_get_size_1d_cont(_box, orient);
+    struct ntg_box_layout_cache* layout_cache = _layout_cache;
 
     if(children->size == 0) return;
 
-    struct ntg_object_measure cont_measure;
-    cont_measure = ntg_object_get_measure_cont(_box, orient);
-    size_t min_size = cont_measure.min_size;
-    size_t nat_size = cont_measure.nat_size;
+    size_t min_size = layout_cache->measure[orient].min_size;
+    size_t nat_size = layout_cache->measure[orient].nat_size;
 
     size_t extra_size;
     size_t array_size = children->size * sizeof(size_t);
@@ -269,7 +281,7 @@ static void constrain_fn(
 static void arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_box* box = (const ntg_box*)_box;

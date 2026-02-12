@@ -177,6 +177,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
                 {
                     ntg_stage_compose(loop->_stage, loop->_arena);
                     _ntg_stage_clean(loop->_stage);
+                    // ntg_loop_break(loop, NTG_LOOP_STOP_CLEAN);
                 }
                 else
                 {

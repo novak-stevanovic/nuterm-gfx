@@ -107,6 +107,29 @@ static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
     // nt_erase_scrollback(NULL);
 }
 
+// TODO:
+static inline size_t fwd_eq_gfx_search(
+        const ntg_stage_drawing* drawing,
+        struct nt_gfx pos_gfx,
+        struct ntg_xy pos,
+        size_t row_size,
+        struct ntg_xy size)
+{
+    size_t j;
+    struct ntg_cell it_cell;
+    size_t counter = 1;
+    for(j = pos.x; j < size.x; j++)
+    {
+        it_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, pos.y));
+        if(nt_gfx_are_equal(pos_gfx, it_cell.gfx))
+            counter++;
+        else
+            break;
+    }
+
+    return counter;
+}
+
 static void optimized_render(
         ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing,
