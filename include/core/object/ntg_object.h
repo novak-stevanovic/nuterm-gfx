@@ -30,7 +30,7 @@ struct ntg_border_style
         char data[128];
         long double _align;
     };
-    void  (*draw_fn)(
+    void (*draw_fn)(
             const struct ntg_border_style* style,
             struct ntg_xy size,
             struct ntg_insets border_size,

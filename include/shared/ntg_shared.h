@@ -22,6 +22,7 @@ struct nt_event;
 struct nt_mouse_event;
 struct nt_key_event;
 struct ntg_xy;
+struct ntg_insets;
 struct ntg_object_measure;
 
 /* -------------------------------------------------------------------------- */
@@ -90,13 +91,6 @@ typedef struct ntg_color_block ntg_color_block;
 typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
 typedef struct ntg_main_panel ntg_main_panel;
-
-typedef void* (*ntg_object_layout_ch_init_fn)(
-        const ntg_object* object);
-
-typedef void (*ntg_object_layout_ch_deinit_fn)(
-        void* layout_ch,
-        const ntg_object* object);
 
 typedef struct ntg_object_measure (*ntg_object_measure_fn)(
         const ntg_object* object,

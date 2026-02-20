@@ -8,10 +8,7 @@ static inline bool is_equal_double(double x, double y)
     return fabs(x - y) < 0.005;
 }
 
-// size_t ntg_sap_cap_water(const size_t* caps, const size_t* grows, size_t* out_size_map)
-// {
-// }
-
+// TODO: optimize
 size_t ntg_sap_cap_round_robin(
         const size_t* caps,
         const size_t* grows,

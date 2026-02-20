@@ -17,7 +17,7 @@
 
 struct ntg_cell
 {
-    uint32_t codepoint;
+    uint32_t cp;
     struct nt_gfx gfx;
 };
 
@@ -25,7 +25,7 @@ static inline struct ntg_cell
 ntg_cell_default()
 {
     return (struct ntg_cell) {
-        .codepoint = NTG_CELL_EMPTY,
+        .cp = NTG_CELL_EMPTY,
         .gfx = NT_GFX_DEFAULT
     };
 }
@@ -33,7 +33,7 @@ ntg_cell_default()
 static inline bool 
 ntg_cell_are_equal(struct ntg_cell c1, struct ntg_cell c2)
 {
-    return ((c1.codepoint == c2.codepoint) && nt_gfx_are_equal(c1.gfx, c2.gfx));
+    return ((c1.cp == c2.cp) && nt_gfx_are_equal(c1.gfx, c2.gfx));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -54,13 +54,13 @@ struct ntg_vcell
     {
         struct
         {
-            uint32_t codepoint;
+            uint32_t cp;
             struct nt_gfx gfx;
         } full;
 
         struct
         {
-            uint32_t codepoint;
+            uint32_t cp;
             struct nt_color fg;
             struct nt_style style;
         } overlay;
@@ -80,13 +80,13 @@ ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
     if(type == NTG_VCELL_FULL)
     {
         rval.full.gfx = gfx;
-        rval.full.codepoint = cp;
+        rval.full.cp = cp;
     }
     else if(type == NTG_VCELL_OVERLAY)
     {
         rval.overlay.fg = gfx.fg;
         rval.overlay.style = gfx.style;
-        rval.overlay.codepoint = cp;
+        rval.overlay.cp = cp;
     }
 
     return rval;
@@ -98,7 +98,7 @@ ntg_vcell_default()
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
         .full = {
-            .codepoint = NTG_CELL_EMPTY,
+            .cp = NTG_CELL_EMPTY,
             .gfx = NT_GFX_DEFAULT
         }
     };
@@ -110,7 +110,7 @@ ntg_vcell_full(uint32_t cp, struct nt_gfx gfx)
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
         .full = {
-            .codepoint = cp,
+            .cp = cp,
             .gfx = gfx
         }
     };
@@ -122,7 +122,7 @@ ntg_vcell_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
     return (struct ntg_vcell) {
         .type = NTG_VCELL_OVERLAY,
         .overlay = {
-            .codepoint = cp,
+            .cp = cp,
             .fg = fg,
             .style = style
         }
@@ -143,7 +143,7 @@ ntg_vcell_bg(struct nt_color color)
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
         .full = {
-            .codepoint = NTG_CELL_EMPTY,
+            .cp = NTG_CELL_EMPTY,
             .gfx = {
                 .bg = color,
                 .fg = NT_COLOR_DEFAULT,
@@ -160,12 +160,12 @@ ntg_vcell_are_equal(struct ntg_vcell c1, struct ntg_vcell c2)
 
     if(c1.type == NTG_VCELL_FULL)
     {
-        return ((c1.full.codepoint == c2.full.codepoint) &&
+        return ((c1.full.cp == c2.full.cp) &&
             nt_gfx_are_equal(c1.full.gfx, c2.full.gfx));
     }
     else if(c1.type == NTG_VCELL_OVERLAY)
     {
-        return ((c1.overlay.codepoint == c2.overlay.codepoint) &&
+        return ((c1.overlay.cp == c2.overlay.cp) &&
             nt_color_are_equal(c1.overlay.fg, c2.overlay.fg) &&
             nt_style_are_equal(c1.overlay.style, c2.overlay.style));
     }
@@ -177,12 +177,12 @@ ntg_vcell_overwrite(struct ntg_vcell overwriting, struct ntg_cell overwritten)
 {
     if(overwriting.type == NTG_VCELL_FULL)
     {
-        overwritten.codepoint = overwriting.full.codepoint;
+        overwritten.cp = overwriting.full.cp;
         overwritten.gfx = overwriting.full.gfx;
     }
     else if(overwriting.type == NTG_VCELL_OVERLAY)
     {
-        overwritten.codepoint = overwriting.overlay.codepoint;
+        overwritten.cp = overwriting.overlay.cp;
         overwritten.gfx.fg = overwriting.overlay.fg;
         overwritten.gfx.style = overwriting.overlay.style;
     }

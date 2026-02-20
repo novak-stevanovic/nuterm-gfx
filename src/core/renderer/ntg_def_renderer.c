@@ -27,12 +27,15 @@ static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
 static void optimized_render(
         ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing,
-        struct ntg_xy size);
+        struct ntg_xy size,
+        struct ntg_xy old_size,
+        sarena* arena);
 
 static void full_render(
         ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing,
-        struct ntg_xy size);
+        struct ntg_xy size,
+        sarena* arena);
 
 /* -------------------------------------------------------------------------- */
 
@@ -61,6 +64,11 @@ void _ntg_def_renderer_render_fn(
     struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
     bool resize = !(ntg_xy_are_equal(renderer->__old_size, size));
 
+    struct ntg_xy old_size;
+    old_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
+    struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
+    ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
+
     void* buffer = sarena_malloc(arena, 50000);
     nt_status _status;
     nt_buffer_enable(buffer, 50000, &_status);
@@ -73,9 +81,9 @@ void _ntg_def_renderer_render_fn(
     else
     {
         if(resize)
-            full_render(renderer, stage_drawing, size);
+            full_render(renderer, stage_drawing, size, arena);
         else
-            optimized_render(renderer, stage_drawing, size);
+            optimized_render(renderer, stage_drawing, size, old_size, arena);
     }
 
     renderer->__old_size = size;
@@ -87,11 +95,7 @@ void _ntg_def_renderer_render_fn(
 
 static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
 {
-    struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-    ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
-
     size_t i, j;
-    struct ntg_cell it_drawing_cell;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
@@ -107,18 +111,16 @@ static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
     // nt_erase_scrollback(NULL);
 }
 
-// TODO:
-static inline size_t fwd_eq_gfx_search(
+static inline size_t fwd_equal_gfx_search(
         const ntg_stage_drawing* drawing,
         struct nt_gfx pos_gfx,
         struct ntg_xy pos,
-        size_t row_size,
-        struct ntg_xy size)
+        size_t row_size)
 {
     size_t j;
     struct ntg_cell it_cell;
     size_t counter = 1;
-    for(j = pos.x; j < size.x; j++)
+    for(j = pos.x + 1; j < row_size; j++)
     {
         it_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, pos.y));
         if(nt_gfx_are_equal(pos_gfx, it_cell.gfx))
@@ -133,33 +135,61 @@ static inline size_t fwd_eq_gfx_search(
 static void optimized_render(
         ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing,
-        struct ntg_xy size)
+        struct ntg_xy size,
+        struct ntg_xy old_size,
+        sarena* arena)
 {
-    struct ntg_xy old_back_buffer_size;
-    old_back_buffer_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
-    struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-    ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
+    uint32_t* row32_buff = sarena_malloc(arena, size.x * sizeof(uint32_t));
+    assert(row32_buff);
+    size_t row_buff_cap = size.x * 4;
+    uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
+    assert(row_buff);
 
-    size_t i, j;
-    struct ntg_cell it_drawing_cell;
-    struct ntg_cell it_backbuff_cell;
+    size_t i, j, k;
+    size_t it_opt;
+    struct ntg_cell it_draw_cell;
+    struct ntg_cell it_bb_cell;
+    int _uc_status;
+    nt_status _nt_status;
+    size_t _uc_len;
     for(i = 0; i < size.y; i++)
     {
-        for(j = 0; j < size.x; j++)
+        for(j = 0; j < size.x;)
         {
-            it_drawing_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, i));
+            it_draw_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, i));
 
-            if((i < old_back_buffer_size.y) && (j < old_back_buffer_size.x))
+            if((i < old_size.y) && (j < old_size.x))
             {
-                it_backbuff_cell = ntg_stage_drawing_get(&renderer->__backbuff, ntg_xy(j, i));
-                if(ntg_cell_are_equal(it_backbuff_cell, it_drawing_cell))
+                it_bb_cell = ntg_stage_drawing_get(&renderer->__backbuff, ntg_xy(j, i));
+                if(ntg_cell_are_equal(it_bb_cell, it_draw_cell))
                 {
+                    j++;
                     continue;
                 }
             }
 
-            ntg_stage_drawing_set(&renderer->__backbuff, it_drawing_cell, ntg_xy(j, i));
-            nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx, j, i, NULL);
+            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell.gfx, ntg_xy(j, i), size.x);
+
+            for(k = 0; k < it_opt; k++)
+            {
+                it_draw_cell = ntg_stage_drawing_get(drawing, ntg_xy(j + k, i));
+                row32_buff[k] = it_draw_cell.cp;
+
+                ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j + k, i));
+            }
+            ntg_log_log("RENDER OPT: %d", k);
+
+            uc_utf32_to_utf8(row32_buff, k, row_buff,
+                    row_buff_cap, 0, NULL, &_uc_len,
+                    &_uc_status);
+            assert(_uc_status == UC_SUCCESS);
+
+            nt_cursor_move(j, i, &_nt_status);
+            // Every draw cell in this batch has the same gfx so we can just use the last one
+            nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, &_nt_status);
+            assert(_nt_status == NT_SUCCESS);
+
+            j += k;
         }
     }
 }
@@ -167,22 +197,51 @@ static void optimized_render(
 static void full_render(
         ntg_def_renderer* renderer,
         const ntg_stage_drawing* drawing,
-        struct ntg_xy size)
+        struct ntg_xy size,
+        sarena* arena)
 {
-    struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-    ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
+    uint32_t* row32_buff = sarena_malloc(arena, size.x * sizeof(uint32_t));
+    assert(row32_buff);
+    size_t row_buff_cap = size.x * 4;
+    uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
+    assert(row_buff);
 
-    size_t i, j;
-    struct ntg_cell it_drawing_cell;
+    size_t i, j, k;
+    size_t it_opt;
+    struct ntg_cell it_draw_cell;
+    int _uc_status;
+    nt_status _nt_status;
+    size_t _uc_len;
     for(i = 0; i < size.y; i++)
     {
-        for(j = 0; j < size.x; j++)
+        for(j = 0; j < size.x;)
         {
-            it_drawing_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, i));
+            it_draw_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, i));
 
-            ntg_stage_drawing_set(&renderer->__backbuff, it_drawing_cell, ntg_xy(j, i));
+            ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j, i));
 
-            nt_write_char_at(it_drawing_cell.codepoint, it_drawing_cell.gfx, j, i, NULL);
+            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell.gfx, ntg_xy(j, i), size.x);
+
+            for(k = 0; k < it_opt; k++)
+            {
+                it_draw_cell = ntg_stage_drawing_get(drawing, ntg_xy(j + k, i));
+                row32_buff[k] = it_draw_cell.cp;
+
+                ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j + k, i));
+            }
+            ntg_log_log("RENDER OPT: %d",k);
+
+            uc_utf32_to_utf8(row32_buff, k, row_buff,
+                    row_buff_cap, 0, NULL, &_uc_len,
+                    &_uc_status);
+            assert(_uc_status == UC_SUCCESS);
+
+            nt_cursor_move(j, i, &_nt_status);
+            // Every draw cell in this batch has the same gfx so we can just use the last one
+            nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, &_nt_status);
+            assert(_nt_status == NT_SUCCESS);
+
+            j += k;
         }
     }
 }
