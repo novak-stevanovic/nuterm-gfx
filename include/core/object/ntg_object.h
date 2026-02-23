@@ -5,6 +5,7 @@
 #include "core/object/ntg_object_drawing.h"
 #include "thirdparty/genc.h"
 #include "core/object/ntg_object_layout.h"
+#include "core/object/ntg_border_style.h"
 
 /* ========================================================================== */
 /* PUBLIC - TYPES */
@@ -22,22 +23,6 @@ enum ntg_object_dcr_enable
     NTG_OBJECT_DCR_ENABLE_NAT,
     NTG_OBJECT_DCR_ENABLE_ALWAYS
 };
-
-struct ntg_border_style
-{
-    union
-    {
-        char data[128];
-        long double _align;
-    };
-    void (*draw_fn)(
-            const struct ntg_border_style* style,
-            struct ntg_xy size,
-            struct ntg_insets border_size,
-            ntg_object_tmp_drawing* out_drawing);
-};
-
-const struct ntg_border_style* ntg_border_style_def();
 
 struct ntg_border_opts
 {
@@ -164,7 +149,6 @@ void ntg_object_set_user_grow(ntg_object* object, struct ntg_xy grow);
 void ntg_object_set_z_index(ntg_object* object, int z_index);
 void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg);
 
-// When the user sets a border style, the object becomes responsible for freeing
 void ntg_object_set_border_opts(
         ntg_object* object,
         const struct ntg_border_opts* opts);
@@ -221,76 +205,6 @@ static void fn_name(ntg_object* object, void* data)                            \
     }                                                                          \
     perform_fn(object, data);                                                  \
 }                                                                              \
-
-/* -------------------------------------------------------------------------- */
-/* BORDER STYLE PRESETS */
-/* -------------------------------------------------------------------------- */
-
-void ntg_border_style_init_monochrome(
-        struct ntg_border_style* style,
-        struct nt_color color);
-
-void ntg_border_style_init_basic(
-        struct ntg_border_style* style,
-        struct nt_gfx gfx,
-        uint32_t cp,
-        bool flt);
-
-void ntg_border_style_init_basic_edge(
-        struct ntg_border_style* style,
-        struct nt_gfx gfx,
-        uint32_t cp,
-        bool flt);
-
-void ntg_border_style_init_single(
-        struct ntg_border_style* style,
-        struct nt_gfx gfx,
-        bool flt);
-
-void ntg_border_style_init_double(
-        struct ntg_border_style* style,
-        struct nt_gfx gfx,
-        bool flt);
-
-void ntg_border_style_init_rounded(
-        struct ntg_border_style* style,
-        struct nt_gfx gfx,
-        bool flt);
-
-void ntg_border_style_init_heavy(
-        struct ntg_border_style* style,
-        struct nt_gfx gfx,
-        bool flt);
-
-void ntg_border_style_init_dashed(
-        struct ntg_border_style* style,
-        struct nt_gfx gfx,
-        bool flt);
-
-void ntg_border_style_init_ascii(
-        struct ntg_border_style* style,
-        struct nt_gfx gfx,
-        bool flt);
-
-void ntg_border_style_init_transparent(
-        struct ntg_border_style* style);
-
-/* ------------------------------------------------------ */
-/* BORDER STYLE "CUSTOM" */
-/* ------------------------------------------------------ */
-
-struct ntg_border_style_9x_sym
-{
-    uint32_t top_left, top, top_right, right,
-        bottom_right, bottom, bottom_left,
-        left, padding;
-};
-
-void ntg_border_style_init_custom_9x(
-        struct ntg_border_style* style, 
-        ntg_vcell_type type,
-        struct nt_gfx gfx,
-        const struct ntg_border_style_9x_sym* symbols);
 
 /* ========================================================================== */
 /* PROTECTED */

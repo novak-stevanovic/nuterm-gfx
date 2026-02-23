@@ -3,7 +3,7 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define LAYER_LAYOUT_MAX_IT 10
 
@@ -31,18 +31,6 @@ struct ntg_scene_layout_data
     bool repeat;
 };
 
-struct ntg_attach_policy_flt_dt
-{
-    ntg_object* base;
-    struct ntg_attach_policy_flt_opts opts;
-};
-
-struct ntg_attach_policy_sflt_dt
-{
-    ntg_object* base;
-    struct ntg_attach_policy_sflt_opts opts;
-};
-
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
@@ -64,7 +52,7 @@ static void tree_add(
         struct ntg_scene_layer_node* node,
         struct ntg_scene_layer_node* parent);
 
-static void 
+static void
 tree_rm(struct ntg_scene_layer_node** root, struct ntg_scene_layer_node* node);
 
 static size_t tree_count(struct ntg_scene_layer_node* root);
@@ -100,46 +88,6 @@ NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fixup_tree, fixup_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(arrange_tree, arrange_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 
-/* -------------------------------------------------------------------------- */
-/* ATTACH POLICY */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* ROOT */
-/* ------------------------------------------------------ */
-
-static size_t ap_root_constrain_fn(
-        const void* _data,
-        ntg_orient orient,
-        const struct ntg_attach_constrain_ctx* ctx,
-        sarena* arena);
-
-static struct ntg_xy ap_root_arrange_fn(
-        const void* data,
-        const struct ntg_attach_arrange_ctx* ctx,
-        sarena* arena);
-
-const struct ntg_attach_policy NTG_ATTACH_POLICY_ROOT = {
-    .data = {0},
-    .constrain_fn = ap_root_constrain_fn,
-    .arrange_fn = ap_root_arrange_fn
-};
-
-/* ------------------------------------------------------ */
-/* FLOAT */
-/* ------------------------------------------------------ */
-
-static size_t ap_flt_constrain_fn(
-        const void* _data,
-        ntg_orient orient,
-        const struct ntg_attach_constrain_ctx* ctx,
-        sarena* arena);
-
-static struct ntg_xy ap_flt_arrange_fn(
-        const void* _data,
-        const struct ntg_attach_arrange_ctx* ctx,
-        sarena* arena);
-
 /* ========================================================================== */
 /* PUBLIC - TYPES */
 /* ========================================================================== */
@@ -165,7 +113,8 @@ void ntg_scene_init(ntg_scene* scene)
     init_default(scene);
 
     // Layer tree
-    struct ntg_scene_layer_node* sentinel = tree_node_new(NULL, &NTG_ATTACH_POLICY_ROOT);
+    struct ntg_scene_layer_node* sentinel;
+    sentinel = tree_node_new(NULL, ntg_attach_policy_root());
     assert(sentinel);
 
     tree_add(&scene->__tree_root, sentinel, NULL);
@@ -236,7 +185,7 @@ void ntg_scene_attach_root(
     assert(scene);
 
     if(!policy)
-        policy = &NTG_ATTACH_POLICY_ROOT;
+        policy = ntg_attach_policy_root();
 
     if(!attacher_layer) return;
 
@@ -391,54 +340,6 @@ bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
         return scene->__on_mouse_fn(scene, mouse);
     else
         return false;
-}
-
-/* -------------------------------------------------------------------------- */
-/* ATTACH POLICY */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* ROOT */
-/* ------------------------------------------------------ */
-
-const struct ntg_attach_policy* ntg_attach_policy_root()
-{
-    return &NTG_ATTACH_POLICY_ROOT;
-}
-
-/* ------------------------------------------------------ */
-/* FLOAT */
-/* ------------------------------------------------------ */
-
-struct ntg_attach_policy_flt_opts ntg_attach_policy_flt_opts_def()
-{
-    return (struct ntg_attach_policy_flt_opts) {
-        .enable = NTG_ATTACH_POLICY_FLT_ENABLE_MIN,
-        .shrink = ntg_insets(0, 0, 0, 0),
-        .prim_align = NTG_ALIGN_1,
-        .sec_align = NTG_ALIGN_1
-    };
-}
-
-void ntg_attach_policy_init_flt(
-        struct ntg_attach_policy* policy,
-        ntg_object* base,
-        const struct ntg_attach_policy_flt_opts* opts)
-{
-    assert(policy); 
-    assert(base);
-
-    (*policy) = (struct ntg_attach_policy) {0};
-
-    struct ntg_attach_policy_flt_dt dt = {
-        .base = base,
-        .opts = (opts ? (*opts) : ntg_attach_policy_flt_opts_def())
-    };
-
-    memcpy(&policy->data, &dt, sizeof(dt));
-
-    policy->constrain_fn = ap_flt_constrain_fn;
-    policy->arrange_fn = ap_flt_arrange_fn;
 }
 
 /* ========================================================================== */
@@ -863,114 +764,4 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("OPTIMIZE: Object %p not dirty(DR)", object);
     }
-}
-
-/* -------------------------------------------------------------------------- */
-/* ATTACH POLICY */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* ROOT */
-/* ------------------------------------------------------ */
-
-static size_t ap_root_constrain_fn(
-        const void* data,
-        ntg_orient orient,
-        const struct ntg_attach_constrain_ctx* ctx,
-        sarena* arena)
-{
-    return ctx->scene_size;
-}
-
-static struct ntg_xy ap_root_arrange_fn(
-        const void* data,
-        const struct ntg_attach_arrange_ctx* ctx,
-        sarena* arena)
-{
-    return ntg_xy(0, 0);
-}
-
-/* ------------------------------------------------------ */
-/* FLOAT */
-/* ------------------------------------------------------ */
-
-static size_t ap_flt_constrain_fn(
-        const void* _data,
-        ntg_orient orient,
-        const struct ntg_attach_constrain_ctx* ctx,
-        sarena* arena)
-{
-    const struct ntg_attach_policy_flt_dt* data = _data;
-
-    const ntg_object* base_layer = ctx->base_layer;
-    const ntg_object* attacher_layer = ctx->attacher_layer;
-
-    if(!base_layer || !ntg_object_is_descendant_eq(base_layer, data->base))
-        return 0;
-
-    size_t attacher_min_size = ntg_xy_get(attacher_layer->_min_size, orient);
-    size_t attacher_nat_size = ntg_xy_get(attacher_layer->_nat_size, orient);
-    size_t base_min_size = ntg_xy_get(data->base->_min_size, orient);
-    size_t base_nat_size = ntg_xy_get(data->base->_nat_size, orient);
-
-    size_t base_size = ntg_xy_get(data->base->_size, orient);
-    size_t shrink = ntg_insets_sum(data->opts.shrink, orient);
-    size_t size = _min2_size(_ssub_size(base_size, shrink), attacher_nat_size);
-
-    size_t thresh;
-    switch(data->opts.enable)
-    {
-        case NTG_ATTACH_POLICY_FLT_ENABLE_MIN:
-            thresh = attacher_min_size;
-            break;
-        case NTG_ATTACH_POLICY_FLT_ENABLE_BASE_MIN:
-            thresh = base_min_size;
-            break;
-        case NTG_ATTACH_POLICY_FLT_ENABLE_NAT:
-            thresh = attacher_nat_size;
-            break;
-        case NTG_ATTACH_POLICY_FLT_ENABLE_BASE_NAT:
-            thresh = base_nat_size;
-            break;
-        case NTG_ATTACH_POLICY_FLT_ENABLE_ALWAYS:
-            thresh = 0;
-            break;
-    }
-
-    return (size >= thresh) ? size : 0;
-}
-
-static struct ntg_xy ap_flt_arrange_fn(
-        const void* _data,
-        const struct ntg_attach_arrange_ctx* ctx,
-        sarena* arena)
-{
-    const struct ntg_attach_policy_flt_dt* data = _data;
-
-    const ntg_object* base_layer = ctx->base_layer;
-
-    if(!base_layer || !ntg_object_is_descendant_eq(base_layer, data->base))
-        return ntg_xy(0, 0);
-
-    if(ntg_xy_size_is_zero(ctx->size))
-        return ntg_xy(0, 0);
-
-    struct ntg_xy shrink = ntg_xy(
-        ntg_insets_hsum(data->opts.shrink),
-        ntg_insets_vsum(data->opts.shrink));
-    struct ntg_xy base_size = ntg_xy_sub(data->base->_size, shrink);
-
-    struct ntg_xy align_offset = ntg_xy(
-            ntg_align_offset(ctx->size.x, base_size.x, data->opts.prim_align),
-            ntg_align_offset(ctx->size.y, base_size.y, data->opts.sec_align));
-
-    align_offset.x += data->opts.shrink.w;
-    align_offset.y += data->opts.shrink.n;
-
-    struct ntg_xy
-    pos = ntg_xy_from_dxy(ntg_object_map_to_scene(data->base, ntg_dxy(0, 0)));
-
-    ntg_log_log("ARRANGE RETURNED: %d %d", pos.x, pos.y);
-
-    return ntg_xy_add(pos, align_offset);
 }

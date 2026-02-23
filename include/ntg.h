@@ -24,12 +24,14 @@
 #include "core/object/ntg_label.h"
 #include "core/object/ntg_object_layout.h"
 #include "core/object/ntg_object.h"
+#include "core/object/ntg_border_style.h"
 #include "core/object/ntg_prog_bar.h"
 #include "core/object/ntg_color_block.h"
 #include "core/object/ntg_main_panel.h"
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
+#include "core/scene/ntg_attach_policy.h"
 #include "core/stage/ntg_stage_drawing.h"
 #include "core/stage/ntg_stage.h"
 
@@ -57,13 +59,13 @@ void ntg_wait();
 // ACTIVE:
 // implement side float attach policy
 
+// TODO: return default structs via function param?
 // TODO: implement modals on scene, object focus managers | **
 // TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **
 
 // RELEASE
 // TODO: hide functions from final .so file(change -fvisibility)
 // TODO: nuterm-gfx: add more generic events
-// TODO: nuterm-gfx: add convenience macros
 // TODO: nuterm-gfx: add proper error-handling
 // TODO: nuterm-gfx: make comment documentation consistent
 

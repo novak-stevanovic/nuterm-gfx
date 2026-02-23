@@ -3,6 +3,8 @@
 #include <assert.h>
 #include "shared/ntg_shared_internal.h"
 
+// TODO: Vertical optimized rendering?
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
