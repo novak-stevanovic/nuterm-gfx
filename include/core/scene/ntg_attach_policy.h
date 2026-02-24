@@ -14,17 +14,15 @@
 
 struct ntg_attach_constrain_ctx
 {
-    const ntg_object* attacher_layer;
-    const ntg_object* base_layer;
-    size_t scene_size;
+    const ntg_object* attacher;
+    const ntg_object* base;
 };
 
 struct ntg_attach_arrange_ctx
 {
-    const ntg_object* attacher_layer;
-    const ntg_object* base_layer;
+    const ntg_object* attacher;
+    const ntg_object* base;
     struct ntg_xy size;
-    struct ntg_xy scene_size;
 };
 
 struct ntg_attach_policy
@@ -91,12 +89,19 @@ enum ntg_attach_policy_sflt_enable
     NTG_ATTACH_POLICY_SFLT_ENABLE_DYNAMIC
 };
 
+enum ntg_attach_policy_sflt_szcap
+{
+    NTG_ATTACH_POLICY_SFLT_SZCAP_NONE,
+    NTG_ATTACH_POLICY_SFLT_SZCAP_ANCHOR
+};
+
 struct ntg_attach_policy_sflt_opts
 {
     ntg_align align;
     enum ntg_attach_policy_sflt_orient orient;
     enum ntg_attach_policy_sflt_thresh thresh;
     enum ntg_attach_policy_sflt_enable enable;
+    enum ntg_attach_policy_sflt_szcap size_cap;
 };
 
 struct ntg_attach_policy_sflt_opts ntg_attach_policy_sflt_opts_def();
@@ -105,25 +110,17 @@ struct ntg_attach_policy_sflt_opts ntg_attach_policy_sflt_opts_def();
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
-/* BASE */
-/* -------------------------------------------------------------------------- */
-
 void ntg_attach_policy_deinit(struct ntg_attach_policy* policy);
 void ntg_attach_policy_deinit_(void* _policy);
 
-/* -------------------------------------------------------------------------- */
-/* PRESETS */
-/* -------------------------------------------------------------------------- */
-
 void ntg_attach_policy_init_flt(
         struct ntg_attach_policy* policy,
-        ntg_object* base,
+        ntg_object* anchor,
         const struct ntg_attach_policy_flt_opts* opts);
 
 void ntg_attach_policy_init_sflt(
         struct ntg_attach_policy* policy,
-        ntg_object* base,
+        ntg_object* anchor,
         const struct ntg_attach_policy_sflt_opts* opts);
 
 #endif // NTG_ATTACH_POLICY_H

@@ -62,6 +62,7 @@ ntg_loop loop;
 
 ntg_label flt_label;
 struct ntg_attach_policy flt_ap;
+struct ntg_attach_policy sflt_ap;
 
 void init_north();
 void init_center();

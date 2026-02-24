@@ -174,6 +174,15 @@ ntg_xy_get(struct ntg_xy xy, ntg_orient orient)
     return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
 }
 
+static inline struct ntg_xy
+ntg_xy_set(struct ntg_xy xy, size_t val, ntg_orient orient)
+{
+    if(orient == NTG_ORIENT_H)
+        xy.x = val;
+    else
+        xy.y = val;
+}
+
 static inline bool
 ntg_xy_in_size(struct ntg_xy p, struct ntg_xy size)
 {
