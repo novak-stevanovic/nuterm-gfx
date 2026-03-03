@@ -137,6 +137,24 @@ int main(int argc, char *argv[])
 
 void init_north()
 {
+    struct ntg_attach_policy_flt_opts flt_ap_opts = {
+        .enable = NTG_ATTACH_POLICY_FLT_ENABLE_MIN,
+        .shrink = ntg_insets(1, 1, 1, 1),
+        .prim_align = NTG_ALIGN_2,
+        .sec_align = NTG_ALIGN_2,
+    };
+    ntg_attach_policy_init_flt(&flt_ap, ntg_obj(&north), &flt_ap_opts);
+    ntg_cleanup_batch_add(batch, &flt_ap, ntg_attach_policy_deinit_, NULL);
+
+    struct ntg_attach_policy_sflt_opts sflt_ap_opts = {
+        .align = NTG_ALIGN_1,
+        .orient = NTG_ATTACH_POLICY_SFLT_ORIENT_N,
+        .thresh = NTG_ATTACH_POLICY_SFLT_THRESH_MIN,
+        .enable = NTG_ATTACH_POLICY_SFLT_ENABLE_STATIC,
+        .size_cap = NTG_ATTACH_POLICY_SFLT_SZCAP_NONE
+    };
+
+    ntg_attach_policy_init_sflt(&sflt_ap, ntg_obj
     ntg_label_init(&north);
     ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_, NULL);
 
@@ -216,12 +234,4 @@ void init_bs()
 
 void init_ap()
 {
-    struct ntg_attach_policy_flt_opts flt_ap_opts = {
-        .enable = NTG_ATTACH_POLICY_FLT_ENABLE_MIN,
-        .shrink = ntg_insets(1, 1, 1, 1),
-        .prim_align = NTG_ALIGN_2,
-        .sec_align = NTG_ALIGN_2,
-    };
-    ntg_attach_policy_init_flt(&flt_ap, ntg_obj(&north), &flt_ap_opts);
-    ntg_cleanup_batch_add(batch, &flt_ap, ntg_attach_policy_deinit_, NULL);
 }

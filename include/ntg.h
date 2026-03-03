@@ -31,7 +31,7 @@
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
-#include "core/scene/ntg_attach_policy.h"
+#include "core/object/ntg_anchor_policy.h"
 #include "core/stage/ntg_stage_drawing.h"
 #include "core/stage/ntg_stage.h"
 

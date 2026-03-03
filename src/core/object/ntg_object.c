@@ -448,12 +448,17 @@ void ntg_object_deinit(ntg_object* object)
     // Root AND is part of scene scene
     if(object->__scene)
     {
-        ntg_scene_detach_root(object->__scene, object);
+        ntg_scene_set_root(object->__scene, NULL);
     }
 
     if(object->_parent)
     {
         ntg_object_detach(object);
+    }
+
+    if(object->_base)
+    {
+        ntg_object_unanchor(object);
     }
 
     while(object->_children.size > 0)
@@ -476,8 +481,11 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
     if(child->_parent != NULL)
         ntg_object_detach(child);
 
-    if(child->__scene)
-        ntg_scene_detach_root(child->__scene, child);
+    if(child->__scene) // is root of scene
+        ntg_scene_set_root(child->__scene, NULL);
+
+    if(child->_base)
+        ntg_object_unanchor(child);
 
     ntg_scene* scene = ntg_object_get_scene_(parent);
 
@@ -507,6 +515,41 @@ void ntg_object_detach(ntg_object* object)
 
     if(scene)
         _ntg_scene_unregister_tree(scene, object);
+}
+
+void ntg_object_anchor(
+        ntg_object* base,
+        ntg_object* root,
+        const struct ntg_anchor_policy* policy)
+{
+    assert(base);
+    assert(root);
+    assert(policy);
+    assert(base != root);
+
+    if(root->_parent)
+    {
+        ntg_object_detach(root);
+    }
+
+    if(root->_base)
+    {
+        ntg_object_unanchor(root);
+    }
+
+    ntg_object_vec_pushb(&base->_anchored, root, NULL);
+    root->_base = base;
+    root->_anchor_policy = policy;
+}
+
+void ntg_object_unanchor(ntg_object* root)
+{
+    assert(root);
+    assert(root->_base);
+
+    ntg_object_vec_rm(&root->_base->_anchored, root, NULL);
+    root->_base = NULL;
+    root->_anchor_policy = NULL;
 }
 
 /* ========================================================================== */

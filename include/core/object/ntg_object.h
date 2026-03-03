@@ -6,6 +6,7 @@
 #include "thirdparty/genc.h"
 #include "core/object/ntg_object_layout.h"
 #include "core/object/ntg_border_style.h"
+#include "core/object/ntg_anchor_policy.h"
 
 /* ========================================================================== */
 /* PUBLIC - TYPES */
@@ -59,6 +60,13 @@ struct ntg_object
         ntg_scene* __scene; // only root holds
         ntg_object* _parent;
         ntg_object_vec _children;
+    };
+
+    struct
+    {
+        ntg_object_vec _anchored;
+        ntg_object* _base;
+        const struct ntg_anchor_policy* _anchor_policy;
     };
 
     struct
@@ -224,6 +232,13 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child);
 /* Updates only the tree.
  * Called internally by types extending ntg_object. */
 void ntg_object_detach(ntg_object* object);
+
+void ntg_object_anchor(
+        ntg_object* base,
+        ntg_object* root,
+        const struct ntg_anchor_policy* policy);
+
+void ntg_object_unanchor(ntg_object* root);
 
 /* ========================================================================== */
 /* INTERNAL */

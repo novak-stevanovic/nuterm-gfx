@@ -21,11 +21,10 @@ struct ntg_scene
 {
     ntg_stage* _stage;
 
-    struct ntg_scene_layer_node* __tree_root;
+    ntg_object* _root;
 
     struct ntg_xy _size;
 
-    // Scene doesn't mark itself dirty ever
     bool _dirty;
 
     struct
@@ -50,23 +49,7 @@ void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
 void ntg_scene_layout(ntg_scene* scene, sarena* arena);
 ntg_object* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos);
 
-/* -------------------------------------------------------------------------- */
-/* ROOT */
-/* -------------------------------------------------------------------------- */
-
-void ntg_scene_attach_root(
-        ntg_scene* scene,
-        ntg_object* attacher_layer,
-        ntg_object* base_layer,
-        const struct ntg_attach_policy* policy);
-
-void ntg_scene_detach_root(ntg_scene* scene, ntg_object* root);
-
-size_t ntg_scene_get_root_count(const ntg_scene* scene);
-void ntg_scene_get_roots_by_z(
-        ntg_scene* scene,
-        ntg_object** out_buff,
-        size_t cap);
+void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
 
 /* -------------------------------------------------------------------------- */
 /* EVENT */

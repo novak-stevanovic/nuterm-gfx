@@ -181,6 +181,8 @@ ntg_xy_set(struct ntg_xy xy, size_t val, ntg_orient orient)
         xy.x = val;
     else
         xy.y = val;
+
+    return xy;
 }
 
 static inline bool
