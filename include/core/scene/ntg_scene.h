@@ -49,6 +49,10 @@ void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
 void ntg_scene_layout(ntg_scene* scene, sarena* arena);
 ntg_object* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos);
 
+size_t ntg_scene_collect_layers_by_z(
+        ntg_scene* scene,
+        ntg_object** out_layers,
+        size_t cap);
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
 
 /* -------------------------------------------------------------------------- */

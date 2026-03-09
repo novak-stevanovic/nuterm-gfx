@@ -415,6 +415,7 @@ static void init_default(ntg_object* object)
 
     object->_border.opts = ntg_border_opts_def();
     object->_padding.opts = ntg_padding_opts_def();
+    object->_anchor_policy = ntg_anchor_policy_root();
 }
 
 #define LAYOUT_OPS_DEF (struct ntg_object_layout_ops){0}

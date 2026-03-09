@@ -61,8 +61,6 @@ ntg_scene scene;
 ntg_loop loop;
 
 ntg_label flt_label;
-struct ntg_attach_policy flt_ap;
-struct ntg_attach_policy sflt_ap;
 
 void init_north();
 void init_center();
@@ -97,7 +95,6 @@ void gui_fn1(void* _)
     init_flt_label();
     init_root();
     init_bs();
-    init_ap();
 
     ntg_scene_init(&scene);
     ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_, NULL);
@@ -110,8 +107,7 @@ void gui_fn1(void* _)
 
     // ATTACH ROOTS, SCENE, STAGE
 
-    ntg_scene_attach_root(&scene, ntg_obj(&root), NULL, NULL);
-    ntg_scene_attach_root(&scene, ntg_obj(&flt_label), ntg_obj(&root), &flt_ap);
+    ntg_scene_set_root(&scene, ntg_obj(&root));
     ntg_stage_set_scene(&stage, &scene);
 
     ntg_loop_exit_status loop_status = ntg_loop_run(&loop);
@@ -137,24 +133,6 @@ int main(int argc, char *argv[])
 
 void init_north()
 {
-    struct ntg_attach_policy_flt_opts flt_ap_opts = {
-        .enable = NTG_ATTACH_POLICY_FLT_ENABLE_MIN,
-        .shrink = ntg_insets(1, 1, 1, 1),
-        .prim_align = NTG_ALIGN_2,
-        .sec_align = NTG_ALIGN_2,
-    };
-    ntg_attach_policy_init_flt(&flt_ap, ntg_obj(&north), &flt_ap_opts);
-    ntg_cleanup_batch_add(batch, &flt_ap, ntg_attach_policy_deinit_, NULL);
-
-    struct ntg_attach_policy_sflt_opts sflt_ap_opts = {
-        .align = NTG_ALIGN_1,
-        .orient = NTG_ATTACH_POLICY_SFLT_ORIENT_N,
-        .thresh = NTG_ATTACH_POLICY_SFLT_THRESH_MIN,
-        .enable = NTG_ATTACH_POLICY_SFLT_ENABLE_STATIC,
-        .size_cap = NTG_ATTACH_POLICY_SFLT_SZCAP_NONE
-    };
-
-    ntg_attach_policy_init_sflt(&sflt_ap, ntg_obj
     ntg_label_init(&north);
     ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_, NULL);
 
@@ -230,8 +208,4 @@ void init_bs()
 {
     ntg_border_style_init_rounded(&flt_rounded_border, NT_GFX_DEFAULT, true);
     ntg_cleanup_batch_add(batch, &flt_rounded_border, ntg_border_style_deinit_, NULL);
-}
-
-void init_ap()
-{
 }

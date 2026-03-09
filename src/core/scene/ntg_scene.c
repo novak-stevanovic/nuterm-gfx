@@ -29,12 +29,13 @@ struct ntg_scene_layout_data
 static void 
 layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena);
 
-// TODO: z-index
-static void collect_anchored_layers(
-        ntg_object* base_root,
-        ntg_object** out_anchored,
+static void collect_layers_by_z_internal(
+        ntg_scene* scene,
+        ntg_object* it_root,
+        ntg_object** out_layers,
         size_t* counter,
-        size_t cap);
+        size_t cap,
+        bool true_root);
 
 static void hmeasure_fn(ntg_object* object, void* _layout_data);
 static void hconstrain_fn(ntg_object* object, void* _layout_data);
@@ -63,10 +64,11 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 static void init_default(ntg_scene* scene)
 {
     scene->_stage = NULL;
-    scene->_size = ntg_xy(0, 0);
     scene->_root = NULL;
+    scene->_size = ntg_xy(0, 0);
     scene->__on_key_fn = ntg_scene_dispatch_key;
     scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
+    scene->_dirty = false;
     scene->data = NULL;
 }
 
@@ -111,12 +113,6 @@ void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
     {
         scene->_size = size;
         ntg_scene_mark_dirty(scene);
-
-        //if(old_size.x != size.x)
-        // {
-            // uint8_t dirty = NTG_OBJECT_DIRTY_HCONSTRAIN | NTG_OBJECT_DIRTY_
-            ////tree_mark_dirty(scene->__tree_root, 
-        //}
     }
 }
 
@@ -126,6 +122,17 @@ void ntg_scene_layout(ntg_scene* scene, sarena* arena)
 
     if(scene->_root)
         layout_layer(scene, scene->_root, 0, arena);
+}
+
+size_t ntg_scene_collect_layers_by_z(
+        ntg_scene* scene,
+        ntg_object** out_layers,
+        size_t cap)
+{
+    assert(scene);
+
+    size_t counter = 0;
+    collect_layers_by_z(scene, scene->_root, out_layers, &counter, cap);
 }
 
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
@@ -280,6 +287,57 @@ void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
 /* LAYOUT */
 /* -------------------------------------------------------------------------- */
 
+static void collect_layers_by_z_internal(
+        ntg_scene* scene,
+        ntg_object* it_root,
+        ntg_object** out_layers,
+        size_t* counter,
+        size_t cap,
+        bool true_root)
+{
+    assert(scene);
+    assert(counter);
+    assert(it_root);
+
+    const ntg_object_vec* children = &(it_root->_children);
+    const ntg_object_vec* anchored = &(it_root->_anchored);
+
+    size_t i;
+    ntg_object* it_obj;
+    
+    if(true_root && out_layers)
+    {
+        for(i = 0; i < (*counter); i++)
+        {
+            it_obj = out_layers[i];
+            
+            if((cap > (*counter)) && it_obj->_z_index > it_root->_z_index)
+            {
+                // insert
+            }
+        }
+
+        if((cap > (*counter)) && i == (*counter)) // should be last place
+        {
+            // append
+        }
+    }
+
+    (*counter)++;
+    
+    for(i = 0; i < anchored->size; i++)
+    {
+        collect_layers_by_z_internal(scene, anchored->data[i],
+            out_layers, counter, cap, true);
+    }
+
+    for(i = 0; i < children->size; i++)
+    {
+        collect_layers_by_z_internal(scene, children->data[i],
+                out_layers, counter, cap, false);
+    }
+}
+
 static void 
 layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 {
@@ -385,36 +443,6 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
     }
 }
 
-static void collect_anchored_layers(
-        ntg_object* base_root,
-        ntg_object** out_anchored,
-        size_t* counter,
-        size_t cap)
-{
-    assert(base_root);
-    assert(counter);
-
-    ntg_object_vec* children = &(base_root->_children);
-    ntg_object_vec* anchored = &(base_root->_anchored);
-
-    size_t i;
-
-    for(i = 0; i < anchored->size; i++)
-    {
-        if((*counter) >= cap) return;
-
-        if(out_anchored)
-            out_anchored[*counter] = anchored->data[i];
-
-        (*counter)++;
-    }
-
-    for(i = 0; i < children->size; i++)
-    {
-        collect_anchored_layers(children->data[i], out_anchored, counter, cap);
-    }
-}
-
 static void hmeasure_fn(ntg_object* object, void* _layout_data)
 {
     struct ntg_scene_layout_data* layout_data = _layout_data;
@@ -422,7 +450,7 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_HMEASURE)
     {
-        if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M1 | %p", object);
+        ntg_log_log("NTG_DEF_SCENE | M1 | %p", object);
         _ntg_object_hmeasure(object, arena);
 
         _ntg_object_clean(object, NTG_OBJECT_DIRTY_HMEASURE);
@@ -440,7 +468,7 @@ static void hconstrain_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_HCONSTRAIN)
     {
-        if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C1 | %p", object);
+        ntg_log_log("NTG_DEF_SCENE | C1 | %p", object);
         _ntg_object_hconstrain(object, arena);
         _ntg_object_clean(object, NTG_OBJECT_DIRTY_HCONSTRAIN);
     }
@@ -457,7 +485,7 @@ static void vmeasure_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_VMEASURE)
     {
-        if(DEBUG) ntg_log_log("NTG_DEF_SCENE | M2 | %p", object);
+        ntg_log_log("NTG_DEF_SCENE | M2 | %p", object);
         _ntg_object_vmeasure(object, arena);
 
         _ntg_object_clean(object, NTG_OBJECT_DIRTY_VMEASURE);
@@ -475,7 +503,7 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_VCONSTRAIN)
     {
-        if(DEBUG) ntg_log_log("NTG_DEF_SCENE | C2 | %p", object);
+        ntg_log_log("NTG_DEF_SCENE | C2 | %p", object);
         _ntg_object_vconstrain(object, arena);
         _ntg_object_clean(object, NTG_OBJECT_DIRTY_VCONSTRAIN);
     }
@@ -504,7 +532,7 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_ARRANGE)
     {
-        if(DEBUG) ntg_log_log("NTG_DEF_SCENE | A | %p", object);
+        ntg_log_log("NTG_DEF_SCENE | A | %p", object);
         _ntg_object_arrange(object, arena);
         _ntg_object_clean(object, NTG_OBJECT_DIRTY_ARRANGE);
     }
@@ -521,7 +549,7 @@ static void draw_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_DRAW)
     {
-        if(DEBUG) ntg_log_log("NTG_DEF_SCENE | D | %p", object);
+        ntg_log_log("NTG_DEF_SCENE | D | %p", object);
         _ntg_object_draw(object, arena);
         _ntg_object_clean(object, NTG_OBJECT_DIRTY_DRAW);
     }
