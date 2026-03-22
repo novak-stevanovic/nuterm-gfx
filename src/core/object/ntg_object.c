@@ -127,18 +127,34 @@ ntg_scene* ntg_object_get_scene_(ntg_object* object)
 {
     assert(object);
 
-    ntg_object* root = ntg_object_get_root_(object);
+    ntg_object *it_obj = object, *it_root, *it_base;
+    while(true)
+    {
+        it_root = ntg_object_get_root_(it_obj);
+        it_base = it_root->_base;
+        it_obj = it_base;
 
-    return root->__scene;
+        if(!it_base) break;
+    }
+
+    return it_root->__scene;
 }
 
 const ntg_scene* ntg_object_get_scene(const ntg_object* object)
 {
     assert(object);
 
-    const ntg_object* root = ntg_object_get_root(object);
+    const ntg_object *it_obj = object, *it_root, *it_base;
+    while(true)
+    {
+        it_root = ntg_object_get_root(it_obj);
+        it_base = it_root->_base;
+        it_obj = it_base;
 
-    return root->__scene;
+        if(!it_base) break;
+    }
+
+    return it_root->__scene;
 }
 
 bool ntg_object_is_descendant(
@@ -435,6 +451,7 @@ void ntg_object_init(
     object->_type = type;
 
     ntg_object_vec_init(&object->_children, 2, NULL);
+    ntg_object_vec_init(&object->_anchored, 2, NULL);
 
     object->__layout_ops = (layout_ops ? (*layout_ops) : LAYOUT_OPS_DEF);
     object->__hooks = (hooks ? (*hooks) : HOOKS_DEF);
@@ -468,6 +485,7 @@ void ntg_object_deinit(ntg_object* object)
     }
 
     ntg_object_vec_deinit(&object->_children, NULL);
+    ntg_object_vec_deinit(&object->_anchored, NULL);
     ntg_object_drawing_deinit(&object->_drawing);
 
     init_default(object);

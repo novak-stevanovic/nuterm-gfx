@@ -108,10 +108,13 @@ void ntg_stage_compose(ntg_stage* stage, sarena* arena)
     if(!stage->_scene->_root)
         return;
 
-    draw_layer(stage, stage->_scene->_root, arena);
+    size_t layer_count = ntg_scene_collect_layers_by_z(stage->_scene, NULL, 0);
 
-    // for(i = layer_count; i > 0; i--)
-        // draw_layer(stage, layers[i - 1], arena);
+    ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
+    ntg_scene_collect_layers_by_z(stage->_scene, layers, layer_count);
+
+    for(i = 0; i < layer_count; i++)
+        draw_layer(stage, layers[i], arena);
 }
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)

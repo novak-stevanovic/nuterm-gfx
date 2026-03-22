@@ -42,6 +42,7 @@ typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;
 typedef struct ntg_vcell_vecgrid ntg_vcell_vecgrid;
 typedef enum ntg_vcell_type ntg_vcell_type;
 typedef enum ntg_orient ntg_orient;
+typedef enum ntg_side ntg_side;
 typedef enum ntg_align ntg_align;
 typedef struct ntg_vecgrid ntg_vecgrid;
 typedef struct ntg_type ntg_type;

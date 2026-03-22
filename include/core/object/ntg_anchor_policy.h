@@ -68,14 +68,6 @@ struct ntg_float_policy_opts ntg_float_policy_opts_def();
 /* SIDE FLOAT */
 /* -------------------------------------------------------------------------- */
 
-enum ntg_sidefloat_policy_orient
-{
-    NTG_SIDEFLOAT_POLICY_ORIENT_N,
-    NTG_SIDEFLOAT_POLICY_ORIENT_E,
-    NTG_SIDEFLOAT_POLICY_ORIENT_S,
-    NTG_SIDEFLOAT_POLICY_ORIENT_W,
-};
-
 enum ntg_sidefloat_policy_thresh
 {
     NTG_SIDEFLOAT_POLICY_THRESH_MIN,
@@ -98,9 +90,9 @@ enum ntg_sidefloat_policy_szcap
 struct ntg_sidefloat_policy_opts
 {
     ntg_align align;
-    enum ntg_sidefloat_policy_orient orient;
+    enum ntg_side side;
     enum ntg_sidefloat_policy_thresh thresh;
-    enum ntg_sidefloat_policy_enable enable;
+    enum ntg_sidefloat_policy_enable enable; // TODO
     enum ntg_sidefloat_policy_szcap size_cap;
 };
 
@@ -115,12 +107,10 @@ void ntg_anchor_policy_deinit_(void* _policy);
 
 void ntg_anchor_policy_init_float(
         struct ntg_anchor_policy* policy,
-        ntg_object* anchor,
         const struct ntg_float_policy_opts* opts);
 
-void ntg_sidefloat_policy_sidefloat(
+void ntg_anchor_policy_init_sidefloat(
         struct ntg_anchor_policy* policy,
-        ntg_object* anchor,
         const struct ntg_sidefloat_policy_opts* opts);
 
 #endif // NTG_ANCHOR_POLICY_H

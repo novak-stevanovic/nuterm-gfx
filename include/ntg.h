@@ -57,7 +57,7 @@ void ntg_wait();
 /* -------------------------------------------------------------------------- */
 
 // ACTIVE:
-// implement side float attach policy
+// finish implementing side float attach policy(enable option)
 
 // TODO: return default structs via function param?
 // TODO: implement modals on scene, object focus managers | **

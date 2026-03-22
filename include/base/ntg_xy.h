@@ -48,6 +48,16 @@ ntg_align_offset(size_t inner_size, size_t outer_size, ntg_align align)
         return (outer_size - inner_size);
 }
 
+static inline ssize_t
+ntg_align_offset_d(ssize_t inner_size, ssize_t outer_size, ntg_align align)
+{
+    if(align == NTG_ALIGN_1)
+        return 0;
+    else if(align == NTG_ALIGN_2)
+        return (outer_size - inner_size) / 2;
+    else
+        return (outer_size - inner_size);
+}
 
 struct ntg_oxy
 {
@@ -62,6 +72,14 @@ static const struct ntg_xy NTG_XY_UNSET = { 0, 0 };
 static const struct ntg_dxy NTG_DXY_MAX = { NTG_SIZE_MAX, NTG_SIZE_MAX };
 static const struct ntg_dxy NTG_DXY_MIN = { 0, 0 };
 static const struct ntg_dxy NTG_DXY_UNSET = { 0, 0 };
+
+enum ntg_side
+{
+    NTG_SIDE_N,
+    NTG_SIDE_E,
+    NTG_SIDE_S,
+    NTG_SIDE_W
+};
 
 /* -------------------------------------------------------------------------- */
 
@@ -375,6 +393,16 @@ static inline bool ntg_insets_is_zero(struct ntg_insets insets)
 static inline struct ntg_insets ntg_insets_zero(struct ntg_insets insets)
 {
     return (struct ntg_insets) {0};
+}
+
+/* -------------------------------------------------------------------------- */
+
+static inline ntg_orient ntg_side_get_orient(ntg_side side)
+{
+    if((side == NTG_SIDE_N) || (side == NTG_SIDE_S))
+        return NTG_ORIENT_V;
+    else
+        return NTG_ORIENT_H;
 }
 
 #endif // NTG_XY_H

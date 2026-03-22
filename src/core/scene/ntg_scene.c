@@ -34,8 +34,7 @@ static void collect_layers_by_z_internal(
         ntg_object* it_root,
         ntg_object** out_layers,
         size_t* counter,
-        size_t cap,
-        bool true_root);
+        size_t cap);
 
 static void hmeasure_fn(ntg_object* object, void* _layout_data);
 static void hconstrain_fn(ntg_object* object, void* _layout_data);
@@ -120,8 +119,15 @@ void ntg_scene_layout(ntg_scene* scene, sarena* arena)
 {
     assert(scene != NULL);
 
-    if(scene->_root)
-        layout_layer(scene, scene->_root, 0, arena);
+    size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
+
+    ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
+    ntg_scene_collect_layers_by_z(scene, layers, layer_count);
+
+    size_t i;
+    for(i = 0; i < layer_count; i++)
+        layout_layer(scene, layers[i], 0, arena);
+
 }
 
 size_t ntg_scene_collect_layers_by_z(
@@ -131,8 +137,13 @@ size_t ntg_scene_collect_layers_by_z(
 {
     assert(scene);
 
+    if(!out_layers) cap = SIZE_MAX;
     size_t counter = 0;
-    collect_layers_by_z(scene, scene->_root, out_layers, &counter, cap);
+    collect_layers_by_z_internal(scene,
+            scene->_root,
+            out_layers, &counter, cap);
+
+    return counter;
 }
 
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
@@ -292,8 +303,7 @@ static void collect_layers_by_z_internal(
         ntg_object* it_root,
         ntg_object** out_layers,
         size_t* counter,
-        size_t cap,
-        bool true_root)
+        size_t cap)
 {
     assert(scene);
     assert(counter);
@@ -304,37 +314,47 @@ static void collect_layers_by_z_internal(
 
     size_t i;
     ntg_object* it_obj;
+
+    bool true_root = (it_root->_parent == NULL);
     
-    if(true_root && out_layers)
+    if(true_root)
     {
-        for(i = 0; i < (*counter); i++)
+        if(out_layers)
         {
-            it_obj = out_layers[i];
-            
-            if((cap > (*counter)) && it_obj->_z_index > it_root->_z_index)
+            for(i = 0; i < (*counter); i++)
             {
-                // insert
+                it_obj = out_layers[i];
+                
+                if(it_obj->_z_index > it_root->_z_index)
+                    break;
+            }
+
+            if(cap > (*counter))
+            {
+                assert(i <= (*counter));
+                if(i < (*counter))
+                {
+                    memmove(out_layers + i + 1,
+                            out_layers + i,
+                            ((*counter) - i) * sizeof(ntg_object*));
+                }
+                out_layers[i] = it_root;
             }
         }
 
-        if((cap > (*counter)) && i == (*counter)) // should be last place
-        {
-            // append
-        }
+        (*counter)++;
     }
-
-    (*counter)++;
     
     for(i = 0; i < anchored->size; i++)
     {
         collect_layers_by_z_internal(scene, anchored->data[i],
-            out_layers, counter, cap, true);
+            out_layers, counter, cap);
     }
 
     for(i = 0; i < children->size; i++)
     {
         collect_layers_by_z_internal(scene, children->data[i],
-                out_layers, counter, cap, false);
+                out_layers, counter, cap);
     }
 }
 
@@ -423,6 +443,7 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
         {
             struct ntg_anchor_arrange_ctx arrange_ctx = {
                 .base = base,
+                .root = root,
                 .size = size,
             };
 

@@ -62,9 +62,15 @@ ntg_loop loop;
 
 ntg_label flt_label;
 
+struct ntg_anchor_policy flt_ap;
+
+ntg_label sflt_label;
+struct ntg_anchor_policy sflt_ap;
+
 void init_north();
 void init_center();
 void init_flt_label();
+void init_sflt_label();
 void init_root();
 void init_bs(); // border styles
 void init_ap(); // attach policies
@@ -90,11 +96,13 @@ void gui_fn1(void* _)
 
     // INIT BORDER
 
+    init_bs();
+    init_ap();
     init_north();
     init_center();
     init_flt_label();
+    init_sflt_label();
     init_root();
-    init_bs();
 
     ntg_scene_init(&scene);
     ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_, NULL);
@@ -109,6 +117,8 @@ void gui_fn1(void* _)
 
     ntg_scene_set_root(&scene, ntg_obj(&root));
     ntg_stage_set_scene(&stage, &scene);
+    ntg_object_anchor(ntg_obj(&root), ntg_obj(&flt_label), &flt_ap);
+    ntg_object_anchor(ntg_obj(&flt_label), ntg_obj(&sflt_label), &sflt_ap);
 
     ntg_loop_exit_status loop_status = ntg_loop_run(&loop);
     ntg_log_log("LOOP END | STATUS: %d", loop_status);
@@ -179,21 +189,45 @@ void init_flt_label()
     ntg_label_set_text(&flt_label, "Floating label example");
     ntg_object_set_z_index(ntg_obj(&flt_label), 1);
 
-    struct ntg_label_opts flt_label_opts = ntg_label_opts_def();
-    flt_label_opts.wrap = NTG_LABEL_WRAP_WORD;
-    flt_label_opts.bg_mode = NTG_LABEL_BG_FLT;
-    ntg_label_set_opts(&flt_label, &flt_label_opts);
+    struct ntg_label_opts label_opts = ntg_label_opts_def();
+    label_opts.wrap = NTG_LABEL_WRAP_WORD;
+    label_opts.bg_mode = NTG_LABEL_BG_FLT;
+    ntg_label_set_opts(&flt_label, &label_opts);
 
-    struct ntg_padding_opts flt_label_pad_opts = ntg_padding_opts_def();
-    flt_label_pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
-    ntg_object_set_padding_opts(ntg_obj(&flt_label), &flt_label_pad_opts);
+    struct ntg_padding_opts pad_opts = ntg_padding_opts_def();
+    pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
+    ntg_object_set_padding_opts(ntg_obj(&flt_label), &pad_opts);
 
-    struct ntg_border_opts flt_label_border_opts = ntg_border_opts_def();
-    flt_label_border_opts.pref_size = ntg_insets(1, 1, 1, 1);
-    flt_label_border_opts.style = &flt_rounded_border;
-    ntg_object_set_border_opts(ntg_obj(&flt_label), &flt_label_border_opts);
+    struct ntg_border_opts border_opts = ntg_border_opts_def();
+    border_opts.pref_size = ntg_insets(1, 1, 1, 1);
+    border_opts.style = &flt_rounded_border;
+    ntg_object_set_border_opts(ntg_obj(&flt_label), &border_opts);
+
+    // ntg_object_set_user_min_size_cont(ntg_obj(&flt_label), ntg_xy(1000, 1000));
 
     ntg_cleanup_batch_add(batch, &flt_label, ntg_label_deinit_, NULL);
+}
+
+void init_sflt_label()
+{
+    ntg_label_init(&sflt_label);
+
+    ntg_object_set_z_index(ntg_obj(&sflt_label), 2);
+
+    ntg_label_set_text(&sflt_label, "Floating label example - Sidefloat");
+
+    struct ntg_label_opts opts = ntg_label_opts_def();
+    opts.wrap = NTG_LABEL_WRAP_WORD;
+    opts.text_mode = NTG_LABEL_TEXT_JUSTIFY;
+    opts.sec_align = NTG_ALIGN_1;
+    opts.gfx = (struct nt_gfx) {
+        .bg = nt_color_new_auto(255, 255, 255),
+        .fg = nt_color_new_auto(0, 0, 0),
+        .style = nt_style_new_uniform(NT_STYLE_VAL_ITALIC)
+    };
+    ntg_label_set_opts(&sflt_label, &opts);
+
+    ntg_cleanup_batch_add(batch, &sflt_label, ntg_label_deinit_, NULL);
 }
 
 void init_root()
@@ -208,4 +242,25 @@ void init_bs()
 {
     ntg_border_style_init_rounded(&flt_rounded_border, NT_GFX_DEFAULT, true);
     ntg_cleanup_batch_add(batch, &flt_rounded_border, ntg_border_style_deinit_, NULL);
+}
+
+void init_ap()
+{
+    struct ntg_float_policy_opts flt_opts = ntg_float_policy_opts_def();
+    flt_opts.prim_align = NTG_ALIGN_2;
+    flt_opts.sec_align = NTG_ALIGN_2;
+    flt_opts.enable = NTG_FLOAT_POLICY_ENABLE_ALWAYS;
+
+    ntg_anchor_policy_init_float(&flt_ap, &flt_opts);
+
+    ntg_cleanup_batch_add(batch, &flt_ap, ntg_anchor_policy_deinit_, NULL);
+
+    struct ntg_sidefloat_policy_opts sflt_opts = ntg_sidefloat_policy_opts_def();
+    sflt_opts.align = NTG_ALIGN_2;
+    sflt_opts.side = NTG_SIDE_W;
+    sflt_opts.thresh = NTG_SIDEFLOAT_POLICY_THRESH_ALWAYS;
+
+    ntg_anchor_policy_init_sidefloat(&sflt_ap, &sflt_opts);
+
+    ntg_cleanup_batch_add(batch, &sflt_ap, ntg_anchor_policy_deinit_, NULL);
 }

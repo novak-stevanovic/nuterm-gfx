@@ -345,6 +345,7 @@ static struct ntg_object_measure measure_fn(
 {
     const ntg_label* label = (const ntg_label*)_label;
     size_t for_size = ntg_object_get_for_size_cont(_label, orient);
+    if(for_size == 0) return (struct ntg_object_measure) {0};
     
     if(label->_text.len == 0) return (struct ntg_object_measure) {0};
 

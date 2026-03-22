@@ -67,13 +67,14 @@ struct ntg_object
         ntg_object_vec _anchored;
         ntg_object* _base;
         const struct ntg_anchor_policy* _anchor_policy;
+        // z-index is taken into consideration only if the object is root
+        int _z_index;
     };
 
     struct
     {
         struct ntg_xy _user_min_size_cont, _user_max_size_cont, _user_grow;
         struct ntg_vcell _def_bg;
-        int _z_index;
     };
 
     struct

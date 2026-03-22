@@ -6,18 +6,6 @@
 /* STATIC */
 /* ========================================================================== */
 
-struct ntg_float_policy_dt
-{
-    ntg_object* anchor;
-    struct ntg_float_policy_opts opts;
-};
-
-struct ntg_sidefloat_policy_dt
-{
-    ntg_object* anchor;
-    struct ntg_sidefloat_policy_opts opts;
-};
-
 static size_t root_constrain_fn(
         const void* _data,
         ntg_orient orient,
@@ -80,7 +68,7 @@ struct ntg_sidefloat_policy_opts ntg_sidefloat_policy_opts_def()
 {
     return (struct ntg_sidefloat_policy_opts) {
         .align = NTG_ALIGN_1,
-        .orient = NTG_SIDEFLOAT_POLICY_ORIENT_N,
+        .side = NTG_SIDE_N,
         .thresh = NTG_SIDEFLOAT_POLICY_THRESH_MIN,
         .enable = NTG_SIDEFLOAT_POLICY_ENABLE_STATIC,
         .size_cap = NTG_SIDEFLOAT_POLICY_SZCAP_NONE
@@ -108,48 +96,38 @@ void ntg_anchor_policy_deinit_(void* _policy)
 
 void ntg_anchor_policy_init_float(
         struct ntg_anchor_policy* policy,
-        ntg_object* anchor,
         const struct ntg_float_policy_opts* opts)
 {
     if(!policy) return;
-    assert(anchor);
     
-    struct ntg_float_policy_dt* data = malloc(sizeof(*data));
-    assert(data);
+    struct ntg_float_policy_opts* opts_copy = malloc(sizeof(*opts_copy));
+    assert(opts_copy);
 
-    (*data) = (struct ntg_float_policy_dt) {
-        .anchor = anchor,
-        .opts = (opts ? (*opts) : ntg_float_policy_opts_def())
-    };
+    (*opts_copy) = (opts ? (*opts) : ntg_float_policy_opts_def());
 
     (*policy) = (struct ntg_anchor_policy) {
         .constrain_fn = float_constrain_fn,
         .arrange_fn = float_arrange_fn,
-        .data = data,
+        .data = opts_copy,
         .free_fn = free
     };
 }
 
 void ntg_anchor_policy_init_sidefloat(
         struct ntg_anchor_policy* policy,
-        ntg_object* anchor,
         const struct ntg_sidefloat_policy_opts* opts)
 {
     if(!policy) return;
-    assert(anchor);
     
-    struct ntg_sidefloat_policy_dt* data = malloc(sizeof(*data));
-    assert(data);
+    struct ntg_sidefloat_policy_opts* opts_copy = malloc(sizeof(*opts_copy));
+    assert(opts_copy);
 
-    (*data) = (struct ntg_sidefloat_policy_dt) {
-        .anchor = anchor,
-        .opts = (opts ? (*opts) : ntg_sidefloat_policy_opts_def())
-    };
+    (*opts_copy) = (opts ? (*opts) : ntg_sidefloat_policy_opts_def());
 
     (*policy) = (struct ntg_anchor_policy) {
         .constrain_fn = sidefloat_constrain_fn,
         .arrange_fn = sidefloat_arrange_fn,
-        .data = data,
+        .data = opts_copy,
         .free_fn = free
     };
 }
@@ -184,37 +162,35 @@ static size_t float_constrain_fn(
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena)
 {
-    const struct ntg_float_policy_dt* data = _data;
+    const struct ntg_float_policy_opts* opts = _data;
 
     const ntg_object* base = ctx->base;
     const ntg_object* root = ctx->root;
-    const ntg_object* anchor = data->anchor;
 
-    if(!base || !ntg_object_is_descendant_eq(base, data->anchor))
-        return 0;
+    if(!base) return 0;
 
-    struct ntg_object_measure root_measure, anchor_measure;
+    struct ntg_object_measure root_measure, base_measure;
     root_measure = ntg_object_get_measure(root, orient);
-    anchor_measure = ntg_object_get_measure(anchor, orient);
+    base_measure = ntg_object_get_measure(base, orient);
 
-    size_t anchor_size = ntg_xy_get(anchor->_size, orient);
-    size_t shrink = ntg_insets_sum(data->opts.shrink, orient);
-    size_t size = _min2_size(_ssub_size(anchor_size, shrink), root_measure.nat_size);
+    size_t base_size = ntg_xy_get(base->_size, orient);
+    size_t shrink = ntg_insets_sum(opts->shrink, orient);
+    size_t size = _min2_size(_ssub_size(base_size, shrink), root_measure.nat_size);
 
     size_t thresh;
-    switch(data->opts.enable)
+    switch(opts->enable)
     {
         case NTG_FLOAT_POLICY_ENABLE_MIN:
             thresh = root_measure.min_size;
             break;
         case NTG_FLOAT_POLICY_ENABLE_BASE_MIN:
-            thresh = anchor_measure.min_size;
+            thresh = base_measure.min_size;
             break;
         case NTG_FLOAT_POLICY_ENABLE_NAT:
             thresh = root_measure.nat_size;
             break;
         case NTG_FLOAT_POLICY_ENABLE_BASE_NAT:
-            thresh = anchor_measure.nat_size;
+            thresh = base_measure.nat_size;
             break;
         case NTG_FLOAT_POLICY_ENABLE_ALWAYS:
             thresh = 0;
@@ -229,31 +205,29 @@ static struct ntg_xy float_arrange_fn(
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena)
 {
-    const struct ntg_float_policy_dt* data = _data;
+    const struct ntg_float_policy_opts* opts = _data;
 
     const ntg_object* base = ctx->base;
-    const ntg_object* anchor = data->anchor;
 
-    if(!base || !ntg_object_is_descendant_eq(base, anchor))
-        return ntg_xy(0, 0);
+    if(!base) return ntg_xy(0, 0);
 
     if(ntg_xy_size_is_zero(ctx->size))
         return ntg_xy(0, 0);
 
     struct ntg_xy shrink = ntg_xy(
-        ntg_insets_hsum(data->opts.shrink),
-        ntg_insets_vsum(data->opts.shrink));
-    struct ntg_xy base_size = ntg_xy_sub(anchor->_size, shrink);
+        ntg_insets_hsum(opts->shrink),
+        ntg_insets_vsum(opts->shrink));
+    struct ntg_xy base_size = ntg_xy_sub(base->_size, shrink);
 
     struct ntg_xy align_offset = ntg_xy(
-            ntg_align_offset(ctx->size.x, base_size.x, data->opts.prim_align),
-            ntg_align_offset(ctx->size.y, base_size.y, data->opts.sec_align));
+            ntg_align_offset(ctx->size.x, base_size.x, opts->prim_align),
+            ntg_align_offset(ctx->size.y, base_size.y, opts->sec_align));
 
-    align_offset.x += data->opts.shrink.w;
-    align_offset.y += data->opts.shrink.n;
+    align_offset.x += opts->shrink.w;
+    align_offset.y += opts->shrink.n;
 
     struct ntg_xy
-    pos = ntg_xy_from_dxy(ntg_object_map_to_scene(anchor, ntg_dxy(0, 0)));
+    pos = ntg_xy_from_dxy(ntg_object_map_to_scene(base, ntg_dxy(0, 0)));
 
     return ntg_xy_add(pos, align_offset);
 }
@@ -264,17 +238,16 @@ static size_t sidefloat_constrain_fn(
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena)
 {
-    const struct ntg_sidefloat_policy_dt* data = _data;
+    const struct ntg_sidefloat_policy_opts* opts = _data;
+
     const ntg_object* root = ctx->root;
-    const ntg_object* base = ctx->root;
-    const ntg_object* anchor = data->anchor;
+    const ntg_object* base = ctx->base;
 
-    if(!ntg_object_is_descendant_eq(base, anchor))
-        return 0;
+    if(!base) return 0;
 
-    struct ntg_xy _anchor_pos;
-    _anchor_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(anchor, ntg_dxy(0, 0)));
-    size_t anchor_pos = ntg_xy_get(_anchor_pos, orient);
+    struct ntg_xy _base_pos;
+    _base_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(base, ntg_dxy(0, 0)));
+    size_t base_pos = ntg_xy_get(_base_pos, orient);
 
     struct ntg_object_measure root_measure;
     root_measure = ntg_object_get_measure(root, orient);
@@ -282,36 +255,36 @@ static size_t sidefloat_constrain_fn(
     const ntg_scene* scene = ntg_object_get_scene(ctx->root);
     size_t scene_size = (scene ? ntg_xy_get(scene->_size, orient) : 0);
 
-    size_t anchor_size = ntg_xy_get(anchor->_size, orient);
-    if(anchor_size == 0) return 0;
+    size_t base_size = ntg_xy_get(base->_size, orient);
+    if(base_size == 0) return 0;
 
     size_t available_space;
-    bool capped = (data->opts.size_cap == NTG_SIDEFLOAT_POLICY_SZCAP_ANCHOR);
-    switch(data->opts.orient)
+    bool capped = (opts->size_cap == NTG_SIDEFLOAT_POLICY_SZCAP_ANCHOR);
+    switch(opts->side)
     {
-        case NTG_SIDEFLOAT_POLICY_ORIENT_N:
+        case NTG_SIDE_N:
             available_space = (orient == NTG_ORIENT_H) ?
-                (capped ? anchor_size : scene_size) :
-                anchor_pos;
+                (capped ? base_size : scene_size) :
+                base_pos;
             break;
 
-        case NTG_SIDEFLOAT_POLICY_ORIENT_E:
+        case NTG_SIDE_E:
             available_space = (orient == NTG_ORIENT_V) ?
-                (capped ? anchor_size : scene_size) :
-                _ssub_size(scene_size, anchor_size + anchor_pos);
+                (capped ? base_size : scene_size) :
+                _ssub_size(scene_size, base_size + base_pos);
 
             break;
 
-        case NTG_SIDEFLOAT_POLICY_ORIENT_S:
+        case NTG_SIDE_S:
             available_space = (orient == NTG_ORIENT_H) ?
-                (capped ? anchor_size : scene_size) :
-                _ssub_size(scene_size, anchor_size + anchor_pos);
+                (capped ? base_size : scene_size) :
+                _ssub_size(scene_size, base_size + base_pos);
             break;
 
-        case NTG_SIDEFLOAT_POLICY_ORIENT_W:
+        case NTG_SIDE_W:
             available_space = (orient == NTG_ORIENT_V) ?
-                (capped ? anchor_size : scene_size) :
-                anchor_pos;
+                (capped ? base_size : scene_size) :
+                base_pos;
             break;
 
         default:
@@ -319,7 +292,7 @@ static size_t sidefloat_constrain_fn(
     }
 
     size_t thresh_size;
-    switch(data->opts.thresh)
+    switch(opts->thresh)
     {
         case NTG_SIDEFLOAT_POLICY_THRESH_MIN:
             thresh_size = root_measure.min_size;
@@ -345,59 +318,54 @@ static struct ntg_xy sidefloat_arrange_fn(
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena)
 {
-    const struct ntg_sidefloat_policy_dt* data = _data;
+    const struct ntg_sidefloat_policy_opts* opts = _data;
+
     const ntg_object* root = ctx->root;
-    const ntg_object* base = ctx->root;
-    const ntg_object* anchor = data->anchor;
+    const ntg_object* base = ctx->base;
 
-    if(!ntg_object_is_descendant_eq(base, anchor))
-        return ntg_xy(0, 0);
+    if(!base) return ntg_xy(0, 0);
 
-    struct ntg_xy anchor_pos;
-    anchor_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(anchor, ntg_dxy(0, 0)));
+    struct ntg_xy base_pos;
+    base_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(base, ntg_dxy(0, 0)));
 
     const ntg_scene* scene = ntg_object_get_scene(ctx->root);
     struct ntg_xy scene_size = (scene ? scene->_size : ntg_xy(0, 0));
 
-    size_t align_total_size, align_content_size;
-
-    ntg_orient align_orient = (
-            ((data->opts.orient == NTG_SIDEFLOAT_POLICY_ORIENT_N) ||
-                (data->opts.orient == NTG_SIDEFLOAT_POLICY_ORIENT_S)) ?
-            NTG_ORIENT_H : NTG_ORIENT_V);
-
-    bool capped = (data->opts.size_cap == NTG_SIDEFLOAT_POLICY_SZCAP_ANCHOR);
-
-    align_total_size = (
-            capped ?
-            ntg_xy_get(anchor->_size, align_orient) :
-            ntg_xy_get(scene_size, align_orient));
-
-    align_content_size = ntg_xy_get(root->_size, align_orient);
-
-    size_t align_pos = ntg_align_offset(align_content_size,
-            align_total_size, data->opts.align);
+    ntg_orient align_orient = ntg_side_get_orient(opts->side);
 
     struct ntg_xy pos = ntg_xy(0, 0);
-    switch(data->opts.orient)
+
+    struct ntg_dxy size_diff = ntg_dxy(
+            (ssize_t)root->_size.x - (ssize_t)base->_size.x,
+            (ssize_t)root->_size.y - (ssize_t)base->_size.y);
+
+    switch(opts->side)
     {
-        case NTG_SIDEFLOAT_POLICY_ORIENT_N:
-            pos.x = (capped ? anchor_pos.x + align_pos : align_pos);
-            pos.y = _ssub_size(anchor_pos.y, root->_size.y);
+        case NTG_SIDE_N:
+            pos.x = (size_diff.x > 0) ?
+                _ssub_size(base->_pos.x, size_diff.x) :
+                base->_pos.x + ntg_align_offset_d(root->_size.x, base->_size.x, opts->align);
+            pos.y = _ssub_size(base->_pos.y, root->_size.y);
             break;
-        case NTG_SIDEFLOAT_POLICY_ORIENT_E:
-            pos.y = (capped ? anchor_pos.y + align_pos : align_pos);
-            pos.x = anchor_pos.x + anchor->_size.x;
+        case NTG_SIDE_E:
+            pos.x = base->_pos.x + base->_size.x;
+            pos.y = (size_diff.y > 0) ? 
+                _ssub_size(base->_pos.y, size_diff.y) :
+                base->_pos.y + ntg_align_offset_d(root->_size.y, base->_size.y, opts->align);
             break;
-        case NTG_SIDEFLOAT_POLICY_ORIENT_S:
-            pos.x = (capped ? anchor_pos.x + align_pos : align_pos);
-            pos.y = anchor_pos.y + anchor->_size.y;
+        case NTG_SIDE_S:
+            pos.x = (size_diff.x > 0) ?
+                _ssub_size(base->_pos.x, size_diff.x) :
+                base->_pos.x + ntg_align_offset_d(root->_size.x, base->_size.x, opts->align);
+            pos.y = base->_pos.y + base->_size.y;
             break;
-        case NTG_SIDEFLOAT_POLICY_ORIENT_W:
-            pos.y = (capped ? anchor_pos.y + align_pos : align_pos);
-            pos.x = _ssub_size(anchor_pos.x, root->_size.x);
+        case NTG_SIDE_W:
+            pos.x = _ssub_size(base->_pos.x, root->_size.x);
+            pos.y = (size_diff.y > 0) ? 
+                _ssub_size(base->_pos.y, size_diff.y) :
+                base->_pos.y + ntg_align_offset_d(root->_size.y, base->_size.y, opts->align);
             break;
     }
 
-    return ntg_xy_clamp(ntg_xy(0, 0), pos, scene_size);
+    return pos;
 }
