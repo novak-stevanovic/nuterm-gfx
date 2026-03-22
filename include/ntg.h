@@ -56,14 +56,13 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// ACTIVE:
-// finish implementing side float attach policy(enable option)
-
-// TODO: return default structs via function param?
+// CORE:
 // TODO: implement modals on scene, object focus managers | **
+
+// FEATURES:
 // TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **
 
-// RELEASE
+// RELEASE:
 // TODO: hide functions from final .so file(change -fvisibility)
 // TODO: nuterm-gfx: add more generic events
 // TODO: nuterm-gfx: add proper error-handling

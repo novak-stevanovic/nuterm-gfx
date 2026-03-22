@@ -70,7 +70,6 @@ struct ntg_sidefloat_policy_opts ntg_sidefloat_policy_opts_def()
         .align = NTG_ALIGN_1,
         .side = NTG_SIDE_N,
         .thresh = NTG_SIDEFLOAT_POLICY_THRESH_MIN,
-        .enable = NTG_SIDEFLOAT_POLICY_ENABLE_STATIC,
         .size_cap = NTG_SIDEFLOAT_POLICY_SZCAP_NONE
     };
 }
@@ -325,13 +324,11 @@ static struct ntg_xy sidefloat_arrange_fn(
 
     if(!base) return ntg_xy(0, 0);
 
-    struct ntg_xy base_pos;
-    base_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(base, ntg_dxy(0, 0)));
+    // struct ntg_xy base_pos;
+    // base_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(base, ntg_dxy(0, 0)));
 
-    const ntg_scene* scene = ntg_object_get_scene(ctx->root);
-    struct ntg_xy scene_size = (scene ? scene->_size : ntg_xy(0, 0));
-
-    ntg_orient align_orient = ntg_side_get_orient(opts->side);
+    // const ntg_scene* scene = ntg_object_get_scene(ctx->root);
+    // struct ntg_xy scene_size = (scene ? scene->_size : ntg_xy(0, 0));
 
     struct ntg_xy pos = ntg_xy(0, 0);
 

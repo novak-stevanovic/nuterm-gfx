@@ -75,12 +75,6 @@ enum ntg_sidefloat_policy_thresh
     NTG_SIDEFLOAT_POLICY_THRESH_ALWAYS,
 };
 
-enum ntg_sidefloat_policy_enable
-{
-    NTG_SIDEFLOAT_POLICY_ENABLE_STATIC,
-    NTG_SIDEFLOAT_POLICY_ENABLE_DYNAMIC
-};
-
 enum ntg_sidefloat_policy_szcap
 {
     NTG_SIDEFLOAT_POLICY_SZCAP_NONE,
@@ -92,7 +86,6 @@ struct ntg_sidefloat_policy_opts
     ntg_align align;
     enum ntg_side side;
     enum ntg_sidefloat_policy_thresh thresh;
-    enum ntg_sidefloat_policy_enable enable; // TODO
     enum ntg_sidefloat_policy_szcap size_cap;
 };
 
