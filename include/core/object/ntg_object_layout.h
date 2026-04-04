@@ -2,6 +2,8 @@
 #define NTG_OBJECT_LAYOUT_H
 
 #include "shared/ntg_shared.h"
+#include "base/ntg_xy.h"
+#include "base/ntg_cell.h"
 #include <stdint.h>
 
 /* ========================================================================== */
@@ -57,9 +59,9 @@ static inline bool ntg_object_measure_are_equal(
         struct ntg_object_measure m2)
 {
     return ((m1.min_size == m2.min_size) &&
-    (m1.nat_size == m2.nat_size) &&
-    (m1.max_size == m2.max_size) &&
-    (m1.grow == m2.grow));
+            (m1.nat_size == m2.nat_size) &&
+            (m1.max_size == m2.max_size) &&
+            (m1.grow == m2.grow));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -180,7 +182,6 @@ size_t ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient);
 /* INTERNAL */
 /* ========================================================================== */
 
-// Called by scene layer - internal?
 void _ntg_object_hmeasure(ntg_object* object, sarena* arena);
 void _ntg_object_hconstrain(ntg_object* object, sarena* arena);
 void _ntg_object_vmeasure(ntg_object* object, sarena* arena);

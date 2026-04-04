@@ -18,6 +18,12 @@ struct ntg_scene_layout_data
     bool repeat;
 };
 
+struct ntg_scene_ctx_data
+{
+};
+
+GENC_SIMPLE_LIST_GENERATE(ntg_scene_ctx_list, struct ntg_scene_ctx_data);
+
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
@@ -68,6 +74,7 @@ static void init_default(ntg_scene* scene)
     scene->__on_key_fn = ntg_scene_dispatch_key;
     scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
     scene->_dirty = false;
+    scene->__ctx_stack = NULL;
     scene->data = NULL;
 }
 
@@ -76,6 +83,11 @@ void ntg_scene_init(ntg_scene* scene)
     assert(scene != NULL);
 
     init_default(scene);
+
+    scene->__ctx_stack = malloc(sizeof(struct ntg_scene_ctx_list));
+    assert(scene->__ctx_stack);
+
+    ntg_scene_ctx_list_init(scene->__ctx_stack, NULL);
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -86,6 +98,8 @@ void ntg_scene_deinit(ntg_scene* scene)
         ntg_stage_set_scene(scene->_stage, NULL);
 
     init_default(scene);
+
+    ntg_scene_ctx_list_deinit(scene->__ctx_stack, NULL);
 }
 
 void ntg_scene_deinit_(void* _scene)

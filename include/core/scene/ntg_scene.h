@@ -10,6 +10,27 @@
 /* ========================================================================== */
 
 struct ntg_attach_policy;
+struct ntg_scene_ctx_list;
+
+enum ntg_focus_scope_mode
+{
+    NTG_FOCUS_SCOPE_MODELESS,
+    NTG_FOCUS_SCOPE_MODAL
+};
+
+struct ntg_focus_ctx
+{
+    ntg_scene* scene;
+    ntg_object* ctx_root;
+};
+
+struct ntg_focus_scope
+{
+    ntg_object* ctx_root;
+    bool (*on_key_fn)(void* data, const struct ntg_focus_ctx* ctx);
+    ntg_focus_scope_mode mode;
+    void* data;
+};
 
 /* -------------------------------------------------------------------------- */
 /* SCENE */
@@ -33,6 +54,10 @@ struct ntg_scene
         bool (*__on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse);
     };
 
+    ntg_focus_scope_list* __scope_list;
+
+    ntg_object* __focused;
+
     void* data;
 };
 
@@ -55,11 +80,17 @@ size_t ntg_scene_collect_layers_by_z(
         size_t cap);
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
 
+void ntg_scene_push_ctx(ntg_scene* scene, const struct ntg_focus_scope* scope);
+
 /* -------------------------------------------------------------------------- */
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
+// Default implementation of `on_key_fn`. Dispatches key to current scene context
 bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key);
+
+// Default implementation of `on_key_fn`. Dispatches adjusted mouse event to
+// scene context, if in bounds.
 bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 
 void ntg_scene_set_on_key_fn(ntg_scene* scene,
