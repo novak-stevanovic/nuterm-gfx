@@ -1,4 +1,0 @@
-#ifndef NTG_ATTACH_POLICY_H
-#define NTG_ATTACH_POLICY_H
-
-#endif // NTG_ATTACH_POLICY_H

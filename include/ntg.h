@@ -57,7 +57,7 @@ void ntg_wait();
 /* -------------------------------------------------------------------------- */
 
 // CORE:
-// TODO: implement modals on scene, object focus managers | ** | ACTIVE
+// TODO: implement modals on scene, object focus managers | ** | ACTIVE, nearly done
 
 // FEATURES:
 // TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **

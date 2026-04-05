@@ -2,9 +2,7 @@
 #include <assert.h>
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
-
-// What if object which is root of scope stack gets removed from tree? - make scope auto-pop when it head again?
-// Handle on_key_fn and on_mouse_fn for scene.
+#include "core/scene/ntg_focus_manager_internal.h"
 
 #define DEBUG 0
 
@@ -20,14 +18,6 @@ struct ntg_scene_layout_data
     sarena* arena;
     bool repeat;
 };
-
-struct ntg_scene_scope_data
-{
-    struct ntg_scene_scope scope;
-    ntg_object* last_focused;
-};
-
-GENC_SIMPLE_LIST_GENERATE(ntg_scene_scope_list, struct ntg_scene_scope_data);
 
 /* ========================================================================== */
 /* STATIC */
@@ -79,7 +69,7 @@ static void init_default(ntg_scene* scene)
     scene->__on_key_fn = ntg_scene_dispatch_key;
     scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
     scene->_dirty = false;
-    scene->__scope_stack = NULL;
+    scene->__fm = NULL;
     scene->data = NULL;
 }
 
@@ -89,19 +79,21 @@ void ntg_scene_init(ntg_scene* scene)
 
     init_default(scene);
 
-    scene->__scope_stack = malloc(sizeof(struct ntg_scene_scope_list));
-    assert(scene->__scope_stack);
+    scene->__fm = malloc(sizeof(ntg_focus_manager));
+    assert(scene->__fm);
 
-    ntg_scene_scope_list_init(scene->__scope_stack, NULL);
+    ntg_focus_manager_init(scene->__fm, scene);
 
     struct ntg_scene_scope scope = {
         .root = NULL,
         .on_key_fn = NULL,
-        .mode = NTG_FOCUS_SCOPE_MODELESS,
+        .input_mode = NTG_SCENE_SCOPE_INPUT_MODELESS,
+        .click_mode = NTG_SCENE_SCOPE_CLICK_KEEP_FOCUS,
+        .block_mode = NTG_SCENE_SCOPE_BLOCK_FALSE,
         .data = NULL
     };
 
-    ntg_scene_push_scope(scene, &scope);
+    ntg_focus_manager_push_scope(scene->__fm, &scope);
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -113,7 +105,7 @@ void ntg_scene_deinit(ntg_scene* scene)
 
     init_default(scene);
 
-    ntg_scene_scope_list_deinit(scene->__scope_stack, NULL);
+    ntg_focus_manager_deinit(scene->__fm);
 }
 
 void ntg_scene_deinit_(void* _scene)
@@ -197,96 +189,47 @@ bool ntg_scene_request_focus(ntg_scene* scene, ntg_object* object)
 {
     assert(scene);
 
-    if(object)
-    {
-        const struct ntg_scene_scope* scope = ntg_scene_get_active_scope(scene);
-        ntg_object* scope_root = scope->root;
-
-        if(scope_root)
-        {
-            if(ntg_object_is_descendant_eq(object, scope_root))
-            {
-                scene->__focused = object;
-                return true;
-            }
-            else return false;
-        }
-    }
-
-    scene->__focused = NULL;
+    return ntg_focus_manager_request_focus(scene->__fm, object);
 }
 
 const ntg_object* ntg_scene_get_focused(const ntg_scene* scene)
 {
-    assert(0);
+    assert(scene);
 
-    return scene->__focused;
+    return ntg_focus_manager_get_focused(scene->__fm);
 }
 
 ntg_object* ntg_scene_get_focused_(ntg_scene* scene)
 {
-    assert(0);
+    assert(scene);
 
-    return scene->__focused;
+    return ntg_focus_manager_get_focused_(scene->__fm);
 }
 
-void ntg_scene_push_scope(ntg_scene* scene, const struct ntg_scene_scope* scope)
+void ntg_scene_scope_stack_push(ntg_scene* scene, const struct ntg_scene_scope* scope)
 {
     assert(scene);
     assert(scope);
 
-    if(scope->root) // make sure that scope root is desc of scene root
-    {
-        size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
-        assert(layer_count > 0);
-
-        ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
-        assert(layers);
-
-        size_t i;
-        bool valid = false;
-        for(i = 0; i < layer_count; i++)
-        {
-            if(ntg_object_is_descendant_eq(scope->root, layers[i]))
-                valid = true;
-        }
-
-        free(layers);
-
-        assert(valid);
-    }
-
-    struct ntg_scene_scope_list_node* head = scene->__scope_stack->head;
-    assert(head);
-
-    head->data->last_focused = scene->__focused;
-
-    struct ntg_scene_scope_data data = {
-        .scope = *scope,
-        .last_focused = NULL
-    };
-
-    int _status;
-    ntg_scene_scope_list_pushf(scene->__scope_stack, data, &_status);
-    assert(_status == GENC_SUCCESS);
-
-    ntg_scene_request_focus(scene, NULL);
+    ntg_focus_manager_push_scope(scene->__fm, scope);
 }
 
-// TODO: implement
-void ntg_scene_pop_scope(ntg_scene* scene, const struct ntg_scene_scope* scope)
+void ntg_scene_scope_stack_pop(ntg_scene* scene)
 {
-    assert(0);
+    assert(scene);
+
+    // Keep the default scope inside the list
+    if(ntg_focus_manager_get_scope_count(scene->__fm) < 2)
+        return;
+
+    ntg_focus_manager_pop_scope(scene->__fm);
 }
 
 const struct ntg_scene_scope* ntg_scene_get_active_scope(const ntg_scene* scene)
 {
     assert(scene);
 
-    struct ntg_scene_scope_list_node* head = scene->__scope_stack->head;
-    assert(head);
-    
-    return (head ? &(head->data->scope) : NULL);
+    return ntg_focus_manager_get_active_scope(scene->__fm);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -297,14 +240,14 @@ bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key)
 {
     assert(scene);
 
-    return false;
+    return ntg_focus_manager_on_key(scene->__fm, key);
 }
 
 bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 {
     assert(scene);
 
-    return false;
+    return ntg_focus_manager_on_mouse(scene->__fm, mouse);
 }
 
 void ntg_scene_set_on_key_fn(
@@ -330,8 +273,6 @@ void ntg_scene_set_on_mouse_fn(
         ntg_scene* scene,
         bool (*on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse))
 {
-    assert(scene);
-
     assert(scene);
 
     scene->__on_mouse_fn = on_mouse_fn;
@@ -382,6 +323,8 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
     assert(object != NULL);
 
     ntg_scene_mark_dirty(scene);
+
+    ntg_focus_manager_invalidate(scene->__fm, object);
 }
 
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
