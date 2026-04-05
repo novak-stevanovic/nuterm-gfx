@@ -10,9 +10,8 @@
 /* ========================================================================== */
 
 struct ntg_attach_policy;
-struct ntg_scene_ctx_list;
 
-enum ntg_focus_scope_mode
+enum ntg_scene_scope_mode
 {
     NTG_FOCUS_SCOPE_MODELESS,
     NTG_FOCUS_SCOPE_MODAL
@@ -21,14 +20,14 @@ enum ntg_focus_scope_mode
 struct ntg_focus_ctx
 {
     ntg_scene* scene;
-    ntg_object* ctx_root;
+    ntg_object* scope_root;
 };
 
-struct ntg_focus_scope
+struct ntg_scene_scope
 {
-    ntg_object* ctx_root;
-    bool (*on_key_fn)(void* data, const struct ntg_focus_ctx* ctx);
-    ntg_focus_scope_mode mode;
+    ntg_object* root;
+    void (*on_key_fn)(void* data, const struct ntg_focus_ctx* ctx);
+    ntg_scene_scope_mode mode;
     void* data;
 };
 
@@ -54,7 +53,7 @@ struct ntg_scene
         bool (*__on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse);
     };
 
-    ntg_focus_scope_list* __scope_list;
+    ntg_scene_scope_list* __scope_stack;
 
     ntg_object* __focused;
 
@@ -80,7 +79,13 @@ size_t ntg_scene_collect_layers_by_z(
         size_t cap);
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
 
-void ntg_scene_push_ctx(ntg_scene* scene, const struct ntg_focus_scope* scope);
+bool ntg_scene_request_focus(ntg_scene* scene, ntg_object* object);
+const ntg_object* ntg_scene_get_focused(const ntg_scene* scene);
+ntg_object* ntg_scene_get_focused_(ntg_scene* scene);
+
+void ntg_scene_push_scope(ntg_scene* scene, const struct ntg_scene_scope* scope);
+void ntg_scene_pop_scope(ntg_scene* scene, const struct ntg_scene_scope* scope);
+const struct ntg_scene_scope* ntg_scene_get_active_scope(const ntg_scene* scene);
 
 /* -------------------------------------------------------------------------- */
 /* EVENT */

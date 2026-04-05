@@ -70,7 +70,8 @@ typedef struct ntg_stage ntg_stage;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
 
 typedef struct ntg_scene ntg_scene;
-typedef struct ntg_scene_ctx_list ntg_scene_ctx_list;
+typedef struct ntg_scene_scope_list ntg_scene_scope_list;
+typedef enum ntg_scene_scope_mode ntg_scene_scope_mode;
 
 typedef struct ntg_object ntg_object;
 typedef enum ntg_object_dcr_enable ntg_object_dcr_enable;

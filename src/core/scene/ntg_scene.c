@@ -3,6 +3,9 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 
+// What if object which is root of scope stack gets removed from tree? - make scope auto-pop when it head again?
+// Handle on_key_fn and on_mouse_fn for scene.
+
 #define DEBUG 0
 
 #define LAYER_LAYOUT_MAX_IT 10
@@ -18,11 +21,13 @@ struct ntg_scene_layout_data
     bool repeat;
 };
 
-struct ntg_scene_ctx_data
+struct ntg_scene_scope_data
 {
+    struct ntg_scene_scope scope;
+    ntg_object* last_focused;
 };
 
-GENC_SIMPLE_LIST_GENERATE(ntg_scene_ctx_list, struct ntg_scene_ctx_data);
+GENC_SIMPLE_LIST_GENERATE(ntg_scene_scope_list, struct ntg_scene_scope_data);
 
 /* ========================================================================== */
 /* STATIC */
@@ -74,7 +79,7 @@ static void init_default(ntg_scene* scene)
     scene->__on_key_fn = ntg_scene_dispatch_key;
     scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
     scene->_dirty = false;
-    scene->__ctx_stack = NULL;
+    scene->__scope_stack = NULL;
     scene->data = NULL;
 }
 
@@ -84,10 +89,19 @@ void ntg_scene_init(ntg_scene* scene)
 
     init_default(scene);
 
-    scene->__ctx_stack = malloc(sizeof(struct ntg_scene_ctx_list));
-    assert(scene->__ctx_stack);
+    scene->__scope_stack = malloc(sizeof(struct ntg_scene_scope_list));
+    assert(scene->__scope_stack);
 
-    ntg_scene_ctx_list_init(scene->__ctx_stack, NULL);
+    ntg_scene_scope_list_init(scene->__scope_stack, NULL);
+
+    struct ntg_scene_scope scope = {
+        .root = NULL,
+        .on_key_fn = NULL,
+        .mode = NTG_FOCUS_SCOPE_MODELESS,
+        .data = NULL
+    };
+
+    ntg_scene_push_scope(scene, &scope);
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -99,7 +113,7 @@ void ntg_scene_deinit(ntg_scene* scene)
 
     init_default(scene);
 
-    ntg_scene_ctx_list_deinit(scene->__ctx_stack, NULL);
+    ntg_scene_scope_list_deinit(scene->__scope_stack, NULL);
 }
 
 void ntg_scene_deinit_(void* _scene)
@@ -177,6 +191,102 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
     }
 
     scene->_root = root;
+}
+
+bool ntg_scene_request_focus(ntg_scene* scene, ntg_object* object)
+{
+    assert(scene);
+
+    if(object)
+    {
+        const struct ntg_scene_scope* scope = ntg_scene_get_active_scope(scene);
+        ntg_object* scope_root = scope->root;
+
+        if(scope_root)
+        {
+            if(ntg_object_is_descendant_eq(object, scope_root))
+            {
+                scene->__focused = object;
+                return true;
+            }
+            else return false;
+        }
+    }
+
+    scene->__focused = NULL;
+}
+
+const ntg_object* ntg_scene_get_focused(const ntg_scene* scene)
+{
+    assert(0);
+
+    return scene->__focused;
+}
+
+ntg_object* ntg_scene_get_focused_(ntg_scene* scene)
+{
+    assert(0);
+
+    return scene->__focused;
+}
+
+void ntg_scene_push_scope(ntg_scene* scene, const struct ntg_scene_scope* scope)
+{
+    assert(scene);
+    assert(scope);
+
+    if(scope->root) // make sure that scope root is desc of scene root
+    {
+        size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
+        assert(layer_count > 0);
+
+        ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
+        assert(layers);
+
+        size_t i;
+        bool valid = false;
+        for(i = 0; i < layer_count; i++)
+        {
+            if(ntg_object_is_descendant_eq(scope->root, layers[i]))
+                valid = true;
+        }
+
+        free(layers);
+
+        assert(valid);
+    }
+
+    struct ntg_scene_scope_list_node* head = scene->__scope_stack->head;
+    assert(head);
+
+    head->data->last_focused = scene->__focused;
+
+    struct ntg_scene_scope_data data = {
+        .scope = *scope,
+        .last_focused = NULL
+    };
+
+    int _status;
+    ntg_scene_scope_list_pushf(scene->__scope_stack, data, &_status);
+    assert(_status == GENC_SUCCESS);
+
+    ntg_scene_request_focus(scene, NULL);
+}
+
+// TODO: implement
+void ntg_scene_pop_scope(ntg_scene* scene, const struct ntg_scene_scope* scope)
+{
+    assert(0);
+}
+
+const struct ntg_scene_scope* ntg_scene_get_active_scope(const ntg_scene* scene)
+{
+    assert(scene);
+
+    struct ntg_scene_scope_list_node* head = scene->__scope_stack->head;
+    assert(head);
+    
+    return (head ? &(head->data->scope) : NULL);
 }
 
 /* -------------------------------------------------------------------------- */
