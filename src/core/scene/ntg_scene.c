@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
-#include "core/scene/ntg_focus_manager_internal.h"
+#include "core/scene/ntg_focus_manager.h"
 
 #define DEBUG 0
 
@@ -69,7 +69,7 @@ static void init_default(ntg_scene* scene)
     scene->__on_key_fn = ntg_scene_dispatch_key;
     scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
     scene->_dirty = false;
-    scene->__fm = NULL;
+    scene->_fm = NULL;
     scene->data = NULL;
 }
 
@@ -79,10 +79,10 @@ void ntg_scene_init(ntg_scene* scene)
 
     init_default(scene);
 
-    scene->__fm = malloc(sizeof(ntg_focus_manager));
-    assert(scene->__fm);
+    scene->_fm = malloc(sizeof(ntg_focus_manager));
+    assert(scene->_fm);
 
-    ntg_focus_manager_init(scene->__fm, scene);
+    ntg_focus_manager_init(scene->_fm, scene);
 
     struct ntg_scene_scope scope = {
         .root = NULL,
@@ -93,7 +93,7 @@ void ntg_scene_init(ntg_scene* scene)
         .data = NULL
     };
 
-    ntg_focus_manager_push_scope(scene->__fm, &scope);
+    ntg_focus_manager_push_scope(scene->_fm, &scope);
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -105,7 +105,7 @@ void ntg_scene_deinit(ntg_scene* scene)
 
     init_default(scene);
 
-    ntg_focus_manager_deinit(scene->__fm);
+    ntg_focus_manager_deinit(scene->_fm);
 }
 
 void ntg_scene_deinit_(void* _scene)
@@ -185,53 +185,6 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
     scene->_root = root;
 }
 
-bool ntg_scene_request_focus(ntg_scene* scene, ntg_object* object)
-{
-    assert(scene);
-
-    return ntg_focus_manager_request_focus(scene->__fm, object);
-}
-
-const ntg_object* ntg_scene_get_focused(const ntg_scene* scene)
-{
-    assert(scene);
-
-    return ntg_focus_manager_get_focused(scene->__fm);
-}
-
-ntg_object* ntg_scene_get_focused_(ntg_scene* scene)
-{
-    assert(scene);
-
-    return ntg_focus_manager_get_focused_(scene->__fm);
-}
-
-void ntg_scene_scope_stack_push(ntg_scene* scene, const struct ntg_scene_scope* scope)
-{
-    assert(scene);
-    assert(scope);
-
-    ntg_focus_manager_push_scope(scene->__fm, scope);
-}
-
-void ntg_scene_scope_stack_pop(ntg_scene* scene)
-{
-    assert(scene);
-
-    // Keep the default scope inside the list
-    if(ntg_focus_manager_get_scope_count(scene->__fm) < 2)
-        return;
-
-    ntg_focus_manager_pop_scope(scene->__fm);
-}
-
-const struct ntg_scene_scope* ntg_scene_get_active_scope(const ntg_scene* scene)
-{
-    assert(scene);
-
-    return ntg_focus_manager_get_active_scope(scene->__fm);
-}
-
 /* -------------------------------------------------------------------------- */
 /* EVENT */
 /* -------------------------------------------------------------------------- */
@@ -240,14 +193,14 @@ bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key)
 {
     assert(scene);
 
-    return ntg_focus_manager_on_key(scene->__fm, key);
+    return ntg_focus_manager_on_key(scene->_fm, key);
 }
 
 bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 {
     assert(scene);
 
-    return ntg_focus_manager_on_mouse(scene->__fm, mouse);
+    return ntg_focus_manager_on_mouse(scene->_fm, mouse);
 }
 
 void ntg_scene_set_on_key_fn(
@@ -324,7 +277,7 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
 
     ntg_scene_mark_dirty(scene);
 
-    ntg_focus_manager_invalidate(scene->__fm, object);
+    ntg_focus_manager_invalidate(scene->_fm, object);
 }
 
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)

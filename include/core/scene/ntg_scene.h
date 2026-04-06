@@ -10,43 +10,6 @@
 
 struct ntg_attach_policy;
 
-// Should be taken into account by the scene's `on_key_fn` and `on_mouse_fn`
-enum ntg_scene_scope_input_mode
-{
-    NTG_SCENE_SCOPE_INPUT_MODELESS,
-    NTG_SCENE_SCOPE_INPUT_MODAL
-};
-
-// Should be taken into account by the scene's `on_key_fn` and `on_mouse_fn`
-enum ntg_scene_scope_click_mode
-{
-    NTG_SCENE_SCOPE_CLICK_KEEP_FOCUS,
-    NTG_SCENE_SCOPE_CLICK_CLEAR_FOCUS
-};
-
-// Forbids pushing new scopes onto the stack
-enum ntg_scene_scope_block_mode
-{
-    NTG_SCENE_SCOPE_BLOCK_FALSE,
-    NTG_SCENE_SCOPE_BLOCK_TRUE
-};
-
-struct ntg_focus_ctx
-{
-    ntg_scene* scene;
-    ntg_object* scope_root;
-};
-
-struct ntg_scene_scope
-{
-    ntg_object* root;
-    void (*on_key_fn)(void* data, const struct ntg_focus_ctx* ctx);
-    ntg_scene_scope_input_mode input_mode;
-    ntg_scene_scope_click_mode click_mode;
-    ntg_scene_scope_block_mode block_mode;
-    void* data;
-};
-
 /* -------------------------------------------------------------------------- */
 /* SCENE */
 /* -------------------------------------------------------------------------- */
@@ -69,7 +32,7 @@ struct ntg_scene
         bool (*__on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse);
     };
 
-    ntg_focus_manager* __fm;
+    ntg_focus_manager* _fm;
 
     void* data;
 };
@@ -93,19 +56,11 @@ size_t ntg_scene_collect_layers_by_z(
         size_t cap);
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
 
-bool ntg_scene_request_focus(ntg_scene* scene, ntg_object* object);
-const ntg_object* ntg_scene_get_focused(const ntg_scene* scene);
-ntg_object* ntg_scene_get_focused_(ntg_scene* scene);
-
-void ntg_scene_scope_stack_push(ntg_scene* scene, const struct ntg_scene_scope* scope);
-void ntg_scene_scope_stack_pop(ntg_scene* scene);
-const struct ntg_scene_scope* ntg_scene_get_active_scope(const ntg_scene* scene);
-
 /* -------------------------------------------------------------------------- */
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-// Default implementations. Dispatches events to focus manager
+// Default implementations. Dispatches to focus manager
 bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key);
 bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 

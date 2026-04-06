@@ -1,4 +1,4 @@
-#include "core/scene/ntg_focus_manager_internal.h"
+#include "core/scene/ntg_focus_manager.h"
 
 // #include <stdlib.h>
 // #include <assert.h>
