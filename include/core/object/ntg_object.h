@@ -105,6 +105,12 @@ struct ntg_object
             struct ntg_insets size;
         } _padding;
     };
+
+    struct
+    {
+        bool (*__on_key_fn)(ntg_object* object, struct nt_key_event key);
+        bool (*__on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
+    };
 };
 
 /* ========================================================================== */
@@ -184,6 +190,18 @@ ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
 
 struct ntg_dxy 
 ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
+
+/* -------------------------------------------------------------------------- */
+/* EVENT */
+/* -------------------------------------------------------------------------- */
+
+void ntg_object_set_on_key_fn(ntg_object* object,
+        bool (*on_key_fn)(ntg_object* object, struct nt_key_event key));
+bool ntg_object_on_key(ntg_object* object, struct nt_key_event key);
+
+void ntg_object_set_on_mouse_fn(ntg_object* object,
+        bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse));
+bool ntg_object_on_mouse(ntg_object* object, struct nt_mouse_event mouse);
 
 /* -------------------------------------------------------------------------- */
 /* TRAVERSE HELPERS */

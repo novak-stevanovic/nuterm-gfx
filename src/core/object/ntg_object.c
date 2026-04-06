@@ -410,6 +410,48 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point)
     return ntg_object_map_to_descendant(NULL, object, point);
 }
 
+/* -------------------------------------------------------------------------- */
+/* EVENT */
+/* -------------------------------------------------------------------------- */
+
+void ntg_object_set_on_key_fn(ntg_object* object,
+        bool (*on_key_fn)(ntg_object* object, struct nt_key_event key))
+{
+    assert(object);
+
+    object->__on_key_fn = on_key_fn;
+}
+
+bool ntg_object_on_key(ntg_object* object, struct nt_key_event key)
+{
+    assert(object);
+
+    if(object->__on_key_fn)
+    {
+        return object->__on_key_fn(object, key);
+    }
+    else
+        return false;
+}
+
+void ntg_object_set_on_mouse_fn(ntg_object* object,
+        bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse))
+{
+    assert(object);
+
+    object->__on_mouse_fn = on_mouse_fn;
+}
+
+bool ntg_object_on_mouse(ntg_object* object, struct nt_mouse_event mouse)
+{
+    if(object->__on_mouse_fn)
+    {
+        return object->__on_mouse_fn(object, mouse);
+    }
+    else
+        return false;
+}
+
 /* ========================================================================== */
 /* PROTECTED (ntg_object.h) */
 /* ========================================================================== */

@@ -8,28 +8,34 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-// Should be taken into account by the scene's `on_key_fn` and `on_mouse_fn`
 enum ntg_focus_scope_input_mode
 {
-    NTG_SCENE_SCOPE_INPUT_MODELESS,
-    NTG_SCENE_SCOPE_INPUT_MODAL
+    NTG_FOCUS_SCOPE_INPUT_MODELESS,
+    NTG_FOCUS_SCOPE_INPUT_MODAL
 };
 
-// Should be taken into account by the scene's `on_key_fn` and `on_mouse_fn`
-enum ntg_focus_scope_click_mode
+enum ntg_focus_scope_in_click_mode
 {
-    NTG_SCENE_SCOPE_CLICK_KEEP_FOCUS,
-    NTG_SCENE_SCOPE_CLICK_CLEAR_FOCUS
+    NTG_FOCUS_SCOPE_IN_CLICK_CLR_FIRST,
+    NTG_FOCUS_SCOPE_IN_CLICK_KEEP,
+    NTG_FOCUS_SCOPE_IN_CLICK_CLR,
+    NTG_FOCUS_SCOPE_IN_CLICK_REFCS
+};
+
+enum ntg_focus_scope_out_click_mode
+{
+    NTG_FOCUS_SCOPE_OUT_CLICK_CLR,
+    NTG_FOCUS_SCOPE_OUT_CLICK_KEEP
 };
 
 // Forbids pushing new scopes onto the stack
 enum ntg_focus_scope_block_mode
 {
-    NTG_SCENE_SCOPE_BLOCK_FALSE,
-    NTG_SCENE_SCOPE_BLOCK_TRUE
+    NTG_FOCUS_SCOPE_BLOCK_FALSE,
+    NTG_FOCUS_SCOPE_BLOCK_TRUE
 };
 
-struct ntg_focus_ctx
+struct ntg_input_ctx
 {
     ntg_focus_manager* fm;
     ntg_object* scope_root;
@@ -38,10 +44,16 @@ struct ntg_focus_ctx
 struct ntg_focus_scope
 {
     ntg_object* root;
-    void (*on_key_fn)(void* data, const struct ntg_focus_ctx* ctx);
+
     ntg_focus_scope_input_mode input_mode;
-    ntg_focus_scope_click_mode click_mode;
+    ntg_focus_scope_out_click_mode out_click_mode;
+    ntg_focus_scope_in_click_mode in_click_mode;
     ntg_focus_scope_block_mode block_mode;
+
+    bool (*on_key_fn)(
+            void* data,
+            const struct ntg_input_ctx* ctx,
+            struct nt_key_event key);
     void* data;
 };
 

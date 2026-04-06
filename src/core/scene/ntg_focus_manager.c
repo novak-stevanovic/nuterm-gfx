@@ -48,9 +48,10 @@ void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene)
     struct ntg_focus_scope scope = {
         .root = NULL,
         .on_key_fn = NULL,
-        .input_mode = NTG_SCENE_SCOPE_INPUT_MODELESS,
-        .click_mode = NTG_SCENE_SCOPE_CLICK_KEEP_FOCUS,
-        .block_mode = NTG_SCENE_SCOPE_BLOCK_FALSE,
+        .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
+        .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
+        .in_click_mode = NTG_FOCUS_SCOPE_IN_CLICK_CLR_FIRST,
+        .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
         .data = NULL
     };
 
@@ -92,7 +93,7 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
 
         ntg_object* scope_root = scope->root;
 
-        if(scope_root) // SCOPE HAS ROOT
+        if(scope_root) // SSCOPE HAS ROOT
         {
             if(ntg_object_is_descendant_eq(scope_root, object)) // FOCUSABLE
             {
@@ -122,6 +123,14 @@ void ntg_focus_manager_push_scope(
     assert(fm);
     assert(scope);
 
+    struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
+
+    if(head)
+    {
+        if(head->data->scope.block_mode == NTG_FOCUS_SCOPE_BLOCK_TRUE)
+            return;
+    }
+
     if(scope->root) // make sure that scope root is desc of any layer root
     {
         size_t layer_count = ntg_scene_collect_layers_by_z(fm->_scene, NULL, 0);
@@ -145,7 +154,6 @@ void ntg_focus_manager_push_scope(
         assert(desc_of_any_layer);
     }
 
-    struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
     if(head)
     {
         head->data->last_focused = fm->_focused;
@@ -207,14 +215,54 @@ void ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed)
 
 bool ntg_focus_manager_on_key(ntg_focus_manager* fm, struct nt_key_event key)
 {
-    // TODO
-    assert(0);
+    assert(fm);
+
+    const struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
+    if(!scope) return false;
+
+    struct ntg_input_ctx ctx = {
+        .fm = fm,
+        .scope_root = scope->root
+    };
+
+    if(scope->on_key_fn)
+        return scope->on_key_fn(scope->data, &ctx, key);
+    else
+        return false;
 }
 
 bool ntg_focus_manager_on_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
 {
-    // TODO
-    assert(0);
+    assert(fm);
+
+    const struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
+    if(!scope) return false;
+
+    struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
+
+    ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos);
+    if(!hit)
+        return false;
+
+    if(ntg_object_is_descendant_eq(scope->root, hit)) // INSIDE SCOPE
+    {
+        // TODO
+        assert(0);
+    }
+    else // OUTSIDE SCOPE
+    {
+        if(scope->input_mode == NTG_FOCUS_SCOPE_INPUT_MODELESS)
+        {
+            return ntg_object_on_mouse(fm->_focused, mouse);
+        }
+        else
+            return false;
+
+        if(scope->out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
+        {
+            ntg_focus_manager_request_focus(fm, NULL);
+        }
+    }
 }
 
 /* ========================================================================== */
