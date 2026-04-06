@@ -68,5 +68,6 @@ void ntg_wait();
 // TODO: nuterm-gfx: add more generic events
 // TODO: nuterm-gfx: add proper error-handling
 // TODO: nuterm-gfx: make comment documentation consistent
+// BUG: Horizontal resize causes line to appear at the bottom
 
 #endif // NTG_H

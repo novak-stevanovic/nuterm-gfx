@@ -83,17 +83,6 @@ void ntg_scene_init(ntg_scene* scene)
     assert(scene->_fm);
 
     ntg_focus_manager_init(scene->_fm, scene);
-
-    struct ntg_scene_scope scope = {
-        .root = NULL,
-        .on_key_fn = NULL,
-        .input_mode = NTG_SCENE_SCOPE_INPUT_MODELESS,
-        .click_mode = NTG_SCENE_SCOPE_CLICK_KEEP_FOCUS,
-        .block_mode = NTG_SCENE_SCOPE_BLOCK_FALSE,
-        .data = NULL
-    };
-
-    ntg_focus_manager_push_scope(scene->_fm, &scope);
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -103,9 +92,10 @@ void ntg_scene_deinit(ntg_scene* scene)
     if(scene->_stage)
         ntg_stage_set_scene(scene->_stage, NULL);
 
-    init_default(scene);
-
     ntg_focus_manager_deinit(scene->_fm);
+    free(scene->_fm);
+
+    init_default(scene);
 }
 
 void ntg_scene_deinit_(void* _scene)
@@ -173,6 +163,8 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
     if(scene->_root)
     {
         _ntg_object_root_set_scene(scene->_root, NULL);
+        
+        // If an element is focused, _ntg_scene_unregister_tree() will take care of it
         _ntg_scene_unregister_tree(scene, scene->_root);
     }
 
