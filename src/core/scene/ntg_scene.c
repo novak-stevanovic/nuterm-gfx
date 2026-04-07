@@ -140,6 +140,50 @@ void ntg_scene_layout(ntg_scene* scene, sarena* arena)
 
 }
 
+ntg_object* ntg_scene_hit_test(
+        ntg_scene* scene,
+        struct ntg_xy pos,
+        struct ntg_xy* out_object_pos)
+{
+    assert(scene);
+
+    if(out_object_pos)
+        *out_object_pos = ntg_xy(0, 0);
+
+    size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
+
+    ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
+    assert(layers);
+
+    ntg_scene_collect_layers_by_z(scene, layers, layer_count);
+
+    size_t i;
+    struct ntg_xy it_adj_pos;
+    struct ntg_xy _out_object_pos;
+    ntg_object* hit = NULL;
+    for(i = 0; i < layer_count; i++)
+    {
+        it_adj_pos = ntg_xy_from_dxy(
+                ntg_object_map_from_scene(layers[i],
+                ntg_dxy_from_xy(pos)));
+
+        hit = ntg_object_hit_test(layers[i], it_adj_pos, &_out_object_pos);
+        if(hit) break;
+    }
+
+    free(layers);
+
+    if(hit)
+    {
+        if(out_object_pos)
+            (*out_object_pos) = _out_object_pos;
+
+        return hit;
+    }
+    else
+        return NULL;
+}
+
 size_t ntg_scene_collect_layers_by_z(
         ntg_scene* scene,
         ntg_object** out_layers,

@@ -26,6 +26,20 @@ static void scope_stack_sync(ntg_focus_manager* fm);
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
+bool ntg_focus_scope_dispatch_key(
+        void* data,
+        const struct ntg_focus_key_ctx* ctx,
+        struct nt_key_event key)
+{
+}
+
+bool ntg_focus_scope_dispatch_mouse(
+        void* data,
+        const struct ntg_focus_mouse_ctx* ctx,
+        struct nt_mouse_event mouse)
+{
+}
+
 /* -------------------------------------------------------------------------- */
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
@@ -50,7 +64,6 @@ void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene)
         .on_key_fn = NULL,
         .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
         .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
-        .in_click_mode = NTG_FOCUS_SCOPE_IN_CLICK_CLR_FIRST,
         .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
         .data = NULL
     };
@@ -220,7 +233,7 @@ bool ntg_focus_manager_on_key(ntg_focus_manager* fm, struct nt_key_event key)
     const struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
     if(!scope) return false;
 
-    struct ntg_input_ctx ctx = {
+    struct ntg_focus_key_ctx ctx = {
         .fm = fm,
         .scope_root = scope->root
     };
@@ -246,8 +259,20 @@ bool ntg_focus_manager_on_mouse(ntg_focus_manager* fm, struct nt_mouse_event mou
 
     if(ntg_object_is_descendant_eq(scope->root, hit)) // INSIDE SCOPE
     {
-        // TODO
-        assert(0);
+        struct ntg_xy adj_pos;
+        adj_pos = ntg_xy_from_dxy(ntg_object_map_from_scene(scope->root, ntg_dxy_from_xy(pos)));
+
+        struct ntg_focus_mouse_ctx ctx = {
+            .fm = fm,
+            .scope_root = scope->root,
+            .clicked = hit,
+            .adj_pos = adj_pos
+        };
+
+        if(scope->on_mouse_fn)
+            return scope->on_mouse_fn(scope->data, &ctx, mouse);
+        else
+            return false;
     }
     else // OUTSIDE SCOPE
     {

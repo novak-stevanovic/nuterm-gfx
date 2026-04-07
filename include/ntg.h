@@ -32,6 +32,7 @@
 #include "core/object/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
 #include "core/scene/ntg_focus_manager.h"
+#include "core/scene/ntg_focus_scope.h"
 #include "core/object/ntg_anchor_policy.h"
 #include "core/stage/ntg_stage_drawing.h"
 #include "core/stage/ntg_stage.h"
@@ -57,17 +58,18 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// CORE:
-// TODO: implement modals on scene, object focus managers | ** | ACTIVE, nearly done
+// TESTING:
+// TODO: test ntg_scene_hit_test() and focus manager, scopes
 
 // FEATURES:
-// TODO: nuterm-gfx: implement more widgets(table, list, group, button, text field...) | **
+// TODO: implement more widgets(table, list, button, text field...) | **
 
 // RELEASE:
+// TODO: raise more generic events
+// TODO: add proper error-handling
+// TODO: add proper documentation
+// TODO: make .h files more readable
 // TODO: hide functions from final .so file(change -fvisibility)
-// TODO: nuterm-gfx: add more generic events
-// TODO: nuterm-gfx: add proper error-handling
-// TODO: nuterm-gfx: make comment documentation consistent
-// BUG: Horizontal resize causes line to appear at the bottom
+// BUG?: Horizontal resize causes line to appear at the bottom for split second
 
 #endif // NTG_H

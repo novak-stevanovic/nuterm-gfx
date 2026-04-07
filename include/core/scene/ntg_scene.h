@@ -48,7 +48,11 @@ void ntg_scene_deinit_(void* _scene);
 void ntg_scene_mark_dirty(ntg_scene* scene);
 void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
 void ntg_scene_layout(ntg_scene* scene, sarena* arena);
-ntg_object* ntg_scene_hit_test(ntg_scene* scene, struct ntg_xy pos);
+
+ntg_object* ntg_scene_hit_test(
+        ntg_scene* scene,
+        struct ntg_xy pos,
+        struct ntg_xy* out_object_pos);
 
 size_t ntg_scene_collect_layers_by_z(
         ntg_scene* scene,
