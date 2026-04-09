@@ -67,6 +67,8 @@ struct ntg_anchor_policy flt_ap;
 ntg_label sflt_label;
 struct ntg_anchor_policy sflt_ap;
 
+struct ntg_focus_scope fs;
+
 void init_north();
 void init_center();
 void init_flt_label();
@@ -74,9 +76,13 @@ void init_sflt_label();
 void init_root();
 void init_bs(); // border styles
 void init_ap(); // attach policies
+void init_fs(); // focus scopes
 
 bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
 {
+    bool consumed = ntg_loop_dispatch_event(loop, event);
+    if(consumed) return true;
+
     if(event.type == NT_EVENT_KEY)
     {
         struct nt_key_event key = *(struct nt_key_event*)event.data;
@@ -88,6 +94,29 @@ bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
     }
 
     return false;
+}
+
+bool scope_on_key_fn(
+        void* _,
+        const struct ntg_focus_key_ctx* ctx,
+        struct nt_key_event key)
+{
+    if(nt_key_event_utf32_check(key, '9', false))
+    {
+        ntg_loop_break(&loop, true);
+        return true;
+    }
+    return false;
+}
+
+bool scope_on_mouse_fn(
+        void* data,
+        const struct ntg_focus_mouse_ctx* ctx,
+        struct nt_mouse_event mouse)
+{
+    ntg_object_detach(ctx->clicked);
+
+    return true;
 }
 
 void gui_fn1(void* _)
@@ -103,6 +132,7 @@ void gui_fn1(void* _)
     init_flt_label();
     init_sflt_label();
     init_root();
+    init_fs();
 
     ntg_scene_init(&scene);
     ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_, NULL);
@@ -119,6 +149,8 @@ void gui_fn1(void* _)
     ntg_stage_set_scene(&stage, &scene);
     ntg_object_anchor(ntg_obj(&root), ntg_obj(&flt_label), &flt_ap);
     ntg_object_anchor(ntg_obj(&flt_label), ntg_obj(&sflt_label), &sflt_ap);
+
+    ntg_focus_manager_push_scope(scene._fm, &fs);
 
     ntg_loop_exit_status loop_status = ntg_loop_run(&loop);
     ntg_log_log("LOOP END | STATUS: %d", loop_status);
@@ -263,4 +295,17 @@ void init_ap()
     ntg_anchor_policy_init_sidefloat(&sflt_ap, &sflt_opts);
 
     ntg_cleanup_batch_add(batch, &sflt_ap, ntg_anchor_policy_deinit_, NULL);
+}
+
+void init_fs()
+{
+    fs = (struct ntg_focus_scope) {
+        .root = ntg_obj(&root),
+        .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
+        .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
+        .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
+        .on_key_fn = scope_on_key_fn,
+        .on_mouse_fn = scope_on_mouse_fn,
+        .data = NULL
+    };
 }

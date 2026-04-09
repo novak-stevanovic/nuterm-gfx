@@ -54,6 +54,7 @@ void ntg_launch(ntg_gui_fn gui_fn, void* data)
 
     nt_alt_screen_enable(NULL);
     nt_cursor_hide(NULL);
+    nt_mouse_mode_enable(NULL);
 
     struct thread_fn_data* thread_fn_data = malloc(sizeof(struct thread_fn_data));
     assert(thread_fn_data != NULL);
@@ -79,6 +80,7 @@ void ntg_deinit()
 {
     nt_cursor_show(NULL);
     nt_alt_screen_disable(NULL);
+    nt_mouse_mode_disable(NULL);
     nt_deinit();
 
    ntg_log_deinit();

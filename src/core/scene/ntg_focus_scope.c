@@ -1,7 +1,7 @@
 #include "ntg.h"
 
 bool ntg_focus_scope_dispatch_key(
-        void* data,
+        void* _,
         const struct ntg_focus_key_ctx* ctx,
         struct nt_key_event key)
 {
@@ -17,7 +17,7 @@ bool ntg_focus_scope_dispatch_key(
 }
 
 bool ntg_focus_scope_dispatch_mouse_static(
-        void* data,
+        void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse)
 {
@@ -31,7 +31,7 @@ bool ntg_focus_scope_dispatch_mouse_static(
 }
 
 bool ntg_focus_scope_dispatch_mouse_dynamic(
-        void* data,
+        void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse)
 {

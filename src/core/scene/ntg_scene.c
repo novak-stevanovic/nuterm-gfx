@@ -148,20 +148,21 @@ ntg_object* ntg_scene_hit_test(
     assert(scene);
 
     if(out_object_pos)
-        *out_object_pos = ntg_xy(0, 0);
+        (*out_object_pos) = ntg_xy(0, 0);
 
     size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
+    if(layer_count == 0) return NULL;
 
     ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
     assert(layers);
 
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
-    size_t i;
+    int i;
     struct ntg_xy it_adj_pos;
     struct ntg_xy _out_object_pos;
     ntg_object* hit = NULL;
-    for(i = 0; i < layer_count; i++)
+    for(i = layer_count - 1; i >= 0; i--)
     {
         it_adj_pos = ntg_xy_from_dxy(
                 ntg_object_map_from_scene(layers[i],

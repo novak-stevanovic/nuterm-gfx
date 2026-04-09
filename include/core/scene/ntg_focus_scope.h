@@ -12,8 +12,8 @@ enum ntg_focus_scope_input_mode
 
 enum ntg_focus_scope_out_click_mode
 {
-    NTG_FOCUS_SCOPE_OUT_CLICK_CLR,
-    NTG_FOCUS_SCOPE_OUT_CLICK_KEEP
+    NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
+    NTG_FOCUS_SCOPE_OUT_CLICK_CLR
 };
 
 // Forbids pushing new scopes onto the stack
@@ -60,14 +60,14 @@ struct ntg_focus_scope
 
 // Default implementation of `on_key_fn`. Dispatches event to focused element
 bool ntg_focus_scope_dispatch_key(
-        void* data,
+        void* _,
         const struct ntg_focus_key_ctx* ctx,
         struct nt_key_event key);
 
 /* Dispatches event to clicked element.
 Doesn't take into account focused element */
 bool ntg_focus_scope_dispatch_mouse_static(
-        void* data,
+        void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse);
 
@@ -75,7 +75,7 @@ bool ntg_focus_scope_dispatch_mouse_static(
 If no element is focused, the clicked element becomes focused.
 If clicked element is not focused, the focused element loses focus. */
 bool ntg_focus_scope_dispatch_mouse_dynamic(
-        void* data,
+        void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse);
 

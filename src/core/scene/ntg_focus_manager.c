@@ -26,20 +26,6 @@ static void scope_stack_sync(ntg_focus_manager* fm);
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-bool ntg_focus_scope_dispatch_key(
-        void* data,
-        const struct ntg_focus_key_ctx* ctx,
-        struct nt_key_event key)
-{
-}
-
-bool ntg_focus_scope_dispatch_mouse(
-        void* data,
-        const struct ntg_focus_mouse_ctx* ctx,
-        struct nt_mouse_event mouse)
-{
-}
-
 /* -------------------------------------------------------------------------- */
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
@@ -252,16 +238,16 @@ bool ntg_focus_manager_on_mouse(ntg_focus_manager* fm, struct nt_mouse_event mou
     if(!scope) return false;
 
     struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
+    struct ntg_xy adj_pos = ntg_xy(0, 0);
 
-    ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos);
+    ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos, &adj_pos);
     if(!hit)
         return false;
 
+    ntg_log_log("ADJ: %d %d", adj_pos.x, adj_pos.y);
+
     if(ntg_object_is_descendant_eq(scope->root, hit)) // INSIDE SCOPE
     {
-        struct ntg_xy adj_pos;
-        adj_pos = ntg_xy_from_dxy(ntg_object_map_from_scene(scope->root, ntg_dxy_from_xy(pos)));
-
         struct ntg_focus_mouse_ctx ctx = {
             .fm = fm,
             .scope_root = scope->root,

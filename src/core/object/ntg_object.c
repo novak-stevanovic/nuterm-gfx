@@ -239,6 +239,7 @@ size_t ntg_object_get_children_by_z(
     return children->size;
 }
 
+// TODO: fix `it_child_local`
 ntg_object* ntg_object_hit_test(
         ntg_object* object,
         struct ntg_xy pos,
@@ -270,7 +271,7 @@ ntg_object* ntg_object_hit_test(
         {
             best_obj = it_hit;
             curr_z = it_child->_z_index;
-            if(out_local_pos) *out_local_pos = it_child_local;
+            if(out_local_pos) (*out_local_pos) = it_child_local;
         }
     }
 
