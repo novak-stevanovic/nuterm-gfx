@@ -8,6 +8,7 @@
 #define ntg_box(box_ptr) ((ntg_box*)(box_ptr))
 #define ntg_pb(prog_bar_ptr) ((ntg_prog_bar*)(prog_bar_ptr))
 #define ntg_cb(color_block_ptr) ((ntg_color_block*)(color_block_ptr))
+#define ntg_lbl(label_ptr) ((ntg_label*)(label_ptr))
 
 #define ntg_scn(scene_ptr) ((ntg_scene*)(scene_ptr))
 

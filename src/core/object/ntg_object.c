@@ -239,7 +239,6 @@ size_t ntg_object_get_children_by_z(
     return children->size;
 }
 
-// TODO: fix `it_child_local`
 ntg_object* ntg_object_hit_test(
         ntg_object* object,
         struct ntg_xy pos,
@@ -445,6 +444,8 @@ void ntg_object_set_on_mouse_fn(ntg_object* object,
 
 bool ntg_object_on_mouse(ntg_object* object, struct nt_mouse_event mouse)
 {
+    assert(object);
+
     if(object->__on_mouse_fn)
     {
         return object->__on_mouse_fn(object, mouse);
@@ -577,6 +578,8 @@ void ntg_object_detach(ntg_object* object)
 
     if(scene)
         _ntg_scene_unregister_tree(scene, object);
+
+    ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_object_anchor(
@@ -602,6 +605,10 @@ void ntg_object_anchor(
     ntg_object_vec_pushb(&base->_anchored, root, NULL);
     root->_base = base;
     root->_anchor_policy = policy;
+
+    ntg_scene* scene = ntg_object_get_scene_(root);
+    if(scene)
+        _ntg_scene_register_tree(scene, root);
 }
 
 void ntg_object_unanchor(ntg_object* root)
@@ -609,9 +616,39 @@ void ntg_object_unanchor(ntg_object* root)
     assert(root);
     assert(root->_base);
 
+    ntg_scene* scene = ntg_object_get_scene_(root);
+
     ntg_object_vec_rm(&root->_base->_anchored, root, NULL);
     root->_base = NULL;
     root->_anchor_policy = NULL;
+
+    if(scene)
+        _ntg_scene_unregister_tree(scene, root);
+}
+
+void ntg_object_remove_from_scene(ntg_object* object)
+{
+    assert(object);
+
+    ntg_object* parent = object->_parent;
+    if(parent)
+    {
+        ntg_object_detach(object);
+        return;
+    }
+
+    ntg_object* base = object->_base;
+    if(base)
+    {
+        ntg_object_unanchor(object);
+        return;
+    }
+
+    if(object->__scene)
+    {
+        ntg_scene_set_root(object->__scene, NULL);
+        return;
+    }
 }
 
 /* ========================================================================== */
@@ -967,6 +1004,15 @@ void _ntg_object_hmeasure(ntg_object* object, sarena* arena)
                 object->_user_min_size_cont.x + extra,
                 object->_user_max_size_cont.x + extra,
                 object->_user_grow.x);
+
+        if(measure.min_size == extra)
+            measure.min_size = 0;
+
+        if(measure.nat_size == extra)
+            measure.nat_size = 0;
+
+        if(measure.max_size == extra)
+            measure.max_size = 0;
     }
 
     struct ntg_object_measure old = ntg_object_get_measure(object, NTG_ORIENT_H);
@@ -1096,6 +1142,15 @@ void _ntg_object_vmeasure(ntg_object* object, sarena* arena)
                 object->_user_min_size_cont.y + extra,
                 object->_user_max_size_cont.y + extra,
                 object->_user_grow.y);
+
+        if(measure.min_size == extra)
+            measure.min_size = 0;
+
+        if(measure.nat_size == extra)
+            measure.nat_size = 0;
+
+        if(measure.max_size == extra)
+            measure.max_size = 0;
     }
 
     struct ntg_object_measure old = ntg_object_get_measure(object, NTG_ORIENT_V);

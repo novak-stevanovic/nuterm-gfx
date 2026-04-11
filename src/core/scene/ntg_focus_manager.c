@@ -246,7 +246,7 @@ bool ntg_focus_manager_on_mouse(ntg_focus_manager* fm, struct nt_mouse_event mou
 
     ntg_log_log("ADJ: %d %d", adj_pos.x, adj_pos.y);
 
-    if(ntg_object_is_descendant_eq(scope->root, hit)) // INSIDE SCOPE
+    if((!scope->root) || ntg_object_is_descendant_eq(scope->root, hit)) // INSIDE SCOPE
     {
         struct ntg_focus_mouse_ctx ctx = {
             .fm = fm,
@@ -263,9 +263,7 @@ bool ntg_focus_manager_on_mouse(ntg_focus_manager* fm, struct nt_mouse_event mou
     else // OUTSIDE SCOPE
     {
         if(scope->input_mode == NTG_FOCUS_SCOPE_INPUT_MODELESS)
-        {
-            return ntg_object_on_mouse(fm->_focused, mouse);
-        }
+            return ntg_object_on_mouse(hit, mouse);
         else
             return false;
 

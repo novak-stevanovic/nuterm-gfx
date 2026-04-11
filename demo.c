@@ -51,16 +51,19 @@ const char* lorem =
 "vestibulum diam.";
 
 ntg_cleanup_batch* batch;
-struct ntg_border_style flt_rounded_border;
+struct ntg_border_style flt_rounded_border, def_rounded_border;
 ntg_main_panel root;
 ntg_label north;
-ntg_box center;
-ntg_color_block cb1, cb2;
+ntg_box center, south, south_box;
+ntg_label s_label, sb_label1, sb_label2, sb_label3;
+ntg_color_block c_cb1, c_cb2;
 ntg_stage stage;
 ntg_scene scene;
 ntg_loop loop;
 
 ntg_label flt_label;
+
+unsigned int sflt_counter = 0;
 
 struct ntg_anchor_policy flt_ap;
 
@@ -71,6 +74,7 @@ struct ntg_focus_scope fs;
 
 void init_north();
 void init_center();
+void init_south();
 void init_flt_label();
 void init_sflt_label();
 void init_root();
@@ -114,7 +118,27 @@ bool scope_on_mouse_fn(
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse)
 {
-    ntg_object_detach(ctx->clicked);
+    bool consumed = ntg_focus_scope_dispatch_mouse_static(data, ctx, mouse);
+    if(consumed) return true;
+
+    ntg_object_remove_from_scene(ctx->clicked);
+
+    return true;
+}
+
+bool sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse)
+{
+    ntg_label* label = ntg_lbl(_label);
+
+    if(mouse.type == NT_MOUSE_EVENT_CLICK_LEFT)
+        sflt_counter++;
+    else if(mouse.type == NT_MOUSE_EVENT_CLICK_RIGHT)
+        sflt_counter--;
+
+    char buff[50];
+    sprintf(buff, "Broj klikova: %d", sflt_counter);
+
+    ntg_label_set_text(label, buff);
 
     return true;
 }
@@ -129,6 +153,7 @@ void gui_fn1(void* _)
     init_ap();
     init_north();
     init_center();
+    init_south();
     init_flt_label();
     init_sflt_label();
     init_root();
@@ -200,18 +225,121 @@ void init_center()
     ntg_box_init(&center);
     ntg_cleanup_batch_add(batch, &center, ntg_box_deinit_, NULL);
 
-    ntg_color_block_init(&cb1);
-    ntg_cleanup_batch_add(batch, &cb1, ntg_color_block_deinit_, NULL);
+    ntg_color_block_init(&c_cb1);
+    ntg_cleanup_batch_add(batch, &c_cb1, ntg_color_block_deinit_, NULL);
 
-    ntg_color_block_init(&cb2);
-    ntg_cleanup_batch_add(batch, &cb2, ntg_color_block_deinit_, NULL);
+    ntg_color_block_init(&c_cb2);
+    ntg_cleanup_batch_add(batch, &c_cb2, ntg_color_block_deinit_, NULL);
 
     ntg_object_set_user_min_size_cont(ntg_obj(&center), ntg_xy(NTG_OBJECT_MIN_SIZE_UNSET, 15));
-    ntg_color_block_set_color(&cb1, nt_color_new_auto(200, 0, 40));
-    ntg_color_block_set_color(&cb2, nt_color_new_auto(40, 0, 200));
+    ntg_color_block_set_color(&c_cb1, nt_color_new_auto(200, 0, 40));
+    ntg_color_block_set_color(&c_cb2, nt_color_new_auto(40, 0, 200));
 
-    ntg_box_add_child(&center, ntg_obj(&cb1));
-    ntg_box_add_child(&center, ntg_obj(&cb2));
+    ntg_box_add_child(&center, ntg_obj(&c_cb1));
+    ntg_box_add_child(&center, ntg_obj(&c_cb2));
+}
+
+void init_south()
+{
+    struct ntg_padding_opts pad_opts = ntg_padding_opts_def();
+    pad_opts.pref_size = ntg_insets(1, 1, 1, 1);
+
+    struct ntg_border_opts border_opts = ntg_border_opts_def();
+    border_opts.pref_size = ntg_insets(1, 1, 1, 1);
+    border_opts.style = &def_rounded_border;
+    border_opts.enable = NTG_OBJECT_DCR_ENABLE_ALWAYS;
+
+    // SOUTH BOX
+
+    ntg_box_init(&south_box);
+    ntg_cleanup_batch_add(batch, &south_box, ntg_box_deinit_, NULL);
+
+    struct ntg_box_opts south_box_opts = ntg_box_opts_def();
+    south_box_opts.orient = NTG_ORIENT_V;
+
+    ntg_box_set_opts(&south_box, &south_box_opts);
+
+    ntg_object_set_border_opts(ntg_obj(&south_box), &border_opts);
+
+    // SOUTH BOX LABEL1
+
+    ntg_label_init(&sb_label1);
+    ntg_cleanup_batch_add(batch, &sb_label1, ntg_label_deinit_, NULL);
+
+    ntg_label_set_text(&sb_label1, "Test1");
+    ntg_object_set_padding_opts(ntg_obj(&sb_label1), &pad_opts);
+
+    struct ntg_label_opts sb_label1_opts = ntg_label_opts_def();
+    sb_label1_opts.gfx = (struct nt_gfx) {
+        .bg = nt_color_new_auto(250, 0, 0),
+        .fg = nt_color_new_auto(255, 255, 255),
+        .style = NT_STYLE_DEFAULT
+    };
+    ntg_label_set_opts(&sb_label1, &sb_label1_opts);
+
+    // SOUTH BOX LABEL2
+
+    ntg_label_init(&sb_label2);
+    ntg_cleanup_batch_add(batch, &sb_label2, ntg_label_deinit_, NULL);
+
+    ntg_label_set_text(&sb_label2, "Test2");
+    ntg_object_set_padding_opts(ntg_obj(&sb_label2), &pad_opts);
+
+    struct ntg_label_opts sb_label2_opts = ntg_label_opts_def();
+    sb_label2_opts.gfx = (struct nt_gfx) {
+        .bg = nt_color_new_auto(150, 0, 0),
+        .fg = nt_color_new_auto(255, 255, 255),
+        .style = NT_STYLE_DEFAULT
+    };
+    ntg_label_set_opts(&sb_label2, &sb_label2_opts);
+
+    // SOUTH BOX LABEL3
+
+    ntg_label_init(&sb_label3);
+    ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_, NULL);
+
+    struct ntg_label_opts sb_label3_opts = ntg_label_opts_def();
+    sb_label3_opts.gfx = (struct nt_gfx) {
+        .bg = nt_color_new_auto(100, 0, 0),
+        .fg = nt_color_new_auto(255, 255, 255),
+        .style = NT_STYLE_DEFAULT
+    };
+    sb_label3_opts.wrap = NTG_LABEL_WRAP_WORD;
+    ntg_label_set_opts(&sb_label3, &sb_label3_opts);
+
+    ntg_label_set_text(&sb_label3, lorem);
+    
+    // CONNECT
+
+    ntg_box_add_child(&south_box, ntg_obj(&sb_label1));
+    ntg_box_add_child(&south_box, ntg_obj(&sb_label2));
+    ntg_box_add_child(&south_box, ntg_obj(&sb_label3));
+
+    // SOUTH
+
+    ntg_label_init(&s_label);
+    ntg_cleanup_batch_add(batch, &s_label, ntg_label_deinit_, NULL);
+
+    ntg_label_set_text(&s_label, "ABCD");
+
+    ntg_object_set_border_opts(ntg_obj(&s_label), &border_opts);
+
+    struct ntg_label_opts s_label_opts = ntg_label_opts_def();
+    s_label_opts.gfx = (struct nt_gfx) {
+        .bg = nt_color_new_auto(50, 0, 0),
+        .fg = nt_color_new_auto(255, 255, 255),
+        .style = NT_STYLE_DEFAULT
+    };
+    ntg_label_set_opts(&s_label, &s_label_opts);
+    ntg_object_set_padding_opts(ntg_obj(&s_label), &pad_opts);
+
+    ntg_box_init(&south);
+    ntg_cleanup_batch_add(batch, &south, ntg_box_deinit_, NULL);
+
+    ntg_object_set_border_opts(ntg_obj(&south), &border_opts);
+
+    ntg_box_add_child(&south, ntg_obj(&s_label));
+    ntg_box_add_child(&south, ntg_obj(&south_box));
 }
 
 void init_flt_label()
@@ -259,6 +387,8 @@ void init_sflt_label()
     };
     ntg_label_set_opts(&sflt_label, &opts);
 
+    ntg_object_set_on_mouse_fn(ntg_obj(&sflt_label), sflt_on_mouse_fn);
+
     ntg_cleanup_batch_add(batch, &sflt_label, ntg_label_deinit_, NULL);
 }
 
@@ -268,12 +398,15 @@ void init_root()
     ntg_cleanup_batch_add(batch, &root, ntg_main_panel_deinit_, NULL);
     ntg_main_panel_set(&root, ntg_obj(&north), NTG_MAIN_PANEL_NORTH);
     ntg_main_panel_set(&root, ntg_obj(&center), NTG_MAIN_PANEL_CENTER);
+    ntg_main_panel_set(&root, ntg_obj(&south), NTG_MAIN_PANEL_SOUTH);
 }
 
 void init_bs()
 {
     ntg_border_style_init_rounded(&flt_rounded_border, NT_GFX_DEFAULT, true);
     ntg_cleanup_batch_add(batch, &flt_rounded_border, ntg_border_style_deinit_, NULL);
+    ntg_border_style_init_rounded(&def_rounded_border, NT_GFX_DEFAULT, false);
+    ntg_cleanup_batch_add(batch, &def_rounded_border, ntg_border_style_deinit_, NULL);
 }
 
 void init_ap()
@@ -300,7 +433,7 @@ void init_ap()
 void init_fs()
 {
     fs = (struct ntg_focus_scope) {
-        .root = ntg_obj(&root),
+        .root = NULL,
         .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
         .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
         .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,

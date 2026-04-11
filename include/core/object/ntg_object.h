@@ -259,6 +259,9 @@ void ntg_object_anchor(
 
 void ntg_object_unanchor(ntg_object* root);
 
+// If has parent, detach. If anchored, unanchor. If root, set root to NULL.
+void ntg_object_remove_from_scene(ntg_object* object);
+
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */

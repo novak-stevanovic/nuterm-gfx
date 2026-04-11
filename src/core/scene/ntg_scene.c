@@ -192,6 +192,9 @@ size_t ntg_scene_collect_layers_by_z(
 {
     assert(scene);
 
+    if(!scene->_root)
+        return 0;
+
     if(!out_layers) cap = SIZE_MAX;
     size_t counter = 0;
     collect_layers_by_z_internal(scene,
