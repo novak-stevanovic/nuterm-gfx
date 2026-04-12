@@ -58,9 +58,6 @@ void ntg_wait();
 /* TO-DO LIST */
 /* -------------------------------------------------------------------------- */
 
-// TESTING:
-// TODO: test ntg_scene_hit_test() and focus manager, scopes. Fix bug in ntg_object_hit_test()
-
 // FEATURES:
 // TODO: implement more widgets(table, list, button, text field...) | **
 

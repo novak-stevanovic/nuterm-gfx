@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
+/* UGLY CODE - TODO: rewrite sometime */
+
 /* ========================================================================== */
 /* TYPE DEFINITIONS */
 /* ========================================================================== */
@@ -85,8 +87,6 @@ static void draw_fn(
         ntg_object_tmp_drawing* out_drawing,
         void* layout_ch,
         sarena* arena);
-
-/* UGLY CODE - TODO: rewrite sometime */
 
 #define DEFAULT_SIZE 1
 

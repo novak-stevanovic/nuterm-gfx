@@ -131,7 +131,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
     nt_get_term_size(&loop->_app_size.x, &loop->_app_size.y);
 
     if(loop->_stage)
-        ntg_stage_set_size(loop->_stage, loop->_app_size);
+        _ntg_stage_set_size(loop->_stage, loop->_app_size);
     while(true)
     {
         if(loop->_status == NTG_LOOP_STOPPING) break;
@@ -150,9 +150,9 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
 
             if(loop->_stage)
             {
-                ntg_stage_set_size(loop->_stage, loop->_app_size);
+                _ntg_stage_set_size(loop->_stage, loop->_app_size);
             }
-            ntg_log_log("RESIZE");
+            ntg_log_log("RESIZE %d %d", loop->_app_size.x, loop->_app_size.y);
 
             resize_counter++;
         }
@@ -175,7 +175,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
             {
                 if(loop->_stage->_dirty)
                 {
-                    ntg_stage_compose(loop->_stage, loop->_arena);
+                    _ntg_stage_compose(loop->_stage, loop->_arena);
                     _ntg_stage_clean(loop->_stage);
                     // ntg_loop_break(loop, NTG_LOOP_STOP_CLEAN);
                 }
@@ -282,12 +282,12 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
         if(loop->_stage)
         {
             _ntg_stage_set_loop(loop->_stage, NULL);
-            ntg_stage_set_size(loop->_stage, ntg_xy(0, 0));
+            _ntg_stage_set_size(loop->_stage, ntg_xy(0, 0));
         }
         if(stage)
         {
             _ntg_stage_set_loop(stage, loop);
-            ntg_stage_set_size(stage, loop->_app_size);
+            _ntg_stage_set_size(stage, loop->_app_size);
             ntg_stage_mark_dirty(stage);
         }
 
@@ -353,14 +353,14 @@ static void update_stage(ntg_loop* loop)
     if(old)
     {
         _ntg_stage_set_loop(old, NULL);
-        ntg_stage_set_size(old, ntg_xy(0, 0));
+        _ntg_stage_set_size(old, ntg_xy(0, 0));
     }
     if(new)
     {
         assert(!new->_loop);
 
         _ntg_stage_set_loop(new, loop);
-        ntg_stage_set_size(new, loop->_app_size);
+        _ntg_stage_set_size(new, loop->_app_size);
         ntg_stage_mark_dirty(new);
     }
 

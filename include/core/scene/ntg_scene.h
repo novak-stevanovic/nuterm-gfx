@@ -46,8 +46,6 @@ void ntg_scene_deinit(ntg_scene* scene);
 void ntg_scene_deinit_(void* _scene);
 
 void ntg_scene_mark_dirty(ntg_scene* scene);
-void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
-void ntg_scene_layout(ntg_scene* scene, sarena* arena);
 
 ntg_object* ntg_scene_hit_test(
         ntg_scene* scene,
@@ -82,6 +80,10 @@ void ntg_scene_set_on_mouse_fn(ntg_scene* scene,
 
 void _ntg_scene_clean(ntg_scene* scene);
 bool _ntg_scene_is_dirty(const ntg_scene* scene);
+
+// Called by ntg_stage
+void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
+void _ntg_scene_layout(ntg_scene* scene, sarena* arena);
 
 // Called internally by ntg_stage. Updates only the scene's state
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);

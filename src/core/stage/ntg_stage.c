@@ -57,7 +57,7 @@ void ntg_stage_mark_dirty(ntg_stage* stage)
     stage->_dirty = true;
 }
 
-void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
+void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {
     if(!ntg_xy_are_equal(stage->_size, size))
     {
@@ -66,10 +66,10 @@ void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
     }
 
     if(stage->_scene)
-        ntg_scene_set_size(stage->_scene, size);
+        _ntg_scene_set_size(stage->_scene, size);
 }
 
-void ntg_stage_compose(ntg_stage* stage, sarena* arena)
+void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
 {
     assert(stage != NULL);
 
@@ -85,7 +85,7 @@ void ntg_stage_compose(ntg_stage* stage, sarena* arena)
 
     if(stage->_scene && stage->_scene->_dirty)
     {
-        ntg_scene_layout(stage->_scene, arena);
+        _ntg_scene_layout(stage->_scene, arena);
         _ntg_scene_clean(stage->_scene);
     }
 
@@ -128,7 +128,7 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     {
         _ntg_scene_set_stage(old_scene, NULL);
 
-        ntg_scene_set_size(old_scene, ntg_xy(0, 0));
+        _ntg_scene_set_size(old_scene, ntg_xy(0, 0));
     }
 
     stage->_scene = scene;
@@ -143,7 +143,7 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         }
 
         _ntg_scene_set_stage(scene, stage);
-        ntg_scene_set_size(scene, stage->_size);
+        _ntg_scene_set_size(scene, stage->_size);
         ntg_scene_mark_dirty(scene);
     }
 }

@@ -37,8 +37,6 @@ void ntg_stage_deinit(ntg_stage* stage);
 void ntg_stage_deinit_(void* _stage);
 
 void ntg_stage_mark_dirty(ntg_stage* stage);
-void ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
-void ntg_stage_compose(ntg_stage* stage, sarena* arena);
 
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 
@@ -61,5 +59,9 @@ bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 void _ntg_stage_clean(ntg_stage* stage);
 
 void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop);
+
+// Called by ntg_loop
+void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
+void _ntg_stage_compose(ntg_stage* stage, sarena* arena);
 
 #endif // NTG_STAGE_H

@@ -206,6 +206,8 @@ void ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed)
 
         it_node = it_node->next;
     }
+
+    scope_stack_sync(fm);
 }
 
 /* -------------------------------------------------------------------------- */

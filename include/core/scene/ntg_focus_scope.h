@@ -66,7 +66,7 @@ bool ntg_focus_scope_dispatch_key(
 
 /* Dispatches event to clicked element.
 Doesn't take into account focused element */
-bool ntg_focus_scope_dispatch_mouse_static(
+bool ntg_focus_scope_dispatch_mouse_stc(
         void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse);
@@ -74,7 +74,7 @@ bool ntg_focus_scope_dispatch_mouse_static(
 /* Dispatches event to clicked element.
 If no element is focused, the clicked element becomes focused.
 If clicked element is not focused, the focused element loses focus. */
-bool ntg_focus_scope_dispatch_mouse_dynamic(
+bool ntg_focus_scope_dispatch_mouse_dyn(
         void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse);

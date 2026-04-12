@@ -257,20 +257,25 @@ ntg_object* ntg_object_hit_test(
     if(out_local_pos) *out_local_pos = pos;
 
     size_t i;
-    struct ntg_xy it_pos, it_child_local;
+    struct ntg_xy it_child_local;
+    struct ntg_dxy it_adj_pos;
     ntg_object* it_child;
     ntg_object* it_hit;
     for(i = 0; i < object->_children.size; i++)
     {
         it_child = object->_children.data[i];
-        it_pos = ntg_xy_sub(pos, it_child->_pos);
-        it_hit = ntg_object_hit_test(it_child, it_pos, &it_child_local);
+        it_adj_pos = ntg_dxy_sub(ntg_dxy_from_xy(pos), ntg_dxy_from_xy(it_child->_pos));
 
-        if(it_hit && (it_child->_z_index > curr_z))
+        if(ntg_dxy_is_in_rectagle(it_adj_pos, ntg_dxy(0, 0), ntg_dxy_from_xy(it_child->_size)))
         {
-            best_obj = it_hit;
-            curr_z = it_child->_z_index;
-            if(out_local_pos) (*out_local_pos) = it_child_local;
+            it_hit = ntg_object_hit_test(it_child, ntg_xy_from_dxy(it_adj_pos), &it_child_local);
+
+            if(it_hit && (it_child->_z_index > curr_z))
+            {
+                best_obj = it_hit;
+                curr_z = it_child->_z_index;
+                if(out_local_pos) (*out_local_pos) = it_child_local;
+            }
         }
     }
 
@@ -1075,16 +1080,24 @@ void _ntg_object_hconstrain(ntg_object* object, sarena* arena)
     size_t i;
     size_t content_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_H);
 
+    ntg_object* it_child;
+    size_t it_old_size;
     if(content_size == 0)
     {
         for(i = 0; i < object->_children.size; i++)
         {
-            object->_children.data[i]->_size.x = 0;
+            it_child = object->_children.data[i];
+            it_old_size = it_child->_size.x;
+
+            if(it_old_size != 0)
+            {
+                it_child->_size.x = 0;
+                ntg_object_mark_dirty(it_child, NTG_OBJECT_DIRTY_HCONSTRAIN);
+            }
         }
 
         return;
     }
-
     ntg_object_size_map map;
     size_map_init(&map, &object->_children, arena);
 
@@ -1094,9 +1107,7 @@ void _ntg_object_hconstrain(ntg_object* object, sarena* arena)
                 &map, object->layout_cache, arena);
     }
 
-    ntg_object* it_child;
     size_t it_size;
-    size_t it_old_size;
     for(i = 0; i < map.size; i++)
     {
         it_child = map.keys[i];
@@ -1186,11 +1197,20 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena)
     size_t i;
     size_t content_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_V);
 
+    ntg_object* it_child;
+    size_t it_old_size;
     if(content_size == 0)
     {
         for(i = 0; i < object->_children.size; i++)
         {
-            object->_children.data[i]->_size.y = 0;
+            it_child = object->_children.data[i];
+            it_old_size = it_child->_size.y;
+
+            if(it_old_size != 0)
+            {
+                it_child->_size.y = 0;
+                ntg_object_mark_dirty(it_child, NTG_OBJECT_DIRTY_VCONSTRAIN);
+            }
         }
 
         return;
@@ -1205,9 +1225,7 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena)
                 &map, object->layout_cache, arena);
     }
 
-    ntg_object* it_child;
     size_t it_size;
-    size_t it_old_size;
     for(i = 0; i < map.size; i++)
     {
         it_child = map.keys[i];

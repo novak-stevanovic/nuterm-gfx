@@ -16,7 +16,7 @@ bool ntg_focus_scope_dispatch_key(
         return false;
 }
 
-bool ntg_focus_scope_dispatch_mouse_static(
+bool ntg_focus_scope_dispatch_mouse_stc(
         void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse)
@@ -30,7 +30,7 @@ bool ntg_focus_scope_dispatch_mouse_static(
         return false;
 }
 
-bool ntg_focus_scope_dispatch_mouse_dynamic(
+bool ntg_focus_scope_dispatch_mouse_dyn(
         void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse)

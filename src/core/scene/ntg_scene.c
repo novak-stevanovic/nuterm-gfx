@@ -115,7 +115,7 @@ void ntg_scene_mark_dirty(ntg_scene* scene)
     }
 }
 
-void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
+void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 {
     struct ntg_xy old_size = scene->_size;
     if(!ntg_xy_are_equal(old_size, size))
@@ -125,7 +125,7 @@ void ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
     }
 }
 
-void ntg_scene_layout(ntg_scene* scene, sarena* arena)
+void _ntg_scene_layout(ntg_scene* scene, sarena* arena)
 {
     assert(scene != NULL);
 
