@@ -109,52 +109,80 @@ struct ntg_padding_opts ntg_padding_opts_def()
 /* OBJECT TREE */
 /* -------------------------------------------------------------------------- */
 
+static void count_fn(ntg_object* object, void* _counter)
+{
+    if(!object) return;
+
+    size_t* counter = _counter;
+    (*counter)++;
+}
+
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(count_tree, count_fn);
+
+size_t ntg_object_get_tree_size(const ntg_object* root)
+{
+    assert(root);
+
+    size_t counter = 0;
+    count_tree((ntg_object*)root, &counter);
+
+    return counter;
+}
+
 const ntg_object* ntg_object_get_root(const ntg_object* object)
-{
-    assert(object);
-    while(object->_parent) object = object->_parent;
-    return object;
-}
-
-ntg_object* ntg_object_get_root_(ntg_object* object)
-{
-    assert(object != NULL);
-
-    return (ntg_object*)ntg_object_get_root(object);
-}
-
-ntg_scene* ntg_object_get_scene_(ntg_object* object)
-{
-    assert(object);
-
-    ntg_object *it_obj = object, *it_root, *it_base;
-    while(true)
-    {
-        it_root = ntg_object_get_root_(it_obj);
-        it_base = it_root->_base;
-        it_obj = it_base;
-
-        if(!it_base) break;
-    }
-
-    return it_root->__scene;
-}
-
-const ntg_scene* ntg_object_get_scene(const ntg_object* object)
 {
     assert(object);
 
     const ntg_object *it_obj = object, *it_root, *it_base;
     while(true)
     {
-        it_root = ntg_object_get_root(it_obj);
+        it_root = ntg_object_get_layer_root(it_obj);
         it_base = it_root->_base;
         it_obj = it_base;
 
         if(!it_base) break;
     }
 
-    return it_root->__scene;
+    return it_root;
+}
+
+ntg_object* ntg_object_get_root_(ntg_object* object)
+{
+    assert(object);
+
+    return (ntg_object*)ntg_object_get_root(object);
+}
+
+const ntg_object* ntg_object_get_layer_root(const ntg_object* object)
+{
+    assert(object);
+    while(object->_parent) object = object->_parent;
+    return object;
+}
+
+ntg_object* ntg_object_get_layer_root_(ntg_object* object)
+{
+    assert(object != NULL);
+
+    return (ntg_object*)ntg_object_get_layer_root(object);
+}
+
+ntg_scene* ntg_object_get_scene_(ntg_object* object)
+{
+    assert(object);
+
+    ntg_object* root = ntg_object_get_root_(object);
+
+    return root->__scene;
+}
+
+const ntg_scene* ntg_object_get_scene(const ntg_object* object)
+{
+    assert(object);
+
+    const ntg_object* root = ntg_object_get_root(object);
+
+    return root->__scene;
 }
 
 bool ntg_object_is_descendant(
@@ -180,26 +208,6 @@ bool ntg_object_is_descendant_eq(
 {
     return ((object == descendant) ||
     ntg_object_is_descendant(object, descendant));
-}
-
-static void count_fn(ntg_object* object, void* _counter)
-{
-    if(!object) return;
-
-    size_t* counter = _counter;
-    (*counter)++;
-}
-
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(count_tree, count_fn);
-
-size_t ntg_object_get_tree_size(const ntg_object* root)
-{
-    assert(root);
-
-    size_t counter = 0;
-    count_tree((ntg_object*)root, &counter);
-
-    return counter;
 }
 
 size_t ntg_object_get_children_by_z(
@@ -280,6 +288,97 @@ ntg_object* ntg_object_hit_test(
     }
 
     return best_obj;
+}
+
+void ntg_object_detach(ntg_object* object)
+{
+    assert(object != NULL);
+
+    ntg_object* parent = object->_parent;
+    if(parent == NULL) return;
+
+    ntg_scene* scene = ntg_object_get_scene_(object);
+
+    ntg_object_vec_rm(&parent->_children, object, NULL);
+
+    object->_parent = NULL;
+
+    if(parent->__hooks.on_child_rm_fn)
+        parent->__hooks.on_child_rm_fn(parent, object);
+
+    if(scene)
+        _ntg_scene_unregister_tree(scene, object);
+
+    ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
+}
+
+void ntg_object_anchor(
+        ntg_object* base,
+        ntg_object* root,
+        const struct ntg_anchor_policy* policy)
+{
+    assert(base);
+    assert(root);
+    assert(policy);
+    assert(base != root);
+
+    if(root->_parent)
+    {
+        ntg_object_detach(root);
+    }
+
+    if(root->_base)
+    {
+        ntg_object_unanchor(root);
+    }
+
+    ntg_object_vec_pushb(&base->_anchored, root, NULL);
+    root->_base = base;
+    root->_anchor_policy = policy;
+
+    ntg_scene* scene = ntg_object_get_scene_(root);
+    if(scene)
+        _ntg_scene_register_tree(scene, root);
+}
+
+void ntg_object_unanchor(ntg_object* root)
+{
+    assert(root);
+    assert(root->_base);
+
+    ntg_scene* scene = ntg_object_get_scene_(root);
+
+    ntg_object_vec_rm(&root->_base->_anchored, root, NULL);
+    root->_base = NULL;
+    root->_anchor_policy = NULL;
+
+    if(scene)
+        _ntg_scene_unregister_tree(scene, root);
+}
+
+void ntg_object_remove_from_scene(ntg_object* object)
+{
+    assert(object);
+
+    ntg_object* parent = object->_parent;
+    if(parent)
+    {
+        ntg_object_detach(object);
+        return;
+    }
+
+    ntg_object* base = object->_base;
+    if(base)
+    {
+        ntg_object_unanchor(object);
+        return;
+    }
+
+    if(object->__scene)
+    {
+        ntg_scene_set_root(object->__scene, NULL);
+        return;
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -565,97 +664,6 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
         _ntg_scene_register_tree(scene, child);
 }
 
-void ntg_object_detach(ntg_object* object)
-{
-    assert(object != NULL);
-
-    ntg_object* parent = object->_parent;
-    if(parent == NULL) return;
-
-    ntg_scene* scene = ntg_object_get_scene_(object);
-
-    ntg_object_vec_rm(&parent->_children, object, NULL);
-
-    object->_parent = NULL;
-
-    if(parent->__hooks.on_child_rm_fn)
-        parent->__hooks.on_child_rm_fn(parent, object);
-
-    if(scene)
-        _ntg_scene_unregister_tree(scene, object);
-
-    ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
-}
-
-void ntg_object_anchor(
-        ntg_object* base,
-        ntg_object* root,
-        const struct ntg_anchor_policy* policy)
-{
-    assert(base);
-    assert(root);
-    assert(policy);
-    assert(base != root);
-
-    if(root->_parent)
-    {
-        ntg_object_detach(root);
-    }
-
-    if(root->_base)
-    {
-        ntg_object_unanchor(root);
-    }
-
-    ntg_object_vec_pushb(&base->_anchored, root, NULL);
-    root->_base = base;
-    root->_anchor_policy = policy;
-
-    ntg_scene* scene = ntg_object_get_scene_(root);
-    if(scene)
-        _ntg_scene_register_tree(scene, root);
-}
-
-void ntg_object_unanchor(ntg_object* root)
-{
-    assert(root);
-    assert(root->_base);
-
-    ntg_scene* scene = ntg_object_get_scene_(root);
-
-    ntg_object_vec_rm(&root->_base->_anchored, root, NULL);
-    root->_base = NULL;
-    root->_anchor_policy = NULL;
-
-    if(scene)
-        _ntg_scene_unregister_tree(scene, root);
-}
-
-void ntg_object_remove_from_scene(ntg_object* object)
-{
-    assert(object);
-
-    ntg_object* parent = object->_parent;
-    if(parent)
-    {
-        ntg_object_detach(object);
-        return;
-    }
-
-    ntg_object* base = object->_base;
-    if(base)
-    {
-        ntg_object_unanchor(object);
-        return;
-    }
-
-    if(object->__scene)
-    {
-        ntg_scene_set_root(object->__scene, NULL);
-        return;
-    }
-}
-
 /* ========================================================================== */
 /* INTERNAL (ntg_object.h) */
 /* ========================================================================== */
@@ -663,6 +671,8 @@ void ntg_object_remove_from_scene(ntg_object* object)
 void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene)
 {
     assert(object);
+    assert(object->_parent == NULL);
+    assert(!object->_base);
 
     object->__scene = scene;
 }

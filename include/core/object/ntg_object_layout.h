@@ -6,19 +6,6 @@
 #include "base/ntg_cell.h"
 #include <stdint.h>
 
-/* ========================================================================== */
-/* PUBLIC - TYPES */
-/* ========================================================================== */
-
-struct ntg_object_layout_ops
-{
-    ntg_object_measure_fn measure_fn;
-    ntg_object_constrain_fn constrain_fn;
-    ntg_object_fixup_fn fixup_fn;
-    ntg_object_arrange_fn arrange_fn;
-    ntg_object_draw_fn draw_fn;
-};
-
 #define NTG_OBJECT_DIRTY_NONE 0
 #define NTG_OBJECT_DIRTY_HMEASURE (1 << 0)
 #define NTG_OBJECT_DIRTY_HCONSTRAIN (1 << 1)
@@ -44,6 +31,19 @@ struct ntg_object_layout_ops
     NTG_OBJECT_DIRTY_ARRANGE | \
     NTG_OBJECT_DIRTY_DRAW | \
     NTG_OBJECT_DIRTY_RENDER)
+
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
+
+struct ntg_object_layout_ops
+{
+    ntg_object_measure_fn measure_fn;
+    ntg_object_constrain_fn constrain_fn;
+    ntg_object_fixup_fn fixup_fn;
+    ntg_object_arrange_fn arrange_fn;
+    ntg_object_draw_fn draw_fn;
+};
 
 /* -------------------------------------------------------------------------- */
 /* MEASURE PHASE */

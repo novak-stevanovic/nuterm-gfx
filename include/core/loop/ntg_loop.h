@@ -9,9 +9,9 @@
 #define NTG_LOOP_WORKERS_MAX 32
 #define NTG_LOOP_FRAMERATE_MAX 500
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC DEFINITIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
 
 enum ntg_loop_status
 {
@@ -60,13 +60,13 @@ struct ntg_loop
     bool (*__on_event_fn)(ntg_loop* loop, struct nt_event event);
 };
 
-/* -------------------------------------------------------------------------- */
-/* PUBLIC API */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
 
 void ntg_loop_init(ntg_loop* loop,
         ntg_stage* init_stage,
-        ntg_renderer* renderer, // Has default
+        ntg_renderer* renderer,
         unsigned int framerate,
         unsigned int workers,
         bool (*on_event_fn)(ntg_loop* loop, struct nt_event event));
@@ -108,8 +108,8 @@ void ntg_platform_execute_later(
 // Default implementation of `on_event_fn` - dispatches key/mouse event to stage
 bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
 
-/* -------------------------------------------------------------------------- */
-/* INTERNAL/PROTECTED */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/* INTERNAL */
+/* ========================================================================== */
 
 #endif // NTG_LOOP_H

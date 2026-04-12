@@ -5,6 +5,10 @@
 
 #define NTG_SIZE_MAX 2000
 
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
+
 struct ntg_xy
 {
     size_t x, y;
@@ -35,29 +39,6 @@ enum ntg_align
     NTG_ALIGN_3
 };
 
-static inline size_t
-ntg_align_offset(size_t inner_size, size_t outer_size, ntg_align align)
-{
-    if(inner_size > outer_size) inner_size = outer_size;
-
-    if(align == NTG_ALIGN_1)
-        return 0;
-    else if(align == NTG_ALIGN_2)
-        return (outer_size - inner_size) / 2;
-    else
-        return (outer_size - inner_size);
-}
-
-static inline ssize_t
-ntg_align_offset_d(ssize_t inner_size, ssize_t outer_size, ntg_align align)
-{
-    if(align == NTG_ALIGN_1)
-        return 0;
-    else if(align == NTG_ALIGN_2)
-        return (outer_size - inner_size) / 2;
-    else
-        return (outer_size - inner_size);
-}
 
 struct ntg_oxy
 {
@@ -81,6 +62,17 @@ enum ntg_side
     NTG_SIDE_W
 };
 
+struct ntg_insets
+{
+    size_t n, e, s, w;
+};
+
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* NTG_XY */
 /* -------------------------------------------------------------------------- */
 
 static inline struct ntg_xy
@@ -232,6 +224,8 @@ ntg_xy_pos_clamp(struct ntg_xy pos, struct ntg_xy size, struct ntg_xy parent_siz
 }
 
 /* -------------------------------------------------------------------------- */
+/* NTG_DXY */
+/* -------------------------------------------------------------------------- */
 
 static inline struct ntg_dxy
 ntg_dxy(ssize_t x, ssize_t y)
@@ -284,6 +278,26 @@ static inline bool ntg_xy_is_in_rectagle(
     (pos.x < rec_end.x) && (pos.y < rec_end.y));
 }
 
+static inline struct ntg_xy
+ntg_xy_from_oxy(struct ntg_oxy orient_xy)
+{
+    if(orient_xy.orient == NTG_ORIENT_H)
+        return ntg_xy(orient_xy.prim_val, orient_xy.sec_val);
+    else
+        return ntg_xy(orient_xy.sec_val, orient_xy.prim_val);
+}
+
+static inline bool ntg_dxy_is_in_rectagle(
+        struct ntg_dxy pos,
+        struct ntg_dxy rec_start,
+        struct ntg_dxy rec_end)
+{
+    return ((pos.x >= rec_start.x) && (pos.y >= rec_start.y) &&
+    (pos.x < rec_end.x) && (pos.y < rec_end.y));
+}
+
+/* -------------------------------------------------------------------------- */
+/* NTG_ORIENT */
 /* -------------------------------------------------------------------------- */
 
 static inline ntg_orient
@@ -293,15 +307,8 @@ ntg_orient_get_other(ntg_orient ort)
 }
 
 /* -------------------------------------------------------------------------- */
-
-static inline struct ntg_xy
-ntg_xy_from_oxy(struct ntg_oxy orient_xy)
-{
-    if(orient_xy.orient == NTG_ORIENT_H)
-        return ntg_xy(orient_xy.prim_val, orient_xy.sec_val);
-    else
-        return ntg_xy(orient_xy.sec_val, orient_xy.prim_val);
-}
+/* NTG_OXY */
+/* -------------------------------------------------------------------------- */
 
 static inline struct ntg_oxy
 ntg_oxy(size_t prim_val, size_t sec_val, ntg_orient orient)
@@ -331,19 +338,9 @@ ntg_oxy_from_xy(struct ntg_xy xy, ntg_orient orient)
         return ntg_oxy(xy.y, xy.x, NTG_ORIENT_V);
 }
 
-static inline bool ntg_dxy_is_in_rectagle(
-        struct ntg_dxy pos,
-        struct ntg_dxy rec_start,
-        struct ntg_dxy rec_end)
-{
-    return ((pos.x >= rec_start.x) && (pos.y >= rec_start.y) &&
-    (pos.x < rec_end.x) && (pos.y < rec_end.y));
-}
-
-struct ntg_insets
-{
-    size_t n, e, s, w;
-};
+/* -------------------------------------------------------------------------- */
+/* NTG_INSETS */
+/* -------------------------------------------------------------------------- */
 
 static inline struct ntg_insets ntg_insets(size_t n, size_t e, size_t s, size_t w)
 {
@@ -396,6 +393,8 @@ static inline struct ntg_insets ntg_insets_zero(struct ntg_insets insets)
 }
 
 /* -------------------------------------------------------------------------- */
+/* NTG_SIDE */
+/* -------------------------------------------------------------------------- */
 
 static inline ntg_orient ntg_side_get_orient(ntg_side side)
 {
@@ -403,6 +402,34 @@ static inline ntg_orient ntg_side_get_orient(ntg_side side)
         return NTG_ORIENT_V;
     else
         return NTG_ORIENT_H;
+}
+
+/* -------------------------------------------------------------------------- */
+/* NTG_ALIGN */
+/* -------------------------------------------------------------------------- */
+
+static inline size_t
+ntg_align_offset(size_t inner_size, size_t outer_size, ntg_align align)
+{
+    if(inner_size > outer_size) inner_size = outer_size;
+
+    if(align == NTG_ALIGN_1)
+        return 0;
+    else if(align == NTG_ALIGN_2)
+        return (outer_size - inner_size) / 2;
+    else
+        return (outer_size - inner_size);
+}
+
+static inline ssize_t
+ntg_align_offset_d(ssize_t inner_size, ssize_t outer_size, ntg_align align)
+{
+    if(align == NTG_ALIGN_1)
+        return 0;
+    else if(align == NTG_ALIGN_2)
+        return (outer_size - inner_size) / 2;
+    else
+        return (outer_size - inner_size);
 }
 
 #endif // NTG_XY_H

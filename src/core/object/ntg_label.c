@@ -399,7 +399,7 @@ static void draw_fn(
     size_t i, j, k;
     size_t cont_size_prod = cont_size.x * cont_size.y;
     uint32_t* cont_buff = sarena_malloc(arena, sizeof(uint32_t) * cont_size_prod);
-    for(i = 0; i < cont_size_prod; i++) cont_buff[i] = NTG_CELL_EMPTY;
+    for(i = 0; i < cont_size_prod; i++) cont_buff[i] = ' ';
 
     size_t row_count = label->__priv->utf32_row_count;
     const struct str32_view* rows = label->__priv->utf32_rows;

@@ -21,6 +21,10 @@ static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* INIT/DEINIT */
+/* -------------------------------------------------------------------------- */
+
 void ntg_stage_init(ntg_stage* stage)
 {
     assert(stage != NULL);
@@ -52,10 +56,109 @@ void ntg_stage_deinit_(void* _stage)
     ntg_stage_deinit(_stage);
 }
 
+/* -------------------------------------------------------------------------- */
+/* GENERAL */
+/* -------------------------------------------------------------------------- */
+
+void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
+{
+    assert(stage != NULL);
+    if(stage->_scene == scene) return;
+
+    ntg_scene* old_scene = stage->_scene;
+
+    if(old_scene)
+    {
+        _ntg_scene_set_stage(old_scene, NULL);
+
+        _ntg_scene_set_size(old_scene, ntg_xy(0, 0));
+    }
+
+    stage->_scene = scene;
+
+    if(scene)
+    {
+        ntg_stage* old_stage = scene->_stage;
+
+        if(old_stage)
+        {
+            ntg_stage_set_scene(old_stage, NULL);
+        }
+
+        _ntg_scene_set_stage(scene, stage);
+        _ntg_scene_set_size(scene, stage->_size);
+        ntg_scene_mark_dirty(scene);
+    }
+}
+
 void ntg_stage_mark_dirty(ntg_stage* stage)
 {
     stage->_dirty = true;
 }
+
+/* -------------------------------------------------------------------------- */
+/* EVENT */
+/* -------------------------------------------------------------------------- */
+
+bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key)
+{
+    assert(stage != NULL);
+
+    if(stage->_scene)
+        return ntg_scene_on_key(stage->_scene, key);
+    else
+        return false;
+}
+
+bool ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
+{
+    assert(stage != NULL);
+
+    if(stage->_scene)
+        return ntg_scene_on_mouse(stage->_scene, mouse);
+    else
+        return false;
+}
+
+void ntg_stage_set_on_key_fn(ntg_stage* stage,
+        bool (*on_key_fn)(ntg_stage* stage, struct nt_key_event key))
+{
+    assert(stage != NULL);
+    
+    stage->__on_key_fn = on_key_fn;
+}
+
+bool ntg_stage_on_key(ntg_stage* stage, struct nt_key_event key)
+{
+    assert(stage != NULL);
+
+    if(stage->__on_key_fn)
+        return stage->__on_key_fn(stage, key);
+    else
+        return false;
+}
+
+void ntg_stage_set_on_mouse_fn(ntg_stage* stage,
+        bool (*on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse))
+{
+    assert(stage != NULL);
+
+    stage->__on_mouse_fn = on_mouse_fn;
+}
+
+bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
+{
+    assert(stage != NULL);
+
+    if(stage->__on_mouse_fn)
+        return stage->__on_mouse_fn(stage, mouse);
+    else
+        return false;
+}
+
+/* ========================================================================== */
+/* INTERNAL */
+/* ========================================================================== */
 
 void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {
@@ -117,96 +220,6 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
         draw_layer(stage, layers[i], arena);
 }
 
-void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
-{
-    assert(stage != NULL);
-    if(stage->_scene == scene) return;
-
-    ntg_scene* old_scene = stage->_scene;
-
-    if(old_scene)
-    {
-        _ntg_scene_set_stage(old_scene, NULL);
-
-        _ntg_scene_set_size(old_scene, ntg_xy(0, 0));
-    }
-
-    stage->_scene = scene;
-
-    if(scene)
-    {
-        ntg_stage* old_stage = scene->_stage;
-
-        if(old_stage)
-        {
-            ntg_stage_set_scene(old_stage, NULL);
-        }
-
-        _ntg_scene_set_stage(scene, stage);
-        _ntg_scene_set_size(scene, stage->_size);
-        ntg_scene_mark_dirty(scene);
-    }
-}
-
-bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key)
-{
-    assert(stage != NULL);
-
-    if(stage->_scene)
-        return ntg_scene_on_key(stage->_scene, key);
-    else
-        return false;
-}
-
-bool ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
-{
-    assert(stage != NULL);
-
-    if(stage->_scene)
-        return ntg_scene_on_mouse(stage->_scene, mouse);
-    else
-        return false;
-}
-
-void ntg_stage_set_on_key_fn(ntg_stage* stage,
-        bool (*on_key_fn)(ntg_stage* stage, struct nt_key_event key))
-{
-    assert(stage != NULL);
-    
-    stage->__on_key_fn = on_key_fn;
-}
-
-bool ntg_stage_on_key(ntg_stage* stage, struct nt_key_event key)
-{
-    assert(stage != NULL);
-
-    if(stage->__on_key_fn)
-        return stage->__on_key_fn(stage, key);
-    else
-        return false;
-}
-
-void ntg_stage_set_on_mouse_fn(ntg_stage* stage,
-        bool (*on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse))
-{
-    assert(stage != NULL);
-
-    stage->__on_mouse_fn = on_mouse_fn;
-}
-
-bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
-{
-    assert(stage != NULL);
-
-    if(stage->__on_mouse_fn)
-        return stage->__on_mouse_fn(stage, mouse);
-    else
-        return false;
-}
-
-/* ========================================================================== */
-/* INTERNAL */
-/* ========================================================================== */
 
 void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
 {

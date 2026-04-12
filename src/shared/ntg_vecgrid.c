@@ -29,8 +29,12 @@ void ntg_vecgrid_deinit(ntg_vecgrid* vecgrid)
 
 size_t curr_alloced = 0;
 
-void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
-        double modifier, struct ntg_xy size_cap, size_t data_size)
+void ntg_vecgrid_set_size(
+        ntg_vecgrid* vecgrid,
+        struct ntg_xy size,
+        double modifier,
+        struct ntg_xy size_cap,
+        size_t data_size)
 {
     assert(vecgrid != NULL);
     assert(data_size > 0);
@@ -44,7 +48,7 @@ void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
     if(ntg_xy_are_equal(vecgrid->_size, size)) return;
 
     size_t size_prod = size.x * size.y;
-    struct ntg_xy old_size = vecgrid->_size;
+    // struct ntg_xy old_size = vecgrid->_size;
     // size_t old_size_prod = old_size.x * old_size.y;
     size_t size_cap_prod = size_cap.x * size_cap.y;
     size_t shrink_threshold = vecgrid->_capacity / modifier;
@@ -75,9 +79,6 @@ void ntg_vecgrid_set_size(ntg_vecgrid* vecgrid, struct ntg_xy size,
             curr_alloced += vecgrid->_capacity;
         }
     }
-
-    // vecgrid->_data = realloc(vecgrid->_data, size_prod * data_size);
-    // vecgrid->_capacity = size_prod;
 
     vecgrid->_size = size;
 }

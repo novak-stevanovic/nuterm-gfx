@@ -4,6 +4,10 @@
 #include "shared/ntg_shared.h"
 #include "base/ntg_xy.h"
 
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
+
 enum ntg_focus_scope_input_mode
 {
     NTG_FOCUS_SCOPE_INPUT_MODELESS,
@@ -57,6 +61,10 @@ struct ntg_focus_scope
             struct nt_mouse_event mouse);
     void* data;
 };
+
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
 
 // Default implementation of `on_key_fn`. Dispatches event to focused element
 bool ntg_focus_scope_dispatch_key(

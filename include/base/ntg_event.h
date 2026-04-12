@@ -3,12 +3,20 @@
 
 #include "shared/ntg_shared.h"
 
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
+
 struct ntg_event
 {
     unsigned int type;
     void* source;
     void* data;
 };
+
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
 
 ntg_event_delegate* ntg_event_delegate_new();
 void ntg_event_delegate_destroy(ntg_event_delegate* delegate);

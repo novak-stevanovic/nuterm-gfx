@@ -121,14 +121,22 @@ struct ntg_object
 /* OBJECT TREE */
 /* -------------------------------------------------------------------------- */
 
+// Returns total count of objects in tree, including root
+size_t ntg_object_get_tree_size(const ntg_object* root);
+
 const ntg_object* ntg_object_get_root(const ntg_object* object);
 ntg_object* ntg_object_get_root_(ntg_object* object);
 
+const ntg_object* ntg_object_get_layer_root(const ntg_object* object);
+ntg_object* ntg_object_get_layer_root_(ntg_object* object);
+
 ntg_scene* ntg_object_get_scene_(ntg_object* object);
 const ntg_scene* ntg_object_get_scene(const ntg_object* object);
 
 ntg_scene* ntg_object_get_scene_(ntg_object* object);
 const ntg_scene* ntg_object_get_scene(const ntg_object* object);
+
+/* -------------------------------------------------------------------------- */
 
 bool ntg_object_is_descendant(
         const ntg_object* object,
@@ -137,8 +145,7 @@ bool ntg_object_is_descendant_eq(
         const ntg_object* object,
         const ntg_object* descendant);
 
-// Returns total count of objects in tree, including root
-size_t ntg_object_get_tree_size(const ntg_object* root);
+/* -------------------------------------------------------------------------- */
 
 size_t ntg_object_get_children_by_z(
         const ntg_object* object,
@@ -149,6 +156,22 @@ ntg_object* ntg_object_hit_test(
         ntg_object* object,
         struct ntg_xy pos,
         struct ntg_xy* out_local_pos);
+
+/* -------------------------------------------------------------------------- */
+
+/* Updates only the tree.
+ * Called internally by types extending ntg_object. */
+void ntg_object_detach(ntg_object* object);
+
+void ntg_object_anchor(
+        ntg_object* base,
+        ntg_object* root,
+        const struct ntg_anchor_policy* policy);
+
+void ntg_object_unanchor(ntg_object* root);
+
+// If has parent, detach. If anchored, unanchor. If root, set scene root to NULL.
+void ntg_object_remove_from_scene(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 /* CONTROL */
@@ -247,20 +270,6 @@ void ntg_object_deinit(ntg_object* object);
 /* Updates only the tree.
  * Called internally by types extending ntg_object. */
 void ntg_object_attach(ntg_object* parent, ntg_object* child);
-
-/* Updates only the tree.
- * Called internally by types extending ntg_object. */
-void ntg_object_detach(ntg_object* object);
-
-void ntg_object_anchor(
-        ntg_object* base,
-        ntg_object* root,
-        const struct ntg_anchor_policy* policy);
-
-void ntg_object_unanchor(ntg_object* root);
-
-// If has parent, detach. If anchored, unanchor. If root, set scene root to NULL.
-void ntg_object_remove_from_scene(ntg_object* object);
 
 /* ========================================================================== */
 /* INTERNAL */

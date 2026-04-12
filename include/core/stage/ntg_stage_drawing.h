@@ -6,10 +6,18 @@
 #include "base/ntg_xy.h"
 #include <assert.h>
 
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
+
 struct ntg_stage_drawing
 {
     ntg_cell_vecgrid __data;
 };
+
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
 
 void ntg_stage_drawing_init(ntg_stage_drawing* drawing);
 void ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);

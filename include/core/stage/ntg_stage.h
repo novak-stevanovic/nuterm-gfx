@@ -32,13 +32,24 @@ struct ntg_stage
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* INIT/DEINIT */
+/* -------------------------------------------------------------------------- */
+
 void ntg_stage_init(ntg_stage* stage);
 void ntg_stage_deinit(ntg_stage* stage);
 void ntg_stage_deinit_(void* _stage);
 
-void ntg_stage_mark_dirty(ntg_stage* stage);
+/* -------------------------------------------------------------------------- */
+/* GENERAL */
+/* -------------------------------------------------------------------------- */
 
+void ntg_stage_mark_dirty(ntg_stage* stage);
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
+
+/* -------------------------------------------------------------------------- */
+/* EVENT */
+/* -------------------------------------------------------------------------- */
 
 // Default implementations of `on_key_fn` and `on_mouse_fn`. Dispatches to scene
 bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key);

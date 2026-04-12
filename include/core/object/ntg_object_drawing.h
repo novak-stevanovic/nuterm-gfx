@@ -4,10 +4,18 @@
 #include "shared/ntg_shared.h"
 #include "base/ntg_cell.h"
 
+/* ========================================================================== */
+/* PUBLIC - TYPES */
+/* ========================================================================== */
+
 struct ntg_object_drawing
 {
     ntg_vcell_vecgrid __data;
 };
+
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
 
 void ntg_object_drawing_init(ntg_object_drawing* drawing);
 void ntg_object_drawing_deinit(ntg_object_drawing* drawing);

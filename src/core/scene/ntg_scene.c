@@ -73,6 +73,10 @@ static void init_default(ntg_scene* scene)
     scene->data = NULL;
 }
 
+/* -------------------------------------------------------------------------- */
+/* INIT/DEINIT */
+/* -------------------------------------------------------------------------- */
+
 void ntg_scene_init(ntg_scene* scene)
 {
     assert(scene != NULL);
@@ -113,31 +117,6 @@ void ntg_scene_mark_dirty(ntg_scene* scene)
     {
         ntg_stage_mark_dirty(scene->_stage);
     }
-}
-
-void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
-{
-    struct ntg_xy old_size = scene->_size;
-    if(!ntg_xy_are_equal(old_size, size))
-    {
-        scene->_size = size;
-        ntg_scene_mark_dirty(scene);
-    }
-}
-
-void _ntg_scene_layout(ntg_scene* scene, sarena* arena)
-{
-    assert(scene != NULL);
-
-    size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
-
-    ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
-    ntg_scene_collect_layers_by_z(scene, layers, layer_count);
-
-    size_t i;
-    for(i = 0; i < layer_count; i++)
-        layout_layer(scene, layers[i], 0, arena);
-
 }
 
 ntg_object* ntg_scene_hit_test(
@@ -284,6 +263,35 @@ bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* LAYOUT */
+/* -------------------------------------------------------------------------- */
+
+void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
+{
+    struct ntg_xy old_size = scene->_size;
+    if(!ntg_xy_are_equal(old_size, size))
+    {
+        scene->_size = size;
+        ntg_scene_mark_dirty(scene);
+    }
+}
+
+void _ntg_scene_layout(ntg_scene* scene, sarena* arena)
+{
+    assert(scene != NULL);
+
+    size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
+
+    ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
+    ntg_scene_collect_layers_by_z(scene, layers, layer_count);
+
+    size_t i;
+    for(i = 0; i < layer_count; i++)
+        layout_layer(scene, layers[i], 0, arena);
+
+}
 
 void _ntg_scene_clean(ntg_scene* scene)
 {

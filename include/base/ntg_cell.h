@@ -7,10 +7,6 @@
 #include "base/ntg_vecgrid.h"
 #include "nt_gfx.h"
 
-// TODO: remove include assert
-
-#define NTG_CELL_EMPTY ' '
-
 /* -------------------------------------------------------------------------- */
 /* CELL */
 /* -------------------------------------------------------------------------- */
@@ -25,7 +21,7 @@ static inline struct ntg_cell
 ntg_cell_default()
 {
     return (struct ntg_cell) {
-        .cp = NTG_CELL_EMPTY,
+        .cp = ' ',
         .gfx = NT_GFX_DEFAULT
     };
 }
@@ -34,6 +30,54 @@ static inline bool
 ntg_cell_are_equal(struct ntg_cell c1, struct ntg_cell c2)
 {
     return ((c1.cp == c2.cp) && nt_gfx_are_equal(c1.gfx, c2.gfx));
+}
+
+/* -------------------------------------------------------------------------- */
+/* CELL VECGRID */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_cell_vecgrid
+{
+    struct ntg_vecgrid __base; 
+};
+
+void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid);
+void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid);
+
+void ntg_cell_vecgrid_set_size(
+        ntg_cell_vecgrid* vecgrid,
+        struct ntg_xy size,
+        struct ntg_xy size_cap);
+struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid);
+
+static inline struct ntg_cell
+ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
+{
+    assert(vecgrid);
+
+    if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
+    {
+        size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
+        return (((const struct ntg_cell*)vecgrid->__base._data))[idx];
+    }
+    else
+    {
+        assert(0);
+        return ntg_cell_default();
+    }
+}
+
+static inline void
+ntg_cell_vecgrid_set(ntg_cell_vecgrid* vecgrid, struct ntg_cell cell, struct ntg_xy pos)
+{
+    assert(vecgrid);
+
+    if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
+    {
+        size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
+        ((struct ntg_cell*)vecgrid->__base._data)[idx] = cell;
+    }
+    else assert(0);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -98,7 +142,7 @@ ntg_vcell_default()
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
         .full = {
-            .cp = NTG_CELL_EMPTY,
+            .cp = ' ',
             .gfx = NT_GFX_DEFAULT
         }
     };
@@ -143,7 +187,7 @@ ntg_vcell_bg(struct nt_color color)
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
         .full = {
-            .cp = NTG_CELL_EMPTY,
+            .cp = ' ',
             .gfx = {
                 .bg = color,
                 .fg = NT_COLOR_DEFAULT,
@@ -189,54 +233,6 @@ ntg_vcell_overwrite(struct ntg_vcell overwriting, struct ntg_cell overwritten)
     else {} // NTG_VCELL_TRANSPARENT
 
     return overwritten;
-}
-
-/* -------------------------------------------------------------------------- */
-/* CELL VECGRID */
-/* -------------------------------------------------------------------------- */
-
-struct ntg_cell_vecgrid
-{
-    struct ntg_vecgrid __base; 
-};
-
-void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid);
-void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid);
-
-void ntg_cell_vecgrid_set_size(
-        ntg_cell_vecgrid* vecgrid,
-        struct ntg_xy size,
-        struct ntg_xy size_cap);
-struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid);
-
-static inline struct ntg_cell
-ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
-{
-    assert(vecgrid);
-
-    if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
-    {
-        size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        return (((const struct ntg_cell*)vecgrid->__base._data))[idx];
-    }
-    else
-    {
-        assert(0);
-        return ntg_cell_default();
-    }
-}
-
-static inline void
-ntg_cell_vecgrid_set(ntg_cell_vecgrid* vecgrid, struct ntg_cell cell, struct ntg_xy pos)
-{
-    assert(vecgrid);
-
-    if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
-    {
-        size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        ((struct ntg_cell*)vecgrid->__base._data)[idx] = cell;
-    }
-    else assert(0);
 }
 
 /* -------------------------------------------------------------------------- */
