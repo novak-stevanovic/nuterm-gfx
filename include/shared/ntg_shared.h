@@ -99,40 +99,4 @@ typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
 typedef struct ntg_main_panel ntg_main_panel;
 
-typedef struct ntg_object_measure (*ntg_object_measure_fn)(
-        const ntg_object* object,
-        ntg_orient orient,
-        void* layout_ch,
-        sarena* arena);
-
-typedef void (*ntg_object_constrain_fn)(
-        const ntg_object* object,
-        ntg_orient orient,
-        ntg_object_size_map* out_size_map,
-        void* layout_ch,
-        sarena* arena);
-
-typedef bool (*ntg_object_fixup_fn)(
-        const ntg_object*,
-        void* layout_ch,
-        sarena* arena);
-
-typedef void (*ntg_object_arrange_fn)(
-        const ntg_object* object,
-        ntg_object_pos_map* out_pos_map,
-        void* layout_ch,
-        sarena* arena);
-
-typedef void (*ntg_object_draw_fn)(
-        const ntg_object* object,
-        ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
-        sarena* arena);
-
-/* If `stage_drawing` is NULL, render empty */
-typedef void (*ntg_renderer_render_fn)(
-        ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing,
-        sarena* arena);
-
 #endif // NTG_SHARED_H

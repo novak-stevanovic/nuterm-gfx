@@ -53,43 +53,43 @@ void ntg_border_style_init_basic(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool flt);
+        bool overlay);
 
 void ntg_border_style_init_basic_edge(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool flt);
+        bool overlay);
 
 void ntg_border_style_init_single(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt);
+        bool overlay);
 
 void ntg_border_style_init_double(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt);
+        bool overlay);
 
 void ntg_border_style_init_rounded(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt);
+        bool overlay);
 
 void ntg_border_style_init_heavy(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt);
+        bool overlay);
 
 void ntg_border_style_init_dashed(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt);
+        bool overlay);
 
 void ntg_border_style_init_ascii(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt);
+        bool overlay);
 
 void ntg_border_style_init_transparent(
         struct ntg_border_style* style);

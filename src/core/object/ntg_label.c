@@ -166,20 +166,19 @@ struct ntg_label_opts ntg_label_opts_def()
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_label_init(ntg_label* label)
+void ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts)
 {
     assert(label != NULL);
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
-        .draw_fn = draw_fn
+        .draw_fn = draw_fn,
+        .on_child_rm_fn = NULL
     };
 
-    struct ntg_object_hooks hooks = {0};
-
-    ntg_object_init((ntg_object*)label, &layout_ops, &hooks, &NTG_TYPE_LABEL);
+    ntg_object_init((ntg_object*)label, &vtable, &NTG_TYPE_LABEL);
 
     label->__priv = malloc(sizeof(struct ntg_label_priv));
     assert(label->__priv);
@@ -187,6 +186,8 @@ void ntg_label_init(ntg_label* label)
     init_default(label);
 
     ntg_label_set_text(label, "");
+
+    ntg_label_set_opts(label, opts);
 }
 
 void ntg_label_deinit(ntg_label* label)

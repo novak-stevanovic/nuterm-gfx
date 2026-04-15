@@ -28,27 +28,27 @@ void ntg_color_block_set_color(ntg_color_block* color_block, struct nt_color col
     ntg_object_mark_dirty((ntg_object*)color_block, NTG_OBJECT_DIRTY_DRAW);
 }
 
-void ntg_color_block_init(ntg_color_block* color_block)
+void ntg_color_block_init(ntg_color_block* color_block, struct nt_color color)
 {
     assert(color_block != NULL);
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
         .fixup_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = draw_fn,
+        .on_child_rm_fn = NULL
     };
-
-    struct ntg_object_hooks hooks = {0};
 
     ntg_object_init(
             (ntg_object*)color_block,
-            &layout_ops,
-            &hooks,
+            &vtable,
             &NTG_TYPE_COLOR_BLOCK);
 
     color_block->__color = NT_COLOR_DEFAULT;
+
+    ntg_color_block_set_color(color_block, color);
 }
 
 void ntg_color_block_deinit(ntg_color_block* block)

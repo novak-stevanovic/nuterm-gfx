@@ -32,23 +32,24 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
     };
 }
 
-void ntg_prog_bar_init(ntg_prog_bar* prog_bar)
+void ntg_prog_bar_init(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
 {
     assert(prog_bar != NULL);
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
         .constrain_fn = NULL,
         .arrange_fn = NULL,
-        .draw_fn = draw_fn
+        .draw_fn = draw_fn,
+        .on_child_rm_fn = NULL
     };
 
-    struct ntg_object_hooks hooks = {0};
-
-    ntg_object_init((ntg_object*)prog_bar, &layout_ops, &hooks, &NTG_TYPE_PROG_BAR);
+    ntg_object_init((ntg_object*)prog_bar, &vtable, &NTG_TYPE_PROG_BAR);
 
     prog_bar->_opts = ntg_prog_bar_opts_def();
     prog_bar->_opts.style = ntg_prog_bar_style_def();
+
+    ntg_prog_bar_set_opts(prog_bar, opts);
 }
 
 void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)

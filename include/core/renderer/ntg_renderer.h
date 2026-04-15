@@ -7,9 +7,16 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
+struct ntg_renderer_vtable
+{
+    void (*render_fn)(ntg_renderer* renderer,
+            const ntg_stage_drawing* stage_drawing,
+            sarena* arena);
+};
+
 struct ntg_renderer
 {
-    ntg_renderer_render_fn __render_fn;
+    struct ntg_renderer_vtable __vtable;
     void* data;
 };
 
@@ -27,7 +34,10 @@ void ntg_renderer_render(
 /* PROTECTED */
 /* ========================================================================== */
 
-void ntg_renderer_init(ntg_renderer* renderer, ntg_renderer_render_fn render_fn);
+void ntg_renderer_init(
+        ntg_renderer* renderer,
+        const struct ntg_renderer_vtable* vtable);
+
 void ntg_renderer_deinit(ntg_renderer* renderer);
 
 #endif // NTG_RENDERER_H

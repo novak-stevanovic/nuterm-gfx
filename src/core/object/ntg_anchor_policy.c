@@ -43,17 +43,6 @@ static struct ntg_xy sidefloat_arrange_fn(
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-const struct ntg_anchor_policy NTG_ATTACH_POLICY_ROOT = {
-    .data = NULL,
-    .constrain_fn = root_constrain_fn,
-    .arrange_fn = root_arrange_fn
-};
-
-const struct ntg_anchor_policy* ntg_anchor_policy_root()
-{
-    return &NTG_ATTACH_POLICY_ROOT;
-}
-
 struct ntg_float_policy_opts ntg_float_policy_opts_def()
 {
     return (struct ntg_float_policy_opts) {
@@ -92,6 +81,18 @@ void ntg_anchor_policy_deinit_(void* _policy)
 {
     ntg_anchor_policy_deinit(_policy);
 }
+
+const struct ntg_anchor_policy NTG_ATTACH_POLICY_ROOT = {
+    .data = NULL,
+    .constrain_fn = root_constrain_fn,
+    .arrange_fn = root_arrange_fn
+};
+
+const struct ntg_anchor_policy* ntg_anchor_policy_root()
+{
+    return &NTG_ATTACH_POLICY_ROOT;
+}
+
 
 void ntg_anchor_policy_init_float(
         struct ntg_anchor_policy* policy,

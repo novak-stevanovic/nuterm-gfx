@@ -18,7 +18,7 @@ struct ntg_color_block
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_color_block_init(ntg_color_block* color_block);
+void ntg_color_block_init(ntg_color_block* color_block, struct nt_color color);
 void ntg_color_block_deinit(ntg_color_block* block);
 void ntg_color_block_deinit_(void* _block);
 

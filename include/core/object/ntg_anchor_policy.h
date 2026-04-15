@@ -40,8 +40,6 @@ struct ntg_anchor_policy
     void (*free_fn)(void* data);
 };
 
-const struct ntg_anchor_policy* ntg_anchor_policy_root();
-
 /* -------------------------------------------------------------------------- */
 /* FLOAT */
 /* -------------------------------------------------------------------------- */
@@ -97,6 +95,8 @@ struct ntg_sidefloat_policy_opts ntg_sidefloat_policy_opts_def();
 
 void ntg_anchor_policy_deinit(struct ntg_anchor_policy* policy);
 void ntg_anchor_policy_deinit_(void* _policy);
+
+const struct ntg_anchor_policy* ntg_anchor_policy_root();
 
 void ntg_anchor_policy_init_float(
         struct ntg_anchor_policy* policy,

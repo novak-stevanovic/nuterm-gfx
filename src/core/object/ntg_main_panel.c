@@ -3,27 +3,27 @@
 #include "shared/ntg_shared_internal.h"
 
 static struct ntg_object_measure measure_fn(
-        const ntg_object* _box,
+        const ntg_object* _panel,
         ntg_orient orient,
         void* layout_ch,
         sarena* arena);
 
 static void constrain_fn(
-        const ntg_object* _box,
+        const ntg_object* _panel,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         void* layout_ch,
         sarena* arena);
 
 static void arrange_fn(
-        const ntg_object* _box,
+        const ntg_object* _panel,
         ntg_object_pos_map* out_pos_map,
         void* layout_ch,
         sarena* arena);
 
 static void on_child_rm_fn(ntg_object* _main_panel, ntg_object* child);
 
-static void get_children(const ntg_main_panel* box, ntg_object** out_north,
+static void get_children(const ntg_main_panel* panel, ntg_object** out_north,
         ntg_object** out_east, ntg_object** out_south, ntg_object** out_west,
         ntg_object** out_center);
 
@@ -36,74 +36,71 @@ struct ntg_main_panel_opts ntg_main_panel_opts_def()
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-static void init_default(ntg_main_panel* box)
+static void init_default(ntg_main_panel* panel)
 {
-    memset(box->_children, 0, sizeof(ntg_object*) * 5);
+    memset(panel->_children, 0, sizeof(ntg_object*) * 5);
 }
 
-void ntg_main_panel_init(ntg_main_panel* box)
+void ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts)
 {
-    assert(box != NULL);
+    assert(panel != NULL);
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
         .constrain_fn = constrain_fn,
         .arrange_fn = arrange_fn,
-        .draw_fn = NULL
-    };
-
-    struct ntg_object_hooks hooks = {
+        .draw_fn = NULL,
         .on_child_rm_fn = on_child_rm_fn
     };
 
-    ntg_object_init((ntg_object*)box, &layout_ops, &hooks, &NTG_TYPE_MAIN_PANEL);
+    ntg_object_init((ntg_object*)panel, &vtable, &NTG_TYPE_MAIN_PANEL);
 
-    init_default(box);
+    init_default(panel);
 }
 
 void ntg_main_panel_set(
-        ntg_main_panel* box,
+        ntg_main_panel* panel,
         ntg_object* object,
         enum ntg_main_panel_pos pos)
 {
-    assert(box != NULL);
+    assert(panel != NULL);
 
-    if(box->_children[pos] == object) return;
+    if(panel->_children[pos] == object) return;
 
-    if(box->_children[pos] != NULL)
-        ntg_object_detach(box->_children[pos]);
+    if(panel->_children[pos] != NULL)
+        ntg_object_detach(panel->_children[pos]);
 
     if(object != NULL)
     {
-        ntg_object_attach((ntg_object*)box, object);
-        box->_children[pos] = object;
+        ntg_object_attach((ntg_object*)panel, object);
+        panel->_children[pos] = object;
     }
 
-    ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
+    ntg_object_mark_dirty((ntg_object*)panel, NTG_OBJECT_DIRTY_FULL);
 }
 
 /* -------------------------------------------------------------------------- */
 /* INTERNAL/PROTECTED */
 /* -------------------------------------------------------------------------- */
 
-void ntg_main_panel_deinit(ntg_main_panel* box)
+void ntg_main_panel_deinit(ntg_main_panel* panel)
 {
-    init_default(box);
-    ntg_object_deinit((ntg_object*)box);
+    init_default(panel);
+    ntg_object_deinit((ntg_object*)panel);
 }
 
-void ntg_main_panel_deinit_(void* _box)
+void ntg_main_panel_deinit_(void* _panel)
 {
-    ntg_main_panel_deinit(_box);
+    ntg_main_panel_deinit(_panel);
 }
 
 static struct ntg_object_measure measure_fn(
-        const ntg_object* _box,
+        const ntg_object* _panel,
         ntg_orient orient,
         void* layout_ch,
         sarena* arena)
 {
-    const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;
+    const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
 
     ntg_object *north, *east, *south, *west, *center;
     get_children(main_panel, &north, &east, &south, &west, &center);
@@ -165,14 +162,14 @@ static struct ntg_object_measure measure_fn(
 }
 
 static void constrain_fn(
-        const ntg_object* _box,
+        const ntg_object* _panel,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         void* layout_ch,
         sarena* arena)
 {
-    const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;
-    size_t size = ntg_object_get_size_1d_cont(_box, orient);
+    const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
+    size_t size = ntg_object_get_size_1d_cont(_panel, orient);
 
     ntg_object *north, *east, *south, *west, *center;
     get_children(main_panel, &north, &east, &south, &west, &center);
@@ -345,13 +342,13 @@ static void constrain_fn(
 }
 
 static void arrange_fn(
-        const ntg_object* _box,
+        const ntg_object* _panel,
         ntg_object_pos_map* out_pos_map,
         void* layout_ch,
         sarena* arena)
 {
-    const ntg_main_panel* main_panel = (const ntg_main_panel*)_box;
-    struct ntg_xy size = ntg_object_get_size_cont(_box);
+    const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
+    struct ntg_xy size = ntg_object_get_size_cont(_panel);
 
     ntg_object *north, *east, *south, *west, *center;
     get_children(main_panel, &north, &east, &south, &west, &center);
@@ -389,15 +386,15 @@ static void arrange_fn(
         ntg_object_pos_map_set(out_pos_map, center, center_pos);
 }
 
-static void get_children(const ntg_main_panel* box, ntg_object** out_north,
+static void get_children(const ntg_main_panel* panel, ntg_object** out_north,
         ntg_object** out_east, ntg_object** out_south, ntg_object** out_west,
         ntg_object** out_center)
 {
-    (*out_north) = box->_children[NTG_MAIN_PANEL_NORTH];
-    (*out_east) = box->_children[NTG_MAIN_PANEL_EAST];
-    (*out_south) = box->_children[NTG_MAIN_PANEL_SOUTH];
-    (*out_west) = box->_children[NTG_MAIN_PANEL_WEST];
-    (*out_center) = box->_children[NTG_MAIN_PANEL_CENTER];
+    (*out_north) = panel->_children[NTG_MAIN_PANEL_NORTH];
+    (*out_east) = panel->_children[NTG_MAIN_PANEL_EAST];
+    (*out_south) = panel->_children[NTG_MAIN_PANEL_SOUTH];
+    (*out_west) = panel->_children[NTG_MAIN_PANEL_WEST];
+    (*out_center) = panel->_children[NTG_MAIN_PANEL_CENTER];
 }
 
 static void on_child_rm_fn(ntg_object* _main_panel, ntg_object* child)

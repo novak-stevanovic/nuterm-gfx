@@ -13,7 +13,10 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer)
 {
     assert(renderer != NULL);
 
-    ntg_renderer_init((ntg_renderer*)renderer, _ntg_def_renderer_render_fn);
+    struct ntg_renderer_vtable vtable = {0};
+    vtable.render_fn = _ntg_def_renderer_render_fn;
+
+    ntg_renderer_init((ntg_renderer*)renderer, &vtable);
 
     ntg_stage_drawing_init(&renderer->__backbuff);
 

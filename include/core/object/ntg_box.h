@@ -29,7 +29,7 @@ struct ntg_box
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_box_init(ntg_box* box);
+void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts);
 void ntg_box_deinit(ntg_box* box);
 void ntg_box_deinit_(void* _box);
 

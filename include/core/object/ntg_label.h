@@ -63,7 +63,7 @@ struct ntg_label
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_label_init(ntg_label* label);
+void ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts);
 void ntg_label_deinit(ntg_label* label);
 void ntg_label_deinit_(void* _label);
 

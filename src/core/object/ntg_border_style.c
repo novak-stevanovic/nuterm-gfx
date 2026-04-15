@@ -92,7 +92,7 @@ void ntg_border_style_init_basic(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool flt)
+        bool overlay)
 {
     if(!style) return;
 
@@ -108,7 +108,7 @@ void ntg_border_style_init_basic(
         .padding      = cp
     };
 
-    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
     ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
@@ -116,7 +116,7 @@ void ntg_border_style_init_basic_edge(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool flt)
+        bool overlay)
 {
     if(!style) return;
 
@@ -132,14 +132,14 @@ void ntg_border_style_init_basic_edge(
         .padding      = ' '
     };
 
-    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
     ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
 void ntg_border_style_init_single(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt)
+        bool overlay)
 {
     if(!style) return;
 
@@ -155,14 +155,14 @@ void ntg_border_style_init_single(
         .padding      = ' '
     };
 
-    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
     ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
 void ntg_border_style_init_double(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt)
+        bool overlay)
 {
     if(!style) return;
 
@@ -178,14 +178,14 @@ void ntg_border_style_init_double(
         .padding      = ' '
     };
 
-    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
     ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
 void ntg_border_style_init_rounded(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt)
+        bool overlay)
 {
     if(!style) return;
 
@@ -201,14 +201,14 @@ void ntg_border_style_init_rounded(
         .padding      = ' '
     };
 
-    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
     ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
 void ntg_border_style_init_heavy(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt)
+        bool overlay)
 {
     if(!style) return;
 
@@ -224,14 +224,14 @@ void ntg_border_style_init_heavy(
         .padding      = ' '
     };
 
-    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
     ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
 void ntg_border_style_init_dashed(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt)
+        bool overlay)
 {
     if(!style) return;
 
@@ -247,14 +247,14 @@ void ntg_border_style_init_dashed(
         .padding      = ' '
     };
 
-    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
     ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 
 void ntg_border_style_init_ascii(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool flt)
+        bool overlay)
 {
     if(!style) return;
 
@@ -270,7 +270,7 @@ void ntg_border_style_init_ascii(
         .padding      = ' '
     };
 
-    ntg_vcell_type type = (flt ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
+    ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
     ntg_border_style_init_custom_9x(style, type, gfx, &sym);
 }
 

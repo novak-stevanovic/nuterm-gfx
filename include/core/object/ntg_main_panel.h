@@ -35,7 +35,7 @@ struct ntg_main_panel
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_main_panel_init(ntg_main_panel* box);
+void ntg_main_panel_init(ntg_main_panel* box, const struct ntg_main_panel_opts* opts);
 void ntg_main_panel_deinit(ntg_main_panel* box);
 void ntg_main_panel_deinit_(void* _box);
 

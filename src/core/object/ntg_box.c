@@ -45,25 +45,23 @@ static void on_child_rm_fn(ntg_object* _box, ntg_object* child);
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_box_init(ntg_box* box)
+void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts)
 {
     assert(box != NULL);
 
-    struct ntg_object_layout_ops layout_ops = {
+    struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
         .constrain_fn = constrain_fn,
         .arrange_fn = arrange_fn,
-        .draw_fn = NULL
-    };
-
-    struct ntg_object_hooks hooks = {
+        .draw_fn = NULL,
         .on_child_rm_fn = on_child_rm_fn
     };
 
-    ntg_object_init((ntg_object*)box, &layout_ops, &hooks, &NTG_TYPE_BOX);
+    ntg_object_init((ntg_object*)box, &vtable, &NTG_TYPE_BOX);
 
     ((ntg_object*)box)->layout_cache = malloc(sizeof(struct ntg_box_layout_cache));
-    box->_opts = ntg_box_opts_def();
+
+    ntg_box_set_opts(box, opts);
 }
 
 void ntg_box_deinit(ntg_box* box)

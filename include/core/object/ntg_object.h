@@ -15,6 +15,45 @@
 GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
 /* -------------------------------------------------------------------------- */
+/* VTABLE */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_object_vtable
+{
+    struct ntg_object_measure (*measure_fn)(
+            const ntg_object* object,
+            ntg_orient orient,
+            void* layout_ch,
+            sarena* arena);
+
+    void (*constrain_fn)(
+            const ntg_object* object,
+            ntg_orient orient,
+            ntg_object_size_map* out_size_map,
+            void* layout_ch,
+            sarena* arena);
+
+    bool (*fixup_fn)(
+            const ntg_object*,
+            void* layout_ch,
+            sarena* arena);
+
+    void (*arrange_fn)(
+            const ntg_object* object,
+            ntg_object_pos_map* out_pos_map,
+            void* layout_ch,
+            sarena* arena);
+
+    void (*draw_fn)(
+            const ntg_object* object,
+            ntg_object_tmp_drawing* out_drawing,
+            void* layout_ch,
+            sarena* arena);
+
+    void (*on_child_rm_fn)(ntg_object* object, ntg_object* child);
+};
+
+/* -------------------------------------------------------------------------- */
 /* BORDER & PADDING */
 /* -------------------------------------------------------------------------- */
 
@@ -46,11 +85,6 @@ struct ntg_padding_opts ntg_padding_opts_def();
 /* OBJECT */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_object_hooks
-{
-    void (*on_child_rm_fn)(ntg_object* object, ntg_object* child);
-};
-
 struct ntg_object
 {
     const ntg_type* _type;
@@ -79,7 +113,7 @@ struct ntg_object
 
     struct
     {
-        struct ntg_object_layout_ops __layout_ops;
+        struct ntg_object_vtable __vtable;
         void* layout_cache;
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
@@ -88,8 +122,6 @@ struct ntg_object
         bool __skip_hborder, __skip_hpadding, __repeat;
         uint8_t _dirty;
     };
-
-    struct ntg_object_hooks __hooks;
 
     struct
     {
@@ -262,8 +294,7 @@ static void fn_name(ntg_object* object, void* data)                            \
 
 void ntg_object_init(
         ntg_object* object,
-        const struct ntg_object_layout_ops* layout_ops,
-        const struct ntg_object_hooks* hooks,
+        const struct ntg_object_vtable* layout_ops,
         const ntg_type* type);
 void ntg_object_deinit(ntg_object* object);
 

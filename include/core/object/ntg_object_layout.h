@@ -36,15 +36,6 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-struct ntg_object_layout_ops
-{
-    ntg_object_measure_fn measure_fn;
-    ntg_object_constrain_fn constrain_fn;
-    ntg_object_fixup_fn fixup_fn;
-    ntg_object_arrange_fn arrange_fn;
-    ntg_object_draw_fn draw_fn;
-};
-
 /* -------------------------------------------------------------------------- */
 /* MEASURE PHASE */
 /* -------------------------------------------------------------------------- */
