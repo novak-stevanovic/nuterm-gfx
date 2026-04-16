@@ -41,10 +41,12 @@ void ntg_prog_bar_init(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* o
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = draw_fn,
-        .on_child_rm_fn = NULL
+        .rm_child_fn = NULL
     };
 
     ntg_object_init((ntg_object*)prog_bar, &vtable, &NTG_TYPE_PROG_BAR);
+
+    prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
 
     prog_bar->_opts = ntg_prog_bar_opts_def();
     prog_bar->_opts.style = ntg_prog_bar_style_def();

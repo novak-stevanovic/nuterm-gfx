@@ -38,13 +38,15 @@ void ntg_color_block_init(ntg_color_block* color_block, struct nt_color color)
         .fixup_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = draw_fn,
-        .on_child_rm_fn = NULL
+        .rm_child_fn = NULL
     };
 
     ntg_object_init(
             (ntg_object*)color_block,
             &vtable,
             &NTG_TYPE_COLOR_BLOCK);
+
+    color_block->hooks = (struct ntg_color_block_hooks) {0};
 
     color_block->__color = NT_COLOR_DEFAULT;
 

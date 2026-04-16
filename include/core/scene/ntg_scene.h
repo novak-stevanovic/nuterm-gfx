@@ -10,6 +10,31 @@
 
 struct ntg_attach_policy;
 
+// TODO
+struct ntg_scene_hooks
+{
+    bool (*on_key_fn)(ntg_scene* scene, struct nt_key_event key);
+    bool (*on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse);
+
+    void (*on_root_chng_fn)(
+            ntg_scene* scene,
+            ntg_object* old_root,
+            ntg_object* new_root);
+
+    void (*on_size_chng_fn)(
+            ntg_scene* scene,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
+
+    void (*on_stage_chng_fn)(
+            ntg_scene* scene,
+            ntg_stage* old_stage,
+            ntg_stage* new_stage);
+
+    void (*on_layer_add_fn)(ntg_scene* scene, ntg_object* layer_root);
+    void (*on_layer_rm_fn)(ntg_scene* scene, ntg_object* layer_root);
+};
+
 /* -------------------------------------------------------------------------- */
 /* SCENE */
 /* -------------------------------------------------------------------------- */
@@ -26,11 +51,7 @@ struct ntg_scene
 
     bool _dirty;
 
-    struct
-    {
-        bool (*__on_key_fn)(ntg_scene* scene, struct nt_key_event key);
-        bool (*__on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse);
-    };
+    struct ntg_scene_hooks hooks;
 
     ntg_focus_manager* _fm;
 
@@ -74,13 +95,8 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
 bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key);
 bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 
-bool ntg_scene_on_key(ntg_scene* scene, struct nt_key_event key);
-void ntg_scene_set_on_key_fn(ntg_scene* scene,
-        bool (*on_key_fn)(ntg_scene* scene, struct nt_key_event key));
-
-bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
-void ntg_scene_set_on_mouse_fn(ntg_scene* scene,
-        bool (*on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse));
+bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key_event key);
+bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 
 /* ========================================================================== */
 /* INTERNAL */

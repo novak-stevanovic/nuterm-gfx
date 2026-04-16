@@ -27,6 +27,8 @@ void ntg_renderer_init(
     assert(renderer != NULL);
     assert(vtable != NULL);
 
+    (*renderer) = (ntg_renderer) {0};
+
     renderer->__vtable = *vtable;
     renderer->data = NULL;
 }

@@ -145,6 +145,8 @@ static void init_default(ntg_label* label)
 
     label->__priv->utf32_rows = NULL;
     label->__priv->utf32_row_count = 0;
+
+    label->hooks = (struct ntg_label_hooks) {0};
 }
 
 struct ntg_label_opts ntg_label_opts_def()
@@ -175,7 +177,7 @@ void ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts)
         .constrain_fn = NULL,
         .arrange_fn = NULL,
         .draw_fn = draw_fn,
-        .on_child_rm_fn = NULL
+        .rm_child_fn = NULL
     };
 
     ntg_object_init((ntg_object*)label, &vtable, &NTG_TYPE_LABEL);

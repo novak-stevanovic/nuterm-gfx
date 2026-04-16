@@ -15,7 +15,35 @@
 GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
 /* -------------------------------------------------------------------------- */
-/* VTABLE */
+/* BORDER & PADDING */
+/* -------------------------------------------------------------------------- */
+
+enum ntg_object_dcr_enable
+{
+    NTG_OBJECT_DCR_ENABLE_MIN = 0,
+    NTG_OBJECT_DCR_ENABLE_NAT,
+    NTG_OBJECT_DCR_ENABLE_ALWAYS
+};
+
+struct ntg_border_opts
+{
+    ntg_object_dcr_enable enable;
+    struct ntg_insets pref_size;
+    const struct ntg_border_style* style;
+};
+
+struct ntg_border_opts ntg_border_opts_def();
+
+struct ntg_padding_opts
+{
+    ntg_object_dcr_enable enable;
+    struct ntg_insets pref_size;
+};
+
+struct ntg_padding_opts ntg_padding_opts_def();
+
+/* -------------------------------------------------------------------------- */
+/* OBJECT */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object_vtable
@@ -50,39 +78,67 @@ struct ntg_object_vtable
             void* layout_ch,
             sarena* arena);
 
+    void (*rm_child_fn)(ntg_object* object, ntg_object* child);
+};
+
+/* -------------------------------------------------------------------------- */
+
+// TODO
+struct ntg_object_hooks
+{
+    // Called by focus scope/manager
+    bool (*on_key_fn)(ntg_object* object, struct nt_key_event key);
+    bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
+    bool (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
+    bool (*on_unfocus_fn)(ntg_object* object, ntg_object* new_focused);
+
     void (*on_child_rm_fn)(ntg_object* object, ntg_object* child);
+    void (*on_child_add_fn)(ntg_object* object, ntg_object* child);
+
+    void (*on_anchored_add_fn)(ntg_object* object, ntg_object* anchored);
+    void (*on_anchored_rm_fn)(ntg_object* object, ntg_object* anchored);
+
+    void (*on_parent_chng_fn)(
+            ntg_object* object,
+            ntg_object* old_parent,
+            ntg_object* new_parent);
+    void (*on_scene_chng_fn)(
+            ntg_object* object,
+            ntg_scene* old_scene,
+            ntg_scene* new_scene);
+    void (*on_base_chng_fn)(
+            ntg_object* object,
+            ntg_object* old_base,
+            ntg_object* new_base);
+
+    void (*on_border_opts_chng_fn)(
+            ntg_object* object,
+            const struct ntg_border_opts* old_opts,
+            const struct ntg_border_opts* new_opts);
+
+    void (*on_padding_opts_chng_fn)(
+            ntg_object* object,
+            const struct ntg_padding_opts* old_opts,
+            const struct ntg_padding_opts* new_opts);
+
+    void (*on_user_min_size_cont_chng)(
+            ntg_object* object,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
+    void (*on_user_max_size_cont_chng)(
+            ntg_object* object,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
+    void (*on_user_grow_chng)(
+            ntg_object* object,
+            struct ntg_xy old_grow,
+            struct ntg_xy new_grow);
+    void (*on_def_bg_chng)(
+            ntg_object* object,
+            struct ntg_vcell old_bg,
+            struct ntg_vcell new_bg);
 };
 
-/* -------------------------------------------------------------------------- */
-/* BORDER & PADDING */
-/* -------------------------------------------------------------------------- */
-
-enum ntg_object_dcr_enable
-{
-    NTG_OBJECT_DCR_ENABLE_MIN = 0,
-    NTG_OBJECT_DCR_ENABLE_NAT,
-    NTG_OBJECT_DCR_ENABLE_ALWAYS
-};
-
-struct ntg_border_opts
-{
-    ntg_object_dcr_enable enable;
-    struct ntg_insets pref_size;
-    const struct ntg_border_style* style;
-};
-
-struct ntg_border_opts ntg_border_opts_def();
-
-struct ntg_padding_opts
-{
-    ntg_object_dcr_enable enable;
-    struct ntg_insets pref_size;
-};
-
-struct ntg_padding_opts ntg_padding_opts_def();
-
-/* -------------------------------------------------------------------------- */
-/* OBJECT */
 /* -------------------------------------------------------------------------- */
 
 struct ntg_object
@@ -113,7 +169,6 @@ struct ntg_object
 
     struct
     {
-        struct ntg_object_vtable __vtable;
         void* layout_cache;
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
@@ -122,6 +177,9 @@ struct ntg_object
         bool __skip_hborder, __skip_hpadding, __repeat;
         uint8_t _dirty;
     };
+
+    struct ntg_object_vtable __vtable;
+    struct ntg_object_hooks hooks;
 
     struct
     {
@@ -136,12 +194,6 @@ struct ntg_object
             struct ntg_padding_opts opts;
             struct ntg_insets size;
         } _padding;
-    };
-
-    struct
-    {
-        bool (*__on_key_fn)(ntg_object* object, struct nt_key_event key);
-        bool (*__on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
     };
 };
 
@@ -250,13 +302,8 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_set_on_key_fn(ntg_object* object,
-        bool (*on_key_fn)(ntg_object* object, struct nt_key_event key));
-bool ntg_object_on_key(ntg_object* object, struct nt_key_event key);
-
-void ntg_object_set_on_mouse_fn(ntg_object* object,
-        bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse));
-bool ntg_object_on_mouse(ntg_object* object, struct nt_mouse_event mouse);
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key);
+bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse);
 
 /* -------------------------------------------------------------------------- */
 /* TRAVERSE HELPERS */
@@ -311,5 +358,8 @@ void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
 
 // Called by scene scene when registering/unregistering objects from the scene.
 void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
+
+bool _ntg_object_on_focus(ntg_object* object, ntg_object* old_focused);
+bool _ntg_object_on_unfocus(ntg_object* object, ntg_object* new_focused);
 
 #endif // NTG_OBJECT_H

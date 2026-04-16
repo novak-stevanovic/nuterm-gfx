@@ -375,7 +375,7 @@ void init_sflt_label()
     };
     ntg_label_set_opts(&sflt_label, &opts);
 
-    ntg_object_set_on_mouse_fn(ntg_obj(&sflt_label), sflt_on_mouse_fn);
+    ntg_obj(&sflt_label)->hooks.on_mouse_fn = sflt_on_mouse_fn;
 
     ntg_label_init(&sflt_label, &opts);
     ntg_object_set_z_index(ntg_obj(&sflt_label), 2);

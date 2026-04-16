@@ -105,7 +105,7 @@ bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key)
     assert(stage != NULL);
 
     if(stage->_scene)
-        return ntg_scene_on_key(stage->_scene, key);
+        return ntg_scene_feed_key(stage->_scene, key);
     else
         return false;
 }
@@ -115,43 +115,27 @@ bool ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
     assert(stage != NULL);
 
     if(stage->_scene)
-        return ntg_scene_on_mouse(stage->_scene, mouse);
+        return ntg_scene_feed_mouse(stage->_scene, mouse);
     else
         return false;
 }
 
-void ntg_stage_set_on_key_fn(ntg_stage* stage,
-        bool (*on_key_fn)(ntg_stage* stage, struct nt_key_event key))
-{
-    assert(stage != NULL);
-    
-    stage->__on_key_fn = on_key_fn;
-}
-
-bool ntg_stage_on_key(ntg_stage* stage, struct nt_key_event key)
+bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key_event key)
 {
     assert(stage != NULL);
 
-    if(stage->__on_key_fn)
-        return stage->__on_key_fn(stage, key);
+    if(stage->hooks.on_key_fn)
+        return stage->hooks.on_key_fn(stage, key);
     else
         return false;
 }
 
-void ntg_stage_set_on_mouse_fn(ntg_stage* stage,
-        bool (*on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse))
+bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 {
     assert(stage != NULL);
 
-    stage->__on_mouse_fn = on_mouse_fn;
-}
-
-bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
-{
-    assert(stage != NULL);
-
-    if(stage->__on_mouse_fn)
-        return stage->__on_mouse_fn(stage, mouse);
+    if(stage->hooks.on_mouse_fn)
+        return stage->hooks.on_mouse_fn(stage, mouse);
     else
         return false;
 }
@@ -245,8 +229,8 @@ static void init_default(ntg_stage* stage)
 {
     (*stage) = (ntg_stage) {0};
 
-    stage->__on_key_fn = ntg_stage_dispatch_key;
-    stage->__on_mouse_fn = ntg_stage_dispatch_mouse;
+    stage->hooks.on_key_fn = ntg_stage_dispatch_key;
+    stage->hooks.on_mouse_fn = ntg_stage_dispatch_mouse;
 }
 
 static void draw_object(ntg_stage* stage, ntg_object* object)

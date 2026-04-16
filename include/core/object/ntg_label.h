@@ -44,6 +44,22 @@ struct ntg_label_opts
 
 struct ntg_label_opts ntg_label_opts_def();
 
+// TODO
+struct ntg_label_hooks
+{
+    void (*on_opts_chng_fn)(
+            ntg_label* label,
+            const struct ntg_label_opts* old_opts,
+            const struct ntg_label_opts* new_opts);
+
+    void (*on_text_chng_fn)(
+            ntg_label* label,
+            const char* old_text,
+            size_t old_len,
+            const char* new_text,
+            size_t new_len);
+};
+
 struct ntg_label
 {
     ntg_object __base;
@@ -57,6 +73,8 @@ struct ntg_label
     } _text;
 
     struct ntg_label_priv* __priv;
+
+    struct ntg_label_hooks hooks;
 };
 
 /* ========================================================================== */

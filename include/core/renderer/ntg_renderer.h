@@ -14,10 +14,21 @@ struct ntg_renderer_vtable
             sarena* arena);
 };
 
+// TODO
+struct ntg_renderer_hooks
+{
+    void (*on_render_fn)(
+            ntg_renderer* renderer,
+            const ntg_stage_drawing* drawing,
+            sarena* arena);
+};
+
 struct ntg_renderer
 {
     struct ntg_renderer_vtable __vtable;
     void* data;
+
+    struct ntg_renderer_hooks hooks;
 };
 
 /* ========================================================================== */

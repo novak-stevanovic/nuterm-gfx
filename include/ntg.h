@@ -62,10 +62,9 @@ void ntg_wait();
 // TODO: implement more widgets(table, list, button, text field...) | **
 
 // RELEASE:
-// TODO: raise more generic events
+// TODO: raise hooks & generic events - rename hooks -> hooks_? | ACTIVE
 // TODO: add proper error-handling
 // TODO: add proper documentation
-// TODO: make .h files more readable
 // TODO: hide functions from final .so file(change -fvisibility)
 // BUG?: Horizontal resize causes line to appear at the bottom for split second
 

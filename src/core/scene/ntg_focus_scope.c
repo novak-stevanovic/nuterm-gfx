@@ -11,7 +11,7 @@ bool ntg_focus_scope_dispatch_key(
     ntg_object* focused = ctx->fm->_focused;
 
     if(focused)
-        return ntg_object_on_key(focused, key);
+        return ntg_object_feed_key(focused, key);
     else
         return false;
 }
@@ -25,7 +25,7 @@ bool ntg_focus_scope_dispatch_mouse_stc(
     if(!ctx->fm) return false;
 
     if(ctx->clicked)
-        return ntg_object_on_mouse(ctx->clicked, mouse);
+        return ntg_object_feed_mouse(ctx->clicked, mouse);
     else
         return false;
 }
@@ -46,12 +46,12 @@ bool ntg_focus_scope_dispatch_mouse_dyn(
         {
             if(focused == ctx->clicked)
             {
-                return ntg_object_on_mouse(ctx->clicked, mouse);
+                return ntg_object_feed_mouse(ctx->clicked, mouse);
             }
             else
             {
                 ntg_focus_manager_request_focus(ctx->fm, NULL);
-                ntg_object_on_mouse(ctx->clicked, mouse);
+                ntg_object_feed_mouse(ctx->clicked, mouse);
                 return true;
             }
         }
@@ -66,7 +66,7 @@ bool ntg_focus_scope_dispatch_mouse_dyn(
         if(ctx->clicked)
         {
             ntg_focus_manager_request_focus(ctx->fm, ctx->clicked);
-            ntg_object_on_mouse(ctx->clicked, mouse);
+            ntg_object_feed_mouse(ctx->clicked, mouse);
             return true;
         }
         else

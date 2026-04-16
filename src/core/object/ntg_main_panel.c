@@ -36,11 +36,6 @@ struct ntg_main_panel_opts ntg_main_panel_opts_def()
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-static void init_default(ntg_main_panel* panel)
-{
-    memset(panel->_children, 0, sizeof(ntg_object*) * 5);
-}
-
 void ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts)
 {
     assert(panel != NULL);
@@ -50,12 +45,13 @@ void ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts
         .constrain_fn = constrain_fn,
         .arrange_fn = arrange_fn,
         .draw_fn = NULL,
-        .on_child_rm_fn = on_child_rm_fn
+        .rm_child_fn = on_child_rm_fn
     };
 
     ntg_object_init((ntg_object*)panel, &vtable, &NTG_TYPE_MAIN_PANEL);
 
-    init_default(panel);
+    memset(panel->_children, 0, sizeof(ntg_object*) * 5);
+    panel->hooks = (struct ntg_main_panel_hooks) {0};
 }
 
 void ntg_main_panel_set(
@@ -85,7 +81,8 @@ void ntg_main_panel_set(
 
 void ntg_main_panel_deinit(ntg_main_panel* panel)
 {
-    init_default(panel);
+    memset(panel->_children, 0, sizeof(ntg_object*) * 5);
+    panel->hooks = (struct ntg_main_panel_hooks) {0};
     ntg_object_deinit((ntg_object*)panel);
 }
 

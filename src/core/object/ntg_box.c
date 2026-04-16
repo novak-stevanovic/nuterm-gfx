@@ -54,10 +54,13 @@ void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts)
         .constrain_fn = constrain_fn,
         .arrange_fn = arrange_fn,
         .draw_fn = NULL,
-        .on_child_rm_fn = on_child_rm_fn
+        .rm_child_fn = on_child_rm_fn
     };
 
     ntg_object_init((ntg_object*)box, &vtable, &NTG_TYPE_BOX);
+
+    box->_opts = ntg_box_opts_def();
+    box->hooks = (struct ntg_box_hooks) {0};
 
     ((ntg_object*)box)->layout_cache = malloc(sizeof(struct ntg_box_layout_cache));
 

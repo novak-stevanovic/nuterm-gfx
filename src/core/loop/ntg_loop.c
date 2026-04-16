@@ -14,6 +14,26 @@ static void update_stage(ntg_loop* loop);
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
+bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
+{
+    if(loop->_stage)
+    {
+        ntg_stage* stage = loop->_stage;
+        if(event.type == NT_EVENT_KEY)
+        {
+            struct nt_key_event key = *(struct nt_key_event*)event.data;
+            return ntg_stage_feed_key(stage, key);
+        }
+        else if(event.type == NT_EVENT_MOUSE)
+        {
+            struct nt_mouse_event mouse = *(struct nt_mouse_event*)event.data;
+            return ntg_stage_feed_mouse(stage, mouse);
+        }
+        else return false;
+    }
+    else return false;
+}
+
 void ntg_loop_init(ntg_loop* loop,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
@@ -70,26 +90,6 @@ void ntg_loop_deinit(ntg_loop* loop)
 void ntg_loop_deinit_(void* _loop)
 {
     ntg_loop_deinit(_loop);
-}
-
-bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
-{
-    if(loop->_stage)
-    {
-        ntg_stage* stage = loop->_stage;
-        if(event.type == NT_EVENT_KEY)
-        {
-            struct nt_key_event key = *(struct nt_key_event*)event.data;
-            return ntg_stage_on_key(stage, key);
-        }
-        else if(event.type == NT_EVENT_MOUSE)
-        {
-            struct nt_mouse_event mouse = *(struct nt_mouse_event*)event.data;
-            return ntg_stage_on_mouse(stage, mouse);
-        }
-        else return false;
-    }
-    else return false;
 }
 
 ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)

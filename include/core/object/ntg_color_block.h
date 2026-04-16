@@ -8,10 +8,21 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
+// TODO
+struct ntg_color_block_hooks
+{
+    void (*on_color_chng_fn)(
+            ntg_color_block* cb,
+            struct nt_color old_color,
+            struct nt_color new_color);
+};
+
 struct ntg_color_block
 {
     ntg_object __base;
     struct nt_color __color;
+
+    struct ntg_color_block_hooks hooks;
 };
 
 /* ========================================================================== */

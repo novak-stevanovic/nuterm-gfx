@@ -18,10 +18,19 @@ struct ntg_box_opts
 
 struct ntg_box_opts ntg_box_opts_def();
 
+// TODO
+struct ntg_box_hooks
+{
+    void (*on_child_add_fn)(ntg_box* box, ntg_object* child);
+    void (*on_child_rm_fn)(ntg_box* box, ntg_object* child);
+    void (*on_opts_chng_fn)(ntg_box* box, const struct ntg_box_opts* old_opts, const struct ntg_box_opts* new_opts);
+};
+
 struct ntg_box
 {
     ntg_object __base;
 
+    struct ntg_box_hooks hooks;
     struct ntg_box_opts _opts;
 };
 

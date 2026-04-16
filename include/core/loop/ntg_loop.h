@@ -64,6 +64,9 @@ struct ntg_loop
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
+// Default implementation of `on_event_fn` - dispatches key/mouse event to stage
+bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
+
 void ntg_loop_init(ntg_loop* loop,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
@@ -104,9 +107,6 @@ void ntg_platform_execute_later(
         ntg_platform* platform, 
         void (*task_fn)(void* data),
         void* data);
-
-// Default implementation of `on_event_fn` - dispatches key/mouse event to stage
-bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
 
 /* ========================================================================== */
 /* INTERNAL */

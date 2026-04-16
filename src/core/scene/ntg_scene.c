@@ -63,14 +63,9 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 
 static void init_default(ntg_scene* scene)
 {
-    scene->_stage = NULL;
-    scene->_root = NULL;
-    scene->_size = ntg_xy(0, 0);
-    scene->__on_key_fn = ntg_scene_dispatch_key;
-    scene->__on_mouse_fn = ntg_scene_dispatch_mouse;
-    scene->_dirty = false;
-    scene->_fm = NULL;
-    scene->data = NULL;
+    (*scene) = (ntg_scene) {0};
+    scene->hooks.on_key_fn = ntg_scene_dispatch_key;
+    scene->hooks.on_mouse_fn = ntg_scene_dispatch_mouse;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -212,50 +207,32 @@ bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key)
 {
     assert(scene);
 
-    return ntg_focus_manager_on_key(scene->_fm, key);
+    return ntg_focus_manager_feed_key(scene->_fm, key);
 }
 
 bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 {
     assert(scene);
 
-    return ntg_focus_manager_on_mouse(scene->_fm, mouse);
+    return ntg_focus_manager_feed_mouse(scene->_fm, mouse);
 }
 
-void ntg_scene_set_on_key_fn(
-        ntg_scene* scene,
-        bool (*on_key_fn)(ntg_scene* scene, struct nt_key_event key))
+bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key_event key)
 {
     assert(scene);
 
-    scene->__on_key_fn = on_key_fn;
-}
-
-bool ntg_scene_on_key(ntg_scene* scene, struct nt_key_event key)
-{
-    assert(scene);
-
-    if(scene->__on_key_fn)
-        return scene->__on_key_fn(scene, key);
+    if(scene->hooks.on_key_fn)
+        return scene->hooks.on_key_fn(scene, key);
     else
         return false;
 }
 
-void ntg_scene_set_on_mouse_fn(
-        ntg_scene* scene,
-        bool (*on_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse))
+bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 {
     assert(scene);
 
-    scene->__on_mouse_fn = on_mouse_fn;
-}
-
-bool ntg_scene_on_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
-{
-    assert(scene);
-
-    if(scene->__on_mouse_fn)
-        return scene->__on_mouse_fn(scene, mouse);
+    if(scene->hooks.on_mouse_fn)
+        return scene->hooks.on_mouse_fn(scene, mouse);
     else
         return false;
 }

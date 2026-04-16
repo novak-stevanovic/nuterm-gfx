@@ -8,6 +8,28 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
+// TODO
+struct ntg_stage_hooks
+{
+    bool (*on_key_fn)(ntg_stage* stage, struct nt_key_event key);
+    bool (*on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse);
+
+    void (*on_scene_chng_fn)(
+            ntg_stage* stage,
+            ntg_scene* old_scene,
+            ntg_scene* new_scene);
+
+    void (*on_size_chng_fn)(
+            ntg_stage* stage,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
+
+    void (*on_loop_chng_fn)(
+            ntg_stage* stage,
+            ntg_loop* old_loop,
+            ntg_loop* new_loop);
+};
+
 struct ntg_stage
 {
     ntg_scene* _scene;
@@ -19,11 +41,7 @@ struct ntg_stage
 
     bool _dirty;
 
-    struct
-    {
-        bool (*__on_key_fn)(ntg_stage* stage, struct nt_key_event key);
-        bool (*__on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse);
-    };
+    struct ntg_stage_hooks hooks;
 
     void* data;
 };
@@ -55,13 +73,8 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key);
 bool ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 
-void ntg_stage_set_on_key_fn(ntg_stage* stage,
-        bool (*on_key_fn)(ntg_stage* stage, struct nt_key_event key));
-bool ntg_stage_on_key(ntg_stage* stage, struct nt_key_event key);
-
-void ntg_stage_set_on_mouse_fn(ntg_stage* stage,
-        bool (*on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse));
-bool ntg_stage_on_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
+bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key_event key);
+bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 
 /* ========================================================================== */
 /* INTERNAL */

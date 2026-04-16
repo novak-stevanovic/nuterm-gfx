@@ -35,6 +35,8 @@ void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene)
     assert(fm);
     assert(scene);
 
+    (*fm) = (ntg_focus_manager) {0};
+
     fm->__scope_stack = malloc(sizeof(ntg_focus_scope_list));
     assert(fm->__scope_stack);
 
@@ -214,7 +216,7 @@ void ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed)
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_focus_manager_on_key(ntg_focus_manager* fm, struct nt_key_event key)
+bool ntg_focus_manager_feed_key(ntg_focus_manager* fm, struct nt_key_event key)
 {
     assert(fm);
 
@@ -232,7 +234,7 @@ bool ntg_focus_manager_on_key(ntg_focus_manager* fm, struct nt_key_event key)
         return false;
 }
 
-bool ntg_focus_manager_on_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
+bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
 {
     assert(fm);
 
@@ -265,7 +267,7 @@ bool ntg_focus_manager_on_mouse(ntg_focus_manager* fm, struct nt_mouse_event mou
     else // OUTSIDE SCOPE
     {
         if(scope->input_mode == NTG_FOCUS_SCOPE_INPUT_MODELESS)
-            return ntg_object_on_mouse(hit, mouse);
+            return ntg_object_feed_mouse(hit, mouse);
         else
             return false;
 

@@ -303,8 +303,8 @@ void ntg_object_detach(ntg_object* object)
 
     object->_parent = NULL;
 
-    if(parent->__vtable.on_child_rm_fn)
-        parent->__vtable.on_child_rm_fn(parent, object);
+    if(parent->__vtable.rm_child_fn)
+        parent->__vtable.rm_child_fn(parent, object);
 
     if(scene)
         _ntg_scene_unregister_tree(scene, object);
@@ -518,41 +518,25 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point)
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_set_on_key_fn(ntg_object* object,
-        bool (*on_key_fn)(ntg_object* object, struct nt_key_event key))
+bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key)
 {
     assert(object);
 
-    object->__on_key_fn = on_key_fn;
-}
-
-bool ntg_object_on_key(ntg_object* object, struct nt_key_event key)
-{
-    assert(object);
-
-    if(object->__on_key_fn)
+    if(object->hooks.on_key_fn)
     {
-        return object->__on_key_fn(object, key);
+        return object->hooks.on_key_fn(object, key);
     }
     else
         return false;
 }
 
-void ntg_object_set_on_mouse_fn(ntg_object* object,
-        bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse))
+bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse)
 {
     assert(object);
 
-    object->__on_mouse_fn = on_mouse_fn;
-}
-
-bool ntg_object_on_mouse(ntg_object* object, struct nt_mouse_event mouse)
-{
-    assert(object);
-
-    if(object->__on_mouse_fn)
+    if(object->hooks.on_mouse_fn)
     {
-        return object->__on_mouse_fn(object, mouse);
+        return object->hooks.on_mouse_fn(object, mouse);
     }
     else
         return false;
@@ -1393,6 +1377,32 @@ void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene)
     object->__skip_hborder = false;
     object->__skip_hpadding = false;
     object->__repeat = false;
+}
+
+bool _ntg_object_on_focus(ntg_object* object, ntg_object* old_focused)
+{
+    assert(object);
+
+    if(object->hooks.on_focus_fn)
+    {
+        return object->hooks.on_focus_fn(object, old_focused);
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool _ntg_object_on_unfocus(ntg_object* object, ntg_object* new_focused)
+{
+    if(object->hooks.on_focus_fn)
+    {
+        return object->hooks.on_focus_fn(object, new_focused);
+    }
+    else
+    {
+        return false;
+    }
 }
 
 /* ========================================================================== */

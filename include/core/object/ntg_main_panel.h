@@ -24,23 +24,34 @@ enum ntg_main_panel_pos
     NTG_MAIN_PANEL_CENTER
 };
 
+// TODO
+struct ntg_main_panel_hooks
+{
+    void (*on_child_chng)(
+            ntg_main_panel* panel,
+            ntg_object* old_child,
+            ntg_object* new_child,
+            enum ntg_main_panel_pos pos);
+};
+
 struct ntg_main_panel
 {
     ntg_object __base;
 
     ntg_object* _children[5];
+    struct ntg_main_panel_hooks hooks;
 };
 
 /* ========================================================================== */
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_main_panel_init(ntg_main_panel* box, const struct ntg_main_panel_opts* opts);
-void ntg_main_panel_deinit(ntg_main_panel* box);
-void ntg_main_panel_deinit_(void* _box);
+void ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts);
+void ntg_main_panel_deinit(ntg_main_panel* panel);
+void ntg_main_panel_deinit_(void* _panel);
 
 void ntg_main_panel_set(
-        ntg_main_panel* box,
+        ntg_main_panel* panel,
         ntg_object* object,
         enum ntg_main_panel_pos pos);
 
