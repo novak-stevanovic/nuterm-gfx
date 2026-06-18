@@ -16,6 +16,9 @@ struct ntg_prog_bar_style
 };
 
 struct ntg_prog_bar_style ntg_prog_bar_style_def();
+bool ntg_prog_bar_style_are_eq(
+        const struct ntg_prog_bar_style* style1,
+        const struct ntg_prog_bar_style* style2);
 
 struct ntg_prog_bar_opts
 {
@@ -24,6 +27,9 @@ struct ntg_prog_bar_opts
 };
 
 struct ntg_prog_bar_opts ntg_prog_bar_opts_def();
+bool ntg_prog_bar_opts_are_eq(
+        const struct ntg_prog_bar_opts* opts1,
+        const struct ntg_prog_bar_opts* opts2);
 
 struct ntg_prog_bar_hooks
 {
@@ -42,7 +48,7 @@ struct ntg_prog_bar
 {
     ntg_object __base;
 
-    double _percentage; // [0, 1]
+    double _prog; // [0, 1]
     struct ntg_prog_bar_opts _opts;
     struct ntg_prog_bar_hooks hooks;
 };
@@ -56,6 +62,6 @@ void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar);
 void ntg_prog_bar_deinit_(void* _prog_bar);
 
 void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts);
-void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage);
+void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double percentage);
 
 #endif // NTG_PROG_BAR_H

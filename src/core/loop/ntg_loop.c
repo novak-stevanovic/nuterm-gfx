@@ -271,15 +271,23 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
     }
     else
     {
-        if(loop->_stage == stage) return;
+        ntg_stage* old_stage = loop->_stage;
 
-        if(loop->_stage)
+        if(old_stage == stage) return;
+
+        if(old_stage)
         {
-            _ntg_stage_set_loop(loop->_stage, NULL);
-            _ntg_stage_set_size(loop->_stage, ntg_xy(0, 0));
+            _ntg_stage_set_loop(old_stage, NULL);
+            _ntg_stage_set_size(old_stage, ntg_xy(0, 0));
         }
         if(stage)
         {
+            // If stage already has loop
+            if(stage->_loop)
+            {
+                ntg_loop_set_stage(stage->_loop, NULL);
+            }
+
             _ntg_stage_set_loop(stage, loop);
             _ntg_stage_set_size(stage, loop->_app_size);
             ntg_stage_mark_dirty(stage);
@@ -287,6 +295,12 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
 
         loop->_stage = stage;
         loop->__pending_stage = stage;
+
+        if(old_stage && old_stage->hooks.on_loop_chng_fn)
+            old_stage->hooks.on_loop_chng_fn(old_stage, loop, NULL);
+
+        if(stage && stage->hooks.on_loop_chng_fn)
+            stage->hooks.on_loop_chng_fn(stage, NULL, loop);
     }
 }
 

@@ -85,6 +85,14 @@ static inline double _max2_double(double x, double y)
     return (x < y) ? y : x;
 }
 
+static inline bool _double_are_eq(double a, double b)
+{
+    const double eps = 1e-9;
+    double diff = a - b;
+
+    return diff > -eps && diff < eps;
+}
+
 static inline size_t _ssub_size(size_t x, size_t y)
 {
     return (x > y) ? x - y : 0;

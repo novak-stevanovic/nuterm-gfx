@@ -17,8 +17,10 @@ struct ntg_box_opts
 };
 
 struct ntg_box_opts ntg_box_opts_def();
+bool ntg_box_opts_are_eq(
+        const struct ntg_box_opts* opts1,
+        const struct ntg_box_opts* opts2);
 
-// TODO
 struct ntg_box_hooks
 {
     void (*on_child_add_fn)(ntg_box* box, ntg_object* child);

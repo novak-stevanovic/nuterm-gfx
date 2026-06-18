@@ -87,6 +87,9 @@ void ntg_focus_manager_deinit_(void* _fm)
 
 bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
 {
+    bool focusable = false;
+    ntg_object* old_focused = fm->_focused;
+
     if(object) // FOCUS
     {
         const struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
@@ -97,24 +100,33 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
         if(scope_root) // SSCOPE HAS ROOT
         {
             if(ntg_object_is_descendant_eq(scope_root, object)) // FOCUSABLE
-            {
-                fm->_focused = object;
-                return true;
-            }
+                focusable = true;
             else // NOT FOCUSABLE
-                return false;
+                focusable = false;
         }
         else // NO ROOT SO FOCUSABLE
-        {
-            fm->_focused = object;
-            return true;
-        }
+            focusable = true;
     }
     else // UNFOCUS
+        focusable = true;
+        
+    if(focusable)
     {
-        fm->_focused = NULL;
+        fm->_focused = object;
+
+        if(fm->hooks.on_focused_chng_fn)
+            fm->hooks.on_focused_chng_fn(fm, old_focused, object);
+            
+        if(old_focused && old_focused->hooks.on_unfocus_fn)
+            old_focused->hooks.on_unfocus_fn(old_focused, object);
+
+        if(object && object->hooks.on_focus_fn)
+            object->hooks.on_focus_fn(object, old_focused);
+
         return true;
     }
+
+    return false;
 }
 
 void ntg_focus_manager_push_scope(
@@ -171,6 +183,9 @@ void ntg_focus_manager_push_scope(
     assert(_status == GENC_SUCCESS);
 
     ntg_focus_manager_request_focus(fm, NULL);
+
+    if(fm->hooks.on_scope_push_fn)
+        fm->hooks.on_scope_push_fn(fm, scope);
 }
 
 void ntg_focus_manager_pop_scope(ntg_focus_manager* fm)
@@ -294,6 +309,9 @@ static void scope_stack_pop(ntg_focus_manager* fm)
     ntg_focus_manager_request_focus(fm, head->data->last_focused);
 
     head->data->last_focused = NULL;
+
+    if(fm->hooks.on_scope_pop_fn)
+        fm->hooks.on_scope_pop_fn(fm, &head->data->scope);
 }
 
 static void scope_stack_sync(ntg_focus_manager* fm)

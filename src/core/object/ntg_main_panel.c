@@ -32,6 +32,19 @@ struct ntg_main_panel_opts ntg_main_panel_opts_def()
     return (struct ntg_main_panel_opts) {0};
 }
 
+bool ntg_main_panel_opts_are_eq(
+        const struct ntg_main_panel_opts* opts1,
+        const struct ntg_main_panel_opts* opts2)
+{
+    if(opts1 == opts2)
+        return true;
+
+    if(!opts1 || !opts2)
+        return false;
+
+    return true;
+}
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -61,10 +74,12 @@ void ntg_main_panel_set(
 {
     assert(panel != NULL);
 
-    if(panel->_children[pos] == object) return;
+    ntg_object* old_child = panel->_children[pos];
 
-    if(panel->_children[pos] != NULL)
-        ntg_object_detach(panel->_children[pos]);
+    if(old_child == object) return;
+
+    if(old_child != NULL)
+        ntg_object_detach(old_child);
 
     if(object != NULL)
     {
@@ -73,6 +88,27 @@ void ntg_main_panel_set(
     }
 
     ntg_object_mark_dirty((ntg_object*)panel, NTG_OBJECT_DIRTY_FULL);
+
+    if(panel->hooks.on_child_chng_fn)
+        panel->hooks.on_child_chng_fn(panel, old_child, object, pos);
+}
+
+void ntg_main_panel_set_opts(
+        ntg_main_panel* panel,
+        const struct ntg_main_panel_opts* opts)
+{
+    assert(panel);
+
+    struct ntg_main_panel_opts old_opts = panel->_opts;
+    struct ntg_main_panel_opts new_opts = (opts ? (*opts) : ntg_main_panel_opts_def());
+
+    if(ntg_main_panel_opts_are_eq(&old_opts, &new_opts))
+        return;
+
+    panel->_opts = new_opts;
+
+    if(panel->hooks.on_opts_chng_fn)
+        panel->hooks.on_opts_chng_fn(panel, &old_opts, &new_opts);
 }
 
 /* -------------------------------------------------------------------------- */

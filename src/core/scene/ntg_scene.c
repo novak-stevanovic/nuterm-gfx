@@ -184,21 +184,42 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
 
     ntg_object* old_root = scene->_root;
 
-    if(scene->_root)
+    // Remove old root
+    if(old_root) // already has root?
     {
-        _ntg_object_root_set_scene(scene->_root, NULL);
-        
-        // If an element is focused, _ntg_scene_unregister_tree() will take care of it
-        _ntg_scene_unregister_tree(scene, scene->_root);
+        _ntg_object_root_set_scene(old_root, NULL);
+        // If an element is focused, _ntg_scene_rm_object_tree() will take care of it
+        _ntg_scene_rm_object_tree(scene, old_root);
     }
 
+    // Update new root state
     if(root)
     {
+        // If root has old scene, remove
+        if(ntg_object_is_true_root(root)) // true root
+        {
+            ntg_scene* scene = ntg_object_get_scene_(root);
+            if(scene)
+            {
+                ntg_scene_set_root(scene, NULL);
+            }
+        }
+        else if(ntg_object_is_root(root)) // layer
+        {
+            ntg_object_unanchor(root);
+        }
+
+        _ntg_scene_add_object_tree(scene, root);
         _ntg_object_root_set_scene(root, scene);
-        _ntg_scene_register_tree(scene, root);
     }
 
     scene->_root = root;
+        
+    if(old_root)
+        _ntg_scene_unregister_tree(scene, old_root);
+
+    if(root)
+        _ntg_scene_register_tree(scene, root);
 
     if(scene->hooks.on_root_chng_fn)
         scene->hooks.on_root_chng_fn(scene, old_root, root);
@@ -252,12 +273,18 @@ bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 
 void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 {
+    assert(scene);
+
     struct ntg_xy old_size = scene->_size;
-    if(!ntg_xy_are_equal(old_size, size))
-    {
-        scene->_size = size;
-        ntg_scene_mark_dirty(scene);
-    }
+
+    if(ntg_xy_are_equal(old_size, size))
+        return;
+
+    scene->_size = size;
+    ntg_scene_mark_dirty(scene);
+    
+    if(scene->hooks.on_size_chng_fn)
+        scene->hooks.on_size_chng_fn(scene, old_size, size);
 }
 
 void _ntg_scene_layout(ntg_scene* scene, sarena* arena)
@@ -272,7 +299,6 @@ void _ntg_scene_layout(ntg_scene* scene, sarena* arena)
     size_t i;
     for(i = 0; i < layer_count; i++)
         layout_layer(scene, layers[i], 0, arena);
-
 }
 
 void _ntg_scene_clean(ntg_scene* scene)
@@ -291,6 +317,25 @@ void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
     scene->_stage = stage;
 }
 
+void _ntg_scene_add(ntg_scene* scene, ntg_object* object)
+{
+    assert(scene != NULL);
+    assert(object != NULL);
+
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+    ntg_scene_mark_dirty(scene); // just in case
+}
+
+void _ntg_scene_rm(ntg_scene* scene, ntg_object* object)
+{
+    assert(scene != NULL);
+    assert(object != NULL);
+
+    ntg_scene_mark_dirty(scene);
+
+    ntg_focus_manager_invalidate(scene->_fm, object);
+}
+
 void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
 {
     assert(scene != NULL);
@@ -299,8 +344,22 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
     ntg_scene_mark_dirty(scene); // just in case
 
+    if(scene->hooks.on_object_register_fn)
+        scene->hooks.on_object_register_fn(scene, object);
+
     if(object->hooks.on_scene_chng_fn)
         object->hooks.on_scene_chng_fn(object, NULL, scene);
+
+    if(ntg_object_is_only_layer_root(object))
+    {
+        ntg_scene* scene = ntg_object_get_scene_(object);
+
+        if(scene)
+        {
+            if(scene->hooks.on_layer_add_fn)
+                scene->hooks.on_layer_add_fn(scene, object);
+        }
+    }
 }
 
 void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
@@ -308,12 +367,62 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
     assert(scene != NULL);
     assert(object != NULL);
 
-    ntg_scene_mark_dirty(scene);
-
-    ntg_focus_manager_invalidate(scene->_fm, object);
+    if(scene->hooks.on_object_unregister_fn)
+        scene->hooks.on_object_unregister_fn(scene, object);
 
     if(object->hooks.on_scene_chng_fn)
         object->hooks.on_scene_chng_fn(object, scene, NULL);
+
+    if(ntg_object_is_only_layer_root(object))
+    {
+        if(scene)
+        {
+            if(scene->hooks.on_layer_rm_fn)
+                scene->hooks.on_layer_rm_fn(scene, object);
+        }
+    }
+}
+
+void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root)
+{
+    assert(scene != NULL);
+    assert(root != NULL);
+
+    _ntg_scene_add(scene, root);
+
+    size_t i;
+    for(i = 0; i < root->_children.size; i++)
+    {
+        ntg_object* child = root->_children.data[i];
+        _ntg_scene_add_object_tree(scene, child);
+    }
+
+    for(i = 0; i < root->_anchored.size; i++)
+    {
+        ntg_object* layer = root->_anchored.data[i];
+        _ntg_scene_add_object_tree(scene, layer);
+    }
+}
+
+void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
+{
+    assert(scene != NULL);
+    assert(root != NULL);
+
+    _ntg_scene_rm(scene, root);
+
+    size_t i;
+    for(i = 0; i < root->_children.size; i++)
+    {
+        ntg_object* child = root->_children.data[i];
+        _ntg_scene_rm_object_tree(scene, child);
+    }
+
+    for(i = 0; i < root->_anchored.size; i++)
+    {
+        ntg_object* layer = root->_anchored.data[i];
+        _ntg_scene_rm_object_tree(scene, layer);
+    }
 }
 
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
@@ -329,6 +438,12 @@ void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
         ntg_object* child = root->_children.data[i];
         _ntg_scene_register_tree(scene, child);
     }
+
+    for(i = 0; i < root->_anchored.size; i++)
+    {
+        ntg_object* layer = root->_anchored.data[i];
+        _ntg_scene_register_tree(scene, layer);
+    }
 }
 
 void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
@@ -343,6 +458,12 @@ void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
     {
         ntg_object* child = root->_children.data[i];
         _ntg_scene_unregister_tree(scene, child);
+    }
+
+    for(i = 0; i < root->_anchored.size; i++)
+    {
+        ntg_object* layer = root->_anchored.data[i];
+        _ntg_scene_unregister_tree(scene, layer);
     }
 }
 

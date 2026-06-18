@@ -14,6 +14,9 @@ void ntg_renderer_render(
     assert(renderer != NULL);
 
     renderer->__vtable.render_fn(renderer, stage_drawing, arena);
+
+    if(renderer->hooks.on_render_fn)
+        renderer->hooks.on_render_fn(renderer, stage_drawing, arena);
 }
 
 /* -------------------------------------------------------------------------- */

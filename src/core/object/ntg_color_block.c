@@ -23,9 +23,17 @@ void ntg_color_block_set_color(ntg_color_block* color_block, struct nt_color col
 {
     assert(color_block != NULL);
 
-    color_block->__color = color;
+    struct nt_color old_color = color_block->_color;
+
+    if(nt_color_are_equal(old_color, color))
+        return;
+
+    color_block->_color = color;
 
     ntg_object_mark_dirty((ntg_object*)color_block, NTG_OBJECT_DIRTY_DRAW);
+
+    if(color_block->hooks.on_color_chng_fn)
+        color_block->hooks.on_color_chng_fn(color_block, old_color, color);
 }
 
 void ntg_color_block_init(ntg_color_block* color_block, struct nt_color color)
@@ -48,14 +56,14 @@ void ntg_color_block_init(ntg_color_block* color_block, struct nt_color color)
 
     color_block->hooks = (struct ntg_color_block_hooks) {0};
 
-    color_block->__color = NT_COLOR_DEFAULT;
+    color_block->_color = NT_COLOR_DEFAULT;
 
     ntg_color_block_set_color(color_block, color);
 }
 
 void ntg_color_block_deinit(ntg_color_block* block)
 {
-    block->__color = NT_COLOR_DEFAULT;
+    block->_color = NT_COLOR_DEFAULT;
     ntg_object_deinit((ntg_object*)block);
 }
 
@@ -98,7 +106,7 @@ static void draw_fn(
         {
             ntg_object_tmp_drawing_set(
                     out_drawing,
-                    ntg_vcell_bg(color_block->__color),
+                    ntg_vcell_bg(color_block->_color),
                     ntg_xy(j, i));
         }
     }

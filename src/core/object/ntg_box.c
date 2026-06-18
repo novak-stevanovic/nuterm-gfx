@@ -37,6 +37,22 @@ struct ntg_box_opts ntg_box_opts_def()
     };
 }
 
+bool ntg_box_opts_are_eq(
+        const struct ntg_box_opts* opts1,
+        const struct ntg_box_opts* opts2)
+{
+    if(opts1 == opts2)
+        return true;
+
+    if(!opts1 || !opts2)
+        return false;
+
+    return ((opts1->orient == opts2->orient) &&
+            (opts1->prim_align == opts2->prim_align) &&
+            (opts1->sec_align == opts2->sec_align) &&
+            (opts1->spacing == opts2->spacing));
+}
+
 static inline size_t calculate_total_spacing(size_t spacing, size_t child_count);
 
 static void on_child_rm_fn(ntg_object* _box, ntg_object* child);
@@ -83,8 +99,14 @@ void ntg_box_deinit_(void* _box)
 void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
 {
     assert(box != NULL);
-    
-    box->_opts = (opts ? (*opts) : ntg_box_opts_def());
+
+    struct ntg_box_opts old_opts = box->_opts;
+    struct ntg_box_opts new_opts = (opts ? (*opts) : ntg_box_opts_def());
+
+    if(ntg_box_opts_are_eq(&old_opts, &new_opts))
+        return;
+
+    box->_opts = new_opts;
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
@@ -104,6 +126,9 @@ void ntg_box_add_child(ntg_box* box, ntg_object* child)
     ntg_object_attach((ntg_object*)box, child);
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
+
+    if(box->hooks.on_child_add_fn)
+        box->hooks.on_child_add_fn(box, child);
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_object* child)
@@ -111,9 +136,15 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
     assert(box != NULL);
     assert(child != NULL);
 
+    if(child->_parent != ntg_obj(box))
+        return;
+
     ntg_object_detach(child);
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
+
+    if(box->hooks.on_child_rm_fn)
+        box->hooks.on_child_rm_fn(box, child);
 }
 
 /* -------------------------------------------------------------------------- */

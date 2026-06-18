@@ -164,6 +164,27 @@ struct ntg_label_opts ntg_label_opts_def()
     };
 }
 
+bool ntg_label_opts_are_eq(
+        const struct ntg_label_opts* opts1,
+        const struct ntg_label_opts* opts2)
+{
+    if(opts1 == opts2)
+        return true;
+
+    if(!opts1 || !opts2)
+        return false;
+
+    return ((opts1->orient == opts2->orient) &&
+           nt_gfx_are_equal(opts1->gfx, opts2->gfx) &&
+           (opts1->text_mode == opts2->text_mode) &&
+           (opts1->prim_align == opts2->prim_align) &&
+           (opts1->sec_align == opts2->sec_align) &&
+           (opts1->bg_mode == opts2->bg_mode) &&
+           (opts1->wrap == opts2->wrap) &&
+           (opts1->autotrim == opts2->autotrim) &&
+           (opts1->indent == opts2->indent));
+}
+
 /* -------------------------------------------------------------------------- */
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
@@ -229,7 +250,13 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 
     ntg_object* _label = ntg_obj(label);
 
-    label->_opts = (opts ? (*opts) : ntg_label_opts_def());
+    struct ntg_label_opts old_opts = label->_opts;
+    struct ntg_label_opts new_opts = (opts ? (*opts) : ntg_label_opts_def());
+
+    if(ntg_label_opts_are_eq(&old_opts, &new_opts))
+        return;
+
+    label->_opts = new_opts;
 
     struct nt_gfx gfx = label->_opts.gfx;
 
@@ -249,6 +276,21 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
 {
     assert(label != NULL);
+
+    if((label->_text.len == len) && (memcmp(label->_text.data, text, len) == 0))
+        return;
+
+    bool raise_hook = (label->_text.data != NULL);
+    size_t old_text_len = label->_text.len;
+    char* old_text = NULL;
+    if(raise_hook)
+    {
+        char* old_text = malloc(1 + old_text_len * sizeof(char));
+        assert(old_text);
+
+        if(old_text_len > 0)
+            memmove(old_text, label->_text.data, old_text_len);
+    }
 
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 
@@ -334,6 +376,15 @@ void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
     // Update cached rows and their lengths
     label->__priv->utf32_rows = new_rows;
     label->__priv->utf32_row_count = row_count;
+
+    if(raise_hook)
+    {
+        if(label->hooks.on_text_chng_fn)
+            label->hooks.on_text_chng_fn(label, old_text, old_text_len, text, len);
+
+        if(old_text)
+            free(old_text);
+    }
 }
 
 void ntg_label_set_text(ntg_label* label, const char* text)

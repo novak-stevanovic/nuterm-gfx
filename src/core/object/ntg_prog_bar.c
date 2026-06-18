@@ -32,6 +32,35 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
     };
 }
 
+bool ntg_prog_bar_opts_are_eq(
+        const struct ntg_prog_bar_opts* opts1,
+        const struct ntg_prog_bar_opts* opts2)
+{
+    if(opts1 == opts2)
+        return true;
+
+    if(!opts1 || !opts2)
+        return false;
+
+    return (ntg_prog_bar_style_are_eq(&opts1->style, &opts2->style) &&
+            (opts1->orient == opts2->orient));
+}
+
+bool ntg_prog_bar_style_are_eq(
+        const struct ntg_prog_bar_style* style1,
+        const struct ntg_prog_bar_style* style2)
+{
+    if(style1 == style2)
+        return true;
+
+    if(!style1 || !style2)
+        return false;
+
+    return (ntg_vcell_are_equal(style1->complete_style, style2->complete_style) &&
+            ntg_vcell_are_equal(style1->uncomplete_style, style2->uncomplete_style) &&
+            ntg_vcell_are_equal(style1->threshold_style, style2->threshold_style));
+}
+
 void ntg_prog_bar_init(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
 {
     assert(prog_bar != NULL);
@@ -71,18 +100,35 @@ void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opt
 {
     assert(prog_bar != NULL);
 
-    prog_bar->_opts = (opts ? (*opts) : ntg_prog_bar_opts_def());
+    struct ntg_prog_bar_opts old_opts = prog_bar->_opts;
+    struct ntg_prog_bar_opts new_opts = (opts ? (*opts) : ntg_prog_bar_opts_def());
+
+    if(ntg_prog_bar_opts_are_eq(&old_opts, &new_opts))
+        return;
+
+    prog_bar->_opts = new_opts;
 
     ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_FULL);
+
+    if(prog_bar->hooks.on_opts_chng_fn)
+        prog_bar->hooks.on_opts_chng_fn(prog_bar, &old_opts, &new_opts);
 }
 
-void ntg_prog_bar_set_percentage(ntg_prog_bar* prog_bar, double percentage)
+void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double prog)
 {
     assert(prog_bar != NULL);
 
-    percentage = _min2_double(1.0, percentage);
+    double old_prog = prog_bar->_prog;
+
+    if(_double_are_eq(old_prog, prog))
+        return;
+
+    prog = _min2_double(1.0, prog);
 
     ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_DRAW);
+
+    if(prog_bar->hooks.on_prog_chng_fn)
+        prog_bar->hooks.on_prog_chng_fn(prog_bar, old_prog, prog);
 }
 
 static struct ntg_object_measure measure_fn(
@@ -126,7 +172,7 @@ static void draw_fn(
 
     struct ntg_oxy _size = ntg_oxy_from_xy(size, prog_bar->_opts.orient);
 
-    size_t complete_count = round(_size.prim_val * prog_bar->_percentage);
+    size_t complete_count = round(_size.prim_val * prog_bar->_prog);
 
     size_t i, j;
     struct ntg_oxy _it_xy;

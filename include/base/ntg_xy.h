@@ -392,6 +392,14 @@ static inline struct ntg_insets ntg_insets_zero(struct ntg_insets insets)
     return (struct ntg_insets) {0};
 }
 
+static inline bool ntg_insets_are_eq(struct ntg_insets insets1, struct ntg_insets insets2)
+{
+    return ((insets1.n == insets2.n) &&
+            (insets1.e == insets2.e) &&
+            (insets1.s == insets2.s) &&
+            (insets1.w == insets2.w));
+}
+
 /* -------------------------------------------------------------------------- */
 /* NTG_SIDE */
 /* -------------------------------------------------------------------------- */

@@ -14,6 +14,9 @@
 
 GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
+#define NTG_OBJECT_MAX_CHILDREN 500
+#define NTG_OBJECT_MAX_ANCHORED 200
+
 /* -------------------------------------------------------------------------- */
 /* BORDER & PADDING */
 /* -------------------------------------------------------------------------- */
@@ -33,6 +36,9 @@ struct ntg_border_opts
 };
 
 struct ntg_border_opts ntg_border_opts_def();
+bool ntg_border_opts_are_eq(
+        const struct ntg_border_opts* opts1,
+        const struct ntg_border_opts* opts2);
 
 struct ntg_padding_opts
 {
@@ -41,6 +47,9 @@ struct ntg_padding_opts
 };
 
 struct ntg_padding_opts ntg_padding_opts_def();
+bool ntg_padding_opts_are_eq(
+        const struct ntg_padding_opts* opts1,
+        const struct ntg_padding_opts* opts2);
 
 #define NTG_OBJECT_MIN_SIZE_UNSET 0
 #define NTG_OBJECT_MAX_SIZE_UNSET NTG_SIZE_MAX
@@ -55,6 +64,9 @@ struct ntg_layout_opts
 };
 
 struct ntg_layout_opts ntg_layout_opts_def();
+bool ntg_layout_opts_are_eq(
+        const struct ntg_layout_opts* opts1,
+        const struct ntg_layout_opts* opts2);
 
 /* -------------------------------------------------------------------------- */
 /* OBJECT */
@@ -219,6 +231,10 @@ const ntg_scene* ntg_object_get_scene(const ntg_object* object);
 ntg_scene* ntg_object_get_scene_(ntg_object* object);
 const ntg_scene* ntg_object_get_scene(const ntg_object* object);
 
+bool ntg_object_is_true_root(const ntg_object* object);
+bool ntg_object_is_root(const ntg_object* object);
+bool ntg_object_is_only_layer_root(const ntg_object* object);
+
 /* -------------------------------------------------------------------------- */
 
 bool ntg_object_is_descendant(
@@ -230,6 +246,7 @@ bool ntg_object_is_descendant_eq(
 
 /* -------------------------------------------------------------------------- */
 
+// Sorted from low to high
 size_t ntg_object_get_children_by_z(
         const ntg_object* object,
         ntg_object** out_buff,

@@ -43,6 +43,9 @@ struct ntg_label_opts
 };
 
 struct ntg_label_opts ntg_label_opts_def();
+bool ntg_label_opts_are_eq(
+        const struct ntg_label_opts* opts1,
+        const struct ntg_label_opts* opts2);
 
 struct ntg_label_hooks
 {
@@ -51,6 +54,7 @@ struct ntg_label_hooks
             const struct ntg_label_opts* old_opts,
             const struct ntg_label_opts* new_opts);
 
+    // Not null terminated
     void (*on_text_chng_fn)(
             ntg_label* label,
             const char* old_text,

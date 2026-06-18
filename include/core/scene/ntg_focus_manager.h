@@ -10,14 +10,8 @@ struct ntg_focus_scope;
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-// TODO
 struct ntg_focus_manager_hooks
 {
-    void (*on_scene_chng_fn)(
-            ntg_focus_manager* fm,
-            ntg_scene* old_scene,
-            ntg_scene* new_scene);
-
     void (*on_focused_chng_fn)(
             ntg_focus_manager* fm,
             ntg_object* old_focused,

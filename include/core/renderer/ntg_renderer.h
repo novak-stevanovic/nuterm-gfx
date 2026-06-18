@@ -14,7 +14,6 @@ struct ntg_renderer_vtable
             sarena* arena);
 };
 
-// TODO
 struct ntg_renderer_hooks
 {
     void (*on_render_fn)(

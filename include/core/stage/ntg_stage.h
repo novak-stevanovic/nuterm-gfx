@@ -8,7 +8,6 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-// TODO
 struct ntg_stage_hooks
 {
     bool (*on_key_fn)(ntg_stage* stage, struct nt_key_event key);

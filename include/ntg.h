@@ -62,7 +62,6 @@ void ntg_wait();
 // TODO: implement more widgets(table, list, button, text field...) | **
 
 // RELEASE:
-// TODO: raise hooks & generic events - rename hooks -> hooks_? | ACTIVE
 // TODO: add proper error-handling
 // TODO: add proper documentation
 // TODO: hide functions from final .so file(change -fvisibility)

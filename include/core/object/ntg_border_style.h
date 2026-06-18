@@ -25,8 +25,8 @@ const struct ntg_border_style* ntg_border_style_def();
 struct ntg_border_style_9x_sym
 {
     uint32_t top_left, top, top_right, right,
-        bottom_right, bottom, bottom_left,
-        left, padding;
+            bottom_right, bottom, bottom_left,
+            left, padding;
 };
 
 /* ========================================================================== */

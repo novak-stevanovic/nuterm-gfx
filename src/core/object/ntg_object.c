@@ -93,12 +93,41 @@ struct ntg_border_opts ntg_border_opts_def()
     };
 }
 
+bool ntg_border_opts_are_eq(
+        const struct ntg_border_opts* opts1,
+        const struct ntg_border_opts* opts2)
+{
+    if(opts1 == opts2)
+        return true;
+
+    if(!opts1 || !opts2)
+        return false;
+
+    return ((opts1->enable == opts2->enable) &&
+            (ntg_insets_are_eq(opts1->pref_size, opts2->pref_size)) &&
+            (opts1->style == opts2->style));
+}
+
 struct ntg_padding_opts ntg_padding_opts_def()
 {
     return (struct ntg_padding_opts) {
         .pref_size = ntg_insets(0, 0, 0, 0),
         .enable = NTG_OBJECT_DCR_ENABLE_MIN
     };
+}
+
+bool ntg_padding_opts_are_eq(
+        const struct ntg_padding_opts* opts1,
+        const struct ntg_padding_opts* opts2)
+{
+    if(opts1 == opts2)
+        return true;
+
+    if(!opts1 || !opts2)
+        return false;
+
+    return ((opts1->enable == opts2->enable) &&
+    ntg_insets_are_eq(opts1->pref_size, opts2->pref_size));
 }
 
 struct ntg_layout_opts ntg_layout_opts_def()
@@ -114,6 +143,23 @@ struct ntg_layout_opts ntg_layout_opts_def()
         .def_bg = ntg_vcell_default(),
         .z_index = NTG_OBJECT_Z_INDEX_UNSET
     };
+}
+
+bool ntg_layout_opts_are_eq(
+        const struct ntg_layout_opts* opts1,
+        const struct ntg_layout_opts* opts2)
+{
+    if(opts1 == opts2)
+        return true;
+
+    if(!opts1 || !opts2)
+        return false;
+
+    return (ntg_xy_are_equal(opts1->min_cont_size, opts2->min_cont_size) &&
+            ntg_xy_are_equal(opts1->max_cont_size, opts2->max_cont_size) &&
+            ntg_xy_are_equal(opts1->grow, opts2->grow) &&
+            ntg_vcell_are_equal(opts1->def_bg, opts2->def_bg) &&
+            opts1->z_index == opts2->z_index);
 }
 
 /* ========================================================================== */
@@ -198,6 +244,25 @@ const ntg_scene* ntg_object_get_scene(const ntg_object* object)
     const ntg_object* root = ntg_object_get_root(object);
 
     return root->__scene;
+}
+
+bool ntg_object_is_true_root(const ntg_object* object)
+{
+    assert(object);
+
+    return ((!object->_parent) && (!object->_base));
+}
+
+bool ntg_object_is_root(const ntg_object* object)
+{
+    assert(object);
+
+    return (!object->_parent);
+}
+
+bool ntg_object_is_only_layer_root(const ntg_object* object)
+{
+    return (!ntg_object_is_true_root(object) && (ntg_object_is_root(object)));
 }
 
 bool ntg_object_is_descendant(
@@ -322,7 +387,7 @@ void ntg_object_detach(ntg_object* object)
         parent->__vtable.rm_child_fn(parent, object);
 
     if(scene)
-        _ntg_scene_unregister_tree(scene, object);
+        _ntg_scene_rm_object_tree(scene, object);
 
     ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
 
@@ -331,6 +396,9 @@ void ntg_object_detach(ntg_object* object)
 
     if(object->hooks.on_parent_chng_fn)
         object->hooks.on_parent_chng_fn(object, parent, NULL);
+
+    if(scene)
+        _ntg_scene_unregister_tree(scene, object);
 }
 
 void ntg_object_anchor(
@@ -342,6 +410,8 @@ void ntg_object_anchor(
     assert(root);
     assert(policy);
     assert(base != root);
+
+    assert(base->_anchored.size < NTG_OBJECT_MAX_ANCHORED);
 
     if(root->_parent)
     {
@@ -358,14 +428,18 @@ void ntg_object_anchor(
     root->_anchor_policy = policy;
 
     ntg_scene* scene = ntg_object_get_scene_(root);
+
     if(scene)
-        _ntg_scene_register_tree(scene, root);
+        _ntg_scene_add_object_tree(scene, root);
 
     if(base->hooks.on_anchored_add_fn)
         base->hooks.on_anchored_add_fn(base, root);
 
     if(root->hooks.on_base_chng_fn)
         root->hooks.on_base_chng_fn(root, NULL, base);
+
+    if(scene)
+        _ntg_scene_register_tree(scene, root);
 }
 
 void ntg_object_unanchor(ntg_object* root)
@@ -382,13 +456,16 @@ void ntg_object_unanchor(ntg_object* root)
     root->_anchor_policy = NULL;
 
     if(scene)
-        _ntg_scene_unregister_tree(scene, root);
+        _ntg_scene_rm_object_tree(scene, root);
 
     if(base->hooks.on_anchored_rm_fn)
         base->hooks.on_anchored_rm_fn(base, root);
 
     if(root->hooks.on_base_chng_fn)
         root->hooks.on_base_chng_fn(root, base, NULL);
+
+    if(scene)
+        _ntg_scene_unregister_tree(scene, root);
 }
 
 void ntg_object_remove_from_scene(ntg_object* object)
@@ -409,9 +486,9 @@ void ntg_object_remove_from_scene(ntg_object* object)
         return;
     }
 
-    if(object->__scene)
+    if(ntg_object_is_true_root(object) && ntg_object_get_scene(object))
     {
-        ntg_scene_set_root(object->__scene, NULL);
+        ntg_scene_set_root(ntg_object_get_scene_(object), NULL);
         return;
     }
 }
@@ -426,14 +503,18 @@ void ntg_object_set_layout_opts(
 {
     assert(object);
 
-    struct ntg_layout_opts* old_opts = &(object->_layout_opts);
+    struct ntg_layout_opts old_opts = object->_layout_opts;
+    struct ntg_layout_opts new_opts = (opts ? (*opts) : ntg_layout_opts_def());
 
-    object->_layout_opts = (opts ? (*opts) : ntg_layout_opts_def());
+    if(ntg_layout_opts_are_eq(&old_opts, &new_opts))
+        return;
+
+    object->_layout_opts = new_opts;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
     if(object->hooks.on_layout_opts_chng_fn)
-        object->hooks.on_layout_opts_chng_fn(object, old_opts, &object->_layout_opts);
+        object->hooks.on_layout_opts_chng_fn(object, &old_opts, &object->_layout_opts);
 }
 
 void ntg_object_set_border_opts(
@@ -442,16 +523,20 @@ void ntg_object_set_border_opts(
 {
     assert(object != NULL);
 
-    struct ntg_border_opts* old_opts = &(object->_border.opts);
+    struct ntg_border_opts old_opts = object->_border.opts;
+    struct ntg_border_opts new_opts = (opts ? (*opts) : ntg_border_opts_def());
 
-    object->_border.opts = (opts ? (*opts) : ntg_border_opts_def()); 
+    if(ntg_border_opts_are_eq(&old_opts, &new_opts))
+        return;
+
+    object->_border.opts = new_opts;
     if(!object->_border.opts.style)
         object->_border.opts.style = ntg_border_style_def();
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
     if(object->hooks.on_border_opts_chng_fn)
-        object->hooks.on_border_opts_chng_fn(object, old_opts, &object->_border.opts);
+        object->hooks.on_border_opts_chng_fn(object, &old_opts, &object->_border.opts);
 }
 
 void ntg_object_set_padding_opts(
@@ -460,14 +545,18 @@ void ntg_object_set_padding_opts(
 {
     assert(object != NULL);
 
-    struct ntg_padding_opts* old_opts = &(object->_padding.opts);
+    struct ntg_padding_opts old_opts = object->_padding.opts;
+    struct ntg_padding_opts new_opts = (opts ? (*opts) : ntg_padding_opts_def());
 
-    object->_padding.opts = (opts ? (*opts) : ntg_padding_opts_def()); 
+    if(ntg_padding_opts_are_eq(&old_opts, &new_opts))
+        return;
+
+    object->_padding.opts = new_opts;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
     if(object->hooks.on_padding_opts_chng_fn)
-        object->hooks.on_padding_opts_chng_fn(object, old_opts, &object->_padding.opts);
+        object->hooks.on_padding_opts_chng_fn(object, &old_opts, &object->_padding.opts);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -600,10 +689,11 @@ void ntg_object_deinit(ntg_object* object)
 {
     assert(object);
 
+    ntg_scene* scene = ntg_object_get_scene_(object);
     // Root AND is part of scene scene
-    if(object->__scene)
+    if(ntg_object_is_true_root(object) && scene)
     {
-        ntg_scene_set_root(object->__scene, NULL);
+        ntg_scene_set_root(scene, NULL);
     }
 
     if(object->_parent)
@@ -634,6 +724,8 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
     assert(child != NULL);
     assert(parent != child);
 
+    assert(parent->_children.size < NTG_OBJECT_MAX_CHILDREN);
+
     if(child->_parent != NULL)
         ntg_object_detach(child);
 
@@ -650,13 +742,16 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
     child->_parent = parent;
 
     if(scene)
-        _ntg_scene_register_tree(scene, child);
+        _ntg_scene_add_object_tree(scene, child);
 
     if(parent->hooks.on_child_add_fn)
         parent->hooks.on_child_add_fn(parent, child);
 
     if(child->hooks.on_parent_chng_fn)
         child->hooks.on_parent_chng_fn(child, NULL, parent);
+
+    if(scene)
+        _ntg_scene_register_tree(scene, child);
 }
 
 /* ========================================================================== */

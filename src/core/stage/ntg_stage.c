@@ -8,10 +8,13 @@
 
 static void init_default(ntg_stage* stage);
 
+static void get_objects_in_drawing_order_layer(ntg_object* root, ntg_object** buff);
+static void get_objects_in_drawing_order_layer_internal(
+        ntg_object* root,
+        ntg_object** buff,
+        size_t* counter);
 static void draw_object(ntg_stage* stage, ntg_object* object);
-static void draw_object_fn(ntg_object* object, void* _stage);
 // TODO: incorporate z-index
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(draw_object_tree, draw_object_fn);
 static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 
 /* ========================================================================== */
@@ -67,7 +70,10 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     if(stage->_scene == scene) return;
 
     ntg_scene* old_scene = stage->_scene;
+    ntg_stage* old_scene_stage = (old_scene ? old_scene->_stage : NULL);
+    ntg_stage* old_stage = (scene ? scene->_stage : NULL);
 
+    // Remove old scene
     if(old_scene)
     {
         _ntg_scene_set_stage(old_scene, NULL);
@@ -75,12 +81,10 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         _ntg_scene_set_size(old_scene, ntg_xy(0, 0));
     }
 
-    stage->_scene = scene;
-
+    // Update new scene state
     if(scene)
     {
-        ntg_stage* old_stage = scene->_stage;
-
+        // If scene has old stage, remove
         if(old_stage)
         {
             ntg_stage_set_scene(old_stage, NULL);
@@ -90,6 +94,17 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         _ntg_scene_set_size(scene, stage->_size);
         ntg_scene_mark_dirty(scene);
     }
+
+    stage->_scene = scene;
+
+    if(stage->hooks.on_scene_chng_fn)
+        stage->hooks.on_scene_chng_fn(stage, old_scene, scene);
+
+    if(old_scene && old_scene->hooks.on_stage_chng_fn)
+        old_scene->hooks.on_stage_chng_fn(old_scene, old_scene_stage, NULL);
+
+    if(scene && scene->hooks.on_stage_chng_fn)
+        scene->hooks.on_stage_chng_fn(scene, old_stage, stage);
 }
 
 void ntg_stage_mark_dirty(ntg_stage* stage)
@@ -147,14 +162,19 @@ bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 
 void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {
-    if(!ntg_xy_are_equal(stage->_size, size))
-    {
-        stage->_size = size;
-        ntg_stage_mark_dirty(stage);
-    }
+    if(ntg_xy_are_equal(stage->_size, size))
+        return;
+
+    struct ntg_xy old_size = stage->_size;
+
+    stage->_size = size;
+    ntg_stage_mark_dirty(stage);
 
     if(stage->_scene)
         _ntg_scene_set_size(stage->_scene, size);
+
+    if(stage->hooks.on_size_chng_fn)
+        stage->hooks.on_size_chng_fn(stage, old_size, size);
 }
 
 void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
@@ -234,8 +254,38 @@ static void init_default(ntg_stage* stage)
     stage->hooks.on_mouse_fn = ntg_stage_dispatch_mouse;
 }
 
+static void get_objects_in_drawing_order_layer(
+        ntg_object* root,
+        ntg_object** buff)
+{
+    size_t _counter = 1;
+    buff[0] = root;
+
+    get_objects_in_drawing_order_layer_internal(root, buff, &_counter);
+}
+
+static void get_objects_in_drawing_order_layer_internal(
+        ntg_object* root,
+        ntg_object** buff,
+        size_t* counter)
+{
+    size_t i;
+
+    ntg_object** children_by_z = buff + (*counter);
+
+    ntg_object_get_children_by_z(root, children_by_z, root->_children.size);
+    (*counter) += root->_children.size;
+
+    for(i = 0; i < root->_children.size; i++)
+    {
+        get_objects_in_drawing_order_layer_internal(children_by_z[i], buff, counter);
+    }
+}
+
 static void draw_object(ntg_stage* stage, ntg_object* object)
 {
+    if(!object) return;
+
     struct ntg_xy abs_pos; 
     abs_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
 
@@ -251,12 +301,20 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     _ntg_object_clean(object, NTG_OBJECT_DIRTY_RENDER);
 }
 
-static void draw_object_fn(ntg_object* object, void* _stage)
-{
-    draw_object((ntg_stage*)_stage, object);
-}
-
 static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena)
 {
-    if(root) draw_object_tree(root, stage);
+    if(!root) return;
+
+    size_t tree_size = ntg_object_get_tree_size(root);
+    if(tree_size == 0)
+        return;
+
+    ntg_object** buff = sarena_calloc(arena, sizeof(ntg_object*) * tree_size);
+    assert(buff);
+
+    get_objects_in_drawing_order_layer(root, buff);
+
+    size_t i;
+    for(i = 0; i < tree_size; i++)
+        draw_object(stage, buff[i]);
 }
