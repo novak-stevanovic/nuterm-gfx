@@ -44,7 +44,6 @@ struct ntg_label_opts
 
 struct ntg_label_opts ntg_label_opts_def();
 
-// TODO
 struct ntg_label_hooks
 {
     void (*on_opts_chng_fn)(

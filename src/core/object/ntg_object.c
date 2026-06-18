@@ -101,6 +101,21 @@ struct ntg_padding_opts ntg_padding_opts_def()
     };
 }
 
+struct ntg_layout_opts ntg_layout_opts_def()
+{
+    struct ntg_xy min_size, max_size, grow;
+    min_size = ntg_xy(NTG_OBJECT_MIN_SIZE_UNSET, NTG_OBJECT_MIN_SIZE_UNSET);
+    max_size = ntg_xy(NTG_OBJECT_MAX_SIZE_UNSET, NTG_OBJECT_MAX_SIZE_UNSET);
+    grow = ntg_xy(NTG_OBJECT_GROW_UNSET, NTG_OBJECT_GROW_UNSET);
+    return (struct ntg_layout_opts) {
+        .min_cont_size = min_size,
+        .max_cont_size = max_size,
+        .grow = grow,
+        .def_bg = ntg_vcell_default(),
+        .z_index = NTG_OBJECT_Z_INDEX_UNSET
+    };
+}
+
 /* ========================================================================== */
 /* PUBLIC - FUNCTIONS (ntg_object.h) */
 /* ========================================================================== */
@@ -234,7 +249,7 @@ size_t ntg_object_get_children_by_z(
         {
             for(j = i + 1; j < children->size; j++)
             {
-                if((out_buff[j])->_z_index < (out_buff[i])->_z_index)
+                if((out_buff[j])->_layout_opts.z_index < (out_buff[i])->_layout_opts.z_index)
                 {
                     tmp_obj = out_buff[i];
                     out_buff[i] = out_buff[j];
@@ -278,10 +293,10 @@ ntg_object* ntg_object_hit_test(
         {
             it_hit = ntg_object_hit_test(it_child, ntg_xy_from_dxy(it_adj_pos), &it_child_local);
 
-            if(it_hit && (it_child->_z_index > curr_z))
+            if(it_hit && (it_child->_layout_opts.z_index > curr_z))
             {
                 best_obj = it_hit;
-                curr_z = it_child->_z_index;
+                curr_z = it_child->_layout_opts.z_index;
                 if(out_local_pos) (*out_local_pos) = it_child_local;
             }
         }
@@ -310,6 +325,12 @@ void ntg_object_detach(ntg_object* object)
         _ntg_scene_unregister_tree(scene, object);
 
     ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
+
+    if(object->hooks.on_child_rm_fn)
+        object->hooks.on_child_rm_fn(parent, object);
+
+    if(object->hooks.on_parent_chng_fn)
+        object->hooks.on_parent_chng_fn(object, parent, NULL);
 }
 
 void ntg_object_anchor(
@@ -339,12 +360,20 @@ void ntg_object_anchor(
     ntg_scene* scene = ntg_object_get_scene_(root);
     if(scene)
         _ntg_scene_register_tree(scene, root);
+
+    if(base->hooks.on_anchored_add_fn)
+        base->hooks.on_anchored_add_fn(base, root);
+
+    if(root->hooks.on_base_chng_fn)
+        root->hooks.on_base_chng_fn(root, NULL, base);
 }
 
 void ntg_object_unanchor(ntg_object* root)
 {
     assert(root);
     assert(root->_base);
+
+    ntg_object* base = root->_base;
 
     ntg_scene* scene = ntg_object_get_scene_(root);
 
@@ -354,6 +383,12 @@ void ntg_object_unanchor(ntg_object* root)
 
     if(scene)
         _ntg_scene_unregister_tree(scene, root);
+
+    if(base->hooks.on_anchored_rm_fn)
+        base->hooks.on_anchored_rm_fn(base, root);
+
+    if(root->hooks.on_base_chng_fn)
+        root->hooks.on_base_chng_fn(root, base, NULL);
 }
 
 void ntg_object_remove_from_scene(ntg_object* object)
@@ -385,47 +420,20 @@ void ntg_object_remove_from_scene(ntg_object* object)
 /* CONTROL */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_set_user_min_size_cont(ntg_object* object, struct ntg_xy size)
+void ntg_object_set_layout_opts(
+        ntg_object* object,
+        const struct ntg_layout_opts* opts)
 {
     assert(object);
 
-    object->_user_min_size_cont = size;
+    struct ntg_layout_opts* old_opts = &(object->_layout_opts);
 
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_MEASURE);
-}
+    object->_layout_opts = (opts ? (*opts) : ntg_layout_opts_def());
 
-void ntg_object_set_user_max_size_cont(ntg_object* object, struct ntg_xy size)
-{
-    assert(object);
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
-    object->_user_max_size_cont = size;
-
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_MEASURE);
-}
-
-void ntg_object_set_user_grow(ntg_object* object, struct ntg_xy grow)
-{
-    object->_user_grow = grow;
-
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_MEASURE);
-}
-
-void ntg_object_set_z_index(ntg_object* object, int z_index)
-{
-    assert(object != NULL);
-
-    object->_z_index = z_index;
-
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_RENDER);
-}
-
-void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg)
-{
-    assert(object != NULL);
-
-    object->_def_bg = def_bg;
-
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
+    if(object->hooks.on_layout_opts_chng_fn)
+        object->hooks.on_layout_opts_chng_fn(object, old_opts, &object->_layout_opts);
 }
 
 void ntg_object_set_border_opts(
@@ -434,11 +442,16 @@ void ntg_object_set_border_opts(
 {
     assert(object != NULL);
 
+    struct ntg_border_opts* old_opts = &(object->_border.opts);
+
     object->_border.opts = (opts ? (*opts) : ntg_border_opts_def()); 
     if(!object->_border.opts.style)
         object->_border.opts.style = ntg_border_style_def();
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+
+    if(object->hooks.on_border_opts_chng_fn)
+        object->hooks.on_border_opts_chng_fn(object, old_opts, &object->_border.opts);
 }
 
 void ntg_object_set_padding_opts(
@@ -447,9 +460,14 @@ void ntg_object_set_padding_opts(
 {
     assert(object != NULL);
 
+    struct ntg_padding_opts* old_opts = &(object->_padding.opts);
+
     object->_padding.opts = (opts ? (*opts) : ntg_padding_opts_def()); 
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+
+    if(object->hooks.on_padding_opts_chng_fn)
+        object->hooks.on_padding_opts_chng_fn(object, old_opts, &object->_padding.opts);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -550,16 +568,7 @@ static void init_default(ntg_object* object)
 {
     (*object) = (ntg_object) {0};
 
-    object->_def_bg = ntg_vcell_default();
-    object->_user_min_size_cont = ntg_xy(
-            NTG_OBJECT_MIN_SIZE_UNSET,
-            NTG_OBJECT_MIN_SIZE_UNSET);
-    object->_user_max_size_cont = ntg_xy(
-            NTG_OBJECT_MAX_SIZE_UNSET,
-            NTG_OBJECT_MAX_SIZE_UNSET);
-    object->_user_grow = ntg_xy(
-            NTG_OBJECT_GROW_UNSET,
-            NTG_OBJECT_GROW_UNSET);
+    object->_layout_opts = ntg_layout_opts_def();
 
     object->_border.opts = ntg_border_opts_def();
     object->_padding.opts = ntg_padding_opts_def();
@@ -642,6 +651,12 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
 
     if(scene)
         _ntg_scene_register_tree(scene, child);
+
+    if(parent->hooks.on_child_add_fn)
+        parent->hooks.on_child_add_fn(parent, child);
+
+    if(child->hooks.on_parent_chng_fn)
+        child->hooks.on_parent_chng_fn(child, NULL, parent);
 }
 
 /* ========================================================================== */
@@ -996,9 +1011,9 @@ void _ntg_object_hmeasure(ntg_object* object, sarena* arena)
 
         measure = incorporate_user_measure(
                 measure,
-                object->_user_min_size_cont.x + extra,
-                object->_user_max_size_cont.x + extra,
-                object->_user_grow.x);
+                object->_layout_opts.min_cont_size.x + extra,
+                object->_layout_opts.max_cont_size.x + extra,
+                object->_layout_opts.grow.x);
 
         if(measure.min_size == extra)
             measure.min_size = 0;
@@ -1140,9 +1155,9 @@ void _ntg_object_vmeasure(ntg_object* object, sarena* arena)
 
         measure = incorporate_user_measure(
                 measure,
-                object->_user_min_size_cont.y + extra,
-                object->_user_max_size_cont.y + extra,
-                object->_user_grow.y);
+                object->_layout_opts.min_cont_size.y + extra,
+                object->_layout_opts.max_cont_size.y + extra,
+                object->_layout_opts.grow.y);
 
         if(measure.min_size == extra)
             measure.min_size = 0;
@@ -1377,32 +1392,6 @@ void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene)
     object->__skip_hborder = false;
     object->__skip_hpadding = false;
     object->__repeat = false;
-}
-
-bool _ntg_object_on_focus(ntg_object* object, ntg_object* old_focused)
-{
-    assert(object);
-
-    if(object->hooks.on_focus_fn)
-    {
-        return object->hooks.on_focus_fn(object, old_focused);
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool _ntg_object_on_unfocus(ntg_object* object, ntg_object* new_focused)
-{
-    if(object->hooks.on_focus_fn)
-    {
-        return object->hooks.on_focus_fn(object, new_focused);
-    }
-    else
-    {
-        return false;
-    }
 }
 
 /* ========================================================================== */
@@ -1739,7 +1728,7 @@ static void draw_optimized(ntg_object* object, sarena* arena)
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
     struct ntg_xy object_size = object->_size;
 
-    struct ntg_vcell bg = object->_def_bg;
+    struct ntg_vcell bg = object->_layout_opts.def_bg;
     struct ntg_insets psize = object->_padding.size;
 
     struct ntg_object_tmp_drawing content_drawing;
@@ -1786,7 +1775,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
     struct ntg_xy object_size = object->_size;
 
-    struct ntg_vcell bg = object->_def_bg;
+    struct ntg_vcell bg = object->_layout_opts.def_bg;
     struct ntg_insets bsize = object->_border.size;
     struct ntg_insets psize = object->_padding.size;
     const struct ntg_border_style* border_style = object->_border.opts.style;

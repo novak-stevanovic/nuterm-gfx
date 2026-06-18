@@ -182,6 +182,8 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
 {
     assert(scene);
 
+    ntg_object* old_root = scene->_root;
+
     if(scene->_root)
     {
         _ntg_object_root_set_scene(scene->_root, NULL);
@@ -197,6 +199,9 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
     }
 
     scene->_root = root;
+
+    if(scene->hooks.on_root_chng_fn)
+        scene->hooks.on_root_chng_fn(scene, old_root, root);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -293,6 +298,9 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
     ntg_scene_mark_dirty(scene); // just in case
+
+    if(object->hooks.on_scene_chng_fn)
+        object->hooks.on_scene_chng_fn(object, NULL, scene);
 }
 
 void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
@@ -303,6 +311,9 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
     ntg_scene_mark_dirty(scene);
 
     ntg_focus_manager_invalidate(scene->_fm, object);
+
+    if(object->hooks.on_scene_chng_fn)
+        object->hooks.on_scene_chng_fn(object, scene, NULL);
 }
 
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
@@ -370,7 +381,7 @@ static void collect_layers_by_z_internal(
             {
                 it_obj = out_layers[i];
                 
-                if(it_obj->_z_index > it_root->_z_index)
+                if(it_obj->_layout_opts.z_index > it_root->_layout_opts.z_index)
                     break;
             }
 

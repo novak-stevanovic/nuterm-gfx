@@ -25,7 +25,6 @@ struct ntg_prog_bar_opts
 
 struct ntg_prog_bar_opts ntg_prog_bar_opts_def();
 
-// TODO
 struct ntg_prog_bar_hooks
 {
     void (*on_prog_chng_fn)(

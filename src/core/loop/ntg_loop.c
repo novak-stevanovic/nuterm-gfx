@@ -156,7 +156,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
 
             resize_counter++;
         }
-        if(event.type == NT_EVENT_SIGNAL)
+        else if(event.type == NT_EVENT_SIGNAL)
         {
             sigwinch_counter++;
         }
@@ -178,10 +178,6 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
                     _ntg_stage_compose(loop->_stage, loop->_arena);
                     _ntg_stage_clean(loop->_stage);
                     // ntg_loop_break(loop, NTG_LOOP_STOP_CLEAN);
-                }
-                else
-                {
-                    ntg_log_log("OPTIMIZE: Stage not composed");
                 }
                 drawing = &(loop->_stage->_drawing);
             }
@@ -228,8 +224,6 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop)
     {
         ntg_loop_set_stage(loop, NULL);
     }
-
-    ntg_log_log("%d %d", resize_counter, sigwinch_counter);
 
     return loop->__exit_status;
 }

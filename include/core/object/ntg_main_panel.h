@@ -24,10 +24,9 @@ enum ntg_main_panel_pos
     NTG_MAIN_PANEL_CENTER
 };
 
-// TODO
 struct ntg_main_panel_hooks
 {
-    void (*on_child_chng)(
+    void (*on_child_chng_fn)(
             ntg_main_panel* panel,
             ntg_object* old_child,
             ntg_object* new_child,

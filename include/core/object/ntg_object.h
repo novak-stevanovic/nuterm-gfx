@@ -42,6 +42,20 @@ struct ntg_padding_opts
 
 struct ntg_padding_opts ntg_padding_opts_def();
 
+#define NTG_OBJECT_MIN_SIZE_UNSET 0
+#define NTG_OBJECT_MAX_SIZE_UNSET NTG_SIZE_MAX
+#define NTG_OBJECT_GROW_UNSET NTG_SIZE_MAX
+#define NTG_OBJECT_Z_INDEX_UNSET 0
+
+struct ntg_layout_opts
+{
+    struct ntg_xy min_cont_size, max_cont_size, grow;
+    struct ntg_vcell def_bg;
+    int z_index;
+};
+
+struct ntg_layout_opts ntg_layout_opts_def();
+
 /* -------------------------------------------------------------------------- */
 /* OBJECT */
 /* -------------------------------------------------------------------------- */
@@ -83,10 +97,8 @@ struct ntg_object_vtable
 
 /* -------------------------------------------------------------------------- */
 
-// TODO
 struct ntg_object_hooks
 {
-    // Called by focus scope/manager
     bool (*on_key_fn)(ntg_object* object, struct nt_key_event key);
     bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
     bool (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
@@ -121,22 +133,10 @@ struct ntg_object_hooks
             const struct ntg_padding_opts* old_opts,
             const struct ntg_padding_opts* new_opts);
 
-    void (*on_user_min_size_cont_chng)(
+    void (*on_layout_opts_chng_fn)(
             ntg_object* object,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
-    void (*on_user_max_size_cont_chng)(
-            ntg_object* object,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
-    void (*on_user_grow_chng)(
-            ntg_object* object,
-            struct ntg_xy old_grow,
-            struct ntg_xy new_grow);
-    void (*on_def_bg_chng)(
-            ntg_object* object,
-            struct ntg_vcell old_bg,
-            struct ntg_vcell new_bg);
+            const struct ntg_layout_opts* old_opts,
+            const struct ntg_layout_opts* new_opts);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -157,15 +157,14 @@ struct ntg_object
         ntg_object_vec _anchored;
         ntg_object* _base;
         const struct ntg_anchor_policy* _anchor_policy;
-        // z-index is taken into consideration only if the object is root
-        int _z_index;
     };
 
-    struct
-    {
-        struct ntg_xy _user_min_size_cont, _user_max_size_cont, _user_grow;
-        struct ntg_vcell _def_bg;
-    };
+    // TODO: elaborate
+    /* z-index is taken into consideration in the following ways:
+    1. by ntg_stage when drawing(layer order, child order)
+    2. by ntg_scene when laying out(layer order), collecting layers
+    */
+    struct ntg_layout_opts _layout_opts;
 
     struct
     {
@@ -261,15 +260,9 @@ void ntg_object_remove_from_scene(ntg_object* object);
 /* CONTROL */
 /* -------------------------------------------------------------------------- */
 
-#define NTG_OBJECT_MIN_SIZE_UNSET 0
-#define NTG_OBJECT_MAX_SIZE_UNSET NTG_SIZE_MAX
-#define NTG_OBJECT_GROW_UNSET NTG_SIZE_MAX
-
-void ntg_object_set_user_min_size_cont(ntg_object* object, struct ntg_xy size);
-void ntg_object_set_user_max_size_cont(ntg_object* object, struct ntg_xy size);
-void ntg_object_set_user_grow(ntg_object* object, struct ntg_xy grow);
-void ntg_object_set_z_index(ntg_object* object, int z_index);
-void ntg_object_set_def_bg(ntg_object* object, struct ntg_vcell def_bg);
+void ntg_object_set_layout_opts(
+        ntg_object* object,
+        const struct ntg_layout_opts* opts);
 
 void ntg_object_set_border_opts(
         ntg_object* object,
@@ -358,8 +351,5 @@ void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
 
 // Called by scene scene when registering/unregistering objects from the scene.
 void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
-
-bool _ntg_object_on_focus(ntg_object* object, ntg_object* old_focused);
-bool _ntg_object_on_unfocus(ntg_object* object, ntg_object* new_focused);
 
 #endif // NTG_OBJECT_H

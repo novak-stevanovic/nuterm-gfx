@@ -1,3 +1,5 @@
+// CURRENTLY UNUSED
+
 #ifndef NTG_EVENT_H
 #define NTG_EVENT_H
 

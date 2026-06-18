@@ -231,7 +231,9 @@ void init_center()
     ntg_color_block_init(&c_cb2, nt_color_new_auto(40, 0, 200));
     ntg_cleanup_batch_add(batch, &c_cb2, ntg_color_block_deinit_, NULL);
 
-    ntg_object_set_user_min_size_cont(ntg_obj(&center), ntg_xy(NTG_OBJECT_MIN_SIZE_UNSET, 15));
+    struct ntg_layout_opts center_layout_opts = (ntg_obj(&center))->_layout_opts;
+    center_layout_opts.min_cont_size.y = 15;
+    ntg_object_set_layout_opts(ntg_obj(&center), &center_layout_opts);
     
     // CONNECT
 
@@ -346,7 +348,11 @@ void init_flt_label()
     ntg_cleanup_batch_add(batch, &flt_label, ntg_label_deinit_, NULL);
 
     ntg_label_set_text(&flt_label, "Floating label example");
-    ntg_object_set_z_index(ntg_obj(&flt_label), 1);
+
+    struct ntg_layout_opts flt_label_layout_opts = (ntg_obj(&flt_label))->_layout_opts;
+    flt_label_layout_opts.z_index = 1;
+    ntg_object_set_layout_opts(ntg_obj(&center), &flt_label_layout_opts);
+    ntg_object_set_layout_opts(ntg_obj(&flt_label), &flt_label_layout_opts);
 
     struct ntg_padding_opts pad_opts = ntg_padding_opts_def();
     pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
@@ -378,7 +384,10 @@ void init_sflt_label()
     ntg_obj(&sflt_label)->hooks.on_mouse_fn = sflt_on_mouse_fn;
 
     ntg_label_init(&sflt_label, &opts);
-    ntg_object_set_z_index(ntg_obj(&sflt_label), 2);
+
+    struct ntg_layout_opts sflt_label_layout_opts = (ntg_obj(&sflt_label))->_layout_opts;
+    sflt_label_layout_opts.z_index = 2;
+    ntg_object_set_layout_opts(ntg_obj(&sflt_label), &sflt_label_layout_opts);
 
     ntg_label_set_text(&sflt_label, "Floating label example - Sidefloat");
 

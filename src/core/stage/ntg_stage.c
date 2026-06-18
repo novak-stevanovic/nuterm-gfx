@@ -10,6 +10,7 @@ static void init_default(ntg_stage* stage);
 
 static void draw_object(ntg_stage* stage, ntg_object* object);
 static void draw_object_fn(ntg_object* object, void* _stage);
+// TODO: incorporate z-index
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(draw_object_tree, draw_object_fn);
 static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 

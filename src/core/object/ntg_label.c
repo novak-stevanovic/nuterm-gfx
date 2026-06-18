@@ -227,6 +227,8 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 {
     assert(label != NULL);
 
+    ntg_object* _label = ntg_obj(label);
+
     label->_opts = (opts ? (*opts) : ntg_label_opts_def());
 
     struct nt_gfx gfx = label->_opts.gfx;
@@ -236,7 +238,10 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
             ntg_vcell_bg(gfx.bg) :
             ntg_vcell_overlay(' ',  gfx.fg, gfx.style);
 
-    ntg_object_set_def_bg((ntg_object*)label, cell);
+    // TODO: do it without relying on def_bg
+    struct ntg_layout_opts layout_opts = _label->_layout_opts;
+    layout_opts.def_bg = cell;
+    ntg_object_set_layout_opts(_label, &layout_opts);
 
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }

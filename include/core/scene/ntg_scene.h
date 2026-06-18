@@ -31,6 +31,10 @@ struct ntg_scene_hooks
             ntg_stage* old_stage,
             ntg_stage* new_stage);
 
+    // If object is layer root, this will trigger
+    void (*on_object_register_fn)(ntg_scene* scene, ntg_object* object);
+    void (*on_object_unregister_fn)(ntg_scene* scene, ntg_object* object);
+
     void (*on_layer_add_fn)(ntg_scene* scene, ntg_object* layer_root);
     void (*on_layer_rm_fn)(ntg_scene* scene, ntg_object* layer_root);
 };
@@ -108,6 +112,7 @@ void _ntg_scene_layout(ntg_scene* scene, sarena* arena);
 void _ntg_scene_clean(ntg_scene* scene);
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);
 
+// TODO: what if object that has anchored objects enters scene?
 void _ntg_scene_register(ntg_scene* scene, ntg_object* root);
 void _ntg_scene_unregister(ntg_scene* scene, ntg_object* root);
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root);
