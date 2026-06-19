@@ -160,7 +160,7 @@ struct ntg_label_opts ntg_label_opts_def()
         .sec_align = NTG_ALIGN_1,
         .wrap = NTG_LABEL_WRAP_NONE,
         .autotrim = true,
-        .indent = false
+        .indent = false,
     };
 }
 
@@ -265,10 +265,7 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
             ntg_vcell_bg(gfx.bg) :
             ntg_vcell_overlay(' ',  gfx.fg, gfx.style);
 
-    // TODO: do it without relying on def_bg
-    struct ntg_layout_opts layout_opts = _label->_layout_opts;
-    layout_opts.def_bg = cell;
-    ntg_object_set_layout_opts(_label, &layout_opts);
+    _ntg_object_set_base_bg(_label, cell);
 
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }

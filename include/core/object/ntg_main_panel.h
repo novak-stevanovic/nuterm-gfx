@@ -10,7 +10,7 @@
 
 struct ntg_main_panel_opts
 {
-    size_t placeholder;
+    struct ntg_vcell bg;
 };
 
 struct ntg_main_panel_opts ntg_main_panel_opts_def();

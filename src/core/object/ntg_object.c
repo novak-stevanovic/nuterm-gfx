@@ -45,7 +45,7 @@ static void pos_map_init(
 static void tmp_drawing_init(
         struct ntg_object_tmp_drawing* drawing,
         struct ntg_xy size,
-        struct ntg_vcell def_bg,
+        struct ntg_vcell base_bg,
         sarena* arena);
 
 /* -------------------------------------------------------------------------- */
@@ -140,7 +140,6 @@ struct ntg_layout_opts ntg_layout_opts_def()
         .min_cont_size = min_size,
         .max_cont_size = max_size,
         .grow = grow,
-        .def_bg = ntg_vcell_default(),
         .z_index = NTG_OBJECT_Z_INDEX_UNSET
     };
 }
@@ -158,7 +157,6 @@ bool ntg_layout_opts_are_eq(
     return (ntg_xy_are_equal(opts1->min_cont_size, opts2->min_cont_size) &&
             ntg_xy_are_equal(opts1->max_cont_size, opts2->max_cont_size) &&
             ntg_xy_are_equal(opts1->grow, opts2->grow) &&
-            ntg_vcell_are_equal(opts1->def_bg, opts2->def_bg) &&
             opts1->z_index == opts2->z_index);
 }
 
@@ -662,6 +660,8 @@ static void init_default(ntg_object* object)
     object->_border.opts = ntg_border_opts_def();
     object->_padding.opts = ntg_padding_opts_def();
     object->_anchor_policy = ntg_anchor_policy_root();
+
+    object->__base_bg = ntg_vcell_default();
 }
 
 void ntg_object_init(
@@ -752,6 +752,15 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child)
 
     if(scene)
         _ntg_scene_register_tree(scene, child);
+}
+
+void _ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
+{
+    assert(object);
+
+    object->__base_bg = base_bg;
+
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW | NTG_OBJECT_DIRTY_RENDER);
 }
 
 /* ========================================================================== */
@@ -1552,7 +1561,7 @@ static void pos_map_init(
 void tmp_drawing_init(
         struct ntg_object_tmp_drawing* drawing,
         struct ntg_xy size,
-        struct ntg_vcell def_bg,
+        struct ntg_vcell base_bg,
         sarena* arena)
 {
     drawing->data = sarena_malloc(arena, sizeof(struct ntg_vcell) *
@@ -1565,7 +1574,7 @@ void tmp_drawing_init(
     {
         for(j = 0; j < size.x; j++)
         {
-            ntg_object_tmp_drawing_set(drawing, def_bg, ntg_xy(j, i));
+            ntg_object_tmp_drawing_set(drawing, base_bg, ntg_xy(j, i));
         }
     }
 }
@@ -1823,7 +1832,7 @@ static void draw_optimized(ntg_object* object, sarena* arena)
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
     struct ntg_xy object_size = object->_size;
 
-    struct ntg_vcell bg = object->_layout_opts.def_bg;
+    struct ntg_vcell bg = object->__base_bg;
     struct ntg_insets psize = object->_padding.size;
 
     struct ntg_object_tmp_drawing content_drawing;
@@ -1870,7 +1879,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
     struct ntg_xy object_size = object->_size;
 
-    struct ntg_vcell bg = object->_layout_opts.def_bg;
+    struct ntg_vcell bg = object->__base_bg;
     struct ntg_insets bsize = object->_border.size;
     struct ntg_insets psize = object->_padding.size;
     const struct ntg_border_style* border_style = object->_border.opts.style;

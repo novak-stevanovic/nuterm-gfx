@@ -351,7 +351,6 @@ void init_flt_label()
 
     struct ntg_layout_opts flt_label_layout_opts = (ntg_obj(&flt_label))->_layout_opts;
     flt_label_layout_opts.z_index = 1;
-    ntg_object_set_layout_opts(ntg_obj(&center), &flt_label_layout_opts);
     ntg_object_set_layout_opts(ntg_obj(&flt_label), &flt_label_layout_opts);
 
     struct ntg_padding_opts pad_opts = ntg_padding_opts_def();

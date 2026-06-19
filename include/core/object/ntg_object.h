@@ -59,7 +59,6 @@ bool ntg_padding_opts_are_eq(
 struct ntg_layout_opts
 {
     struct ntg_xy min_cont_size, max_cont_size, grow;
-    struct ntg_vcell def_bg;
     int z_index;
 };
 
@@ -171,12 +170,8 @@ struct ntg_object
         const struct ntg_anchor_policy* _anchor_policy;
     };
 
-    // TODO: elaborate
-    /* z-index is taken into consideration in the following ways:
-    1. by ntg_stage when drawing(layer order, child order)
-    2. by ntg_scene when laying out(layer order), collecting layers
-    */
     struct ntg_layout_opts _layout_opts;
+    struct ntg_vcell __base_bg;
 
     struct
     {
@@ -358,6 +353,8 @@ void ntg_object_deinit(ntg_object* object);
 /* Updates only the tree.
  * Called internally by types extending ntg_object. */
 void ntg_object_attach(ntg_object* parent, ntg_object* child);
+
+void _ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 
 /* ========================================================================== */
 /* INTERNAL */

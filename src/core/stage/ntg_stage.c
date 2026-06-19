@@ -14,7 +14,6 @@ static void get_objects_in_drawing_order_layer_internal(
         ntg_object** buff,
         size_t* counter);
 static void draw_object(ntg_stage* stage, ntg_object* object);
-// TODO: incorporate z-index
 static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 
 /* ========================================================================== */

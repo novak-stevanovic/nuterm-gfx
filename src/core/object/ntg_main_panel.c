@@ -29,7 +29,9 @@ static void get_children(const ntg_main_panel* panel, ntg_object** out_north,
 
 struct ntg_main_panel_opts ntg_main_panel_opts_def()
 {
-    return (struct ntg_main_panel_opts) {0};
+    return (struct ntg_main_panel_opts) {
+        .bg = ntg_vcell_default()
+    };
 }
 
 bool ntg_main_panel_opts_are_eq(
@@ -42,7 +44,7 @@ bool ntg_main_panel_opts_are_eq(
     if(!opts1 || !opts2)
         return false;
 
-    return true;
+    return ntg_vcell_are_equal(opts1->bg, opts2->bg);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -106,6 +108,8 @@ void ntg_main_panel_set_opts(
         return;
 
     panel->_opts = new_opts;
+
+    _ntg_object_set_base_bg(ntg_obj(panel), opts->bg);
 
     if(panel->hooks.on_opts_chng_fn)
         panel->hooks.on_opts_chng_fn(panel, &old_opts, &new_opts);

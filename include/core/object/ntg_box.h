@@ -14,6 +14,8 @@ struct ntg_box_opts
     ntg_align prim_align;
     ntg_align sec_align;
     size_t spacing;
+
+    struct ntg_vcell bg;
 };
 
 struct ntg_box_opts ntg_box_opts_def();

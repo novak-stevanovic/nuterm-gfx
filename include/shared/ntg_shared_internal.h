@@ -1,6 +1,7 @@
 #ifndef NTG_SHARED_INTERNAL_H
 #define NTG_SHARED_INTERNAL_H
 
+#include "ntg.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <sys/types.h>
@@ -97,6 +98,19 @@ static inline size_t _ssub_size(size_t x, size_t y)
 {
     return (x > y) ? x - y : 0;
 }
+
+// static inline void _log_tmp_drawing(const char* name, ntg_object_tmp_drawing* drawing)
+// {
+//     size_t i, j;
+//     char text[NTG_SIZE_MAX * 3][NTG_SIZE_MAX * 3];
+//     for(i = 0; i < drawing->size.y; i++)
+//     {
+//         for(j = 0; j < drawing->size.x; j++)
+//         {
+//             text[i][j]
+//         }
+//     }
+// }
 
 #define _return(ret_val, out_status_param, out_status)                         \
     do                                                                         \
