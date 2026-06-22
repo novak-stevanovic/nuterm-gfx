@@ -1,5 +1,6 @@
 #include "ntg.h"
 #include <stdlib.h>
+#include "shared/ntg_shared_internal.h"
 
 struct ntg_cleanup_data
 {
@@ -58,9 +59,13 @@ void ntg_cleanup_batch_add(
         ntg_cleanup_batch* batch,
         void* data,
         void (*deinit_fn)(void* data),
-        void (*free_fn)(void* data))
+        void (*free_fn)(void* data),
+        int* out_status)
 {
-    if(!batch) return;
+    ntg_init_status(out_status);
+
+    if(!batch)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_cleanup_data cleanup_data = {
         .data = data,
@@ -68,5 +73,10 @@ void ntg_cleanup_batch_add(
         .free_fn = free_fn
     };
 
-    ntg_cleanup_data_vec_pushb(&batch->vec, cleanup_data, NULL);
+    int _status;
+    ntg_cleanup_data_vec_pushb(&batch->vec, cleanup_data, &_status);
+    if(_status != GENC_SUCCESS)
+    {
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
 }

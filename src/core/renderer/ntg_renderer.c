@@ -1,5 +1,4 @@
 #include "ntg.h"
-#include <assert.h>
 #include "shared/ntg_shared_internal.h"
 
 /* -------------------------------------------------------------------------- */
@@ -11,7 +10,7 @@ void ntg_renderer_render(
         const ntg_stage_drawing* stage_drawing,
         sarena* arena)
 {
-    assert(renderer != NULL);
+    if(!renderer) return;
 
     renderer->__vtable.render_fn(renderer, stage_drawing, arena);
 
@@ -25,10 +24,16 @@ void ntg_renderer_render(
 
 void ntg_renderer_init(
         ntg_renderer* renderer,
-        const struct ntg_renderer_vtable* vtable)
+        const struct ntg_renderer_vtable* vtable,
+        int* out_status)
 {
-    assert(renderer != NULL);
-    assert(vtable != NULL);
+    ntg_init_status(out_status);
+
+    if(!renderer || !vtable)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if(!vtable->render_fn)
+        ntg_vreturn(out_status, NTG_ERR_VTABLE_NO_IMPL);
 
     (*renderer) = (ntg_renderer) {0};
 
@@ -38,6 +43,8 @@ void ntg_renderer_init(
 
 void ntg_renderer_deinit(ntg_renderer* renderer)
 {
+    if(!renderer) return;
+
     renderer->__vtable = (struct ntg_renderer_vtable) {0};
     renderer->data = NULL;
 }

@@ -1,6 +1,5 @@
 #include <limits.h>
 #include <stdlib.h>
-#include <assert.h>
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 
@@ -180,7 +179,7 @@ NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(count_tree, count_fn);
 
 size_t ntg_object_get_tree_size(const ntg_object* root)
 {
-    assert(root);
+    if(!root) return 0;
 
     size_t counter = 0;
     count_tree((ntg_object*)root, &counter);
@@ -190,7 +189,7 @@ size_t ntg_object_get_tree_size(const ntg_object* root)
 
 const ntg_object* ntg_object_get_root(const ntg_object* object)
 {
-    assert(object);
+    if(!object) return NULL;
 
     const ntg_object *it_obj = object, *it_root, *it_base;
     while(true)
@@ -207,28 +206,29 @@ const ntg_object* ntg_object_get_root(const ntg_object* object)
 
 ntg_object* ntg_object_get_root_(ntg_object* object)
 {
-    assert(object);
+    if(!object) return NULL;
 
     return (ntg_object*)ntg_object_get_root(object);
 }
 
 const ntg_object* ntg_object_get_layer_root(const ntg_object* object)
 {
-    assert(object);
+    if(!object) return NULL;
+
     while(object->_parent) object = object->_parent;
     return object;
 }
 
 ntg_object* ntg_object_get_layer_root_(ntg_object* object)
 {
-    assert(object != NULL);
+    if(!object) return NULL;
 
     return (ntg_object*)ntg_object_get_layer_root(object);
 }
 
 ntg_scene* ntg_object_get_scene_(ntg_object* object)
 {
-    assert(object);
+    if(!object) return NULL;
 
     ntg_object* root = ntg_object_get_root_(object);
 
@@ -237,7 +237,7 @@ ntg_scene* ntg_object_get_scene_(ntg_object* object)
 
 const ntg_scene* ntg_object_get_scene(const ntg_object* object)
 {
-    assert(object);
+    if(!object) return NULL;
 
     const ntg_object* root = ntg_object_get_root(object);
 
@@ -246,20 +246,22 @@ const ntg_scene* ntg_object_get_scene(const ntg_object* object)
 
 bool ntg_object_is_true_root(const ntg_object* object)
 {
-    assert(object);
+    if(!object) return false;
 
     return ((!object->_parent) && (!object->_base));
 }
 
 bool ntg_object_is_root(const ntg_object* object)
 {
-    assert(object);
+    if(!object) return false;
 
     return (!object->_parent);
 }
 
 bool ntg_object_is_only_layer_root(const ntg_object* object)
 {
+    if(!object) return false;
+
     return (!ntg_object_is_true_root(object) && (ntg_object_is_root(object)));
 }
 
@@ -267,8 +269,7 @@ bool ntg_object_is_descendant(
         const ntg_object* object,
         const ntg_object* descendant)
 {
-    assert(object != NULL);
-    assert(descendant != NULL);
+    if(!object || !descendant) return false;
 
     const ntg_object* it = descendant;
     while(it)
@@ -284,6 +285,8 @@ bool ntg_object_is_descendant_eq(
         const ntg_object* object,
         const ntg_object* descendant)
 {
+    if(!object || !descendant) return false;
+
     return ((object == descendant) ||
     ntg_object_is_descendant(object, descendant));
 }
@@ -293,7 +296,7 @@ size_t ntg_object_get_children_by_z(
         ntg_object** out_buff,
         size_t cap)
 {
-    assert(object);
+    if(!object) return 0;
 
     const ntg_object_vec* children = &object->_children;
     if(children->size == 0) return 0;
@@ -330,7 +333,7 @@ ntg_object* ntg_object_hit_test(
         struct ntg_xy pos,
         struct ntg_xy* out_local_pos)
 {
-    assert(object);
+    if(!object) return NULL;
 
     if(!ntg_xy_is_in_rectagle(pos, ntg_xy(0, 0), object->_size))
     {
@@ -370,7 +373,7 @@ ntg_object* ntg_object_hit_test(
 
 void ntg_object_detach(ntg_object* object)
 {
-    assert(object != NULL);
+    if(!object) return;
 
     ntg_object* parent = object->_parent;
     if(parent == NULL) return;
@@ -402,14 +405,16 @@ void ntg_object_detach(ntg_object* object)
 void ntg_object_anchor(
         ntg_object* base,
         ntg_object* root,
-        const struct ntg_anchor_policy* policy)
+        const struct ntg_anchor_policy* policy,
+        int* out_status)
 {
-    assert(base);
-    assert(root);
-    assert(policy);
-    assert(base != root);
+    ntg_init_status(out_status);
 
-    assert(base->_anchored.size < NTG_OBJECT_MAX_ANCHORED);
+    if(!base || !root || !policy || (base == root))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if(base->_anchored.size >= NTG_OBJECT_MAX_ANCHORED)
+        ntg_vreturn(out_status, NTG_ERR_MAX_ANCHORED);
 
     if(root->_parent)
     {
@@ -442,8 +447,8 @@ void ntg_object_anchor(
 
 void ntg_object_unanchor(ntg_object* root)
 {
-    assert(root);
-    assert(root->_base);
+    if(!root || !root->_base)
+        return;
 
     ntg_object* base = root->_base;
 
@@ -486,6 +491,7 @@ void ntg_object_remove_from_scene(ntg_object* object)
 
     if(ntg_object_is_true_root(object) && ntg_object_get_scene(object))
     {
+        // TODO: what if fails?
         ntg_scene_set_root(ntg_object_get_scene_(object), NULL);
         return;
     }

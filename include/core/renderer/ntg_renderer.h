@@ -46,7 +46,8 @@ void ntg_renderer_render(
 
 void ntg_renderer_init(
         ntg_renderer* renderer,
-        const struct ntg_renderer_vtable* vtable);
+        const struct ntg_renderer_vtable* vtable,
+        int* out_status);
 
 void ntg_renderer_deinit(ntg_renderer* renderer);
 

@@ -16,7 +16,7 @@ size_t ntg_sap_cap_round_robin(
         size_t space_pool,
         size_t count,
         sarena* arena,
-        ntg_status* out_status)
+        int* out_status)
 {
     ntg_init_status(out_status);
 

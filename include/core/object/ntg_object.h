@@ -254,14 +254,15 @@ ntg_object* ntg_object_hit_test(
 
 /* -------------------------------------------------------------------------- */
 
-/* Updates only the tree.
+/* Detaches the object from parent.
  * Called internally by types extending ntg_object. */
 void ntg_object_detach(ntg_object* object);
 
 void ntg_object_anchor(
         ntg_object* base,
         ntg_object* root,
-        const struct ntg_anchor_policy* policy);
+        const struct ntg_anchor_policy* policy,
+        int* out_status);
 
 void ntg_object_unanchor(ntg_object* root);
 

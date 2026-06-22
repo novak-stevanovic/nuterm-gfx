@@ -1,6 +1,5 @@
 #include "nt.h"
 #include "ntg.h"
-#include <assert.h>
 #include "shared/ntg_shared_internal.h"
 
 // TODO: Vertical optimized rendering?
@@ -11,12 +10,12 @@
 
 void ntg_def_renderer_init(ntg_def_renderer* renderer)
 {
-    assert(renderer != NULL);
+    if(!renderer) return;
 
     struct ntg_renderer_vtable vtable = {0};
     vtable.render_fn = _ntg_def_renderer_render_fn;
 
-    ntg_renderer_init((ntg_renderer*)renderer, &vtable);
+    ntg_renderer_init((ntg_renderer*)renderer, &vtable, NULL);
 
     ntg_stage_drawing_init(&renderer->__backbuff);
 
@@ -46,6 +45,8 @@ static void full_render(
 
 void ntg_def_renderer_deinit(ntg_def_renderer* renderer)
 {
+    if(!renderer) return;
+
     ntg_stage_drawing_deinit(&renderer->__backbuff);
 
     renderer->__old_size = ntg_xy(0, 0);
@@ -55,6 +56,8 @@ void ntg_def_renderer_deinit(ntg_def_renderer* renderer)
 
 void ntg_def_renderer_deinit_(void* _renderer)
 {
+    if(!_renderer) return;
+
     ntg_def_renderer_deinit(_renderer);
 }
 
@@ -63,7 +66,7 @@ void _ntg_def_renderer_render_fn(
         const ntg_stage_drawing* stage_drawing,
         sarena* arena)
 {
-    assert(_renderer != NULL);
+    if(!_renderer) return;
 
     ntg_def_renderer* renderer = (ntg_def_renderer*)_renderer;
     struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
@@ -75,9 +78,9 @@ void _ntg_def_renderer_render_fn(
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
 
     void* buffer = sarena_malloc(arena, 50000);
-    nt_status _status;
-    nt_buffer_enable(buffer, 50000, &_status);
-    assert(_status == NT_SUCCESS);
+    if(!buffer) return;
+
+    nt_buffer_enable(buffer, 50000, NULL);
 
     if(stage_drawing == NULL)
     {
@@ -145,10 +148,11 @@ static void optimized_render(
         sarena* arena)
 {
     uint32_t* row32_buff = sarena_malloc(arena, size.x * sizeof(uint32_t));
-    assert(row32_buff);
+    if(!row32_buff) return;
+
     size_t row_buff_cap = size.x * 4;
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
-    assert(row_buff);
+    if(!row_buff) return;
 
     size_t i, j, k;
     size_t it_opt;
@@ -187,12 +191,11 @@ static void optimized_render(
             uc_utf32_to_utf8(row32_buff, k, row_buff,
                     row_buff_cap, 0, NULL, &_uc_len,
                     &_uc_status);
-            assert(_uc_status == UC_SUCCESS);
+            if(_uc_status != UC_SUCCESS) return;
 
             nt_cursor_move(j, i, &_nt_status);
             // Every draw cell in this batch has the same gfx so we can just use the last one
-            nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, &_nt_status);
-            assert(_nt_status == NT_SUCCESS);
+            nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, NULL);
 
             j += k;
         }
@@ -206,10 +209,11 @@ static void full_render(
         sarena* arena)
 {
     uint32_t* row32_buff = sarena_malloc(arena, size.x * sizeof(uint32_t));
-    assert(row32_buff);
+    if(!row32_buff) return;
+
     size_t row_buff_cap = size.x * 4;
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
-    assert(row_buff);
+    if(!row_buff) return;
 
     size_t i, j, k;
     size_t it_opt;
@@ -239,12 +243,11 @@ static void full_render(
             uc_utf32_to_utf8(row32_buff, k, row_buff,
                     row_buff_cap, 0, NULL, &_uc_len,
                     &_uc_status);
-            assert(_uc_status == UC_SUCCESS);
+            if(_uc_status != UC_SUCCESS) return;
 
             nt_cursor_move(j, i, &_nt_status);
             // Every draw cell in this batch has the same gfx so we can just use the last one
-            nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, &_nt_status);
-            assert(_nt_status == NT_SUCCESS);
+            nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, NULL);
 
             j += k;
         }

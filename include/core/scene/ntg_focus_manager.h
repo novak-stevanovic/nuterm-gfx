@@ -40,7 +40,7 @@ struct ntg_focus_manager
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
 
-void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene);
+void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_status);
 void ntg_focus_manager_deinit(ntg_focus_manager* fm);
 void ntg_focus_manager_deinit_(void* _fm);
 
@@ -52,7 +52,8 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object);
 
 void ntg_focus_manager_push_scope(
         ntg_focus_manager* fm,
-        const struct ntg_focus_scope* scope);
+        const struct ntg_focus_scope* scope,
+        int* out_status);
 
 void ntg_focus_manager_pop_scope(ntg_focus_manager* fm);
 

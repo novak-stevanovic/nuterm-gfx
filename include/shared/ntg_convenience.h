@@ -30,6 +30,7 @@ void ntg_cleanup_batch_add(
         ntg_cleanup_batch* batch,
         void* data,
         void (*deinit_fn)(void* data),
-        void (*free_fn)(void* data));
+        void (*free_fn)(void* data),
+        int* out_status);
 
 #endif // NTG_CONVENIENCE

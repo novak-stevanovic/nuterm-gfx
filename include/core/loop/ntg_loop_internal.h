@@ -29,7 +29,10 @@ struct ntg_platform
 
 void _ntg_platform_init(ntg_platform* platform, ntg_loop* loop);
 void _ntg_platform_deinit(ntg_platform* platform);
-void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task);
+void _ntg_platform_execute_later(
+        ntg_platform* platform,
+        struct ntg_ptask task,
+        int* out_status);
 
 void _ntg_platform_execute_all(ntg_platform* platform);
 void _ntg_platform_invalidate(ntg_platform* platform);
@@ -74,7 +77,7 @@ void _ntg_task_runner_init(
         ntg_platform* platform,
         unsigned int worker_threads,
         ntg_loop* loop,
-        ntg_status* out_status);
+        int* out_status);
 
 // Make sure not to call deinit when the task runner is running tasks.
 // It will attempt to join with all of its threads. If any of the tasks are
@@ -82,7 +85,10 @@ void _ntg_task_runner_init(
 void _ntg_task_runner_deinit(ntg_task_runner* task_runner);
 
 bool _ntg_task_runner_is_running(ntg_task_runner* task_runner);
-void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task);
+void _ntg_task_runner_execute(
+        ntg_task_runner* task_runner,
+        struct ntg_task task,
+        int* out_status);
 
 void _ntg_task_runner_invalidate(ntg_task_runner* task_runner);
 bool _ntg_task_runner_is_valid(ntg_task_runner* task_runner);

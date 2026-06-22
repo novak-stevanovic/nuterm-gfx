@@ -44,8 +44,11 @@ void ntg_event_delegate_destroy(ntg_event_delegate* delegate)
 ntg_event_binding* ntg_event_bind(
         ntg_event_delegate* delegate,
         void* subscriber,
-        void (*handler_fn)(void* subscriber, struct ntg_event event))
+        void (*handler_fn)(void* subscriber, struct ntg_event event),
+        int* out_status)
 {
+    ntg_init_status(out_status);
+
     if(!delegate || !handler_fn)
         return NULL;
 
@@ -54,7 +57,10 @@ ntg_event_binding* ntg_event_bind(
     new->subscriber = subscriber;
     new->handler_fn = handler_fn;
 
-    ntg_event_binding_vec_pushb(&delegate->bindings, new, NULL);
+    int _status;
+    ntg_event_binding_vec_pushb(&delegate->bindings, new, &_status);
+    if(_status != GENC_SUCCESS)
+        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
 
     return new;
 }

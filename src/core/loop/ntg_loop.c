@@ -41,7 +41,7 @@ void ntg_loop_init(ntg_loop* loop,
         unsigned int framerate,
         unsigned int workers,
         bool (*on_event_fn)(ntg_loop* loop, struct nt_event event),
-        ntg_status* out_status)
+        int* out_status)
 {
     ntg_init_status(out_status);
 
@@ -72,7 +72,7 @@ void ntg_loop_init(ntg_loop* loop,
     workers = (workers <= NTG_LOOP_WORKERS_MAX) ? workers : NTG_LOOP_WORKERS_MAX;
 
     _ntg_platform_init(loop->_platform, loop);
-    ntg_status _status;
+    int _status;
     _ntg_task_runner_init(loop->_task_runner, loop->_platform, workers, loop, &_status);
     
     if(_status != NTG_SUCCESS)
@@ -90,7 +90,7 @@ void ntg_loop_init(ntg_loop* loop,
     loop->__on_event_fn = on_event_fn;
 }
 
-void ntg_loop_deinit(ntg_loop* loop, ntg_status* out_status)
+void ntg_loop_deinit(ntg_loop* loop, int* out_status)
 {
     ntg_init_status(out_status);
 
@@ -121,7 +121,7 @@ void ntg_loop_deinit_(void* _loop)
     ntg_loop_deinit(_loop, NULL);
 }
 
-ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, ntg_status* out_status)
+ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
 {
     ntg_init_status(out_status);
 
@@ -352,29 +352,38 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage)
 void ntg_task_runner_execute(
         ntg_task_runner* task_runner, 
         void (*task_fn)(void* data, ntg_platform* platform),
-        void* data)
+        void* data,
+        int* out_status)
 {
-    if(!task_runner || !task_fn) return;
+    ntg_init_status(out_status);
+
+    if(!task_runner || !task_fn)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_task task = {
         .task_fn = task_fn,
         .data = data
     };
-    _ntg_task_runner_execute(task_runner, task);
+
+    _ntg_task_runner_execute(task_runner, task, out_status);
 }
 
 void ntg_platform_execute_later(
         ntg_platform* platform, 
         void (*task_fn)(void* data),
-        void* data)
+        void* data,
+        int* out_status)
 {
-    if(!platform || !task_fn) return;
+    ntg_init_status(out_status);
+
+    if(!platform || !task_fn)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_ptask task = {
         .task_fn = task_fn,
         .data = data
     };
-    _ntg_platform_execute_later(platform, task);
+    _ntg_platform_execute_later(platform, task, out_status);
 }
 
 

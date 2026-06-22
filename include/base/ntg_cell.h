@@ -47,7 +47,7 @@ void ntg_cell_vecgrid_set_size(
         ntg_cell_vecgrid* vecgrid,
         struct ntg_xy size,
         struct ntg_xy size_cap,
-        ntg_status* out_status);
+        int* out_status);
 struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid);
 
 static inline struct ntg_cell
@@ -251,7 +251,7 @@ void ntg_vcell_vecgrid_set_size(
         ntg_vcell_vecgrid* vecgrid,
         struct ntg_xy size,
         struct ntg_xy size_cap,
-        ntg_status* out_status);
+        int* out_status);
 struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid);
 
 static inline struct ntg_vcell

@@ -74,12 +74,12 @@ void ntg_loop_init(ntg_loop* loop,
         unsigned int framerate,
         unsigned int workers,
         bool (*on_event_fn)(ntg_loop* loop, struct nt_event event),
-        ntg_status* out_status);
+        int* out_status);
 
-void ntg_loop_deinit(ntg_loop* loop, ntg_status* out_status);
+void ntg_loop_deinit(ntg_loop* loop, int* out_status);
 void ntg_loop_deinit_(void* _loop);
 
-ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, ntg_status* out_status);
+ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status);
 
 /* Used to stop the main loop. When this function is called, an issue may occur
  * if the task runner is still running tasks on worker threads. In this case,
@@ -103,12 +103,14 @@ bool ntg_loop_is_running(const ntg_loop* loop);
 void ntg_task_runner_execute(
         ntg_task_runner* task_runner, 
         void (*task_fn)(void* data, ntg_platform* platform),
-        void* data);
+        void* data,
+        int* out_status);
 
 void ntg_platform_execute_later(
         ntg_platform* platform, 
         void (*task_fn)(void* data),
-        void* data);
+        void* data,
+        int* out_status);
 
 /* ========================================================================== */
 /* INTERNAL */

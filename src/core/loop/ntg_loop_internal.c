@@ -31,19 +31,31 @@ void _ntg_platform_deinit(ntg_platform* platform)
     platform->__loop = NULL;
 }
 
-void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
+void _ntg_platform_execute_later(
+        ntg_platform* platform,
+        struct ntg_ptask task,
+        int* out_status)
 {
-    if(!platform) return;
+    ntg_init_status(out_status);
+
+    if(!platform)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     pthread_mutex_lock(&platform->__lock);
 
     if(!platform->__loop)
     {
         pthread_mutex_unlock(&platform->__lock);
-        return;
+        ntg_vreturn(out_status, NTG_ERR_PLATFORM_NO_LOOP);
     }
 
-    ntg_ptask_list_pushb(&platform->__tasks, task, NULL);
+    int _status;
+    ntg_ptask_list_pushb(&platform->__tasks, task, &_status);
+    if(_status != GENC_SUCCESS)
+    {
+        pthread_mutex_unlock(&platform->__lock);
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
 
     pthread_mutex_unlock(&platform->__lock);
 }
@@ -106,7 +118,7 @@ void _ntg_task_runner_init(
         ntg_platform* platform,
         unsigned int worker_threads,
         ntg_loop* loop,
-        ntg_status* out_status)
+        int* out_status)
 {
     ntg_init_status(out_status);
 
@@ -183,7 +195,12 @@ bool _ntg_task_runner_is_running(ntg_task_runner* task_runner)
 
     pthread_mutex_lock(&task_runner->__lock);
 
-    assert(task_runner->__init);
+    if(!task_runner->__init)
+    {
+        pthread_mutex_unlock(&task_runner->__lock);
+        return false;
+    }
+
     running = task_runner->__running;
 
     pthread_mutex_unlock(&task_runner->__lock);
@@ -191,20 +208,32 @@ bool _ntg_task_runner_is_running(ntg_task_runner* task_runner)
     return (running > 0);
 }
 
-void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task)
+void _ntg_task_runner_execute(
+        ntg_task_runner* task_runner,
+        struct ntg_task task,
+        int* out_status)
 {
-    if(!task_runner || !task.task_fn) return;
+    ntg_init_status(out_status);
+
+    if(!task_runner || !task.task_fn)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     pthread_mutex_lock(&task_runner->__lock);
 
-    if(!task_runner->__loop)
+    if(!task_runner->__loop || !task_runner->__init)
     {
         pthread_mutex_unlock(&task_runner->__lock);
         return;
     }
 
-    assert(task_runner->__init);
-    ntg_task_list_pushb(&task_runner->__tasks, task, NULL);
+    int _status;
+    ntg_task_list_pushb(&task_runner->__tasks, task, &_status);
+    if(_status != GENC_SUCCESS)
+    {
+        pthread_mutex_unlock(&task_runner->__lock);
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
+
     pthread_cond_broadcast(&task_runner->__cond);
 
     pthread_mutex_unlock(&task_runner->__lock);

@@ -33,7 +33,7 @@ void ntg_vecgrid_set_size(
         double modifier,
         struct ntg_xy size_cap,
         size_t data_size,
-        ntg_status* out_status)
+        int* out_status)
 {
     ntg_init_status(out_status);
 
