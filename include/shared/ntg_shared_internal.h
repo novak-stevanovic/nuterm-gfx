@@ -112,7 +112,7 @@ static inline size_t _ssub_size(size_t x, size_t y)
 //     }
 // }
 
-#define _return(ret_val, out_status_param, out_status)                         \
+#define ntg_return(ret_val, out_status_param, out_status)                      \
     do                                                                         \
     {                                                                          \
         if((out_status_param) != NULL)                                         \
@@ -120,12 +120,15 @@ static inline size_t _ssub_size(size_t x, size_t y)
         return (ret_val);                                                      \
     } while(0);
 
-#define _vreturn(out_status_param, out_status)                                 \
+#define ntg_vreturn(out_status_param, out_status)                              \
     do                                                                         \
     {                                                                          \
         if((out_status_param) != NULL)                                         \
             (*out_status_param) = (out_status);                                \
         return;                                                                \
     } while(0);
+
+#define ntg_init_status(out_status_param) \
+    if(out_status_param) (*(out_status_param)) = NTG_SUCCESS;
 
 #endif // NTG_SHARED_INTERNAL_H

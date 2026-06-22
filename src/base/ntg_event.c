@@ -1,6 +1,5 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
-#include <assert.h>
 #include <stdlib.h>
 
 GENC_VECTOR_GENERATE(ntg_event_binding_vec, ntg_event_binding*, 1.3, NULL);
@@ -20,7 +19,8 @@ struct ntg_event_binding
 ntg_event_delegate* ntg_event_delegate_new()
 {
     ntg_event_delegate* new = malloc(sizeof(ntg_event_delegate));
-    assert(new);
+    if(!new)
+        return NULL;
 
     ntg_event_binding_vec_init(&new->bindings, 3, NULL);
     return new;
@@ -28,7 +28,8 @@ ntg_event_delegate* ntg_event_delegate_new()
 
 void ntg_event_delegate_destroy(ntg_event_delegate* delegate)
 {
-    assert(delegate);
+    if(!delegate)
+        return;
 
     size_t i;
     for(i = 0; i < delegate->bindings.size; i++)
@@ -45,8 +46,8 @@ ntg_event_binding* ntg_event_bind(
         void* subscriber,
         void (*handler_fn)(void* subscriber, struct ntg_event event))
 {
-    assert(delegate);
-    if(!handler_fn) return NULL;
+    if(!delegate || !handler_fn)
+        return NULL;
 
     ntg_event_binding* new = malloc(sizeof(ntg_event_binding));
     new->delegate = delegate;
@@ -60,7 +61,8 @@ ntg_event_binding* ntg_event_bind(
 
 void ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
 {
-    assert(delegate);
+    if(!delegate)
+        return;
     
     size_t i;
     ntg_event_binding* it_binding;
@@ -73,7 +75,8 @@ void ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
 
 void ntg_event_unbind(ntg_event_binding* binding)
 {
-    assert(binding);
+    if(!binding)
+        return;
 
     if(binding->delegate)
     {

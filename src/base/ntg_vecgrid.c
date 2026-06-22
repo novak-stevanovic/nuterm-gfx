@@ -1,14 +1,12 @@
 #include "base/ntg_vecgrid.h"
-#include "shared/ntg_shared_internal.h"
 #include "shared/ntg_log.h"
 #include <stdlib.h>
-#include <assert.h>
 #include <math.h>
 #include "shared/ntg_shared_internal.h"
 
 void ntg_vecgrid_init(ntg_vecgrid* vecgrid)
 {
-    assert(vecgrid != NULL);
+    if(!vecgrid) return;
 
     vecgrid->_data = NULL;
     vecgrid->_size = ntg_xy(0, 0);
@@ -17,7 +15,7 @@ void ntg_vecgrid_init(ntg_vecgrid* vecgrid)
 
 void ntg_vecgrid_deinit(ntg_vecgrid* vecgrid)
 {
-    assert(vecgrid != NULL);
+    if(!vecgrid) return;
 
     if(vecgrid->_data != NULL)
         free(vecgrid->_data);
@@ -34,11 +32,13 @@ void ntg_vecgrid_set_size(
         struct ntg_xy size,
         double modifier,
         struct ntg_xy size_cap,
-        size_t data_size)
+        size_t data_size,
+        ntg_status* out_status)
 {
-    assert(vecgrid != NULL);
-    assert(data_size > 0);
-    assert(modifier > 1.0);
+    ntg_init_status(out_status);
+
+    if((!vecgrid) || (data_size == 0) || (modifier <= 1.05))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     size_cap.x = _max2_size(size_cap.x, 1);
     size_cap.y = _max2_size(size_cap.y, 1);
@@ -73,7 +73,10 @@ void ntg_vecgrid_set_size(
                 vecgrid->_data = realloc(vecgrid->_data, new_cap * data_size);
             else
                 vecgrid->_data = malloc(new_cap * data_size);
-            assert(vecgrid->_data != NULL);
+
+            if(!vecgrid->_data)
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
             vecgrid->_capacity = new_cap;
 
             curr_alloced += vecgrid->_capacity;

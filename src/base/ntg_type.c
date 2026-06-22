@@ -4,6 +4,12 @@
 
 bool ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor)
 {
+    if(!type && !ancestor)
+        return true;
+
+    if(!type || !ancestor)
+        return false;
+
     const ntg_type* it = type;
 
     while (it != NULL)

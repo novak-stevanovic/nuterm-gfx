@@ -1,6 +1,5 @@
 #include "ntg.h"
 #include <stdlib.h>
-#include <assert.h>
 
 struct ntg_cleanup_data
 {
@@ -21,7 +20,8 @@ struct ntg_cleanup_batch
 ntg_cleanup_batch* ntg_cleanup_batch_new()
 {
     ntg_cleanup_batch* new = malloc(sizeof(struct ntg_cleanup_batch));
-    assert(new);
+    if(!new) return NULL;
+
     new->deinit = false;
     new->free = false;
 
@@ -32,7 +32,7 @@ ntg_cleanup_batch* ntg_cleanup_batch_new()
 
 void ntg_cleanup_batch_finish(ntg_cleanup_batch* batch)
 {
-    assert(batch);
+    if(!batch) return;
 
     if(batch->deinit) return;
 
@@ -60,7 +60,7 @@ void ntg_cleanup_batch_add(
         void (*deinit_fn)(void* data),
         void (*free_fn)(void* data))
 {
-    assert(batch);
+    if(!batch) return;
 
     struct ntg_cleanup_data cleanup_data = {
         .data = data,

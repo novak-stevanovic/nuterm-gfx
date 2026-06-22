@@ -30,7 +30,8 @@ enum ntg_loop_stop_mode
 enum ntg_loop_exit_status
 {
     NTG_LOOP_EXIT_CLEAN,
-    NTG_LOOP_EXIT_PREMATURE
+    NTG_LOOP_EXIT_PREMATURE,
+    NTG_LOOP_EXIT_ERROR
 };
 
 struct ntg_loop
@@ -72,12 +73,13 @@ void ntg_loop_init(ntg_loop* loop,
         ntg_renderer* renderer,
         unsigned int framerate,
         unsigned int workers,
-        bool (*on_event_fn)(ntg_loop* loop, struct nt_event event));
+        bool (*on_event_fn)(ntg_loop* loop, struct nt_event event),
+        ntg_status* out_status);
 
-void ntg_loop_deinit(ntg_loop* loop);
+void ntg_loop_deinit(ntg_loop* loop, ntg_status* out_status);
 void ntg_loop_deinit_(void* _loop);
 
-ntg_loop_exit_status ntg_loop_run(ntg_loop* loop);
+ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, ntg_status* out_status);
 
 /* Used to stop the main loop. When this function is called, an issue may occur
  * if the task runner is still running tasks on worker threads. In this case,

@@ -1,7 +1,6 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 #include <math.h>
-#include <assert.h>
 
 static inline bool is_equal_double(double x, double y)
 {
@@ -9,16 +8,20 @@ static inline bool is_equal_double(double x, double y)
 }
 
 // TODO: optimize
+
 size_t ntg_sap_cap_round_robin(
         const size_t* caps,
         const size_t* grows,
         size_t* out_size_map,
         size_t space_pool,
         size_t count,
-        sarena* arena)
+        sarena* arena,
+        ntg_status* out_status)
 {
-    assert(caps != NULL);
-    assert(out_size_map != NULL);
+    ntg_init_status(out_status);
+
+    if(!caps || !out_size_map)
+        ntg_return(SIZE_MAX, out_status, NTG_ERR_INVALID_ARG);
     
     if((space_pool == 0) || (count == 0)) return 0;
 
@@ -39,8 +42,10 @@ size_t ntg_sap_cap_round_robin(
     if(total_grow == 0) return 0;
 
     double* distributed = (double*)sarena_malloc(arena, sizeof(double) * count);
-    assert(distributed != NULL);
-    for(i = 0; i < count; i++) distributed[i] = 0;
+    if(!distributed)
+        ntg_return(SIZE_MAX, out_status, NTG_ERR_ALLOC_FAIL);
+    for(i = 0; i < count; i++)
+        distributed[i] = 0;
 
     double it_grow_factor;
     double it_to_distribute;
@@ -92,7 +97,8 @@ size_t ntg_sap_cap_round_robin(
         it_grow = (grows != NULL) ? grows[i] : 1;
 
         if(it_grow == 0) continue;
-        assert(out_size_map[i] <= caps[i]);
+        if(out_size_map[i] > caps[i])
+            ntg_return(SIZE_MAX, out_status, NTG_ERR_UNEXPECTED);
         if(out_size_map[i] == caps[i]) continue;
         if(space_pool == 0) break;
 

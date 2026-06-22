@@ -27,6 +27,7 @@ void ntg_vecgrid_set_size(
         struct ntg_xy size,
         double modifier,
         struct ntg_xy size_cap,
-        size_t data_size);
+        size_t data_size,
+        ntg_status* out_status);
 
 #endif // NTG_VECGRID_H

@@ -1,6 +1,5 @@
 #include <pthread.h>
 #include <string.h>
-#include <assert.h>
 #include "ntg.h"
 #include "core/loop/ntg_loop_internal.h"
 #include "shared/ntg_shared_internal.h"
@@ -11,8 +10,7 @@
 
 void _ntg_platform_init(ntg_platform* platform, ntg_loop* loop)
 {
-    assert(platform != NULL);
-    assert(loop != NULL);
+    if(!platform || !loop) return;
 
     pthread_mutex_init(&platform->__lock, NULL);
 
@@ -23,7 +21,8 @@ void _ntg_platform_init(ntg_platform* platform, ntg_loop* loop)
 
 void _ntg_platform_deinit(ntg_platform* platform)
 {
-    assert(platform != NULL);
+    if(!platform)
+        return;
 
     pthread_mutex_destroy(&platform->__lock);
 
@@ -34,7 +33,7 @@ void _ntg_platform_deinit(ntg_platform* platform)
 
 void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
 {
-    assert(platform != NULL);
+    if(!platform) return;
 
     pthread_mutex_lock(&platform->__lock);
 
@@ -51,7 +50,7 @@ void _ntg_platform_execute_later(ntg_platform* platform, struct ntg_ptask task)
 
 void _ntg_platform_execute_all(ntg_platform* platform)
 {
-    assert(platform != NULL);
+    if(!platform) return;
 
     pthread_mutex_lock(&platform->__lock);
 
@@ -76,7 +75,7 @@ void _ntg_platform_execute_all(ntg_platform* platform)
 
 void _ntg_platform_invalidate(ntg_platform* platform)
 {
-    assert(platform != NULL);
+    if(!platform) return;
 
     pthread_mutex_lock(&platform->__lock);
     platform->__loop = NULL;
@@ -85,7 +84,7 @@ void _ntg_platform_invalidate(ntg_platform* platform)
 
 bool _ntg_platform_is_valid(ntg_platform* platform)
 {
-    assert(platform != NULL);
+    if(!platform) return false;
 
     bool valid;
 
@@ -106,11 +105,13 @@ void _ntg_task_runner_init(
         ntg_task_runner* task_runner,
         ntg_platform* platform,
         unsigned int worker_threads,
-        ntg_loop* loop)
+        ntg_loop* loop,
+        ntg_status* out_status)
 {
-    assert(task_runner != NULL);
-    assert(platform != NULL);
-    assert(worker_threads < NTG_LOOP_WORKERS_MAX);
+    ntg_init_status(out_status);
+
+    if(!task_runner || !platform || (worker_threads > NTG_LOOP_WORKERS_MAX))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     task_runner->__platform = platform;
     task_runner->__thread_count = worker_threads;
@@ -125,13 +126,24 @@ void _ntg_task_runner_init(
     task_runner->__running = 0;
 
     int status;
-    size_t i;
+    size_t i, j;
     for(i = 0; i < worker_threads; i++)
     {
-        status = pthread_create(&(task_runner->__threads[i]), NULL,
-            worker_fn, task_runner);
+        status = pthread_create(
+            &(task_runner->__threads[i]),
+            NULL,
+            worker_fn,
+            task_runner);
 
-        assert(status == 0);
+        if(status != 0)
+        {
+            for(j = 0; j < i; j++)
+            {
+                pthread_join(task_runner->__threads[i], NULL);
+            }
+
+            ntg_vreturn(out_status, NTG_ERR_THREAD_SPAWN);
+        }
     }
 
     task_runner->__loop = loop;
@@ -139,7 +151,7 @@ void _ntg_task_runner_init(
 
 void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
 {
-    assert(task_runner != NULL);
+    if(!task_runner) return;
 
     pthread_mutex_lock(&task_runner->__lock);
     task_runner->__init = false;
@@ -165,7 +177,7 @@ void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
 
 bool _ntg_task_runner_is_running(ntg_task_runner* task_runner)
 {
-    assert(task_runner != NULL);
+    if(!task_runner) return false;
 
     size_t running = 0;
 
@@ -181,8 +193,7 @@ bool _ntg_task_runner_is_running(ntg_task_runner* task_runner)
 
 void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task)
 {
-    assert(task_runner != NULL);
-    assert(task.task_fn != NULL);
+    if(!task_runner || !task.task_fn) return;
 
     pthread_mutex_lock(&task_runner->__lock);
 
@@ -201,7 +212,7 @@ void _ntg_task_runner_execute(ntg_task_runner* task_runner, struct ntg_task task
 
 void _ntg_task_runner_invalidate(ntg_task_runner* task_runner)
 {
-    assert(task_runner != NULL);
+    if(!task_runner) return;
 
     pthread_mutex_lock(&task_runner->__lock);
     task_runner->__loop = false;
@@ -210,7 +221,7 @@ void _ntg_task_runner_invalidate(ntg_task_runner* task_runner)
 
 bool _ntg_task_runner_is_valid(ntg_task_runner* task_runner)
 {
-    assert(task_runner != NULL);
+    if(!task_runner) return false;
 
     bool valid;
 

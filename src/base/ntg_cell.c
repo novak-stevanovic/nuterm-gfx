@@ -1,6 +1,5 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
-#include <assert.h>
 
 /* ========================================================================== */
 /* CELL TYPES */
@@ -12,14 +11,14 @@
 
 void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid)
 {
-    assert(vecgrid != NULL);
+    if(!vecgrid) return;
 
     ntg_vecgrid_init(&vecgrid->__base);
 }
 
 void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
 {
-    assert(vecgrid != NULL);
+    if(!vecgrid) return;
 
     ntg_vecgrid_deinit(&vecgrid->__base);
 }
@@ -27,14 +26,23 @@ void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
 void ntg_cell_vecgrid_set_size(
         ntg_cell_vecgrid* vecgrid,
         struct ntg_xy size,
-        struct ntg_xy size_cap)
+        struct ntg_xy size_cap,
+        ntg_status* out_status)
 {
-    assert(vecgrid != NULL);
+    ntg_init_status(out_status);
+
+    if(!vecgrid)
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
     struct ntg_xy old = vecgrid->__base._size;
 
-    ntg_vecgrid_set_size(&vecgrid->__base, size, 2.5,
-            size_cap, sizeof(struct ntg_cell));
+    ntg_vecgrid_set_size(
+            &vecgrid->__base,
+            size,
+            2.5,
+            size_cap,
+            sizeof(struct ntg_cell),
+            out_status);
 
     size_t i, j;
 
@@ -58,7 +66,8 @@ void ntg_cell_vecgrid_set_size(
 
 struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid)
 {
-    assert(vecgrid != NULL);
+    if(!vecgrid)
+        return ntg_xy(0, 0);
 
     return vecgrid->__base._size;
 }
@@ -73,14 +82,14 @@ struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid)
 
 void ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid)
 {
-    assert(vecgrid != NULL);
+    if(!vecgrid) return;
 
     ntg_vecgrid_init(&vecgrid->__base);
 }
 
 void ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
 {
-    assert(vecgrid != NULL);
+    if(!vecgrid) return;
 
     ntg_vecgrid_deinit(&vecgrid->__base);
 }
@@ -88,14 +97,18 @@ void ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
 void ntg_vcell_vecgrid_set_size(
         ntg_vcell_vecgrid* vecgrid,
         struct ntg_xy size,
-        struct ntg_xy size_cap)
+        struct ntg_xy size_cap,
+        ntg_status* out_status)
 {
-    assert(vecgrid != NULL);
+    ntg_init_status(out_status);
+
+    if(!vecgrid)
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
     struct ntg_xy old = vecgrid->__base._size;
 
     ntg_vecgrid_set_size(&vecgrid->__base, size, 2.5,
-            size_cap, sizeof(struct ntg_vcell));
+            size_cap, sizeof(struct ntg_vcell), out_status);
 
     size_t i, j;
 
@@ -119,7 +132,8 @@ void ntg_vcell_vecgrid_set_size(
 
 struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid)
 {
-    assert(vecgrid != NULL);
+    if(!vecgrid)
+        return ntg_xy(0, 0);
 
     return vecgrid->__base._size;
 }
