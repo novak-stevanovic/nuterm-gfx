@@ -3,9 +3,12 @@
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
-void ntg_stage_drawing_init(ntg_stage_drawing* drawing)
+void ntg_stage_drawing_init(ntg_stage_drawing* drawing, int* out_status)
 {
-    if(drawing == NULL) return;
+    ntg_init_status(out_status);
+
+    if(drawing == NULL)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     ntg_cell_vecgrid_init(&drawing->__data);
 }
@@ -24,10 +27,16 @@ struct ntg_xy ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing)
         NTG_XY_UNSET;
 }
 
-void ntg_stage_drawing_set_size(ntg_stage_drawing* drawing,
-        struct ntg_xy size, struct ntg_xy size_cap)
+void ntg_stage_drawing_set_size(
+        ntg_stage_drawing* drawing,
+        struct ntg_xy size,
+        struct ntg_xy size_cap,
+        int* out_status)
 {
-    if(drawing == NULL) return;
+    ntg_init_status(out_status);
 
-    ntg_cell_vecgrid_set_size(&drawing->__data, size, size_cap);
+    if(drawing == NULL)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    ntg_cell_vecgrid_set_size(&drawing->__data, size, size_cap, out_status);
 }

@@ -8,9 +8,12 @@
 /* PLATFORM */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_platform_init(ntg_platform* platform, ntg_loop* loop)
+void _ntg_platform_init(ntg_platform* platform, ntg_loop* loop, int* out_status)
 {
-    if(!platform || !loop) return;
+    ntg_init_status(out_status);
+
+    if(!platform || !loop)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     pthread_mutex_init(&platform->__lock, NULL);
 
@@ -54,7 +57,14 @@ void _ntg_platform_execute_later(
     if(_status != GENC_SUCCESS)
     {
         pthread_mutex_unlock(&platform->__lock);
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        switch(_status)
+        {
+            case GENC_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
     }
 
     pthread_mutex_unlock(&platform->__lock);
@@ -231,7 +241,15 @@ void _ntg_task_runner_execute(
     if(_status != GENC_SUCCESS)
     {
         pthread_mutex_unlock(&task_runner->__lock);
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+        switch(_status)
+        {
+            case GENC_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
     }
 
     pthread_cond_broadcast(&task_runner->__cond);

@@ -60,7 +60,16 @@ ntg_event_binding* ntg_event_bind(
     int _status;
     ntg_event_binding_vec_pushb(&delegate->bindings, new, &_status);
     if(_status != GENC_SUCCESS)
-        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+    {
+        switch(_status)
+        {
+            case GENC_ERR_ALLOC_FAIL:
+                ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_return(NULL, out_status, NTG_ERR_UNEXPECTED);
+        }
+    }
 
     return new;
 }

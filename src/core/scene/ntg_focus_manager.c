@@ -64,7 +64,14 @@ void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_st
     {
         ntg_focus_manager_deinit(fm);
 
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
     }
 }
 
@@ -197,7 +204,14 @@ void ntg_focus_manager_push_scope(
     ntg_focus_scope_list_pushf(fm->__scope_stack, data, &_status);
     if(_status != GENC_SUCCESS)
     {
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        switch(_status)
+        {
+            case GENC_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
     }
 
     ntg_focus_manager_request_focus(fm, NULL);

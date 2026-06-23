@@ -4,7 +4,6 @@
 #include "shared/ntg_shared.h"
 #include "base/ntg_cell.h"
 #include "base/ntg_xy.h"
-#include <assert.h>
 
 /* ========================================================================== */
 /* PUBLIC - TYPES */
@@ -27,12 +26,13 @@ struct ntg_xy ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing);
 void ntg_stage_drawing_set_size(
         ntg_stage_drawing* drawing,
         struct ntg_xy size,
-        struct ntg_xy size_cap);
+        struct ntg_xy size_cap,
+        int* out_status);
 
 static inline struct ntg_cell
 ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
 {
-    assert(drawing);
+    if(!drawing) return ntg_cell_default();
 
     return ntg_cell_vecgrid_get(&drawing->__data, pos);
 }
@@ -40,7 +40,7 @@ ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
 static inline void
 ntg_stage_drawing_set(ntg_stage_drawing* drawing, struct ntg_cell cell, struct ntg_xy pos)
 {
-    assert(drawing);
+    if(!drawing) return;
 
     ntg_cell_vecgrid_set(&drawing->__data, cell, pos);
 }

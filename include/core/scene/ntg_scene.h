@@ -69,7 +69,7 @@ struct ntg_scene
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_init(ntg_scene* scene);
+void ntg_scene_init(ntg_scene* scene, int* out_status);
 void ntg_scene_deinit(ntg_scene* scene);
 void ntg_scene_deinit_(void* _scene);
 
@@ -88,7 +88,7 @@ size_t ntg_scene_collect_layers_by_z(
         ntg_scene* scene,
         ntg_object** out_layers,
         size_t cap);
-void ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
+void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status);
 
 /* -------------------------------------------------------------------------- */
 /* EVENT */

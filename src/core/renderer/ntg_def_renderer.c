@@ -8,9 +8,12 @@
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_def_renderer_init(ntg_def_renderer* renderer)
+void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status)
 {
-    if(!renderer) return;
+    ntg_init_status(out_status);
+
+    if(!renderer)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_renderer_vtable vtable = {0};
     vtable.render_fn = _ntg_def_renderer_render_fn;
@@ -68,6 +71,8 @@ void _ntg_def_renderer_render_fn(
 {
     if(!_renderer) return;
 
+    int _status;
+
     ntg_def_renderer* renderer = (ntg_def_renderer*)_renderer;
     struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
     bool resize = !(ntg_xy_are_equal(renderer->__old_size, size));
@@ -75,7 +80,9 @@ void _ntg_def_renderer_render_fn(
     struct ntg_xy old_size;
     old_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-    ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
+    ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap, &_status);
+
+    if(_status != NTG_SUCCESS) return;
 
     void* buffer = sarena_malloc(arena, 50000);
     if(!buffer) return;

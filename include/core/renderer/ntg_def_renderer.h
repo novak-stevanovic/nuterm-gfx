@@ -22,7 +22,7 @@ struct ntg_def_renderer
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_def_renderer_init(ntg_def_renderer* renderer);
+void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status);
 void ntg_def_renderer_deinit(ntg_def_renderer* renderer);
 void ntg_def_renderer_deinit_(void* _renderer);
 

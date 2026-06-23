@@ -25,26 +25,30 @@ struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing);
 void ntg_object_drawing_set_size(
         ntg_object_drawing* drawing,
         struct ntg_xy size,
-        struct ntg_xy size_cap);
+        struct ntg_xy size_cap,
+        int* out_status);
 
 void ntg_object_drawing_place(
         const ntg_object_drawing* src_drawing,
         struct ntg_xy src_start_pos,
         struct ntg_xy src_box_size,
         ntg_object_drawing* dest_drawing,
-        struct ntg_xy dest_start_pos);
+        struct ntg_xy dest_start_pos,
+        int* out_status);
 
 void ntg_object_drawing_place_(
         const ntg_object_drawing* src_drawing,
         struct ntg_xy src_start_pos,
         struct ntg_xy src_box_size,
         ntg_stage_drawing* dest_drawing,
-        struct ntg_xy dest_start_pos);
+        struct ntg_xy dest_start_pos,
+        int* out_status);
 
 static inline struct ntg_vcell
 ntg_object_drawing_get(const ntg_object_drawing* drawing, struct ntg_xy pos)
 {
-    assert(drawing);
+    if(!drawing)
+        return ntg_vcell_default();
 
     return ntg_vcell_vecgrid_get(&drawing->__data, pos);
 }
@@ -52,7 +56,7 @@ ntg_object_drawing_get(const ntg_object_drawing* drawing, struct ntg_xy pos)
 static inline void
 ntg_object_drawing_set(ntg_object_drawing* drawing, struct ntg_vcell cell, struct ntg_xy pos)
 {
-    assert(drawing);
+    if(!drawing) return;
 
     ntg_vcell_vecgrid_set(&drawing->__data, cell, pos);
 }

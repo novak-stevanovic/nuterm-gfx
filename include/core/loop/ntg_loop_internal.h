@@ -27,7 +27,7 @@ struct ntg_platform
     ntg_ptask_list __tasks;
 };
 
-void _ntg_platform_init(ntg_platform* platform, ntg_loop* loop);
+void _ntg_platform_init(ntg_platform* platform, ntg_loop* loop, int* out_status);
 void _ntg_platform_deinit(ntg_platform* platform);
 void _ntg_platform_execute_later(
         ntg_platform* platform,

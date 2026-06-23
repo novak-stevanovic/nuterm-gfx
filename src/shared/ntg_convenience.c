@@ -75,8 +75,16 @@ void ntg_cleanup_batch_add(
 
     int _status;
     ntg_cleanup_data_vec_pushb(&batch->vec, cleanup_data, &_status);
+
     if(_status != GENC_SUCCESS)
     {
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
     }
 }

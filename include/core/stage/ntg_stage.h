@@ -53,7 +53,7 @@ struct ntg_stage
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
 
-void ntg_stage_init(ntg_stage* stage);
+void ntg_stage_init(ntg_stage* stage, int* out_status);
 void ntg_stage_deinit(ntg_stage* stage);
 void ntg_stage_deinit_(void* _stage);
 
@@ -62,7 +62,7 @@ void ntg_stage_deinit_(void* _stage);
 /* -------------------------------------------------------------------------- */
 
 void ntg_stage_mark_dirty(ntg_stage* stage);
-void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
+void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status);
 
 /* -------------------------------------------------------------------------- */
 /* EVENT */

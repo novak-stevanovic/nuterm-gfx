@@ -1,18 +1,17 @@
 #include "ntg.h"
-#include <assert.h>
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
 void ntg_object_drawing_init(ntg_object_drawing* drawing)
 {
-    if(drawing == NULL) return;
+    if(!drawing) return;
 
     ntg_vcell_vecgrid_init(&drawing->__data);
 }
 
 void ntg_object_drawing_deinit(ntg_object_drawing* drawing)
 {
-    if(drawing == NULL) return;
+    if(!drawing) return;
 
     ntg_vcell_vecgrid_deinit(&drawing->__data);
 }
@@ -27,11 +26,30 @@ struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 void ntg_object_drawing_set_size(
         ntg_object_drawing* drawing,
         struct ntg_xy size,
-        struct ntg_xy size_cap)
+        struct ntg_xy size_cap,
+        int* out_status)
 {
-    if(drawing == NULL) return;
+    ntg_init_status(out_status);
 
-    ntg_vcell_vecgrid_set_size(&drawing->__data, size, size_cap);
+    if(!drawing)
+    {
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+    }
+
+    int _status;
+    ntg_vcell_vecgrid_set_size(&drawing->__data, size, size_cap, &_status);
+
+    if(_status != NTG_SUCCESS)
+    {
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
+    }
 }
 
 void ntg_object_drawing_place(
@@ -39,7 +57,8 @@ void ntg_object_drawing_place(
         struct ntg_xy src_start_pos,
         struct ntg_xy src_box_size,
         ntg_object_drawing* dest_drawing,
-        struct ntg_xy dest_start_pos)
+        struct ntg_xy dest_start_pos,
+        int* out_status)
 {
     assert(src_drawing != NULL);
     assert(dest_drawing != NULL);
@@ -84,7 +103,8 @@ void ntg_object_drawing_place_(
         struct ntg_xy src_start_pos,
         struct ntg_xy src_box_size,
         ntg_stage_drawing* dest_drawing,
-        struct ntg_xy dest_start_pos)
+        struct ntg_xy dest_start_pos,
+        int* out_status)
 {
     assert(src_drawing != NULL);
     assert(dest_drawing != NULL);

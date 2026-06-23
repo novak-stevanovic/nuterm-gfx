@@ -97,6 +97,7 @@ static inline struct
 ntg_xy ntg_xy_size(struct ntg_xy xy)
 {
     ntg_xy_size_(&xy);
+
     return xy;
 }
 

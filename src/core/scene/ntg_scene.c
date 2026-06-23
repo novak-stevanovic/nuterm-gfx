@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <assert.h>
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 #include "core/scene/ntg_focus_manager.h"
@@ -72,24 +71,45 @@ static void init_default(ntg_scene* scene)
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
 
-void ntg_scene_init(ntg_scene* scene)
+void ntg_scene_init(ntg_scene* scene, int* out_status)
 {
-    assert(scene != NULL);
+    ntg_init_status(out_status); 
+
+    if(!scene)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     init_default(scene);
 
     scene->_fm = malloc(sizeof(ntg_focus_manager));
-    assert(scene->_fm);
+    if(!scene->_fm)
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
-    ntg_focus_manager_init(scene->_fm, scene);
+    int _status;
+    ntg_focus_manager_init(scene->_fm, scene, &_status);
+
+    if(_status != NTG_SUCCESS)
+    {
+        free(scene->_fm); 
+        scene->_fm = NULL;
+
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
+    }
+
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
 {
-    assert(scene);
+    if(!scene) return;
 
     if(scene->_stage)
-        ntg_stage_set_scene(scene->_stage, NULL);
+        ntg_stage_set_scene(scene->_stage, NULL, NULL);
 
     ntg_focus_manager_deinit(scene->_fm);
     free(scene->_fm);
@@ -99,12 +119,14 @@ void ntg_scene_deinit(ntg_scene* scene)
 
 void ntg_scene_deinit_(void* _scene)
 {
+    if(!_scene) return;
+
     ntg_scene_deinit(_scene);
 }
 
 void ntg_scene_mark_dirty(ntg_scene* scene)
 {
-    assert(scene);
+    if(!scene) return;
 
     scene->_dirty = true;
 
@@ -119,7 +141,7 @@ ntg_object* ntg_scene_hit_test(
         struct ntg_xy pos,
         struct ntg_xy* out_object_pos)
 {
-    assert(scene);
+    if(!scene) return NULL;
 
     if(out_object_pos)
         (*out_object_pos) = ntg_xy(0, 0);
@@ -128,7 +150,8 @@ ntg_object* ntg_scene_hit_test(
     if(layer_count == 0) return NULL;
 
     ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
-    assert(layers);
+    // TODO???
+    if(!layers) exit(1);
 
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
@@ -164,7 +187,7 @@ size_t ntg_scene_collect_layers_by_z(
         ntg_object** out_layers,
         size_t cap)
 {
-    assert(scene);
+    if(!scene) return 0;
 
     if(!scene->_root)
         return 0;
@@ -178,9 +201,14 @@ size_t ntg_scene_collect_layers_by_z(
     return counter;
 }
 
-void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
+void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
 {
-    assert(scene);
+    ntg_init_status(out_status);
+
+    int _status;
+
+    if(!scene)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     ntg_object* old_root = scene->_root;
 
@@ -201,7 +229,7 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
             ntg_scene* scene = ntg_object_get_scene_(root);
             if(scene)
             {
-                ntg_scene_set_root(scene, NULL);
+                ntg_scene_set_root(scene, NULL, NULL);
             }
         }
         else if(ntg_object_is_root(root)) // layer
@@ -231,21 +259,21 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
 
 bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key)
 {
-    assert(scene);
+    if(!scene) return false;
 
     return ntg_focus_manager_feed_key(scene->_fm, key);
 }
 
 bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 {
-    assert(scene);
+    if(!scene) return false;
 
     return ntg_focus_manager_feed_mouse(scene->_fm, mouse);
 }
 
 bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key_event key)
 {
-    assert(scene);
+    if(!scene) return false;
 
     if(scene->hooks.on_key_fn)
         return scene->hooks.on_key_fn(scene, key);
@@ -255,7 +283,7 @@ bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key_event key)
 
 bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 {
-    assert(scene);
+    if(!scene) return false;
 
     if(scene->hooks.on_mouse_fn)
         return scene->hooks.on_mouse_fn(scene, mouse);
@@ -273,7 +301,7 @@ bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 
 void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 {
-    assert(scene);
+    if(!scene) return;
 
     struct ntg_xy old_size = scene->_size;
 
@@ -289,7 +317,7 @@ void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 
 void _ntg_scene_layout(ntg_scene* scene, sarena* arena)
 {
-    assert(scene != NULL);
+    if(!scene) return;
 
     size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
 
@@ -303,14 +331,14 @@ void _ntg_scene_layout(ntg_scene* scene, sarena* arena)
 
 void _ntg_scene_clean(ntg_scene* scene)
 {
-    assert(scene);
+    if(!scene) return;
 
     scene->_dirty = false;
 }
 
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
 {
-    assert(scene != NULL);
+    if(!scene) return;
 
     if(scene->_stage == stage) return;
 
@@ -319,8 +347,7 @@ void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
 
 void _ntg_scene_add(ntg_scene* scene, ntg_object* object)
 {
-    assert(scene != NULL);
-    assert(object != NULL);
+    if(!scene || !object) return;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
     ntg_scene_mark_dirty(scene); // just in case
@@ -328,8 +355,7 @@ void _ntg_scene_add(ntg_scene* scene, ntg_object* object)
 
 void _ntg_scene_rm(ntg_scene* scene, ntg_object* object)
 {
-    assert(scene != NULL);
-    assert(object != NULL);
+    if(!scene || !object) return;
 
     ntg_scene_mark_dirty(scene);
 
@@ -338,8 +364,7 @@ void _ntg_scene_rm(ntg_scene* scene, ntg_object* object)
 
 void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
 {
-    assert(scene != NULL);
-    assert(object != NULL);
+    if(!scene || !object) return;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
     ntg_scene_mark_dirty(scene); // just in case
@@ -364,8 +389,7 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
 
 void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
 {
-    assert(scene != NULL);
-    assert(object != NULL);
+    if(!scene || !object) return;
 
     if(scene->hooks.on_object_unregister_fn)
         scene->hooks.on_object_unregister_fn(scene, object);
@@ -385,8 +409,7 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
 
 void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root)
 {
-    assert(scene != NULL);
-    assert(root != NULL);
+    if(!scene || !root) return;
 
     _ntg_scene_add(scene, root);
 
@@ -406,8 +429,7 @@ void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root)
 
 void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
 {
-    assert(scene != NULL);
-    assert(root != NULL);
+    if(!scene || !root) return;
 
     _ntg_scene_rm(scene, root);
 
@@ -427,8 +449,7 @@ void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
 
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
 {
-    assert(scene != NULL);
-    assert(root != NULL);
+    if(!scene || !root) return;
 
     _ntg_scene_register(scene, root);
 
@@ -448,8 +469,7 @@ void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
 
 void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
 {
-    assert(scene != NULL);
-    assert(root != NULL);
+    if(!scene || !root) return;
 
     _ntg_scene_unregister(scene, root);
 
@@ -482,9 +502,9 @@ static void collect_layers_by_z_internal(
         size_t* counter,
         size_t cap)
 {
-    assert(scene);
-    assert(counter);
-    assert(it_root);
+    // assert(scene);
+    // assert(counter);
+    // assert(it_root);
 
     const ntg_object_vec* children = &(it_root->_children);
     const ntg_object_vec* anchored = &(it_root->_anchored);
@@ -508,7 +528,7 @@ static void collect_layers_by_z_internal(
 
             if(cap > (*counter))
             {
-                assert(i <= (*counter));
+                // assert(i <= (*counter));
                 if(i < (*counter))
                 {
                     memmove(out_layers + i + 1,

@@ -129,6 +129,9 @@ static inline size_t _ssub_size(size_t x, size_t y)
     } while(0);
 
 #define ntg_init_status(out_status_param) \
-    if(out_status_param) (*(out_status_param)) = NTG_SUCCESS;
+    if((out_status_param)) (*(out_status_param)) = NTG_SUCCESS;
+
+#define ntg_set_status(out_status_param, out_status) \
+    if((out_status_param)) (*(out_status_param)) = (out_status);
 
 #endif // NTG_SHARED_INTERNAL_H

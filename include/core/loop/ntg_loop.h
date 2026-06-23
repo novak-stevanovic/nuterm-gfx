@@ -96,7 +96,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status);
  * threads running. If any of the tasks use `ntg_platform_execute_later`, the
  * request will be ignored. */
 bool ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode);
-void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage);
+void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage, int* out_status);
 
 bool ntg_loop_is_running(const ntg_loop* loop);
 

@@ -1,5 +1,4 @@
 #include "ntg.h"
-#include <assert.h>
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
@@ -28,9 +27,12 @@ static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
 
-void ntg_stage_init(ntg_stage* stage)
+void ntg_stage_init(ntg_stage* stage, int* out_status)
 {
-    assert(stage != NULL);
+    ntg_init_status(out_status);
+
+    if(!stage)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     init_default(stage);
 
@@ -39,6 +41,8 @@ void ntg_stage_init(ntg_stage* stage)
 
 void ntg_stage_deinit(ntg_stage* stage)
 {
+    if(!stage) return;
+
     if(stage->_loop)
     {
         ntg_loop_set_stage(stage->_loop, NULL);
@@ -46,7 +50,7 @@ void ntg_stage_deinit(ntg_stage* stage)
 
     if(stage->_scene)
     {
-        ntg_stage_set_scene(stage, NULL);
+        ntg_stage_set_scene(stage, NULL, NULL);
     }
 
     ntg_stage_drawing_deinit(&stage->_drawing);
@@ -56,6 +60,8 @@ void ntg_stage_deinit(ntg_stage* stage)
 
 void ntg_stage_deinit_(void* _stage)
 {
+    if(!_stage) return;
+
     ntg_stage_deinit(_stage);
 }
 
@@ -63,9 +69,13 @@ void ntg_stage_deinit_(void* _stage)
 /* GENERAL */
 /* -------------------------------------------------------------------------- */
 
-void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
+void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status)
 {
-    assert(stage != NULL);
+    ntg_init_status(out_status);
+
+    if(!stage)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
     if(stage->_scene == scene) return;
 
     ntg_scene* old_scene = stage->_scene;
@@ -86,7 +96,7 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         // If scene has old stage, remove
         if(old_stage)
         {
-            ntg_stage_set_scene(old_stage, NULL);
+            ntg_stage_set_scene(old_stage, NULL, NULL);
         }
 
         _ntg_scene_set_stage(scene, stage);
@@ -108,6 +118,8 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 
 void ntg_stage_mark_dirty(ntg_stage* stage)
 {
+    if(!stage) return;
+
     stage->_dirty = true;
 }
 
@@ -117,7 +129,7 @@ void ntg_stage_mark_dirty(ntg_stage* stage)
 
 bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key)
 {
-    assert(stage != NULL);
+    if(!stage) return false;
 
     if(stage->_scene)
         return ntg_scene_feed_key(stage->_scene, key);
@@ -127,7 +139,7 @@ bool ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key)
 
 bool ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 {
-    assert(stage != NULL);
+    if(!stage) return false;
 
     if(stage->_scene)
         return ntg_scene_feed_mouse(stage->_scene, mouse);
@@ -137,7 +149,7 @@ bool ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 
 bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key_event key)
 {
-    assert(stage != NULL);
+    if(!stage) return false;
 
     if(stage->hooks.on_key_fn)
         return stage->hooks.on_key_fn(stage, key);
@@ -147,7 +159,7 @@ bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key_event key)
 
 bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 {
-    assert(stage != NULL);
+    if(!stage) return false;
 
     if(stage->hooks.on_mouse_fn)
         return stage->hooks.on_mouse_fn(stage, mouse);
@@ -161,6 +173,8 @@ bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 
 void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {
+    if(!stage) return;
+
     if(ntg_xy_are_equal(stage->_size, size))
         return;
 
@@ -178,14 +192,16 @@ void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 
 void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
 {
-    assert(stage != NULL);
+    if(!stage || !arena) return;
 
     struct ntg_xy size = stage->_size;
 
+    int _status;
     if(!ntg_xy_are_equal(ntg_stage_drawing_get_size(&stage->_drawing), size))
     {
         struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-        ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap);
+        ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap, &_status);
+        if(_status != NTG_SUCCESS) return;
     }
 
     if(ntg_xy_size_is_zero(size)) return;
@@ -211,13 +227,13 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
     }
 
     if(!stage->_scene) return;
-
-    if(!stage->_scene->_root)
-        return;
+    if(!stage->_scene->_root) return;
 
     size_t layer_count = ntg_scene_collect_layers_by_z(stage->_scene, NULL, 0);
 
     ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
+    if(!layers) return;
+
     ntg_scene_collect_layers_by_z(stage->_scene, layers, layer_count);
 
     for(i = 0; i < layer_count; i++)
@@ -227,7 +243,7 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
 
 void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
 {
-    assert(stage != NULL);
+    if(!stage) return;
 
     if(stage->_loop == loop) return;
 
@@ -309,7 +325,7 @@ static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena)
         return;
 
     ntg_object** buff = sarena_calloc(arena, sizeof(ntg_object*) * tree_size);
-    assert(buff);
+    if(!buff) return;
 
     get_objects_in_drawing_order_layer(root, buff);
 
