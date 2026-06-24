@@ -29,11 +29,11 @@ void ntg_renderer_init(
 {
     ntg_init_status(out_status);
 
-    if(!renderer || !vtable)
+    if(!renderer)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    if(!vtable->render_fn)
-        ntg_vreturn(out_status, NTG_ERR_VTABLE_NO_IMPL);
+    if(!vtable || !vtable->render_fn)
+        ntg_vreturn(out_status, NTG_ERR_BAD_VTABLE);
 
     (*renderer) = (ntg_renderer) {0};
 

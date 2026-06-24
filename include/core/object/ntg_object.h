@@ -348,12 +348,13 @@ static void fn_name(ntg_object* object, void* data)                            \
 void ntg_object_init(
         ntg_object* object,
         const struct ntg_object_vtable* layout_ops,
-        const ntg_type* type);
+        const ntg_type* type,
+        int* out_status);
 void ntg_object_deinit(ntg_object* object);
 
 /* Updates only the tree.
  * Called internally by types extending ntg_object. */
-void ntg_object_attach(ntg_object* parent, ntg_object* child);
+void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
 
 void _ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 

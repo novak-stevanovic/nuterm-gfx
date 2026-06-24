@@ -139,19 +139,24 @@ void ntg_scene_mark_dirty(ntg_scene* scene)
 ntg_object* ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
-        struct ntg_xy* out_object_pos)
+        struct ntg_xy* out_object_pos,
+        int* out_status)
 {
-    if(!scene) return NULL;
+    ntg_init_status(out_status);
+
+    if(!scene)
+        ntg_return(NULL, out_status, NTG_ERR_INVALID_ARG);
 
     if(out_object_pos)
         (*out_object_pos) = ntg_xy(0, 0);
 
     size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
-    if(layer_count == 0) return NULL;
+    if(layer_count == 0)
+        return NULL;
 
     ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
-    // TODO???
-    if(!layers) exit(1);
+    if(!layers)
+        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
 
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
@@ -204,8 +209,6 @@ size_t ntg_scene_collect_layers_by_z(
 void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
 {
     ntg_init_status(out_status);
-
-    int _status;
 
     if(!scene)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);

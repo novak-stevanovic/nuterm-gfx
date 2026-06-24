@@ -109,7 +109,8 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
     if(object) // FOCUS
     {
         const struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
-        assert(scope);
+        // assert(scope);
+        if(!scope) return false;
 
         ntg_object* scope_root = scope->root;
 
@@ -293,7 +294,12 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
     struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
     struct ntg_xy adj_pos = ntg_xy(0, 0);
 
-    ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos, &adj_pos);
+    int _status;
+
+    ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos, &adj_pos, &_status);
+    if(_status != NTG_SUCCESS)
+        return false;
+
     if(!hit)
         return false;
 

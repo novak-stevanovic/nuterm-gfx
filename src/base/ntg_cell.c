@@ -107,8 +107,21 @@ void ntg_vcell_vecgrid_set_size(
 
     struct ntg_xy old = vecgrid->__base._size;
 
+    int _status;
+
     ntg_vecgrid_set_size(&vecgrid->__base, size, 2.5,
-            size_cap, sizeof(struct ntg_vcell), out_status);
+            size_cap, sizeof(struct ntg_vcell), &_status);
+    if(_status != NTG_SUCCESS)
+    {
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
+    }
 
     size_t i, j;
 

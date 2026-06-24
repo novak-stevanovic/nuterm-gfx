@@ -82,7 +82,8 @@ void ntg_scene_mark_dirty(ntg_scene* scene);
 ntg_object* ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
-        struct ntg_xy* out_object_pos);
+        struct ntg_xy* out_object_pos,
+        int* out_status);
 
 size_t ntg_scene_collect_layers_by_z(
         ntg_scene* scene,
