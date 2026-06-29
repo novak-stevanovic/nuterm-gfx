@@ -1,5 +1,4 @@
 #include "ntg.h"
-#include <assert.h>
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
@@ -63,9 +62,14 @@ static void on_child_rm_fn(ntg_object* _box, ntg_object* child);
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts)
+void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status)
 {
-    assert(box != NULL);
+    ntg_init_status(out_status);
+    
+    if(!box)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    int _status;
 
     struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
@@ -75,7 +79,19 @@ void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts)
         .rm_child_fn = on_child_rm_fn
     };
 
-    ntg_object_init((ntg_object*)box, &vtable, &NTG_TYPE_BOX);
+    ntg_object_init((ntg_object*)box, &vtable, &NTG_TYPE_BOX, &_status);
+
+    if(_status != NTG_SUCCESS)
+    {
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
+    }
 
     box->_opts = ntg_box_opts_def();
     box->hooks = (struct ntg_box_hooks) {0};
@@ -87,6 +103,8 @@ void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts)
 
 void ntg_box_deinit(ntg_box* box)
 {
+    if(!box) return;
+
     box->_opts = ntg_box_opts_def();
     free(((ntg_object*)box)->layout_cache);
 
@@ -100,7 +118,7 @@ void ntg_box_deinit_(void* _box)
 
 void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
 {
-    assert(box != NULL);
+    if(!box) return;
 
     struct ntg_box_opts old_opts = box->_opts;
     struct ntg_box_opts new_opts = (opts ? (*opts) : ntg_box_opts_def());
@@ -117,17 +135,36 @@ void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
 
 const struct ntg_object_vec* ntg_box_get_children(const ntg_box* box)
 {
-    assert(box);
+    if(!box) return NULL;
 
     return &(((ntg_object*)box)->_children);
 }
 
-void ntg_box_add_child(ntg_box* box, ntg_object* child)
+void ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status)
 {
-    assert(box != NULL);
-    assert(child != NULL);
+    ntg_init_status(out_status);
 
-    ntg_object_attach((ntg_object*)box, child);
+    if(!box || !child)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    int _status;
+
+    ntg_object_attach((ntg_object*)box, child, &_status);
+
+    if(_status != NTG_SUCCESS)
+    {
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            case NTG_ERR_MAX_CHILDREN:
+                ntg_vreturn(out_status, NTG_ERR_MAX_CHILDREN);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
+    }
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 
@@ -137,8 +174,7 @@ void ntg_box_add_child(ntg_box* box, ntg_object* child)
 
 void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 {
-    assert(box != NULL);
-    assert(child != NULL);
+    if(!box || !child) return;
 
     if(child->_parent != ntg_obj(box))
         return;
@@ -223,13 +259,15 @@ static void constrain_fn(
 
     if(children->size == 0) return;
 
+    int _status;
+
     size_t min_size = layout_cache->measure[orient].min_size;
     size_t nat_size = layout_cache->measure[orient].nat_size;
 
     size_t extra_size;
     size_t array_size = children->size * sizeof(size_t);
     size_t* caps = (size_t*)sarena_malloc(arena, array_size);
-    assert(caps != NULL);
+    if(!caps) return;
     size_t* _sizes = (size_t*)sarena_malloc(arena, array_size);
     size_t* grows = NULL;
 
@@ -241,7 +279,7 @@ static void constrain_fn(
         if(size >= nat_size) // redistribute extra, capped with max_size
         {
             grows = (size_t*)sarena_malloc(arena, array_size);
-            assert(grows != NULL);
+            if(!grows) return;
             extra_size = size - nat_size; // spacing is included in nat_size
 
             for(i = 0; i < children->size; i++)
@@ -285,7 +323,8 @@ static void constrain_fn(
             }
         }
 
-        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children->size, arena);
+        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children->size, arena, &_status);
+        if(_status != NTG_SUCCESS) return;
 
         for(i = 0; i < children->size; i++)
         {
@@ -326,6 +365,8 @@ static void arrange_fn(
 
     if(children->size == 0) return;
 
+    int _status;
+
     /* Init */
     ntg_orient orient = box->_opts.orient;
     ntg_align prim_align = box->_opts.prim_align;
@@ -358,15 +399,17 @@ static void arrange_fn(
     size_t array_size = children->size * sizeof(size_t);
 
     size_t* spacing_caps = (size_t*)sarena_malloc(arena, array_size);
-    assert(spacing_caps != NULL);
+    if(!spacing_caps) return;
     for(i = 0; i < (children->size - 1); i++)
         spacing_caps[i] = NTG_SIZE_MAX;
 
     size_t* _spacing_after = (size_t*)sarena_calloc(arena, array_size);
-    assert(_spacing_after != NULL);
+    if(!_spacing_after) return;
 
     ntg_sap_cap_round_robin(spacing_caps, NULL, _spacing_after,
-            total_spacing, children->size - 1, arena);
+            total_spacing, children->size - 1, arena, &_status);
+
+    if(_status != NTG_SUCCESS) return;
 
     /* Calculate cont size */
     struct ntg_oxy _cont_size = ntg_oxy(

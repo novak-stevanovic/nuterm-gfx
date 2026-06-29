@@ -99,10 +99,7 @@ ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy 
     if(ntg_xy_is_lesser(pos, drawing->size))
         return drawing->data[drawing->size.x * pos.y + pos.x];
     else
-    {
-        assert(0);
         return ntg_vcell_default();
-    }
 }
 
 static inline void ntg_object_tmp_drawing_set(
@@ -114,7 +111,6 @@ static inline void ntg_object_tmp_drawing_set(
 
     if(ntg_xy_is_lesser(pos, drawing->size))
         drawing->data[drawing->size.x * pos.y + pos.x] = cell;
-    else assert(0);
 }
 
 /* ========================================================================== */

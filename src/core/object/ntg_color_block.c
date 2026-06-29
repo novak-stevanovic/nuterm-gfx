@@ -1,5 +1,4 @@
 #include "ntg.h"
-#include <assert.h>
 #include "shared/ntg_shared_internal.h"
 #define DEFAULT_SIZE 1
 
@@ -21,7 +20,7 @@ static void draw_fn(
 
 void ntg_color_block_set_color(ntg_color_block* color_block, struct nt_color color)
 {
-    assert(color_block != NULL);
+    if(!color_block) return;
 
     struct nt_color old_color = color_block->_color;
 
@@ -36,9 +35,15 @@ void ntg_color_block_set_color(ntg_color_block* color_block, struct nt_color col
         color_block->hooks.on_color_chng_fn(color_block, old_color, color);
 }
 
-void ntg_color_block_init(ntg_color_block* color_block, struct nt_color color)
+void ntg_color_block_init(
+        ntg_color_block* color_block,
+        struct nt_color color,
+        int* out_status)
 {
-    assert(color_block != NULL);
+    ntg_init_status(out_status);
+
+    if(!color_block)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
@@ -49,10 +54,13 @@ void ntg_color_block_init(ntg_color_block* color_block, struct nt_color color)
         .rm_child_fn = NULL
     };
 
+    int _status;
+
     ntg_object_init(
             (ntg_object*)color_block,
             &vtable,
-            &NTG_TYPE_COLOR_BLOCK);
+            &NTG_TYPE_COLOR_BLOCK,
+            &_status);
 
     color_block->hooks = (struct ntg_color_block_hooks) {0};
 
@@ -63,6 +71,8 @@ void ntg_color_block_init(ntg_color_block* color_block, struct nt_color color)
 
 void ntg_color_block_deinit(ntg_color_block* block)
 {
+    if(!block) return;
+
     block->_color = NT_COLOR_DEFAULT;
     ntg_object_deinit((ntg_object*)block);
 }

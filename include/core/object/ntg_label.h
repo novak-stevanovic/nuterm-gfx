@@ -84,12 +84,19 @@ struct ntg_label
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts);
+void ntg_label_init(
+        ntg_label* label,
+        const struct ntg_label_opts* opts,
+        int* out_status);
 void ntg_label_deinit(ntg_label* label);
 void ntg_label_deinit_(void* _label);
 
 void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
-void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len);
-void ntg_label_set_text(ntg_label* label, const char* text);
+void ntg_label_set_text(ntg_label* label, const char* text, int* out_status);
+void ntg_label_set_text_safe(
+        ntg_label* label,
+        const char* text,
+        size_t len,
+        int* out_status);
 
 #endif // NTG_LABEL_H

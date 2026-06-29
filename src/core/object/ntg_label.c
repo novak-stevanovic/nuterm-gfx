@@ -1,5 +1,4 @@
 #include "ntg.h"
-#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
@@ -132,7 +131,7 @@ static struct ntg_object_measure measure_wwrap_fn(
         size_t for_size,
         sarena* arena);
 
-static void trim_text(struct str* text);
+static int trim_text(struct str* text);
 
 /* -------------------------------------------------------------------------- */
 
@@ -189,9 +188,17 @@ bool ntg_label_opts_are_eq(
 /* PUBLIC API */
 /* -------------------------------------------------------------------------- */
 
-void ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts)
+void ntg_label_init(
+        ntg_label* label,
+        const struct ntg_label_opts* opts,
+        int* out_status)
 {
-    assert(label != NULL);
+    ntg_init_status(out_status);
+
+    if(!label)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    int _status;
 
     struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
@@ -201,20 +208,34 @@ void ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts)
         .rm_child_fn = NULL
     };
 
-    ntg_object_init((ntg_object*)label, &vtable, &NTG_TYPE_LABEL);
+    ntg_object_init((ntg_object*)label, &vtable, &NTG_TYPE_LABEL, &_status);
+    if(_status)
+    {
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
+    }
 
     label->__priv = malloc(sizeof(struct ntg_label_priv));
-    assert(label->__priv);
+    if(!label->__priv)
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
     init_default(label);
 
-    ntg_label_set_text(label, "");
+    ntg_label_set_text(label, "", NULL);
 
     ntg_label_set_opts(label, opts);
 }
 
 void ntg_label_deinit(ntg_label* label)
 {
+    if(!label) return;
+
     if(label->_text.data != NULL)
         free(label->_text.data);
 
@@ -237,16 +258,9 @@ void ntg_label_deinit_(void* _label)
     ntg_label_deinit(_label);
 }
 
-struct ntg_label_opts ntg_label_get_opts(const ntg_label* label)
-{
-    assert(label != NULL);
-
-    return label->_opts;
-}
-
 void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 {
-    assert(label != NULL);
+    if(!label) return;
 
     ntg_object* _label = ntg_obj(label);
 
@@ -270,9 +284,16 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
 
-void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
+void ntg_label_set_text_safe(
+        ntg_label* label,
+        const char* text,
+        size_t len,
+        int* out_status)
 {
-    assert(label != NULL);
+    ntg_init_status(out_status);
+
+    if(!label)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     if((label->_text.len == len) && (memcmp(label->_text.data, text, len) == 0))
         return;
@@ -283,7 +304,8 @@ void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
     if(raise_hook)
     {
         char* old_text = malloc(1 + old_text_len * sizeof(char));
-        assert(old_text);
+        if(!old_text)
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
         if(old_text_len > 0)
             memmove(old_text, label->_text.data, old_text_len);
@@ -293,35 +315,42 @@ void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
 
     len = _min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
 
-    char* new_text = realloc(label->_text.data, len + 1);
-    assert(new_text != NULL);
-    label->_text.data = new_text;
-    label->_text.len = len;
-    label->_text.data[len] = 0;
-
+    char* new_text = malloc(len + 1);
+    if(!new_text)
+    {
+        if(old_text) free(old_text);
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
     if(len)
-        memmove(label->_text.data, text, len);
+        memmove(new_text, text, len);
+    new_text[len] = 0;
+    // label->_text.data = new_text;
 
     struct str label_text = {
-        label->_text.data,
-        label->_text.len
+        .data = new_text,
+        .len = len
     };
 
-    if(label->_opts.autotrim) trim_text(&label_text);
+    if(label->_opts.autotrim)
+        trim_text(&label_text);
 
-    label->_text.data = label_text.data;
-    label->_text.len = label_text.len;
+    // label->_text.data = label_text.data;
+    // label->_text.len = label_text.len;
 
-    if(label->_text.len == 0)
+    if(label_text.len == 0)
     {
+        if(label->_text.data)
+            free(label->_text.data);
         if(label->__priv->utf32_text.data)
             free(label->__priv->utf32_text.data);
         if(label->__priv->utf32_rows)
             free(label->__priv->utf32_rows);
 
+        label->_text.data = label_text.data;
         label->__priv->utf32_text.data = NULL;
         label->__priv->utf32_text.len = 0;
 
+        label->_text.len = 0;
         label->__priv->utf32_row_count = 0;
         label->__priv->utf32_rows = NULL;
 
@@ -331,46 +360,78 @@ void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
     // UTF-32 CACHE
 
     // Realloc old label's buffer - alloc extra space because of unknown size
-    size_t utf32_cap = label->_text.len;
-    uint32_t* new_utf32_text = realloc(
-            label->__priv->utf32_text.data,
-            sizeof(uint32_t) * utf32_cap);
-    assert(new_utf32_text != NULL);
+    size_t utf32_cap = label_text.len;
+    uint32_t* new_utf32_text = malloc(sizeof(uint32_t) * utf32_cap);
+    if(!new_utf32_text)
+    {
+        if(old_text) free(old_text);
+        if(new_text) free(new_text);
+
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
 
     // Convert new text to UTF-32 and store in newly alloced buff
     size_t _width;
     int _status;
-    uc_utf8_to_utf32((uint8_t*)label->_text.data, label->_text.len,
+    uc_utf8_to_utf32((uint8_t*)label_text.data, label_text.len,
             new_utf32_text, utf32_cap, 0, &_width, &_status);
-    assert(_status == UC_SUCCESS);
+    if(_status != UC_SUCCESS)
+    {
+        if(old_text) free(old_text);
+        if(new_text) free(new_text);
+        if(new_utf32_text) free(new_utf32_text);
+
+        ntg_vreturn(out_status, NTG_ERR_UTF_CONV);
+    }
 
     // Shrink the new buffer to save memory
-    uint32_t* shrunk_utf32_text = realloc(
-            new_utf32_text,
-            sizeof(uint32_t) * _width);
-    assert(shrunk_utf32_text != NULL);
+    uint32_t* shrunk_utf32_text = malloc(sizeof(uint32_t) * _width);
+    if(!new_utf32_text)
+    {
+        if(old_text) free(old_text);
+        if(new_text) free(new_text);
+        if(new_utf32_text) free(new_utf32_text);
+
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
 
     // Update label cache to point at the new buff
-    label->__priv->utf32_text = (struct str32) {
+    struct str32 utf32_text = (struct str32) {
         .data = shrunk_utf32_text,
         .len = _width
     };
 
     // Calculate row count
     size_t newline_count;
-    newline_count = str32_count(get_str32_view(label->__priv->utf32_text, 0), '\n');
+    newline_count = str32_count(get_str32_view(utf32_text, 0), '\n');
     size_t row_count = newline_count + 1;
 
     // Create buffer to store rows and their lengths
-    struct str32_view* new_rows = realloc(
-            label->__priv->utf32_rows,
-            sizeof(struct str32_view) * row_count);
-    assert(new_rows);
+    struct str32_view* new_rows = malloc(sizeof(struct str32_view) * row_count);
+    if(!new_rows)
+    {
+        if(old_text) free(old_text);
+        if(new_text) free(new_text);
+        if(new_utf32_text) free(new_utf32_text);
+        if(shrunk_utf32_text) free(shrunk_utf32_text);
+
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
 
     // Get rows
-    str32_split(get_str32_view(label->__priv->utf32_text, 0), '\n', new_rows, row_count);
+    str32_split(get_str32_view(utf32_text, 0), '\n', new_rows, row_count);
 
     // Update cached rows and their lengths
+    if(label->_text.data)
+        free(label->_text.data);
+    if(label->__priv->utf32_text.data)
+        free(label->__priv->utf32_text.data);
+    if(label->__priv->utf32_rows)
+        free(label->__priv->utf32_rows);
+
+    label->_text.data = label_text.data;
+    label->_text.len = label_text.len;
+    label->__priv->utf32_text = utf32_text;
     label->__priv->utf32_rows = new_rows;
     label->__priv->utf32_row_count = row_count;
 
@@ -384,9 +445,9 @@ void ntg_label_set_text_safe(ntg_label* label, const char* text, size_t len)
     }
 }
 
-void ntg_label_set_text(ntg_label* label, const char* text)
+void ntg_label_set_text(ntg_label* label, const char* text, int* out_status)
 {
-    ntg_label_set_text_safe(label, text, strlen(text));
+    ntg_label_set_text_safe(label, text, strlen(text), out_status);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -426,7 +487,9 @@ static struct ntg_object_measure measure_fn(
                     row_count, orient, for_size, arena);
             break;
 
-        default: assert(0);
+        default:
+            result = (struct ntg_object_measure) {0};
+            break;
     }
 
     return result;
@@ -491,7 +554,8 @@ static void draw_fn(
                _it_wrows_count = get_wrows_wwrap(rows[i],
                        cont_size.x, &_it_wrows, arena); 
                 break;
-            default: assert(0);
+            default:
+                return;
         }
 
         for(j = 0; j < _it_wrows_count; j++)
@@ -815,13 +879,13 @@ static size_t get_wrows_nowrap(
         struct str32_view** out_wrows,
         sarena* arena)
 {
-    assert(out_wrows != NULL);
-    assert(for_size != 0);
+    if(for_size == 0) return 0;
 
     if((row.len == 0) || (row.data == NULL))
     {
         (*out_wrows) = sarena_malloc(arena, sizeof(struct str32_view));
-        assert((*out_wrows) != NULL);
+        if(!*out_wrows) return 0;
+
         (*out_wrows)[0] = (struct str32_view) {
             .data = row.data,
             .len = 0
@@ -830,7 +894,7 @@ static size_t get_wrows_nowrap(
     }
 
     (*out_wrows) = sarena_malloc(arena, sizeof(struct str32_view));
-    assert((*out_wrows) != NULL);
+    if(!*out_wrows) return 0;
     (*out_wrows)[0] = (struct str32_view) {
         .data = row.data,
         .len = _min2_size(for_size, row.len)
@@ -844,13 +908,12 @@ static size_t get_wrows_wrap(
         struct str32_view** out_wrows,
         sarena* arena)
 {
-    assert(out_wrows != NULL);
-    assert(for_size != 0);
+    if(for_size == 0) return 0;
 
     if((row.len == 0) || (row.data == NULL))
     {
         (*out_wrows) = sarena_malloc(arena, sizeof(struct str32_view));
-        assert((*out_wrows) != NULL);
+        if(!*out_wrows) return 0;
         (*out_wrows)[0] = (struct str32_view) {
             .data = row.data,
             .len = 0
@@ -861,7 +924,7 @@ static size_t get_wrows_wrap(
     size_t wrow_count = (row.len + for_size - 1) / for_size;
     struct str32_view* wrows = sarena_malloc(arena,
             wrow_count * sizeof(struct str32_view));
-    assert(wrows != NULL);
+    if(!wrows) return 0;
 
     size_t i;
     size_t it_start = 0, it_end;
@@ -887,14 +950,14 @@ static size_t get_wrows_wwrap(
         struct str32_view** out_wrows,
         sarena* arena)
 {
-    assert(out_wrows != NULL);
-    assert(for_size != 0);
+    if(for_size == 0) return 0;
 
     if((row.len == 0) || (row.data == NULL))
     {
         (*out_wrows) = (struct str32_view*)sarena_malloc(
                 arena, sizeof(struct str32_view));
-        assert((*out_wrows) != NULL);
+        if(!*out_wrows) return 0;
+
         (*out_wrows)[0] = (struct str32_view) {
             .data = row.data,
             .len = 0
@@ -902,15 +965,16 @@ static size_t get_wrows_wwrap(
         return 1;
     }
 
+    struct str32_view *words, *wrows;
     size_t word_count = str32_count(row, ' ') + 1;
-    struct str32_view* words = sarena_malloc(arena, word_count *
-                                                 sizeof(struct str32_view));
+    words = sarena_malloc(arena, word_count * sizeof(struct str32_view));
+    if(!words) return 0;
     str32_split(row, ' ', words, word_count);
     size_t wrow_max_count = word_count;
 
-    struct str32_view* wrows = sarena_malloc(arena, wrow_max_count *
-                                                     sizeof(struct str32_view));
-    assert(wrows != NULL);
+    wrows = sarena_malloc(arena, wrow_max_count * sizeof(struct str32_view));
+    if(!wrows) return 0;
+
     struct str32_view it_word;
     size_t it_row_len = 0;
     size_t it_row_word_count = 0;
@@ -1011,15 +1075,17 @@ static size_t get_wrows_wwrap(
     return wrow_counter;
 }
 
-static void trim_text(struct str* text)
+static int trim_text(struct str* text)
 {
-    if((text->len == 0) || (text->data == NULL)) return;
+    if((text->len == 0) || (text->data == NULL))
+        return NTG_SUCCESS;
 
     struct str_view view = get_str_view(*text, 0);
 
     size_t word_count = str_count(view, ' ') + 1;
     struct str_view* words = malloc(word_count * sizeof(struct str_view));
-    assert(words != NULL);
+    if(!words)
+        return NTG_ERR_ALLOC_FAIL;
     str_split(view, ' ', words, word_count);
 
     size_t space_needed = 0;
@@ -1048,10 +1114,17 @@ static void trim_text(struct str* text)
         space_needed--;
 
     char *tmp = realloc(text->data, space_needed + 1);
-    assert(tmp != NULL);
+    if(!tmp)
+    {
+        free(words);
+        return NTG_ERR_ALLOC_FAIL;
+    }
+
     tmp[space_needed] = 0;
     text->data = tmp;
     text->len = space_needed;
 
     free(words);
+
+    return NTG_SUCCESS;
 }
