@@ -30,16 +30,12 @@ void ntg_object_drawing_set_size(
 
 void ntg_object_drawing_place(
         const ntg_object_drawing* src_drawing,
-        struct ntg_xy src_start_pos,
-        struct ntg_xy src_box_size,
         ntg_object_drawing* dest_drawing,
         struct ntg_xy dest_start_pos,
         int* out_status);
 
 void ntg_object_drawing_place_(
         const ntg_object_drawing* src_drawing,
-        struct ntg_xy src_start_pos,
-        struct ntg_xy src_box_size,
         ntg_stage_drawing* dest_drawing,
         struct ntg_xy dest_start_pos,
         int* out_status);

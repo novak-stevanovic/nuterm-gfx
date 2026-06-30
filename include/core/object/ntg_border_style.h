@@ -47,57 +47,68 @@ void ntg_border_style_deinit_(void* _style);
 
 void ntg_border_style_init_monochrome(
         struct ntg_border_style* style,
-        struct nt_color color);
+        struct nt_color color,
+        int* out_status);
 
 void ntg_border_style_init_basic(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool overlay);
+        bool overlay,
+        int* out_status);
 
 void ntg_border_style_init_basic_edge(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool overlay);
+        bool overlay,
+        int* out_status);
 
 void ntg_border_style_init_single(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay);
+        bool overlay,
+        int* out_status);
 
 void ntg_border_style_init_double(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay);
+        bool overlay,
+        int* out_status);
 
 void ntg_border_style_init_rounded(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay);
+        bool overlay,
+        int* out_status);
 
 void ntg_border_style_init_heavy(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay);
+        bool overlay,
+        int* out_status);
 
 void ntg_border_style_init_dashed(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay);
+        bool overlay,
+        int* out_status);
 
 void ntg_border_style_init_ascii(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay);
+        bool overlay,
+        int* out_status);
 
 void ntg_border_style_init_transparent(
-        struct ntg_border_style* style);
+        struct ntg_border_style* style,
+        int* out_status);
 
 void ntg_border_style_init_custom_9x(
         struct ntg_border_style* style, 
         ntg_vcell_type type,
         struct nt_gfx gfx,
-        const struct ntg_border_style_9x_sym* symbols);
+        const struct ntg_border_style_9x_sym* symbols,
+        int* out_status);
 
 #endif // NTG_BORDER_STYLE_H

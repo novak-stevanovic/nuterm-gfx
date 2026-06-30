@@ -96,12 +96,17 @@ const struct ntg_anchor_policy* ntg_anchor_policy_root()
 
 void ntg_anchor_policy_init_float(
         struct ntg_anchor_policy* policy,
-        const struct ntg_float_policy_opts* opts)
+        const struct ntg_float_policy_opts* opts,
+        int* out_status)
 {
-    if(!policy) return;
+    ntg_init_status(out_status);
+
+    if(!policy)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
     
     struct ntg_float_policy_opts* opts_copy = malloc(sizeof(*opts_copy));
-    assert(opts_copy);
+    if(!opts_copy)
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
     (*opts_copy) = (opts ? (*opts) : ntg_float_policy_opts_def());
 
@@ -115,12 +120,17 @@ void ntg_anchor_policy_init_float(
 
 void ntg_anchor_policy_init_sidefloat(
         struct ntg_anchor_policy* policy,
-        const struct ntg_sidefloat_policy_opts* opts)
+        const struct ntg_sidefloat_policy_opts* opts,
+        int* out_status)
 {
-    if(!policy) return;
+    ntg_init_status(out_status);
+
+    if(!policy)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
     
     struct ntg_sidefloat_policy_opts* opts_copy = malloc(sizeof(*opts_copy));
-    assert(opts_copy);
+    if(!opts_copy)
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
     (*opts_copy) = (opts ? (*opts) : ntg_sidefloat_policy_opts_def());
 
@@ -288,7 +298,7 @@ static size_t sidefloat_constrain_fn(
             break;
 
         default:
-            assert(0);
+            return 0;
     }
 
     size_t thresh_size;
@@ -303,8 +313,9 @@ static size_t sidefloat_constrain_fn(
         case NTG_SIDEFLOAT_POLICY_THRESH_ALWAYS:
             thresh_size = 0;
             break;
+
         default:
-            assert(0);
+            return 0;
     }
 
     if(available_space < thresh_size)

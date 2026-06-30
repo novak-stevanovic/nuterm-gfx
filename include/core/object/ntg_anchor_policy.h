@@ -100,10 +100,12 @@ const struct ntg_anchor_policy* ntg_anchor_policy_root();
 
 void ntg_anchor_policy_init_float(
         struct ntg_anchor_policy* policy,
-        const struct ntg_float_policy_opts* opts);
+        const struct ntg_float_policy_opts* opts,
+        int* out_status);
 
 void ntg_anchor_policy_init_sidefloat(
         struct ntg_anchor_policy* policy,
-        const struct ntg_sidefloat_policy_opts* opts);
+        const struct ntg_sidefloat_policy_opts* opts,
+        int* out_status);
 
 #endif // NTG_ANCHOR_POLICY_H

@@ -36,7 +36,14 @@ void ntg_stage_init(ntg_stage* stage, int* out_status)
 
     init_default(stage);
 
-    ntg_stage_drawing_init(&stage->_drawing);
+    int _status;
+
+    ntg_stage_drawing_init(&stage->_drawing, &_status);
+
+    if(_status != NTG_SUCCESS)
+    {
+        ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_stage_deinit(ntg_stage* stage)
@@ -45,7 +52,7 @@ void ntg_stage_deinit(ntg_stage* stage)
 
     if(stage->_loop)
     {
-        ntg_loop_set_stage(stage->_loop, NULL);
+        ntg_loop_set_stage(stage->_loop, NULL, NULL);
     }
 
     if(stage->_scene)
@@ -304,14 +311,12 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     struct ntg_xy abs_pos; 
     abs_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
 
-    struct ntg_xy draw_size = ntg_object_drawing_get_size(&object->_drawing);
-
+    int _status;
     ntg_object_drawing_place_(
             &object->_drawing,
-            ntg_xy(0, 0),
-            draw_size,
             &stage->_drawing,
-            abs_pos);
+            abs_pos,
+            &_status);
 
     _ntg_object_clean(object, NTG_OBJECT_DIRTY_RENDER);
 }

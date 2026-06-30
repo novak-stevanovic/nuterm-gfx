@@ -1,5 +1,4 @@
 #include "ntg.h"
-#include <assert.h>
 #include <math.h>
 #include "shared/ntg_shared_internal.h"
 
@@ -61,9 +60,15 @@ bool ntg_prog_bar_style_are_eq(
             ntg_vcell_are_equal(style1->threshold_style, style2->threshold_style));
 }
 
-void ntg_prog_bar_init(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
+void ntg_prog_bar_init(
+        ntg_prog_bar* prog_bar,
+        const struct ntg_prog_bar_opts* opts,
+        int* out_status)
 {
-    assert(prog_bar != NULL);
+    ntg_init_status(out_status);
+
+    if(!prog_bar)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_object_vtable vtable = {
         .measure_fn = measure_fn,
@@ -73,7 +78,19 @@ void ntg_prog_bar_init(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* o
         .rm_child_fn = NULL
     };
 
-    ntg_object_init((ntg_object*)prog_bar, &vtable, &NTG_TYPE_PROG_BAR);
+    int _status;
+
+    ntg_object_init((ntg_object*)prog_bar, &vtable, &NTG_TYPE_PROG_BAR, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 
     prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
 
@@ -85,6 +102,8 @@ void ntg_prog_bar_init(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* o
 
 void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 {
+    if(!prog_bar) return;
+
     prog_bar->_opts = ntg_prog_bar_opts_def();
     prog_bar->_opts.style = ntg_prog_bar_style_def();
 
@@ -98,7 +117,7 @@ void ntg_prog_bar_deinit_(void* _prog_bar)
 
 void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
 {
-    assert(prog_bar != NULL);
+    if(!prog_bar) return;
 
     struct ntg_prog_bar_opts old_opts = prog_bar->_opts;
     struct ntg_prog_bar_opts new_opts = (opts ? (*opts) : ntg_prog_bar_opts_def());
@@ -116,7 +135,7 @@ void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opt
 
 void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double prog)
 {
-    assert(prog_bar != NULL);
+    if(!prog_bar) return;
 
     double old_prog = prog_bar->_prog;
 

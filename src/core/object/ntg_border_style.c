@@ -1,5 +1,6 @@
 #include "ntg.h"
 #include <stdlib.h>
+#include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
 /* STATIC */
@@ -73,9 +74,13 @@ void ntg_border_style_deinit_(void* _style)
 
 void ntg_border_style_init_monochrome(
         struct ntg_border_style* style,
-        struct nt_color color)
+        struct nt_color color,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = BORDER_STYLE_9X_SYM_DEF;
 
@@ -85,16 +90,32 @@ void ntg_border_style_init_monochrome(
         .style = NT_STYLE_DEFAULT
     };
 
-    ntg_border_style_init_custom_9x(style, NTG_VCELL_FULL, gfx, &sym);
+    int _status;
+
+    ntg_border_style_init_custom_9x(style, NTG_VCELL_FULL, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_border_style_init_basic(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool overlay)
+        bool overlay,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
         .top_left     = cp,
@@ -108,17 +129,34 @@ void ntg_border_style_init_basic(
         .padding      = cp
     };
 
+    int _status;
+
     ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
-    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
+
 }
 
 void ntg_border_style_init_basic_edge(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool overlay)
+        bool overlay,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
         .top_left     = cp,
@@ -132,16 +170,32 @@ void ntg_border_style_init_basic_edge(
         .padding      = ' '
     };
 
+    int _status;
+
     ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
-    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_border_style_init_single(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay)
+        bool overlay,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
         .top_left     = 0x250C, /* ┌ */
@@ -155,16 +209,32 @@ void ntg_border_style_init_single(
         .padding      = ' '
     };
 
+    int _status;
+
     ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
-    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_border_style_init_double(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay)
+        bool overlay,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
         .top_left     = 0x2554, /* ╔ */
@@ -178,16 +248,32 @@ void ntg_border_style_init_double(
         .padding      = ' '
     };
 
+    int _status;
+
     ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
-    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_border_style_init_rounded(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay)
+        bool overlay,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
         .top_left     = 0x256D, /* ╭ */
@@ -201,16 +287,32 @@ void ntg_border_style_init_rounded(
         .padding      = ' '
     };
 
+    int _status;
+
     ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
-    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_border_style_init_heavy(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay)
+        bool overlay,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
         .top_left     = 0x250F, /* ┏ */
@@ -224,16 +326,32 @@ void ntg_border_style_init_heavy(
         .padding      = ' '
     };
 
+    int _status;
+
     ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
-    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_border_style_init_dashed(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay)
+        bool overlay,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
         .top_left     = 0x250C, /* fallback ┌ */
@@ -247,16 +365,32 @@ void ntg_border_style_init_dashed(
         .padding      = ' '
     };
 
+    int _status;
+
     ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
-    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_border_style_init_ascii(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
-        bool overlay)
+        bool overlay,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
         .top_left     = (uint32_t)'+',
@@ -270,16 +404,46 @@ void ntg_border_style_init_ascii(
         .padding      = ' '
     };
 
+    int _status;
+
     ntg_vcell_type type = (overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL);
-    ntg_border_style_init_custom_9x(style, type, gfx, &sym);
+    ntg_border_style_init_custom_9x(style, type, gfx, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 void ntg_border_style_init_transparent(
-        struct ntg_border_style* style)
+        struct ntg_border_style* style,
+        int* out_status)
 {
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
     struct ntg_border_style_9x_sym sym = BORDER_STYLE_9X_SYM_DEF;
 
-    ntg_border_style_init_custom_9x(style, NTG_VCELL_TRANSPARENT, NT_GFX_DEFAULT, &sym);
+    int _status;
+
+    ntg_border_style_init_custom_9x(style, NTG_VCELL_TRANSPARENT, NT_GFX_DEFAULT, &sym, &_status);
+
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }
 
 struct ntg_border_style_9x_dt
@@ -293,14 +457,19 @@ void ntg_border_style_init_custom_9x(
         struct ntg_border_style* style,
         ntg_vcell_type type,
         struct nt_gfx gfx,
-        const struct ntg_border_style_9x_sym* symbols)
+        const struct ntg_border_style_9x_sym* symbols,
+        int* out_status)
 {
-    if(!style) return;
+    ntg_init_status(out_status);
+
+    if(!style)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     (*style) = (struct ntg_border_style) {0};
 
     struct ntg_border_style_9x_dt* data = malloc(sizeof(*data));
-    assert(data);
+    if(!data)
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
     (*data) = (struct ntg_border_style_9x_dt) {
         .type = type,

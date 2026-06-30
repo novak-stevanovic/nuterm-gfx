@@ -54,14 +54,18 @@ struct ntg_main_panel
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts);
+void ntg_main_panel_init(
+        ntg_main_panel* panel,
+        const struct ntg_main_panel_opts* opts,
+        int* out_status);
 void ntg_main_panel_deinit(ntg_main_panel* panel);
 void ntg_main_panel_deinit_(void* _panel);
 
 void ntg_main_panel_set(
         ntg_main_panel* panel,
         ntg_object* object,
-        enum ntg_main_panel_pos pos);
+        enum ntg_main_panel_pos pos,
+        int* out_status);
 
 void ntg_main_panel_set_opts(
         ntg_main_panel* panel,

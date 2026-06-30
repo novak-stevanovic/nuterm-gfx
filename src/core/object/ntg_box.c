@@ -151,19 +151,16 @@ void ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status)
 
     ntg_object_attach((ntg_object*)box, child, &_status);
 
-    if(_status != NTG_SUCCESS)
+    switch(_status)
     {
-        switch(_status)
-        {
-            case NTG_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-            case NTG_ERR_MAX_CHILDREN:
-                ntg_vreturn(out_status, NTG_ERR_MAX_CHILDREN);
-
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        case NTG_ERR_MAX_CHILDREN:
+            ntg_vreturn(out_status, NTG_ERR_MAX_CHILDREN);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);

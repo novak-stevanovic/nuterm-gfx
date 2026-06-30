@@ -39,58 +39,51 @@ void ntg_object_drawing_set_size(
     int _status;
     ntg_vcell_vecgrid_set_size(&drawing->__data, size, size_cap, &_status);
 
-    if(_status != NTG_SUCCESS)
+    switch(_status)
     {
-        switch(_status)
-        {
-            case NTG_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
+        case NTG_SUCCESS:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
 }
 
 void ntg_object_drawing_place(
         const ntg_object_drawing* src_drawing,
-        struct ntg_xy src_start_pos,
-        struct ntg_xy src_box_size,
         ntg_object_drawing* dest_drawing,
         struct ntg_xy dest_start_pos,
         int* out_status)
 {
-    assert(src_drawing != NULL);
-    assert(dest_drawing != NULL);
-    assert(src_drawing != dest_drawing);
+    ntg_init_status(out_status);
 
-    src_box_size = ntg_xy_size(src_box_size);
-    if(ntg_xy_is_zero(src_box_size)) return;
+    if(!src_drawing || !dest_drawing || (src_drawing == dest_drawing))
+    {
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+    }
 
     struct ntg_xy dest_size = ntg_object_drawing_get_size(dest_drawing);
     struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
-    struct ntg_xy src_end_pos = ntg_xy_add(src_start_pos, src_box_size);
+    if(ntg_xy_size_is_zero(src_size)) return; // success, nothing to draw
 
-    assert(ntg_xy_is_greater(src_size, src_start_pos));
-    assert(ntg_xy_is_greater_eq(src_size, src_end_pos));
-    assert(ntg_xy_is_greater(src_end_pos, src_start_pos));
+    struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
-    assert(ntg_xy_is_greater(dest_size, dest_start_pos));
-    
-    struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_box_size);
-
-    assert(ntg_xy_is_greater_eq(dest_size, dest_end_pos));
+    if(ntg_xy_is_greater_eq(dest_start_pos, dest_end_pos))
+        ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
+    if(ntg_xy_is_greater_eq(dest_end_pos, dest_size))
+        ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
 
     size_t i, j;
     struct ntg_xy it_dest_pos, it_src_pos;
     struct ntg_vcell it_src_cell;
-    for(i = 0; i < src_box_size.y; i++)
+    for(i = 0; i < src_size.y; i++)
     {
-        for(j = 0; j < src_box_size.x; j++)
+        for(j = 0; j < src_size.x; j++)
         {
             it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
-            it_src_pos = ntg_xy_add(src_start_pos, ntg_xy(j, i));
+            it_src_pos = ntg_xy(j, i);
 
             it_src_cell = ntg_object_drawing_get(src_drawing, it_src_pos);
             ntg_object_drawing_set(dest_drawing, it_src_cell, it_dest_pos);
@@ -100,44 +93,40 @@ void ntg_object_drawing_place(
 
 void ntg_object_drawing_place_(
         const ntg_object_drawing* src_drawing,
-        struct ntg_xy src_start_pos,
-        struct ntg_xy src_box_size,
         ntg_stage_drawing* dest_drawing,
         struct ntg_xy dest_start_pos,
         int* out_status)
 {
-    assert(src_drawing != NULL);
-    assert(dest_drawing != NULL);
+    ntg_init_status(out_status);
 
-    src_box_size = ntg_xy_size(src_box_size);
-    if(ntg_xy_is_zero(src_box_size)) return;
+    if(!src_drawing || !dest_drawing)
+    {
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+    }
 
     struct ntg_xy dest_size = ntg_stage_drawing_get_size(dest_drawing);
     struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
-    struct ntg_xy src_end_pos = ntg_xy_add(src_start_pos, src_box_size);
+    if(ntg_xy_size_is_zero(src_size)) return; // success, nothing to draw
 
-    assert(ntg_xy_is_greater(src_size, src_start_pos));
-    assert(ntg_xy_is_greater_eq(src_size, src_end_pos));
-    assert(ntg_xy_is_greater(src_end_pos, src_start_pos));
+    struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
-    assert(ntg_xy_is_greater(dest_size, dest_start_pos));
-    
-    struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_box_size);
-
-    assert(ntg_xy_is_greater_eq(dest_size, dest_end_pos));
+    if(ntg_xy_is_greater_eq(dest_start_pos, dest_end_pos))
+        ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
+    if(ntg_xy_is_greater_eq(dest_end_pos, dest_size))
+        ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
 
     size_t i, j;
     struct ntg_xy it_dest_pos, it_src_pos;
     struct ntg_vcell it_src_cell;
     struct ntg_cell it_base_cell;
     struct ntg_cell it_overwritten;
-    for(i = 0; i < src_box_size.y; i++)
+    for(i = 0; i < src_size.y; i++)
     {
-        for(j = 0; j < src_box_size.x; j++)
+        for(j = 0; j < src_size.x; j++)
         {
             it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
-            it_src_pos = ntg_xy_add(src_start_pos, ntg_xy(j, i));
+            it_src_pos = ntg_xy(j, i);
 
             it_src_cell = ntg_object_drawing_get(src_drawing, it_src_pos);
             it_base_cell = ntg_stage_drawing_get(dest_drawing, it_dest_pos);

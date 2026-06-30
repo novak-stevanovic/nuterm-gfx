@@ -57,7 +57,10 @@ struct ntg_prog_bar
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_prog_bar_init(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts);
+void ntg_prog_bar_init(
+        ntg_prog_bar* prog_bar,
+        const struct ntg_prog_bar_opts* opts,
+        int* out_status);
 void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar);
 void ntg_prog_bar_deinit_(void* _prog_bar);
 
