@@ -2,6 +2,7 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 #include "core/scene/ntg_focus_manager.h"
+#include <string.h>
 
 #define DEBUG 0
 
@@ -160,12 +161,13 @@ ntg_object* ntg_scene_hit_test(
 
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
-    int i;
+    size_t i = layer_count;
     struct ntg_xy it_adj_pos;
     struct ntg_xy _out_object_pos;
     ntg_object* hit = NULL;
-    for(i = layer_count - 1; i >= 0; i--)
+    while(i > 0)
     {
+        i--;
         it_adj_pos = ntg_xy_from_dxy(
                 ntg_object_map_from_scene(layers[i],
                 ntg_dxy_from_xy(pos)));
@@ -519,9 +521,11 @@ static void collect_layers_by_z_internal(
     
     if(true_root)
     {
-        if(out_layers)
+        if(out_layers && (cap > 0))
         {
-            for(i = 0; i < (*counter); i++)
+            size_t stored_count = _min2_size(*counter, cap);
+
+            for(i = 0; i < stored_count; i++)
             {
                 it_obj = out_layers[i];
                 
@@ -529,14 +533,16 @@ static void collect_layers_by_z_internal(
                     break;
             }
 
-            if(cap > (*counter))
+            if(i < cap)
             {
-                // assert(i <= (*counter));
-                if(i < (*counter))
+                size_t move_count = (stored_count < cap) ?
+                    (stored_count - i) : (cap - i - 1);
+
+                if(move_count > 0)
                 {
                     memmove(out_layers + i + 1,
                             out_layers + i,
-                            ((*counter) - i) * sizeof(ntg_object*));
+                            move_count * sizeof(ntg_object*));
                 }
                 out_layers[i] = it_root;
             }
@@ -561,11 +567,11 @@ static void collect_layers_by_z_internal(
 static void 
 layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 {
-    const struct ntg_anchor_policy* policy = root->_anchor_policy;
-    ntg_object* base = root->_base;
-
     // Sentinel node just returns
     if(!root) return;
+
+    const struct ntg_anchor_policy* policy = root->_anchor_policy;
+    ntg_object* base = root->_base;
 
     struct ntg_scene_layout_data layout_data = {
         .scene = scene,

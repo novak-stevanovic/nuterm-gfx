@@ -62,7 +62,6 @@ void ntg_wait();
 // TODO: implement more widgets(table, list, button, text field...) | **
 
 // RELEASE:
-// TODO: add proper error-handling
 // TODO: add proper documentation
 // TODO: hide functions from final .so file(change -fvisibility)
 // BUG?: Horizontal resize causes line to appear at the bottom for split second

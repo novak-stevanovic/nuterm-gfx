@@ -723,6 +723,7 @@ void ntg_object_init(
     ntg_object_vec_init(&object->_anchored, 2, &_status);
     if(_status != GENC_SUCCESS)
     {
+        ntg_object_vec_deinit(&object->_children, NULL);
         switch(_status)
         {
             case GENC_ERR_ALLOC_FAIL:
@@ -1695,8 +1696,14 @@ static int tmp_drawing_init(
         struct ntg_vcell base_bg,
         sarena* arena)
 {
+    if(!drawing || !arena)
+        return NTG_ERR_INVALID_ARG;
+
+    drawing->data = NULL;
+    drawing->size = ntg_xy(0, 0);
+
     drawing->data = sarena_malloc(arena, sizeof(struct ntg_vcell) *
-            size.x * size.y + 1);
+            size.x * size.y);
     if(!drawing->data) return NTG_ERR_ALLOC_FAIL;
     drawing->size = size;
 
@@ -1709,7 +1716,7 @@ static int tmp_drawing_init(
         }
     }
 
-    return 0;
+    return NTG_SUCCESS;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1969,7 +1976,8 @@ static void draw_optimized(ntg_object* object, sarena* arena)
     struct ntg_insets psize = object->_padding.size;
 
     struct ntg_object_tmp_drawing content_drawing;
-    tmp_drawing_init(&content_drawing, content_size, bg, arena);
+    if(tmp_drawing_init(&content_drawing, content_size, bg, arena) != NTG_SUCCESS)
+        return;
 
     size_t i, j;
 
@@ -2018,10 +2026,12 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
     const struct ntg_border_style* border_style = object->_border.opts.style;
 
     struct ntg_object_tmp_drawing content_drawing;
-    tmp_drawing_init(&content_drawing, content_size, bg, arena);
+    if(tmp_drawing_init(&content_drawing, content_size, bg, arena) != NTG_SUCCESS)
+        return;
 
     struct ntg_object_tmp_drawing object_drawing;
-    tmp_drawing_init(&object_drawing, object_size, bg, arena);
+    if(tmp_drawing_init(&object_drawing, object_size, bg, arena) != NTG_SUCCESS)
+        return;
 
     // Draw border
     if(border_style->draw_fn)

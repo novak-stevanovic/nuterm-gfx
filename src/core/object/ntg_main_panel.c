@@ -1,5 +1,6 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
+#include <string.h>
 
 static struct ntg_object_measure measure_fn(
         const ntg_object* _panel,
@@ -82,8 +83,11 @@ void ntg_main_panel_init(
             ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
 
+    panel->_opts = ntg_main_panel_opts_def();
     memset(panel->_children, 0, sizeof(ntg_object*) * 5);
     panel->hooks = (struct ntg_main_panel_hooks) {0};
+
+    ntg_main_panel_set_opts(panel, opts);
 }
 
 void ntg_main_panel_set(
@@ -94,7 +98,8 @@ void ntg_main_panel_set(
 {
     ntg_init_status(out_status);
 
-    if(!panel)
+    if(!panel || (pos < NTG_MAIN_PANEL_NORTH) ||
+            (pos > NTG_MAIN_PANEL_CENTER))
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     ntg_object* old_child = panel->_children[pos];
@@ -103,6 +108,8 @@ void ntg_main_panel_set(
 
     if(old_child != NULL)
         ntg_object_detach(old_child);
+
+    panel->_children[pos] = NULL;
 
     if(object != NULL)
     {
@@ -143,7 +150,7 @@ void ntg_main_panel_set_opts(
 
     panel->_opts = new_opts;
 
-    _ntg_object_set_base_bg(ntg_obj(panel), opts->bg);
+    _ntg_object_set_base_bg(ntg_obj(panel), new_opts.bg);
 
     if(panel->hooks.on_opts_chng_fn)
         panel->hooks.on_opts_chng_fn(panel, &old_opts, &new_opts);
@@ -157,6 +164,7 @@ void ntg_main_panel_deinit(ntg_main_panel* panel)
 {
     if(!panel) return;
 
+    panel->_opts = ntg_main_panel_opts_def();
     memset(panel->_children, 0, sizeof(ntg_object*) * 5);
     panel->hooks = (struct ntg_main_panel_hooks) {0};
     ntg_object_deinit((ntg_object*)panel);

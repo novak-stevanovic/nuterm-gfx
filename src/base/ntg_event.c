@@ -22,7 +22,14 @@ ntg_event_delegate* ntg_event_delegate_new()
     if(!new)
         return NULL;
 
-    ntg_event_binding_vec_init(&new->bindings, 3, NULL);
+    int status;
+    ntg_event_binding_vec_init(&new->bindings, 3, &status);
+    if(status != GENC_SUCCESS)
+    {
+        free(new);
+        return NULL;
+    }
+
     return new;
 }
 
@@ -50,9 +57,12 @@ ntg_event_binding* ntg_event_bind(
     ntg_init_status(out_status);
 
     if(!delegate || !handler_fn)
-        return NULL;
+        ntg_return(NULL, out_status, NTG_ERR_INVALID_ARG);
 
     ntg_event_binding* new = malloc(sizeof(ntg_event_binding));
+    if(!new)
+        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+
     new->delegate = delegate;
     new->subscriber = subscriber;
     new->handler_fn = handler_fn;
@@ -61,6 +71,8 @@ ntg_event_binding* ntg_event_bind(
     ntg_event_binding_vec_pushb(&delegate->bindings, new, &_status);
     if(_status != GENC_SUCCESS)
     {
+        free(new);
+
         switch(_status)
         {
             case GENC_ERR_ALLOC_FAIL:

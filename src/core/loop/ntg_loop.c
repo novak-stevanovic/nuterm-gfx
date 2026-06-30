@@ -45,7 +45,7 @@ void ntg_loop_init(ntg_loop* loop,
 {
     ntg_init_status(out_status);
 
-    if(!loop || !init_stage)
+    if(!loop || !init_stage || (framerate == 0))
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     if(init_stage->_loop)
@@ -183,8 +183,8 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
     bool owns_renderer;
     if(!loop->_renderer)
     {
-        loop->_renderer = malloc(sizeof(ntg_def_renderer));
-        if(!loop->_renderer)
+        ntg_def_renderer* def_renderer = malloc(sizeof(*def_renderer));
+        if(!def_renderer)
         {
             sarena_destroy(loop->_arena);
             loop->_arena = NULL;
@@ -192,11 +192,20 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
             ntg_return(NTG_LOOP_EXIT_ERROR, out_status, NTG_ERR_ALLOC_FAIL);
         }
 
-        ntg_def_renderer_init((ntg_def_renderer*)loop->_renderer, &_status);
+        loop->_renderer = (ntg_renderer*)def_renderer;
+        ntg_def_renderer_init(def_renderer, &_status);
         if(_status != NTG_SUCCESS)
         {
+            free(def_renderer);
+            loop->_renderer = NULL;
+            sarena_destroy(loop->_arena);
+            loop->_arena = NULL;
+
             switch(_status)
             {
+                case NTG_ERR_ALLOC_FAIL:
+                    ntg_return(NTG_LOOP_EXIT_ERROR, out_status, NTG_ERR_ALLOC_FAIL);
+
                 default:
                     ntg_return(NTG_LOOP_EXIT_ERROR, out_status, NTG_ERR_UNEXPECTED);
             }

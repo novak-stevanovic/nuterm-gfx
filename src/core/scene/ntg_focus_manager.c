@@ -79,9 +79,11 @@ void ntg_focus_manager_deinit(ntg_focus_manager* fm)
 {
     if(!fm) return;
 
-    ntg_focus_scope_list_deinit(fm->__scope_stack, NULL);
-
-    free(fm->__scope_stack);
+    if(fm->__scope_stack)
+    {
+        ntg_focus_scope_list_deinit(fm->__scope_stack, NULL);
+        free(fm->__scope_stack);
+    }
 
     fm->__scope_stack = NULL;
     fm->_scene = NULL;
@@ -301,7 +303,12 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
         return false;
 
     if(!hit)
+    {
+        if(scope->out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
+            ntg_focus_manager_request_focus(fm, NULL);
+
         return false;
+    }
 
     ntg_log_log("ADJ: %d %d", adj_pos.x, adj_pos.y);
 
@@ -321,15 +328,13 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
     }
     else // OUTSIDE SCOPE
     {
+        if(scope->out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
+            ntg_focus_manager_request_focus(fm, NULL);
+
         if(scope->input_mode == NTG_FOCUS_SCOPE_INPUT_MODELESS)
             return ntg_object_feed_mouse(hit, mouse);
         else
             return false;
-
-        if(scope->out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
-        {
-            ntg_focus_manager_request_focus(fm, NULL);
-        }
     }
 }
 
@@ -339,30 +344,40 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
 
 static void scope_stack_pop(ntg_focus_manager* fm)
 {
+    struct ntg_focus_scope_list_node* old_head = fm->__scope_stack->head;
+    if(!old_head)
+        return;
+
+    struct ntg_focus_scope popped_scope = old_head->data->scope;
+
     ntg_focus_scope_list_popf(fm->__scope_stack, NULL);
 
     // Head is assumed to exist, one node is pushed on init...
     struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
+    if(!head)
+        return;
 
     ntg_focus_manager_request_focus(fm, head->data->last_focused);
 
     head->data->last_focused = NULL;
 
     if(fm->hooks.on_scope_pop_fn)
-        fm->hooks.on_scope_pop_fn(fm, &head->data->scope);
+        fm->hooks.on_scope_pop_fn(fm, &popped_scope);
 }
 
 static void scope_stack_sync(ntg_focus_manager* fm)
 {
-    struct ntg_focus_scope_list_node* head;
+    if(!fm || !fm->__scope_stack)
+        return;
 
-    while(true)
+    struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
+    while(head && !head->data->valid && (fm->__scope_stack->size > 1))
     {
+        scope_stack_pop(fm);
         head = fm->__scope_stack->head;
-
-        if(!head->data->valid)
-            scope_stack_pop(fm);
-        else
-            break;
     }
+
+    /* The default scope must always remain usable. */
+    if(head && !head->data->valid)
+        head->data->valid = true;
 }

@@ -20,7 +20,15 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status)
 
     ntg_renderer_init((ntg_renderer*)renderer, &vtable, NULL);
 
-    ntg_stage_drawing_init(&renderer->__backbuff);
+    int _status;
+    ntg_stage_drawing_init(&renderer->__backbuff, &_status);
+    switch(_status)
+    {
+        case NTG_SUCCESS:
+            break;
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 
     renderer->__old_size = ntg_xy(0, 0);
 }
