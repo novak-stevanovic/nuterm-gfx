@@ -96,7 +96,7 @@ void ntg_border_style_init_monochrome(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -136,7 +136,7 @@ void ntg_border_style_init_basic(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -177,7 +177,7 @@ void ntg_border_style_init_basic_edge(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -216,7 +216,7 @@ void ntg_border_style_init_single(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -255,7 +255,7 @@ void ntg_border_style_init_double(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -294,7 +294,7 @@ void ntg_border_style_init_rounded(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -333,7 +333,7 @@ void ntg_border_style_init_heavy(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -372,7 +372,7 @@ void ntg_border_style_init_dashed(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -411,7 +411,7 @@ void ntg_border_style_init_ascii(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -437,7 +437,7 @@ void ntg_border_style_init_transparent(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);

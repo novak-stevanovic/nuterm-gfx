@@ -88,7 +88,7 @@ void ntg_scene_init(ntg_scene* scene, int* out_status)
     int _status;
     ntg_focus_manager_init(scene->_fm, scene, &_status);
 
-    if(_status != NTG_SUCCESS)
+    if(_status != 0)
     {
         free(scene->_fm); 
         scene->_fm = NULL;

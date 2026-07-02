@@ -81,7 +81,7 @@ void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status
 
     ntg_object_init((ntg_object*)box, &vtable, &NTG_TYPE_BOX, &_status);
 
-    if(_status != NTG_SUCCESS)
+    if(_status != 0)
     {
         switch(_status)
         {
@@ -158,7 +158,7 @@ void ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status)
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -326,7 +326,7 @@ static void constrain_fn(
         }
 
         ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children->size, arena, &_status);
-        if(_status != NTG_SUCCESS) return;
+        if(_status != 0) return;
 
         for(i = 0; i < children->size; i++)
         {
@@ -411,7 +411,7 @@ static void arrange_fn(
     ntg_sap_cap_round_robin(spacing_caps, NULL, _spacing_after,
             total_spacing, children->size - 1, arena, &_status);
 
-    if(_status != NTG_SUCCESS) return;
+    if(_status != 0) return;
 
     /* Calculate cont size */
     struct ntg_oxy _cont_size = ntg_oxy(

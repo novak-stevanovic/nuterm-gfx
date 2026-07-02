@@ -20,6 +20,9 @@ struct ntg_border_style
     void (*free_fn)(void* data);
 };
 
+/* Gets the built-in default border style. */
+
+/* RETURN VALUE: A pointer to a process-lifetime, read-only default style. */
 const struct ntg_border_style* ntg_border_style_def();
 
 struct ntg_border_style_9x_sym
@@ -37,19 +40,33 @@ struct ntg_border_style_9x_sym
 /* BASE */
 /* -------------------------------------------------------------------------- */
 
-// Calls the style's free_fn on data. Zero-initializes the struct.
+/* Calls the style-specific data destructor and clears the style. Passing `NULL` has no effect. */
 void ntg_border_style_deinit(struct ntg_border_style* style);
+/* Void-pointer adapter for `ntg_border_style_deinit`, intended for cleanup callbacks. */
 void ntg_border_style_deinit_(void* _style);
 
 /* -------------------------------------------------------------------------- */
 /* 9X */
 /* -------------------------------------------------------------------------- */
 
+/* Initializes a solid-color border style made of full space cells whose background is `color`. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_monochrome(
         struct ntg_border_style* style,
         struct nt_color color,
         int* out_status);
 
+/* Initializes a border style that uses one code point and graphics for all border and padding */
+/* positions. `overlay` selects overlay cells instead of full cells. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_basic(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
@@ -57,6 +74,13 @@ void ntg_border_style_init_basic(
         bool overlay,
         int* out_status);
 
+/* Initializes a border style that uses `cp` on corners and edges and a space code point for */
+/* padding positions. `overlay` selects overlay cells instead of full cells. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_basic_edge(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
@@ -64,46 +88,99 @@ void ntg_border_style_init_basic_edge(
         bool overlay,
         int* out_status);
 
+/* Initializes a Unicode single-line border style. `overlay` selects overlay cells instead of */
+/* full cells. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_single(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         bool overlay,
         int* out_status);
 
+/* Initializes a Unicode double-line border style. `overlay` selects overlay cells instead of */
+/* full cells. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_double(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         bool overlay,
         int* out_status);
 
+/* Initializes a Unicode single-line border style with rounded corners. `overlay` selects overlay */
+/* cells instead of full cells. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_rounded(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         bool overlay,
         int* out_status);
 
+/* Initializes a Unicode heavy-line border style. `overlay` selects overlay cells instead of full */
+/* cells. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_heavy(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         bool overlay,
         int* out_status);
 
+/* Initializes a Unicode dashed-line border style. `overlay` selects overlay cells instead of */
+/* full cells. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_dashed(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         bool overlay,
         int* out_status);
 
+/* Initializes an ASCII border style. `overlay` selects overlay cells instead of full cells. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_ascii(
         struct ntg_border_style* style,
         struct nt_gfx gfx,
         bool overlay,
         int* out_status);
 
+/* Initializes a border style that leaves all underlying cells unchanged. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: construction of the underlying 9-slice style fails unexpectedly. */
 void ntg_border_style_init_transparent(
         struct ntg_border_style* style,
         int* out_status);
 
+/* Initializes a 9-slice border style from the supplied virtual-cell type, graphics, and symbols. */
+/* The symbol table is copied; `NULL` selects blank default symbols. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `style` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: style-specific data cannot be allocated. */
 void ntg_border_style_init_custom_9x(
         struct ntg_border_style* style, 
         ntg_vcell_type type,

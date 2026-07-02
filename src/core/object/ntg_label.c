@@ -212,7 +212,7 @@ void ntg_label_init(
     ntg_object_init((ntg_object*)label, &vtable, &NTG_TYPE_LABEL, &_status);
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -337,7 +337,7 @@ void ntg_label_set_text_safe(
     if(label->_opts.autotrim)
     {
         int trim_status = trim_text(&label_text);
-        if(trim_status != NTG_SUCCESS)
+        if(trim_status != 0)
         {
             free(label_text.data);
             free(old_text);
@@ -380,7 +380,7 @@ void ntg_label_set_text_safe(
     int status;
     uc_utf8_to_utf32((uint8_t*)label_text.data, label_text.len,
             new_utf32_text, utf32_cap, 0, &width, &status);
-    if(status != UC_SUCCESS)
+    if(status != 0)
     {
         free(new_utf32_text);
         free(label_text.data);
@@ -1068,7 +1068,7 @@ static size_t get_wrows_wwrap(
 static int trim_text(struct str* text)
 {
     if((text->len == 0) || (text->data == NULL))
-        return NTG_SUCCESS;
+        return 0;
 
     struct str_view view = get_str_view(*text, 0);
 
@@ -1116,5 +1116,5 @@ static int trim_text(struct str* text)
 
     free(words);
 
-    return NTG_SUCCESS;
+    return 0;
 }

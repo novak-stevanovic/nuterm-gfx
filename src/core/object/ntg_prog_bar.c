@@ -84,7 +84,7 @@ void ntg_prog_bar_init(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);

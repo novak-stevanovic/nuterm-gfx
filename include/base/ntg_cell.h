@@ -6,6 +6,10 @@
 #include "base/ntg_vecgrid.h"
 #include "nt_gfx.h"
 
+/* ========================================================================== */
+/* PUBLIC - TYPES AND FUNCTIONS */
+/* ========================================================================== */
+
 /* -------------------------------------------------------------------------- */
 /* CELL */
 /* -------------------------------------------------------------------------- */
@@ -16,6 +20,9 @@ struct ntg_cell
     struct nt_gfx gfx;
 };
 
+/* Creates the default rendered cell: a space character with default graphics. */
+
+/* RETURN VALUE: The default cell value. */
 static inline struct ntg_cell 
 ntg_cell_default()
 {
@@ -25,6 +32,9 @@ ntg_cell_default()
     };
 }
 
+/* Compares two rendered cells, including their code points and graphics. */
+
+/* RETURN VALUE: `true` when both cells are identical; otherwise `false`. */
 static inline bool 
 ntg_cell_are_equal(struct ntg_cell c1, struct ntg_cell c2)
 {
@@ -40,16 +50,34 @@ struct ntg_cell_vecgrid
     struct ntg_vecgrid __base; 
 };
 
+/* Initializes an empty rendered-cell grid. No cell storage is allocated until the grid is */
+/* resized. */
 void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid);
+/* Releases storage owned by a rendered-cell grid and resets its base grid. Passing `NULL` has no */
+/* effect. */
 void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid);
 
+/* Resizes a rendered-cell grid, preserves overlapping cells, and fills newly added cells with */
+/* the default cell. `size_cap` caps only extra reserved capacity, not the requested dimensions. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_ALLOC_FAIL`: `vecgrid` is `NULL` or storage allocation fails. */
+/* - `NTG_ERR_OUT_OF_BOUNDS`: a dimension product or byte allocation size would overflow */
+/*   `size_t`. */
 void ntg_cell_vecgrid_set_size(
         ntg_cell_vecgrid* vecgrid,
         struct ntg_xy size,
         struct ntg_xy size_cap,
         int* out_status);
+/* Gets the current dimensions of a rendered-cell grid. */
+
+/* RETURN VALUE: The grid size, or `(0, 0)` when `vecgrid` is `NULL`. */
 struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid);
 
+/* Reads a rendered cell at `pos` without modifying the grid. */
+
+/* RETURN VALUE: The stored cell, or the default cell when the grid is `NULL` or `pos` is outside */
+/*               it. */
 static inline struct ntg_cell
 ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
 {
@@ -67,6 +95,7 @@ ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
     }
 }
 
+/* Writes a rendered cell at `pos`. A `NULL` grid or an out-of-bounds position is ignored. */
 static inline void
 ntg_cell_vecgrid_set(ntg_cell_vecgrid* vecgrid, struct ntg_cell cell, struct ntg_xy pos)
 {
@@ -116,6 +145,10 @@ struct ntg_vcell
     };
 };
 
+/* Creates a virtual cell of `type`. `cp` is the code point; full cells copy all of `gfx`, */
+/* overlay cells copy only its foreground and style, and transparent cells ignore both values. */
+
+/* RETURN VALUE: The constructed virtual cell. */
 static inline struct ntg_vcell
 ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
 {
@@ -136,6 +169,9 @@ ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
     return rval;
 }
 
+/* Creates the default virtual cell: a full space character with default graphics. */
+
+/* RETURN VALUE: The default virtual cell. */
 static inline struct ntg_vcell 
 ntg_vcell_default()
 {
@@ -148,6 +184,10 @@ ntg_vcell_default()
     };
 }
 
+/* Creates a full virtual cell whose `cp` and `gfx` replace the character and all graphics of */
+/* the cell below it. */
+
+/* RETURN VALUE: The constructed full virtual cell. */
 static inline struct ntg_vcell 
 ntg_vcell_full(uint32_t cp, struct nt_gfx gfx)
 {
@@ -160,6 +200,10 @@ ntg_vcell_full(uint32_t cp, struct nt_gfx gfx)
     };
 }
 
+/* Creates an overlay virtual cell whose `cp`, `fg`, and `style` replace the corresponding */
+/* fields while preserving the background color of the cell below it. */
+
+/* RETURN VALUE: The constructed overlay virtual cell. */
 static inline struct ntg_vcell 
 ntg_vcell_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
 {
@@ -173,6 +217,9 @@ ntg_vcell_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
     };
 }
 
+/* Creates a transparent virtual cell that leaves the cell below it unchanged. */
+
+/* RETURN VALUE: The transparent virtual cell. */
 static inline struct ntg_vcell 
 ntg_vcell_transparent()
 {
@@ -181,6 +228,9 @@ ntg_vcell_transparent()
     };
 }
 
+/* Creates a full space cell with the supplied background color and default foreground and style. */
+
+/* RETURN VALUE: The constructed background virtual cell. */
 static inline struct ntg_vcell 
 ntg_vcell_bg(struct nt_color color)
 {
@@ -197,6 +247,9 @@ ntg_vcell_bg(struct nt_color color)
     };
 }
 
+/* Compares two virtual cells by type and by the fields relevant to that type. */
+
+/* RETURN VALUE: `true` when the virtual cells are equivalent; otherwise `false`. */
 static inline bool
 ntg_vcell_are_equal(struct ntg_vcell c1, struct ntg_vcell c2)
 {
@@ -216,6 +269,10 @@ ntg_vcell_are_equal(struct ntg_vcell c1, struct ntg_vcell c2)
     else return true;
 }
 
+/* Composites `overwriting` over `overwritten` according to the virtual-cell type. */
+
+/* RETURN VALUE: The resulting rendered cell. A transparent virtual cell returns `overwritten` */
+/*               unchanged. */
 static inline struct ntg_cell
 ntg_vcell_overwrite(struct ntg_vcell overwriting, struct ntg_cell overwritten)
 {
@@ -244,16 +301,35 @@ struct ntg_vcell_vecgrid
     struct ntg_vecgrid __base; 
 };
 
+/* Initializes an empty virtual-cell grid. No cell storage is allocated until the grid is */
+/* resized. */
 void ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid);
+/* Releases storage owned by a virtual-cell grid and resets its base grid. Passing `NULL` has no */
+/* effect. */
 void ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid);
 
+/* Resizes a virtual-cell grid, preserves overlapping cells, and fills newly added cells with the */
+/* default full-space virtual cell. `size_cap` caps only extra reserved capacity, not the */
+/* requested dimensions. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_ALLOC_FAIL`: `vecgrid` is `NULL` or storage allocation fails. */
+/* - `NTG_ERR_UNEXPECTED`: the underlying resize fails for another reason, including arithmetic */
+/*   overflow. */
 void ntg_vcell_vecgrid_set_size(
         ntg_vcell_vecgrid* vecgrid,
         struct ntg_xy size,
         struct ntg_xy size_cap,
         int* out_status);
+/* Gets the current dimensions of a virtual-cell grid. */
+
+/* RETURN VALUE: The grid size, or `(0, 0)` when `vecgrid` is `NULL`. */
 struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid);
 
+/* Reads a virtual cell at `pos` without modifying the grid. */
+
+/* RETURN VALUE: The stored virtual cell, or the default full-space virtual cell when the grid is */
+/*               `NULL` or `pos` is outside it. */
 static inline struct ntg_vcell
 ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
 {
@@ -271,6 +347,7 @@ ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
     }
 }
 
+/* Writes a virtual cell at `pos`. A `NULL` grid or an out-of-bounds position is ignored. */
 static inline void
 ntg_vcell_vecgrid_set(ntg_vcell_vecgrid* vecgrid, struct ntg_vcell cell, struct ntg_xy pos)
 {

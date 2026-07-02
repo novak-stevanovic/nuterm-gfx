@@ -22,14 +22,23 @@ struct ntg_def_renderer
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
+/* Initializes the default terminal renderer and its empty back buffer. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `renderer` is `NULL`. */
+/* - `NTG_ERR_UNEXPECTED`: back-buffer initialization fails unexpectedly. */
 void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status);
+/* Releases resources owned by the default renderer. Passing `NULL` has no effect. */
 void ntg_def_renderer_deinit(ntg_def_renderer* renderer);
+/* Void-pointer adapter for `ntg_def_renderer_deinit`, intended for cleanup callbacks. */
 void ntg_def_renderer_deinit_(void* _renderer);
 
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
 
+/* Default renderer callback that converts the stage drawing into terminal output using the */
+/* supplied arena. */
 void _ntg_def_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,

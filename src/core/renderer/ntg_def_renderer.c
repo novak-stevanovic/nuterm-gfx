@@ -24,7 +24,7 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status)
     ntg_stage_drawing_init(&renderer->__backbuff, &_status);
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         default:
             ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
@@ -90,7 +90,7 @@ void _ntg_def_renderer_render_fn(
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap, &_status);
 
-    if(_status != NTG_SUCCESS) return;
+    if(_status != 0) return;
 
     void* buffer = sarena_malloc(arena, 50000);
     if(!buffer) return;
@@ -174,7 +174,7 @@ static void optimized_render(
     struct ntg_cell it_draw_cell;
     struct ntg_cell it_bb_cell;
     int _uc_status;
-    nt_status _nt_status;
+    int _int;
     size_t _uc_len;
     for(i = 0; i < size.y; i++)
     {
@@ -206,9 +206,9 @@ static void optimized_render(
             uc_utf32_to_utf8(row32_buff, k, row_buff,
                     row_buff_cap, 0, NULL, &_uc_len,
                     &_uc_status);
-            if(_uc_status != UC_SUCCESS) return;
+            if(_uc_status != 0) return;
 
-            nt_cursor_move(j, i, &_nt_status);
+            nt_cursor_move(j, i, &_int);
             // Every draw cell in this batch has the same gfx so we can just use the last one
             nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, NULL);
 
@@ -234,7 +234,7 @@ static void full_render(
     size_t it_opt;
     struct ntg_cell it_draw_cell;
     int _uc_status;
-    nt_status _nt_status;
+    int _int;
     size_t _uc_len;
     for(i = 0; i < size.y; i++)
     {
@@ -258,9 +258,9 @@ static void full_render(
             uc_utf32_to_utf8(row32_buff, k, row_buff,
                     row_buff_cap, 0, NULL, &_uc_len,
                     &_uc_status);
-            if(_uc_status != UC_SUCCESS) return;
+            if(_uc_status != 0) return;
 
-            nt_cursor_move(j, i, &_nt_status);
+            nt_cursor_move(j, i, &_int);
             // Every draw cell in this batch has the same gfx so we can just use the last one
             nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, NULL);
 

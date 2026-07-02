@@ -24,7 +24,7 @@ ntg_event_delegate* ntg_event_delegate_new()
 
     int status;
     ntg_event_binding_vec_init(&new->bindings, 3, &status);
-    if(status != GENC_SUCCESS)
+    if(status != 0)
     {
         free(new);
         return NULL;
@@ -69,7 +69,7 @@ ntg_event_binding* ntg_event_bind(
 
     int _status;
     ntg_event_binding_vec_pushb(&delegate->bindings, new, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         free(new);
 

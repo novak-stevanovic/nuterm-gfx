@@ -75,7 +75,7 @@ void ntg_main_panel_init(
 
     switch(_status)
     {
-        case NTG_SUCCESS:
+        case 0:
             break;
         case NTG_ERR_ALLOC_FAIL:
             ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -117,7 +117,7 @@ void ntg_main_panel_set(
         ntg_object_attach((ntg_object*)panel, object, &_status);
         switch(_status)
         {
-            case NTG_SUCCESS:
+            case 0:
                 break;
             case NTG_ERR_ALLOC_FAIL:
                 ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
@@ -402,7 +402,7 @@ static void constrain_fn(
             ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena, &_status);
         }
 
-        if(_status != NTG_SUCCESS) return;
+        if(_status != 0) return;
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size) // add more

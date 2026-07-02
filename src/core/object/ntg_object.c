@@ -429,7 +429,7 @@ void ntg_object_anchor(
     }
 
     ntg_object_vec_pushb(&base->_anchored, root, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         switch(_status)
         {
@@ -709,7 +709,7 @@ void ntg_object_init(
     int _status;
 
     ntg_object_vec_init(&object->_children, 2, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         switch(_status)
         {
@@ -721,7 +721,7 @@ void ntg_object_init(
         }
     }
     ntg_object_vec_init(&object->_anchored, 2, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         ntg_object_vec_deinit(&object->_children, NULL);
         switch(_status)
@@ -799,7 +799,7 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
     ntg_scene* scene = ntg_object_get_scene_(parent);
 
     ntg_object_vec_pushb(&parent->_children, child, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         switch(_status)
         {
@@ -1553,7 +1553,7 @@ void _ntg_object_draw(ntg_object* object, sarena* arena)
     const ntg_scene* scene = ntg_object_get_scene_(object);
     ntg_object_drawing_set_size(&object->_drawing, object->_size, scene->_size, &_status);
     // TODO: what if fails, object size != drawing size...
-    if(_status != NTG_SUCCESS) return;
+    if(_status != 0) return;
 
     if(ntg_xy_size_is_zero(object->_size))
         return;
@@ -1716,7 +1716,7 @@ static int tmp_drawing_init(
         }
     }
 
-    return NTG_SUCCESS;
+    return 0;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1976,7 +1976,7 @@ static void draw_optimized(ntg_object* object, sarena* arena)
     struct ntg_insets psize = object->_padding.size;
 
     struct ntg_object_tmp_drawing content_drawing;
-    if(tmp_drawing_init(&content_drawing, content_size, bg, arena) != NTG_SUCCESS)
+    if(tmp_drawing_init(&content_drawing, content_size, bg, arena) != 0)
         return;
 
     size_t i, j;
@@ -2026,11 +2026,11 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
     const struct ntg_border_style* border_style = object->_border.opts.style;
 
     struct ntg_object_tmp_drawing content_drawing;
-    if(tmp_drawing_init(&content_drawing, content_size, bg, arena) != NTG_SUCCESS)
+    if(tmp_drawing_init(&content_drawing, content_size, bg, arena) != 0)
         return;
 
     struct ntg_object_tmp_drawing object_drawing;
-    if(tmp_drawing_init(&object_drawing, object_size, bg, arena) != NTG_SUCCESS)
+    if(tmp_drawing_init(&object_drawing, object_size, bg, arena) != 0)
         return;
 
     // Draw border

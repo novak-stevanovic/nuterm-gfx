@@ -73,7 +73,7 @@ void ntg_loop_init(ntg_loop* loop,
 
     int _status;
     _ntg_platform_init(loop->_platform, loop, &_status);
-    if(_status != NTG_SUCCESS)
+    if(_status != 0)
     {
         free(loop->_task_runner);
         free(loop->_platform);
@@ -91,7 +91,7 @@ void ntg_loop_init(ntg_loop* loop,
     }
 
     _ntg_task_runner_init(loop->_task_runner, loop->_platform, workers, loop, &_status);
-    if(_status != NTG_SUCCESS)
+    if(_status != 0)
     {
         _ntg_platform_deinit(loop->_platform);
 
@@ -111,7 +111,7 @@ void ntg_loop_init(ntg_loop* loop,
     }
 
     ntg_loop_set_stage(loop, init_stage, &_status);
-    if(_status != NTG_SUCCESS)
+    if(_status != 0)
     {
         _ntg_platform_deinit(loop->_platform);
         _ntg_task_runner_deinit(loop->_task_runner);
@@ -194,7 +194,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
 
         loop->_renderer = (ntg_renderer*)def_renderer;
         ntg_def_renderer_init(def_renderer, &_status);
-        if(_status != NTG_SUCCESS)
+        if(_status != 0)
         {
             free(def_renderer);
             loop->_renderer = NULL;
@@ -238,7 +238,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
         update_stage(loop);
 
         event_elapsed = nt_event_wait(&event, timeout, &_status);
-        if(_status != NT_SUCCESS) continue;
+        if(_status != 0) continue;
 
         clock_gettime(CLOCK_MONOTONIC, &ts_start);
 

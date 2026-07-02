@@ -42,7 +42,15 @@ struct ntg_label_opts
     size_t indent;
 };
 
+/* Creates horizontal label defaults with default graphics, aligned text, full background, start */
+/* alignment, no wrapping, automatic trimming, and no indentation. */
+
+/* RETURN VALUE: The default `ntg_label_opts` value. */
 struct ntg_label_opts ntg_label_opts_def();
+/* Compares two label option values. Pointer identity counts as equal; otherwise a `NULL` value */
+/* differs from a non-`NULL` value. */
+
+/* RETURN VALUE: `true` when all relevant fields are equal; otherwise `false`. */
 bool ntg_label_opts_are_eq(
         const struct ntg_label_opts* opts1,
         const struct ntg_label_opts* opts2);
@@ -84,15 +92,43 @@ struct ntg_label
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
+/* Initializes an empty text label and its base object. A `NULL` options pointer selects */
+/* defaults. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `label` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: label or base-object resources cannot be allocated. */
+/* - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
 void ntg_label_init(
         ntg_label* label,
         const struct ntg_label_opts* opts,
         int* out_status);
+/* Releases the label text, private layout data, and base-object resources. Passing `NULL` has no */
+/* effect. */
 void ntg_label_deinit(ntg_label* label);
+/* Void-pointer adapter for `ntg_label_deinit`, intended for cleanup callbacks. */
 void ntg_label_deinit_(void* _label);
 
+/* Updates label orientation, graphics, wrapping, alignment, background, trimming, and */
+/* indentation. A `NULL` options pointer applies defaults; unchanged options are ignored. */
 void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
+/* Replaces label text from a non-`NULL`, null-terminated UTF-8 string. The label copies the */
+/* text. The current implementation calls `strlen` before validation, so `text == NULL` causes */
+/* undefined behavior rather than a reported error. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `label` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: text or conversion storage cannot be allocated. */
+/* - `NTG_ERR_UTF_CONV`: the byte sequence is not valid UTF-8 or cannot be converted. */
 void ntg_label_set_text(ntg_label* label, const char* text, int* out_status);
+/* Replaces label text from up to `len` UTF-8 bytes, capped at `NTG_SIZE_MAX * NTG_SIZE_MAX`; the */
+/* input need not be null-terminated. The label copies the text, and `text` must be non-`NULL` */
+/* even when `len` is zero. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `label` or `text` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: text, trimming, conversion, or row storage cannot be allocated. */
+/* - `NTG_ERR_UTF_CONV`: the specified byte sequence is not valid UTF-8 or cannot be converted. */
 void ntg_label_set_text_safe(
         ntg_label* label,
         const char* text,

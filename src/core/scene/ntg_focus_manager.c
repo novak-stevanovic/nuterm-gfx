@@ -60,7 +60,7 @@ void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_st
 
     int _status;
     ntg_focus_manager_push_scope(fm, &scope, &_status);
-    if(_status != NTG_SUCCESS)
+    if(_status != 0)
     {
         ntg_focus_manager_deinit(fm);
 
@@ -205,7 +205,7 @@ void ntg_focus_manager_push_scope(
 
     int _status;
     ntg_focus_scope_list_pushf(fm->__scope_stack, data, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         switch(_status)
         {
@@ -299,7 +299,7 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
     int _status;
 
     ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos, &adj_pos, &_status);
-    if(_status != NTG_SUCCESS)
+    if(_status != 0)
         return false;
 
     if(!hit)

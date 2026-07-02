@@ -44,12 +44,16 @@ THE SOFTWARE.
 
 typedef int (*genc_cmp_fn)(const void* container_data, const void* user_data);
 
-#define GENC_SUCCESS 0
-#define GENC_ERR_INVALID_ARG 1
-#define GENC_ERR_ALLOC_FAIL 2
-#define GENC_ERR_OUT_OF_BOUNDS 3
-#define GENC_ERR_NO_DATA 4
-#define GENC_ERR_UNEXPECTED 5
+/* A function that accepts an `out_status` parameter reports success by
+ * setting it to 0, and reports failure by setting it to the appropriate
+ * error code. */
+
+#define GENC_ERR_BASE 1000
+#define GENC_ERR_INVALID_ARG (GENC_ERR_BASE + 1)
+#define GENC_ERR_ALLOC_FAIL (GENC_ERR_BASE + 2)
+#define GENC_ERR_OUT_OF_BOUNDS (GENC_ERR_BASE + 3)
+#define GENC_ERR_NO_DATA (GENC_ERR_BASE + 4)
+#define GENC_ERR_UNEXPECTED (GENC_ERR_BASE + 5)
 
 /* -------------------------------------------------------------------------- */
 /* VECTOR */
@@ -752,7 +756,7 @@ name##_popf(struct name * l, int* out)                                         \
 void genc_vector_init(struct genc_vector* v, size_t init_cap, size_t _datasz,
                       int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((v == NULL) || (init_cap == 0) || (_datasz == 0))
     {
@@ -773,7 +777,7 @@ void genc_vector_init(struct genc_vector* v, size_t init_cap, size_t _datasz,
 
 void genc_vector_deinit(struct genc_vector* v, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if(v == NULL)
     {
@@ -790,7 +794,7 @@ void genc_vector_deinit(struct genc_vector* v, int* out_status)
 void genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
                      size_t _datasz, double _growf, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((v == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -835,7 +839,7 @@ void genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
 void genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz,
                        int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((v == NULL) || (_datasz == 0))
     {
@@ -862,7 +866,7 @@ void genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz,
 
 void genc_vector_empty(struct genc_vector* v, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if(v == NULL)
     {
@@ -875,7 +879,7 @@ void genc_vector_empty(struct genc_vector* v, int* out_status)
 
 void genc_vector_fit(struct genc_vector* v, size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((v == NULL) || (_datasz == 0))
     {
@@ -901,7 +905,7 @@ void genc_vector_fit(struct genc_vector* v, size_t _datasz, int* out_status)
 size_t genc_vector_find(const struct genc_vector* v, const void* _data,
                         genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((v == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -940,7 +944,7 @@ size_t genc_vector_find(const struct genc_vector* v, const void* _data,
 
 void genc_vector_popb(struct genc_vector* v, size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if(v == NULL)
     {
@@ -959,7 +963,7 @@ void genc_vector_popb(struct genc_vector* v, size_t _datasz, int* out_status)
 
     switch(_status)
     {
-        case GENC_SUCCESS:
+        case 0:
             return;
         default:
             GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
@@ -970,7 +974,7 @@ void genc_vector_popb(struct genc_vector* v, size_t _datasz, int* out_status)
 void genc_vector_rm(struct genc_vector* v, const void* _data,
                     genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((v == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -981,7 +985,7 @@ void genc_vector_rm(struct genc_vector* v, const void* _data,
     int _status;
 
     size_t pos = genc_vector_find(v, _data, _cmp_fn, _datasz, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
         return;
@@ -997,7 +1001,7 @@ void genc_vector_rm(struct genc_vector* v, const void* _data,
 
     switch(_status)
     {
-        case GENC_SUCCESS:
+        case 0:
             return;
         default:
             GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
@@ -1008,7 +1012,7 @@ void genc_vector_rm(struct genc_vector* v, const void* _data,
 void genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
                        double _growf, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((v == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -1021,7 +1025,7 @@ void genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
 
     switch(_status)
     {
-        case GENC_SUCCESS:
+        case 0:
             return;
         case GENC_ERR_ALLOC_FAIL:
             GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
@@ -1035,7 +1039,7 @@ void genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
 bool genc_vector_exists(const struct genc_vector* v, const void* _data,
                         genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((v == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -1048,7 +1052,7 @@ bool genc_vector_exists(const struct genc_vector* v, const void* _data,
 
     switch(_status)
     {
-        case GENC_SUCCESS:
+        case 0:
             return (pos != SIZE_MAX);
         default:
             GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
@@ -1084,7 +1088,7 @@ _genc_list_node_create(const void* data, size_t data_size)
 
 void genc_list_init(struct genc_list* list, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if(list == NULL)
     {
@@ -1099,7 +1103,7 @@ void genc_list_init(struct genc_list* list, int* out_status)
 
 void genc_list_deinit(struct genc_list* list, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if(list == NULL)
     {
@@ -1117,7 +1121,7 @@ void genc_list_deinit(struct genc_list* list, int* out_status)
 void genc_list_pushb(struct genc_list* list, const void* _data,
                      size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((list == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -1151,7 +1155,7 @@ void genc_list_pushb(struct genc_list* list, const void* _data,
 void genc_list_pushf(struct genc_list* list, const void* _data,
                      size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((list == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -1184,7 +1188,7 @@ void genc_list_pushf(struct genc_list* list, const void* _data,
 
 void genc_list_popf(struct genc_list* list, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if(list == NULL)
     {
@@ -1220,7 +1224,7 @@ void genc_list_popf(struct genc_list* list, int* out_status)
 
 void genc_list_popb(struct genc_list* list, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if(list == NULL)
     {
@@ -1256,7 +1260,7 @@ void genc_list_popb(struct genc_list* list, int* out_status)
 struct genc_list_node*
 genc_list_at(const struct genc_list* list, size_t pos, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if(list == NULL)
     {
@@ -1291,7 +1295,7 @@ struct genc_list_node*
 genc_list_find(const struct genc_list* list, const void* _data,
                genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((list == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -1325,7 +1329,7 @@ void genc_list_ins_after_node(struct genc_list* list, const void* _data,
                               struct genc_list_node* node, size_t _datasz,
                               int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((list == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -1344,7 +1348,7 @@ void genc_list_ins_after_node(struct genc_list* list, const void* _data,
 
         switch(_status)
         {
-            case GENC_SUCCESS: return;
+            case 0: return;
             case GENC_ERR_ALLOC_FAIL:
                 GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
                 return;
@@ -1379,7 +1383,7 @@ void genc_list_ins_before_node(struct genc_list* list, const void* _data,
                                struct genc_list_node* node, size_t _datasz,
                                int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((list == NULL) || (_data == NULL) || (_datasz == 0) || (node == NULL))
     {
@@ -1392,7 +1396,7 @@ void genc_list_ins_before_node(struct genc_list* list, const void* _data,
 
     switch(_status)
     {
-        case GENC_SUCCESS:
+        case 0:
             return;
         case GENC_ERR_ALLOC_FAIL:
             GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
@@ -1406,7 +1410,7 @@ void genc_list_ins_before_node(struct genc_list* list, const void* _data,
 void genc_list_rm_node(struct genc_list* list, struct genc_list_node* node,
                        int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((list == NULL) || (node == NULL))
     {
@@ -1425,7 +1429,7 @@ void genc_list_rm_node(struct genc_list* list, struct genc_list_node* node,
 
         switch(_status)
         {
-            case GENC_SUCCESS:
+            case 0:
                 return;
             default:
                 GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
@@ -1450,7 +1454,7 @@ void genc_list_rm_node(struct genc_list* list, struct genc_list_node* node,
 void genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
                       size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((list == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -1471,7 +1475,7 @@ void genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
         genc_list_pushb(list, _data, _datasz, &_status);
         switch(_status)
         {
-            case GENC_SUCCESS:
+            case 0:
                 return;
             case GENC_ERR_ALLOC_FAIL:
                 GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
@@ -1493,7 +1497,7 @@ void genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
         genc_list_ins_before_node(list, _data, node, _datasz, &_status);
         switch(_status)
         {
-            case GENC_SUCCESS:
+            case 0:
                 return;
             case GENC_ERR_ALLOC_FAIL:
                 GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
@@ -1508,7 +1512,7 @@ void genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
 void genc_list_rm(struct genc_list* list, const void* _data, genc_cmp_fn _cmp_fn,
                   size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
 
     if((list == NULL) || (_data == NULL) || (_datasz == 0))
     {
@@ -1521,7 +1525,7 @@ void genc_list_rm(struct genc_list* list, const void* _data, genc_cmp_fn _cmp_fn
     struct genc_list_node* node;
     node = genc_list_find(list, _data, _cmp_fn, _datasz, &_status);
 
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
         return;
@@ -1534,7 +1538,7 @@ void genc_list_rm(struct genc_list* list, const void* _data, genc_cmp_fn _cmp_fn
     }
 
     genc_list_rm_node(list, node, &_status);
-    if(_status != GENC_SUCCESS) GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
+    if(_status != 0) GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
 }
 
 bool genc_list_exists(const struct genc_list* list, const void* _data,
@@ -1571,7 +1575,7 @@ _genc_simple_list_node_create(const void* data, size_t data_size)
 
 void genc_simple_list_init(struct genc_simple_list* list, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
     
     if(list == NULL)
     {
@@ -1586,7 +1590,7 @@ void genc_simple_list_init(struct genc_simple_list* list, int* out_status)
 
 void genc_simple_list_deinit(struct genc_simple_list* list, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
     
     if(list == NULL)
     {
@@ -1600,7 +1604,7 @@ void genc_simple_list_deinit(struct genc_simple_list* list, int* out_status)
     {
         genc_simple_list_popf(list, &_status);
 
-        if(_status != GENC_SUCCESS)
+        if(_status != 0)
         {
             GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
             return;
@@ -1615,7 +1619,7 @@ void genc_simple_list_deinit(struct genc_simple_list* list, int* out_status)
 void genc_simple_list_pushb(struct genc_simple_list* list, const void* _data,
                             size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
     
     if(list == NULL)
     {
@@ -1648,7 +1652,7 @@ void genc_simple_list_pushb(struct genc_simple_list* list, const void* _data,
 void genc_simple_list_pushf(struct genc_simple_list* list, const void* _data,
                             size_t _datasz, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
     
     if(list == NULL)
     {
@@ -1681,7 +1685,7 @@ void genc_simple_list_pushf(struct genc_simple_list* list, const void* _data,
 
 void genc_simple_list_popf(struct genc_simple_list* list, int* out_status)
 {
-    GENC_SET_OUT(out_status, GENC_SUCCESS);
+    GENC_SET_OUT(out_status, 0);
     
     if(list == NULL)
     {

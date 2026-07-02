@@ -28,13 +28,13 @@ void ntg_init()
 {
     ntg_log_init("ntg_log.txt");
 
-    nt_status _status;
+    int _status;
     nt_init(&_status);
 
     switch(_status)
     {
         // TODO handle other cases
-        case NT_SUCCESS:
+        case 0:
             break;
         default:
             assert(0);

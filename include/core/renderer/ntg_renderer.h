@@ -34,7 +34,8 @@ struct ntg_renderer
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* If `stage_drawing` is NULL, render empty */
+/* Invokes the renderer virtual function and then the render hook. Only a `NULL` renderer is */
+/* ignored; `stage_drawing` and `arena` are forwarded unchanged. */
 void ntg_renderer_render(
         ntg_renderer* renderer,
         const ntg_stage_drawing* stage_drawing,
@@ -44,11 +45,17 @@ void ntg_renderer_render(
 /* PROTECTED */
 /* ========================================================================== */
 
+/* Initializes a renderer by copying a virtual table that provides a render callback. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `renderer` is `NULL`. */
+/* - `NTG_ERR_BAD_VTABLE`: `vtable` or its `render_fn` is `NULL`. */
 void ntg_renderer_init(
         ntg_renderer* renderer,
         const struct ntg_renderer_vtable* vtable,
         int* out_status);
 
+/* Clears a renderer base. Passing `NULL` has no effect. */
 void ntg_renderer_deinit(ntg_renderer* renderer);
 
 #endif // NTG_RENDERER_H

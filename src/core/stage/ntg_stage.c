@@ -40,7 +40,7 @@ void ntg_stage_init(ntg_stage* stage, int* out_status)
 
     ntg_stage_drawing_init(&stage->_drawing, &_status);
 
-    if(_status != NTG_SUCCESS)
+    if(_status != 0)
     {
         ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
@@ -208,7 +208,7 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
     {
         struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
         ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap, &_status);
-        if(_status != NTG_SUCCESS) return;
+        if(_status != 0) return;
     }
 
     if(ntg_xy_size_is_zero(size)) return;

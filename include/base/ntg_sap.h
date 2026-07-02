@@ -3,16 +3,21 @@
 
 #include "shared/ntg_shared.h"
 
-/* Generic Space Allocation Policies. */
+/* ========================================================================== */
+/* PUBLIC - FUNCTIONS */
+/* ========================================================================== */
 
-/* Distributes `space_pool` space into `out_size_map`.
- * Distribution takes place depending on `caps` - if a size in `out_size_map`
- * reaches the capacity - it won't be awarded any more space.
- *
- * 'grows' decides how to allocate the `space_pool` - it doesn't take into
- * account already allocated space in `out_size_map`.
- *
- * If `grows` is NULL, all allocations will be treated equally. */
+/* Distributes up to `space_pool` units among `count` entries without exceeding `caps`. */
+/* Allocation is round-robin and weighted by `grows`; a `NULL` `grows` array gives every entry */
+/* equal weight. */
+
+/* RETURN VALUE: The number of units added to `out_size_map`; `0` when no unit can be assigned; */
+/*               `SIZE_MAX` on error. */
+
+/* ERROR CODES: */
+/* - `NTG_ERR_INVALID_ARG`: `caps` or `out_size_map` is `NULL`. */
+/* - `NTG_ERR_ALLOC_FAIL`: temporary storage cannot be allocated from `arena`. */
+/* - `NTG_ERR_UNEXPECTED`: the calculated distribution would exceed a capacity. */
 size_t ntg_sap_cap_round_robin(
         const size_t* caps,
         const size_t* grows,

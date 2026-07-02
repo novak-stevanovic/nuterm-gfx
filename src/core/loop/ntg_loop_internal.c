@@ -54,7 +54,7 @@ void _ntg_platform_execute_later(
 
     int _status;
     ntg_ptask_list_pushb(&platform->__tasks, task, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         pthread_mutex_unlock(&platform->__lock);
         switch(_status)
@@ -238,7 +238,7 @@ void _ntg_task_runner_execute(
 
     int _status;
     ntg_task_list_pushb(&task_runner->__tasks, task, &_status);
-    if(_status != GENC_SUCCESS)
+    if(_status != 0)
     {
         pthread_mutex_unlock(&task_runner->__lock);
 
