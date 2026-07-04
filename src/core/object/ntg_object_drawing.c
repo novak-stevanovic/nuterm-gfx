@@ -70,9 +70,9 @@ void ntg_object_drawing_place(
 
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
-    if(ntg_xy_is_greater_eq(dest_start_pos, dest_end_pos))
+    if(!ntg_xy_is_lesser(dest_start_pos, dest_end_pos))
         ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
-    if(ntg_xy_is_greater_eq(dest_end_pos, dest_size))
+    if(!ntg_xy_is_lesser_eq(dest_size, dest_end_pos))
         ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
 
     size_t i, j;
@@ -111,9 +111,9 @@ void ntg_object_drawing_place_(
 
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
-    if(ntg_xy_is_greater_eq(dest_start_pos, dest_end_pos))
+    if(!ntg_xy_is_lesser(dest_start_pos, dest_end_pos))
         ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
-    if(ntg_xy_is_greater_eq(dest_end_pos, dest_size))
+    if(!ntg_xy_is_lesser_eq(dest_end_pos, dest_size))
         ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
 
     size_t i, j;

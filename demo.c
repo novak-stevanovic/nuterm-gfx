@@ -319,7 +319,7 @@ void init_south()
     ntg_box_add_child(&south_box, ntg_obj(&sb_label2), &_status);
     ntg_box_add_child(&south_box, ntg_obj(&sb_label3), &_status);
 
-    // SOUTH
+    // SOUTH LABEL
 
     struct ntg_label_opts s_label_opts = ntg_label_opts_def();
     s_label_opts.gfx = (struct nt_gfx) {
@@ -337,7 +337,12 @@ void init_south()
 
     ntg_object_set_border_opts(ntg_obj(&s_label), &border_opts);
 
-    ntg_box_init(&south, NULL, &_status);
+    // SOUTH
+
+    struct ntg_box_opts south_opts = ntg_box_opts_def();
+    south_opts.bg = ntg_vcell_bg(nt_color_new_auto(255, 255, 0));
+
+    ntg_box_init(&south, &south_opts, &_status);
     ntg_cleanup_batch_add(batch, &south, ntg_box_deinit_, NULL, &_status);
 
     ntg_object_set_border_opts(ntg_obj(&south), &border_opts);

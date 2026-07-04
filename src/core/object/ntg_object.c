@@ -1702,8 +1702,8 @@ static int tmp_drawing_init(
     drawing->data = NULL;
     drawing->size = ntg_xy(0, 0);
 
-    drawing->data = sarena_malloc(arena, sizeof(struct ntg_vcell) *
-            size.x * size.y);
+    drawing->data = sarena_malloc(arena,
+        sizeof(struct ntg_vcell) * size.x * size.y);
     if(!drawing->data) return NTG_ERR_ALLOC_FAIL;
     drawing->size = size;
 
@@ -1970,7 +1970,7 @@ static void calculate_padding_vsize(ntg_object* object,
 static void draw_optimized(ntg_object* object, sarena* arena)
 {
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
-    struct ntg_xy object_size = object->_size;
+    struct ntg_xy object_size = ntg_object_drawing_get_size(&object->_drawing);
 
     struct ntg_vcell bg = object->__base_bg;
     struct ntg_insets psize = object->_padding.size;
@@ -2018,7 +2018,7 @@ static void draw_optimized(ntg_object* object, sarena* arena)
 static void draw_unoptimized(ntg_object* object, sarena* arena)
 {
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
-    struct ntg_xy object_size = object->_size;
+    struct ntg_xy object_size = ntg_object_drawing_get_size(&object->_drawing);
 
     struct ntg_vcell bg = object->__base_bg;
     struct ntg_insets bsize = object->_border.size;

@@ -467,7 +467,7 @@ void ntg_border_style_init_custom_9x(
 
     (*style) = (struct ntg_border_style) {0};
 
-    struct ntg_border_style_9x_dt* data = malloc(sizeof(*data));
+    struct ntg_border_style_9x_dt* data = malloc(sizeof(struct ntg_border_style_9x_dt));
     if(!data)
         ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
