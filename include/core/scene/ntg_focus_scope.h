@@ -66,30 +66,44 @@ struct ntg_focus_scope
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* Default key handler that uses `ctx` to forward `key` to the focused object. The `_` callback */
-/* data argument is ignored. */
+/* -------------------------------------------------------------------------- */
+/* EVENT */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when the focused object handles the event; otherwise `false`. */
-bool ntg_focus_scope_dispatch_key(
+/* Default key handler that uses `ctx` to forward `key` to the focused object.
+ * The `_` callback data argument is ignored.
+ *
+ * RETURN VALUE:
+ * `true` when the focused object handles the event; otherwise `false`. */
+NTG_API bool
+ntg_focus_scope_dispatch_key(
         void* _,
         const struct ntg_focus_key_ctx* ctx,
         struct nt_key_event key);
 
-/* Static mouse handler that uses `ctx` to forward `mouse` to the clicked object without */
-/* changing focus. The `_` callback data argument is ignored. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when the clicked object handles the event; otherwise `false`. */
-bool ntg_focus_scope_dispatch_mouse_stc(
+/* Static mouse handler that uses `ctx` to forward `mouse` to the clicked object
+ * without changing focus. The `_` callback data argument is ignored.
+ *
+ * RETURN VALUE:
+ * `true` when the clicked object handles the event; otherwise `false`. */
+NTG_API bool
+ntg_focus_scope_dispatch_mouse_stc(
         void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse);
 
-/* Dynamic mouse handler that uses `ctx` to update focus from the clicked object and then */
-/* dispatches `mouse`. Clicking elsewhere may clear old focus. The `_` callback data argument */
-/* is ignored. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when the click causes focus/dispatch handling; otherwise `false`. */
-bool ntg_focus_scope_dispatch_mouse_dyn(
+/* Dynamic mouse handler that uses `ctx` to update focus from the clicked object
+ * and then dispatches `mouse`. Clicking elsewhere may clear old focus. The `_`
+ * callback data argument is ignored.
+ *
+ * RETURN VALUE:
+ * `true` when the click causes focus/dispatch handling; otherwise `false`. */
+NTG_API bool
+ntg_focus_scope_dispatch_mouse_dyn(
         void* _,
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse);

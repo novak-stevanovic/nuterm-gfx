@@ -65,23 +65,35 @@ struct ntg_loop
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* Default loop event handler. It converts supported terminal key and mouse events and forwards */
-/* them to the current stage. */
+/* -------------------------------------------------------------------------- */
+/* EVENT */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when the stage handles the event; otherwise `false`. */
-bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
+/* Default loop event handler. It converts supported terminal key and mouse
+ * events and forwards them to the current stage.
+ *
+ * RETURN VALUE:
+ * `true` when the stage handles the event; otherwise `false`. */
+NTG_API bool
+ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
 
-/* Initializes a loop with its initial stage, renderer, target frame rate, worker count, and */
-/* event callback. A `NULL` renderer selects the default renderer when the loop starts. Values */
-/* above the frame-rate and worker limits are clamped; a `NULL` event callback disables event */
-/* dispatch. */
+/* -------------------------------------------------------------------------- */
+/* INIT/DEINIT */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `loop` or `init_stage` is `NULL`, or `framerate` is zero. */
-/* - `NTG_ERR_STAGE_HAS_LOOP`: the initial stage already belongs to a loop. */
-/* - `NTG_ERR_ALLOC_FAIL`: required loop-owned objects cannot be allocated. */
-/* - `NTG_ERR_UNEXPECTED`: platform, worker, or stage initialization fails. */
-void ntg_loop_init(ntg_loop* loop,
+/* Initializes a loop with its initial stage, renderer, target frame rate,
+ * worker count, and event callback. A `NULL` renderer selects the default
+ * renderer when the loop starts. Values above the frame-rate and worker limits
+ * are clamped; a `NULL` event callback disables event dispatch.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `loop` or `init_stage` is `NULL`, or `framerate` is
+ *   zero.
+ * - `NTG_ERR_STAGE_HAS_LOOP`: the initial stage already belongs to a loop.
+ * - `NTG_ERR_ALLOC_FAIL`: required loop-owned objects cannot be allocated.
+ * - `NTG_ERR_UNEXPECTED`: platform, worker, or stage initialization fails. */
+NTG_API void
+ntg_loop_init(ntg_loop* loop,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
         unsigned int framerate,
@@ -89,79 +101,112 @@ void ntg_loop_init(ntg_loop* loop,
         bool (*on_event_fn)(ntg_loop* loop, struct nt_event event),
         int* out_status);
 
-/* Disconnects the stage and resets the loop. After a clean exit it also joins workers and frees */
-/* the platform and task runner; after a premature exit those resources are intentionally left */
-/* allocated and invalidated. */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `loop` is `NULL`. */
-/* - `NTG_ERR_LOOP_RUNNING`: the loop is currently in `NTG_LOOP_RUNNING`. */
-void ntg_loop_deinit(ntg_loop* loop, int* out_status);
-/* Void-pointer adapter for `ntg_loop_deinit`, intended for cleanup callbacks. Any */
-/* deinitialization status is discarded. */
-void ntg_loop_deinit_(void* _loop);
+/* Disconnects the stage and resets the loop. After a clean exit it also joins
+ * workers and frees the platform and task runner; after a premature exit those
+ * resources are intentionally left allocated and invalidated.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `loop` is `NULL`.
+ * - `NTG_ERR_LOOP_RUNNING`: the loop is currently in `NTG_LOOP_RUNNING`. */
+NTG_API void
+ntg_loop_deinit(ntg_loop* loop, int* out_status);
 
-/* Runs terminal event processing, deferred tasks, layout, composition, and rendering until a */
-/* stop is requested. The function rejects only a loop that is already running. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: The final loop exit status. Immediate validation or setup failure returns */
-/*               `NTG_LOOP_EXIT_ERROR`. */
+/* Void-pointer adapter for `ntg_loop_deinit`, intended for cleanup callbacks.
+ * Any deinitialization status is discarded. */
+NTG_API void
+ntg_loop_deinit_(void* _loop);
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `loop` is `NULL`. */
-/* - `NTG_ERR_LOOP_RUNNING`: the loop is already in `NTG_LOOP_RUNNING`. */
-/* - `NTG_ERR_ALLOC_FAIL`: the frame arena or default renderer cannot be allocated. */
-/* - `NTG_ERR_UNEXPECTED`: default-renderer initialization fails unexpectedly. */
-ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status);
+/* -------------------------------------------------------------------------- */
+/* CONTROL */
+/* -------------------------------------------------------------------------- */
 
-/* Requests loop termination. Force mode always accepts the request and marks the exit premature */
-/* only when worker tasks are running; clean mode refuses while tasks are running. */
+/* Runs terminal event processing, deferred tasks, layout, composition, and
+ * rendering until a stop is requested. The function rejects only a loop that is
+ * already running.
+ *
+ * RETURN VALUE:
+ * The final loop exit status. Immediate validation or setup failure returns
+ * `NTG_LOOP_EXIT_ERROR`.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `loop` is `NULL`.
+ * - `NTG_ERR_LOOP_RUNNING`: the loop is already in `NTG_LOOP_RUNNING`.
+ * - `NTG_ERR_ALLOC_FAIL`: the frame arena or default renderer cannot be
+ *   allocated.
+ * - `NTG_ERR_UNEXPECTED`: default-renderer initialization fails
+ * unexpectedly. */
+NTG_API enum ntg_loop_exit_status
+ntg_loop_run(ntg_loop* loop, int* out_status);
 
-/* RETURN VALUE: `true` for a `NULL` loop, every force request, or a clean request with no */
-/*               running tasks; otherwise `false`. */
-bool ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode);
-/* Sets the loop stage immediately while stopped, or records it as pending while running or */
-/* stopping. A stage owned by another loop is first detached from that loop; `NULL` clears the */
-/* stage. */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `loop` is `NULL`. */
-void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage, int* out_status);
+/* Requests loop termination. Force mode always accepts the request and marks
+ * the exit premature only when worker tasks are running; clean mode refuses
+ * while tasks are running.
+ *
+ * RETURN VALUE:
+ * `true` for a `NULL` loop, every force request, or a clean request with no
+ * running tasks; otherwise `false`. */
+NTG_API bool
+ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode);
 
-/* Declares a query for whether a loop is active. No implementation for this declaration exists */
-/* in the current source tree, so its runtime behavior cannot be verified. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: Intended as a Boolean running-state result; the current project cannot link a */
-/*               call to this function. */
-bool ntg_loop_is_running(const ntg_loop* loop);
+/* Sets the loop stage immediately while stopped, or records it as pending while
+ * running or stopping. A stage owned by another loop is first detached from
+ * that loop; `NULL` clears the stage.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `loop` is `NULL`. */
+NTG_API void
+ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage, int* out_status);
 
-/* Queues a callback for execution on a worker thread. If the runner has been invalidated, the */
-/* request is silently ignored. */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `task_runner` or `task_fn` is `NULL`. */
-/* - `NTG_ERR_ALLOC_FAIL`: the task cannot be queued. */
-/* - `NTG_ERR_UNEXPECTED`: the worker queue operation fails unexpectedly. */
-void ntg_task_runner_execute(
-        ntg_task_runner* task_runner, 
+/* Declares a query for whether a loop is active. No implementation for this
+ * declaration exists in the current source tree, so its runtime behavior cannot
+ * be verified. */
+NTG_API bool
+ntg_loop_is_running(const ntg_loop* loop);
+
+/* -------------------------------------------------------------------------- */
+/* TASKS */
+/* -------------------------------------------------------------------------- */
+
+/* Queues a callback for execution on a worker thread. If the runner has been
+ * invalidated, the request is silently ignored.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `task_runner` or `task_fn` is `NULL`.
+ * - `NTG_ERR_ALLOC_FAIL`: the task cannot be queued.
+ * - `NTG_ERR_UNEXPECTED`: the worker queue operation fails unexpectedly. */
+NTG_API void
+ntg_task_runner_execute(
+        ntg_task_runner* task_runner,
         void (*task_fn)(void* data, ntg_platform* platform),
         void* data,
         int* out_status);
 
-/* Queues a function to run on the loop thread during the next platform-task drain. This is the */
-/* safe path for worker tasks to request UI-thread work. */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `platform` or `task_fn` is `NULL`. */
-/* - `NTG_ERR_PLATFORM_NO_LOOP`: the platform has been invalidated because its loop stopped */
-/*   forcefully. */
-/* - `NTG_ERR_ALLOC_FAIL`: the deferred task cannot be queued. */
-/* - `NTG_ERR_UNEXPECTED`: the platform queue operation fails unexpectedly. */
-void ntg_platform_execute_later(
-        ntg_platform* platform, 
+/* Queues a function to run on the loop thread during the next platform-task
+ * drain. This is the safe path for worker tasks to request UI-thread work.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `platform` or `task_fn` is `NULL`.
+ * - `NTG_ERR_PLATFORM_NO_LOOP`: the platform has been invalidated because its
+ *   loop stopped forcefully.
+ * - `NTG_ERR_ALLOC_FAIL`: the deferred task cannot be queued.
+ * - `NTG_ERR_UNEXPECTED`: the platform queue operation fails unexpectedly. */
+NTG_API void
+ntg_platform_execute_later(
+        ntg_platform* platform,
         void (*task_fn)(void* data),
         void* data,
         int* out_status);
-
 
 #endif // NTG_LOOP_H

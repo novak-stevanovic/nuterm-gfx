@@ -60,11 +60,13 @@ struct ntg_float_policy_opts
     ntg_align prim_align, sec_align;
 };
 
-/* Creates float-policy defaults: minimum enable mode, zero shrink insets, and start alignment on */
-/* both axes. */
-
-/* RETURN VALUE: The default `ntg_float_policy_opts` value. */
-struct ntg_float_policy_opts ntg_float_policy_opts_def();
+/* Creates float-policy defaults: minimum enable mode, zero shrink insets, and
+ * start alignment on both axes.
+ *
+ * RETURN VALUE:
+ * The default `ntg_float_policy_opts` value. */
+NTG_API struct ntg_float_policy_opts
+ntg_float_policy_opts_def();
 
 /* -------------------------------------------------------------------------- */
 /* SIDE FLOAT */
@@ -91,45 +93,73 @@ struct ntg_sidefloat_policy_opts
     enum ntg_sidefloat_policy_szcap size_cap;
 };
 
-/* Creates side-float defaults: start alignment, north side, minimum threshold, and no anchor */
-/* size cap. */
-
-/* RETURN VALUE: The default `ntg_sidefloat_policy_opts` value. */
-struct ntg_sidefloat_policy_opts ntg_sidefloat_policy_opts_def();
+/* Creates side-float defaults: start alignment, north side, minimum threshold,
+ * and no anchor size cap.
+ *
+ * RETURN VALUE:
+ * The default `ntg_sidefloat_policy_opts` value. */
+NTG_API struct ntg_sidefloat_policy_opts
+ntg_sidefloat_policy_opts_def();
 
 /* ========================================================================== */
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* Calls the policy-specific data destructor, then clears the policy. Passing `NULL` has no */
-/* effect. */
-void ntg_anchor_policy_deinit(struct ntg_anchor_policy* policy);
-/* Void-pointer adapter for `ntg_anchor_policy_deinit`, intended for cleanup callbacks. */
-void ntg_anchor_policy_deinit_(void* _policy);
+/* -------------------------------------------------------------------------- */
+/* BASE */
+/* -------------------------------------------------------------------------- */
 
-/* Gets the built-in policy that positions an anchored layer as the root layer. */
+/* Calls the policy-specific data destructor, then clears the policy. Passing
+ * `NULL` has no effect. */
+NTG_API void
+ntg_anchor_policy_deinit(struct ntg_anchor_policy* policy);
 
-/* RETURN VALUE: A pointer to a process-lifetime, read-only root anchor policy. */
-const struct ntg_anchor_policy* ntg_anchor_policy_root();
+/* -------------------------------------------------------------------------- */
 
-/* Initializes a policy that conditionally floats and aligns an anchored layer within its base. A */
-/* `NULL` options pointer selects defaults. */
+/* Void-pointer adapter for `ntg_anchor_policy_deinit`, intended for cleanup
+ * callbacks. */
+NTG_API void
+ntg_anchor_policy_deinit_(void* _policy);
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `policy` is `NULL`. */
-/* - `NTG_ERR_ALLOC_FAIL`: policy-specific option storage cannot be allocated. */
-void ntg_anchor_policy_init_float(
+/* -------------------------------------------------------------------------- */
+
+/* Gets the built-in policy that positions an anchored layer as the root layer.
+ *
+ * RETURN VALUE:
+ * A pointer to a process-lifetime, read-only root anchor policy. */
+NTG_API const struct ntg_anchor_policy*
+ntg_anchor_policy_root();
+
+/* -------------------------------------------------------------------------- */
+/* FLOAT */
+/* -------------------------------------------------------------------------- */
+
+/* Initializes a policy that conditionally floats and aligns an anchored layer
+ * within its base. A `NULL` options pointer selects defaults.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `policy` is `NULL`.
+ * - `NTG_ERR_ALLOC_FAIL`: policy-specific option storage cannot be
+ * allocated. */
+NTG_API void
+ntg_anchor_policy_init_float(
         struct ntg_anchor_policy* policy,
         const struct ntg_float_policy_opts* opts,
         int* out_status);
 
-/* Initializes a policy that places an anchored layer along a selected side of its base. A `NULL` */
-/* options pointer selects defaults. */
+/* -------------------------------------------------------------------------- */
+/* SIDE FLOAT */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `policy` is `NULL`. */
-/* - `NTG_ERR_ALLOC_FAIL`: policy-specific option storage cannot be allocated. */
-void ntg_anchor_policy_init_sidefloat(
+/* Initializes a policy that places an anchored layer along a selected side of
+ * its base. A `NULL` options pointer selects defaults.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `policy` is `NULL`.
+ * - `NTG_ERR_ALLOC_FAIL`: policy-specific option storage cannot be
+ * allocated. */
+NTG_API void
+ntg_anchor_policy_init_sidefloat(
         struct ntg_anchor_policy* policy,
         const struct ntg_sidefloat_policy_opts* opts,
         int* out_status);

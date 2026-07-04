@@ -18,16 +18,20 @@ struct ntg_box_opts
     struct ntg_vcell bg;
 };
 
-/* Creates horizontal box defaults with start alignment on both axes, zero spacing, and the */
-/* default full-space background cell. */
+/* Creates horizontal box defaults with start alignment on both axes, zero
+ * spacing, and the default full-space background cell.
+ *
+ * RETURN VALUE:
+ * The default `ntg_box_opts` value. */
+NTG_API struct ntg_box_opts
+ntg_box_opts_def();
 
-/* RETURN VALUE: The default `ntg_box_opts` value. */
-struct ntg_box_opts ntg_box_opts_def();
-/* Compares two box option values. Pointer identity counts as equal; otherwise a `NULL` value */
-/* differs from a non-`NULL` value. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when all relevant fields are equal; otherwise `false`. */
-bool ntg_box_opts_are_eq(
+/* Compares two box option values. Pointer identity counts as equal; otherwise a
+ * `NULL` value differs from a non-`NULL` value. */
+NTG_API bool
+ntg_box_opts_are_eq(
         const struct ntg_box_opts* opts1,
         const struct ntg_box_opts* opts2);
 
@@ -54,37 +58,73 @@ struct ntg_box
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* Initializes a box container and its base object. A `NULL` options pointer selects defaults. */
+/* -------------------------------------------------------------------------- */
+/* INIT/DEINIT */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `box` is `NULL`. */
-/* - `NTG_ERR_ALLOC_FAIL`: base-object or box resources cannot be allocated. */
-/* - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
-void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status);
-/* Detaches all children and releases resources owned by a box. Passing `NULL` has no effect. */
-void ntg_box_deinit(ntg_box* box);
+/* Initializes a box container and its base object. A `NULL` options pointer
+ * selects defaults.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `box` is `NULL`.
+ * - `NTG_ERR_ALLOC_FAIL`: base-object or box resources cannot be allocated.
+ * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
+NTG_API void
+ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status);
+
+/* -------------------------------------------------------------------------- */
+
+/* Detaches all children and releases resources owned by a box. Passing `NULL`
+ * has no effect. */
+NTG_API void
+ntg_box_deinit(ntg_box* box);
+
+/* -------------------------------------------------------------------------- */
+
 /* Void-pointer adapter for `ntg_box_deinit`, intended for cleanup callbacks. */
-void ntg_box_deinit_(void* _box);
+NTG_API void
+ntg_box_deinit_(void* _box);
 
-/* Updates box orientation, alignment, spacing, and background. A `NULL` options pointer applies */
-/* defaults; unchanged options are ignored. */
-void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
+/* -------------------------------------------------------------------------- */
+/* OPTS */
+/* -------------------------------------------------------------------------- */
 
-/* Gets the box-owned vector of child object pointers in insertion order. */
+/* Updates box orientation, alignment, spacing, and background. A `NULL` options
+ * pointer applies defaults; unchanged options are ignored. */
+NTG_API void
+ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
 
-/* RETURN VALUE: A read-only vector pointer, or `NULL` when `box` is `NULL`. */
-const struct ntg_object_vec* ntg_box_get_children(const ntg_box* box);
-/* Appends `child` to the box and attaches it to the box object tree. Existing parent, */
-/* scene-root, or anchor relationships on the child are removed by the base attachment API. */
+/* -------------------------------------------------------------------------- */
+/* CHILDREN */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `box` or `child` is `NULL`. */
-/* - `NTG_ERR_MAX_CHILDREN`: the object child limit has been reached. */
-/* - `NTG_ERR_ALLOC_FAIL`: the child vector cannot grow. */
-/* - `NTG_ERR_UNEXPECTED`: the base attachment API reports another failure, including `child == */
-/*   box`. */
-void ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status);
-/* Removes `child` from the box when it is a direct child. Missing or `NULL` inputs are ignored. */
-void ntg_box_rm_child(ntg_box* box, ntg_object* child);
+/* Gets the box-owned vector of child object pointers in insertion order.
+ *
+ * RETURN VALUE:
+ * A read-only vector pointer, or `NULL` when `box` is `NULL`. */
+NTG_API const struct ntg_object_vec*
+ntg_box_get_children(const ntg_box* box);
+
+/* -------------------------------------------------------------------------- */
+
+/* Appends `child` to the box and attaches it to the box object tree. Existing
+ * parent, scene-root, or anchor relationships on the child are removed by the
+ * base attachment API.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `box` or `child` is `NULL`.
+ * - `NTG_ERR_MAX_CHILDREN`: the object child limit has been reached.
+ * - `NTG_ERR_ALLOC_FAIL`: the child vector cannot grow.
+ * - `NTG_ERR_UNEXPECTED`: the base attachment API reports another failure,
+ *   including `child == box`. */
+NTG_API void
+ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status);
+
+/* -------------------------------------------------------------------------- */
+
+/* Removes `child` from the box when it is a direct child. Missing or `NULL`
+ * inputs are ignored. */
+NTG_API void
+ntg_box_rm_child(ntg_box* box, ntg_object* child);
 
 #endif // NTG_BOX_H

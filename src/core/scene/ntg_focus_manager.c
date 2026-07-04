@@ -312,7 +312,8 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
 
     ntg_log_log("ADJ: %d %d", adj_pos.x, adj_pos.y);
 
-    if((!scope->root) || ntg_object_is_descendant_eq(scope->root, hit)) // INSIDE SCOPE
+    // Inside scope
+    if((!scope->root) || ntg_object_is_descendant_eq(scope->root, hit))
     {
         struct ntg_focus_mouse_ctx ctx = {
             .fm = fm,

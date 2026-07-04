@@ -52,25 +52,34 @@ typedef void (*ntg_gui_fn)(void* data);
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
 
-/* Initializes logging to `ntg_log.txt` and initializes the terminal backend. Backend */
-/* initialization failure triggers an assertion. */
-void ntg_init();
-/* Restores terminal cursor, alternate-screen, and mouse modes, then deinitializes the terminal */
-/* library and logging. */
-void ntg_deinit();
+/* Initializes logging to `ntg_log.txt` and initializes the terminal backend.
+ * Backend initialization failure triggers an assertion. */
+NTG_API void
+ntg_init();
+
+/* -------------------------------------------------------------------------- */
+
+/* Restores terminal cursor, alternate-screen, and mouse modes, then
+ * deinitializes the terminal library and logging. */
+NTG_API void
+ntg_deinit();
 
 /* -------------------------------------------------------------------------- */
 /* LAUNCH */
 /* -------------------------------------------------------------------------- */
 
+/* Enables terminal UI modes and starts `gui_fn(data)` on the library GUI
+ * thread. Only one launch is allowed at a time; a `NULL` callback is ignored,
+ * while allocation/thread failures assert. */
+NTG_API void
+ntg_launch(ntg_gui_fn gui_fn, void* data);
 
-/* Enables terminal UI modes and starts `gui_fn(data)` on the library GUI thread. Only one launch */
-/* is allowed at a time; a `NULL` callback is ignored, while allocation/thread failures assert. */
-void ntg_launch(ntg_gui_fn gui_fn, void* data);
+/* -------------------------------------------------------------------------- */
 
-/* Joins the launched GUI thread. It returns immediately before any launch, but does not reset */
-/* launch state; repeated waits after one launch attempt to join the same stored thread again. */
-void ntg_wait();
-
+/* Joins the launched GUI thread. It returns immediately before any launch, but
+ * does not reset launch state; repeated waits after one launch attempt to join
+ * the same stored thread again. */
+NTG_API void
+ntg_wait();
 
 #endif // NTG_H

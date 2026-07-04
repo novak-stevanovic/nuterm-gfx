@@ -21,15 +21,12 @@ extern const ntg_type NTG_TYPE_OBJECT,
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* Checks whether `type` is `ancestor` or derives from it through the type parent chain. */
-
-/* RETURN VALUE: `true` when the relationship holds. Two `NULL` pointers also return `true`; */
-/*               exactly one `NULL` pointer returns `false`. */
-bool ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor);
+/* Checks whether `type` is `ancestor` or derives from it through the type
+ * parent chain. */
+NTG_API bool
+ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor);
 /* Compares two type descriptors by identity. */
-
-/* RETURN VALUE: `true` when both pointers designate the same type, including two `NULL` */
-/*               pointers; otherwise `false`. */
-bool ntg_type_are_equal(const ntg_type* type1, const ntg_type* type2);
+NTG_API bool
+ntg_type_are_equal(const ntg_type* type1, const ntg_type* type2);
 
 #endif // NTG_TYPE_H

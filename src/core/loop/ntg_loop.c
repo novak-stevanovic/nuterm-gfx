@@ -299,7 +299,8 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
         // Subtract time taken inside the loop iteration
         process_elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
             + (int64_t)(ts_end.tv_nsec - ts_start.tv_nsec);
-        // process_elapsed_ns = (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
+        // process_elapsed_ns =
+        //         (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
 
         process_elapsed_ms = process_elapsed_ns / 1000000LL;
         loop->_elapsed += (event_elapsed + process_elapsed_ms);

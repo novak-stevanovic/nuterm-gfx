@@ -89,7 +89,7 @@ SRC_CFLAGS_INCLUDE = -Iinclude $(DEP_CFLAGS)
 
 SO_FLAGS =
 ifeq ($(LIB_TYPE),so)
-    SO_FLAGS = -fPIC
+    SO_FLAGS = -DNTG_EXPORT -fvisibility=hidden -fPIC
 endif
 
 SRC_CFLAGS = -c $(SO_FLAGS) -pthread $(SRC_CFLAGS_STD) $(SRC_CFLAGS_INCLUDE) $(SRC_CFLAGS_MAKE) \

@@ -26,16 +26,20 @@ struct ntg_border_opts
     const struct ntg_border_style* style;
 };
 
-/* Creates default border options with the default style, zero preferred insets, and minimum */
-/* enable mode. */
+/* Creates default border options with the default style, zero preferred insets,
+ * and minimum enable mode.
+ *
+ * RETURN VALUE:
+ * The default `ntg_border_opts` value. */
+NTG_API struct ntg_border_opts
+ntg_border_opts_def();
 
-/* RETURN VALUE: The default `ntg_border_opts` value. */
-struct ntg_border_opts ntg_border_opts_def();
-/* Compares two border option values. Pointer identity counts as equal; otherwise a `NULL` value */
-/* differs from a non-`NULL` value. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when all relevant fields are equal; otherwise `false`. */
-bool ntg_border_opts_are_eq(
+/* Compares two border option values. Pointer identity counts as equal;
+ * otherwise a `NULL` value differs from a non-`NULL` value. */
+NTG_API bool
+ntg_border_opts_are_eq(
         const struct ntg_border_opts* opts1,
         const struct ntg_border_opts* opts2);
 
@@ -45,15 +49,20 @@ struct ntg_padding_opts
     struct ntg_insets pref_size;
 };
 
-/* Creates default padding options with zero preferred insets and minimum enable mode. */
+/* Creates default padding options with zero preferred insets and minimum enable
+ * mode.
+ *
+ * RETURN VALUE:
+ * The default `ntg_padding_opts` value. */
+NTG_API struct ntg_padding_opts
+ntg_padding_opts_def();
 
-/* RETURN VALUE: The default `ntg_padding_opts` value. */
-struct ntg_padding_opts ntg_padding_opts_def();
-/* Compares two padding option values. Pointer identity counts as equal; otherwise a `NULL` value */
-/* differs from a non-`NULL` value. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when all relevant fields are equal; otherwise `false`. */
-bool ntg_padding_opts_are_eq(
+/* Compares two padding option values. Pointer identity counts as equal;
+ * otherwise a `NULL` value differs from a non-`NULL` value. */
+NTG_API bool
+ntg_padding_opts_are_eq(
         const struct ntg_padding_opts* opts1,
         const struct ntg_padding_opts* opts2);
 

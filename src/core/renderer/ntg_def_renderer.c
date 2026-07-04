@@ -209,7 +209,8 @@ static void optimized_render(
             if(_uc_status != 0) return;
 
             nt_cursor_move(j, i, &_int);
-            // Every draw cell in this batch has the same gfx so we can just use the last one
+            /* Every draw cell in this batch has the same gfx, so the last one
+             * can be used. */
             nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, NULL);
 
             j += k;
@@ -261,7 +262,8 @@ static void full_render(
             if(_uc_status != 0) return;
 
             nt_cursor_move(j, i, &_int);
-            // Every draw cell in this batch has the same gfx so we can just use the last one
+            /* Every draw cell in this batch has the same gfx, so the last one
+             * can be used. */
             nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, NULL);
 
             j += k;

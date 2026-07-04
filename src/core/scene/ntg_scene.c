@@ -221,7 +221,8 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
     if(old_root) // already has root?
     {
         _ntg_object_root_set_scene(old_root, NULL);
-        // If an element is focused, _ntg_scene_rm_object_tree() will take care of it
+        /* If an element is focused, _ntg_scene_rm_object_tree() will take care
+         * of it. */
         _ntg_scene_rm_object_tree(scene, old_root);
     }
 

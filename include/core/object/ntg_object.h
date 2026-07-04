@@ -29,16 +29,20 @@ struct ntg_layout_opts
     int z_index;
 };
 
-/* Creates default layout options: unset minimum, maximum, and growth values on both axes, with */
-/* the default z-index. */
+/* Creates default layout options: unset minimum, maximum, and growth values on
+ * both axes, with the default z-index.
+ *
+ * RETURN VALUE:
+ * The default `ntg_layout_opts` value. */
+NTG_API struct ntg_layout_opts
+ntg_layout_opts_def();
 
-/* RETURN VALUE: The default `ntg_layout_opts` value. */
-struct ntg_layout_opts ntg_layout_opts_def();
-/* Compares two object layout option values. Pointer identity counts as equal; otherwise a `NULL` */
-/* value differs from a non-`NULL` value. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when all relevant fields are equal; otherwise `false`. */
-bool ntg_layout_opts_are_eq(
+/* Compares two object layout option values. Pointer identity counts as equal;
+ * otherwise a `NULL` value differs from a non-`NULL` value. */
+NTG_API bool
+ntg_layout_opts_are_eq(
         const struct ntg_layout_opts* opts1,
         const struct ntg_layout_opts* opts2);
 
@@ -184,140 +188,212 @@ struct ntg_object
 /* OBJECT TREE */
 /* -------------------------------------------------------------------------- */
 
-/* Counts every object in the ordinary parent/child subtree rooted at `root`, including `root` */
-/* itself. Anchored layer trees are not traversed. */
+/* Counts every object in the ordinary parent/child subtree rooted at `root`,
+ * including `root` itself. Anchored layer trees are not traversed.
+ *
+ * RETURN VALUE:
+ * The object count, or `0` when `root` is `NULL`. */
+NTG_API size_t
+ntg_object_get_tree_size(const ntg_object* root);
 
-/* RETURN VALUE: The object count, or `0` when `root` is `NULL`. */
-size_t ntg_object_get_tree_size(const ntg_object* root);
+/* -------------------------------------------------------------------------- */
 
-/* Finds the true root by climbing to each layer root and then following anchor-base links until */
-/* no base remains. */
+/* Finds the true root by climbing to each layer root and then following
+ * anchor-base links until no base remains.
+ *
+ * RETURN VALUE:
+ * The read-only true root, or `NULL` when `object` is `NULL`. */
+NTG_API const ntg_object*
+ntg_object_get_root(const ntg_object* object);
 
-/* RETURN VALUE: The read-only true root, or `NULL` when `object` is `NULL`. */
-const ntg_object* ntg_object_get_root(const ntg_object* object);
-/* Mutable counterpart of `ntg_object_get_root`. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: The true root, or `NULL` when `object` is `NULL`. */
-ntg_object* ntg_object_get_root_(ntg_object* object);
+/* Mutable counterpart of `ntg_object_get_root`.
+ *
+ * RETURN VALUE:
+ * The true root, or `NULL` when `object` is `NULL`. */
+NTG_API ntg_object*
+ntg_object_get_root_(ntg_object* object);
 
-/* Climbs only parent links to find the root of the object's current layer. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: The read-only layer root, or `NULL` when `object` is `NULL`. */
-const ntg_object* ntg_object_get_layer_root(const ntg_object* object);
-/* Mutable counterpart of `ntg_object_get_layer_root`. */
+/* Climbs only parent links to find the root of the object's current layer.
+ *
+ * RETURN VALUE:
+ * The read-only layer root, or `NULL` when `object` is `NULL`. */
+NTG_API const ntg_object*
+ntg_object_get_layer_root(const ntg_object* object);
 
-/* RETURN VALUE: The layer root, or `NULL` when `object` is `NULL`. */
-ntg_object* ntg_object_get_layer_root_(ntg_object* object);
+/* -------------------------------------------------------------------------- */
 
-/* Gets the scene registered on the object's true root. */
+/* Mutable counterpart of `ntg_object_get_layer_root`.
+ *
+ * RETURN VALUE:
+ * The layer root, or `NULL` when `object` is `NULL`. */
+NTG_API ntg_object*
+ntg_object_get_layer_root_(ntg_object* object);
 
-/* RETURN VALUE: The scene pointer, or `NULL` when the object is `NULL` or not in a scene. */
-ntg_scene* ntg_object_get_scene_(ntg_object* object);
-/* Gets the read-only scene registered on the object's true root. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: The scene pointer, or `NULL` when the object is `NULL` or not in a scene. */
-const ntg_scene* ntg_object_get_scene(const ntg_object* object);
+/* Gets the scene registered on the object's true root.
+ *
+ * RETURN VALUE:
+ * The scene pointer, or `NULL` when the object is `NULL` or not in a scene. */
+NTG_API ntg_scene*
+ntg_object_get_scene_(ntg_object* object);
+
+/* -------------------------------------------------------------------------- */
+
+/* Gets the read-only scene registered on the object's true root.
+ *
+ * RETURN VALUE:
+ * The scene pointer, or `NULL` when the object is `NULL` or not in a scene. */
+NTG_API const ntg_scene*
+ntg_object_get_scene(const ntg_object* object);
+
+/* -------------------------------------------------------------------------- */
 
 /* Checks whether an object has neither a parent nor an anchor base. */
-
-/* RETURN VALUE: `true` only for a true root; otherwise `false`, including for `NULL`. */
-bool ntg_object_is_true_root(const ntg_object* object);
-/* Checks whether an object has no ordinary parent. Anchored layer roots therefore count as */
-/* roots. */
-
-/* RETURN VALUE: `true` when `_parent` is `NULL`; otherwise `false`, including for a `NULL` */
-/*               object. */
-bool ntg_object_is_root(const ntg_object* object);
-/* Checks whether an object is an anchored layer root rather than the true root. */
-
-/* RETURN VALUE: `true` when the object has no parent but has an anchor base; otherwise `false`. */
-bool ntg_object_is_only_layer_root(const ntg_object* object);
+NTG_API bool
+ntg_object_is_true_root(const ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 
-/* Checks whether `descendant` is `object` itself or lies below it through parent links. */
+/* Checks whether an object has no ordinary parent. Anchored layer roots
+ * therefore count as roots. */
+NTG_API bool
+ntg_object_is_root(const ntg_object* object);
 
-/* RETURN VALUE: `true` for equality or an ordinary descendant relationship; otherwise `false`. */
-bool ntg_object_is_descendant(
-        const ntg_object* object,
-        const ntg_object* descendant);
-/* Checks whether two objects are equal or the second lies below the first through parent links. */
-/* This currently has the same inclusive semantics as `ntg_object_is_descendant`. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` for equality or an ordinary descendant relationship; otherwise `false`. */
-bool ntg_object_is_descendant_eq(
+/* Checks whether an object is an anchored layer root rather than the true
+ * root. */
+NTG_API bool
+ntg_object_is_only_layer_root(const ntg_object* object);
+
+/* -------------------------------------------------------------------------- */
+
+/* Checks whether `descendant` is `object` itself or lies below it through
+ * parent links. */
+NTG_API bool
+ntg_object_is_descendant(
         const ntg_object* object,
         const ntg_object* descendant);
 
 /* -------------------------------------------------------------------------- */
 
-/* Gets direct children sorted by ascending `z_index`. Passing `NULL` for `out_buff` performs a */
-/* count query; when a buffer is supplied, `cap` must hold every child. */
+/* Checks whether two objects are equal or the second lies below the first
+ * through parent links. This currently has the same inclusive semantics as
+ * `ntg_object_is_descendant`. */
+NTG_API bool
+ntg_object_is_descendant_eq(
+        const ntg_object* object,
+        const ntg_object* descendant);
 
-/* RETURN VALUE: The child count. Returns `0` for a `NULL` object, no children, or an undersized */
-/*               output buffer. */
-size_t ntg_object_get_children_by_z(
+/* -------------------------------------------------------------------------- */
+
+/* Gets direct children sorted by ascending `z_index`. Passing `NULL` for
+ * `out_buff` performs a count query; when a buffer is supplied, `cap` must hold
+ * every child.
+ *
+ * RETURN VALUE:
+ * The child count. Returns `0` for a `NULL` object, no children, or an
+ * undersized output buffer. */
+NTG_API size_t
+ntg_object_get_children_by_z(
         const ntg_object* object,
         ntg_object** out_buff,
         size_t cap);
 
-/* Recursively finds the deepest object under `pos`, preferring the direct child with the highest */
-/* `z_index`. `pos` is expressed in the starting object's local coordinates. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: The hit object, or `NULL` when the starting object is `NULL` or `pos` is outside */
-/*               it. `out_local_pos` receives coordinates local to the returned object. */
-ntg_object* ntg_object_hit_test(
+/* Recursively finds the deepest object under `pos`, preferring the direct child
+ * with the highest `z_index`. `pos` is expressed in the starting object's local
+ * coordinates.
+ *
+ * RETURN VALUE:
+ * The hit object, or `NULL` when the starting object is `NULL` or `pos` is
+ * outside it. `out_local_pos` receives coordinates local to the returned
+ * object. */
+NTG_API ntg_object*
+ntg_object_hit_test(
         ntg_object* object,
         struct ntg_xy pos,
         struct ntg_xy* out_local_pos);
 
 /* -------------------------------------------------------------------------- */
 
-/* Removes an object from its ordinary parent, updates scene registration when needed, invokes */
-/* parent/child hooks, and marks layout dirty. A root or `NULL` object is ignored. */
-void ntg_object_detach(ntg_object* object);
+/* Removes an object from its ordinary parent, updates scene registration when
+ * needed, invokes parent/child hooks, and marks layout dirty. A root or `NULL`
+ * object is ignored. */
+NTG_API void
+ntg_object_detach(ntg_object* object);
 
-/* Attaches `root` to `base` as an anchored layer using `policy`. Any existing parent or anchor */
-/* relationship on `root` is removed first, and the tree is registered in the base scene. */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `base`, `root`, or `policy` is `NULL`, or `base == root`. */
-/* - `NTG_ERR_MAX_ANCHORED`: `base` already has the maximum number of anchored roots. */
-/* - `NTG_ERR_ALLOC_FAIL`: the anchored-object vector cannot grow. */
-/* - `NTG_ERR_UNEXPECTED`: the vector insertion fails unexpectedly. */
-void ntg_object_anchor(
+/* Attaches `root` to `base` as an anchored layer using `policy`. Any existing
+ * parent or anchor relationship on `root` is removed first, and the tree is
+ * registered in the base scene.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `base`, `root`, or `policy` is `NULL`, or `base ==
+ *   root`.
+ * - `NTG_ERR_MAX_ANCHORED`: `base` already has the maximum number of anchored
+ *   roots.
+ * - `NTG_ERR_ALLOC_FAIL`: the anchored-object vector cannot grow.
+ * - `NTG_ERR_UNEXPECTED`: the vector insertion fails unexpectedly. */
+NTG_API void
+ntg_object_anchor(
         ntg_object* base,
         ntg_object* root,
         const struct ntg_anchor_policy* policy,
         int* out_status);
 
-/* Removes an anchored root from its base, updates scene bookkeeping, and invokes anchor and */
-/* base-change hooks. A `NULL` or non-anchored object is ignored. */
-void ntg_object_unanchor(ntg_object* root);
+/* -------------------------------------------------------------------------- */
 
-/* Removes an object by detaching it from a parent, unanchoring its layer, or clearing it as the */
-/* scene root, whichever relationship applies. */
-void ntg_object_remove_from_scene(ntg_object* object);
+/* Removes an anchored root from its base, updates scene bookkeeping, and
+ * invokes anchor and base-change hooks. A `NULL` or non-anchored object is
+ * ignored. */
+NTG_API void
+ntg_object_unanchor(ntg_object* root);
+
+/* -------------------------------------------------------------------------- */
+
+/* Removes an object by detaching it from a parent, unanchoring its layer, or
+ * clearing it as the scene root, whichever relationship applies. */
+NTG_API void
+ntg_object_remove_from_scene(ntg_object* object);
 
 /* -------------------------------------------------------------------------- */
 /* CONTROL */
 /* -------------------------------------------------------------------------- */
 
-/* Replaces layout options, using defaults for `NULL`. A changed value marks the complete object */
-/* pipeline dirty and invokes the layout-options hook; a `NULL` object is ignored. */
-void ntg_object_set_layout_opts(
+/* Replaces layout options, using defaults for `NULL`. A changed value marks the
+ * complete object pipeline dirty and invokes the layout-options hook; a `NULL`
+ * object is ignored. */
+NTG_API void
+ntg_object_set_layout_opts(
         ntg_object* object,
         const struct ntg_layout_opts* opts);
 
-/* Replaces border options, using defaults for `NULL`; a `NULL` style is replaced with the */
-/* default style. A changed value marks the complete object pipeline dirty and invokes the */
-/* border-options hook; a `NULL` object is ignored. */
-void ntg_object_set_border_opts(
+/* -------------------------------------------------------------------------- */
+
+/* Replaces border options, using defaults for `NULL`; a `NULL` style is
+ * replaced with the default style. A changed value marks the complete object
+ * pipeline dirty and invokes the border-options hook; a `NULL` object is
+ * ignored. */
+NTG_API void
+ntg_object_set_border_opts(
         ntg_object* object,
         const struct ntg_border_opts* opts);
-/* Replaces padding options, using defaults for `NULL`. A changed value marks the complete object */
-/* pipeline dirty and invokes the padding-options hook; a `NULL` object is ignored. */
-void ntg_object_set_padding_opts(
+
+/* -------------------------------------------------------------------------- */
+
+/* Replaces padding options, using defaults for `NULL`. A changed value marks
+ * the complete object pipeline dirty and invokes the padding-options hook; a
+ * `NULL` object is ignored. */
+NTG_API void
+ntg_object_set_padding_opts(
         ntg_object* object,
         const struct ntg_padding_opts* opts);
 
@@ -325,54 +401,73 @@ void ntg_object_set_padding_opts(
 /* SPACE MAPPING */
 /* -------------------------------------------------------------------------- */
 
-/* Maps a point from `object` coordinates toward `ancestor` coordinates by adding each visited */
-/* object position while climbing parent links. Passing `NULL` as `ancestor` maps to the top of */
-/* the current parent chain. */
-
-/* RETURN VALUE: `NTG_DXY_MAX` when `object` is `NULL`; otherwise the accumulated point. A */
-/*               non-`NULL` ancestor is not validated, so accumulation stops at the layer root if */
-/*               it is never reached. */
-struct ntg_dxy ntg_object_map_to_ancestor(
+/* Maps a point from `object` coordinates toward `ancestor` coordinates by
+ * adding each visited object position while climbing parent links. Passing
+ * `NULL` as `ancestor` maps to the top of the current parent chain.
+ *
+ * RETURN VALUE:
+ * `NTG_DXY_MAX` when `object` is `NULL`; otherwise the accumulated point. A
+ * non-`NULL` ancestor is not validated, so accumulation stops at the layer root
+ * if it is never reached. */
+NTG_API struct ntg_dxy
+ntg_object_map_to_ancestor(
         const ntg_object* object,
         const ntg_object* ancestor,
         struct ntg_dxy point);
 
-/* Maps a point into `descendant` coordinates by subtracting the position accumulated while */
-/* walking from `descendant` toward `object`. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `NTG_DXY_MAX` when `descendant` is `NULL`; otherwise the computed point. The */
-/*               function does not validate that `object` is an ancestor. */
-struct ntg_dxy ntg_object_map_to_descendant(
+/* Maps a point into `descendant` coordinates by subtracting the position
+ * accumulated while walking from `descendant` toward `object`.
+ *
+ * RETURN VALUE:
+ * `NTG_DXY_MAX` when `descendant` is `NULL`; otherwise the computed point. The
+ * function does not validate that `object` is an ancestor. */
+NTG_API struct ntg_dxy
+ntg_object_map_to_descendant(
         const ntg_object* object,
         const ntg_object* descendant,
         struct ntg_dxy point);
 
-/* Maps a point from object-local coordinates to the top of its ordinary parent chain. Layer-root */
-/* positions are treated as scene-space positions. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: The mapped signed coordinate, or `NTG_DXY_MAX` when `object` is `NULL`. */
-struct ntg_dxy 
+/* Maps a point from object-local coordinates to the top of its ordinary parent
+ * chain. Layer-root positions are treated as scene-space positions.
+ *
+ * RETURN VALUE:
+ * The mapped signed coordinate, or `NTG_DXY_MAX` when `object` is `NULL`. */
+NTG_API struct ntg_dxy
 ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
 
-/* Maps a scene-space point into object-local coordinates by subtracting positions along the */
-/* object parent chain. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: The mapped signed coordinate, or `NTG_DXY_MAX` when `object` is `NULL`. */
-struct ntg_dxy 
+/* Maps a scene-space point into object-local coordinates by subtracting
+ * positions along the object parent chain.
+ *
+ * RETURN VALUE:
+ * The mapped signed coordinate, or `NTG_DXY_MAX` when `object` is `NULL`. */
+NTG_API struct ntg_dxy
 ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 
 /* -------------------------------------------------------------------------- */
 /* EVENT */
 /* -------------------------------------------------------------------------- */
 
-/* Passes a key event to the object's key hook when present. */
+/* Passes a key event to the object's key hook when present.
+ *
+ * RETURN VALUE:
+ * `true` when the hook reports the event handled; otherwise `false`. */
+NTG_API bool
+ntg_object_feed_key(ntg_object* object, struct nt_key_event key);
 
-/* RETURN VALUE: `true` when the hook reports the event handled; otherwise `false`. */
-bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key);
-/* Passes a mouse event to the object's mouse hook when present. */
+/* -------------------------------------------------------------------------- */
 
-/* RETURN VALUE: `true` when the hook reports the event handled; otherwise `false`. */
-bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse);
+/* Passes a mouse event to the object's mouse hook when present.
+ *
+ * RETURN VALUE:
+ * `true` when the hook reports the event handled; otherwise `false`. */
+NTG_API bool
+ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse);
 
 /* -------------------------------------------------------------------------- */
 /* TRAVERSE HELPERS */
@@ -408,50 +503,62 @@ static void fn_name(ntg_object* object, void* data)                            \
 /* PROTECTED */
 /* ========================================================================== */
 
-/* Initializes the base object, copies its virtual table and type descriptor, and creates empty */
-/* child, anchor, decorator, and drawing state. */
-
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `object` or `type` is `NULL`. */
-/* - `NTG_ERR_INVALID_TYPE`: `type` is not `NTG_TYPE_OBJECT` or derived from it. */
-/* - `NTG_ERR_BAD_VTABLE`: `layout_ops` is `NULL`. */
-/* - `NTG_ERR_ALLOC_FAIL`: an object-owned vector cannot be allocated. */
-/* - `NTG_ERR_UNEXPECTED`: vector initialization fails for another reason. */
-void ntg_object_init(
+/* Initializes the base object, copies its virtual table and type descriptor,
+ * and creates empty child, anchor, decorator, and drawing state.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `object` or `type` is `NULL`.
+ * - `NTG_ERR_INVALID_TYPE`: `type` is not `NTG_TYPE_OBJECT` or derived from it.
+ * - `NTG_ERR_BAD_VTABLE`: `layout_ops` is `NULL`.
+ * - `NTG_ERR_ALLOC_FAIL`: an object-owned vector cannot be allocated.
+ * - `NTG_ERR_UNEXPECTED`: vector initialization fails for another reason. */
+NTG_API void
+ntg_object_init(
         ntg_object* object,
         const struct ntg_object_vtable* layout_ops,
         const ntg_type* type,
         int* out_status);
-/* Removes the object from its scene, parent, or base; detaches all ordinary children; releases */
-/* its child vectors and drawing; then resets the base object. Anchored objects stored by this */
-/* object and derived `layout_cache` memory are not deinitialized or freed here. */
-void ntg_object_deinit(ntg_object* object);
 
-/* Attaches `child` to `parent`, first detaching the child from any parent, scene-root, or anchor */
-/* relationship. It updates scene registration and invokes tree hooks; intended for derived */
-/* container types. */
+/* -------------------------------------------------------------------------- */
 
-/* ERROR CODES: */
-/* - `NTG_ERR_INVALID_ARG`: `parent` or `child` is `NULL`, or `parent == child`. */
-/* - `NTG_ERR_MAX_CHILDREN`: `parent` already has the maximum number of children. */
-/* - `NTG_ERR_ALLOC_FAIL`: the child vector cannot grow. */
-/* - `NTG_ERR_UNEXPECTED`: the vector insertion fails unexpectedly. */
-void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
+/* Removes the object from its scene, parent, or base; detaches all ordinary
+ * children; releases its child vectors and drawing; then resets the base
+ * object. Anchored objects stored by this object and derived `layout_cache`
+ * memory are not deinitialized or freed here. */
+NTG_API void
+ntg_object_deinit(ntg_object* object);
 
-/* Assigns the base virtual cell unconditionally and marks drawing and rendering dirty. A `NULL` */
-/* object is ignored. */
+/* -------------------------------------------------------------------------- */
+
+/* Attaches `child` to `parent`, first detaching the child from any parent,
+ * scene-root, or anchor relationship. It updates scene registration and invokes
+ * tree hooks; intended for derived container types.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `parent` or `child` is `NULL`, or `parent == child`.
+ * - `NTG_ERR_MAX_CHILDREN`: `parent` already has the maximum number of
+ *   children.
+ * - `NTG_ERR_ALLOC_FAIL`: the child vector cannot grow.
+ * - `NTG_ERR_UNEXPECTED`: the vector insertion fails unexpectedly. */
+NTG_API void
+ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
+
+/* -------------------------------------------------------------------------- */
+
+/* Assigns the base virtual cell unconditionally and marks drawing and rendering
+ * dirty. A `NULL` object is ignored. */
 void _ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
 
-/* Sets the scene pointer stored by a true root. This low-level helper does not register or */
-/* unregister the tree. */
+/* Sets the scene pointer stored by a true root. This low-level helper does not
+ * register or unregister the tree. */
 void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
 
-/* Resets the object’s temporary horizontal-decorator skip flags and layout-repeat flag. The */
-/* supplied scene pointer is currently unused. */
+/* Resets the object’s temporary horizontal-decorator skip flags and
+ * layout-repeat flag. The supplied scene pointer is currently unused. */
 void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
 
 #endif // NTG_OBJECT_H
