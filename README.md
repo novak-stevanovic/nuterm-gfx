@@ -1,14 +1,18 @@
 # Nuterm-GFX - Work in progress
 
-__Nuterm-GFX__ is a retained-mode terminal GUI library written in C. It features a __multi-pass layout process__ (inspired by GTK) that relies on arena allocation for __high performance__. The library is built from the ground up with strong __modularity__. The codebase was intentionally written in an __OOP-inspired style__, but without heavy abstractions. This combination makes the process of adding new widgets straightforward.
+**Nuterm-GFX** is a retained-mode terminal GUI library written in C. It is built around a **multi-pass layout system** inspired by GTK, with arena-based memory management for **high performance** and predictable allocation behavior.
 
-It also provides __UTF-32 support__ for correct handling of Unicode text and __asynchronous task execution__ on worker threads while maintaining __cross-terminal compatibility__.
+The library is designed with strong **modularity** and an **OOP-inspired architecture**, while avoiding heavy abstractions. This makes the codebase easier to extend and keeps the process of adding new widgets straightforward.
+
+Nuterm-GFX also provides **UTF-32 text support**, **asynchronous task execution** through worker threads, and aims to maintain **cross-terminal compatibility**.
+
+This project was developed entirely by me, including all of its dependencies.
 
 # Dependencies
 
 The library is built on top of [Nuterm](https://github.com/novak-stevanovic/nuterm), which abstracts differences between terminal emulators and handles escape sequences, input events, and output buffering. To fetch compile and link flags, pkg-config is used. This means that, when compiling the library, pkg-config must be able to locate the Nuterm's .pc file.
 
-Additionally, this library relies on [UConv](https://github.com/novak-stevanovic/uconv) for its UTF-32 conversion needs, [SArena](https://github.com/novak-stevanovic/sarena) for arena allocation, [Gen-C](https://github.com/novak-stevanovic/genc) for generic containers and [uthash](https://github.com/troydhanson/uthash) for a hashmap implementation. All of this is bundled internally.
+Additionally, this library relies on [UConv](https://github.com/novak-stevanovic/uconv) for its UTF-32 conversion needs, [SArena](https://github.com/novak-stevanovic/sarena) for arena allocation and [Gen-C](https://github.com/novak-stevanovic/genc) for generic containers. All of this is bundled internally.
 
 ## Makefile instructions:
 
