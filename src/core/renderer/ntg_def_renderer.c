@@ -104,7 +104,11 @@ void _ntg_def_renderer_render_fn(
     else
     {
         if(resize)
+        {
+            nt_erase_screen(NULL);
+            nt_erase_scrollback(NULL);
             full_render(renderer, stage_drawing, size, arena);
+        }
         else
             optimized_render(renderer, stage_drawing, size, old_size, arena);
     }

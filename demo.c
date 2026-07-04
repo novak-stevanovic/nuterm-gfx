@@ -143,8 +143,14 @@ bool sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse)
     return true;
 }
 
-void gui_fn1(void* _)
+int main(int argc, char *argv[])
 {
+    int _status;
+    struct ntg_opts opts = ntg_opts_def();
+    // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
+    ntg_enable(&opts, "/home/novak/Desktop/ntg_log.txt", &_status);
+    assert(!_status);
+
     batch = ntg_cleanup_batch_new();
 
     // INIT BORDER
@@ -158,8 +164,6 @@ void gui_fn1(void* _)
     init_sflt_label();
     init_root();
     init_fs();
-
-    int _status;
 
     ntg_scene_init(&scene, &_status);
     ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_, NULL, &_status);
@@ -184,19 +188,8 @@ void gui_fn1(void* _)
     ntg_log_log("LOOP END | STATUS: %d", loop_status);
 
     ntg_cleanup_batch_finish(batch);
-}
 
-int main(int argc, char *argv[])
-{
-    ntg_init();
-
-    ntg_launch(gui_fn1, NULL);
-
-    ntg_wait();
-
-    ntg_deinit();
-
-    // printf("%lu", sizeof(struct ntg_border_style_custom_dt));
+    ntg_disable();
 
     return 0;
 }

@@ -17,82 +17,94 @@
 
 /* -------------------------------------------------------------------------- */
 
-static pthread_t ntg_thread;
-static bool launched = false;
+struct ntg_opts ntg_opts_def(void)
+{
+    return (struct ntg_opts) {
+        .mouse_mode = NTG_MOUSE_ENABLE,
+        .alt_screen_mode = NTG_ALT_SCREEN_ENABLE,
+        .cursor_mode = NTG_CURSOR_HIDE,
+        .unsupported_term_mode = NTG_UNSUPPORTED_TERM_IGNORE
+    };
+}
 
-static void* ntg_thread_fn(void* _data);
+static bool _enabled = false;
+static struct ntg_opts _opts = {0};
 
 /* -------------------------------------------------------------------------- */
 
-void ntg_init()
+void ntg_enable(
+        const struct ntg_opts* opts,
+        const char* log_filepath,
+        int* out_status)
 {
-    ntg_log_init("ntg_log.txt");
+    ntg_init_status(out_status);
 
     int _status;
+
+    _opts = (opts ? (*opts) : ntg_opts_def());
+
+    if(log_filepath != NULL)
+    {
+        ntg_log_init(log_filepath, &_status);
+        if(_status)
+            ntg_vreturn(out_status, _status);
+    }
+
     nt_init(&_status);
 
     switch(_status)
     {
-        // TODO handle other cases
         case 0:
             break;
+        case NT_ERR_TERM_NOT_SUPP:
+            if(_opts.unsupported_term_mode == NTG_UNSUPPORTED_TERM_IGNORE)
+                break;
+
+            ntg_log_deinit();
+            ntg_vreturn(out_status, NTG_ERR_UNSUPP_TERM);
         default:
-            assert(0);
+            ntg_log_deinit();
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
+
+    int alt_screen_err = 0;
+
+    if(_opts.mouse_mode == NTG_MOUSE_ENABLE)
+        nt_mouse_mode_enable(NULL);
+
+    if(_opts.cursor_mode == NTG_CURSOR_HIDE)
+        nt_cursor_hide(NULL);
+
+    if(_opts.alt_screen_mode == NTG_ALT_SCREEN_ENABLE)
+        nt_alt_screen_enable(&alt_screen_err);
+    if(alt_screen_err)
+        _opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
+
+    _enabled = true;
 }
 
-struct thread_fn_data
+void ntg_disable(void)
 {
-    ntg_gui_fn gui_fn;
-    void* gui_fn_data;
-};
+    if(!_enabled) return;
 
-void ntg_launch(ntg_gui_fn gui_fn, void* data)
-{
-    assert(launched == false);
-    if(gui_fn == NULL) return;
+    if(_opts.mouse_mode == NTG_MOUSE_ENABLE)
+        nt_mouse_mode_disable(NULL);
 
-    nt_alt_screen_enable(NULL);
-    nt_cursor_hide(NULL);
-    nt_mouse_mode_enable(NULL);
+    if(_opts.cursor_mode == NTG_CURSOR_HIDE)
+        nt_cursor_show(NULL);
 
-    struct thread_fn_data* thread_fn_data = malloc(sizeof(struct thread_fn_data));
-    assert(thread_fn_data != NULL);
+    if(_opts.alt_screen_mode == NTG_ALT_SCREEN_ENABLE)
+        nt_alt_screen_disable(NULL);
+    else
+    {
+        nt_erase_screen(NULL);
+        nt_erase_scrollback(NULL);
+        nt_cursor_move(0, 0, NULL);
+    }
 
-    thread_fn_data->gui_fn = gui_fn;
-    thread_fn_data->gui_fn_data = data;
+    nt_deinit(NULL);
 
-    int status = pthread_create(&ntg_thread, NULL, ntg_thread_fn, thread_fn_data);
+    ntg_log_deinit();
 
-    assert(status == 0);
-
-    launched = true;
-}
-
-void ntg_wait()
-{
-    if(!launched) return;
-
-    pthread_join(ntg_thread, NULL);
-}
-
-void ntg_deinit()
-{
-    nt_cursor_show(NULL);
-    nt_alt_screen_disable(NULL);
-    nt_mouse_mode_disable(NULL);
-    nt_deinit();
-
-   ntg_log_deinit();
-}
-
-static void* ntg_thread_fn(void* _data)
-{
-    struct thread_fn_data* data = (struct thread_fn_data*)_data;
-
-    data->gui_fn(data->gui_fn_data);
-
-    free(data);
-
-    return NULL;
+    _enabled = false;
 }

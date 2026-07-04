@@ -162,7 +162,7 @@ void ntg_loop_deinit_(void* _loop)
     ntg_loop_deinit(_loop, NULL);
 }
 
-ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
+enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
 {
     ntg_init_status(out_status);
 

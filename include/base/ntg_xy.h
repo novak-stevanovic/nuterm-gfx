@@ -162,6 +162,8 @@ ntg_xy_is_lesser(struct ntg_xy a, struct ntg_xy b)
     return ((a.x < b.x) && (a.y < b.y));
 }
 
+/* Checks whether both components of `a` are less than or equal to the
+ * corresponding components of `b`. */
 static inline bool
 ntg_xy_is_lesser_eq(struct ntg_xy a, struct ntg_xy b)
 {

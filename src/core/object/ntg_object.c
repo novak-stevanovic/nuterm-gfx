@@ -1702,7 +1702,7 @@ static int tmp_drawing_init(
     drawing->data = NULL;
     drawing->size = ntg_xy(0, 0);
 
-    drawing->data = sarena_malloc(arena,
+    drawing->data = sarena_malloc(arena, 1 +
         sizeof(struct ntg_vcell) * size.x * size.y);
     if(!drawing->data) return NTG_ERR_ALLOC_FAIL;
     drawing->size = size;

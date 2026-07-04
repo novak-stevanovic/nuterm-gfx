@@ -42,7 +42,30 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-typedef void (*ntg_gui_fn)(void* data);
+enum ntg_mouse_mode { NTG_MOUSE_ENABLE, NTG_MOUSE_DISABLE };
+enum ntg_alt_screen_mode { NTG_ALT_SCREEN_ENABLE, NTG_ALT_SCREEN_DISABLE };
+enum ntg_cursor_mode { NTG_CURSOR_HIDE, NTG_CURSOR_SHOW };
+enum ntg_unsupported_term_mode
+{
+    NTG_UNSUPPORTED_TERM_IGNORE,
+    NTG_UNSUPPORTED_TERM_STOP
+};
+
+struct ntg_opts
+{
+    enum ntg_mouse_mode mouse_mode;
+    enum ntg_alt_screen_mode alt_screen_mode;
+    enum ntg_cursor_mode cursor_mode;
+    enum ntg_unsupported_term_mode unsupported_term_mode;
+};
+
+/* Returns the default options used when `ntg_enable()` receives `NULL` opts.
+ *
+ * RETURN VALUE:
+ * Mouse input and the alternate screen are enabled, the cursor is hidden, and
+ * unsupported terminals are ignored. */
+NTG_API struct ntg_opts
+ntg_opts_def(void);
 
 /* ========================================================================== */
 /* PUBLIC - FUNCTIONS */
@@ -52,34 +75,27 @@ typedef void (*ntg_gui_fn)(void* data);
 /* INIT/DEINIT */
 /* -------------------------------------------------------------------------- */
 
-/* Initializes logging to `ntg_log.txt` and initializes the terminal backend.
- * Backend initialization failure triggers an assertion. */
+/* Initializes the underlying terminal library and applies the requested
+ * terminal modes. Passing `NULL` for `opts` uses `ntg_opts_def()`. Passing
+ * `NULL` for `log_filepath` disables file logging.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_LOG_INIT_FAIL`: the log file cannot be opened.
+ * - `NTG_ERR_UNSUPP_TERM`: the terminal is unsupported and the selected
+ *   unsupported-terminal mode is `NTG_UNSUPPORTED_TERM_STOP`.
+ * - `NTG_ERR_UNEXPECTED`: terminal initialization fails unexpectedly. */
 NTG_API void
-ntg_init();
+ntg_enable(
+        const struct ntg_opts* opts,
+        const char* log_filepath,
+        int* out_status);
 
 /* -------------------------------------------------------------------------- */
 
-/* Restores terminal cursor, alternate-screen, and mouse modes, then
- * deinitializes the terminal library and logging. */
+/* Restores terminal modes changed by `ntg_enable()`, shuts down the underlying
+ * terminal library, and closes the active log. Calling it before
+ * `ntg_enable()` has no effect. */
 NTG_API void
-ntg_deinit();
-
-/* -------------------------------------------------------------------------- */
-/* LAUNCH */
-/* -------------------------------------------------------------------------- */
-
-/* Enables terminal UI modes and starts `gui_fn(data)` on the library GUI
- * thread. Only one launch is allowed at a time; a `NULL` callback is ignored,
- * while allocation/thread failures assert. */
-NTG_API void
-ntg_launch(ntg_gui_fn gui_fn, void* data);
-
-/* -------------------------------------------------------------------------- */
-
-/* Joins the launched GUI thread. It returns immediately before any launch, but
- * does not reset launch state; repeated waits after one launch attempt to join
- * the same stored thread again. */
-NTG_API void
-ntg_wait();
+ntg_disable(void);
 
 #endif // NTG_H

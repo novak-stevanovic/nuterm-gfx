@@ -30,10 +30,7 @@ struct ntg_layout_opts
 };
 
 /* Creates default layout options: unset minimum, maximum, and growth values on
- * both axes, with the default z-index.
- *
- * RETURN VALUE:
- * The default `ntg_layout_opts` value. */
+ * both axes, with the default z-index. */
 NTG_API struct ntg_layout_opts
 ntg_layout_opts_def();
 
