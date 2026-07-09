@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
-struct ntg_box_layout_cache
+struct box_layout_cache
 {
     struct ntg_object_measure measure[2];
 };
@@ -96,7 +96,7 @@ void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status
     box->_opts = ntg_box_opts_def();
     box->hooks = (struct ntg_box_hooks) {0};
 
-    ((ntg_object*)box)->layout_cache = malloc(sizeof(struct ntg_box_layout_cache));
+    ((ntg_object*)box)->layout_cache = malloc(sizeof(struct box_layout_cache));
     if(!((ntg_object*)box)->layout_cache)
     {
         ntg_object_deinit((ntg_object*)box);
@@ -201,7 +201,7 @@ static struct ntg_object_measure measure_fn(
 {
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
-    struct ntg_box_layout_cache* layout_cache = _layout_cache;
+    struct box_layout_cache* layout_cache = _layout_cache;
 
     if(children->size == 0) return (struct ntg_object_measure) {0};
 
@@ -257,7 +257,7 @@ static void constrain_fn(
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
     size_t size = ntg_object_get_size_1d_cont(_box, orient);
-    struct ntg_box_layout_cache* layout_cache = _layout_cache;
+    struct box_layout_cache* layout_cache = _layout_cache;
 
     if(children->size == 0) return;
 
