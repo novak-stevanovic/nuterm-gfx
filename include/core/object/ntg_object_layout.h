@@ -36,9 +36,9 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* MEASURE PHASE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 struct ntg_object_measure
 {
@@ -57,9 +57,9 @@ static inline bool ntg_object_measure_are_equal(
             (m1.grow == m2.grow));
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* CONSTRAIN PHASE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Looks up the constrained size associated with `object` in a temporary size
  * map.
@@ -72,7 +72,7 @@ ntg_object_size_map_get(
         const ntg_object_size_map* map,
         const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Stores a constrained size for an object already represented in the temporary
  * size map. Invalid or absent entries are ignored. */
@@ -82,9 +82,9 @@ ntg_object_size_map_set(
         const ntg_object* object,
         size_t size);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* ARRANGE PHASE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Looks up the arranged position associated with `object` in a temporary
  * position map.
@@ -97,7 +97,7 @@ ntg_object_pos_map_get(
         const ntg_object_pos_map* map,
         const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Stores an arranged position for an object already represented in the
  * temporary position map. Invalid or absent entries are ignored. */
@@ -107,9 +107,9 @@ ntg_object_pos_map_set(
         const ntg_object* object,
         struct ntg_xy pos);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* DRAW PHASE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 struct ntg_object_tmp_drawing
 {
@@ -155,9 +155,9 @@ static inline void ntg_object_tmp_drawing_set(
 NTG_API void
 ntg_object_mark_dirty(ntg_object* object, uint8_t dirty);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* MEASURE & SIZE HELPERS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's minimum outer size.
  *
@@ -166,7 +166,7 @@ ntg_object_mark_dirty(ntg_object* object, uint8_t dirty);
 NTG_API struct ntg_xy
 ntg_object_get_min_size(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's natural outer size.
  *
@@ -175,7 +175,7 @@ ntg_object_get_min_size(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_nat_size(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's maximum outer size.
  *
@@ -184,7 +184,7 @@ ntg_object_get_nat_size(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_max_size(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's current arranged outer size.
  *
@@ -193,7 +193,7 @@ ntg_object_get_max_size(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_size(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets minimum, natural, maximum, and growth values for one axis of the
  * object's outer box.
@@ -203,7 +203,7 @@ ntg_object_get_size(const ntg_object* object);
 NTG_API struct ntg_object_measure
 ntg_object_get_measure(const ntg_object* object, ntg_orient orient);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the current outer size along `orient`.
  *
@@ -212,7 +212,7 @@ ntg_object_get_measure(const ntg_object* object, ntg_orient orient);
 NTG_API size_t
 ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's minimum content-box size.
  *
@@ -221,7 +221,7 @@ ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
 NTG_API struct ntg_xy
 ntg_object_get_min_size_cont(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's natural content-box size.
  *
@@ -230,7 +230,7 @@ ntg_object_get_min_size_cont(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_nat_size_cont(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's maximum content-box size.
  *
@@ -239,7 +239,7 @@ ntg_object_get_nat_size_cont(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_max_size_cont(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's current content-box size.
  *
@@ -248,7 +248,7 @@ ntg_object_get_max_size_cont(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_size_cont(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets minimum, natural, maximum, and growth values for one axis of the
  * object's content box.
@@ -258,7 +258,7 @@ ntg_object_get_size_cont(const ntg_object* object);
 NTG_API struct ntg_object_measure
 ntg_object_get_measure_cont(const ntg_object* object, ntg_orient orient);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the current content-box size along `orient`.
  *
@@ -267,7 +267,7 @@ ntg_object_get_measure_cont(const ntg_object* object, ntg_orient orient);
 NTG_API size_t
 ntg_object_get_size_1d_cont(const ntg_object* object, ntg_orient orient);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the content-width constraint used during vertical measurement;
  * horizontal measurement has no for-size constraint.
@@ -278,7 +278,7 @@ ntg_object_get_size_1d_cont(const ntg_object* object, ntg_orient orient);
 NTG_API size_t
 ntg_object_get_for_size_cont(const ntg_object* object, ntg_orient orient);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's minimum padding-box size, excluding the border.
  *
@@ -287,7 +287,7 @@ ntg_object_get_for_size_cont(const ntg_object* object, ntg_orient orient);
 NTG_API struct ntg_xy
 ntg_object_get_min_size_pad(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's natural padding-box size, excluding the border.
  *
@@ -296,7 +296,7 @@ ntg_object_get_min_size_pad(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_nat_size_pad(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's maximum padding-box size, excluding the border.
  *
@@ -305,7 +305,7 @@ ntg_object_get_nat_size_pad(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_max_size_pad(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the object's current padding-box size, excluding the border.
  *
@@ -314,7 +314,7 @@ ntg_object_get_max_size_pad(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_size_pad(const ntg_object* object);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets minimum, natural, maximum, and growth values for one axis of the
  * object's padding box.
@@ -324,7 +324,7 @@ ntg_object_get_size_pad(const ntg_object* object);
 NTG_API struct ntg_object_measure
 ntg_object_get_measure_pad(const ntg_object* object, ntg_orient orient);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the current padding-box size along `orient`.
  *

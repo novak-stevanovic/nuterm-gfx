@@ -23,7 +23,7 @@ struct ntg_prog_bar_style
 NTG_API struct ntg_prog_bar_style
 ntg_prog_bar_style_def();
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Compares two progress-bar style values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
@@ -45,7 +45,7 @@ struct ntg_prog_bar_opts
 NTG_API struct ntg_prog_bar_opts
 ntg_prog_bar_opts_def();
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Compares two progress-bar option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
@@ -80,9 +80,9 @@ struct ntg_prog_bar
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes the base progress-bar object and applies options, using defaults
  * for `NULL`. The current implementation does not assign `_prog`; callers must
@@ -98,31 +98,31 @@ ntg_prog_bar_init(
         const struct ntg_prog_bar_opts* opts,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Releases resources owned by a progress bar. Passing `NULL` has no effect. */
 NTG_API void
 ntg_prog_bar_deinit(ntg_prog_bar* prog_bar);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Void-pointer adapter for `ntg_prog_bar_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
 ntg_prog_bar_deinit_(void* _prog_bar);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* OPTS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Updates progress-bar orientation and cell styles. A `NULL` options pointer
  * applies defaults; unchanged options are ignored. */
 NTG_API void
 ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* PROGRESS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Processes a requested progress value. Requests above `1.0` are clamped for
  * the hook, the object is marked for redraw, and the hook is invoked when the

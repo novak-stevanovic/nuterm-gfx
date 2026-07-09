@@ -25,9 +25,9 @@ struct ntg_xy;
 struct ntg_insets;
 struct ntg_object_measure;
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* BASE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 typedef enum ntg_gfx_type ntg_gfx_type;
 typedef struct ntg_cell_grid ntg_cell_grid;
@@ -44,9 +44,9 @@ typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_binding ntg_event_binding;
 typedef struct ntg_cleanup_batch ntg_cleanup_batch;
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* CORE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 typedef struct ntg_loop ntg_loop;
 typedef enum ntg_loop_status ntg_loop_status;

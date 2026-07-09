@@ -58,9 +58,9 @@ static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 
 static void on_child_rm_fn(ntg_object* _box, ntg_object* child);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* PUBLIC API */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status)
 {
@@ -189,9 +189,9 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
         box->hooks.on_child_rm_fn(box, child);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INTERNAL/PROTECTED */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static struct ntg_object_measure measure_fn(
         const ntg_object* _box,

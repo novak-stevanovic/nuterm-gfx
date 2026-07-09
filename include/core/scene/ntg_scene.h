@@ -38,9 +38,9 @@ struct ntg_scene_hooks
     void (*on_layer_rm_fn)(ntg_scene* scene, ntg_object* layer_root);
 };
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* SCENE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 struct ntg_scene_layer_node;
 
@@ -65,9 +65,9 @@ struct ntg_scene
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes an empty scene and its focus manager.
  *
@@ -78,7 +78,7 @@ struct ntg_scene
 NTG_API void
 ntg_scene_init(ntg_scene* scene, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Detaches the scene from its stage, releases focus-manager storage, and resets
  * the scene structure. The current implementation does not explicitly
@@ -86,23 +86,23 @@ ntg_scene_init(ntg_scene* scene, int* out_status);
 NTG_API void
 ntg_scene_deinit(ntg_scene* scene);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Void-pointer adapter for `ntg_scene_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
 ntg_scene_deinit_(void* _scene);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Marks the scene and its stage for a new layout/composition pass. A `NULL`
  * scene is ignored. */
 NTG_API void
 ntg_scene_mark_dirty(ntg_scene* scene);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* GENERAL */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Finds the highest-z scene layer under `pos`, then recursively finds the
  * deepest object in that layer. When non-`NULL`, `out_object_pos` receives a
@@ -121,7 +121,7 @@ ntg_scene_hit_test(
         struct ntg_xy* out_object_pos,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Collects the scene root and every anchored layer root, sorted by ascending
  * `z_index`. Passing `NULL` for `out_layers` performs a count query; a limited
@@ -136,7 +136,7 @@ ntg_scene_collect_layers_by_z(
         ntg_object** out_layers,
         size_t cap);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Replaces the scene root and updates registration hooks. A true root is
  * removed from its previous scene, while an anchored layer root is unanchored
@@ -147,9 +147,9 @@ ntg_scene_collect_layers_by_z(
 NTG_API void
 ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* EVENT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Default scene key handler that forwards the event to the focus manager.
  *
@@ -158,7 +158,7 @@ ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status);
 NTG_API bool
 ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Default scene mouse handler that forwards the event to the focus manager.
  *
@@ -167,7 +167,7 @@ ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key);
 NTG_API bool
 ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Invokes the scene key hook when present.
  *
@@ -176,7 +176,7 @@ ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 NTG_API bool
 ntg_scene_feed_key(ntg_scene* scene, struct nt_key_event key);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Invokes the scene mouse hook when present.
  *

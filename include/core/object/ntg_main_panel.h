@@ -20,7 +20,7 @@ struct ntg_main_panel_opts
 NTG_API struct ntg_main_panel_opts
 ntg_main_panel_opts_def();
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Compares two main-panel option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
@@ -65,9 +65,9 @@ struct ntg_main_panel
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes a five-region main panel and its base object. A `NULL` options
  * pointer selects defaults.
@@ -82,23 +82,23 @@ ntg_main_panel_init(
         const struct ntg_main_panel_opts* opts,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Detaches region children and releases resources owned by a main panel.
  * Passing `NULL` has no effect. */
 NTG_API void
 ntg_main_panel_deinit(ntg_main_panel* panel);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Void-pointer adapter for `ntg_main_panel_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
 ntg_main_panel_deinit_(void* _panel);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* CHILDREN */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Replaces the object in one north/east/south/west/center region. Passing
  * `NULL` as `object` clears that region; the previous child is detached.
@@ -117,9 +117,9 @@ ntg_main_panel_set(
         enum ntg_main_panel_pos pos,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* OPTS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Updates the main-panel background. A `NULL` options pointer applies defaults;
  * unchanged options are ignored. */

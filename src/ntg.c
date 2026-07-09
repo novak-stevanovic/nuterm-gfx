@@ -15,7 +15,7 @@
 #define GENC_IMPLEMENTATION
 #include "thirdparty/genc.h"
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 struct ntg_opts ntg_opts_def(void)
 {
@@ -30,7 +30,7 @@ struct ntg_opts ntg_opts_def(void)
 static bool _enabled = false;
 static struct ntg_opts _opts = {0};
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 void ntg_enable(
         const struct ntg_opts* opts,

@@ -21,9 +21,9 @@
  * THE SOFTWARE. 
  */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* START */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 #ifndef SARENA_H
 #define SARENA_H
@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* SArena is a simple thread-safe arena allocator. It contains regions organized
  * into a region list. When the tail of the region list runs out of memory in
@@ -54,7 +54,7 @@ extern "C" {
 struct sarena;
 typedef struct sarena sarena;
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Dynamically allocates memory for 'struct sarena' and initializes it. 
  * Dynamically allocates memory for the first memory region, initializes it
@@ -73,7 +73,7 @@ typedef struct sarena sarena;
 
 sarena* sarena_create(size_t region_cap);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Destroys the arena. This will destroy every region inside the region list.
  * 'Destroying a region implies freeing the memory occupied by the region's
@@ -82,7 +82,7 @@ sarena* sarena_create(size_t region_cap);
 
 void sarena_destroy(sarena* arena);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* This function allocates memory within the arena. It finds the currently active
  * region in the list and attempts to allocate the requested memory size within
@@ -104,7 +104,7 @@ void sarena_destroy(sarena* arena);
 
 void* sarena_malloc(sarena* arena, size_t size);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* This function allocates a zero-initialized memory block of the given size 
  * from the SArena. It behaves similarly to sarena_malloc, but ensures that
@@ -114,7 +114,7 @@ The return value and possible errors are the same as those for sarena_malloc. */
 
 void* sarena_calloc(sarena* arena, size_t size);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* This function resets the arena by marking all allocated memory within
  * existing regions as available for reuse. It does not free any memory
@@ -124,7 +124,7 @@ void* sarena_calloc(sarena* arena, size_t size);
 
 void sarena_rewind(sarena* arena);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* This function deallocates all allocated regions except the first one.
  * This means that all memory occupied by those regions will be freed.
@@ -140,16 +140,16 @@ void sarena_reset(sarena* arena);
 
 #endif // _SARENA_H_
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* IMPLEMENTATION */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 #ifdef SARENA_IMPLEMENTATION
 
 #include <string.h>
 #include <stdlib.h>
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 typedef struct sa_region sa_region;
 typedef struct sa_region_list sa_region_list;
@@ -166,7 +166,7 @@ struct sa_region
 static sa_region* _sa_region_alloc(size_t total_cap);
 static void _sa_region_destroy(sa_region* region);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 struct sa_region_list
 {
@@ -180,9 +180,9 @@ static void _sa_region_list_init(sa_region_list* list);
 static int _sa_region_list_push_back(sa_region_list* list, size_t total_cap);
 static void _sa_region_list_pop_front(sa_region_list* list);
 
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
+/* ------------------------------------------------------ */
+/* ------------------------------------------------------ */
 
 struct sarena
 {
@@ -228,7 +228,7 @@ static void _sa_region_destroy(sa_region* region)
     free(region);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static void _sa_region_list_init(sa_region_list* list)
 {
@@ -278,12 +278,12 @@ static void _sa_region_list_pop_front(sa_region_list* list)
     list->_count--;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static int _sarena_init(sarena* arena, size_t region_cap);
 static void* _sarena_malloc(sarena* arena, size_t size);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 sarena* sarena_create(size_t region_cap)
 {
@@ -361,7 +361,7 @@ void sarena_reset(sarena* arena)
     arena->_rewind_it = NULL;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static int _sarena_init(sarena* arena, size_t region_cap)
 {

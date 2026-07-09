@@ -27,11 +27,11 @@ static void scope_stack_sync(ntg_focus_manager* fm);
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
-void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_status)
+void _ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_status)
 {
     ntg_init_status(out_status);
 
@@ -62,7 +62,7 @@ void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_st
     ntg_focus_manager_push_scope(fm, &scope, &_status);
     if(_status != 0)
     {
-        ntg_focus_manager_deinit(fm);
+        _ntg_focus_manager_deinit(fm);
 
         switch(_status)
         {
@@ -75,7 +75,7 @@ void ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_st
     }
 }
 
-void ntg_focus_manager_deinit(ntg_focus_manager* fm)
+void _ntg_focus_manager_deinit(ntg_focus_manager* fm)
 {
     if(!fm) return;
 
@@ -94,12 +94,12 @@ void ntg_focus_manager_deinit_(void* _fm)
 {
     if(!_fm) return;
 
-    ntg_focus_manager_deinit(_fm);
+    _ntg_focus_manager_deinit(_fm);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* GENERAL */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
 {
@@ -244,7 +244,7 @@ ntg_focus_manager_get_active_scope(const ntg_focus_manager* fm)
     return (fm->__scope_stack->head ? &fm->__scope_stack->head->data->scope : NULL);
 }
 
-void ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed)
+void _ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed)
 {
     if(!fm) return;
 
@@ -264,9 +264,9 @@ void ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed)
     scope_stack_sync(fm);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* EVENT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 bool ntg_focus_manager_feed_key(ntg_focus_manager* fm, struct nt_key_event key)
 {

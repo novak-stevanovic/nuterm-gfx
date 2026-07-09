@@ -4,9 +4,9 @@
 
 // TODO: Vertical optimized rendering?
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* PUBLIC API */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status)
 {
@@ -33,9 +33,9 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status)
     renderer->__old_size = ntg_xy(0, 0);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INTERNAL/PROTECTED */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
 
@@ -52,7 +52,7 @@ static void full_render(
         struct ntg_xy size,
         sarena* arena);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 void ntg_def_renderer_deinit(ntg_def_renderer* renderer)
 {
@@ -118,7 +118,7 @@ void _ntg_def_renderer_render_fn(
     nt_buffer_disable(NT_BUFF_FLUSH);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
 {

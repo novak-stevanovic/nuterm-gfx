@@ -22,9 +22,9 @@ struct ntg_def_renderer
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes the default terminal renderer and its empty back buffer.
  *
@@ -34,14 +34,14 @@ struct ntg_def_renderer
 NTG_API void
 ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Releases resources owned by the default renderer. Passing `NULL` has no
  * effect. */
 NTG_API void
 ntg_def_renderer_deinit(ntg_def_renderer* renderer);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Void-pointer adapter for `ntg_def_renderer_deinit`, intended for cleanup
  * callbacks. */

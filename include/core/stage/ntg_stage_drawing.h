@@ -18,9 +18,9 @@ struct ntg_stage_drawing
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes an empty rendered-cell stage drawing.
  *
@@ -29,15 +29,15 @@ struct ntg_stage_drawing
 NTG_API void
 ntg_stage_drawing_init(ntg_stage_drawing* drawing, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Releases stage-drawing storage. Passing `NULL` has no effect. */
 NTG_API void
 ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* SIZE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets stage-drawing dimensions.
  *
@@ -46,7 +46,7 @@ ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
 NTG_API struct ntg_xy
 ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Resizes a stage drawing, preserves overlapping rendered cells, and fills
  * newly added cells with the default cell. `size_cap` caps only extra reserved
@@ -64,9 +64,9 @@ ntg_stage_drawing_set_size(
         struct ntg_xy size_cap,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* CELLS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Reads a rendered cell from a stage drawing.
  *

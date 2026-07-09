@@ -51,7 +51,7 @@ struct ntg_label_opts
 NTG_API struct ntg_label_opts
 ntg_label_opts_def();
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Compares two label option values. Pointer identity counts as equal; otherwise
  * a `NULL` value differs from a non-`NULL` value. */
@@ -97,9 +97,9 @@ struct ntg_label
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes an empty text label and its base object. A `NULL` options pointer
  * selects defaults.
@@ -114,23 +114,23 @@ ntg_label_init(
         const struct ntg_label_opts* opts,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Releases the label text, private layout data, and base-object resources.
  * Passing `NULL` has no effect. */
 NTG_API void
 ntg_label_deinit(ntg_label* label);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Void-pointer adapter for `ntg_label_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
 ntg_label_deinit_(void* _label);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* OPTS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Updates label orientation, graphics, wrapping, alignment, background,
  * trimming, and indentation. A `NULL` options pointer applies defaults;
@@ -138,9 +138,9 @@ ntg_label_deinit_(void* _label);
 NTG_API void
 ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* TEXT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Replaces label text from a non-`NULL`, null-terminated UTF-8 string. The
  * label copies the text. The current implementation calls `strlen` before
@@ -155,7 +155,7 @@ ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
 NTG_API void
 ntg_label_set_text(ntg_label* label, const char* text, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Replaces label text from up to `len` UTF-8 bytes, capped at `NTG_SIZE_MAX *
  * NTG_SIZE_MAX`; the input need not be null-terminated. The label copies the

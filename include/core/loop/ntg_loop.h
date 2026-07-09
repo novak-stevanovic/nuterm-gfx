@@ -65,9 +65,9 @@ struct ntg_loop
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* EVENT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Default loop event handler. It converts supported terminal key and mouse
  * events and forwards them to the current stage.
@@ -77,9 +77,9 @@ struct ntg_loop
 NTG_API bool
 ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes a loop with its initial stage, renderer, target frame rate,
  * worker count, and event callback. A `NULL` renderer selects the default
@@ -101,7 +101,7 @@ ntg_loop_init(ntg_loop* loop,
         bool (*on_event_fn)(ntg_loop* loop, struct nt_event event),
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Disconnects the stage and resets the loop. After a clean exit it also joins
  * workers and frees the platform and task runner; after a premature exit those
@@ -113,16 +113,16 @@ ntg_loop_init(ntg_loop* loop,
 NTG_API void
 ntg_loop_deinit(ntg_loop* loop, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Void-pointer adapter for `ntg_loop_deinit`, intended for cleanup callbacks.
  * Any deinitialization status is discarded. */
 NTG_API void
 ntg_loop_deinit_(void* _loop);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* CONTROL */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Runs terminal event processing, deferred tasks, layout, composition, and
  * rendering until a stop is requested. The function rejects only a loop that is
@@ -142,7 +142,7 @@ ntg_loop_deinit_(void* _loop);
 NTG_API enum ntg_loop_exit_status
 ntg_loop_run(ntg_loop* loop, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Requests loop termination. Force mode always accepts the request and marks
  * the exit premature only when worker tasks are running; clean mode refuses
@@ -154,7 +154,7 @@ ntg_loop_run(ntg_loop* loop, int* out_status);
 NTG_API bool
 ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Sets the loop stage immediately while stopped, or records it as pending while
  * running or stopping. A stage owned by another loop is first detached from
@@ -165,7 +165,7 @@ ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode);
 NTG_API void
 ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Declares a query for whether a loop is active. No implementation for this
  * declaration exists in the current source tree, so its runtime behavior cannot
@@ -173,9 +173,9 @@ ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage, int* out_status);
 NTG_API bool
 ntg_loop_is_running(const ntg_loop* loop);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* TASKS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Queues a callback for execution on a worker thread. If the runner has been
  * invalidated, the request is silently ignored.
@@ -191,7 +191,7 @@ ntg_task_runner_execute(
         void* data,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Queues a function to run on the loop thread during the next platform-task
  * drain. This is the safe path for worker tasks to request UI-thread work.

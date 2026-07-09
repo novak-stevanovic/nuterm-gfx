@@ -21,9 +21,9 @@
  * THE SOFTWARE. 
  */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* START */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 #ifndef UCONV_H
 #define UCONV_H
@@ -56,9 +56,9 @@ extern "C" {
  * 4 BYTE SEQUENCE - START BYTE FORMAT: 11110xxx
  * CONTINUATION BYTE FORMAT: 10xxxxxx */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* ERROR HANDLING */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* A function that accepts an `out_status` parameter reports success by
  * setting it to 0, and reports failure by setting it to the appropriate
@@ -74,16 +74,16 @@ extern "C" {
 #define UC_ERR_INVALID_SBYTE (UC_ERR_BASE + 104) /* invalid start byte in sequence */
 #define UC_ERR_INVALID_CBYTE (UC_ERR_BASE + 105) /* invalid continuation byte in sequence */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* FLAGS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 #define UC_FLAG_ALLOW_SURROGATE (1 << 0)
 #define UC_FLAG_ALLOW_OVERLONG (1 << 1)
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* CONVENIENCE FUNCTIONS/MACROS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Checks if the codepoint is in Unicode range.
  *
@@ -116,9 +116,9 @@ void uc_utf32_to_utf8_single(uint32_t utf32, uint8_t flags,
         uint8_t* out_utf8_seq, size_t* out_len,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* UTF8 -> UTF32 */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* This function reads up to `len` bytes from the input UTF-8 sequence and decodes
  * it into UTF-32 code points, storing the result in `out_utf32_seq`. The conversion
@@ -159,9 +159,9 @@ void uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
         uint32_t* out_utf32_seq, size_t capacity, uint8_t flags,
         size_t* out_width, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* UTF32 -> UTF8 */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* This function reads up to `width` UTF-32 code points from the input `utf32_seq`
  * and encodes them into UTF-8, storing the result in `out_utf8_seq`. The conversion
@@ -194,7 +194,7 @@ void uc_utf32_to_utf8(const uint32_t* utf32_seq, size_t width,
         uint8_t* out_utf8_seq, size_t capacity, uint8_t flags,
         size_t* out_width, size_t* out_len, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 #ifdef __cplusplus
 }

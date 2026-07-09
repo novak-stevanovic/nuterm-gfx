@@ -71,9 +71,9 @@ ntg_opts_def(void);
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes the underlying terminal library and applies the requested
  * terminal modes. Passing `NULL` for `opts` uses `ntg_opts_def()`. Passing
@@ -90,7 +90,7 @@ ntg_enable(
         const char* log_filepath,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Restores terminal modes changed by `ntg_enable()`, shuts down the underlying
  * terminal library, and closes the active log. Calling it before

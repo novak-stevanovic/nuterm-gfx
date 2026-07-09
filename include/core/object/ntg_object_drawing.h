@@ -17,23 +17,23 @@ struct ntg_object_drawing
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes an empty virtual-cell drawing. */
 NTG_API void
 ntg_object_drawing_init(ntg_object_drawing* drawing);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Releases drawing storage. Passing `NULL` has no effect. */
 NTG_API void
 ntg_object_drawing_deinit(ntg_object_drawing* drawing);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* SIZE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets drawing dimensions.
  *
@@ -42,7 +42,7 @@ ntg_object_drawing_deinit(ntg_object_drawing* drawing);
 NTG_API struct ntg_xy
 ntg_object_drawing_get_size(const ntg_object_drawing* drawing);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Resizes a drawing, preserves overlapping virtual cells, and fills newly added
  * cells with the default full-space virtual cell. `size_cap` caps only extra
@@ -60,9 +60,9 @@ ntg_object_drawing_set_size(
         struct ntg_xy size_cap,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* PLACEMENT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Copies every virtual cell from `src_drawing` directly into `dest_drawing` at
  * `dest_start_pos`. Source and destination must be different drawings.
@@ -80,7 +80,7 @@ ntg_object_drawing_place(
         struct ntg_xy dest_start_pos,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Composites every source virtual cell over a rendered stage cell at
  * `dest_start_pos` using `ntg_vcell_overwrite`.
@@ -97,9 +97,9 @@ ntg_object_drawing_place_(
         struct ntg_xy dest_start_pos,
         int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* CELLS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Reads a virtual cell from a drawing.
  *

@@ -23,9 +23,9 @@ struct ntg_scene_layout_data
 /* STATIC */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* LAYOUT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static void 
 layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena);
@@ -68,9 +68,9 @@ static void init_default(ntg_scene* scene)
     scene->hooks.on_mouse_fn = ntg_scene_dispatch_mouse;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 void ntg_scene_init(ntg_scene* scene, int* out_status)
 {
@@ -86,7 +86,7 @@ void ntg_scene_init(ntg_scene* scene, int* out_status)
         ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
     int _status;
-    ntg_focus_manager_init(scene->_fm, scene, &_status);
+    _ntg_focus_manager_init(scene->_fm, scene, &_status);
 
     if(_status != 0)
     {
@@ -112,7 +112,7 @@ void ntg_scene_deinit(ntg_scene* scene)
     if(scene->_stage)
         ntg_stage_set_scene(scene->_stage, NULL, NULL);
 
-    ntg_focus_manager_deinit(scene->_fm);
+    _ntg_focus_manager_deinit(scene->_fm);
     free(scene->_fm);
 
     init_default(scene);
@@ -259,9 +259,9 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
         scene->hooks.on_root_chng_fn(scene, old_root, root);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* EVENT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key)
 {
@@ -301,9 +301,9 @@ bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 /* INTERNAL */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* LAYOUT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 {
@@ -365,7 +365,7 @@ void _ntg_scene_rm(ntg_scene* scene, ntg_object* object)
 
     ntg_scene_mark_dirty(scene);
 
-    ntg_focus_manager_invalidate(scene->_fm, object);
+    _ntg_focus_manager_invalidate(scene->_fm, object);
 }
 
 void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
@@ -497,9 +497,9 @@ void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
 /* STATIC */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* LAYOUT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static void collect_layers_by_z_internal(
         ntg_scene* scene,

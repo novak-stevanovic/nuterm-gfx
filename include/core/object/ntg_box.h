@@ -26,7 +26,7 @@ struct ntg_box_opts
 NTG_API struct ntg_box_opts
 ntg_box_opts_def();
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Compares two box option values. Pointer identity counts as equal; otherwise a
  * `NULL` value differs from a non-`NULL` value. */
@@ -58,9 +58,9 @@ struct ntg_box
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes a box container and its base object. A `NULL` options pointer
  * selects defaults.
@@ -72,31 +72,31 @@ struct ntg_box
 NTG_API void
 ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Detaches all children and releases resources owned by a box. Passing `NULL`
  * has no effect. */
 NTG_API void
 ntg_box_deinit(ntg_box* box);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Void-pointer adapter for `ntg_box_deinit`, intended for cleanup callbacks. */
 NTG_API void
 ntg_box_deinit_(void* _box);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* OPTS */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Updates box orientation, alignment, spacing, and background. A `NULL` options
  * pointer applies defaults; unchanged options are ignored. */
 NTG_API void
 ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* CHILDREN */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Gets the box-owned vector of child object pointers in insertion order.
  *
@@ -105,7 +105,7 @@ ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
 NTG_API const struct ntg_object_vec*
 ntg_box_get_children(const ntg_box* box);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Appends `child` to the box and attaches it to the box object tree. Existing
  * parent, scene-root, or anchor relationships on the child are removed by the
@@ -120,7 +120,7 @@ ntg_box_get_children(const ntg_box* box);
 NTG_API void
 ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Removes `child` from the box when it is a direct child. Missing or `NULL`
  * inputs are ignored. */

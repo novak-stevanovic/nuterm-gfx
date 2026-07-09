@@ -49,9 +49,9 @@ struct ntg_stage
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INIT/DEINIT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Initializes an empty stage and its rendered-cell drawing.
  *
@@ -61,31 +61,31 @@ struct ntg_stage
 NTG_API void
 ntg_stage_init(ntg_stage* stage, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Detaches the stage from its loop and scene, releases drawing storage, and
  * clears the stage. Passing `NULL` has no effect. */
 NTG_API void
 ntg_stage_deinit(ntg_stage* stage);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Void-pointer adapter for `ntg_stage_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
 ntg_stage_deinit_(void* _stage);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* GENERAL */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Marks the stage for recomposition. A `NULL` stage is ignored. */
 NTG_API void
 ntg_stage_mark_dirty(ntg_stage* stage);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* SCENE */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Replaces the stage scene and keeps both sides of the relationship
  * synchronized. A scene already owned by another stage is first detached from
@@ -96,9 +96,9 @@ ntg_stage_mark_dirty(ntg_stage* stage);
 NTG_API void
 ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* EVENT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Default stage key handler that forwards the event to the current scene.
  *
@@ -107,7 +107,7 @@ ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status);
 NTG_API bool
 ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Default stage mouse handler that forwards the event to the current scene.
  *
@@ -116,7 +116,7 @@ ntg_stage_dispatch_key(ntg_stage* stage, struct nt_key_event key);
 NTG_API bool
 ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Invokes the stage key hook when present.
  *
@@ -125,7 +125,7 @@ ntg_stage_dispatch_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 NTG_API bool
 ntg_stage_feed_key(ntg_stage* stage, struct nt_key_event key);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Invokes the stage mouse hook when present.
  *

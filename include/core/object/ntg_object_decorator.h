@@ -8,9 +8,9 @@
 /* PUBLIC - TYPES AND FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* BORDER & PADDING */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 enum ntg_object_dcr_enable
 {
@@ -34,7 +34,7 @@ struct ntg_border_opts
 NTG_API struct ntg_border_opts
 ntg_border_opts_def();
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Compares two border option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
@@ -57,7 +57,7 @@ struct ntg_padding_opts
 NTG_API struct ntg_padding_opts
 ntg_padding_opts_def();
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Compares two padding option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */

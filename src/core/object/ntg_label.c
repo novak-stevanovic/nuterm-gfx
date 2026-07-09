@@ -134,7 +134,7 @@ static struct ntg_object_measure measure_wwrap_fn(
 
 static int trim_text(struct str* text);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static void init_default(ntg_label* label)
 {
@@ -185,9 +185,9 @@ bool ntg_label_opts_are_eq(
            (opts1->indent == opts2->indent));
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* PUBLIC API */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 void ntg_label_init(
         ntg_label* label,
@@ -443,9 +443,9 @@ void ntg_label_set_text(ntg_label* label, const char* text, int* out_status)
     ntg_label_set_text_safe(label, text, strlen(text), out_status);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* INTERNAL/PROTECTED */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 static struct ntg_object_measure measure_fn(
         const ntg_object* _label,

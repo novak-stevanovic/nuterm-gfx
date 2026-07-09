@@ -66,9 +66,9 @@ struct ntg_focus_scope
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 /* EVENT */
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Default key handler that uses `ctx` to forward `key` to the focused object.
  * The `_` callback data argument is ignored.
@@ -81,7 +81,7 @@ ntg_focus_scope_dispatch_key(
         const struct ntg_focus_key_ctx* ctx,
         struct nt_key_event key);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Static mouse handler that uses `ctx` to forward `mouse` to the clicked object
  * without changing focus. The `_` callback data argument is ignored.
@@ -94,7 +94,7 @@ ntg_focus_scope_dispatch_mouse_stc(
         const struct ntg_focus_mouse_ctx* ctx,
         struct nt_mouse_event mouse);
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------ */
 
 /* Dynamic mouse handler that uses `ctx` to update focus from the clicked object
  * and then dispatches `mouse`. Clicking elsewhere may clear old focus. The `_`
