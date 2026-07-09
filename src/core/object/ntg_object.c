@@ -685,6 +685,9 @@ static void init_default(ntg_object* object)
     object->_anchor_policy = ntg_anchor_policy_root();
 
     object->__base_bg = ntg_vcell_default();
+
+    object->_clickable = false;
+    object->_focusable = true;
 }
 
 void ntg_object_init(
@@ -826,13 +829,38 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
         _ntg_scene_register_tree(scene, child);
 }
 
-void _ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
+void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
 {
     if(!object) return;
 
     object->__base_bg = base_bg;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW | NTG_OBJECT_DIRTY_RENDER);
+}
+
+void ntg_object_set_focusable(ntg_object* object, bool focusable)
+{
+    if(!object) return;
+
+    if(object->_focusable)
+    {
+        const ntg_scene* scene = ntg_object_get_scene(object);
+        if(scene)
+        {
+            ntg_focus_manager* fm = scene->_fm;
+            if(fm && (fm->_focused == object))
+                ntg_focus_manager_request_focus(fm, NULL);
+        }
+    }
+
+    object->_focusable = focusable;
+}
+
+void ntg_object_set_clickable(ntg_object* object, bool clickable)
+{
+    if(!object) return;
+
+    object->_clickable = clickable;
 }
 
 /* ========================================================================== */

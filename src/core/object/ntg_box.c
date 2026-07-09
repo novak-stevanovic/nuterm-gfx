@@ -133,7 +133,7 @@ void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
 
     box->_opts = new_opts;
 
-    _ntg_object_set_base_bg(ntg_obj(box), new_opts.bg);
+    ntg_object_set_base_bg(ntg_obj(box), new_opts.bg);
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }

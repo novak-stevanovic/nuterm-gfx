@@ -175,6 +175,11 @@ struct ntg_object
             struct ntg_insets size;
         } _padding;
     };
+
+    struct
+    {
+        bool _focusable, _clickable;
+    };
 };
 
 /* ========================================================================== */
@@ -544,7 +549,10 @@ ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
 
 /* Assigns the base virtual cell unconditionally and marks drawing and rendering
  * dirty. A `NULL` object is ignored. */
-void _ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
+void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
+
+void ntg_object_set_focusable(ntg_object* object, bool focusable);
+void ntg_object_set_clickable(ntg_object* object, bool clickable);
 
 /* ========================================================================== */
 /* INTERNAL */

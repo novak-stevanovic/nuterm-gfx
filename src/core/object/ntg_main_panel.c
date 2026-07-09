@@ -150,7 +150,7 @@ void ntg_main_panel_set_opts(
 
     panel->_opts = new_opts;
 
-    _ntg_object_set_base_bg(ntg_obj(panel), new_opts.bg);
+    ntg_object_set_base_bg(ntg_obj(panel), new_opts.bg);
 
     if(panel->hooks.on_opts_chng_fn)
         panel->hooks.on_opts_chng_fn(panel, &old_opts, &new_opts);

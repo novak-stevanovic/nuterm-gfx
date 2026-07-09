@@ -114,6 +114,20 @@ ntg_label_init(
         const struct ntg_label_opts* opts,
         int* out_status);
 
+// TODO
+NTG_API void
+ntg_label_init_button(
+        ntg_label* button,
+        const struct ntg_label_opts* opts,
+        int* out_status);
+
+// TODO
+NTG_API void
+ntg_label_init_input(
+        ntg_label* input_field,
+        const struct ntg_label_opts* opts,
+        int* out_status);
+
 /* ------------------------------------------------------ */
 
 /* Releases the label text, private layout data, and base-object resources.

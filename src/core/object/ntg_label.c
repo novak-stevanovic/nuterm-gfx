@@ -282,7 +282,7 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
             ntg_vcell_bg(gfx.bg) :
             ntg_vcell_overlay(' ',  gfx.fg, gfx.style);
 
-    _ntg_object_set_base_bg(_label, cell);
+    ntg_object_set_base_bg(_label, cell);
 
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
