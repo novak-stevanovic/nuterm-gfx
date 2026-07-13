@@ -6,12 +6,16 @@
 #include "base/ntg_xy.h"
 #include "nt_gfx.h"
 
-// HOW TO APPLY ON_FOCUS EFFECT ON INPUT FIELD?
-// WHAT IF SIZE CHANGES FOR INPUT AND MAKES CURSOR POS OUT OF RANGE?
-
 /* ========================================================================== */
 /* PUBLIC - TYPES */
 /* ========================================================================== */
+
+enum ntg_text_type
+{
+    NTG_TEXT_LABEL,
+    NTG_TEXT_BUTTON,
+    NTG_TEXT_INPUT
+};
 
 enum ntg_text_wrap
 {
@@ -43,19 +47,6 @@ struct ntg_text_opts
     ntg_text_wrap wrap;
     bool autotrim;
     size_t indent;
-
-    union
-    {
-        struct
-        {
-        } label;
-        struct
-        {
-        } button;
-        struct
-        {
-        } input;
-    };
 };
 
 /* Creates horizontal label defaults with default graphics, aligned text, full
@@ -107,6 +98,24 @@ struct ntg_text
     struct ntg_text_priv* __priv;
 
     struct ntg_text_hooks hooks;
+
+    ntg_text_type _type;
+    union
+    {
+        struct
+        {
+            bool __default_focused;
+        } label;
+        struct
+        {
+            bool __default_focused;
+        } button;
+        struct
+        {
+            struct ntg_xy _cursor_pos;
+            bool __default_focused;
+        } input;
+    };
 };
 
 /* ========================================================================== */

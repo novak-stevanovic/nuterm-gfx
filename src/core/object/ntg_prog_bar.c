@@ -80,7 +80,7 @@ void ntg_prog_bar_init(
 
     int _status;
 
-    ntg_object_init((ntg_object*)prog_bar, &vtable, &NTG_TYPE_PROG_BAR, &_status);
+    ntg_object_init((ntg_object*)prog_bar, &vtable, &NTG_TYPE_PROG_BAR, NULL, &_status);
 
     switch(_status)
     {

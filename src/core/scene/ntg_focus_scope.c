@@ -24,7 +24,7 @@ bool ntg_focus_scope_dispatch_mouse_stc(
     if(!ctx) return false;
     if(!ctx->fm) return false;
 
-    if(ctx->clicked)
+    if(ctx->clicked && ctx->clicked->_clickable)
         return ntg_object_feed_mouse(ctx->clicked, mouse);
     else
         return false;
@@ -44,7 +44,7 @@ bool ntg_focus_scope_dispatch_mouse_dyn(
     {
         if(ctx->clicked)
         {
-            if(focused == ctx->clicked)
+            if((focused == ctx->clicked) && (ctx->clicked->_clickable))
             {
                 return ntg_object_feed_mouse(ctx->clicked, mouse);
             }
@@ -66,7 +66,10 @@ bool ntg_focus_scope_dispatch_mouse_dyn(
         if(ctx->clicked)
         {
             ntg_focus_manager_request_focus(ctx->fm, ctx->clicked);
-            ntg_object_feed_mouse(ctx->clicked, mouse);
+
+            if(ctx->clicked->_clickable)
+                ntg_object_feed_mouse(ctx->clicked, mouse);
+
             return true;
         }
         else

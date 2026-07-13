@@ -4,8 +4,7 @@
 #include "shared/ntg_shared.h"
 #include "base/ntg_xy.h"
 
-// TODO: clickable, focusable
-// TODO: cancel focus?
+// CONFIGURE KEY FOR FOCUS CANCEL ?
 
 /* ========================================================================== */
 /* PUBLIC - TYPES */

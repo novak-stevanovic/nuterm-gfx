@@ -44,7 +44,7 @@ const ntg_type NTG_TYPE_MAIN_PANEL = {
 
 const ntg_type NTG_TYPE_LABEL = {
     .__parent = &NTG_TYPE_OBJECT,
-    ._size = sizeof(ntg_label)
+    ._size = sizeof(ntg_text)
 };
 
 const ntg_type NTG_TYPE_COLOR_BLOCK = {

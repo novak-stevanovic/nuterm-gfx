@@ -116,7 +116,7 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
 
         ntg_object* scope_root = scope->root;
 
-        if(scope_root) // SSCOPE HAS ROOT
+        if(scope_root) // SCOPE HAS ROOT
         {
             if(ntg_object_is_descendant_eq(scope_root, object)) // FOCUSABLE
                 focusable = true;

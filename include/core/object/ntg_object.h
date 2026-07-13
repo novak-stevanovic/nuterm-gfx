@@ -126,6 +126,14 @@ struct ntg_object_hooks
 
 /* ------------------------------------------------------ */
 
+struct ntg_object_hooks_in
+{
+    bool (*on_key_fn)(ntg_object* object, struct nt_key_event key);
+    bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
+};
+
+/* ------------------------------------------------------ */
+
 struct ntg_object
 {
     const ntg_type* _type;
@@ -178,7 +186,8 @@ struct ntg_object
 
     struct
     {
-        bool _focusable, _clickable;
+        bool _focusable, _clickable, _border_clickable;
+        struct ntg_object_hooks_in __hooks_in;
     };
 };
 
@@ -511,14 +520,15 @@ static void fn_name(ntg_object* object, void* data)                            \
  * ERROR CODES:
  * - `NTG_ERR_INVALID_ARG`: `object` or `type` is `NULL`.
  * - `NTG_ERR_INVALID_TYPE`: `type` is not `NTG_TYPE_OBJECT` or derived from it.
- * - `NTG_ERR_BAD_VTABLE`: `layout_ops` is `NULL`.
+ * - `NTG_ERR_BAD_VTABLE`: `vtable` is `NULL`.
  * - `NTG_ERR_ALLOC_FAIL`: an object-owned vector cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: vector initialization fails for another reason. */
 NTG_API void
 ntg_object_init(
         ntg_object* object,
-        const struct ntg_object_vtable* layout_ops,
+        const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        const struct ntg_object_hooks_in* hooks_in,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -552,7 +562,7 @@ ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
 void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 
 void ntg_object_set_focusable(ntg_object* object, bool focusable);
-void ntg_object_set_clickable(ntg_object* object, bool clickable);
+void ntg_object_set_clickable(ntg_object* object, bool clickable, bool border_clickable);
 
 /* ========================================================================== */
 /* INTERNAL */

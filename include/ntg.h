@@ -21,7 +21,7 @@
 #include "core/renderer/ntg_def_renderer.h"
 #include "core/renderer/ntg_renderer.h"
 #include "core/loop/ntg_loop.h"
-#include "core/object/ntg_label.h"
+#include "core/object/ntg_text.h"
 #include "core/object/ntg_object_layout.h"
 #include "core/object/ntg_object.h"
 #include "core/object/ntg_object_decorator.h"

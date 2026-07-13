@@ -650,24 +650,53 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key)
 {
     if(!object) return false;
 
+    bool consumed = false;
+
+    if(object->__hooks_in.on_key_fn)
+    {
+        consumed = consumed || object->__hooks_in.on_key_fn(object, key);
+    }
+
     if(object->hooks.on_key_fn)
     {
-        return object->hooks.on_key_fn(object, key);
+        consumed = consumed || object->hooks.on_key_fn(object, key);
     }
-    else
-        return false;
+
+    return consumed;
 }
 
 bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse)
 {
     if(!object) return false;
+    if(!object->_clickable) return false;
+
+    bool consumed = false;
+
+    struct ntg_insets border_size = object->_border.size;
+    struct ntg_xy cont_size = ntg_object_get_size_cont(object);
+    struct ntg_xy size = ntg_object_get_size(object);
+
+    if((mouse.x >= size.x) || (mouse.y >= size.y))
+        return false;
+    
+    if(!object->_border_clickable &&
+        ((mouse.x < border_size.w) || (mouse.y < border_size.n) ||
+        (mouse.x >= cont_size.x) || (mouse.y >= cont_size.y)))
+    {
+        return false;
+    }
+
+    if(object->__hooks_in.on_mouse_fn)
+    {
+        consumed = consumed || object->__hooks_in.on_mouse_fn(object, mouse);
+    }
 
     if(object->hooks.on_mouse_fn)
     {
-        return object->hooks.on_mouse_fn(object, mouse);
+        consumed = consumed || object->hooks.on_mouse_fn(object, mouse);
     }
-    else
-        return false;
+
+    return consumed;
 }
 
 /* ========================================================================== */
@@ -687,13 +716,15 @@ static void init_default(ntg_object* object)
     object->__base_bg = ntg_vcell_default();
 
     object->_clickable = false;
-    object->_focusable = true;
+    object->_border_clickable = false;
+    object->_focusable = false;
 }
 
 void ntg_object_init(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        const struct ntg_object_hooks_in* hooks_in,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -706,6 +737,9 @@ void ntg_object_init(
 
     if(!vtable)
         ntg_vreturn(out_status, NTG_ERR_BAD_VTABLE);
+
+    if(hooks_in)
+        object->__hooks_in = (*hooks_in);
 
     init_default(object);
 
@@ -856,11 +890,12 @@ void ntg_object_set_focusable(ntg_object* object, bool focusable)
     object->_focusable = focusable;
 }
 
-void ntg_object_set_clickable(ntg_object* object, bool clickable)
+void ntg_object_set_clickable(ntg_object* object, bool clickable, bool border_clickable)
 {
     if(!object) return;
 
     object->_clickable = clickable;
+    object->_border_clickable = border_clickable;
 }
 
 /* ========================================================================== */

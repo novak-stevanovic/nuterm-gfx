@@ -54,7 +54,7 @@ static inline struct str32_view get_str32_view(struct str32 string, size_t offse
     };
 }
 
-struct ntg_label_priv
+struct ntg_text_priv
 {
     struct str32 utf32_text;
 
@@ -109,7 +109,7 @@ static size_t get_wrows_wwrap(
         sarena* arena);
 
 static struct ntg_object_measure measure_nowrap_fn(
-        const ntg_label* label,
+        const ntg_text* label,
         const struct str32_view* rows,
         size_t row_count,
         ntg_orient orient,
@@ -117,7 +117,7 @@ static struct ntg_object_measure measure_nowrap_fn(
         sarena* arena);
 
 static struct ntg_object_measure measure_wrap_fn(
-        const ntg_label* label,
+        const ntg_text* label,
         const struct str32_view* rows,
         size_t row_count,
         ntg_orient orient,
@@ -125,7 +125,7 @@ static struct ntg_object_measure measure_wrap_fn(
         sarena* arena);
 
 static struct ntg_object_measure measure_wwrap_fn(
-        const ntg_label* label,
+        const ntg_text* label,
         const struct str32_view* rows,
         size_t row_count,
         ntg_orient orient,
@@ -136,22 +136,36 @@ static int trim_text(struct str* text);
 
 /* ------------------------------------------------------ */
 
-static void init_default(ntg_label* label)
+static void init_default(ntg_text* label, ntg_text_type type)
 {
-    label->_opts = ntg_label_opts_def();
+    label->_opts = ntg_text_opts_def();
+
     label->_text.len = 0;
     label->_text.data = NULL;
-    label->__priv->utf32_text = (struct str32) {0};
 
+    label->__priv->utf32_text = (struct str32) {0};
     label->__priv->utf32_rows = NULL;
     label->__priv->utf32_row_count = 0;
 
-    label->hooks = (struct ntg_label_hooks) {0};
+    label->hooks = (struct ntg_text_hooks) {0};
+    label->_type = type;
+    switch(type)
+    {
+        case NTG_TEXT_LABEL:
+            label->label.__default_focused = false;
+            break;
+        case NTG_TEXT_BUTTON:
+            label->button.__default_focused = false;
+            break;
+        case NTG_TEXT_INPUT:
+            label->button.__default_focused = false;
+            break;
+    }
 }
 
-struct ntg_label_opts ntg_label_opts_def()
+struct ntg_text_opts ntg_text_opts_def()
 {
-    return (struct ntg_label_opts) {
+    return (struct ntg_text_opts) {
         .orient = NTG_ORIENT_H,
         .gfx = NT_GFX_DEFAULT,
         .text_mode = NTG_LABEL_TEXT_ALIGN,
@@ -164,9 +178,9 @@ struct ntg_label_opts ntg_label_opts_def()
     };
 }
 
-bool ntg_label_opts_are_eq(
-        const struct ntg_label_opts* opts1,
-        const struct ntg_label_opts* opts2)
+bool ntg_text_opts_are_eq(
+        const struct ntg_text_opts* opts1,
+        const struct ntg_text_opts* opts2)
 {
     if(opts1 == opts2)
         return true;
@@ -189,14 +203,15 @@ bool ntg_label_opts_are_eq(
 /* PUBLIC API */
 /* ------------------------------------------------------ */
 
-void ntg_label_init(
-        ntg_label* label,
-        const struct ntg_label_opts* opts,
-        int* out_status)
+static void text_init(
+        ntg_text* text,
+        const struct ntg_text_opts* opts,
+        int* out_status,
+        ntg_text_type type)
 {
     ntg_init_status(out_status);
 
-    if(!label)
+    if(!text)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     int _status;
@@ -209,7 +224,7 @@ void ntg_label_init(
         .rm_child_fn = NULL
     };
 
-    ntg_object_init((ntg_object*)label, &vtable, &NTG_TYPE_LABEL, &_status);
+    ntg_object_init((ntg_object*)text, &vtable, &NTG_TYPE_LABEL, NULL, &_status);
     switch(_status)
     {
         case 0:
@@ -221,21 +236,47 @@ void ntg_label_init(
             ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
 
-    label->__priv = malloc(sizeof(struct ntg_label_priv));
-    if(!label->__priv)
+    text->__priv = malloc(sizeof(struct ntg_text_priv));
+    if(!text->__priv)
     {
-        ntg_object_deinit((ntg_object*)label);
+        ntg_object_deinit((ntg_object*)text);
         ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
     }
 
-    init_default(label);
+    init_default(text, type);
 
-    ntg_label_set_text(label, "", NULL);
+    ntg_text_set_text(text, "", NULL);
 
-    ntg_label_set_opts(label, opts);
+    ntg_text_set_opts(text, opts);
+
+    text->_type = type;
 }
 
-void ntg_label_deinit(ntg_label* label)
+void ntg_text_init_label(
+        ntg_text* label,
+        const struct ntg_text_opts* opts,
+        int* out_status)
+{
+    text_init(label, opts, out_status, NTG_TEXT_LABEL);
+}
+
+void ntg_text_init_button(
+        ntg_text* button,
+        const struct ntg_text_opts* opts,
+        int* out_status)
+{
+    text_init(button, opts, out_status, NTG_TEXT_BUTTON);
+}
+
+void ntg_text_init_input(
+        ntg_text* input,
+        const struct ntg_text_opts* opts,
+        int* out_status)
+{
+    text_init(input, opts, out_status, NTG_TEXT_INPUT);
+}
+
+void ntg_text_deinit(ntg_text* label)
 {
     if(!label) return;
 
@@ -248,7 +289,7 @@ void ntg_label_deinit(ntg_label* label)
     if(label->__priv->utf32_rows)
         free(label->__priv->utf32_rows);
 
-    init_default(label);
+    init_default(label, label->_type);
     
     free(label->__priv);
     label->__priv = NULL;
@@ -256,21 +297,21 @@ void ntg_label_deinit(ntg_label* label)
     ntg_object_deinit((ntg_object*)label);
 }
 
-void ntg_label_deinit_(void* _label)
+void ntg_text_deinit_(void* _label)
 {
-    ntg_label_deinit(_label);
+    ntg_text_deinit(_label);
 }
 
-void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
+void ntg_text_set_opts(ntg_text* label, const struct ntg_text_opts* opts)
 {
     if(!label) return;
 
     ntg_object* _label = ntg_obj(label);
 
-    struct ntg_label_opts old_opts = label->_opts;
-    struct ntg_label_opts new_opts = (opts ? (*opts) : ntg_label_opts_def());
+    struct ntg_text_opts old_opts = label->_opts;
+    struct ntg_text_opts new_opts = (opts ? (*opts) : ntg_text_opts_def());
 
-    if(ntg_label_opts_are_eq(&old_opts, &new_opts))
+    if(ntg_text_opts_are_eq(&old_opts, &new_opts))
         return;
 
     label->_opts = new_opts;
@@ -287,8 +328,8 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
     ntg_object_mark_dirty((ntg_object*)label, NTG_OBJECT_DIRTY_FULL);
 }
 
-void ntg_label_set_text_safe(
-        ntg_label* label,
+void ntg_text_set_text_safe(
+        ntg_text* label,
         const char* text,
         size_t len,
         int* out_status)
@@ -436,11 +477,11 @@ void ntg_label_set_text_safe(
     free(old_text);
 }
 
-void ntg_label_set_text(ntg_label* label, const char* text, int* out_status)
+void ntg_text_set_text(ntg_text* label, const char* text, int* out_status)
 {
     ntg_init_status(out_status);
 
-    ntg_label_set_text_safe(label, text, strlen(text), out_status);
+    ntg_text_set_text_safe(label, text, strlen(text), out_status);
 }
 
 /* ------------------------------------------------------ */
@@ -453,7 +494,7 @@ static struct ntg_object_measure measure_fn(
         void* layout_ch,
         sarena* arena)
 {
-    const ntg_label* label = (const ntg_label*)_label;
+    const ntg_text* label = (const ntg_text*)_label;
     size_t for_size = ntg_object_get_for_size_cont(_label, orient);
     if(for_size == 0) return (struct ntg_object_measure) {0};
     
@@ -494,13 +535,13 @@ static void draw_fn(
         void* layout_ch,
         sarena* arena)
 {
-    const ntg_label* label = (const ntg_label*)_label;
+    const ntg_text* label = (const ntg_text*)_label;
     if((label->_text.len == 0) || (label->_text.data == NULL)) return;
 
     struct ntg_xy size = ntg_object_get_size_cont(_label);
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
-    struct ntg_label_opts opts = label->_opts;
+    struct ntg_text_opts opts = label->_opts;
 
     /* Init cont matrix */
     struct ntg_xy cont_size = 
@@ -704,7 +745,7 @@ static size_t str32_split(struct str32_view str, uint32_t sep,
 }
 
 static struct ntg_object_measure measure_nowrap_fn(
-        const ntg_label* label,
+        const ntg_text* label,
         const struct str32_view* rows,
         size_t row_count,
         ntg_orient orient,
@@ -744,7 +785,7 @@ static struct ntg_object_measure measure_nowrap_fn(
 }
 
 static struct ntg_object_measure measure_wrap_fn(
-        const ntg_label* label,
+        const ntg_text* label,
         const struct str32_view* rows,
         size_t row_count,
         ntg_orient orient,
@@ -795,7 +836,7 @@ static struct ntg_object_measure measure_wrap_fn(
 }
 
 static struct ntg_object_measure measure_wwrap_fn(
-        const ntg_label* label,
+        const ntg_text* label,
         const struct str32_view* rows,
         size_t row_count,
         ntg_orient orient,
