@@ -395,8 +395,8 @@ void ntg_object_detach(ntg_object* object)
     if(object->hooks.on_child_rm_fn)
         object->hooks.on_child_rm_fn(parent, object);
 
-    if(object->hooks.on_parent_chng_fn)
-        object->hooks.on_parent_chng_fn(object, parent, NULL);
+    if(object->hooks.on_parent_rm_fn)
+        object->hooks.on_parent_rm_fn(object, parent);
 
     if(scene)
         _ntg_scene_unregister_tree(scene, object);
@@ -452,8 +452,8 @@ void ntg_object_anchor(
     if(base->hooks.on_anchored_add_fn)
         base->hooks.on_anchored_add_fn(base, root);
 
-    if(root->hooks.on_base_chng_fn)
-        root->hooks.on_base_chng_fn(root, NULL, base);
+    if(root->hooks.on_base_set_fn)
+        root->hooks.on_base_set_fn(root, base);
 
     if(scene)
         _ntg_scene_register_tree(scene, root);
@@ -478,8 +478,8 @@ void ntg_object_unanchor(ntg_object* root)
     if(base->hooks.on_anchored_rm_fn)
         base->hooks.on_anchored_rm_fn(base, root);
 
-    if(root->hooks.on_base_chng_fn)
-        root->hooks.on_base_chng_fn(root, base, NULL);
+    if(root->hooks.on_base_rm_fn)
+        root->hooks.on_base_rm_fn(root, base);
 
     if(scene)
         _ntg_scene_unregister_tree(scene, root);
@@ -652,14 +652,14 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key)
 
     bool consumed = false;
 
-    if(object->__hooks_in.on_key_fn)
+    if(object->__vtable.process_key_fn)
     {
-        consumed = consumed || object->__hooks_in.on_key_fn(object, key);
+        consumed = consumed || object->__vtable.process_key_fn(object, key);
     }
 
     if(object->hooks.on_key_fn)
     {
-        consumed = consumed || object->hooks.on_key_fn(object, key);
+        object->hooks.on_key_fn(object, key);
     }
 
     return consumed;
@@ -686,14 +686,14 @@ bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse)
         return false;
     }
 
-    if(object->__hooks_in.on_mouse_fn)
+    if(object->__vtable.process_mouse_fn)
     {
-        consumed = consumed || object->__hooks_in.on_mouse_fn(object, mouse);
+        consumed = consumed || object->__vtable.process_mouse_fn(object, mouse);
     }
 
     if(object->hooks.on_mouse_fn)
     {
-        consumed = consumed || object->hooks.on_mouse_fn(object, mouse);
+        object->hooks.on_mouse_fn(object, mouse);
     }
 
     return consumed;
@@ -723,23 +723,16 @@ static void init_default(ntg_object* object)
 void ntg_object_init(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
-        const ntg_type* type,
-        const struct ntg_object_hooks_in* hooks_in,
+        int object_type,
         int* out_status)
 {
     ntg_init_status(out_status);
 
-    if(!object || !type)
+    if(!object)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
-    if(!ntg_type_instance_of(type, &NTG_TYPE_OBJECT))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
 
     if(!vtable)
         ntg_vreturn(out_status, NTG_ERR_BAD_VTABLE);
-
-    if(hooks_in)
-        object->__hooks_in = (*hooks_in);
 
     init_default(object);
 
@@ -771,7 +764,7 @@ void ntg_object_init(
         }
     }
 
-    object->_type = type;
+    object->_type = object_type;
 
     struct ntg_object_vtable def_vtable = {0};
     object->__vtable = (vtable ? (*vtable) : def_vtable);
@@ -856,8 +849,8 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
     if(parent->hooks.on_child_add_fn)
         parent->hooks.on_child_add_fn(parent, child);
 
-    if(child->hooks.on_parent_chng_fn)
-        child->hooks.on_parent_chng_fn(child, NULL, parent);
+    if(child->hooks.on_parent_set_fn)
+        child->hooks.on_parent_set_fn(child, parent);
 
     if(scene)
         _ntg_scene_register_tree(scene, child);
@@ -1686,6 +1679,28 @@ void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene)
     object->__skip_hborder = false;
     object->__skip_hpadding = false;
     object->__repeat = false;
+}
+
+void _ntg_object_focus(ntg_object* object, ntg_object* old_focused)
+{
+    if(!object) return;
+
+    if(object->__vtable.focus_fn)
+        object->__vtable.focus_fn(object, old_focused);
+
+    if(object->hooks.on_focus_fn)
+        object->hooks.on_focus_fn(object, old_focused);
+}
+
+void _ntg_object_unfocus(ntg_object* object, ntg_object* new_focused)
+{
+    if(!object) return;
+
+    if(object->__vtable.unfocus_fn)
+        object->__vtable.unfocus_fn(object, new_focused);
+
+    if(object->hooks.on_unfocus_fn)
+        object->hooks.on_unfocus_fn(object, new_focused);
 }
 
 /* ========================================================================== */

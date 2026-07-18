@@ -1,0 +1,12 @@
+#ifndef NTG_OBJECT_TYPE_H
+#define NTG_OBJECT_TYPE_H
+
+#define NTG_OBJECT_OBJECT 0 // Don't change
+
+#define NTG_OBJECT_BOX 1
+#define NTG_OBJECT_MAIN_PANEL 2
+#define NTG_OBJECT_LABEL 10
+#define NTG_OBJECT_PROG_BAR 11
+#define NTG_OBJECT_COLOR_BLOCK 12
+
+#endif // NTG_OBJECT_TYPE_H

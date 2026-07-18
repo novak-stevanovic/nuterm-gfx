@@ -78,16 +78,33 @@ struct ntg_object_vtable
             sarena* arena);
 
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
+
+    bool (*process_key_fn)(ntg_object* object, struct nt_key_event key);
+    bool (*process_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
+
+    void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
+    void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
+
+    // TODO
+    void (*change_size_fn)(
+            ntg_object* object,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
 };
 
 /* ------------------------------------------------------ */
 
 struct ntg_object_hooks
 {
-    bool (*on_key_fn)(ntg_object* object, struct nt_key_event key);
-    bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
-    bool (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
-    bool (*on_unfocus_fn)(ntg_object* object, ntg_object* new_focused);
+    // Called in ntg_object_feed_key() fn
+    void (*on_key_fn)(ntg_object* object, struct nt_key_event key);
+    // Called in ntg_object_feed_mouse() fn
+    void (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
+
+    // Called in _ntg_object_focus() fn
+    void (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
+    // Called in _ntg_object_unfocus() fn
+    void (*on_unfocus_fn)(ntg_object* object, ntg_object* new_focused);
 
     void (*on_child_rm_fn)(ntg_object* object, ntg_object* child);
     void (*on_child_add_fn)(ntg_object* object, ntg_object* child);
@@ -95,18 +112,14 @@ struct ntg_object_hooks
     void (*on_anchored_add_fn)(ntg_object* object, ntg_object* anchored);
     void (*on_anchored_rm_fn)(ntg_object* object, ntg_object* anchored);
 
-    void (*on_parent_chng_fn)(
-            ntg_object* object,
-            ntg_object* old_parent,
-            ntg_object* new_parent);
-    void (*on_scene_chng_fn)(
-            ntg_object* object,
-            ntg_scene* old_scene,
-            ntg_scene* new_scene);
-    void (*on_base_chng_fn)(
-            ntg_object* object,
-            ntg_object* old_base,
-            ntg_object* new_base);
+    void (*on_parent_set_fn)(ntg_object* object, ntg_object* new_parent);
+    void (*on_parent_rm_fn)(ntg_object* object, ntg_object* old_parent);
+
+    void (*on_scene_set_fn)(ntg_object* object, ntg_scene* new_scene);
+    void (*on_scene_rm_fn)(ntg_object* object, ntg_scene* old_scene);
+
+    void (*on_base_set_fn)(ntg_object* object, ntg_object* new_base);
+    void (*on_base_rm_fn)(ntg_object* object, ntg_object* old_base);
 
     void (*on_border_opts_chng_fn)(
             ntg_object* object,
@@ -122,21 +135,19 @@ struct ntg_object_hooks
             ntg_object* object,
             const struct ntg_layout_opts* old_opts,
             const struct ntg_layout_opts* new_opts);
-};
 
-/* ------------------------------------------------------ */
-
-struct ntg_object_hooks_in
-{
-    bool (*on_key_fn)(ntg_object* object, struct nt_key_event key);
-    bool (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
+    // TODO
+    void (*on_change_size_fn)(
+            ntg_object* object,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
 };
 
 /* ------------------------------------------------------ */
 
 struct ntg_object
 {
-    const ntg_type* _type;
+    int _type;
 
     struct
     {
@@ -187,7 +198,6 @@ struct ntg_object
     struct
     {
         bool _focusable, _clickable, _border_clickable;
-        struct ntg_object_hooks_in __hooks_in;
     };
 };
 
@@ -527,8 +537,7 @@ NTG_API void
 ntg_object_init(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
-        const ntg_type* type,
-        const struct ntg_object_hooks_in* hooks_in,
+        int object_type,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -575,5 +584,8 @@ void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
 /* Resets the object’s temporary horizontal-decorator skip flags and
  * layout-repeat flag. The supplied scene pointer is currently unused. */
 void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
+
+void _ntg_object_focus(ntg_object* object, ntg_object* old_focused);
+void _ntg_object_unfocus(ntg_object* object, ntg_object* new_focused);
 
 #endif // NTG_OBJECT_H

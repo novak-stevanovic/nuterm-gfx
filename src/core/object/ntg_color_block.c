@@ -59,8 +59,7 @@ void ntg_color_block_init(
     ntg_object_init(
             (ntg_object*)color_block,
             &vtable,
-            &NTG_TYPE_COLOR_BLOCK,
-            NULL,
+            NTG_OBJECT_COLOR_BLOCK,
             &_status);
 
     color_block->hooks = (struct ntg_color_block_hooks) {0};

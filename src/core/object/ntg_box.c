@@ -79,7 +79,7 @@ void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status
         .rm_child_fn = on_child_rm_fn
     };
 
-    ntg_object_init((ntg_object*)box, &vtable, &NTG_TYPE_BOX, NULL, &_status);
+    ntg_object_init((ntg_object*)box, &vtable, NTG_OBJECT_BOX, &_status);
 
     if(_status != 0)
     {

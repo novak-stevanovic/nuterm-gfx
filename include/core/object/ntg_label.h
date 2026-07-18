@@ -13,49 +13,36 @@
 /* PUBLIC - TYPES */
 /* ========================================================================== */
 
-enum ntg_text_wrap
+enum ntg_label_wrap
 {
     NTG_LABEL_WRAP_NONE,
     NTG_LABEL_WRAP_CHAR,
     NTG_LABEL_WRAP_WORD
 };
 
-enum ntg_text_mode
+enum ntg_label_mode
 {
     NTG_LABEL_TEXT_ALIGN,
     NTG_LABEL_TEXT_JUSTIFY
 };
 
-enum ntg_text_bg_mode
+enum ntg_label_bg_mode
 {
     NTG_LABEL_BG_FULL,
     NTG_LABEL_BG_FLT
 };
 
-struct ntg_text_opts
+struct ntg_label_opts
 {
     ntg_orient orient;
     struct nt_gfx gfx;
-    ntg_text_mode text_mode;
+    ntg_label_mode text_mode;
     ntg_align prim_align; // Active only if NTG_LABEL_TEXT_ALIGN
     ntg_align sec_align;
-    ntg_text_bg_mode bg_mode;
-    ntg_text_wrap wrap;
+    ntg_label_bg_mode bg_mode;
+    ntg_label_wrap wrap;
     bool autotrim;
     size_t indent;
-
-    union
-    {
-        struct
-        {
-        } label;
-        struct
-        {
-        } button;
-        struct
-        {
-        } input;
-    };
 };
 
 /* Creates horizontal label defaults with default graphics, aligned text, full
@@ -63,40 +50,40 @@ struct ntg_text_opts
  * indentation.
  *
  * RETURN VALUE:
- * The default `ntg_text_opts` value. */
-NTG_API struct ntg_text_opts
-ntg_text_opts_def();
+ * The default `ntg_label_opts` value. */
+NTG_API struct ntg_label_opts
+ntg_label_opts_def();
 
 /* ------------------------------------------------------ */
 
 /* Compares two label option values. Pointer identity counts as equal; otherwise
  * a `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_text_opts_are_eq(
-        const struct ntg_text_opts* opts1,
-        const struct ntg_text_opts* opts2);
+ntg_label_opts_are_eq(
+        const struct ntg_label_opts* opts1,
+        const struct ntg_label_opts* opts2);
 
-struct ntg_text_hooks
+struct ntg_label_hooks
 {
     void (*on_opts_chng_fn)(
-            ntg_text* label,
-            const struct ntg_text_opts* old_opts,
-            const struct ntg_text_opts* new_opts);
+            ntg_label* label,
+            const struct ntg_label_opts* old_opts,
+            const struct ntg_label_opts* new_opts);
 
     // Not null terminated
     void (*on_text_chng_fn)(
-            ntg_text* label,
+            ntg_label* label,
             const char* old_text,
             size_t old_len,
             const char* new_text,
             size_t new_len);
 };
 
-struct ntg_text
+struct ntg_label
 {
     ntg_object __base;
 
-    struct ntg_text_opts _opts;
+    struct ntg_label_opts _opts;
 
     struct
     {
@@ -104,9 +91,9 @@ struct ntg_text
         size_t len;
     } _text;
 
-    struct ntg_text_priv* __priv;
+    struct ntg_label_priv* __priv;
 
-    struct ntg_text_hooks hooks;
+    struct ntg_label_hooks hooks;
 };
 
 /* ========================================================================== */
@@ -125,23 +112,9 @@ struct ntg_text
  * - `NTG_ERR_ALLOC_FAIL`: label or base-object resources cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
 NTG_API void
-ntg_text_init_label(
-        ntg_text* label,
-        const struct ntg_text_opts* opts,
-        int* out_status);
-
-// TODO
-NTG_API void
-ntg_text_init_button(
-        ntg_text* button,
-        const struct ntg_text_opts* opts,
-        int* out_status);
-
-// TODO
-NTG_API void
-ntg_text_init_input(
-        ntg_text* input_field,
-        const struct ntg_text_opts* opts,
+ntg_label_init(
+        ntg_label* label,
+        const struct ntg_label_opts* opts,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -149,14 +122,14 @@ ntg_text_init_input(
 /* Releases the label text, private layout data, and base-object resources.
  * Passing `NULL` has no effect. */
 NTG_API void
-ntg_text_deinit(ntg_text* label);
+ntg_label_deinit(ntg_label* label);
 
 /* ------------------------------------------------------ */
 
-/* Void-pointer adapter for `ntg_text_deinit`, intended for cleanup
+/* Void-pointer adapter for `ntg_label_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
-ntg_text_deinit_(void* _label);
+ntg_label_deinit_(void* _label);
 
 /* ------------------------------------------------------ */
 /* OPTS */
@@ -166,7 +139,7 @@ ntg_text_deinit_(void* _label);
  * trimming, and indentation. A `NULL` options pointer applies defaults;
  * unchanged options are ignored. */
 NTG_API void
-ntg_text_set_opts(ntg_text* label, const struct ntg_text_opts* opts);
+ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
 
 /* ------------------------------------------------------ */
 /* TEXT */
@@ -183,7 +156,7 @@ ntg_text_set_opts(ntg_text* label, const struct ntg_text_opts* opts);
  * - `NTG_ERR_UTF_CONV`: the byte sequence is not valid UTF-8 or cannot be
  *   converted. */
 NTG_API void
-ntg_text_set_text(ntg_text* label, const char* text, int* out_status);
+ntg_label_set_text(ntg_label* label, const char* text, int* out_status);
 
 /* ------------------------------------------------------ */
 
@@ -198,8 +171,8 @@ ntg_text_set_text(ntg_text* label, const char* text, int* out_status);
  * - `NTG_ERR_UTF_CONV`: the specified byte sequence is not valid UTF-8 or
  *   cannot be converted. */
 NTG_API void
-ntg_text_set_text_safe(
-        ntg_text* label,
+ntg_label_set_text_safe(
+        ntg_label* label,
         const char* text,
         size_t len,
         int* out_status);

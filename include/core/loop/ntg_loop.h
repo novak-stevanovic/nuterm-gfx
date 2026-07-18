@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include "shared/ntg_shared.h"
-#include "base/ntg_type.h"
 #include "base/ntg_xy.h"
 
 #define NTG_LOOP_WORKERS_MAX 32
@@ -36,7 +35,6 @@ enum ntg_loop_exit_status
 
 struct ntg_loop
 {
-    ntg_type _type;
     enum ntg_loop_status _status;
 
     struct ntg_xy _app_size;

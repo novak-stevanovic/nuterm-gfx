@@ -136,11 +136,11 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
         if(fm->hooks.on_focused_chng_fn)
             fm->hooks.on_focused_chng_fn(fm, old_focused, object);
             
-        if(old_focused && old_focused->hooks.on_unfocus_fn)
-            old_focused->hooks.on_unfocus_fn(old_focused, object);
+        if(old_focused)
+            _ntg_object_unfocus(old_focused, object);
 
-        if(object && object->hooks.on_focus_fn)
-            object->hooks.on_focus_fn(object, old_focused);
+        if(object)
+            _ntg_object_unfocus(object, old_focused);
 
         return true;
     }

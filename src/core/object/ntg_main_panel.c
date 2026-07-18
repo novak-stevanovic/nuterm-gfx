@@ -71,7 +71,7 @@ void ntg_main_panel_init(
 
     int _status;
 
-    ntg_object_init((ntg_object*)panel, &vtable, &NTG_TYPE_MAIN_PANEL, NULL, &_status);
+    ntg_object_init((ntg_object*)panel, &vtable, NTG_OBJECT_MAIN_PANEL, &_status);
 
     switch(_status)
     {

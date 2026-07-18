@@ -378,8 +378,8 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
     if(scene->hooks.on_object_register_fn)
         scene->hooks.on_object_register_fn(scene, object);
 
-    if(object->hooks.on_scene_chng_fn)
-        object->hooks.on_scene_chng_fn(object, NULL, scene);
+    if(object->hooks.on_scene_set_fn)
+        object->hooks.on_scene_set_fn(object, scene);
 
     if(ntg_object_is_only_layer_root(object))
     {
@@ -400,8 +400,8 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
     if(scene->hooks.on_object_unregister_fn)
         scene->hooks.on_object_unregister_fn(scene, object);
 
-    if(object->hooks.on_scene_chng_fn)
-        object->hooks.on_scene_chng_fn(object, scene, NULL);
+    if(object->hooks.on_scene_rm_fn)
+        object->hooks.on_scene_rm_fn(object, scene);
 
     if(ntg_object_is_only_layer_root(object))
     {
