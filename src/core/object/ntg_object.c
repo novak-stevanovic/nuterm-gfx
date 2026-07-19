@@ -683,7 +683,7 @@ bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse)
         ((mouse.x < border_size.w) || (mouse.y < border_size.n) ||
         (mouse.x >= cont_size.x) || (mouse.y >= cont_size.y)))
     {
-        return false;
+        // return false;
     }
 
     if(object->__vtable.process_mouse_fn)
@@ -1545,6 +1545,17 @@ bool _ntg_object_fixup(ntg_object* object, sarena* arena)
     }
 
     object->__repeat = false;
+
+    struct ntg_xy cont_size = ntg_object_get_size_cont(object);
+    struct ntg_xy old_cont_size = object->__old_cont_size;
+    if(!ntg_xy_are_equal(cont_size, old_cont_size))
+    {
+        if(object->__vtable.cont_resize_fn)
+            object->__vtable.cont_resize_fn(object, old_cont_size, cont_size);
+
+        if(object->hooks.on_cont_resize_fn)
+            object->hooks.on_cont_resize_fn(object, old_cont_size, cont_size);
+    }
 
     return (repeat_dcr || repeat_fn);
 }

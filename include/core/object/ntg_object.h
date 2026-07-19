@@ -61,7 +61,7 @@ struct ntg_object_vtable
             sarena* arena);
 
     bool (*fixup_fn)(
-            const ntg_object*,
+            const ntg_object* object,
             void* layout_ch,
             sarena* arena);
 
@@ -85,8 +85,9 @@ struct ntg_object_vtable
     void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
     void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
 
-    // TODO
-    void (*change_size_fn)(
+    /* Triggers not immeadietely after parent's hconstrain and vconstrain but
+     * after constrain phase (in fixup phase). */
+    void (*cont_resize_fn)(
             ntg_object* object,
             struct ntg_xy old_size,
             struct ntg_xy new_size);
@@ -136,8 +137,9 @@ struct ntg_object_hooks
             const struct ntg_layout_opts* old_opts,
             const struct ntg_layout_opts* new_opts);
 
-    // TODO
-    void (*on_change_size_fn)(
+    /* Triggers not immeadietely after parent's hconstrain and vconstrain but
+     * after constrain phase (in fixup phase). */
+    void (*on_cont_resize_fn)(
             ntg_object* object,
             struct ntg_xy old_size,
             struct ntg_xy new_size);
@@ -198,6 +200,11 @@ struct ntg_object
     struct
     {
         bool _focusable, _clickable, _border_clickable;
+    };
+
+    struct
+    {
+        struct ntg_xy __old_cont_size;
     };
 };
 

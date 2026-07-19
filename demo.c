@@ -126,7 +126,7 @@ bool fs1_on_mouse_fn(
     return true;
 }
 
-bool sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse)
+void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse)
 {
     ntg_label* label = ntg_lbl(_label);
 
@@ -139,8 +139,6 @@ bool sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse)
     sprintf(buff, "Broj klikova: %d", sflt_counter);
 
     ntg_label_set_text(label, buff, NULL);
-
-    return true;
 }
 
 int main(int argc, char *argv[])
@@ -390,9 +388,9 @@ void init_sflt_label()
     };
     ntg_label_set_opts(&sflt_label, &opts);
 
-    ntg_obj(&sflt_label)->hooks.on_mouse_fn = sflt_on_mouse_fn;
-
     ntg_label_init(&sflt_label, &opts, &_status);
+
+    ntg_obj(&sflt_label)->hooks.on_mouse_fn = sflt_on_mouse_fn;
 
     struct ntg_layout_opts sflt_label_layout_opts = (ntg_obj(&sflt_label))->_layout_opts;
     sflt_label_layout_opts.z_index = 2;
@@ -452,7 +450,7 @@ void init_fs()
 {
     fs1 = (struct ntg_focus_scope) {
         .root = ntg_obj(&south),
-        .input_mode = NTG_FOCUS_SCOPE_INPUT_MODAL,
+        .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
         .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
         .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
         .on_key_fn = fs1_on_key_fn,

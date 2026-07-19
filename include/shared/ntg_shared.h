@@ -84,10 +84,10 @@ typedef struct ntg_object_tmp_drawing ntg_object_tmp_drawing;
 typedef struct ntg_widget ntg_widget;
 typedef struct ntg_widget_vec ntg_widget_vec;
 
-typedef struct ntg_label ntg_label;
-typedef enum ntg_label_wrap ntg_label_wrap;
-typedef enum ntg_label_mode ntg_label_mode;
-typedef enum ntg_label_bg_mode ntg_label_bg_mode;
+typedef struct ntg_text ntg_text;
+typedef enum ntg_text_wrap ntg_text_wrap;
+typedef enum ntg_text_mode ntg_text_mode;
+typedef enum ntg_text_bg_mode ntg_text_bg_mode;
 typedef struct ntg_color_block ntg_color_block;
 typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
