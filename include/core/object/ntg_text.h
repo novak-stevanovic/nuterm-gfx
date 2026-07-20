@@ -19,8 +19,8 @@ enum ntg_text_wrap
 
 enum ntg_text_mode
 {
-    NTG_TEXT_TEXT_ALIGN,
-    NTG_TEXT_TEXT_JUSTIFY
+    NTG_TEXT_ALIGN,
+    NTG_TEXT_JUSTIFY
 };
 
 enum ntg_text_bg_mode
@@ -48,8 +48,7 @@ struct ntg_text_opts
  *
  * RETURN VALUE:
  * The default `ntg_text_opts` value. */
-NTG_API struct ntg_text_opts
-ntg_text_opts_def();
+NTG_API struct ntg_text_opts ntg_text_opts_def();
 
 /* ------------------------------------------------------ */
 
@@ -63,13 +62,13 @@ ntg_text_opts_are_eq(
 struct ntg_text_hooks
 {
     void (*on_opts_chng_fn)(
-            ntg_text* text,
+            ntg_text* text_obj,
             const struct ntg_text_opts* old_opts,
             const struct ntg_text_opts* new_opts);
 
     // Not null terminated
     void (*on_text_chng_fn)(
-            ntg_text* text,
+            ntg_text* text_obj,
             const char* old_text,
             size_t old_len,
             const char* new_text,
@@ -93,83 +92,27 @@ struct ntg_text
     struct ntg_text_hooks hooks;
 };
 
-/* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
-/* ========================================================================== */
-
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
-/* Initializes an empty text text and its base object. A `NULL` options pointer
- * selects defaults.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `text` is `NULL`.
- * - `NTG_ERR_ALLOC_FAIL`: text or base-object resources cannot be allocated.
- * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
 NTG_API void
 ntg_text_init(
-        ntg_text* text,
+        ntg_text* text_obj,
         const struct ntg_text_opts* opts,
         int* out_status);
 
-/* ------------------------------------------------------ */
-
-/* Releases the text text, private layout data, and base-object resources.
- * Passing `NULL` has no effect. */
 NTG_API void
-ntg_text_deinit(ntg_text* text);
+ntg_text_deinit(ntg_text* text_obj);
 
-/* ------------------------------------------------------ */
-
-/* Void-pointer adapter for `ntg_text_deinit`, intended for cleanup
- * callbacks. */
 NTG_API void
 ntg_text_deinit_(void* _text);
 
-/* ------------------------------------------------------ */
-/* OPTS */
-/* ------------------------------------------------------ */
-
-/* Updates text orientation, graphics, wrapping, alignment, background,
- * trimming, and indentation. A `NULL` options pointer applies defaults;
- * unchanged options are ignored. */
 NTG_API void
-ntg_text_set_opts(ntg_text* text, const struct ntg_text_opts* opts);
+ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts);
 
-/* ------------------------------------------------------ */
-/* TEXT */
-/* ------------------------------------------------------ */
-
-/* Replaces text text from a non-`NULL`, null-terminated UTF-8 string. The
- * text copies the text. The current implementation calls `strlen` before
- * validation, so `text == NULL` causes undefined behavior rather than a
- * reported error.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `text` is `NULL`.
- * - `NTG_ERR_ALLOC_FAIL`: text or conversion storage cannot be allocated.
- * - `NTG_ERR_UTF_CONV`: the byte sequence is not valid UTF-8 or cannot be
- *   converted. */
 NTG_API void
-ntg_text_set_text(ntg_text* text, const char* text, int* out_status);
+ntg_text_set_text(ntg_text* text_obj, const char* text, int* out_status);
 
-/* ------------------------------------------------------ */
-
-/* Replaces text text from up to `len` UTF-8 bytes, capped at `NTG_SIZE_MAX *
- * NTG_SIZE_MAX`; the input need not be null-terminated. The text copies the
- * text, and `text` must be non-`NULL` even when `len` is zero.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `text` or `text` is `NULL`.
- * - `NTG_ERR_ALLOC_FAIL`: text, trimming, conversion, or row storage cannot be
- *   allocated.
- * - `NTG_ERR_UTF_CONV`: the specified byte sequence is not valid UTF-8 or
- *   cannot be converted. */
 NTG_API void
 ntg_text_set_text_safe(
-        ntg_text* text,
+        ntg_text* text_obj,
         const char* text,
         size_t len,
         int* out_status);

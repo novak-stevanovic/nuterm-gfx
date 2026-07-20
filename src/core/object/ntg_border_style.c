@@ -504,7 +504,7 @@ static void border_def_style_draw_fn(
         {
             ntg_object_tmp_drawing_set(
                     out_drawing,
-                    ntg_vcell_default(),
+                    ntg_vcell_def(),
                     ntg_xy(j, i));
         }
     }

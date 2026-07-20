@@ -25,7 +25,7 @@ struct ntg_cell
  * RETURN VALUE:
  * The default cell value. */
 static inline struct ntg_cell 
-ntg_cell_default()
+ntg_cell_def()
 {
     return (struct ntg_cell) {
         .cp = ' ',
@@ -35,7 +35,7 @@ ntg_cell_default()
 
 /* Compares two rendered cells, including their code points and graphics. */
 static inline bool 
-ntg_cell_are_equal(struct ntg_cell c1, struct ntg_cell c2)
+ntg_cell_are_eq(struct ntg_cell c1, struct ntg_cell c2)
 {
     return ((c1.cp == c2.cp) && nt_gfx_are_equal(c1.gfx, c2.gfx));
 }
@@ -88,7 +88,7 @@ static inline struct ntg_cell
 ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
 {
     if(!vecgrid)
-        return ntg_cell_default();
+        return ntg_cell_def();
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
@@ -97,7 +97,7 @@ ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
     }
     else
     {
-        return ntg_cell_default();
+        return ntg_cell_def();
     }
 }
 
@@ -184,7 +184,7 @@ ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
  * RETURN VALUE:
  * The default virtual cell. */
 static inline struct ntg_vcell 
-ntg_vcell_default()
+ntg_vcell_def()
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
@@ -267,7 +267,7 @@ ntg_vcell_bg(struct nt_color color)
 /* Compares two virtual cells by type and by the fields relevant to that
  * type. */
 static inline bool
-ntg_vcell_are_equal(struct ntg_vcell c1, struct ntg_vcell c2)
+ntg_vcell_are_eq(struct ntg_vcell c1, struct ntg_vcell c2)
 {
     if(c1.type != c2.type) return false;
 
@@ -358,7 +358,7 @@ static inline struct ntg_vcell
 ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
 {
     if(!vecgrid)
-        return ntg_vcell_default();
+        return ntg_vcell_def();
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
@@ -367,7 +367,7 @@ ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
     }
     else
     {
-        return ntg_vcell_default();
+        return ntg_vcell_def();
     }
 }
 

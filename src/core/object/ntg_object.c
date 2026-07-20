@@ -153,15 +153,23 @@ bool ntg_layout_opts_are_eq(
     if(!opts1 || !opts2)
         return false;
 
-    return (ntg_xy_are_equal(opts1->min_cont_size, opts2->min_cont_size) &&
-            ntg_xy_are_equal(opts1->max_cont_size, opts2->max_cont_size) &&
-            ntg_xy_are_equal(opts1->grow, opts2->grow) &&
+    return (ntg_xy_are_eq(opts1->min_cont_size, opts2->min_cont_size) &&
+            ntg_xy_are_eq(opts1->max_cont_size, opts2->max_cont_size) &&
+            ntg_xy_are_eq(opts1->grow, opts2->grow) &&
             opts1->z_index == opts2->z_index);
 }
 
 /* ========================================================================== */
 /* PUBLIC - FUNCTIONS (ntg_object.h) */
 /* ========================================================================== */
+
+void ntg_object_vdeinit(ntg_object* object)
+{
+    if(!object) return;
+
+    if(object->__vtable.deinit_fn)
+        object->__vtable.deinit_fn(object);
+}
 
 /* ------------------------------------------------------ */
 /* OBJECT TREE */
@@ -713,7 +721,7 @@ static void init_default(ntg_object* object)
     object->_padding.opts = ntg_padding_opts_def();
     object->_anchor_policy = ntg_anchor_policy_root();
 
-    object->__base_bg = ntg_vcell_default();
+    object->__base_bg = ntg_vcell_def();
 
     object->_clickable = false;
     object->_border_clickable = false;
@@ -723,7 +731,7 @@ static void init_default(ntg_object* object)
 void ntg_object_init(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
-        int object_type,
+        const ntg_type* type,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -731,7 +739,10 @@ void ntg_object_init(
     if(!object)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    if(!vtable)
+    if(!ntg_type_instance_of(type, &NTG_TYPE_OBJECT))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+
+    if(!vtable ||!vtable->deinit_fn)
         ntg_vreturn(out_status, NTG_ERR_BAD_VTABLE);
 
     init_default(object);
@@ -764,7 +775,7 @@ void ntg_object_init(
         }
     }
 
-    object->_type = object_type;
+    object->_type = type;
 
     struct ntg_object_vtable def_vtable = {0};
     object->__vtable = (vtable ? (*vtable) : def_vtable);
@@ -1303,7 +1314,7 @@ void _ntg_object_hmeasure(ntg_object* object, sarena* arena)
 
     struct ntg_object_measure old = ntg_object_get_measure(object, NTG_ORIENT_H);
 
-    if(!ntg_object_measure_are_equal(measure, old))
+    if(!ntg_object_measure_are_eq(measure, old))
     {
         object->_min_size.x = measure.min_size;
         object->_nat_size.x = measure.nat_size;
@@ -1324,6 +1335,9 @@ void _ntg_object_hmeasure(ntg_object* object, sarena* arena)
 void _ntg_object_hconstrain(ntg_object* object, sarena* arena)
 {
     if(!object || !arena) return;
+
+    size_t cont_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_H);
+    object->__old_cont_size.x = cont_size;
 
     if(object->__skip_hborder)
     {
@@ -1448,7 +1462,7 @@ void _ntg_object_vmeasure(ntg_object* object, sarena* arena)
 
     struct ntg_object_measure old = ntg_object_get_measure(object, NTG_ORIENT_V);
 
-    if(!ntg_object_measure_are_equal(measure, old))
+    if(!ntg_object_measure_are_eq(measure, old))
     {
         object->_min_size.y = measure.min_size;
         object->_nat_size.y = measure.nat_size;
@@ -1468,6 +1482,9 @@ void _ntg_object_vmeasure(ntg_object* object, sarena* arena)
 void _ntg_object_vconstrain(ntg_object* object, sarena* arena)
 {
     if(!object || !arena) return;
+
+    size_t cont_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_H);
+    object->__old_cont_size.x = cont_size;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_ARRANGE | NTG_OBJECT_DIRTY_DRAW);
     bool ret = vconstrain_border(object, arena) || vconstrain_padding(object, arena);
@@ -1548,7 +1565,7 @@ bool _ntg_object_fixup(ntg_object* object, sarena* arena)
 
     struct ntg_xy cont_size = ntg_object_get_size_cont(object);
     struct ntg_xy old_cont_size = object->__old_cont_size;
-    if(!ntg_xy_are_equal(cont_size, old_cont_size))
+    if(!ntg_xy_are_eq(cont_size, old_cont_size))
     {
         if(object->__vtable.cont_resize_fn)
             object->__vtable.cont_resize_fn(object, old_cont_size, cont_size);
@@ -1618,8 +1635,8 @@ void _ntg_object_draw(ntg_object* object, sarena* arena)
     int _status;
     
     const ntg_scene* scene = ntg_object_get_scene_(object);
-    ntg_object_drawing_set_size(&object->_drawing, object->_size, scene->_size, &_status);
     // TODO: what if fails, object size != drawing size...
+    ntg_object_drawing_set_size(&object->_drawing, object->_size, scene->_size, &_status);
     if(_status != 0) return;
 
     if(ntg_xy_size_is_zero(object->_size))

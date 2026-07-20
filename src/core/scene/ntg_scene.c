@@ -311,7 +311,7 @@ void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 
     struct ntg_xy old_size = scene->_size;
 
-    if(ntg_xy_are_equal(old_size, size))
+    if(ntg_xy_are_eq(old_size, size))
         return;
 
     scene->_size = size;
@@ -661,7 +661,7 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
             pos.y -= _ssub_size(pos.y + size.y, scene->_size.y);
         }
 
-        if(!ntg_xy_are_equal(root->_pos, pos))
+        if(!ntg_xy_are_eq(root->_pos, pos))
         {
             _ntg_object_root_set_pos(root, pos);
         }

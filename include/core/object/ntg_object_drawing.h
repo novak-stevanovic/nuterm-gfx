@@ -110,7 +110,7 @@ static inline struct ntg_vcell
 ntg_object_drawing_get(const ntg_object_drawing* drawing, struct ntg_xy pos)
 {
     if(!drawing)
-        return ntg_vcell_default();
+        return ntg_vcell_def();
 
     return ntg_vcell_vecgrid_get(&drawing->__data, pos);
 }

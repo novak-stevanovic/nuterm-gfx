@@ -33,7 +33,7 @@ struct ntg_box_opts ntg_box_opts_def()
         .prim_align = NTG_ALIGN_1,
         .sec_align = NTG_ALIGN_1,
         .spacing = 0,
-        .bg = ntg_vcell_default()
+        .bg = ntg_vcell_def()
     };
 }
 
@@ -51,7 +51,7 @@ bool ntg_box_opts_are_eq(
             (opts1->prim_align == opts2->prim_align) &&
             (opts1->sec_align == opts2->sec_align) &&
             (opts1->spacing == opts2->spacing) &&
-            ntg_vcell_are_equal(opts1->bg, opts2->bg));
+            ntg_vcell_are_eq(opts1->bg, opts2->bg));
 }
 
 static inline size_t calculate_total_spacing(size_t spacing, size_t child_count);
@@ -79,7 +79,7 @@ void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status
         .rm_child_fn = on_child_rm_fn
     };
 
-    ntg_object_init((ntg_object*)box, &vtable, NTG_OBJECT_BOX, &_status);
+    ntg_object_init((ntg_object*)box, &vtable, &NTG_TYPE_BOX, &_status);
 
     if(_status != 0)
     {

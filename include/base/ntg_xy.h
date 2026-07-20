@@ -180,7 +180,7 @@ ntg_xy_is_greater_eq(struct ntg_xy a, struct ntg_xy b)
 
 /* Compares two unsigned coordinates component by component. */
 static inline bool
-ntg_xy_are_equal(struct ntg_xy a, struct ntg_xy b)
+ntg_xy_are_eq(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x == b.x) && (a.y == b.y));
 }

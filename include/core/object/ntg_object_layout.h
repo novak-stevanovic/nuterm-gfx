@@ -47,7 +47,7 @@ struct ntg_object_measure
 
 /* Compares minimum, natural, maximum, and growth values of two one-dimensional
  * object measurements. */
-static inline bool ntg_object_measure_are_equal(
+static inline bool ntg_object_measure_are_eq(
         struct ntg_object_measure m1,
         struct ntg_object_measure m2)
 {
@@ -125,12 +125,12 @@ struct ntg_object_tmp_drawing
 static inline struct ntg_vcell
 ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy pos)
 {
-    if(!drawing) return ntg_vcell_default();
+    if(!drawing) return ntg_vcell_def();
 
     if(ntg_xy_is_lesser(pos, drawing->size))
         return drawing->data[drawing->size.x * pos.y + pos.x];
     else
-        return ntg_vcell_default();
+        return ntg_vcell_def();
 }
 
 /* Writes a virtual cell into a temporary arena-backed drawing. Invalid drawings

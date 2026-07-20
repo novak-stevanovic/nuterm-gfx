@@ -55,9 +55,9 @@ bool ntg_prog_bar_style_are_eq(
     if(!style1 || !style2)
         return false;
 
-    return (ntg_vcell_are_equal(style1->complete_style, style2->complete_style) &&
-            ntg_vcell_are_equal(style1->uncomplete_style, style2->uncomplete_style) &&
-            ntg_vcell_are_equal(style1->threshold_style, style2->threshold_style));
+    return (ntg_vcell_are_eq(style1->complete_style, style2->complete_style) &&
+            ntg_vcell_are_eq(style1->uncomplete_style, style2->uncomplete_style) &&
+            ntg_vcell_are_eq(style1->threshold_style, style2->threshold_style));
 }
 
 void ntg_prog_bar_init(
@@ -80,7 +80,7 @@ void ntg_prog_bar_init(
 
     int _status;
 
-    ntg_object_init((ntg_object*)prog_bar, &vtable, NTG_OBJECT_PROG_BAR, &_status);
+    ntg_object_init((ntg_object*)prog_bar, &vtable, &NTG_TYPE_PROG_BAR, &_status);
 
     switch(_status)
     {

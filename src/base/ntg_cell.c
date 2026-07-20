@@ -50,7 +50,7 @@ void ntg_cell_vecgrid_set_size(
     {
         for (j = 0; j < size.x; j++)
         {
-            ntg_cell_vecgrid_set(vecgrid, ntg_cell_default(), ntg_xy(j, i));
+            ntg_cell_vecgrid_set(vecgrid, ntg_cell_def(), ntg_xy(j, i));
         }
     }
 
@@ -59,7 +59,7 @@ void ntg_cell_vecgrid_set_size(
     {
         for (j = old.x; j < size.x; j++)
         {
-            ntg_cell_vecgrid_set(vecgrid, ntg_cell_default(), ntg_xy(j, i));
+            ntg_cell_vecgrid_set(vecgrid, ntg_cell_def(), ntg_xy(j, i));
         }
     }
 }
@@ -129,7 +129,7 @@ void ntg_vcell_vecgrid_set_size(
     {
         for (j = 0; j < size.x; j++)
         {
-            ntg_vcell_vecgrid_set(vecgrid, ntg_vcell_default(), ntg_xy(j, i));
+            ntg_vcell_vecgrid_set(vecgrid, ntg_vcell_def(), ntg_xy(j, i));
         }
     }
 
@@ -138,7 +138,7 @@ void ntg_vcell_vecgrid_set_size(
     {
         for (j = old.x; j < size.x; j++)
         {
-            ntg_vcell_vecgrid_set(vecgrid, ntg_vcell_default(), ntg_xy(j, i));
+            ntg_vcell_vecgrid_set(vecgrid, ntg_vcell_def(), ntg_xy(j, i));
         }
     }
 }

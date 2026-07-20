@@ -44,7 +44,7 @@ void ntg_vecgrid_set_size(
 
     size = ntg_xy_size(size);
 
-    if(ntg_xy_are_equal(vecgrid->_size, size)) return;
+    if(ntg_xy_are_eq(vecgrid->_size, size)) return;
 
     if((size.x != 0) && (size.y > SIZE_MAX / size.x))
         ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);

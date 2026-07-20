@@ -76,7 +76,7 @@ ntg_stage_drawing_set_size(
 static inline struct ntg_cell
 ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
 {
-    if(!drawing) return ntg_cell_default();
+    if(!drawing) return ntg_cell_def();
 
     return ntg_cell_vecgrid_get(&drawing->__data, pos);
 }

@@ -77,6 +77,9 @@ struct ntg_object_vtable
             void* layout_ch,
             sarena* arena);
 
+    void (*deinit_fn)(ntg_object* object);
+vo
+
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
 
     bool (*process_key_fn)(ntg_object* object, struct nt_key_event key);
@@ -149,7 +152,7 @@ struct ntg_object_hooks
 
 struct ntg_object
 {
-    int _type;
+    const ntg_type* _type;
 
     struct
     {
@@ -211,6 +214,9 @@ struct ntg_object
 /* ========================================================================== */
 /* PUBLIC - FUNCTIONS */
 /* ========================================================================== */
+
+// TODO:
+void ntg_object_vdeinit(ntg_object* object);
 
 /* ------------------------------------------------------ */
 /* OBJECT TREE */
@@ -544,7 +550,7 @@ NTG_API void
 ntg_object_init(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
-        int object_type,
+        const ntg_type* type,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -575,10 +581,14 @@ ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
 
 /* Assigns the base virtual cell unconditionally and marks drawing and rendering
  * dirty. A `NULL` object is ignored. */
-void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
+NTG_API void
+ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 
-void ntg_object_set_focusable(ntg_object* object, bool focusable);
-void ntg_object_set_clickable(ntg_object* object, bool clickable, bool border_clickable);
+NTG_API void
+ntg_object_set_focusable(ntg_object* object, bool focusable);
+
+NTG_API void
+ntg_object_set_clickable(ntg_object* object, bool clickable, bool border_clickable);
 
 /* ========================================================================== */
 /* INTERNAL */
