@@ -2,29 +2,27 @@
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
+/* ========================================================================== */
+/* STATIC */
+/* ========================================================================== */
+
 struct box_layout_cache
 {
     struct ntg_object_measure measure[2];
 };
 
-static struct ntg_object_measure measure_fn(
-        const ntg_object* _box,
-        ntg_orient orient,
-        void* _layout_cache,
-        sarena* arena);
+static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
+{
+    return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
+}
 
-static void constrain_fn(
-        const ntg_object* _box,
-        ntg_orient orient,
-        ntg_object_size_map* out_size_map,
-        void* _layout_cache,
-        sarena* arena);
+/* ========================================================================== */
+/* PUBLIC */
+/* ========================================================================== */
 
-static void arrange_fn(
-        const ntg_object* _box,
-        ntg_object_pos_map* out_pos_map,
-        void* _layout_cache,
-        sarena* arena);
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_box_opts ntg_box_opts_def()
 {
@@ -54,56 +52,21 @@ bool ntg_box_opts_are_eq(
             ntg_vcell_are_eq(opts1->bg, opts2->bg));
 }
 
-static inline size_t calculate_total_spacing(size_t spacing, size_t child_count);
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
-static void on_child_rm_fn(ntg_object* _box, ntg_object* child);
-
-/* ------------------------------------------------------ */
-/* PUBLIC API */
-/* ------------------------------------------------------ */
-
-void ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status)
+void ntg_box_init(
+        ntg_box* box,
+        const struct ntg_box_opts* opts,
+        int* out_status)
 {
-    ntg_init_status(out_status);
-    
-    if(!box)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
-    int _status;
-
-    struct ntg_object_vtable vtable = {
-        .measure_fn = measure_fn,
-        .constrain_fn = constrain_fn,
-        .arrange_fn = arrange_fn,
-        .draw_fn = NULL,
-        .rm_child_fn = on_child_rm_fn
-    };
-
-    ntg_object_init((ntg_object*)box, &vtable, &NTG_TYPE_BOX, &_status);
-
-    if(_status != 0)
-    {
-        switch(_status)
-        {
-            case NTG_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
-    }
-
-    box->_opts = ntg_box_opts_def();
-    box->hooks = (struct ntg_box_hooks) {0};
-
-    ((ntg_object*)box)->layout_cache = malloc(sizeof(struct box_layout_cache));
-    if(!((ntg_object*)box)->layout_cache)
-    {
-        ntg_object_deinit((ntg_object*)box);
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-    }
-
-    ntg_box_set_opts(box, opts);
+    ntg_box_init_inherit(
+            box,
+            &NTG_BOX_VTABLE,
+            &NTG_TYPE_BOX,
+            opts,
+            out_status);
 }
 
 void ntg_box_deinit(ntg_box* box)
@@ -111,7 +74,10 @@ void ntg_box_deinit(ntg_box* box)
     if(!box) return;
 
     box->_opts = ntg_box_opts_def();
+    box->hooks = (struct ntg_box_hooks) {0};
+
     free(((ntg_object*)box)->layout_cache);
+    ((ntg_object*)box)->layout_cache = NULL;
 
     ntg_object_deinit((ntg_object*)box);
 }
@@ -189,11 +155,46 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
         box->hooks.on_child_rm_fn(box, child);
 }
 
-/* ------------------------------------------------------ */
-/* INTERNAL/PROTECTED */
-/* ------------------------------------------------------ */
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
 
-static struct ntg_object_measure measure_fn(
+void ntg_box_init_inherit(
+        ntg_box* box,
+        const struct ntg_object_vtable* vtable,
+        const ntg_type* type,
+        const struct ntg_box_opts* opts,
+        int* out_status)
+{
+    ntg_init_status(out_status);
+
+    if(!box || !type)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if(!ntg_type_instance_of(type, &NTG_TYPE_BOX))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+
+    int _status;
+
+    ntg_object_init((ntg_object*)box, vtable, type, &_status);
+    if(_status != 0)
+        ntg_vreturn(out_status, _status);
+
+    box->_opts = ntg_box_opts_def();
+    box->hooks = (struct ntg_box_hooks) {0};
+
+    ((ntg_object*)box)->layout_cache =
+            malloc(sizeof(struct box_layout_cache));
+    if(!((ntg_object*)box)->layout_cache)
+    {
+        ntg_object_deinit((ntg_object*)box);
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
+
+    ntg_box_set_opts(box, opts);
+}
+
+struct ntg_object_measure ntg_box_measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
         void* _layout_cache,
@@ -247,7 +248,7 @@ static struct ntg_object_measure measure_fn(
     return measure;
 }
 
-static void constrain_fn(
+void ntg_box_constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
@@ -344,7 +345,7 @@ static void constrain_fn(
             it_child = children->data[i];
             it_measure = ntg_object_get_measure(it_child, orient);
 
-            it_size =_min2_size(size, 
+            it_size =_min2_size(size,
                     (it_measure.grow > 0 ?
                      it_measure.max_size :
                      it_measure.nat_size));
@@ -355,7 +356,7 @@ static void constrain_fn(
     }
 }
 
-static void arrange_fn(
+void ntg_box_arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
         void* _layout_cache,
@@ -451,14 +452,22 @@ static void arrange_fn(
     }
 }
 
-static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
-{
-    return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
-}
-
-static void on_child_rm_fn(ntg_object* _box, ntg_object* child)
+void ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child)
 {
     ntg_box* box = (ntg_box*)_box;
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
+
+void ntg_box_deinit_fn(ntg_object* _box)
+{
+    ntg_box_deinit(ntg_box(_box));
+}
+
+NTG_API const struct ntg_object_vtable NTG_BOX_VTABLE = {
+    .measure_fn = ntg_box_measure_fn,
+    .constrain_fn = ntg_box_constrain_fn,
+    .arrange_fn = ntg_box_arrange_fn,
+    .rm_child_fn = ntg_box_child_rm_fn,
+    .deinit_fn = ntg_box_deinit_fn
+};

@@ -5,8 +5,12 @@
 #include "core/object/ntg_object.h"
 
 /* ========================================================================== */
-/* PUBLIC - TYPES */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_box_opts
 {
@@ -35,6 +39,8 @@ ntg_box_opts_are_eq(
         const struct ntg_box_opts* opts1,
         const struct ntg_box_opts* opts2);
 
+/* ------------------------------------------------------ */
+
 struct ntg_box_hooks
 {
     void (*on_child_add_fn)(ntg_box* box, ntg_object* child);
@@ -46,6 +52,8 @@ struct ntg_box_hooks
             const struct ntg_box_opts* new_opts);
 };
 
+/* ------------------------------------------------------ */
+
 struct ntg_box
 {
     ntg_object __base;
@@ -54,9 +62,9 @@ struct ntg_box
     struct ntg_box_opts _opts;
 };
 
-/* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -70,7 +78,10 @@ struct ntg_box
  * - `NTG_ERR_ALLOC_FAIL`: base-object or box resources cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
 NTG_API void
-ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts, int* out_status);
+ntg_box_init(
+        ntg_box* box,
+        const struct ntg_box_opts* opts,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 
@@ -126,5 +137,73 @@ ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status);
  * inputs are ignored. */
 NTG_API void
 ntg_box_rm_child(ntg_box* box, ntg_object* child);
+
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
+
+/* Initializes the box portion of an object derived from `NTG_TYPE_BOX`, using
+ * the supplied virtual table and concrete type descriptor. A `NULL` options
+ * pointer selects defaults.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `box` or `type` is `NULL`.
+ * - `NTG_ERR_INVALID_TYPE`: `type` is not derived from `NTG_TYPE_BOX`.
+ * - `NTG_ERR_BAD_VTABLE`: `vtable` or `vtable->deinit_fn` is `NULL`.
+ * - `NTG_ERR_ALLOC_FAIL`: base-object or box resources cannot be allocated.
+ * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
+NTG_API void
+ntg_box_init_inherit(
+        ntg_box* box,
+        const struct ntg_object_vtable* vtable,
+        const ntg_type* type,
+        const struct ntg_box_opts* opts,
+        int* out_status);
+
+/* ------------------------------------------------------ */
+
+/* Implements box measurement for an object virtual table. */
+NTG_API struct ntg_object_measure
+ntg_box_measure_fn(
+        const ntg_object* _box,
+        ntg_orient orient,
+        void* _layout_cache,
+        sarena* arena);
+
+/* ------------------------------------------------------ */
+
+/* Assigns constrained child sizes for the requested axis. */
+NTG_API void
+ntg_box_constrain_fn(
+        const ntg_object* _box,
+        ntg_orient orient,
+        ntg_object_size_map* out_size_map,
+        void* _layout_cache,
+        sarena* arena);
+
+/* ------------------------------------------------------ */
+
+/* Assigns child positions inside the box content area. */
+NTG_API void
+ntg_box_arrange_fn(
+        const ntg_object* _box,
+        ntg_object_pos_map* out_pos_map,
+        void* _layout_cache,
+        sarena* arena);
+
+/* ------------------------------------------------------ */
+
+/* Marks the box layout dirty after a base-level child removal. */
+NTG_API void
+ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child);
+
+/* ------------------------------------------------------ */
+
+/* Virtual deinitializer that dispatches to `ntg_box_deinit`. */
+NTG_API void
+ntg_box_deinit_fn(ntg_object* _box);
+
+/* Default virtual table used by `ntg_box_init`. */
+NTG_API extern const struct ntg_object_vtable NTG_BOX_VTABLE;
 
 #endif // NTG_BOX_H

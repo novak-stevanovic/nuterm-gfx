@@ -18,8 +18,12 @@
 #define NTG_OBJECT_Z_INDEX_UNSET 0
 
 /* ========================================================================== */
-/* PUBLIC - TYPES */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
@@ -78,7 +82,6 @@ struct ntg_object_vtable
             sarena* arena);
 
     void (*deinit_fn)(ntg_object* object);
-vo
 
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
 
@@ -91,6 +94,11 @@ vo
     /* Triggers not immeadietely after parent's hconstrain and vconstrain but
      * after constrain phase (in fixup phase). */
     void (*cont_resize_fn)(
+            ntg_object* object,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
+
+    void (*resize_fn)(
             ntg_object* object,
             struct ntg_xy old_size,
             struct ntg_xy new_size);
@@ -146,6 +154,13 @@ struct ntg_object_hooks
             ntg_object* object,
             struct ntg_xy old_size,
             struct ntg_xy new_size);
+
+    /* Triggers not immeadietely after parent's hconstrain and vconstrain but
+     * after constrain phase (in fixup phase). */
+    void (*on_resize_fn)(
+            ntg_object* object,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
 };
 
 /* ------------------------------------------------------ */
@@ -182,7 +197,7 @@ struct ntg_object
         uint8_t _dirty;
     };
 
-    struct ntg_object_vtable __vtable;
+    const struct ntg_object_vtable* __vtable;
     struct ntg_object_hooks hooks;
 
     struct
@@ -207,15 +222,14 @@ struct ntg_object
 
     struct
     {
-        struct ntg_xy __old_cont_size;
+        struct ntg_xy __old_size, __old_cont_size;
     };
 };
 
-/* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
-// TODO:
 void ntg_object_vdeinit(ntg_object* object);
 
 /* ------------------------------------------------------ */
@@ -543,7 +557,7 @@ static void fn_name(ntg_object* object, void* data)                            \
  * ERROR CODES:
  * - `NTG_ERR_INVALID_ARG`: `object` or `type` is `NULL`.
  * - `NTG_ERR_INVALID_TYPE`: `type` is not `NTG_TYPE_OBJECT` or derived from it.
- * - `NTG_ERR_BAD_VTABLE`: `vtable` is `NULL`.
+ * - `NTG_ERR_BAD_VTABLE`: `vtable` is `NULL` or `deinit_fn` is NULL.
  * - `NTG_ERR_ALLOC_FAIL`: an object-owned vector cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: vector initialization fails for another reason. */
 NTG_API void

@@ -2,30 +2,25 @@
 #include "shared/ntg_shared_internal.h"
 #include <string.h>
 
-static struct ntg_object_measure measure_fn(
-        const ntg_object* _panel,
-        ntg_orient orient,
-        void* layout_ch,
-        sarena* arena);
+/* ========================================================================== */
+/* STATIC */
+/* ========================================================================== */
 
-static void constrain_fn(
-        const ntg_object* _panel,
-        ntg_orient orient,
-        ntg_object_size_map* out_size_map,
-        void* layout_ch,
-        sarena* arena);
-
-static void arrange_fn(
-        const ntg_object* _panel,
-        ntg_object_pos_map* out_pos_map,
-        void* layout_ch,
-        sarena* arena);
-
-static void on_child_rm_fn(ntg_object* _main_panel, ntg_object* child);
-
-static void get_children(const ntg_main_panel* panel, ntg_object** out_north,
-        ntg_object** out_east, ntg_object** out_south, ntg_object** out_west,
+static void get_children(
+        const ntg_main_panel* panel,
+        ntg_object** out_north,
+        ntg_object** out_east,
+        ntg_object** out_south,
+        ntg_object** out_west,
         ntg_object** out_center);
+
+/* ========================================================================== */
+/* PUBLIC */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_main_panel_opts ntg_main_panel_opts_def()
 {
@@ -47,8 +42,12 @@ bool ntg_main_panel_opts_are_eq(
     return ntg_vcell_are_eq(opts1->bg, opts2->bg);
 }
 
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 /* ------------------------------------------------------ */
-/* PUBLIC API */
+/* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
 void ntg_main_panel_init(
@@ -56,39 +55,33 @@ void ntg_main_panel_init(
         const struct ntg_main_panel_opts* opts,
         int* out_status)
 {
-    ntg_init_status(out_status);
+    ntg_main_panel_init_inherit(
+            panel,
+            &NTG_MAIN_PANEL_VTABLE,
+            &NTG_TYPE_MAIN_PANEL,
+            opts,
+            out_status);
+}
 
-    if(!panel)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
-    struct ntg_object_vtable vtable = {
-        .measure_fn = measure_fn,
-        .constrain_fn = constrain_fn,
-        .arrange_fn = arrange_fn,
-        .draw_fn = NULL,
-        .rm_child_fn = on_child_rm_fn
-    };
-
-    int _status;
-
-    ntg_object_init((ntg_object*)panel, &vtable, &NTG_TYPE_MAIN_PANEL, &_status);
-
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-    }
+void ntg_main_panel_deinit(ntg_main_panel* panel)
+{
+    if(!panel) return;
 
     panel->_opts = ntg_main_panel_opts_def();
-    memset(panel->_children, 0, sizeof(ntg_object*) * 5);
+    memset(panel->_children, 0, sizeof(panel->_children));
     panel->hooks = (struct ntg_main_panel_hooks) {0};
 
-    ntg_main_panel_set_opts(panel, opts);
+    ntg_object_deinit((ntg_object*)panel);
 }
+
+void ntg_main_panel_deinit_(void* _panel)
+{
+    ntg_main_panel_deinit(_panel);
+}
+
+/* ------------------------------------------------------ */
+/* CHILDREN */
+/* ------------------------------------------------------ */
 
 void ntg_main_panel_set(
         ntg_main_panel* panel,
@@ -106,12 +99,12 @@ void ntg_main_panel_set(
 
     if(old_child == object) return;
 
-    if(old_child != NULL)
+    if(old_child)
         ntg_object_detach(old_child);
 
     panel->_children[pos] = NULL;
 
-    if(object != NULL)
+    if(object)
     {
         int _status;
         ntg_object_attach((ntg_object*)panel, object, &_status);
@@ -136,6 +129,10 @@ void ntg_main_panel_set(
         panel->hooks.on_child_chng_fn(panel, old_child, object, pos);
 }
 
+/* ------------------------------------------------------ */
+/* OPTS */
+/* ------------------------------------------------------ */
+
 void ntg_main_panel_set_opts(
         ntg_main_panel* panel,
         const struct ntg_main_panel_opts* opts)
@@ -143,7 +140,8 @@ void ntg_main_panel_set_opts(
     if(!panel) return;
 
     struct ntg_main_panel_opts old_opts = panel->_opts;
-    struct ntg_main_panel_opts new_opts = (opts ? (*opts) : ntg_main_panel_opts_def());
+    struct ntg_main_panel_opts new_opts =
+            (opts ? (*opts) : ntg_main_panel_opts_def());
 
     if(ntg_main_panel_opts_are_eq(&old_opts, &new_opts))
         return;
@@ -156,31 +154,42 @@ void ntg_main_panel_set_opts(
         panel->hooks.on_opts_chng_fn(panel, &old_opts, &new_opts);
 }
 
-/* ------------------------------------------------------ */
-/* INTERNAL/PROTECTED */
-/* ------------------------------------------------------ */
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
 
-void ntg_main_panel_deinit(ntg_main_panel* panel)
+void ntg_main_panel_init_inherit(
+        ntg_main_panel* panel,
+        const struct ntg_object_vtable* vtable,
+        const ntg_type* type,
+        const struct ntg_main_panel_opts* opts,
+        int* out_status)
 {
-    if(!panel) return;
+    ntg_init_status(out_status);
+
+    if(!panel || !type)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if(!ntg_type_instance_of(type, &NTG_TYPE_MAIN_PANEL))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+
+    int _status;
+
+    ntg_object_init((ntg_object*)panel, vtable, type, &_status);
+    if(_status != 0)
+        ntg_vreturn(out_status, _status);
 
     panel->_opts = ntg_main_panel_opts_def();
-    memset(panel->_children, 0, sizeof(ntg_object*) * 5);
+    memset(panel->_children, 0, sizeof(panel->_children));
     panel->hooks = (struct ntg_main_panel_hooks) {0};
-    ntg_object_deinit((ntg_object*)panel);
+
+    ntg_main_panel_set_opts(panel, opts);
 }
 
-void ntg_main_panel_deinit_(void* _panel)
-{
-    if(!_panel) return;
-
-    ntg_main_panel_deinit(_panel);
-}
-
-static struct ntg_object_measure measure_fn(
+struct ntg_object_measure ntg_main_panel_measure_fn(
         const ntg_object* _panel,
         ntg_orient orient,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
@@ -244,11 +253,11 @@ static struct ntg_object_measure measure_fn(
     };
 }
 
-static void constrain_fn(
+void ntg_main_panel_constrain_fn(
         const ntg_object* _panel,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
@@ -428,10 +437,10 @@ static void constrain_fn(
         ntg_object_size_map_set(out_size_map, center, center_size);
 }
 
-static void arrange_fn(
+void ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
         ntg_object_pos_map* out_pos_map,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
@@ -456,7 +465,7 @@ static void arrange_fn(
     struct ntg_xy center_size = ntg_xy_size(ntg_xy_sub(size, collective_side_size));
 
     struct ntg_xy north_pos = ntg_xy(0, 0);
-    struct ntg_xy east_pos = ntg_xy(west_size.x + center_size.x, north_size.y); 
+    struct ntg_xy east_pos = ntg_xy(west_size.x + center_size.x, north_size.y);
     struct ntg_xy south_pos = ntg_xy(0, north_size.y + center_size.y);
     struct ntg_xy west_pos = ntg_xy(0, north_size.y);
     struct ntg_xy center_pos = ntg_xy(west_size.x, north_size.y);
@@ -484,7 +493,7 @@ static void get_children(const ntg_main_panel* panel, ntg_object** out_north,
     (*out_center) = panel->_children[NTG_MAIN_PANEL_CENTER];
 }
 
-static void on_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
+void ntg_main_panel_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
 {
     ntg_main_panel* main_panel = (ntg_main_panel*)_main_panel;
 
@@ -494,4 +503,19 @@ static void on_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
         if(main_panel->_children[i] == child)
             main_panel->_children[i] = NULL;
     }
+
+    ntg_object_mark_dirty(_main_panel, NTG_OBJECT_DIRTY_FULL);
 }
+
+void ntg_main_panel_deinit_fn(ntg_object* _panel)
+{
+    ntg_main_panel_deinit((ntg_main_panel*)_panel);
+}
+
+const struct ntg_object_vtable NTG_MAIN_PANEL_VTABLE = {
+    .measure_fn = ntg_main_panel_measure_fn,
+    .constrain_fn = ntg_main_panel_constrain_fn,
+    .arrange_fn = ntg_main_panel_arrange_fn,
+    .rm_child_fn = ntg_main_panel_child_rm_fn,
+    .deinit_fn = ntg_main_panel_deinit_fn
+};

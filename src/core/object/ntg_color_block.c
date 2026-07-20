@@ -1,24 +1,55 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
+
 #define DEFAULT_SIZE 1
 
-static struct ntg_object_measure measure_fn(
-        const ntg_object* _block,
-        ntg_orient orient,
-        void* layout_ch,
-        sarena* arena);
+/* ========================================================================== */
+/* PUBLIC */
+/* ========================================================================== */
 
-static void draw_fn(
-        const ntg_object* _block,
-        ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
-        sarena* arena);
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
-/* PUBLIC API */
+/* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_color_block_set_color(ntg_color_block* color_block, struct nt_color color)
+void ntg_color_block_init(
+        ntg_color_block* color_block,
+        struct nt_color color,
+        int* out_status)
+{
+    ntg_color_block_init_inherit(
+            color_block,
+            &NTG_COLOR_BLOCK_VTABLE,
+            &NTG_TYPE_COLOR_BLOCK,
+            color,
+            out_status);
+}
+
+void ntg_color_block_deinit(ntg_color_block* color_block)
+{
+    if(!color_block) return;
+
+    color_block->_color = NT_COLOR_DEFAULT;
+    color_block->hooks = (struct ntg_color_block_hooks) {0};
+
+    ntg_object_deinit((ntg_object*)color_block);
+}
+
+void ntg_color_block_deinit_(void* _color_block)
+{
+    ntg_color_block_deinit(_color_block);
+}
+
+/* ------------------------------------------------------ */
+/* COLOR */
+/* ------------------------------------------------------ */
+
+void ntg_color_block_set_color(
+        ntg_color_block* color_block,
+        struct nt_color color)
 {
     if(!color_block) return;
 
@@ -35,61 +66,41 @@ void ntg_color_block_set_color(ntg_color_block* color_block, struct nt_color col
         color_block->hooks.on_color_chng_fn(color_block, old_color, color);
 }
 
-void ntg_color_block_init(
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
+
+void ntg_color_block_init_inherit(
         ntg_color_block* color_block,
+        const struct ntg_object_vtable* vtable,
+        const ntg_type* type,
         struct nt_color color,
         int* out_status)
 {
     ntg_init_status(out_status);
 
-    if(!color_block)
+    if(!color_block || !type)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    struct ntg_object_vtable vtable = {
-        .measure_fn = measure_fn,
-        .constrain_fn = NULL,
-        .fixup_fn = NULL,
-        .arrange_fn = NULL,
-        .draw_fn = draw_fn,
-        .rm_child_fn = NULL
-    };
+    if(!ntg_type_instance_of(type, &NTG_TYPE_COLOR_BLOCK))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
 
     int _status;
 
-    ntg_object_init(
-            (ntg_object*)color_block,
-            &vtable,
-            &NTG_TYPE_COLOR_BLOCK,
-            &_status);
+    ntg_object_init((ntg_object*)color_block, vtable, type, &_status);
+    if(_status != 0)
+        ntg_vreturn(out_status, _status);
 
     color_block->hooks = (struct ntg_color_block_hooks) {0};
-
     color_block->_color = NT_COLOR_DEFAULT;
 
     ntg_color_block_set_color(color_block, color);
 }
 
-void ntg_color_block_deinit(ntg_color_block* block)
-{
-    if(!block) return;
-
-    block->_color = NT_COLOR_DEFAULT;
-    ntg_object_deinit((ntg_object*)block);
-}
-
-/* ------------------------------------------------------ */
-/* INTERNAL/PROTECTED */
-/* ------------------------------------------------------ */
-
-void ntg_color_block_deinit_(void* _block)
-{
-    ntg_color_block_deinit(_block);
-}
-
-static struct ntg_object_measure measure_fn(
-        const ntg_object* _block,
+struct ntg_object_measure ntg_color_block_measure_fn(
+        const ntg_object* _color_block,
         ntg_orient orient,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     return (struct ntg_object_measure) {
@@ -100,14 +111,15 @@ static struct ntg_object_measure measure_fn(
     };
 }
 
-static void draw_fn(
-        const ntg_object* _block,
+void ntg_color_block_draw_fn(
+        const ntg_object* _color_block,
         ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
-    ntg_color_block* color_block = (ntg_color_block*)_block;
-    struct ntg_xy size = ntg_object_get_size_cont(_block);
+    const ntg_color_block* color_block =
+            (const ntg_color_block*)_color_block;
+    struct ntg_xy size = ntg_object_get_size_cont(_color_block);
 
     size_t i, j;
     for(i = 0; i < size.y; i++)
@@ -121,3 +133,14 @@ static void draw_fn(
         }
     }
 }
+
+void ntg_color_block_deinit_fn(ntg_object* _color_block)
+{
+    ntg_color_block_deinit((ntg_color_block*)_color_block);
+}
+
+NTG_API const struct ntg_object_vtable NTG_COLOR_BLOCK_VTABLE = {
+    .measure_fn = ntg_color_block_measure_fn,
+    .draw_fn = ntg_color_block_draw_fn,
+    .deinit_fn = ntg_color_block_deinit_fn
+};

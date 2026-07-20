@@ -5,8 +5,12 @@
 #include "core/object/ntg_object.h"
 
 /* ========================================================================== */
-/* PUBLIC - TYPES */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_main_panel_opts
 {
@@ -29,6 +33,8 @@ ntg_main_panel_opts_are_eq(
         const struct ntg_main_panel_opts* opts1,
         const struct ntg_main_panel_opts* opts2);
 
+/* ------------------------------------------------------ */
+
 enum ntg_main_panel_pos
 {
     NTG_MAIN_PANEL_NORTH = 0,
@@ -37,6 +43,8 @@ enum ntg_main_panel_pos
     NTG_MAIN_PANEL_WEST,
     NTG_MAIN_PANEL_CENTER
 };
+
+/* ------------------------------------------------------ */
 
 struct ntg_main_panel_hooks
 {
@@ -52,6 +60,8 @@ struct ntg_main_panel_hooks
             const struct ntg_main_panel_opts* new_opts);
 };
 
+/* ------------------------------------------------------ */
+
 struct ntg_main_panel
 {
     ntg_object __base;
@@ -61,9 +71,9 @@ struct ntg_main_panel
     struct ntg_main_panel_hooks hooks;
 };
 
-/* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -74,7 +84,7 @@ struct ntg_main_panel
  *
  * ERROR CODES:
  * - `NTG_ERR_INVALID_ARG`: `panel` is `NULL`.
- * - `NTG_ERR_ALLOC_FAIL`: panel or base-object resources cannot be allocated.
+ * - `NTG_ERR_ALLOC_FAIL`: base-object resources cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
 NTG_API void
 ntg_main_panel_init(
@@ -127,5 +137,74 @@ NTG_API void
 ntg_main_panel_set_opts(
         ntg_main_panel* panel,
         const struct ntg_main_panel_opts* opts);
+
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
+
+/* Initializes the main-panel portion of an object derived from
+ * `NTG_TYPE_MAIN_PANEL`, using the supplied virtual table and concrete type
+ * descriptor. A `NULL` options pointer selects defaults.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `panel` or `type` is `NULL`.
+ * - `NTG_ERR_INVALID_TYPE`: `type` is not derived from
+ *   `NTG_TYPE_MAIN_PANEL`.
+ * - `NTG_ERR_BAD_VTABLE`: `vtable` or `vtable->deinit_fn` is `NULL`.
+ * - `NTG_ERR_ALLOC_FAIL`: base-object resources cannot be allocated.
+ * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
+NTG_API void
+ntg_main_panel_init_inherit(
+        ntg_main_panel* panel,
+        const struct ntg_object_vtable* vtable,
+        const ntg_type* type,
+        const struct ntg_main_panel_opts* opts,
+        int* out_status);
+
+/* ------------------------------------------------------ */
+
+/* Implements main-panel measurement for an object virtual table. */
+NTG_API struct ntg_object_measure
+ntg_main_panel_measure_fn(
+        const ntg_object* _panel,
+        ntg_orient orient,
+        void* _layout_cache,
+        sarena* arena);
+
+/* ------------------------------------------------------ */
+
+/* Assigns constrained sizes to populated main-panel regions. */
+NTG_API void
+ntg_main_panel_constrain_fn(
+        const ntg_object* _panel,
+        ntg_orient orient,
+        ntg_object_size_map* out_size_map,
+        void* _layout_cache,
+        sarena* arena);
+
+/* ------------------------------------------------------ */
+
+/* Assigns positions to populated main-panel regions. */
+NTG_API void
+ntg_main_panel_arrange_fn(
+        const ntg_object* _panel,
+        ntg_object_pos_map* out_pos_map,
+        void* _layout_cache,
+        sarena* arena);
+
+/* ------------------------------------------------------ */
+
+/* Clears the matching region after a base-level child removal. */
+NTG_API void
+ntg_main_panel_child_rm_fn(ntg_object* _panel, ntg_object* child);
+
+/* ------------------------------------------------------ */
+
+/* Virtual deinitializer that dispatches to `ntg_main_panel_deinit`. */
+NTG_API void
+ntg_main_panel_deinit_fn(ntg_object* _panel);
+
+/* Default virtual table used by `ntg_main_panel_init`. */
+NTG_API extern const struct ntg_object_vtable NTG_MAIN_PANEL_VTABLE;
 
 #endif // NTG_MAIN_PANEL_H

@@ -5,8 +5,12 @@
 #include "core/object/ntg_object.h"
 
 /* ========================================================================== */
-/* PUBLIC - TYPES */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_prog_bar_style
 {
@@ -32,6 +36,8 @@ ntg_prog_bar_style_are_eq(
         const struct ntg_prog_bar_style* style1,
         const struct ntg_prog_bar_style* style2);
 
+/* ------------------------------------------------------ */
+
 struct ntg_prog_bar_opts
 {
     struct ntg_prog_bar_style style;
@@ -54,6 +60,8 @@ ntg_prog_bar_opts_are_eq(
         const struct ntg_prog_bar_opts* opts1,
         const struct ntg_prog_bar_opts* opts2);
 
+/* ------------------------------------------------------ */
+
 struct ntg_prog_bar_hooks
 {
     void (*on_prog_chng_fn)(
@@ -67,6 +75,8 @@ struct ntg_prog_bar_hooks
             const struct ntg_prog_bar_opts* new_opts);
 };
 
+/* ------------------------------------------------------ */
+
 struct ntg_prog_bar
 {
     ntg_object __base;
@@ -76,17 +86,16 @@ struct ntg_prog_bar
     struct ntg_prog_bar_hooks hooks;
 };
 
-/* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-/* Initializes the base progress-bar object and applies options, using defaults
- * for `NULL`. The current implementation does not assign `_prog`; callers must
- * provide zero-initialized storage to obtain zero initial progress.
+/* Initializes a progress bar with zero progress. A `NULL` options pointer
+ * selects defaults.
  *
  * ERROR CODES:
  * - `NTG_ERR_INVALID_ARG`: `prog_bar` is `NULL`.
@@ -118,17 +127,68 @@ ntg_prog_bar_deinit_(void* _prog_bar);
 /* Updates progress-bar orientation and cell styles. A `NULL` options pointer
  * applies defaults; unchanged options are ignored. */
 NTG_API void
-ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts);
+ntg_prog_bar_set_opts(
+        ntg_prog_bar* prog_bar,
+        const struct ntg_prog_bar_opts* opts);
 
 /* ------------------------------------------------------ */
 /* PROGRESS */
 /* ------------------------------------------------------ */
 
-/* Processes a requested progress value. Requests above `1.0` are clamped for
- * the hook, the object is marked for redraw, and the hook is invoked when the
- * request differs from the stored value. The current implementation does not
- * assign the value to `_prog` and does not clamp negative values. */
+/* Sets progress after clamping it to the `[0.0, 1.0]` range. The object is
+ * marked for redraw and the progress-change hook is invoked when it changes. */
 NTG_API void
-ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double percentage);
+ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress);
+
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
+
+/* Initializes the progress-bar portion of an object derived from
+ * `NTG_TYPE_PROG_BAR`, using the supplied virtual table and concrete type
+ * descriptor. A `NULL` options pointer selects defaults.
+ *
+ * ERROR CODES:
+ * - `NTG_ERR_INVALID_ARG`: `prog_bar` or `type` is `NULL`.
+ * - `NTG_ERR_INVALID_TYPE`: `type` is not derived from `NTG_TYPE_PROG_BAR`.
+ * - `NTG_ERR_BAD_VTABLE`: `vtable` or `vtable->deinit_fn` is `NULL`.
+ * - `NTG_ERR_ALLOC_FAIL`: base-object resources cannot be allocated.
+ * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
+NTG_API void
+ntg_prog_bar_init_inherit(
+        ntg_prog_bar* prog_bar,
+        const struct ntg_object_vtable* vtable,
+        const ntg_type* type,
+        const struct ntg_prog_bar_opts* opts,
+        int* out_status);
+
+/* ------------------------------------------------------ */
+
+/* Implements progress-bar measurement for an object virtual table. */
+NTG_API struct ntg_object_measure
+ntg_prog_bar_measure_fn(
+        const ntg_object* _prog_bar,
+        ntg_orient orient,
+        void* _layout_cache,
+        sarena* arena);
+
+/* ------------------------------------------------------ */
+
+/* Draws the complete, threshold, and incomplete progress-bar regions. */
+NTG_API void
+ntg_prog_bar_draw_fn(
+        const ntg_object* _prog_bar,
+        ntg_object_tmp_drawing* out_drawing,
+        void* _layout_cache,
+        sarena* arena);
+
+/* ------------------------------------------------------ */
+
+/* Virtual deinitializer that dispatches to `ntg_prog_bar_deinit`. */
+NTG_API void
+ntg_prog_bar_deinit_fn(ntg_object* _prog_bar);
+
+/* Default virtual table used by `ntg_prog_bar_init`. */
+NTG_API extern const struct ntg_object_vtable NTG_PROG_BAR_VTABLE;
 
 #endif // NTG_PROG_BAR_H

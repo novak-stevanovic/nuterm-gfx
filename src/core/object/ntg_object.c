@@ -4,7 +4,7 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
-/* TYPE DEFINITIONS */
+/* STATIC */
 /* ========================================================================== */
 
 struct ntg_object_size_map
@@ -22,10 +22,6 @@ struct ntg_object_pos_map
 
     size_t size;
 };
-
-/* ========================================================================== */
-/* STATIC */
-/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* LAYOUT OBJECT INIT */
@@ -80,8 +76,12 @@ static void draw_optimized(ntg_object* object, sarena* arena);
 static void draw_unoptimized(ntg_object* object, sarena* arena);
 
 /* ========================================================================== */
-/* PUBLIC - TYPES (ntg_object.h) */
+/* PUBLIC (ntg_object.h) */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_border_opts ntg_border_opts_def()
 {
@@ -159,16 +159,16 @@ bool ntg_layout_opts_are_eq(
             opts1->z_index == opts2->z_index);
 }
 
-/* ========================================================================== */
-/* PUBLIC - FUNCTIONS (ntg_object.h) */
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 void ntg_object_vdeinit(ntg_object* object)
 {
     if(!object) return;
 
-    if(object->__vtable.deinit_fn)
-        object->__vtable.deinit_fn(object);
+    if(object->__vtable->deinit_fn)
+        object->__vtable->deinit_fn(object);
 }
 
 /* ------------------------------------------------------ */
@@ -392,8 +392,8 @@ void ntg_object_detach(ntg_object* object)
 
     object->_parent = NULL;
 
-    if(parent->__vtable.rm_child_fn)
-        parent->__vtable.rm_child_fn(parent, object);
+    if(parent->__vtable->rm_child_fn)
+        parent->__vtable->rm_child_fn(parent, object);
 
     if(scene)
         _ntg_scene_rm_object_tree(scene, object);
@@ -660,9 +660,9 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key)
 
     bool consumed = false;
 
-    if(object->__vtable.process_key_fn)
+    if(object->__vtable->process_key_fn)
     {
-        consumed = consumed || object->__vtable.process_key_fn(object, key);
+        consumed = consumed || object->__vtable->process_key_fn(object, key);
     }
 
     if(object->hooks.on_key_fn)
@@ -694,9 +694,9 @@ bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse)
         // return false;
     }
 
-    if(object->__vtable.process_mouse_fn)
+    if(object->__vtable->process_mouse_fn)
     {
-        consumed = consumed || object->__vtable.process_mouse_fn(object, mouse);
+        consumed = consumed || object->__vtable->process_mouse_fn(object, mouse);
     }
 
     if(object->hooks.on_mouse_fn)
@@ -777,8 +777,7 @@ void ntg_object_init(
 
     object->_type = type;
 
-    struct ntg_object_vtable def_vtable = {0};
-    object->__vtable = (vtable ? (*vtable) : def_vtable);
+    object->__vtable = vtable;
 
     ntg_object_drawing_init(&object->_drawing);
 }
@@ -915,8 +914,12 @@ void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene)
 }
 
 /* ========================================================================== */
-/* PUBLIC - TYPES (ntg_object_layout.h) */
+/* PUBLIC (ntg_object.h) */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
 /* MEASURE PHASE */
@@ -1005,8 +1008,12 @@ void ntg_object_pos_map_set(
 /* ------------------------------------------------------ */
 
 /* ========================================================================== */
-/* PUBLIC - FUNCTIONS (ntg_object_layout.h) */
+/* PUBLIC (ntg_object_layout.h) */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 void ntg_object_mark_dirty(ntg_object* object, uint8_t dirty)
 {
@@ -1279,14 +1286,17 @@ size_t ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient)
 /* INTERNAL (ntg_object_layout.h) */
 /* ========================================================================== */
 
-void _ntg_object_hmeasure(ntg_object* object, sarena* arena)
+void _ntg_object_hmeasure(ntg_object* object, sarena* arena, int* out_status)
 {
-    if(!object || !arena) return;
+    ntg_init_status(out_status);
+
+    if(!object || !arena)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_object_measure measure = {0};
-    if(object->__vtable.measure_fn)
+    if(object->__vtable->measure_fn)
     {
-        measure = object->__vtable.measure_fn(object,
+        measure = object->__vtable->measure_fn(object,
                 NTG_ORIENT_H, object->layout_cache, arena);
 
         size_t extra = ntg_insets_hsum(object->_padding.opts.pref_size) +
@@ -1332,12 +1342,17 @@ void _ntg_object_hmeasure(ntg_object* object, sarena* arena)
     }
 }
 
-void _ntg_object_hconstrain(ntg_object* object, sarena* arena)
+void _ntg_object_hconstrain(ntg_object* object, sarena* arena, int* out_status)
 {
-    if(!object || !arena) return;
+    ntg_init_status(out_status);
+
+    if(!object || !arena)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     size_t cont_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_H);
+    size_t size = ntg_object_get_size_1d(object, NTG_ORIENT_H);
     object->__old_cont_size.x = cont_size;
+    object->__old_size.x = size;
 
     if(object->__skip_hborder)
     {
@@ -1398,9 +1413,9 @@ void _ntg_object_hconstrain(ntg_object* object, sarena* arena)
     _status = size_map_init(&map, &object->_children, arena);
     if(_status) return;
 
-    if(object->__vtable.constrain_fn)
+    if(object->__vtable->constrain_fn)
     {
-        object->__vtable.constrain_fn(object, NTG_ORIENT_H,
+        object->__vtable->constrain_fn(object, NTG_ORIENT_H,
                 &map, object->layout_cache, arena);
     }
 
@@ -1427,14 +1442,17 @@ void _ntg_object_hconstrain(ntg_object* object, sarena* arena)
     }
 }
 
-void _ntg_object_vmeasure(ntg_object* object, sarena* arena)
+void _ntg_object_vmeasure(ntg_object* object, sarena* arena, int* out_status)
 {
-    if(!object || !arena) return;
+    ntg_init_status(out_status);
+
+    if(!object || !arena)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_object_measure measure = {0};
-    if(object->__vtable.measure_fn)
+    if(object->__vtable->measure_fn)
     {
-        measure = object->__vtable.measure_fn(object,
+        measure = object->__vtable->measure_fn(object,
                 NTG_ORIENT_V, object->layout_cache, arena);
 
         size_t extra = ntg_insets_vsum(object->_padding.opts.pref_size) +
@@ -1479,12 +1497,17 @@ void _ntg_object_vmeasure(ntg_object* object, sarena* arena)
     }
 }
 
-void _ntg_object_vconstrain(ntg_object* object, sarena* arena)
+void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_status)
 {
-    if(!object || !arena) return;
+    ntg_init_status(out_status);
 
-    size_t cont_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_H);
-    object->__old_cont_size.x = cont_size;
+    if(!object || !arena)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    size_t cont_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_V);
+    size_t size = ntg_object_get_size_1d(object, NTG_ORIENT_V);
+    object->__old_cont_size.y = cont_size;
+    object->__old_size.y = size;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_ARRANGE | NTG_OBJECT_DIRTY_DRAW);
     bool ret = vconstrain_border(object, arena) || vconstrain_padding(object, arena);
@@ -1520,9 +1543,9 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena)
     _status = size_map_init(&map, &object->_children, arena);
     if(_status) return;
 
-    if(object->__vtable.constrain_fn)
+    if(object->__vtable->constrain_fn)
     {
-        object->__vtable.constrain_fn(object, NTG_ORIENT_V,
+        object->__vtable->constrain_fn(object, NTG_ORIENT_V,
                 &map, object->layout_cache, arena);
     }
 
@@ -1546,13 +1569,14 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena)
 
 bool _ntg_object_fixup(ntg_object* object, sarena* arena)
 {
-    if(!object || !arena) return false;
+    if(!object || !arena)
+        return false;
 
     bool repeat_dcr = object->__repeat;
     bool repeat_fn = false;
-    if(object->__vtable.fixup_fn)
+    if(object->__vtable->fixup_fn)
     {
-        repeat_fn = object->__vtable.fixup_fn(object,
+        repeat_fn = object->__vtable->fixup_fn(object,
                 object->layout_cache, arena);;
     }
 
@@ -1567,19 +1591,32 @@ bool _ntg_object_fixup(ntg_object* object, sarena* arena)
     struct ntg_xy old_cont_size = object->__old_cont_size;
     if(!ntg_xy_are_eq(cont_size, old_cont_size))
     {
-        if(object->__vtable.cont_resize_fn)
-            object->__vtable.cont_resize_fn(object, old_cont_size, cont_size);
+        if(object->__vtable->cont_resize_fn)
+            object->__vtable->cont_resize_fn(object, old_cont_size, cont_size);
 
         if(object->hooks.on_cont_resize_fn)
             object->hooks.on_cont_resize_fn(object, old_cont_size, cont_size);
+    }
+    struct ntg_xy size = ntg_object_get_size(object);
+    struct ntg_xy old_size = object->__old_size;
+    if(!ntg_xy_are_eq(size, old_size))
+    {
+        if(object->__vtable->resize_fn)
+            object->__vtable->resize_fn(object, old_size, size);
+
+        if(object->hooks.on_resize_fn)
+            object->hooks.on_resize_fn(object, old_size, size);
     }
 
     return (repeat_dcr || repeat_fn);
 }
 
-void _ntg_object_arrange(ntg_object* object, sarena* arena)
+void _ntg_object_arrange(ntg_object* object, sarena* arena, int* out_status)
 {
-    if(!object || !arena) return;
+    ntg_init_status(out_status);
+
+    if(!object || !arena)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     if(object->_children.size == 0) return;
 
@@ -1601,8 +1638,8 @@ void _ntg_object_arrange(ntg_object* object, sarena* arena)
     _status = pos_map_init(&map, &object->_children, arena);
     if(_status) return;
 
-    if(object->__vtable.arrange_fn)
-        object->__vtable.arrange_fn(object, &map, object->layout_cache, arena);
+    if(object->__vtable->arrange_fn)
+        object->__vtable->arrange_fn(object, &map, object->layout_cache, arena);
 
     struct ntg_xy dcr_sum = ntg_xy(
             object->_border.size.w + object->_padding.size.w,
@@ -1626,18 +1663,28 @@ void _ntg_object_arrange(ntg_object* object, sarena* arena)
     }
 }
 
-void _ntg_object_draw(ntg_object* object, sarena* arena)
+void _ntg_object_draw(ntg_object* object, sarena* arena, int* out_status)
 {
-    if(!object || !arena) return;
+    ntg_init_status(out_status);
+
+    if(!object || !arena)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     // Set object drawing size
 
     int _status;
     
     const ntg_scene* scene = ntg_object_get_scene_(object);
-    // TODO: what if fails, object size != drawing size...
     ntg_object_drawing_set_size(&object->_drawing, object->_size, scene->_size, &_status);
-    if(_status != 0) return;
+    switch(_status)
+    {
+        case 0:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 
     if(ntg_xy_size_is_zero(object->_size))
         return;
@@ -1655,7 +1702,11 @@ void _ntg_object_root_set_hsize(ntg_object* object, size_t size)
     if(!object || object->_parent)
         return;
 
+    size_t cont_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_H);
+    object->__old_cont_size.x = cont_size;
+
     size_t old = object->_size.x;
+    object->__old_size.x = old;
 
     if(old != size)
     {
@@ -1675,7 +1726,11 @@ void _ntg_object_root_set_vsize(ntg_object* object, size_t size)
     if(!object || object->_parent)
         return;
 
+    size_t cont_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_V);
+    object->__old_cont_size.y = cont_size;
+
     size_t old = object->_size.y;
+    object->__old_size.y = old;
 
     if(old != size)
     {
@@ -1713,8 +1768,8 @@ void _ntg_object_focus(ntg_object* object, ntg_object* old_focused)
 {
     if(!object) return;
 
-    if(object->__vtable.focus_fn)
-        object->__vtable.focus_fn(object, old_focused);
+    if(object->__vtable->focus_fn)
+        object->__vtable->focus_fn(object, old_focused);
 
     if(object->hooks.on_focus_fn)
         object->hooks.on_focus_fn(object, old_focused);
@@ -1724,8 +1779,8 @@ void _ntg_object_unfocus(ntg_object* object, ntg_object* new_focused)
 {
     if(!object) return;
 
-    if(object->__vtable.unfocus_fn)
-        object->__vtable.unfocus_fn(object, new_focused);
+    if(object->__vtable->unfocus_fn)
+        object->__vtable->unfocus_fn(object, new_focused);
 
     if(object->hooks.on_unfocus_fn)
         object->hooks.on_unfocus_fn(object, new_focused);
@@ -2088,9 +2143,9 @@ static void draw_optimized(ntg_object* object, sarena* arena)
     size_t i, j;
 
     // Draw object content
-    if(object->__vtable.draw_fn)
+    if(object->__vtable->draw_fn)
     {
-        object->__vtable.draw_fn(object, &content_drawing, object->layout_cache, arena);
+        object->__vtable->draw_fn(object, &content_drawing, object->layout_cache, arena);
     }
 
     struct ntg_vcell it_src_cell;
@@ -2157,9 +2212,9 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
     }
 
     // Draw object content
-    if(object->__vtable.draw_fn)
+    if(object->__vtable->draw_fn)
     {
-        object->__vtable.draw_fn(object, &content_drawing, object->layout_cache, arena);
+        object->__vtable->draw_fn(object, &content_drawing, object->layout_cache, arena);
     }
 
     struct ntg_vcell it_src_cell;

@@ -4,8 +4,12 @@
 #include "shared/ntg_shared.h"
 
 /* ========================================================================== */
-/* PUBLIC - TYPES */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_type
 {
@@ -13,18 +17,25 @@ struct ntg_type
     size_t _size;
 };
 
-extern const ntg_type NTG_TYPE_OBJECT,
-        NTG_TYPE_PROG_BAR, NTG_TYPE_COLOR_BLOCK,
-        NTG_TYPE_TEXT, NTG_TYPE_BOX, NTG_TYPE_MAIN_PANEL;
+/* Built-in object type descriptors used as inheritance-chain roots. */
+NTG_API extern const ntg_type NTG_TYPE_OBJECT,
+        NTG_TYPE_PROG_BAR,
+        NTG_TYPE_COLOR_BLOCK,
+        NTG_TYPE_TEXT,
+        NTG_TYPE_BOX,
+        NTG_TYPE_MAIN_PANEL;
 
-/* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 /* Checks whether `type` is `ancestor` or derives from it through the type
  * parent chain. */
 NTG_API bool
 ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor);
+
+/* ------------------------------------------------------ */
+
 /* Compares two type descriptors by identity. */
 NTG_API bool
 ntg_type_are_eq(const ntg_type* type1, const ntg_type* type2);

@@ -344,16 +344,16 @@ ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient);
 /* Measures one object horizontally, applies decorator and user constraints,
  * stores changed measurements, and invalidates dependent phases and its parent
  * when needed. */
-void _ntg_object_hmeasure(ntg_object* object, sarena* arena);
+void _ntg_object_hmeasure(ntg_object* object, sarena* arena, int* out_status);
 /* Computes one object’s horizontal border and padding sizes, then assigns
  * widths to its direct children through the constrain callback. */
-void _ntg_object_hconstrain(ntg_object* object, sarena* arena);
+void _ntg_object_hconstrain(ntg_object* object, sarena* arena, int* out_status);
 /* Measures one object vertically using its resolved width, applies decorator
  * and user constraints, and stores changed measurements. */
-void _ntg_object_vmeasure(ntg_object* object, sarena* arena);
+void _ntg_object_vmeasure(ntg_object* object, sarena* arena, int* out_status);
 /* Computes one object’s vertical border and padding sizes, then assigns heights
  * to its direct children through the constrain callback. */
-void _ntg_object_vconstrain(ntg_object* object, sarena* arena);
+void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_status);
 /* Runs one object’s decorator and optional custom fixup state, clears its
  * repeat flag, and marks horizontal constraint dirty when another pass is
  * requested.
@@ -364,10 +364,10 @@ bool _ntg_object_fixup(ntg_object* object, sarena* arena);
 /* Uses one object’s arrange callback to assign positions to its direct
  * children, offsetting for decorators and clamping positions to the parent
  * bounds. */
-void _ntg_object_arrange(ntg_object* object, sarena* arena);
+void _ntg_object_arrange(ntg_object* object, sarena* arena, int* out_status);
 /* Resizes and rebuilds one object’s drawing, then marks it for rendering. A
  * `NULL` object or arena is ignored. */
-void _ntg_object_draw(ntg_object* object, sarena* arena);
+void _ntg_object_draw(ntg_object* object, sarena* arena, int* out_status);
 
 /* Sets the root width and invalidates dependent vertical layout when it
  * changes. */

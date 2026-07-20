@@ -7,110 +7,66 @@
 /* UGLY CODE - TODO: rewrite sometime */
 
 /* ========================================================================== */
-/* TYPE DEFINITIONS */
+/* STATIC TYPES */
 /* ========================================================================== */
 
-struct str
-{
-    char* data;
-    size_t len;
-};
-
-struct str32
-{
-    uint32_t* data;
-    size_t len;
-};
-
-struct str_view
-{
-    const char* data;
-    size_t len;
-};
-
-static inline struct str_view get_str_view(struct str string, size_t offset)
+static inline struct ntg_text_str_view get_str_view(struct ntg_text_str string, size_t offset)
 {
     if(offset > string.len) offset = string.len;
 
-    return (struct str_view){
+    return (struct ntg_text_str_view){
         .data = string.data + offset,
         .len  = string.len - offset
     };
 }
 
-struct str32_view
-{
-    const uint32_t* data;
-    size_t len;
-};
-
-static inline struct str32_view get_str32_view(struct str32 string, size_t offset)
+static inline struct ntg_text_str32_view get_str32_view(struct ntg_text_str32 string, size_t offset)
 {
     if(offset > string.len) offset = string.len;
 
-    return (struct str32_view){
+    return (struct ntg_text_str32_view){
         .data = string.data + offset,
         .len  = string.len - offset
     };
 }
-
-struct ntg_text_priv
-{
-    struct str32 utf32_text;
-
-    size_t utf32_row_count;
-    struct str32_view* utf32_rows;
-};
 
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
 
-static size_t str_count(struct str_view str, char sep);
+static size_t str_count(struct ntg_text_str_view str, char sep);
 
-static size_t str32_count(struct str32_view str, uint32_t sep);
+static size_t str32_count(struct ntg_text_str32_view str, uint32_t sep);
 
-static size_t str_split(struct str_view str, char sep,
-        struct str_view* out_views, size_t cap);
+static size_t str_split(struct ntg_text_str_view str, char sep,
+        struct ntg_text_str_view* out_views, size_t cap);
 
-static size_t str32_split(struct str32_view str, uint32_t sep,
-        struct str32_view* out_views, size_t cap);
-
-static struct ntg_object_measure measure_fn(
-        const ntg_object* _text,
-        ntg_orient orient,
-        void* layout_ch,
-        sarena* arena);
-
-static void draw_fn(
-        const ntg_object* _text,
-        ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
-        sarena* arena);
+static size_t str32_split(struct ntg_text_str32_view str, uint32_t sep,
+        struct ntg_text_str32_view* out_views, size_t cap);
 
 #define DEFAULT_SIZE 1
 
 static size_t get_wrows_nowrap(
-        struct str32_view row,
+        struct ntg_text_str32_view row,
         size_t for_size,
-        struct str32_view** out_rows,
+        struct ntg_text_str32_view** out_rows,
         sarena* arena);
 
 static size_t get_wrows_wrap(
-        struct str32_view row,
+        struct ntg_text_str32_view row,
         size_t for_size,
-        struct str32_view** out_rows,
+        struct ntg_text_str32_view** out_rows,
         sarena* arena);
 
 static size_t get_wrows_wwrap(
-        struct str32_view row,
+        struct ntg_text_str32_view row,
         size_t for_size,
-        struct str32_view** out_rows,
+        struct ntg_text_str32_view** out_rows,
         sarena* arena);
 
 static struct ntg_object_measure measure_nowrap_fn(
         const ntg_text* text_obj,
-        const struct str32_view* rows,
+        const struct ntg_text_str32_view* rows,
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
@@ -118,7 +74,7 @@ static struct ntg_object_measure measure_nowrap_fn(
 
 static struct ntg_object_measure measure_wrap_fn(
         const ntg_text* text_obj,
-        const struct str32_view* rows,
+        const struct ntg_text_str32_view* rows,
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
@@ -126,13 +82,13 @@ static struct ntg_object_measure measure_wrap_fn(
 
 static struct ntg_object_measure measure_wwrap_fn(
         const ntg_text* text_obj,
-        const struct str32_view* rows,
+        const struct ntg_text_str32_view* rows,
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
         sarena* arena);
 
-static int trim_text(struct str* text);
+static int trim_text(struct ntg_text_str* text);
 
 /* ------------------------------------------------------ */
 
@@ -143,12 +99,18 @@ static void init_default(ntg_text* text_obj)
     text_obj->_text.len = 0;
     text_obj->_text.data = NULL;
 
-    text_obj->__priv->utf32_text = (struct str32) {0};
-    text_obj->__priv->utf32_rows = NULL;
-    text_obj->__priv->utf32_row_count = 0;
-
-    text_obj->hooks = (struct ntg_text_hooks) {0};
+    text_obj->_cache.utf32_text = (struct ntg_text_str32) {0};
+    text_obj->_cache.utf32_rows = NULL;
+    text_obj->_cache.utf32_row_count = 0;
 }
+
+/* ========================================================================== */
+/* PUBLIC */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_text_opts ntg_text_opts_def()
 {
@@ -161,7 +123,7 @@ struct ntg_text_opts ntg_text_opts_def()
         .sec_align = NTG_ALIGN_1,
         .wrap = NTG_TEXT_WRAP_NONE,
         .autotrim = true,
-        .indent = false,
+        .indent = 0,
     };
 }
 
@@ -186,73 +148,22 @@ bool ntg_text_opts_are_eq(
            (opts1->indent == opts2->indent));
 }
 
-/* ------------------------------------------------------ */
-/* PUBLIC API */
-/* ------------------------------------------------------ */
-
-void ntg_text_init(
-        ntg_text* text_obj,
-        const struct ntg_text_opts* opts,
-        int* out_status)
-{
-    ntg_init_status(out_status);
-
-    if(!text_obj)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
-    int _status;
-
-    struct ntg_object_vtable vtable = {
-        .measure_fn = measure_fn,
-        .constrain_fn = NULL,
-        .arrange_fn = NULL,
-        .draw_fn = draw_fn,
-        .rm_child_fn = NULL
-    };
-
-    ntg_object_init((ntg_object*)text_obj, &vtable, &NTG_TYPE_TEXT, &_status);
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-    }
-
-    text_obj->__priv = malloc(sizeof(struct ntg_text_priv));
-    if(!text_obj->__priv)
-    {
-        ntg_object_deinit((ntg_object*)text_obj);
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-    }
-
-    init_default(text_obj);
-
-    ntg_text_set_text(text_obj, "", NULL);
-
-    ntg_text_set_opts(text_obj, opts);
-}
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 void ntg_text_deinit(ntg_text* text_obj)
 {
     if(!text_obj) return;
 
-    if(text_obj->_text.data != NULL)
-        free(text_obj->_text.data);
+    free(text_obj->_text.data);
 
-    if(text_obj->__priv->utf32_text.data)
-        free(text_obj->__priv->utf32_text.data);
-
-    if(text_obj->__priv->utf32_rows)
-        free(text_obj->__priv->utf32_rows);
-
-    init_default(text_obj);
-    
-    free(text_obj->__priv);
-    text_obj->__priv = NULL;
+    text_obj->_opts = ntg_text_opts_def();
+    text_obj->_text.data = NULL;
+    text_obj->_text.len = 0;
+    text_obj->_cache.utf32_text = (struct ntg_text_str32) {0};
+    text_obj->_cache.utf32_row_count = 0;
+    text_obj->_cache.utf32_rows = NULL;
 
     ntg_object_deinit((ntg_object*)text_obj);
 }
@@ -296,7 +207,7 @@ void ntg_text_set_text_safe(
 {
     ntg_init_status(out_status);
 
-    if(!text || !text)
+    if(!text_obj || !text)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     len = _min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
@@ -330,7 +241,7 @@ void ntg_text_set_text_safe(
         memmove(new_text, text, len);
     new_text[len] = '\0';
 
-    struct str text_text = {
+    struct ntg_text_str text_text = {
         .data = new_text,
         .len = len
     };
@@ -349,20 +260,17 @@ void ntg_text_set_text_safe(
     if(text_text.len == 0)
     {
         free(text_obj->_text.data);
-        free(text_obj->__priv->utf32_text.data);
-        free(text_obj->__priv->utf32_rows);
+        free(text_obj->_cache.utf32_text.data);
+        free(text_obj->_cache.utf32_rows);
 
         text_obj->_text.data = text_text.data;
         text_obj->_text.len = text_text.len;
-        text_obj->__priv->utf32_text = (struct str32) {0};
-        text_obj->__priv->utf32_rows = NULL;
-        text_obj->__priv->utf32_row_count = 0;
+        text_obj->_cache.utf32_text = (struct ntg_text_str32) {0};
+        text_obj->_cache.utf32_rows = NULL;
+        text_obj->_cache.utf32_row_count = 0;
 
-        ntg_object_mark_dirty((ntg_object*)text, NTG_OBJECT_DIRTY_FULL);
-
-        if(raise_hook && text_obj->hooks.on_text_chng_fn)
-            text_obj->hooks.on_text_chng_fn(text_obj, old_text, old_text_len,
-                    text_obj->_text.data, text_obj->_text.len);
+        ntg_object_mark_dirty((ntg_object*)text_obj,
+            NTG_OBJECT_DIRTY_FULL);
 
         free(old_text);
         return;
@@ -401,13 +309,13 @@ void ntg_text_set_text_safe(
             new_utf32_text = shrunk;
     }
 
-    struct str32 utf32_text = {
+    struct ntg_text_str32 utf32_text = {
         .data = new_utf32_text,
         .len = width
     };
 
     size_t row_count = str32_count(get_str32_view(utf32_text, 0), '\n') + 1;
-    struct str32_view* new_rows = malloc(sizeof(struct str32_view) * row_count);
+    struct ntg_text_str32_view* new_rows = malloc(sizeof(struct ntg_text_str32_view) * row_count);
     if(!new_rows)
     {
         free(new_utf32_text);
@@ -419,49 +327,85 @@ void ntg_text_set_text_safe(
     str32_split(get_str32_view(utf32_text, 0), '\n', new_rows, row_count);
 
     free(text_obj->_text.data);
-    free(text_obj->__priv->utf32_text.data);
-    free(text_obj->__priv->utf32_rows);
+    free(text_obj->_cache.utf32_text.data);
+    free(text_obj->_cache.utf32_rows);
 
     text_obj->_text.data = text_text.data;
     text_obj->_text.len = text_text.len;
-    text_obj->__priv->utf32_text = utf32_text;
-    text_obj->__priv->utf32_rows = new_rows;
-    text_obj->__priv->utf32_row_count = row_count;
+    text_obj->_cache.utf32_text = utf32_text;
+    text_obj->_cache.utf32_rows = new_rows;
+    text_obj->_cache.utf32_row_count = row_count;
 
-    ntg_object_mark_dirty((ntg_object*)text, NTG_OBJECT_DIRTY_FULL);
-
-    if(raise_hook && text_obj->hooks.on_text_chng_fn)
-        text_obj->hooks.on_text_chng_fn(text_obj, old_text, old_text_len,
-                text_obj->_text.data, text_obj->_text.len);
+    ntg_object_mark_dirty((ntg_object*)text_obj,
+            NTG_OBJECT_DIRTY_FULL);
 
     free(old_text);
 }
 
-void ntg_text_set_text(ntg_text* text_obj, const char* text, int* out_status)
+void ntg_text_set_text(
+        ntg_text* text_obj,
+        const char* text,
+        int* out_status)
 {
     ntg_init_status(out_status);
+
+    if(!text_obj || !text)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     ntg_text_set_text_safe(text_obj, text, strlen(text), out_status);
 }
 
-/* ------------------------------------------------------ */
-/* INTERNAL/PROTECTED */
-/* ------------------------------------------------------ */
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
 
-static struct ntg_object_measure measure_fn(
+void ntg_text_init_inherit(
+        ntg_text* text_obj,
+        const struct ntg_object_vtable* vtable,
+        const ntg_type* type,
+        const struct ntg_text_opts* opts,
+        int* out_status)
+{
+    ntg_init_status(out_status);
+
+    if(!text_obj || !type)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if(!ntg_type_instance_of(type, &NTG_TYPE_TEXT))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+
+    int _status;
+
+    ntg_object_init((ntg_object*)text_obj, vtable, type, &_status);
+    if(_status != 0)
+        ntg_vreturn(out_status, _status);
+
+    init_default(text_obj);
+
+    ntg_text_set_text(text_obj, "", &_status);
+    if(_status != 0)
+    {
+        ntg_object_deinit((ntg_object*)text_obj);
+        ntg_vreturn(out_status, _status);
+    }
+
+    ntg_text_set_opts(text_obj, opts);
+}
+
+struct ntg_object_measure ntg_text_measure_fn(
         const ntg_object* _text_obj,
         ntg_orient orient,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
     size_t for_size = ntg_object_get_for_size_cont(_text_obj, orient);
     if(for_size == 0) return (struct ntg_object_measure) {0};
-    
+
     if(text_obj->_text.len == 0) return (struct ntg_object_measure) {0};
 
-    size_t row_count = text_obj->__priv->utf32_row_count;
-    const struct str32_view* rows = text_obj->__priv->utf32_rows;
+    size_t row_count = text_obj->_cache.utf32_row_count;
+    const struct ntg_text_str32_view* rows = text_obj->_cache.utf32_rows;
 
     if(row_count == 0) return (struct ntg_object_measure) {0};
 
@@ -489,10 +433,10 @@ static struct ntg_object_measure measure_fn(
     return result;
 }
 
-static void draw_fn(
+void ntg_text_draw_fn(
         const ntg_object* _text_obj,
         ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
@@ -504,7 +448,7 @@ static void draw_fn(
     struct ntg_text_opts opts = text_obj->_opts;
 
     /* Init cont matrix */
-    struct ntg_xy cont_size = 
+    struct ntg_xy cont_size =
         (opts.orient == NTG_ORIENT_H) ?
         size :
         ntg_xy_transpose(size);
@@ -514,8 +458,8 @@ static void draw_fn(
     uint32_t* cont_buff = sarena_malloc(arena, sizeof(uint32_t) * cont_size_prod);
     for(i = 0; i < cont_size_prod; i++) cont_buff[i] = ' ';
 
-    size_t row_count = text_obj->__priv->utf32_row_count;
-    const struct str32_view* rows = text_obj->__priv->utf32_rows;
+    size_t row_count = text_obj->_cache.utf32_row_count;
+    const struct ntg_text_str32_view* rows = text_obj->_cache.utf32_rows;
 
     size_t capped_indent = _min2_size(opts.indent, cont_size.x);
 
@@ -525,7 +469,7 @@ static void draw_fn(
     size_t it_row_align_indent, it_row_effective_indent;
     /* wrap variables */
     size_t _it_wrows_count;
-    struct str32_view* _it_wrows;
+    struct ntg_text_str32_view* _it_wrows;
     uint32_t* it_cont;
     /* justify variables */
     size_t it_wrow_cont_space, it_wrow_extra_space,
@@ -537,15 +481,15 @@ static void draw_fn(
         {
             case NTG_TEXT_WRAP_NONE:
                _it_wrows_count = get_wrows_nowrap(rows[i],
-                       cont_size.x, &_it_wrows, arena); 
+                       cont_size.x, &_it_wrows, arena);
                 break;
             case NTG_TEXT_WRAP_CHAR:
                _it_wrows_count = get_wrows_wrap(rows[i],
-                       cont_size.x, &_it_wrows, arena); 
+                       cont_size.x, &_it_wrows, arena);
                 break;
             case NTG_TEXT_WRAP_WORD:
                _it_wrows_count = get_wrows_wwrap(rows[i],
-                       cont_size.x, &_it_wrows, arena); 
+                       cont_size.x, &_it_wrows, arena);
                 break;
             default:
                 return;
@@ -583,7 +527,7 @@ static void draw_fn(
                     if((j < (_it_wrows_count - 1)) && opts.text_mode == NTG_TEXT_JUSTIFY)
                     {
                         size_t space_justified_count = (it_wrow_extra_space / it_wrow_space_count) +
-                            (it_wrow_space_counter < (it_wrow_extra_space % it_wrow_space_count)); 
+                            (it_wrow_space_counter < (it_wrow_extra_space % it_wrow_space_count));
 
                         cont_j += space_justified_count;
                     }
@@ -592,7 +536,7 @@ static void draw_fn(
                 if(cont_j >= cont_size.x) break; // if indent is too big
 
                 it_cont = &(cont_buff[cont_size.x * cont_i + cont_j]);
-                (*it_cont) = _it_wrows[j].data[k]; 
+                (*it_cont) = _it_wrows[j].data[k];
 
                 cont_j++;
             }
@@ -613,7 +557,7 @@ static void draw_fn(
 
             it_cont = &(cont_buff[cont_size.x * i + j]);
 
-            it_cell = (opts.bg_mode == NTG_TEXT_BG_FULL) ? 
+            it_cell = (opts.bg_mode == NTG_TEXT_BG_FULL) ?
                     ntg_vcell_full(*it_cont, opts.gfx) :
                     ntg_vcell_overlay(*it_cont, opts.gfx.fg, opts.gfx.style);
 
@@ -622,11 +566,22 @@ static void draw_fn(
     }
 }
 
+void ntg_text_deinit_fn(ntg_object* _text_obj)
+{
+    ntg_text_deinit((ntg_text*)_text_obj);
+}
+
+const struct ntg_object_vtable NTG_TEXT_VTABLE = {
+    .measure_fn = ntg_text_measure_fn,
+    .draw_fn = ntg_text_draw_fn,
+    .deinit_fn = ntg_text_deinit_fn
+};
+
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
 
-static size_t str_count(struct str_view str, char sep)
+static size_t str_count(struct ntg_text_str_view str, char sep)
 {
     size_t count = 0;
 
@@ -638,7 +593,7 @@ static size_t str_count(struct str_view str, char sep)
     return count;
 }
 
-static size_t str32_count(struct str32_view str, uint32_t sep)
+static size_t str32_count(struct ntg_text_str32_view str, uint32_t sep)
 {
     size_t count = 0;
 
@@ -650,8 +605,8 @@ static size_t str32_count(struct str32_view str, uint32_t sep)
     return count;
 }
 
-static size_t str_split(struct str_view str, char sep,
-        struct str_view* out_views, size_t cap)
+static size_t str_split(struct ntg_text_str_view str, char sep,
+        struct ntg_text_str_view* out_views, size_t cap)
 {
     size_t count = 0;
     size_t start = 0;
@@ -677,8 +632,8 @@ static size_t str_split(struct str_view str, char sep,
     return count;
 }
 
-static size_t str32_split(struct str32_view str, uint32_t sep,
-        struct str32_view* out_views, size_t cap)
+static size_t str32_split(struct ntg_text_str32_view str, uint32_t sep,
+        struct ntg_text_str32_view* out_views, size_t cap)
 {
     size_t count = 0;
     size_t start = 0;
@@ -706,7 +661,7 @@ static size_t str32_split(struct str32_view str, uint32_t sep,
 
 static struct ntg_object_measure measure_nowrap_fn(
         const ntg_text* text_obj,
-        const struct str32_view* rows,
+        const struct ntg_text_str32_view* rows,
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
@@ -746,7 +701,7 @@ static struct ntg_object_measure measure_nowrap_fn(
 
 static struct ntg_object_measure measure_wrap_fn(
         const ntg_text* text_obj,
-        const struct str32_view* rows,
+        const struct ntg_text_str32_view* rows,
         size_t row_count,
         ntg_orient orient,
         size_t for_size, sarena* arena)
@@ -776,7 +731,7 @@ static struct ntg_object_measure measure_wrap_fn(
     else
     {
         size_t row_counter = 0;
-        struct str32_view* it_row_wrows;
+        struct ntg_text_str32_view* it_row_wrows;
         size_t it_row_wrow_count;
         for(i = 0; i < row_count; i++)
         {
@@ -797,7 +752,7 @@ static struct ntg_object_measure measure_wrap_fn(
 
 static struct ntg_object_measure measure_wwrap_fn(
         const ntg_text* text_obj,
-        const struct str32_view* rows,
+        const struct ntg_text_str32_view* rows,
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
@@ -807,7 +762,7 @@ static struct ntg_object_measure measure_wwrap_fn(
     size_t text_orient = text_obj->_opts.orient;
 
     size_t i, j;
-    struct str32_view* it_words;
+    struct ntg_text_str32_view* it_words;
     size_t it_word_count;
     if(text_orient == orient)
     {
@@ -821,7 +776,7 @@ static struct ntg_object_measure measure_wwrap_fn(
             max_row_len = _max2_size(max_row_len, rows[i].len + indent);
 
             it_word_count = str32_count(rows[i], ' ') + 1;
-            it_words = sarena_malloc(arena, sizeof(struct str32_view) *
+            it_words = sarena_malloc(arena, sizeof(struct ntg_text_str32_view) *
                                      it_word_count);
             str32_split(rows[i], ' ', it_words, it_word_count);
 
@@ -845,7 +800,7 @@ static struct ntg_object_measure measure_wwrap_fn(
     else
     {
         size_t row_counter = 0;
-        struct str32_view* it_row_wrows;
+        struct ntg_text_str32_view* it_row_wrows;
         size_t it_row_wrow_count;
         for(i = 0; i < row_count; i++)
         {
@@ -865,28 +820,28 @@ static struct ntg_object_measure measure_wwrap_fn(
 }
 
 static size_t get_wrows_nowrap(
-        const struct str32_view row,
+        const struct ntg_text_str32_view row,
         size_t for_size,
-        struct str32_view** out_wrows,
+        struct ntg_text_str32_view** out_wrows,
         sarena* arena)
 {
     if(for_size == 0) return 0;
 
     if((row.len == 0) || (row.data == NULL))
     {
-        (*out_wrows) = sarena_malloc(arena, sizeof(struct str32_view));
+        (*out_wrows) = sarena_malloc(arena, sizeof(struct ntg_text_str32_view));
         if(!*out_wrows) return 0;
 
-        (*out_wrows)[0] = (struct str32_view) {
+        (*out_wrows)[0] = (struct ntg_text_str32_view) {
             .data = row.data,
             .len = 0
         };
         return 1;
     }
 
-    (*out_wrows) = sarena_malloc(arena, sizeof(struct str32_view));
+    (*out_wrows) = sarena_malloc(arena, sizeof(struct ntg_text_str32_view));
     if(!*out_wrows) return 0;
-    (*out_wrows)[0] = (struct str32_view) {
+    (*out_wrows)[0] = (struct ntg_text_str32_view) {
         .data = row.data,
         .len = _min2_size(for_size, row.len)
     };
@@ -894,18 +849,18 @@ static size_t get_wrows_nowrap(
 }
 
 static size_t get_wrows_wrap(
-        const struct str32_view row,
+        const struct ntg_text_str32_view row,
         size_t for_size,
-        struct str32_view** out_wrows,
+        struct ntg_text_str32_view** out_wrows,
         sarena* arena)
 {
     if(for_size == 0) return 0;
 
     if((row.len == 0) || (row.data == NULL))
     {
-        (*out_wrows) = sarena_malloc(arena, sizeof(struct str32_view));
+        (*out_wrows) = sarena_malloc(arena, sizeof(struct ntg_text_str32_view));
         if(!*out_wrows) return 0;
-        (*out_wrows)[0] = (struct str32_view) {
+        (*out_wrows)[0] = (struct ntg_text_str32_view) {
             .data = row.data,
             .len = 0
         };
@@ -913,8 +868,8 @@ static size_t get_wrows_wrap(
     }
 
     size_t wrow_count = (row.len + for_size - 1) / for_size;
-    struct str32_view* wrows = sarena_malloc(arena,
-            wrow_count * sizeof(struct str32_view));
+    struct ntg_text_str32_view* wrows = sarena_malloc(arena,
+            wrow_count * sizeof(struct ntg_text_str32_view));
     if(!wrows) return 0;
 
     size_t i;
@@ -923,7 +878,7 @@ static size_t get_wrows_wrap(
     {
         it_end = it_start + _min2_size(for_size, row.len - it_start);
 
-        wrows[i] = (struct str32_view) {
+        wrows[i] = (struct ntg_text_str32_view) {
             .data = &(row.data[it_start]),
             .len = it_end - it_start
         };
@@ -936,42 +891,42 @@ static size_t get_wrows_wrap(
 }
 
 static size_t get_wrows_wwrap(
-        const struct str32_view row,
+        const struct ntg_text_str32_view row,
         size_t for_size,
-        struct str32_view** out_wrows,
+        struct ntg_text_str32_view** out_wrows,
         sarena* arena)
 {
     if(for_size == 0) return 0;
 
     if((row.len == 0) || (row.data == NULL))
     {
-        (*out_wrows) = (struct str32_view*)sarena_malloc(
-                arena, sizeof(struct str32_view));
+        (*out_wrows) = (struct ntg_text_str32_view*)sarena_malloc(
+                arena, sizeof(struct ntg_text_str32_view));
         if(!*out_wrows) return 0;
 
-        (*out_wrows)[0] = (struct str32_view) {
+        (*out_wrows)[0] = (struct ntg_text_str32_view) {
             .data = row.data,
             .len = 0
         };
         return 1;
     }
 
-    struct str32_view *words, *wrows;
+    struct ntg_text_str32_view *words, *wrows;
     size_t word_count = str32_count(row, ' ') + 1;
-    words = sarena_malloc(arena, word_count * sizeof(struct str32_view));
+    words = sarena_malloc(arena, word_count * sizeof(struct ntg_text_str32_view));
     if(!words) return 0;
     str32_split(row, ' ', words, word_count);
     size_t wrow_max_count = word_count;
 
-    wrows = sarena_malloc(arena, wrow_max_count * sizeof(struct str32_view));
+    wrows = sarena_malloc(arena, wrow_max_count * sizeof(struct ntg_text_str32_view));
     if(!wrows) return 0;
 
-    struct str32_view it_word;
+    struct ntg_text_str32_view it_word;
     size_t it_row_len = 0;
     size_t it_row_word_count = 0;
     size_t wrow_counter = 0;
-    struct str32_view it_row_start_word = words[0];
-    struct str32_view it_row_end_word;
+    struct ntg_text_str32_view it_row_start_word = words[0];
+    struct ntg_text_str32_view it_row_end_word;
     size_t effective_space;
     size_t i;
     for(i = 0; i < word_count; i++)
@@ -989,7 +944,7 @@ static size_t get_wrows_wwrap(
 
                 it_row_end_word = words[i];
 
-                wrows[wrow_counter] = (struct str32_view) {
+                wrows[wrow_counter] = (struct ntg_text_str32_view) {
                     .data = it_row_start_word.data,
                     .len = &(it_row_end_word.data[it_row_end_word.len]) -
                         &(it_row_start_word.data[0])
@@ -1007,7 +962,7 @@ static size_t get_wrows_wwrap(
             {
                 it_row_end_word = words[i - 1];
 
-                wrows[wrow_counter] = (struct str32_view) {
+                wrows[wrow_counter] = (struct ntg_text_str32_view) {
                     .data = it_row_start_word.data,
                     .len = &(it_row_end_word.data[it_row_end_word.len]) -
                         &(it_row_start_word.data[0])
@@ -1028,7 +983,7 @@ static size_t get_wrows_wwrap(
                 {
                     it_row_end_word = words[i];
 
-                    wrows[wrow_counter] = (struct str32_view) {
+                    wrows[wrow_counter] = (struct ntg_text_str32_view) {
                         .data = it_row_start_word.data,
                             .len = &(it_row_end_word.data[it_row_end_word.len]) -
                                 &(it_row_start_word.data[0])
@@ -1045,7 +1000,7 @@ static size_t get_wrows_wwrap(
 
                 it_row_end_word = words[i];
 
-                wrows[wrow_counter] = (struct str32_view) {
+                wrows[wrow_counter] = (struct ntg_text_str32_view) {
                     .data = it_row_start_word.data,
                     .len = &(it_row_end_word.data[for_size]) -
                         &(it_row_start_word.data[0])
@@ -1066,15 +1021,15 @@ static size_t get_wrows_wwrap(
     return wrow_counter;
 }
 
-static int trim_text(struct str* text)
+static int trim_text(struct ntg_text_str* text)
 {
     if((text->len == 0) || (text->data == NULL))
         return 0;
 
-    struct str_view view = get_str_view(*text, 0);
+    struct ntg_text_str_view view = get_str_view(*text, 0);
 
     size_t word_count = str_count(view, ' ') + 1;
-    struct str_view* words = calloc(word_count, sizeof(struct str_view));
+    struct ntg_text_str_view* words = calloc(word_count, sizeof(struct ntg_text_str_view));
     if(!words)
         return NTG_ERR_ALLOC_FAIL;
     word_count = str_split(view, ' ', words, word_count);

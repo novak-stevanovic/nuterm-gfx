@@ -2,17 +2,13 @@
 #include <math.h>
 #include "shared/ntg_shared_internal.h"
 
-static struct ntg_object_measure measure_fn(
-        const ntg_object* _prog_bar,
-        ntg_orient orient,
-        void* layout_ch,
-        sarena* arena);
+/* ========================================================================== */
+/* PUBLIC */
+/* ========================================================================== */
 
-static void draw_fn(
-        const ntg_object* _prog_bar,
-        ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
-        sarena* arena);
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_prog_bar_style ntg_prog_bar_style_def()
 {
@@ -22,6 +18,26 @@ struct ntg_prog_bar_style ntg_prog_bar_style_def()
         .threshold_style = ntg_vcell_bg(nt_color_new_auto(0, 255, 0))
     };
 }
+
+bool ntg_prog_bar_style_are_eq(
+        const struct ntg_prog_bar_style* style1,
+        const struct ntg_prog_bar_style* style2)
+{
+    if(style1 == style2)
+        return true;
+
+    if(!style1 || !style2)
+        return false;
+
+    return (ntg_vcell_are_eq(style1->complete_style,
+                             style2->complete_style) &&
+            ntg_vcell_are_eq(style1->uncomplete_style,
+                             style2->uncomplete_style) &&
+            ntg_vcell_are_eq(style1->threshold_style,
+                             style2->threshold_style));
+}
+
+/* ------------------------------------------------------ */
 
 struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
 {
@@ -45,67 +61,34 @@ bool ntg_prog_bar_opts_are_eq(
             (opts1->orient == opts2->orient));
 }
 
-bool ntg_prog_bar_style_are_eq(
-        const struct ntg_prog_bar_style* style1,
-        const struct ntg_prog_bar_style* style2)
-{
-    if(style1 == style2)
-        return true;
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
-    if(!style1 || !style2)
-        return false;
-
-    return (ntg_vcell_are_eq(style1->complete_style, style2->complete_style) &&
-            ntg_vcell_are_eq(style1->uncomplete_style, style2->uncomplete_style) &&
-            ntg_vcell_are_eq(style1->threshold_style, style2->threshold_style));
-}
+/* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
 
 void ntg_prog_bar_init(
         ntg_prog_bar* prog_bar,
         const struct ntg_prog_bar_opts* opts,
         int* out_status)
 {
-    ntg_init_status(out_status);
-
-    if(!prog_bar)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
-    struct ntg_object_vtable vtable = {
-        .measure_fn = measure_fn,
-        .constrain_fn = NULL,
-        .arrange_fn = NULL,
-        .draw_fn = draw_fn,
-        .rm_child_fn = NULL
-    };
-
-    int _status;
-
-    ntg_object_init((ntg_object*)prog_bar, &vtable, &NTG_TYPE_PROG_BAR, &_status);
-
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-    }
-
-    prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
-
-    prog_bar->_opts = ntg_prog_bar_opts_def();
-    prog_bar->_opts.style = ntg_prog_bar_style_def();
-
-    ntg_prog_bar_set_opts(prog_bar, opts);
+    ntg_prog_bar_init_inherit(
+            prog_bar,
+            &NTG_PROG_BAR_VTABLE,
+            &NTG_TYPE_PROG_BAR,
+            opts,
+            out_status);
 }
 
 void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 {
     if(!prog_bar) return;
 
+    prog_bar->_prog = 0.0;
     prog_bar->_opts = ntg_prog_bar_opts_def();
-    prog_bar->_opts.style = ntg_prog_bar_style_def();
+    prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
 
     ntg_object_deinit((ntg_object*)prog_bar);
 }
@@ -115,12 +98,19 @@ void ntg_prog_bar_deinit_(void* _prog_bar)
     ntg_prog_bar_deinit(_prog_bar);
 }
 
-void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
+/* ------------------------------------------------------ */
+/* OPTS */
+/* ------------------------------------------------------ */
+
+void ntg_prog_bar_set_opts(
+        ntg_prog_bar* prog_bar,
+        const struct ntg_prog_bar_opts* opts)
 {
     if(!prog_bar) return;
 
     struct ntg_prog_bar_opts old_opts = prog_bar->_opts;
-    struct ntg_prog_bar_opts new_opts = (opts ? (*opts) : ntg_prog_bar_opts_def());
+    struct ntg_prog_bar_opts new_opts =
+            (opts ? (*opts) : ntg_prog_bar_opts_def());
 
     if(ntg_prog_bar_opts_are_eq(&old_opts, &new_opts))
         return;
@@ -133,27 +123,68 @@ void ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opt
         prog_bar->hooks.on_opts_chng_fn(prog_bar, &old_opts, &new_opts);
 }
 
-void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double prog)
+/* ------------------------------------------------------ */
+/* PROGRESS */
+/* ------------------------------------------------------ */
+
+void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
 {
     if(!prog_bar) return;
 
-    double old_prog = prog_bar->_prog;
+    progress = _max2_double(0.0, _min2_double(1.0, progress));
 
-    if(_double_are_eq(old_prog, prog))
+    double old_progress = prog_bar->_prog;
+
+    if(_double_are_eq(old_progress, progress))
         return;
 
-    prog = _min2_double(1.0, prog);
+    prog_bar->_prog = progress;
 
     ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_DRAW);
 
     if(prog_bar->hooks.on_prog_chng_fn)
-        prog_bar->hooks.on_prog_chng_fn(prog_bar, old_prog, prog);
+        prog_bar->hooks.on_prog_chng_fn(
+                prog_bar,
+                old_progress,
+                progress);
 }
 
-static struct ntg_object_measure measure_fn(
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
+
+void ntg_prog_bar_init_inherit(
+        ntg_prog_bar* prog_bar,
+        const struct ntg_object_vtable* vtable,
+        const ntg_type* type,
+        const struct ntg_prog_bar_opts* opts,
+        int* out_status)
+{
+    ntg_init_status(out_status);
+
+    if(!prog_bar || !type)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if(!ntg_type_instance_of(type, &NTG_TYPE_PROG_BAR))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+
+    int _status;
+
+    ntg_object_init((ntg_object*)prog_bar, vtable, type, &_status);
+    if(_status != 0)
+        ntg_vreturn(out_status, _status);
+
+    prog_bar->_prog = 0.0;
+    prog_bar->_opts = ntg_prog_bar_opts_def();
+    prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
+
+    ntg_prog_bar_set_opts(prog_bar, opts);
+}
+
+struct ntg_object_measure ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
         ntg_orient orient,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
@@ -163,25 +194,23 @@ static struct ntg_object_measure measure_fn(
         return (struct ntg_object_measure) {
             .min_size = 10,
             .nat_size = 10,
-            .max_size = SIZE_MAX,
+            .max_size = NTG_SIZE_MAX,
             .grow = 1
         };
     }
-    else
-    {
-        return (struct ntg_object_measure) {
-            .min_size = 1,
-            .nat_size = 1,
-            .max_size = SIZE_MAX,
-            .grow = 1
-        };
-    }
+
+    return (struct ntg_object_measure) {
+        .min_size = 1,
+        .nat_size = 1,
+        .max_size = NTG_SIZE_MAX,
+        .grow = 1
+    };
 }
 
-static void draw_fn(
+void ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
+        void* _layout_cache,
         sarena* arena)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
@@ -189,7 +218,8 @@ static void draw_fn(
 
     if(ntg_xy_is_zero(ntg_xy_size(size))) return;
 
-    struct ntg_oxy _size = ntg_oxy_from_xy(size, prog_bar->_opts.orient);
+    struct ntg_oxy _size =
+            ntg_oxy_from_xy(size, prog_bar->_opts.orient);
 
     size_t complete_count = round(_size.prim_val * prog_bar->_prog);
 
@@ -203,20 +233,30 @@ static void draw_fn(
         {
             _it_xy = ntg_oxy(i, j, prog_bar->_opts.orient);
             it_xy = ntg_xy_from_oxy(_it_xy);
+
             if(complete_count == _size.prim_val)
                 it_cell = prog_bar->_opts.style.complete_style;
             else if(complete_count == 0)
                 it_cell = prog_bar->_opts.style.uncomplete_style;
+            else if(i < (complete_count - 1))
+                it_cell = prog_bar->_opts.style.complete_style;
+            else if(i == (complete_count - 1))
+                it_cell = prog_bar->_opts.style.threshold_style;
             else
-            {
-                if(i < (complete_count - 1))
-                    it_cell = prog_bar->_opts.style.complete_style;
-                else if(i == (complete_count - 1))
-                    it_cell = prog_bar->_opts.style.threshold_style;
-                else
-                    it_cell = prog_bar->_opts.style.uncomplete_style;
-            }
+                it_cell = prog_bar->_opts.style.uncomplete_style;
+
             ntg_object_tmp_drawing_set(out_drawing, it_cell, it_xy);
         }
     }
 }
+
+void ntg_prog_bar_deinit_fn(ntg_object* _prog_bar)
+{
+    ntg_prog_bar_deinit((ntg_prog_bar*)_prog_bar);
+}
+
+const struct ntg_object_vtable NTG_PROG_BAR_VTABLE = {
+    .measure_fn = ntg_prog_bar_measure_fn,
+    .draw_fn = ntg_prog_bar_draw_fn,
+    .deinit_fn = ntg_prog_bar_deinit_fn
+};
