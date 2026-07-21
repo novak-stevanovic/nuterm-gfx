@@ -61,12 +61,18 @@ void ntg_box_init(
         const struct ntg_box_opts* opts,
         int* out_status)
 {
+    int _status;
+
     ntg_box_init_inherit(
             box,
             &NTG_BOX_VTABLE,
             &NTG_TYPE_BOX,
-            opts,
-            out_status);
+            &_status);
+
+    if(!_status)
+        ntg_box_set_opts(box, opts);
+
+    ntg_vreturn(out_status, _status);
 }
 
 void ntg_box_deinit(ntg_box* box)
@@ -82,7 +88,7 @@ void ntg_box_deinit(ntg_box* box)
     ntg_object_deinit((ntg_object*)box);
 }
 
-void ntg_box_deinit_(void* _box)
+void ntg_box_deinit_v(void* _box)
 {
     ntg_box_deinit(_box);
 }
@@ -163,7 +169,6 @@ void ntg_box_init_inherit(
         ntg_box* box,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_box_opts* opts,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -176,9 +181,17 @@ void ntg_box_init_inherit(
 
     int _status;
 
-    ntg_object_init((ntg_object*)box, vtable, type, &_status);
-    if(_status != 0)
-        ntg_vreturn(out_status, _status);
+    ntg_object_init_inherit((ntg_object*)box, vtable, type, &_status);
+    switch(_status)
+    {
+        case 0:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        
+    }
 
     box->_opts = ntg_box_opts_def();
     box->hooks = (struct ntg_box_hooks) {0};
@@ -190,8 +203,6 @@ void ntg_box_init_inherit(
         ntg_object_deinit((ntg_object*)box);
         ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
     }
-
-    ntg_box_set_opts(box, opts);
 }
 
 struct ntg_object_measure ntg_box_measure_fn(

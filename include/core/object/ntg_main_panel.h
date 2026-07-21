@@ -104,7 +104,7 @@ ntg_main_panel_deinit(ntg_main_panel* panel);
 /* Void-pointer adapter for `ntg_main_panel_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
-ntg_main_panel_deinit_(void* _panel);
+ntg_main_panel_deinit_v(void* _panel);
 
 /* ------------------------------------------------------ */
 /* CHILDREN */
@@ -158,7 +158,6 @@ ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_main_panel_opts* opts,
         int* out_status);
 
 /* ------------------------------------------------------ */

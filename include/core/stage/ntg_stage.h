@@ -73,7 +73,7 @@ ntg_stage_deinit(ntg_stage* stage);
 /* Void-pointer adapter for `ntg_stage_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
-ntg_stage_deinit_(void* _stage);
+ntg_stage_deinit_v(void* _stage);
 
 /* ------------------------------------------------------ */
 /* GENERAL */

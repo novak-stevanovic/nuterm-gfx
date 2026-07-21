@@ -94,7 +94,7 @@ ntg_box_deinit(ntg_box* box);
 
 /* Void-pointer adapter for `ntg_box_deinit`, intended for cleanup callbacks. */
 NTG_API void
-ntg_box_deinit_(void* _box);
+ntg_box_deinit_v(void* _box);
 
 /* ------------------------------------------------------ */
 /* OPTS */
@@ -157,7 +157,6 @@ ntg_box_init_inherit(
         ntg_box* box,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_box_opts* opts,
         int* out_status);
 
 /* ------------------------------------------------------ */

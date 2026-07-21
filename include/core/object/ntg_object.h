@@ -321,6 +321,12 @@ ntg_object_is_only_layer_root(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
+/* Checks whether an object has a scene, and is currently focused. */
+NTG_API bool
+ntg_object_is_focused(const ntg_object* object);
+
+/* ------------------------------------------------------ */
+
 /* Checks whether `descendant` is `object` itself or lies below it through
  * parent links. */
 NTG_API bool
@@ -561,7 +567,7 @@ static void fn_name(ntg_object* object, void* data)                            \
  * - `NTG_ERR_ALLOC_FAIL`: an object-owned vector cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: vector initialization fails for another reason. */
 NTG_API void
-ntg_object_init(
+ntg_object_init_inherit(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,

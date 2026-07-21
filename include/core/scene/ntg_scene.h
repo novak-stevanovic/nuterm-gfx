@@ -93,7 +93,7 @@ ntg_scene_deinit(ntg_scene* scene);
 /* Void-pointer adapter for `ntg_scene_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
-ntg_scene_deinit_(void* _scene);
+ntg_scene_deinit_v(void* _scene);
 
 /* ------------------------------------------------------ */
 

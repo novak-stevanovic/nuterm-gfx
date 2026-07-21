@@ -74,12 +74,18 @@ void ntg_prog_bar_init(
         const struct ntg_prog_bar_opts* opts,
         int* out_status)
 {
+    int _status;
+
     ntg_prog_bar_init_inherit(
             prog_bar,
             &NTG_PROG_BAR_VTABLE,
             &NTG_TYPE_PROG_BAR,
-            opts,
-            out_status);
+            &_status);
+
+    if(!_status)
+        ntg_prog_bar_set_opts(prog_bar, opts);
+
+    ntg_vreturn(out_status, _status);
 }
 
 void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
@@ -93,7 +99,7 @@ void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
     ntg_object_deinit((ntg_object*)prog_bar);
 }
 
-void ntg_prog_bar_deinit_(void* _prog_bar)
+void ntg_prog_bar_deinit_v(void* _prog_bar)
 {
     ntg_prog_bar_deinit(_prog_bar);
 }
@@ -157,7 +163,6 @@ void ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_prog_bar_opts* opts,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -170,15 +175,21 @@ void ntg_prog_bar_init_inherit(
 
     int _status;
 
-    ntg_object_init((ntg_object*)prog_bar, vtable, type, &_status);
-    if(_status != 0)
-        ntg_vreturn(out_status, _status);
+    ntg_object_init_inherit((ntg_object*)prog_bar, vtable, type, &_status);
+    switch(_status)
+    {
+        case 0:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        
+    }
 
     prog_bar->_prog = 0.0;
     prog_bar->_opts = ntg_prog_bar_opts_def();
     prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
-
-    ntg_prog_bar_set_opts(prog_bar, opts);
 }
 
 struct ntg_object_measure ntg_prog_bar_measure_fn(

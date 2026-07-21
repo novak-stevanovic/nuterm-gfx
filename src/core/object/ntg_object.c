@@ -273,6 +273,16 @@ bool ntg_object_is_only_layer_root(const ntg_object* object)
     return (!ntg_object_is_true_root(object) && (ntg_object_is_root(object)));
 }
 
+bool ntg_object_is_focused(const ntg_object* object)
+{
+    if(!object) return false;
+
+    const ntg_scene* scene = ntg_object_get_scene(object);
+    if(!scene) return false;
+
+    return (scene->_fm->_focused == object);
+}
+
 bool ntg_object_is_descendant(
         const ntg_object* object,
         const ntg_object* descendant)
@@ -728,7 +738,7 @@ static void init_default(ntg_object* object)
     object->_focusable = false;
 }
 
-void ntg_object_init(
+void ntg_object_init_inherit(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,

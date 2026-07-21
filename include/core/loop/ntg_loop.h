@@ -116,7 +116,7 @@ ntg_loop_deinit(ntg_loop* loop, int* out_status);
 /* Void-pointer adapter for `ntg_loop_deinit`, intended for cleanup callbacks.
  * Any deinitialization status is discarded. */
 NTG_API void
-ntg_loop_deinit_(void* _loop);
+ntg_loop_deinit_v(void* _loop);
 
 /* ------------------------------------------------------ */
 /* CONTROL */

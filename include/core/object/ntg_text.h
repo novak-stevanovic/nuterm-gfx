@@ -5,6 +5,7 @@
 #include "core/object/ntg_object.h"
 #include "base/ntg_xy.h"
 #include "nt_gfx.h"
+#include "shared/ntg_str.h"
 
 /* ========================================================================== */
 /* PROTECTED */
@@ -13,32 +14,6 @@
 /* -------------------------------------------------------------------------- */
 /* TYPES */
 /* -------------------------------------------------------------------------- */
-
-struct ntg_text_str
-{
-    char* data;
-    size_t len;
-};
-
-struct ntg_text_str32
-{
-    uint32_t* data;
-    size_t len;
-};
-
-struct ntg_text_str_view
-{
-    const char* data;
-    size_t len;
-};
-
-struct ntg_text_str32_view
-{
-    const uint32_t* data;
-    size_t len;
-};
-
-/* ------------------------------------------------------ */
 
 enum ntg_text_wrap
 {
@@ -59,29 +34,36 @@ enum ntg_text_bg_mode
     NTG_TEXT_BG_FLT
 };
 
+enum ntg_text_set_mode
+{
+    NTG_TEXT_SET_DEF,
+    NTG_TEXT_SET_RM_WS
+};
+
 /* ------------------------------------------------------ */
 
 struct ntg_text_opts
 {
     ntg_orient orient;
-    struct nt_gfx gfx;
+    struct nt_gfx gfx, focused_gfx;
     ntg_text_mode text_mode;
     ntg_align prim_align; // Active only if NTG_TEXT_ALIGN
     ntg_align sec_align;
     ntg_text_bg_mode bg_mode;
     ntg_text_wrap wrap;
-    bool autotrim;
     size_t indent;
 };
 
 /* Creates horizontal text defaults with default graphics, aligned text, full
  * background, start alignment, no wrapping, automatic trimming, and no
  * indentation. */
-struct ntg_text_opts ntg_text_opts_def();
+NTG_API struct ntg_text_opts
+ntg_text_opts_def();
 
 /* Compares two text option values. Pointer identity counts as equal; otherwise
  * a `NULL` value differs from a non-`NULL` value. */
-bool ntg_text_opts_are_eq(
+NTG_API bool
+ntg_text_opts_are_eq(
         const struct ntg_text_opts* opts1,
         const struct ntg_text_opts* opts2);
 
@@ -92,6 +74,8 @@ struct ntg_text
     ntg_object __base;
 
     struct ntg_text_opts _opts;
+    
+    struct nt_gfx _gfx;
 
     struct
     {
@@ -101,10 +85,10 @@ struct ntg_text
 
     struct
     {
-        struct ntg_text_str32 utf32_text;
+        struct ntg_str32 utf32_text;
 
         size_t utf32_row_count;
-        struct ntg_text_str32_view* utf32_rows;
+        struct ntg_str32_view* utf32_rows;
     } _cache;
 };
 
@@ -132,7 +116,11 @@ ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts);
  * - `NTG_ERR_ALLOC_FAIL`: a text or conversion buffer cannot be allocated.
  * - `NTG_ERR_UTF_CONV`: UTF-8 to UTF-32 conversion fails. */
 NTG_API void
-ntg_text_set_text(ntg_text* text_obj, const char* text, int* out_status);
+ntg_text_set_text_unsafe(
+        ntg_text* text_obj,
+        const char* text,
+        ntg_text_set_mode mode,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 
@@ -144,10 +132,11 @@ ntg_text_set_text(ntg_text* text_obj, const char* text, int* out_status);
  * - `NTG_ERR_ALLOC_FAIL`: a text or conversion buffer cannot be allocated.
  * - `NTG_ERR_UTF_CONV`: UTF-8 to UTF-32 conversion fails. */
 NTG_API void
-ntg_text_set_text_safe(
+ntg_text_set_text(
         ntg_text* text_obj,
         const char* text,
         size_t len,
+        ntg_text_set_mode mode,
         int* out_status);
 
 NTG_API void
@@ -155,7 +144,6 @@ ntg_text_init_inherit(
         ntg_text* text_obj,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_text_opts* opts,
         int* out_status);
 
 NTG_API void
@@ -180,6 +168,12 @@ ntg_text_draw_fn(
 /* Virtual deinitializer that dispatches to `ntg_text_deinit`. */
 NTG_API void
 ntg_text_deinit_fn(ntg_object* _text_obj);
+
+NTG_API void
+ntg_text_focus_fn(ntg_object* object, ntg_object* old_focused);
+
+NTG_API void
+ntg_text_unfocus_fn(ntg_object* object, ntg_object* new_focused);
 
 /* Default virtual table used by `ntg_text_init`. */
 NTG_API extern const struct ntg_object_vtable NTG_TEXT_VTABLE;

@@ -118,7 +118,7 @@ ntg_prog_bar_deinit(ntg_prog_bar* prog_bar);
 /* Void-pointer adapter for `ntg_prog_bar_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
-ntg_prog_bar_deinit_(void* _prog_bar);
+ntg_prog_bar_deinit_v(void* _prog_bar);
 
 /* ------------------------------------------------------ */
 /* OPTS */
@@ -159,7 +159,6 @@ ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_prog_bar_opts* opts,
         int* out_status);
 
 /* ------------------------------------------------------ */

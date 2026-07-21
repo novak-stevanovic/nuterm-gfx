@@ -20,12 +20,18 @@ void ntg_color_block_init(
         struct nt_color color,
         int* out_status)
 {
+    int _status;
+
     ntg_color_block_init_inherit(
             color_block,
             &NTG_COLOR_BLOCK_VTABLE,
             &NTG_TYPE_COLOR_BLOCK,
-            color,
-            out_status);
+            &_status);
+
+    if(!_status)
+        ntg_color_block_set_color(color_block, color);
+
+    ntg_vreturn(out_status, _status);
 }
 
 void ntg_color_block_deinit(ntg_color_block* color_block)
@@ -38,7 +44,7 @@ void ntg_color_block_deinit(ntg_color_block* color_block)
     ntg_object_deinit((ntg_object*)color_block);
 }
 
-void ntg_color_block_deinit_(void* _color_block)
+void ntg_color_block_deinit_v(void* _color_block)
 {
     ntg_color_block_deinit(_color_block);
 }
@@ -74,7 +80,6 @@ void ntg_color_block_init_inherit(
         ntg_color_block* color_block,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct nt_color color,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -87,14 +92,20 @@ void ntg_color_block_init_inherit(
 
     int _status;
 
-    ntg_object_init((ntg_object*)color_block, vtable, type, &_status);
-    if(_status != 0)
-        ntg_vreturn(out_status, _status);
+    ntg_object_init_inherit((ntg_object*)color_block, vtable, type, &_status);
+    switch(_status)
+    {
+        case 0:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        
+    }
 
     color_block->hooks = (struct ntg_color_block_hooks) {0};
     color_block->_color = NT_COLOR_DEFAULT;
-
-    ntg_color_block_set_color(color_block, color);
 }
 
 struct ntg_object_measure ntg_color_block_measure_fn(

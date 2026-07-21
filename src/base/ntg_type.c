@@ -10,32 +10,37 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-NTG_API const ntg_type NTG_TYPE_OBJECT = {
+const ntg_type NTG_TYPE_OBJECT = {
     .__parent = NULL,
     ._size = sizeof(ntg_object)
 };
 
-NTG_API const ntg_type NTG_TYPE_BOX = {
+const ntg_type NTG_TYPE_BOX = {
     .__parent = &NTG_TYPE_OBJECT,
     ._size = sizeof(ntg_box)
 };
 
-NTG_API const ntg_type NTG_TYPE_MAIN_PANEL = {
+const ntg_type NTG_TYPE_MAIN_PANEL = {
     .__parent = &NTG_TYPE_OBJECT,
     ._size = sizeof(ntg_main_panel)
 };
 
-NTG_API const ntg_type NTG_TYPE_TEXT = {
+const ntg_type NTG_TYPE_TEXT = {
     .__parent = &NTG_TYPE_OBJECT,
     ._size = sizeof(ntg_text)
 };
 
-NTG_API const ntg_type NTG_TYPE_COLOR_BLOCK = {
+const ntg_type NTG_TYPE_LABEL = {
+    .__parent = &NTG_TYPE_TEXT,
+    ._size = sizeof(ntg_label)
+};
+
+const ntg_type NTG_TYPE_COLOR_BLOCK = {
     .__parent = &NTG_TYPE_OBJECT,
     ._size = sizeof(ntg_color_block)
 };
 
-NTG_API const ntg_type NTG_TYPE_PROG_BAR = {
+const ntg_type NTG_TYPE_PROG_BAR = {
     .__parent = &NTG_TYPE_OBJECT,
     ._size = sizeof(ntg_prog_bar)
 };

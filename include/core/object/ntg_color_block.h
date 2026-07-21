@@ -61,7 +61,7 @@ ntg_color_block_deinit(ntg_color_block* color_block);
 /* Void-pointer adapter for `ntg_color_block_deinit`, intended for cleanup
  * callbacks. */
 NTG_API void
-ntg_color_block_deinit_(void* _color_block);
+ntg_color_block_deinit_v(void* _color_block);
 
 /* ------------------------------------------------------ */
 /* COLOR */
@@ -94,7 +94,6 @@ ntg_color_block_init_inherit(
         ntg_color_block* color_block,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct nt_color color,
         int* out_status);
 
 /* ------------------------------------------------------ */

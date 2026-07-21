@@ -65,7 +65,7 @@ void ntg_stage_deinit(ntg_stage* stage)
     init_default(stage);
 }
 
-void ntg_stage_deinit_(void* _stage)
+void ntg_stage_deinit_v(void* _stage)
 {
     if(!_stage) return;
 

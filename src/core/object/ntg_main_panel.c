@@ -55,12 +55,18 @@ void ntg_main_panel_init(
         const struct ntg_main_panel_opts* opts,
         int* out_status)
 {
+    int _status;
+
     ntg_main_panel_init_inherit(
             panel,
             &NTG_MAIN_PANEL_VTABLE,
             &NTG_TYPE_MAIN_PANEL,
-            opts,
-            out_status);
+            &_status);
+
+    if(_status)
+        ntg_main_panel_set_opts(panel, opts);
+
+    ntg_vreturn(out_status, _status);
 }
 
 void ntg_main_panel_deinit(ntg_main_panel* panel)
@@ -74,7 +80,7 @@ void ntg_main_panel_deinit(ntg_main_panel* panel)
     ntg_object_deinit((ntg_object*)panel);
 }
 
-void ntg_main_panel_deinit_(void* _panel)
+void ntg_main_panel_deinit_v(void* _panel)
 {
     ntg_main_panel_deinit(_panel);
 }
@@ -162,7 +168,6 @@ void ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_main_panel_opts* opts,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -175,15 +180,21 @@ void ntg_main_panel_init_inherit(
 
     int _status;
 
-    ntg_object_init((ntg_object*)panel, vtable, type, &_status);
-    if(_status != 0)
-        ntg_vreturn(out_status, _status);
+    ntg_object_init_inherit((ntg_object*)panel, vtable, type, &_status);
+    switch(_status)
+    {
+        case 0:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        
+    }
 
     panel->_opts = ntg_main_panel_opts_def();
     memset(panel->_children, 0, sizeof(panel->_children));
     panel->hooks = (struct ntg_main_panel_hooks) {0};
-
-    ntg_main_panel_set_opts(panel, opts);
 }
 
 struct ntg_object_measure ntg_main_panel_measure_fn(

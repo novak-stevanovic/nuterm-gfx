@@ -118,7 +118,7 @@ void ntg_scene_deinit(ntg_scene* scene)
     init_default(scene);
 }
 
-void ntg_scene_deinit_(void* _scene)
+void ntg_scene_deinit_v(void* _scene)
 {
     if(!_scene) return;
 

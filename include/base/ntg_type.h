@@ -18,10 +18,12 @@ struct ntg_type
 };
 
 /* Built-in object type descriptors used as inheritance-chain roots. */
-NTG_API extern const ntg_type NTG_TYPE_OBJECT,
+NTG_API extern const ntg_type
+        NTG_TYPE_OBJECT,
         NTG_TYPE_PROG_BAR,
         NTG_TYPE_COLOR_BLOCK,
         NTG_TYPE_TEXT,
+        NTG_TYPE_LABEL,
         NTG_TYPE_BOX,
         NTG_TYPE_MAIN_PANEL;
 

@@ -155,7 +155,7 @@ void ntg_loop_deinit(ntg_loop* loop, int* out_status)
     init_default(loop);
 }
 
-void ntg_loop_deinit_(void* _loop)
+void ntg_loop_deinit_v(void* _loop)
 {
     if(!_loop) return;
 

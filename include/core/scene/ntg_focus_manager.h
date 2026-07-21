@@ -49,9 +49,6 @@ struct ntg_focus_manager
 NTG_API bool
 ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object);
 
-// NTG_API ntg_object*
-// ntg_focus_manager_find(ntg_focus_manager* fm, int diff);
-
 /* ------------------------------------------------------ */
 /* SCOPES */
 /* ------------------------------------------------------ */
@@ -115,7 +112,7 @@ NTG_API bool
 ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse);
 
 /* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
+/* INTERNAL */
 /* ========================================================================== */
 
 /* ------------------------------------------------------ */
@@ -128,15 +125,13 @@ ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
  * - `NTG_ERR_INVALID_ARG`: `fm` or `scene` is `NULL`.
  * - `NTG_ERR_ALLOC_FAIL`: scope-stack storage cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: default-scope creation fails unexpectedly. */
-NTG_API void
-_ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_status);
+void _ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_status);
 
 /* ------------------------------------------------------ */
 
 /* Clears focus, releases the scope stack, and resets the manager. Passing
  * `NULL` has no effect. */
-NTG_API void
-_ntg_focus_manager_deinit(ntg_focus_manager* fm);
+void _ntg_focus_manager_deinit(ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */
 /* INVALIDATE */
@@ -145,7 +140,6 @@ _ntg_focus_manager_deinit(ntg_focus_manager* fm);
 /* Marks each rooted scope invalid when `removed` is equal to or lies below that
  * scope root, then synchronizes the stack and restores or clears focus as
  * required. A `NULL` manager is ignored. */
-NTG_API void
-_ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed);
+void _ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed);
 
 #endif // NTG_FOCUS_MANAGER_H
