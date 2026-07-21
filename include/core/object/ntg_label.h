@@ -103,7 +103,7 @@ NTG_API void
 ntg_label_set_text_unsafe(
         ntg_label* label,
         const char* text,
-        ntg_text_set_mode mode,
+        ntg_text_set_flags flags,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -120,7 +120,7 @@ ntg_label_set_text(
         ntg_label* label,
         const char* text,
         size_t len,
-        ntg_text_set_mode mode,
+        ntg_text_set_flags flags,
         int* out_status);
 
 /* ========================================================================== */
@@ -143,7 +143,7 @@ ntg_label_measure_fn(
 
 NTG_API void
 ntg_label_draw_fn(
-        const ntg_object* label,
+        const ntg_object* _label,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
         sarena* arena);

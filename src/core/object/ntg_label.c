@@ -99,13 +99,15 @@ void ntg_label_init(
         const struct ntg_label_opts* opts,
         int* out_status)
 {
+    ntg_init_status(out_status);
+
     int _status;
 
     ntg_label_init_inherit(label, &NTG_LABEL_VTABLE, &NTG_TYPE_LABEL, &_status);
     if(!_status)
     {
         ntg_label_set_opts(label, opts);
-        ntg_label_set_text_unsafe(label, "", NTG_TEXT_SET_DEF, NULL);
+        ntg_label_set_text_unsafe(label, "", 0, NULL);
     }
 }
 
@@ -142,7 +144,7 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
     if(!label) return;
 
     struct ntg_label_opts new_opts = (opts ? (*opts) : ntg_label_opts_def());
-    struct ntg_label_opts old_opts;
+    struct ntg_label_opts old_opts = {0};
     ntg_label_get_opts(label, &old_opts);
 
     if(ntg_label_opts_are_eq(&new_opts, &old_opts))
@@ -181,30 +183,26 @@ struct ntg_str_view ntg_label_get_text(const struct ntg_label* label)
     }
 }
 
-// TODO
-
 void ntg_label_set_text_unsafe(
         ntg_label* label,
         const char* text,
-        ntg_text_set_mode mode,
+        ntg_text_set_flags flags,
         int* out_status)
 {
     if(!label)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    ntg_text_set_text();
+    ntg_text_set_text_unsafe(ntg_txt(label), text, flags, out_status);
 }
 
 void ntg_label_set_text(
         ntg_label* label,
         const char* text,
         size_t len,
-        ntg_text_set_mode mode,
+        ntg_text_set_flags flags,
         int* out_status)
 {
-    if(!label)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
+    ntg_text_set_text(ntg_txt(label), text, len, flags, out_status);
 }
 
 /* ========================================================================== */
@@ -217,6 +215,8 @@ void ntg_label_init_inherit(
         const ntg_type* type,
         int* out_status)
 {
+    ntg_init_status(out_status);
+
     int _status;
 
     if(!label || !type)
@@ -240,28 +240,45 @@ void ntg_label_init_inherit(
     init_default(label);
 }
 
-NTG_API struct ntg_object_measure
+struct ntg_object_measure
 ntg_label_measure_fn(
         const ntg_object* _label,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena)
+{
+    return ntg_text_measure_fn(_label, orient, _layout_cache, arena);
+}
 
-NTG_API void
-ntg_label_draw_fn(
-        const ntg_object* label,
+void ntg_label_draw_fn(
+        const ntg_object* _label,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena)
+{
+    ntg_text_draw_fn(_label, out_drawing, _layout_cache, arena);
+}
 
-NTG_API void
-ntg_label_deinit_fn(ntg_object* _label);
+void ntg_label_deinit_fn(ntg_object* _label)
+{
+    ntg_label_deinit(ntg_lbl(_label));
+}
 
-NTG_API void
-ntg_label_focus_fn(ntg_object* _label, ntg_object* old_focused);
+void ntg_label_focus_fn(ntg_object* _label, ntg_object* old_focused)
+{
+    ntg_text_focus_fn(_label, old_focused);
+}
 
-NTG_API void
-ntg_label_unfocus_fn(ntg_object* _label, ntg_object* new_focused);
+void
+ntg_label_unfocus_fn(ntg_object* _label, ntg_object* new_focused)
+{
+    ntg_text_unfocus_fn(_label, new_focused);
+}
 
-NTG_API extern const struct ntg_object_vtable NTG_LABEL_VTABLE;
-
+const struct ntg_object_vtable NTG_LABEL_VTABLE = {
+    .measure_fn = ntg_label_measure_fn,
+    .draw_fn = ntg_label_draw_fn,
+    .deinit_fn = ntg_label_deinit_fn,
+    .focus_fn = ntg_label_focus_fn,
+    .unfocus_fn = ntg_label_unfocus_fn
+};

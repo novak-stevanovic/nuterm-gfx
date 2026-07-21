@@ -88,7 +88,7 @@ typedef struct ntg_text ntg_text;
 typedef enum ntg_text_wrap ntg_text_wrap;
 typedef enum ntg_text_mode ntg_text_mode;
 typedef enum ntg_text_bg_mode ntg_text_bg_mode;
-typedef enum ntg_text_set_mode ntg_text_set_mode;
+typedef enum ntg_text_set_flags ntg_text_set_flags;
 typedef struct ntg_label ntg_label;
 typedef struct ntg_color_block ntg_color_block;
 typedef struct ntg_prog_bar ntg_prog_bar;

@@ -138,7 +138,7 @@ void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse)
     char buff[50];
     sprintf(buff, "Broj klikova: %d", sflt_counter);
 
-    ntg_label_set_text_unsafe(label, buff, NULL);
+    ntg_label_set_text_unsafe(label, buff, 0, NULL);
 }
 
 int main(int argc, char *argv[])
@@ -204,11 +204,11 @@ void init_north()
     struct ntg_label_opts north_label_opts = ntg_label_opts_def();
     north_label_opts.gfx = label_gfx;
     north_label_opts.indent = 2;
-    north_label_opts.wrap = NTG_LABEL_WRAP_WORD;
+    north_label_opts.wrap =NTG_TEXT_WRAP_WORD;
 
     ntg_label_init(&north, &north_label_opts, &_status);
     ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_v, NULL, &_status);
-    ntg_label_set_text_unsafe(&north, lorem, &_status);
+    ntg_label_set_text_unsafe(&north, lorem, 0, &_status);
 
     struct ntg_padding_opts north_pad_opts = ntg_padding_opts_def();
     north_pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
@@ -271,7 +271,7 @@ void init_south()
     };
     ntg_label_init(&sb_label1, &sb_label1_opts, &_status);
     ntg_cleanup_batch_add(batch, &sb_label1, ntg_label_deinit_v, NULL, &_status);
-    ntg_label_set_text_unsafe(&sb_label1, "Test1", &_status);
+    ntg_label_set_text_unsafe(&sb_label1, "Test1", 0, &_status);
 
     ntg_object_set_padding_opts(ntg_obj(&sb_label1), &pad_opts);
 
@@ -286,7 +286,7 @@ void init_south()
     ntg_label_init(&sb_label2, &sb_label2_opts, &_status);
     ntg_cleanup_batch_add(batch, &sb_label2, ntg_label_deinit_v, NULL, &_status);
 
-    ntg_label_set_text_unsafe(&sb_label2, "Test2", &_status);
+    ntg_label_set_text_unsafe(&sb_label2, "Test2", 0, &_status);
     ntg_object_set_padding_opts(ntg_obj(&sb_label2), &pad_opts);
 
     // SOUTH BOX LABEL3
@@ -297,12 +297,12 @@ void init_south()
         .fg = nt_color_new_auto(255, 255, 255),
         .style = NT_STYLE_DEFAULT
     };
-    sb_label3_opts.wrap = NTG_LABEL_WRAP_WORD;
+    sb_label3_opts.wrap =NTG_TEXT_WRAP_WORD;
 
     ntg_label_init(&sb_label3, &sb_label3_opts, &_status);
     ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_v, NULL, &_status);
 
-    ntg_label_set_text_unsafe(&sb_label3, lorem, &_status);
+    ntg_label_set_text_unsafe(&sb_label3, lorem, 0, &_status);
     
     // CONNECT
 
@@ -324,7 +324,7 @@ void init_south()
     ntg_label_init(&s_label, &s_label_opts, &_status);
     ntg_cleanup_batch_add(batch, &s_label, ntg_label_deinit_v, NULL, &_status);
 
-    ntg_label_set_text_unsafe(&s_label, "ABCD", &_status);
+    ntg_label_set_text_unsafe(&s_label, "ABCD", 0, &_status);
 
     ntg_object_set_border_opts(ntg_obj(&s_label), &border_opts);
 
@@ -347,13 +347,13 @@ void init_flt_label()
     int _status;
 
     struct ntg_label_opts label_opts = ntg_label_opts_def();
-    label_opts.wrap = NTG_LABEL_WRAP_WORD;
-    label_opts.bg_mode = NTG_LABEL_BG_FLT;
+    label_opts.wrap =NTG_TEXT_WRAP_WORD;
+    label_opts.bg_mode =NTG_TEXT_BG_FLT;
 
     ntg_label_init(&flt_label, &label_opts, &_status);
     ntg_cleanup_batch_add(batch, &flt_label, ntg_label_deinit_v, NULL, &_status);
 
-    ntg_label_set_text_unsafe(&flt_label, "Floating label example", &_status);
+    ntg_label_set_text_unsafe(&flt_label, "Floating label example", 0, &_status);
 
     struct ntg_layout_opts flt_label_layout_opts = (ntg_obj(&flt_label))->_layout_opts;
     flt_label_layout_opts.z_index = 1;
@@ -378,8 +378,8 @@ void init_sflt_label()
     struct ntg_label_opts opts = ntg_label_opts_def();
     ntg_log_log("ABCD LABEL | ROOT | SOUTH: %p %p %p", &s_label, &root, &south);
 
-    opts.wrap = NTG_LABEL_WRAP_WORD;
-    opts.text_mode = NTG_LABEL_TEXT_JUSTIFY;
+    opts.wrap =NTG_TEXT_WRAP_WORD;
+    opts.text_mode = NTG_TEXT_JUSTIFY;
     opts.sec_align = NTG_ALIGN_1;
     opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(255, 255, 255),
@@ -396,7 +396,7 @@ void init_sflt_label()
     sflt_label_layout_opts.z_index = 2;
     ntg_object_set_layout_opts(ntg_obj(&sflt_label), &sflt_label_layout_opts);
 
-    ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat", &_status);
+    ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat", 0, &_status);
 
     ntg_cleanup_batch_add(batch, &sflt_label, ntg_label_deinit_v, NULL, &_status);
 }

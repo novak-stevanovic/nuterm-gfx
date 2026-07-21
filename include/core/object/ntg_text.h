@@ -34,10 +34,10 @@ enum ntg_text_bg_mode
     NTG_TEXT_BG_FLT
 };
 
-enum ntg_text_set_mode
+enum ntg_text_set_flags
 {
-    NTG_TEXT_SET_DEF,
-    NTG_TEXT_SET_RM_WS
+    NTG_TEXT_SET_DEFAULT = 0,
+    NTG_TEXT_SET_RM_WS = 1 << 0
 };
 
 /* ------------------------------------------------------ */
@@ -119,7 +119,7 @@ NTG_API void
 ntg_text_set_text_unsafe(
         ntg_text* text_obj,
         const char* text,
-        ntg_text_set_mode mode,
+        ntg_text_set_flags flags,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -136,7 +136,7 @@ ntg_text_set_text(
         ntg_text* text_obj,
         const char* text,
         size_t len,
-        ntg_text_set_mode mode,
+        ntg_text_set_flags flags,
         int* out_status);
 
 NTG_API void
