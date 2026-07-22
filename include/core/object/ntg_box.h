@@ -35,7 +35,7 @@ ntg_box_opts_def();
 /* Compares two box option values. Pointer identity counts as equal; otherwise a
  * `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_box_opts_are_eq(
+ntg_box_opts_are_eql(
         const struct ntg_box_opts* opts1,
         const struct ntg_box_opts* opts2);
 

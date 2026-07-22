@@ -29,7 +29,7 @@ struct ntg_main_panel_opts ntg_main_panel_opts_def()
     };
 }
 
-bool ntg_main_panel_opts_are_eq(
+bool ntg_main_panel_opts_are_eql(
         const struct ntg_main_panel_opts* opts1,
         const struct ntg_main_panel_opts* opts2)
 {
@@ -39,7 +39,7 @@ bool ntg_main_panel_opts_are_eq(
     if(!opts1 || !opts2)
         return false;
 
-    return ntg_vcell_are_eq(opts1->bg, opts2->bg);
+    return ntg_vcell_are_eql(opts1->bg, opts2->bg);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -149,7 +149,7 @@ void ntg_main_panel_set_opts(
     struct ntg_main_panel_opts new_opts =
             (opts ? (*opts) : ntg_main_panel_opts_def());
 
-    if(ntg_main_panel_opts_are_eq(&old_opts, &new_opts))
+    if(ntg_main_panel_opts_are_eql(&old_opts, &new_opts))
         return;
 
     panel->_opts = new_opts;

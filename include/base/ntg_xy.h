@@ -180,7 +180,7 @@ ntg_xy_is_greater_eq(struct ntg_xy a, struct ntg_xy b)
 
 /* Compares two unsigned coordinates component by component. */
 static inline bool
-ntg_xy_are_eq(struct ntg_xy a, struct ntg_xy b)
+ntg_xy_are_eql(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x == b.x) && (a.y == b.y));
 }
@@ -541,7 +541,7 @@ static inline struct ntg_insets ntg_insets_zero(struct ntg_insets insets)
 }
 
 /* Compares two inset sets component by component. */
-static inline bool ntg_insets_are_eq(struct ntg_insets insets1, struct ntg_insets insets2)
+static inline bool ntg_insets_are_eql(struct ntg_insets insets1, struct ntg_insets insets2)
 {
     return ((insets1.n == insets2.n) &&
             (insets1.e == insets2.e) &&

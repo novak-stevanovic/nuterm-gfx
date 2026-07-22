@@ -1,4 +1,5 @@
 #include "ntg.h"
+
 #include "shared/ntg_shared_internal.h"
 #include <math.h>
 

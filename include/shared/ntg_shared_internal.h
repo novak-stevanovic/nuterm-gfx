@@ -142,7 +142,7 @@ static inline double _max2_double(double x, double y)
 }
 
 /* Compares two floating-point values using the library epsilon tolerance. */
-static inline bool _double_are_eq(double a, double b)
+static inline bool _double_are_eql(double a, double b)
 {
     const double eps = 1e-9;
     double diff = a - b;

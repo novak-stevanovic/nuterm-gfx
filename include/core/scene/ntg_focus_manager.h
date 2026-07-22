@@ -1,6 +1,7 @@
 #ifndef NTG_FOCUS_MANAGER_H
 #define NTG_FOCUS_MANAGER_H
 
+#include "ntg_focus_scope.h"
 #include "shared/ntg_shared.h"
 #include "core/scene/ntg_scene.h"
 
@@ -30,6 +31,8 @@ struct ntg_focus_manager
     ntg_focus_scope_list* __scope_stack;
 
     struct ntg_focus_manager_hooks hooks;
+
+    struct ntg_focus_scope_keybinds _default_keybinds;
 };
 
 /* ========================================================================== */
@@ -125,7 +128,11 @@ ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
  * - `NTG_ERR_INVALID_ARG`: `fm` or `scene` is `NULL`.
  * - `NTG_ERR_ALLOC_FAIL`: scope-stack storage cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: default-scope creation fails unexpectedly. */
-void _ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_status);
+void _ntg_focus_manager_init(
+        ntg_focus_manager* fm,
+        ntg_scene* scene,
+        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 

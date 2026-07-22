@@ -47,7 +47,7 @@ struct ntg_object_measure
 
 /* Compares minimum, natural, maximum, and growth values of two one-dimensional
  * object measurements. */
-static inline bool ntg_object_measure_are_eq(
+static inline bool ntg_object_measure_are_eql(
         struct ntg_object_measure m1,
         struct ntg_object_measure m2)
 {

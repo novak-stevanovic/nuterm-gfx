@@ -63,7 +63,7 @@ ntg_text_opts_def();
 /* Compares two text option values. Pointer identity counts as equal; otherwise
  * a `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_text_opts_are_eq(
+ntg_text_opts_are_eql(
         const struct ntg_text_opts* opts1,
         const struct ntg_text_opts* opts2);
 

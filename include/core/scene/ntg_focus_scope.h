@@ -3,6 +3,7 @@
 
 #include "shared/ntg_shared.h"
 #include "base/ntg_xy.h"
+#include "nt_event.h"
 
 /* ========================================================================== */
 /* PUBLIC - TYPES */
@@ -42,6 +43,14 @@ struct ntg_focus_mouse_ctx
     struct ntg_xy adj_pos; // position inside scope root space
 };
 
+struct ntg_focus_scope_keybinds
+{
+    struct nt_key_event left_click_key,
+            right_click_key, middle_click_key,
+            scroll_up_key, scroll_down_key,
+            cancel_key;
+};
+
 struct ntg_focus_scope
 {
     ntg_object* root;
@@ -50,10 +59,13 @@ struct ntg_focus_scope
     ntg_focus_scope_out_click_mode out_click_mode;
     ntg_focus_scope_block_mode block_mode;
 
+    struct ntg_focus_scope_keybinds keybinds;
+
     bool (*on_key_fn)(
             void* data,
             const struct ntg_focus_key_ctx* ctx,
-            struct nt_key_event key);
+            struct nt_key_event key,
+            const struct ntg_focus_scope_keybinds* keybinds);
 
     bool (*on_mouse_fn)(
             void* data,
@@ -79,7 +91,8 @@ NTG_API bool
 ntg_focus_scope_dispatch_key(
         void* _,
         const struct ntg_focus_key_ctx* ctx,
-        struct nt_key_event key);
+        struct nt_key_event key,
+        const struct ntg_focus_scope_keybinds* keybinds);
 
 /* ------------------------------------------------------ */
 

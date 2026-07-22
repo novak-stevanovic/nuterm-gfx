@@ -66,7 +66,7 @@ struct ntg_label_opts ntg_label_opts_def()
     return label_opts;
 }
 
-bool ntg_label_opts_are_eq(
+bool ntg_label_opts_are_eql(
         const struct ntg_label_opts* opts1,
         const struct ntg_label_opts* opts2)
 {
@@ -77,7 +77,7 @@ bool ntg_label_opts_are_eq(
         return false;
 
     return ((opts1->orient == opts2->orient) &&
-           nt_gfx_are_equal(opts1->gfx, opts2->gfx) &&
+           nt_gfx_are_eql(opts1->gfx, opts2->gfx) &&
            (opts1->text_mode == opts2->text_mode) &&
            (opts1->prim_align == opts2->prim_align) &&
            (opts1->sec_align == opts2->sec_align) &&
@@ -147,7 +147,7 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
     struct ntg_label_opts old_opts = {0};
     ntg_label_get_opts(label, &old_opts);
 
-    if(ntg_label_opts_are_eq(&new_opts, &old_opts))
+    if(ntg_label_opts_are_eql(&new_opts, &old_opts))
         return;
 
     struct ntg_text_opts new_opts_text = {0};

@@ -39,7 +39,7 @@ ntg_border_opts_def();
 /* Compares two border option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_border_opts_are_eq(
+ntg_border_opts_are_eql(
         const struct ntg_border_opts* opts1,
         const struct ntg_border_opts* opts2);
 
@@ -62,7 +62,7 @@ ntg_padding_opts_def();
 /* Compares two padding option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_padding_opts_are_eq(
+ntg_padding_opts_are_eql(
         const struct ntg_padding_opts* opts1,
         const struct ntg_padding_opts* opts2);
 

@@ -35,9 +35,9 @@ ntg_cell_def()
 
 /* Compares two rendered cells, including their code points and graphics. */
 static inline bool 
-ntg_cell_are_eq(struct ntg_cell c1, struct ntg_cell c2)
+ntg_cell_are_eql(struct ntg_cell c1, struct ntg_cell c2)
 {
-    return ((c1.cp == c2.cp) && nt_gfx_are_equal(c1.gfx, c2.gfx));
+    return ((c1.cp == c2.cp) && nt_gfx_are_eql(c1.gfx, c2.gfx));
 }
 
 /* ------------------------------------------------------ */
@@ -267,20 +267,20 @@ ntg_vcell_bg(struct nt_color color)
 /* Compares two virtual cells by type and by the fields relevant to that
  * type. */
 static inline bool
-ntg_vcell_are_eq(struct ntg_vcell c1, struct ntg_vcell c2)
+ntg_vcell_are_eql(struct ntg_vcell c1, struct ntg_vcell c2)
 {
     if(c1.type != c2.type) return false;
 
     if(c1.type == NTG_VCELL_FULL)
     {
         return ((c1.full.cp == c2.full.cp) &&
-            nt_gfx_are_equal(c1.full.gfx, c2.full.gfx));
+            nt_gfx_are_eql(c1.full.gfx, c2.full.gfx));
     }
     else if(c1.type == NTG_VCELL_OVERLAY)
     {
         return ((c1.overlay.cp == c2.overlay.cp) &&
-            nt_color_are_equal(c1.overlay.fg, c2.overlay.fg) &&
-            nt_style_are_equal(c1.overlay.style, c2.overlay.style));
+            nt_color_are_eql(c1.overlay.fg, c2.overlay.fg) &&
+            nt_style_are_eql(c1.overlay.style, c2.overlay.style));
     }
     else return true;
 }

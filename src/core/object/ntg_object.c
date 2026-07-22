@@ -92,7 +92,7 @@ struct ntg_border_opts ntg_border_opts_def()
     };
 }
 
-bool ntg_border_opts_are_eq(
+bool ntg_border_opts_are_eql(
         const struct ntg_border_opts* opts1,
         const struct ntg_border_opts* opts2)
 {
@@ -103,7 +103,7 @@ bool ntg_border_opts_are_eq(
         return false;
 
     return ((opts1->enable == opts2->enable) &&
-            (ntg_insets_are_eq(opts1->pref_size, opts2->pref_size)) &&
+            (ntg_insets_are_eql(opts1->pref_size, opts2->pref_size)) &&
             (opts1->style == opts2->style));
 }
 
@@ -115,7 +115,7 @@ struct ntg_padding_opts ntg_padding_opts_def()
     };
 }
 
-bool ntg_padding_opts_are_eq(
+bool ntg_padding_opts_are_eql(
         const struct ntg_padding_opts* opts1,
         const struct ntg_padding_opts* opts2)
 {
@@ -126,7 +126,7 @@ bool ntg_padding_opts_are_eq(
         return false;
 
     return ((opts1->enable == opts2->enable) &&
-    ntg_insets_are_eq(opts1->pref_size, opts2->pref_size));
+    ntg_insets_are_eql(opts1->pref_size, opts2->pref_size));
 }
 
 struct ntg_layout_opts ntg_layout_opts_def()
@@ -143,7 +143,7 @@ struct ntg_layout_opts ntg_layout_opts_def()
     };
 }
 
-bool ntg_layout_opts_are_eq(
+bool ntg_layout_opts_are_eql(
         const struct ntg_layout_opts* opts1,
         const struct ntg_layout_opts* opts2)
 {
@@ -153,9 +153,9 @@ bool ntg_layout_opts_are_eq(
     if(!opts1 || !opts2)
         return false;
 
-    return (ntg_xy_are_eq(opts1->min_cont_size, opts2->min_cont_size) &&
-            ntg_xy_are_eq(opts1->max_cont_size, opts2->max_cont_size) &&
-            ntg_xy_are_eq(opts1->grow, opts2->grow) &&
+    return (ntg_xy_are_eql(opts1->min_cont_size, opts2->min_cont_size) &&
+            ntg_xy_are_eql(opts1->max_cont_size, opts2->max_cont_size) &&
+            ntg_xy_are_eql(opts1->grow, opts2->grow) &&
             opts1->z_index == opts2->z_index);
 }
 
@@ -541,7 +541,7 @@ void ntg_object_set_layout_opts(
     struct ntg_layout_opts old_opts = object->_layout_opts;
     struct ntg_layout_opts new_opts = (opts ? (*opts) : ntg_layout_opts_def());
 
-    if(ntg_layout_opts_are_eq(&old_opts, &new_opts))
+    if(ntg_layout_opts_are_eql(&old_opts, &new_opts))
         return;
 
     object->_layout_opts = new_opts;
@@ -561,7 +561,7 @@ void ntg_object_set_border_opts(
     struct ntg_border_opts old_opts = object->_border.opts;
     struct ntg_border_opts new_opts = (opts ? (*opts) : ntg_border_opts_def());
 
-    if(ntg_border_opts_are_eq(&old_opts, &new_opts))
+    if(ntg_border_opts_are_eql(&old_opts, &new_opts))
         return;
 
     object->_border.opts = new_opts;
@@ -583,7 +583,7 @@ void ntg_object_set_padding_opts(
     struct ntg_padding_opts old_opts = object->_padding.opts;
     struct ntg_padding_opts new_opts = (opts ? (*opts) : ntg_padding_opts_def());
 
-    if(ntg_padding_opts_are_eq(&old_opts, &new_opts))
+    if(ntg_padding_opts_are_eql(&old_opts, &new_opts))
         return;
 
     object->_padding.opts = new_opts;
@@ -683,7 +683,10 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key)
     return consumed;
 }
 
-bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse)
+bool ntg_object_feed_mouse(
+        ntg_object* object,
+        struct nt_mouse_event mouse,
+        ntg_object_mouse_type type)
 {
     if(!object) return false;
     if(!object->_clickable) return false;
@@ -701,17 +704,17 @@ bool ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse)
         ((mouse.x < border_size.w) || (mouse.y < border_size.n) ||
         (mouse.x >= cont_size.x) || (mouse.y >= cont_size.y)))
     {
-        // return false;
+        return false;
     }
 
     if(object->__vtable->process_mouse_fn)
     {
-        consumed = consumed || object->__vtable->process_mouse_fn(object, mouse);
+        consumed = consumed || object->__vtable->process_mouse_fn(object, mouse, type);
     }
 
     if(object->hooks.on_mouse_fn)
     {
-        object->hooks.on_mouse_fn(object, mouse);
+        object->hooks.on_mouse_fn(object, mouse, type);
     }
 
     return consumed;
@@ -1334,7 +1337,7 @@ void _ntg_object_hmeasure(ntg_object* object, sarena* arena, int* out_status)
 
     struct ntg_object_measure old = ntg_object_get_measure(object, NTG_ORIENT_H);
 
-    if(!ntg_object_measure_are_eq(measure, old))
+    if(!ntg_object_measure_are_eql(measure, old))
     {
         object->_min_size.x = measure.min_size;
         object->_nat_size.x = measure.nat_size;
@@ -1490,7 +1493,7 @@ void _ntg_object_vmeasure(ntg_object* object, sarena* arena, int* out_status)
 
     struct ntg_object_measure old = ntg_object_get_measure(object, NTG_ORIENT_V);
 
-    if(!ntg_object_measure_are_eq(measure, old))
+    if(!ntg_object_measure_are_eql(measure, old))
     {
         object->_min_size.y = measure.min_size;
         object->_nat_size.y = measure.nat_size;
@@ -1599,7 +1602,7 @@ bool _ntg_object_fixup(ntg_object* object, sarena* arena)
 
     struct ntg_xy cont_size = ntg_object_get_size_cont(object);
     struct ntg_xy old_cont_size = object->__old_cont_size;
-    if(!ntg_xy_are_eq(cont_size, old_cont_size))
+    if(!ntg_xy_are_eql(cont_size, old_cont_size))
     {
         if(object->__vtable->cont_resize_fn)
             object->__vtable->cont_resize_fn(object, old_cont_size, cont_size);
@@ -1609,7 +1612,7 @@ bool _ntg_object_fixup(ntg_object* object, sarena* arena)
     }
     struct ntg_xy size = ntg_object_get_size(object);
     struct ntg_xy old_size = object->__old_size;
-    if(!ntg_xy_are_eq(size, old_size))
+    if(!ntg_xy_are_eql(size, old_size))
     {
         if(object->__vtable->resize_fn)
             object->__vtable->resize_fn(object, old_size, size);

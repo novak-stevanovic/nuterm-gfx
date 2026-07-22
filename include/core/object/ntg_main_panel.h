@@ -29,7 +29,7 @@ ntg_main_panel_opts_def();
 /* Compares two main-panel option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_main_panel_opts_are_eq(
+ntg_main_panel_opts_are_eql(
         const struct ntg_main_panel_opts* opts1,
         const struct ntg_main_panel_opts* opts2);
 

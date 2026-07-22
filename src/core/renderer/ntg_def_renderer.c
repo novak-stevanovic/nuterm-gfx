@@ -83,7 +83,7 @@ void _ntg_def_renderer_render_fn(
 
     ntg_def_renderer* renderer = (ntg_def_renderer*)_renderer;
     struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
-    bool resize = !(ntg_xy_are_eq(renderer->__old_size, size));
+    bool resize = !(ntg_xy_are_eql(renderer->__old_size, size));
 
     struct ntg_xy old_size;
     old_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
@@ -150,7 +150,7 @@ static inline size_t fwd_equal_gfx_search(
     for(j = pos.x + 1; j < row_size; j++)
     {
         it_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, pos.y));
-        if(nt_gfx_are_equal(pos_gfx, it_cell.gfx))
+        if(nt_gfx_are_eql(pos_gfx, it_cell.gfx))
             counter++;
         else
             break;
@@ -189,7 +189,7 @@ static void optimized_render(
             if((i < old_size.y) && (j < old_size.x))
             {
                 it_bb_cell = ntg_stage_drawing_get(&renderer->__backbuff, ntg_xy(j, i));
-                if(ntg_cell_are_eq(it_bb_cell, it_draw_cell))
+                if(ntg_cell_are_eql(it_bb_cell, it_draw_cell))
                 {
                     j++;
                     continue;

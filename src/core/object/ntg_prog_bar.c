@@ -19,7 +19,7 @@ struct ntg_prog_bar_style ntg_prog_bar_style_def()
     };
 }
 
-bool ntg_prog_bar_style_are_eq(
+bool ntg_prog_bar_style_are_eql(
         const struct ntg_prog_bar_style* style1,
         const struct ntg_prog_bar_style* style2)
 {
@@ -29,11 +29,11 @@ bool ntg_prog_bar_style_are_eq(
     if(!style1 || !style2)
         return false;
 
-    return (ntg_vcell_are_eq(style1->complete_style,
+    return (ntg_vcell_are_eql(style1->complete_style,
                              style2->complete_style) &&
-            ntg_vcell_are_eq(style1->uncomplete_style,
+            ntg_vcell_are_eql(style1->uncomplete_style,
                              style2->uncomplete_style) &&
-            ntg_vcell_are_eq(style1->threshold_style,
+            ntg_vcell_are_eql(style1->threshold_style,
                              style2->threshold_style));
 }
 
@@ -47,7 +47,7 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
     };
 }
 
-bool ntg_prog_bar_opts_are_eq(
+bool ntg_prog_bar_opts_are_eql(
         const struct ntg_prog_bar_opts* opts1,
         const struct ntg_prog_bar_opts* opts2)
 {
@@ -57,7 +57,7 @@ bool ntg_prog_bar_opts_are_eq(
     if(!opts1 || !opts2)
         return false;
 
-    return (ntg_prog_bar_style_are_eq(&opts1->style, &opts2->style) &&
+    return (ntg_prog_bar_style_are_eql(&opts1->style, &opts2->style) &&
             (opts1->orient == opts2->orient));
 }
 
@@ -118,7 +118,7 @@ void ntg_prog_bar_set_opts(
     struct ntg_prog_bar_opts new_opts =
             (opts ? (*opts) : ntg_prog_bar_opts_def());
 
-    if(ntg_prog_bar_opts_are_eq(&old_opts, &new_opts))
+    if(ntg_prog_bar_opts_are_eql(&old_opts, &new_opts))
         return;
 
     prog_bar->_opts = new_opts;
@@ -141,7 +141,7 @@ void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
 
     double old_progress = prog_bar->_prog;
 
-    if(_double_are_eq(old_progress, progress))
+    if(_double_are_eql(old_progress, progress))
         return;
 
     prog_bar->_prog = progress;

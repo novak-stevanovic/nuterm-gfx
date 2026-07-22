@@ -72,7 +72,10 @@ static void init_default(ntg_scene* scene)
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_scene_init(ntg_scene* scene, int* out_status)
+void ntg_scene_init(
+        ntg_scene* scene,
+        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        int* out_status)
 {
     ntg_init_status(out_status); 
 
@@ -86,7 +89,7 @@ void ntg_scene_init(ntg_scene* scene, int* out_status)
         ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
     int _status;
-    _ntg_focus_manager_init(scene->_fm, scene, &_status);
+    _ntg_focus_manager_init(scene->_fm, scene, init_scope_keybinds, &_status);
 
     if(_status != 0)
     {
@@ -311,7 +314,7 @@ void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 
     struct ntg_xy old_size = scene->_size;
 
-    if(ntg_xy_are_eq(old_size, size))
+    if(ntg_xy_are_eql(old_size, size))
         return;
 
     scene->_size = size;
@@ -661,7 +664,7 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
             pos.y -= _ssub_size(pos.y + size.y, scene->_size.y);
         }
 
-        if(!ntg_xy_are_eq(root->_pos, pos))
+        if(!ntg_xy_are_eql(root->_pos, pos))
         {
             _ntg_object_root_set_pos(root, pos);
         }

@@ -43,6 +43,7 @@ typedef struct ntg_type ntg_type;
 typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_binding ntg_event_binding;
 typedef struct ntg_cleanup_batch ntg_cleanup_batch;
+typedef struct ntg_keybind ntg_keybind;
 
 /* ------------------------------------------------------ */
 /* CORE */
@@ -72,6 +73,7 @@ typedef enum ntg_focus_scope_in_click_mode ntg_focus_scope_in_click_mode;
 typedef enum ntg_focus_scope_block_mode ntg_focus_scope_block_mode;
 
 typedef struct ntg_object ntg_object;
+typedef enum ntg_object_mouse_type ntg_object_mouse_type;
 typedef enum ntg_object_dcr_enable ntg_object_dcr_enable;
 typedef enum ntg_object_type ntg_object_type;
 typedef struct ntg_object_vec ntg_object_vec;

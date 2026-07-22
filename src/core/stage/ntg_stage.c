@@ -182,7 +182,7 @@ void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {
     if(!stage) return;
 
-    if(ntg_xy_are_eq(stage->_size, size))
+    if(ntg_xy_are_eql(stage->_size, size))
         return;
 
     struct ntg_xy old_size = stage->_size;
@@ -204,7 +204,7 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
     struct ntg_xy size = stage->_size;
 
     int _status;
-    if(!ntg_xy_are_eq(ntg_stage_drawing_get_size(&stage->_drawing), size))
+    if(!ntg_xy_are_eql(ntg_stage_drawing_get_size(&stage->_drawing), size))
     {
         struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
         ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap, &_status);

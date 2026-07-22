@@ -1,6 +1,7 @@
 #ifndef NTG_SCENE_H
 #define NTG_SCENE_H
 
+#include "ntg_focus_scope.h"
 #include "shared/ntg_shared.h"
 #include "base/ntg_xy.h"
 
@@ -50,6 +51,9 @@ struct ntg_scene
 {
     ntg_stage* _stage;
 
+    ntg_focus_manager* _fm;
+    struct ntg_focus_scope_keybinds _default_keybinds;
+
     ntg_object* _root;
 
     struct ntg_xy _size;
@@ -57,8 +61,6 @@ struct ntg_scene
     bool _dirty;
 
     struct ntg_scene_hooks hooks;
-
-    ntg_focus_manager* _fm;
 
     void* data;
 };
@@ -78,7 +80,10 @@ struct ntg_scene
  * - `NTG_ERR_ALLOC_FAIL`: focus-manager or scene resources cannot be allocated.
  * - `NTG_ERR_UNEXPECTED`: focus-manager initialization fails unexpectedly. */
 NTG_API void
-ntg_scene_init(ntg_scene* scene, int* out_status);
+ntg_scene_init(
+        ntg_scene* scene,
+        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 

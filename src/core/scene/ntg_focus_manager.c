@@ -31,7 +31,11 @@ static void scope_stack_sync(ntg_focus_manager* fm);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void _ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_status)
+void _ntg_focus_manager_init(
+        ntg_focus_manager* fm,
+        ntg_scene* scene,
+        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        int* out_status)
 {
     ntg_init_status(out_status);
 
@@ -49,12 +53,14 @@ void _ntg_focus_manager_init(ntg_focus_manager* fm, ntg_scene* scene, int* out_s
     fm->_scene = scene;
     fm->_focused = NULL;
 
+    struct ntg_focus_scope_keybinds zero_keybinds = {0};
     struct ntg_focus_scope scope = {
         .root = NULL,
         .on_key_fn = NULL,
         .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
         .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
         .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
+        .keybinds = (init_scope_keybinds ? (*init_scope_keybinds) : zero_keybinds),
         .data = NULL
     };
 
@@ -281,7 +287,7 @@ bool ntg_focus_manager_feed_key(ntg_focus_manager* fm, struct nt_key_event key)
     };
 
     if(scope->on_key_fn)
-        return scope->on_key_fn(scope->data, &ctx, key);
+        return scope->on_key_fn(scope->data, &ctx, key, &scope->keybinds);
     else
         return false;
 }
@@ -333,7 +339,7 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
             ntg_focus_manager_request_focus(fm, NULL);
 
         if(scope->input_mode == NTG_FOCUS_SCOPE_INPUT_MODELESS)
-            return ntg_object_feed_mouse(hit, mouse);
+            return ntg_object_feed_mouse(hit, mouse, NTG_OBJECT_MOUSE_TRUE);
         else
             return false;
     }

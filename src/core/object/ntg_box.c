@@ -35,7 +35,7 @@ struct ntg_box_opts ntg_box_opts_def()
     };
 }
 
-bool ntg_box_opts_are_eq(
+bool ntg_box_opts_are_eql(
         const struct ntg_box_opts* opts1,
         const struct ntg_box_opts* opts2)
 {
@@ -49,7 +49,7 @@ bool ntg_box_opts_are_eq(
             (opts1->prim_align == opts2->prim_align) &&
             (opts1->sec_align == opts2->sec_align) &&
             (opts1->spacing == opts2->spacing) &&
-            ntg_vcell_are_eq(opts1->bg, opts2->bg));
+            ntg_vcell_are_eql(opts1->bg, opts2->bg));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -100,7 +100,7 @@ void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
     struct ntg_box_opts old_opts = box->_opts;
     struct ntg_box_opts new_opts = (opts ? (*opts) : ntg_box_opts_def());
 
-    if(ntg_box_opts_are_eq(&old_opts, &new_opts))
+    if(ntg_box_opts_are_eql(&old_opts, &new_opts))
         return;
 
     box->_opts = new_opts;

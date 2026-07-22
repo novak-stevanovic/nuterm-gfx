@@ -38,12 +38,10 @@ struct ntg_layout_opts
 NTG_API struct ntg_layout_opts
 ntg_layout_opts_def();
 
-/* ------------------------------------------------------ */
-
 /* Compares two object layout option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_layout_opts_are_eq(
+ntg_layout_opts_are_eql(
         const struct ntg_layout_opts* opts1,
         const struct ntg_layout_opts* opts2);
 
@@ -86,7 +84,10 @@ struct ntg_object_vtable
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
 
     bool (*process_key_fn)(ntg_object* object, struct nt_key_event key);
-    bool (*process_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
+    bool (*process_mouse_fn)(
+            ntg_object* object,
+            struct nt_mouse_event mouse,
+            ntg_object_mouse_type type);
 
     void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
     void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
@@ -111,7 +112,10 @@ struct ntg_object_hooks
     // Called in ntg_object_feed_key() fn
     void (*on_key_fn)(ntg_object* object, struct nt_key_event key);
     // Called in ntg_object_feed_mouse() fn
-    void (*on_mouse_fn)(ntg_object* object, struct nt_mouse_event mouse);
+    void (*on_mouse_fn)(
+            ntg_object* object,
+            struct nt_mouse_event mouse,
+            ntg_object_mouse_type type);
 
     // Called in _ntg_object_focus() fn
     void (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
@@ -161,6 +165,14 @@ struct ntg_object_hooks
             ntg_object* object,
             struct ntg_xy old_size,
             struct ntg_xy new_size);
+};
+
+/* ------------------------------------------------------ */
+
+enum ntg_object_mouse_type
+{
+    NTG_OBJECT_MOUSE_TRUE,
+    NTG_OBJECT_MOUSE_SCENE
 };
 
 /* ------------------------------------------------------ */
@@ -521,7 +533,10 @@ ntg_object_feed_key(ntg_object* object, struct nt_key_event key);
  * RETURN VALUE:
  * `true` when the hook reports the event handled; otherwise `false`. */
 NTG_API bool
-ntg_object_feed_mouse(ntg_object* object, struct nt_mouse_event mouse);
+ntg_object_feed_mouse(
+        ntg_object* object,
+        struct nt_mouse_event mouse,
+        ntg_object_mouse_type type);
 
 /* ------------------------------------------------------ */
 /* TRAVERSE HELPERS */

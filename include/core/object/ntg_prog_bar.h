@@ -32,7 +32,7 @@ ntg_prog_bar_style_def();
 /* Compares two progress-bar style values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_prog_bar_style_are_eq(
+ntg_prog_bar_style_are_eql(
         const struct ntg_prog_bar_style* style1,
         const struct ntg_prog_bar_style* style2);
 
@@ -56,7 +56,7 @@ ntg_prog_bar_opts_def();
 /* Compares two progress-bar option values. Pointer identity counts as equal;
  * otherwise a `NULL` value differs from a non-`NULL` value. */
 NTG_API bool
-ntg_prog_bar_opts_are_eq(
+ntg_prog_bar_opts_are_eql(
         const struct ntg_prog_bar_opts* opts1,
         const struct ntg_prog_bar_opts* opts2);
 

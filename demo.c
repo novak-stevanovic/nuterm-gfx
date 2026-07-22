@@ -126,7 +126,7 @@ bool fs1_on_mouse_fn(
     return true;
 }
 
-void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse)
+void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse, ntg_object_mouse_type type)
 {
     ntg_label* label = ntg_lbl(_label);
 
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     init_root();
     init_fs();
 
-    ntg_scene_init(&scene, &_status);
+    ntg_scene_init(&scene, NULL, &_status);
     ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_v, NULL, &_status);
 
     ntg_stage_init(&stage, &_status);

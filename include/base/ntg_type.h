@@ -40,6 +40,6 @@ ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor);
 
 /* Compares two type descriptors by identity. */
 NTG_API bool
-ntg_type_are_eq(const ntg_type* type1, const ntg_type* type2);
+ntg_type_are_eql(const ntg_type* type1, const ntg_type* type2);
 
 #endif // NTG_TYPE_H

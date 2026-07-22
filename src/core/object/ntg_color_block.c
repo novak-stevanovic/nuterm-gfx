@@ -61,7 +61,7 @@ void ntg_color_block_set_color(
 
     struct nt_color old_color = color_block->_color;
 
-    if(nt_color_are_equal(old_color, color))
+    if(nt_color_are_eql(old_color, color))
         return;
 
     color_block->_color = color;
