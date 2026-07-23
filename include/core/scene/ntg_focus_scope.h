@@ -57,15 +57,19 @@ struct ntg_focus_scope_keybinds
 
 struct ntg_focus_scope
 {
-    ntg_object* _scope_root;
+    ntg_object* _root;
     ntg_focus_manager* _fm;
 
     struct ntg_focus_scope_keybinds _keybinds;
     struct ntg_focus_scope_opts _opts;
 
-    // Event positions are adjusted to scope root space
     bool (*__handle_key_fn)(ntg_focus_scope* scope, struct nt_key_event key);
-    bool (*__handle_mouse_fn)(ntg_focus_scope* scope, struct nt_mouse_event mouse);
+
+    // Event position is adjusted to scope root space
+    bool (*__handle_mouse_fn)(
+            ntg_focus_scope* scope,
+            struct nt_mouse_event mouse,
+            ntg_object* clicked);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -83,7 +87,7 @@ ntg_focus_scope_init(
         const struct ntg_focus_scope_keybinds* keybinds,
         const struct ntg_focus_scope_opts* opts,
         bool (*handle_key_fn)(ntg_focus_scope* scope, struct nt_key_event key),
-        bool (*handle_mouse_fn)(ntg_focus_scope* scope, struct nt_mouse_event mouse),
+        bool (*handle_mouse_fn)(ntg_focus_scope* scope, struct nt_mouse_event mouse, ntg_object* clicked),
         int* out_status);
 
 NTG_API void
@@ -117,7 +121,10 @@ NTG_API bool
 ntg_focus_scope_feed_key(ntg_focus_scope* scope, struct nt_key_event key);
 
 NTG_API bool
-ntg_focus_scope_feed_mouse(ntg_focus_scope* scope, struct nt_mouse_event mouse);
+ntg_focus_scope_feed_mouse(
+        ntg_focus_scope* scope,
+        struct nt_mouse_event mouse,
+        ntg_object* clicked);
 
 /* ------------------------------------------------------ */
 /* DEFAULT VIRTUAL FUNCTIONS */
@@ -130,10 +137,16 @@ NTG_API bool
 ntg_focus_scope_handle_key_bubble_fn(ntg_focus_scope* scope, struct nt_key_event key);
 
 NTG_API bool
-ntg_focus_scope_handle_mouse_fn(ntg_focus_scope* scope, struct nt_mouse_event mouse);
+ntg_focus_scope_handle_mouse_fn(
+        ntg_focus_scope* scope,
+        struct nt_mouse_event mouse,
+        ntg_object* clicked);
 
 NTG_API bool
-ntg_focus_scope_handle_mouse_bubble_fn(ntg_focus_scope* scope, struct nt_mouse_event mouse);
+ntg_focus_scope_handle_mouse_bubble_fn(
+        ntg_focus_scope* scope,
+        struct nt_mouse_event mouse,
+        ntg_object* clicked);
 
 /* ========================================================================== */
 /* INTERNAL */
