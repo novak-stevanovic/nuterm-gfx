@@ -50,11 +50,7 @@
 enum ntg_mouse_mode { NTG_MOUSE_ENABLE, NTG_MOUSE_DISABLE };
 enum ntg_alt_screen_mode { NTG_ALT_SCREEN_ENABLE, NTG_ALT_SCREEN_DISABLE };
 enum ntg_cursor_mode { NTG_CURSOR_HIDE, NTG_CURSOR_SHOW };
-enum ntg_unsupported_term_mode
-{
-    NTG_UNSUPPORTED_TERM_IGNORE,
-    NTG_UNSUPPORTED_TERM_STOP
-};
+enum ntg_unsupported_term_mode { NTG_UNSUPPORTED_TERM_IGNORE, NTG_UNSUPPORTED_TERM_STOP };
 
 struct ntg_opts
 {
@@ -102,5 +98,12 @@ ntg_enable(
  * `ntg_enable()` has no effect. */
 NTG_API void
 ntg_disable(void);
+
+/* TODO:
+ * add vtable to other classes: renderer, stage, scene, focus_scope, etc also add deinit_fn to allow inheritance
+ * make handlers for on_key and on_mouse inside vtable, not inside hooks struct(make them return void)
+ * adjust mouse pos when focus manager dispatches to focus scope and focus scope dispatches to object
+ * remove comments from everywhere because they may be outdated. When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED
+*/
 
 #endif // NTG_H

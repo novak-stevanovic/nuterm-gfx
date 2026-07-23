@@ -50,6 +50,8 @@ void _ntg_focus_manager_init(
     if(!fm || !scene)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
+    int _status;
+
     (*fm) = (ntg_focus_manager) {0};
 
     fm->__scope_stack = malloc(sizeof(ntg_focus_scope_list));
@@ -61,18 +63,24 @@ void _ntg_focus_manager_init(
     fm->_scene = scene;
     fm->_focused = NULL;
 
-    struct ntg_focus_scope_keybinds zero_keybinds = {0};
-    struct ntg_focus_scope scope = {
-        .root = NULL,
-        .on_key_fn = NULL,
-        .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
-        .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
-        .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
-        .keybinds = (init_scope_keybinds ? (*init_scope_keybinds) : zero_keybinds),
-        .data = NULL
-    };
+    ntg_focus_scope scope;
+    ntg_focus_scope_init(
+            &scope,
+            NULL,
+            init_scope_keybinds,
+            NULL,
+            ntg_focus_scope_handle_key_fn,
+            ntg_focus_scope_handle_mouse_fn,
+            &_status);
 
-    int _status;
+    switch(_status)
+    {
+        case 0: break;
+
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
+
     ntg_focus_manager_push_scope(fm, &scope, &_status);
     if(_status != 0)
     {
@@ -136,7 +144,7 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
         // assert(scope);
         if(!scope) return false;
 
-        ntg_object* scope_root = scope->root;
+        ntg_object* scope_root = scope->_root;
 
         if(scope_root) // SCOPE HAS ROOT
         {
@@ -176,7 +184,7 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
 
 void ntg_focus_manager_push_scope(
         ntg_focus_manager* fm,
-        const struct ntg_focus_scope* scope,
+        const ntg_focus_scope* scope,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -184,15 +192,17 @@ void ntg_focus_manager_push_scope(
     if(!fm || !scope)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
+    int _status;
+
     struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
 
     if(head)
     {
-        if(head->data->scope.block_mode == NTG_FOCUS_SCOPE_BLOCK_TRUE)
+        if(head->data->scope._opts.block_mode == NTG_FOCUS_SCOPE_BLOCK_TRUE)
             return;
     }
 
-    if(scope->root) // make sure that scope root is desc of any layer root
+    if(scope->_root) // make sure that scope root is desc of any layer root
     {
         size_t layer_count = ntg_scene_collect_layers_by_z(fm->_scene, NULL, 0);
         if(layer_count == 0)
@@ -208,7 +218,7 @@ void ntg_focus_manager_push_scope(
         bool desc_of_any_layer = false;
         for(i = 0; i < layer_count; i++)
         {
-            if(scope->root && ntg_object_is_descendant_eq(layers[i], scope->root))
+            if(scope->_root && ntg_object_is_descendant_eq(layers[i], scope->_root))
                 desc_of_any_layer = true;
         }
 
@@ -223,13 +233,18 @@ void ntg_focus_manager_push_scope(
         head->data->last_focused = fm->_focused;
     }
 
-    struct ntg_focus_scope_data data = {
-        .scope = (*scope),
-        .last_focused = NULL,
-        .valid = true
-    };
+    struct ntg_focus_scope_data data = {0};
+    data.last_focused = NULL;
+    data.valid = true;
+    ntg_focus_scope_init_move(&data.scope, scope, &_status);
+    switch(_status)
+    {
+        case 0: break;
 
-    int _status;
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
+
     ntg_focus_scope_list_pushf(fm->__scope_stack, data, &_status);
     if(_status != 0)
     {
@@ -242,6 +257,8 @@ void ntg_focus_manager_push_scope(
                 ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
         }
     }
+
+    _ntg_focus_scope_attach(&data.scope);
 
     ntg_focus_manager_request_focus(fm, NULL);
 
@@ -262,7 +279,7 @@ void ntg_focus_manager_pop_scope(ntg_focus_manager* fm)
     scope_stack_sync(fm);
 }
 
-const struct ntg_focus_scope*
+struct ntg_focus_scope*
 ntg_focus_manager_get_active_scope(const ntg_focus_manager* fm)
 {
     if(!fm) return NULL;
@@ -293,7 +310,7 @@ void _ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed)
     {
         it_data = it_node->data;
 
-        if(it_data->scope.root && ntg_object_is_descendant_eq(it_data->scope.root, removed))
+        if(it_data->scope._root && ntg_object_is_descendant_eq(it_data->scope._root, removed))
             it_data->valid = false;
 
         it_node = it_node->next;
@@ -318,29 +335,23 @@ bool ntg_focus_manager_feed_key(ntg_focus_manager* fm, struct nt_key_event key)
 {
     if(!fm) return false;
 
-    const struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
+    ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
     if(!scope) return false;
 
-    struct ntg_focus_key_ctx ctx = {
-        .fm = fm,
-        .scope_root = scope->root
-    };
-
-    if(scope->on_key_fn)
-        return scope->on_key_fn(scope->data, &ctx, key, &scope->keybinds);
-    else
-        return false;
+    return ntg_focus_scope_feed_key(scope, key);
 }
 
 bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
 {
     if(!fm) return false;
 
-    const struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
+    struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
     if(!scope) return false;
 
     struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
     struct ntg_xy adj_pos = ntg_xy(0, 0);
+
+    // struct xy pos_root_spacentg_object_map_to_descendant(NULL, scope->_root, ntg_dxy_from_xy(pos));
 
     int _status;
 
@@ -350,35 +361,23 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
 
     if(!hit)
     {
-        if(scope->out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
+        if(scope->_opts.out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
             ntg_focus_manager_request_focus(fm, NULL);
 
         return false;
     }
 
-    ntg_log_log("ADJ: %d %d", adj_pos.x, adj_pos.y);
-
     // Inside scope
-    if((!scope->root) || ntg_object_is_descendant_eq(scope->root, hit))
+    if((!scope->_root) || ntg_object_is_descendant_eq(scope->_root, hit))
     {
-        struct ntg_focus_mouse_ctx ctx = {
-            .fm = fm,
-            .scope_root = scope->root,
-            .clicked = hit,
-            .adj_pos = adj_pos
-        };
-
-        if(scope->on_mouse_fn)
-            return scope->on_mouse_fn(scope->data, &ctx, mouse);
-        else
-            return false;
+        return ntg_focus_scope_feed_mouse(scope, mouse, hit);
     }
     else // OUTSIDE SCOPE
     {
-        if(scope->out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
+        if(scope->_opts.out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
             ntg_focus_manager_request_focus(fm, NULL);
 
-        if(scope->input_mode == NTG_FOCUS_SCOPE_INPUT_MODELESS)
+        if(scope->_opts.input_mode == NTG_FOCUS_SCOPE_INPUT_MODELESS)
             return ntg_object_feed_mouse(hit, mouse, NTG_OBJECT_MOUSE_TRUE);
         else
             return false;

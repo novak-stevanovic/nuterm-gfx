@@ -74,7 +74,7 @@ ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object);
 NTG_API void
 ntg_focus_manager_push_scope(
         ntg_focus_manager* fm,
-        const struct ntg_focus_scope* scope,
+        const ntg_focus_scope* scope,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -91,7 +91,7 @@ ntg_focus_manager_pop_scope(ntg_focus_manager* fm);
  *
  * RETURN VALUE:
  * The active scope, or `NULL` when `fm` is `NULL` or the stack is empty. */
-NTG_API const struct ntg_focus_scope*
+NTG_API ntg_focus_scope*
 ntg_focus_manager_get_active_scope(const ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */

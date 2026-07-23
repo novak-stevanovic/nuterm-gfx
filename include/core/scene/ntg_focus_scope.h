@@ -70,6 +70,8 @@ struct ntg_focus_scope
             ntg_focus_scope* scope,
             struct nt_mouse_event mouse,
             ntg_object* clicked);
+
+    void* data;
 };
 
 /* -------------------------------------------------------------------------- */

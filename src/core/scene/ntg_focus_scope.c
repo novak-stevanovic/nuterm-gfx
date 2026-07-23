@@ -93,6 +93,8 @@ void ntg_focus_scope_init(
 
     ntg_focus_scope_set_keybinds(scope, keybinds);
     ntg_focus_scope_set_opts(scope, opts);
+
+    scope->data = NULL;
 }
 
 void ntg_focus_scope_deinit(ntg_focus_scope* scope)
@@ -105,6 +107,7 @@ void ntg_focus_scope_deinit(ntg_focus_scope* scope)
     scope->_opts = ntg_focus_scope_opts_def();
     scope->__handle_key_fn = NULL;
     scope->__handle_mouse_fn = NULL;
+    scope->data = NULL;
 }
 
 void ntg_focus_scope_init_move(
@@ -271,6 +274,7 @@ bool ntg_focus_scope_handle_mouse_bubble_fn(
     {
         if(clicked)
         {
+            bool consumed = false;
             if(focused != clicked)
                 ntg_focus_manager_request_focus(fm, NULL); // TODO: return true?
 
