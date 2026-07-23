@@ -159,6 +159,10 @@ void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
 /* PROTECTED */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 void ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
         const struct ntg_object_vtable* vtable,

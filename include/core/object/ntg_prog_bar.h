@@ -144,6 +144,10 @@ ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress);
 /* PROTECTED */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 /* Initializes the progress-bar portion of an object derived from
  * `NTG_TYPE_PROG_BAR`, using the supplied virtual table and concrete type
  * descriptor. A `NULL` options pointer selects defaults.

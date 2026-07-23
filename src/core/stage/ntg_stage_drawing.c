@@ -3,6 +3,18 @@
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
+/* ========================================================================== */
+/* PUBLIC */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
+
 void ntg_stage_drawing_init(ntg_stage_drawing* drawing, int* out_status)
 {
     ntg_init_status(out_status);
@@ -19,6 +31,10 @@ void ntg_stage_drawing_deinit(ntg_stage_drawing* drawing)
 
     ntg_cell_vecgrid_deinit(&drawing->__data);
 }
+
+/* ------------------------------------------------------ */
+/* SIZE */
+/* ------------------------------------------------------ */
 
 struct ntg_xy ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing)
 {

@@ -7,8 +7,12 @@
 #include "nt_gfx.h"
 
 /* ========================================================================== */
-/* PUBLIC - TYPES AND FUNCTIONS */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
 /* CELL */
@@ -19,6 +23,68 @@ struct ntg_cell
     uint32_t cp;
     struct nt_gfx gfx;
 };
+
+/* ------------------------------------------------------ */
+/* CELL VECGRID */
+/* ------------------------------------------------------ */
+
+struct ntg_cell_vecgrid
+{
+    struct ntg_vecgrid __base; 
+};
+
+/* ------------------------------------------------------ */
+/* VCELL */
+/* ------------------------------------------------------ */
+
+enum ntg_vcell_type
+{ 
+    NTG_VCELL_FULL,
+    NTG_VCELL_OVERLAY,
+    NTG_VCELL_TRANSPARENT
+};
+
+struct ntg_vcell
+{
+    ntg_vcell_type type;
+    union
+    {
+        struct
+        {
+            uint32_t cp;
+            struct nt_gfx gfx;
+        } full;
+
+        struct
+        {
+            uint32_t cp;
+            struct nt_color fg;
+            struct nt_style style;
+        } overlay;
+
+        struct 
+        {
+            size_t placeholder;
+        } transparent;
+    };
+};
+
+/* ------------------------------------------------------ */
+/* VCELL VECGRID */
+/* ------------------------------------------------------ */
+
+struct ntg_vcell_vecgrid
+{
+    struct ntg_vecgrid __base; 
+};
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* CELL */
+/* ------------------------------------------------------ */
 
 /* Creates the default rendered cell: a space character with default graphics.
  *
@@ -43,11 +109,6 @@ ntg_cell_are_eql(struct ntg_cell c1, struct ntg_cell c2)
 /* ------------------------------------------------------ */
 /* CELL VECGRID */
 /* ------------------------------------------------------ */
-
-struct ntg_cell_vecgrid
-{
-    struct ntg_vecgrid __base; 
-};
 
 /* Initializes an empty rendered-cell grid. No cell storage is allocated until
  * the grid is resized. */
@@ -119,38 +180,6 @@ ntg_cell_vecgrid_set(ntg_cell_vecgrid* vecgrid, struct ntg_cell cell, struct ntg
 /* ------------------------------------------------------ */
 /* VCELL */
 /* ------------------------------------------------------ */
-
-enum ntg_vcell_type
-{ 
-    NTG_VCELL_FULL,
-    NTG_VCELL_OVERLAY,
-    NTG_VCELL_TRANSPARENT
-};
-
-struct ntg_vcell
-{
-    ntg_vcell_type type;
-    union
-    {
-        struct
-        {
-            uint32_t cp;
-            struct nt_gfx gfx;
-        } full;
-
-        struct
-        {
-            uint32_t cp;
-            struct nt_color fg;
-            struct nt_style style;
-        } overlay;
-
-        struct 
-        {
-            size_t placeholder;
-        } transparent;
-    };
-};
 
 /* Creates a virtual cell of `type`. `cp` is the code point; full cells copy all
  * of `gfx`, overlay cells copy only its foreground and style, and transparent
@@ -313,11 +342,6 @@ ntg_vcell_overwrite(struct ntg_vcell overwriting, struct ntg_cell overwritten)
 /* ------------------------------------------------------ */
 /* VCELL VECGRID */
 /* ------------------------------------------------------ */
-
-struct ntg_vcell_vecgrid
-{
-    struct ntg_vecgrid __base; 
-};
 
 /* Initializes an empty virtual-cell grid. No cell storage is allocated until
  * the grid is resized. */

@@ -6,11 +6,27 @@
 #include "core/loop/ntg_loop_internal.h"
 #include "shared/ntg_shared_internal.h"
 
+/* ========================================================================== */
+/* STATIC */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 static void init_default(ntg_loop* loop);
 static void update_stage(ntg_loop* loop);
 
+/* ========================================================================== */
+/* PUBLIC */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 /* ------------------------------------------------------ */
-/* PUBLIC API */
+/* EVENT */
 /* ------------------------------------------------------ */
 
 bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
@@ -34,6 +50,10 @@ bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
     }
     else return false;
 }
+
+/* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
 
 void ntg_loop_init(ntg_loop* loop,
         ntg_stage* init_stage,
@@ -332,6 +352,10 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
     return loop->__exit_status;
 }
 
+/* ------------------------------------------------------ */
+/* CONTROL */
+/* ------------------------------------------------------ */
+
 bool ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode)
 {
     if(!loop) return true;
@@ -411,6 +435,10 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage, int* out_status)
     }
 }
 
+/* ------------------------------------------------------ */
+/* TASKS */
+/* ------------------------------------------------------ */
+
 void ntg_task_runner_execute(
         ntg_task_runner* task_runner, 
         void (*task_fn)(void* data, ntg_platform* platform),
@@ -448,6 +476,14 @@ void ntg_platform_execute_later(
     _ntg_platform_execute_later(platform, task, out_status);
 }
 
+
+/* ========================================================================== */
+/* STATIC */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 static void init_default(ntg_loop* loop)
 {

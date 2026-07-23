@@ -142,6 +142,10 @@ ntg_main_panel_set_opts(
 /* PROTECTED */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 /* Initializes the main-panel portion of an object derived from
  * `NTG_TYPE_MAIN_PANEL`, using the supplied virtual table and concrete type
  * descriptor. A `NULL` options pointer selects defaults.

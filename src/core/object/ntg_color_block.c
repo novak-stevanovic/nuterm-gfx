@@ -76,6 +76,10 @@ void ntg_color_block_set_color(
 /* PROTECTED */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 void ntg_color_block_init_inherit(
         ntg_color_block* color_block,
         const struct ntg_object_vtable* vtable,

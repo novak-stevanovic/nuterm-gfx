@@ -2,6 +2,18 @@
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 
+/* ========================================================================== */
+/* PUBLIC */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
+
 void ntg_object_drawing_init(ntg_object_drawing* drawing)
 {
     if(!drawing) return;
@@ -15,6 +27,10 @@ void ntg_object_drawing_deinit(ntg_object_drawing* drawing)
 
     ntg_vcell_vecgrid_deinit(&drawing->__data);
 }
+
+/* ------------------------------------------------------ */
+/* SIZE */
+/* ------------------------------------------------------ */
 
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 {
@@ -49,6 +65,10 @@ void ntg_object_drawing_set_size(
             ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
 }
+
+/* ------------------------------------------------------ */
+/* PLACEMENT */
+/* ------------------------------------------------------ */
 
 void ntg_object_drawing_place(
         const ntg_object_drawing* src_drawing,

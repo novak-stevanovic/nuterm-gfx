@@ -142,6 +142,10 @@ ntg_box_rm_child(ntg_box* box, ntg_object* child);
 /* PROTECTED */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 /* Initializes the box portion of an object derived from `NTG_TYPE_BOX`, using
  * the supplied virtual table and concrete type descriptor. A `NULL` options
  * pointer selects defaults.

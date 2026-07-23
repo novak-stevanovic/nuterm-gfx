@@ -5,8 +5,12 @@
 #include "base/ntg_xy.h"
 
 /* ========================================================================== */
-/* PUBLIC - TYPES AND FUNCTIONS */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
 /* BORDER & PADDING */
@@ -26,6 +30,20 @@ struct ntg_border_opts
     const struct ntg_border_style* style;
 };
 
+struct ntg_padding_opts
+{
+    ntg_object_dcr_enable enable;
+    struct ntg_insets pref_size;
+};
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* BORDER & PADDING */
+/* ------------------------------------------------------ */
+
 /* Creates default border options with the default style, zero preferred insets,
  * and minimum enable mode.
  *
@@ -42,12 +60,6 @@ NTG_API bool
 ntg_border_opts_are_eql(
         const struct ntg_border_opts* opts1,
         const struct ntg_border_opts* opts2);
-
-struct ntg_padding_opts
-{
-    ntg_object_dcr_enable enable;
-    struct ntg_insets pref_size;
-};
 
 /* Creates default padding options with zero preferred insets and minimum enable
  * mode.

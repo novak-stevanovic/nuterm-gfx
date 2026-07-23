@@ -2,19 +2,24 @@
 #define NTG_FOCUS_SCOPE_H
 
 #include "shared/ntg_shared.h"
-#include "base/ntg_xy.h"
 #include "nt_event.h"
 
 /* ========================================================================== */
-/* PUBLIC - TYPES */
+/* PUBLIC */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+// What happens to event if a mouse click occurs outside scope?
 enum ntg_focus_scope_input_mode
 {
     NTG_FOCUS_SCOPE_INPUT_MODELESS,
     NTG_FOCUS_SCOPE_INPUT_MODAL
 };
 
+// What happens to focus if a mouse click occurs outside scope?
 enum ntg_focus_scope_out_click_mode
 {
     NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
@@ -28,20 +33,17 @@ enum ntg_focus_scope_block_mode
     NTG_FOCUS_SCOPE_BLOCK_TRUE
 };
 
-struct ntg_focus_key_ctx
+struct ntg_focus_scope_opts
 {
-    ntg_focus_manager* fm;
-    ntg_object* scope_root;
+    ntg_focus_scope_input_mode input_mode;
+    ntg_focus_scope_out_click_mode out_click_mode;
+    ntg_focus_scope_block_mode block_mode;
 };
 
-struct ntg_focus_mouse_ctx
-{
-    ntg_focus_manager* fm;
-    ntg_object* scope_root;
+NTG_API struct ntg_focus_scope_opts
+ntg_focus_scope_opts_def();
 
-    ntg_object* clicked;
-    struct ntg_xy adj_pos; // position inside scope root space
-};
+/* ------------------------------------------------------ */
 
 struct ntg_focus_scope_keybinds
 {
@@ -51,74 +53,96 @@ struct ntg_focus_scope_keybinds
             cancel_key;
 };
 
+/* ------------------------------------------------------ */
+
 struct ntg_focus_scope
 {
-    ntg_object* root;
+    ntg_object* _scope_root;
+    ntg_focus_manager* _fm;
 
-    ntg_focus_scope_input_mode input_mode;
-    ntg_focus_scope_out_click_mode out_click_mode;
-    ntg_focus_scope_block_mode block_mode;
+    struct ntg_focus_scope_keybinds _keybinds;
+    struct ntg_focus_scope_opts _opts;
 
-    struct ntg_focus_scope_keybinds keybinds;
-
-    bool (*on_key_fn)(
-            void* data,
-            const struct ntg_focus_key_ctx* ctx,
-            struct nt_key_event key,
-            const struct ntg_focus_scope_keybinds* keybinds);
-
-    bool (*on_mouse_fn)(
-            void* data,
-            const struct ntg_focus_mouse_ctx* ctx,
-            struct nt_mouse_event mouse);
-    void* data;
+    // Event positions are adjusted to scope root space
+    bool (*__handle_key_fn)(ntg_focus_scope* scope, struct nt_key_event key);
+    bool (*__handle_mouse_fn)(ntg_focus_scope* scope, struct nt_mouse_event mouse);
 };
 
-/* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
-/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
+
+NTG_API void
+ntg_focus_scope_init(
+        ntg_focus_scope* scope,
+        ntg_object* scope_root,
+        const struct ntg_focus_scope_keybinds* keybinds,
+        const struct ntg_focus_scope_opts* opts,
+        bool (*handle_key_fn)(ntg_focus_scope* scope, struct nt_key_event key),
+        bool (*handle_mouse_fn)(ntg_focus_scope* scope, struct nt_mouse_event mouse),
+        int* out_status);
+
+NTG_API void
+ntg_focus_scope_deinit(ntg_focus_scope* scope);
+
+NTG_API void
+ntg_focus_scope_init_move(
+        ntg_focus_scope* dest,
+        const ntg_focus_scope* src,
+        int* out_status);
+
+/* ------------------------------------------------------ */
+/* SETTERS */
+/* ------------------------------------------------------ */
+
+NTG_API void
+ntg_focus_scope_set_opts(
+        ntg_focus_scope* scope,
+        const struct ntg_focus_scope_opts* opts);
+
+NTG_API void
+ntg_focus_scope_set_keybinds(
+        ntg_focus_scope* scope,
+        const struct ntg_focus_scope_keybinds* keybinds);
 
 /* ------------------------------------------------------ */
 /* EVENT */
 /* ------------------------------------------------------ */
 
-/* Default key handler that uses `ctx` to forward `key` to the focused object.
- * The `_` callback data argument is ignored.
- *
- * RETURN VALUE:
- * `true` when the focused object handles the event; otherwise `false`. */
 NTG_API bool
-ntg_focus_scope_dispatch_key(
-        void* _,
-        const struct ntg_focus_key_ctx* ctx,
-        struct nt_key_event key,
-        const struct ntg_focus_scope_keybinds* keybinds);
+ntg_focus_scope_feed_key(ntg_focus_scope* scope, struct nt_key_event key);
+
+NTG_API bool
+ntg_focus_scope_feed_mouse(ntg_focus_scope* scope, struct nt_mouse_event mouse);
 
 /* ------------------------------------------------------ */
-
-/* Static mouse handler that uses `ctx` to forward `mouse` to the clicked object
- * without changing focus. The `_` callback data argument is ignored.
- *
- * RETURN VALUE:
- * `true` when the clicked object handles the event; otherwise `false`. */
-NTG_API bool
-ntg_focus_scope_dispatch_mouse_stc(
-        void* _,
-        const struct ntg_focus_mouse_ctx* ctx,
-        struct nt_mouse_event mouse);
-
+/* DEFAULT VIRTUAL FUNCTIONS */
 /* ------------------------------------------------------ */
 
-/* Dynamic mouse handler that uses `ctx` to update focus from the clicked object
- * and then dispatches `mouse`. Clicking elsewhere may clear old focus. The `_`
- * callback data argument is ignored.
- *
- * RETURN VALUE:
- * `true` when the click causes focus/dispatch handling; otherwise `false`. */
 NTG_API bool
-ntg_focus_scope_dispatch_mouse_dyn(
-        void* _,
-        const struct ntg_focus_mouse_ctx* ctx,
-        struct nt_mouse_event mouse);
+ntg_focus_scope_handle_key_fn(ntg_focus_scope* scope, struct nt_key_event key);
+
+NTG_API bool
+ntg_focus_scope_handle_key_bubble_fn(ntg_focus_scope* scope, struct nt_key_event key);
+
+NTG_API bool
+ntg_focus_scope_handle_mouse_fn(ntg_focus_scope* scope, struct nt_mouse_event mouse);
+
+NTG_API bool
+ntg_focus_scope_handle_mouse_bubble_fn(ntg_focus_scope* scope, struct nt_mouse_event mouse);
+
+/* ========================================================================== */
+/* INTERNAL */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
+void _ntg_focus_scope_attach(ntg_focus_scope* scope);
 
 #endif // NTG_FOCUS_SCOPE_H

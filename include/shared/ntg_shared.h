@@ -14,8 +14,12 @@
 #endif
 
 /* ========================================================================== */
-/* PUBLIC - FORWARD DECLARATIONS */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FORWARD DECLARATIONS */
+/* -------------------------------------------------------------------------- */
 
 struct ntg_event;
 struct nt_event;
@@ -67,6 +71,7 @@ typedef struct ntg_stage_drawing ntg_stage_drawing;
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_focus_manager ntg_focus_manager;
 typedef struct ntg_focus_scope_list ntg_focus_scope_list;
+typedef struct ntg_focus_scope ntg_focus_scope;
 typedef enum ntg_focus_scope_input_mode ntg_focus_scope_input_mode;
 typedef enum ntg_focus_scope_out_click_mode ntg_focus_scope_out_click_mode;
 typedef enum ntg_focus_scope_in_click_mode ntg_focus_scope_in_click_mode;

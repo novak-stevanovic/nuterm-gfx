@@ -78,6 +78,10 @@ ntg_color_block_set_color(
 /* PROTECTED */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 /* Initializes the color-block portion of an object derived from
  * `NTG_TYPE_COLOR_BLOCK`, using the supplied virtual table and concrete type
  * descriptor.

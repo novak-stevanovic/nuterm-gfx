@@ -572,6 +572,10 @@ static void fn_name(ntg_object* object, void* data)                            \
 /* PROTECTED */
 /* ========================================================================== */
 
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
 /* Initializes the base object, copies its virtual table and type descriptor,
  * and creates empty child, anchor, decorator, and drawing state.
  *
@@ -628,6 +632,10 @@ ntg_object_set_clickable(ntg_object* object, bool clickable, bool border_clickab
 /* ========================================================================== */
 /* INTERNAL */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 /* Sets the scene pointer stored by a true root. This low-level helper does not
  * register or unregister the tree. */

@@ -6,8 +6,12 @@
 #include "thirdparty/genc.h"
 
 /* ========================================================================== */
-/* INTERNAL - TYPES AND FUNCTIONS */
+/* INTERNAL */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
 /* PLATFORM */
@@ -30,6 +34,48 @@ struct ntg_platform
     pthread_mutex_t __lock;
     ntg_ptask_list __tasks;
 };
+
+/* ------------------------------------------------------ */
+/* TASK RUNNER */
+/* ------------------------------------------------------ */
+
+#define NTG_TASK_RUNNER_TASKS_MAX 1000
+
+struct ntg_task
+{
+    void (*task_fn)(void* data, ntg_platform* platform);
+    void* data;
+};
+
+GENC_SIMPLE_LIST_GENERATE(ntg_task_list, struct ntg_task);
+
+struct ntg_task_runner
+{
+    ntg_platform* __platform;
+
+    // When a loop is forcefully ended, loop will be NULL. It indicates that
+    // any calls to the task_runner should be ignored.
+    ntg_loop* __loop;
+
+    pthread_t __threads[NTG_LOOP_WORKERS_MAX];
+    size_t __thread_count;
+
+    pthread_cond_t __cond;
+    pthread_mutex_t __lock;
+
+    ntg_task_list __tasks;
+
+    bool __init;
+    size_t __running;
+};
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* PLATFORM */
+/* ------------------------------------------------------ */
 
 /* Initializes the internal deferred-task platform and associates it with
  * `loop`.
@@ -67,36 +113,6 @@ bool _ntg_platform_is_valid(ntg_platform* platform);
 /* ------------------------------------------------------ */
 /* TASK RUNNER */
 /* ------------------------------------------------------ */
-
-#define NTG_TASK_RUNNER_TASKS_MAX 1000
-
-struct ntg_task
-{
-    void (*task_fn)(void* data, ntg_platform* platform);
-    void* data;
-};
-
-GENC_SIMPLE_LIST_GENERATE(ntg_task_list, struct ntg_task);
-
-struct ntg_task_runner
-{
-    ntg_platform* __platform;
-
-    // When a loop is forcefully ended, loop will be NULL. It indicates that
-    // any calls to the task_runner should be ignored.
-    ntg_loop* __loop;
-
-    pthread_t __threads[NTG_LOOP_WORKERS_MAX];
-    size_t __thread_count;
-
-    pthread_cond_t __cond;
-    pthread_mutex_t __lock;
-
-    ntg_task_list __tasks;
-
-    bool __init;
-    size_t __running;
-};
 
 /* Initializes the worker queue and creates `worker_threads` threads. The `loop`
  * pointer is stored but not validated.

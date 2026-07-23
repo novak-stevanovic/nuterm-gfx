@@ -4,8 +4,12 @@
 #include "shared/ntg_shared.h"
 
 /* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 /* Starts logging to `filepath`. If logging is already active, the current file
  * is closed after a final message and replaced by the new one.

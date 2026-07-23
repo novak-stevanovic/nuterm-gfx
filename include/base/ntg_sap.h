@@ -4,8 +4,12 @@
 #include "shared/ntg_shared.h"
 
 /* ========================================================================== */
-/* PUBLIC - FUNCTIONS */
+/* PUBLIC */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* FUNCTIONS */
+/* -------------------------------------------------------------------------- */
 
 /* Distributes up to `space_pool` units among `count` entries without exceeding
  * `caps`. Allocation is round-robin and weighted by `grows`; a `NULL` `grows`
