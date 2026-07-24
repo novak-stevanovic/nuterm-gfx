@@ -49,6 +49,7 @@ struct ntg_focus_scope_vtable
 {
     bool (*handle_key_fn)(ntg_focus_scope* scope, struct nt_key_event key);
 
+    // mouse coordinates are provided in `clicked` object space
     bool (*handle_mouse_fn)(
             ntg_focus_scope* scope,
             struct nt_mouse_event mouse,
@@ -64,6 +65,9 @@ struct ntg_focus_scope
 
     struct ntg_focus_scope_keybinds _keybinds;
     struct ntg_focus_scope_opts _opts;
+
+    ntg_object* _last_focused;
+    bool __valid;
 
     void* data;
 };
@@ -171,6 +175,10 @@ NTG_FOCUS_SCOPE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_focus_scope_attach(ntg_focus_scope* scope);
+void _ntg_focus_scope_attach(ntg_focus_scope* scope, ntg_focus_manager* fm);
+
+void _ntg_focus_scope_set_last_fcoused(ntg_focus_scope* scope, ntg_object* object);
+
+void _ntg_focus_scope_invalidate(ntg_focus_scope* scope);
 
 #endif // NTG_FOCUS_SCOPE_H

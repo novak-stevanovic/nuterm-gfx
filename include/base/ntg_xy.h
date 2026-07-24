@@ -123,13 +123,14 @@ ntg_xy_sub(struct ntg_xy a, struct ntg_xy b)
     };
 }
 
-
 static inline struct ntg_xy
 ntg_xy_from_dxy(struct ntg_dxy xy)
 {
-    return (struct ntg_xy) { .x = (size_t)xy.x, .y = (size_t)xy.y };
+    return (struct ntg_xy) {
+        .x = ((xy.x >= 0) ? xy.x : 0),
+        .y = ((xy.y >= 0) ? xy.y : 0),
+    };
 }
-
 
 static inline bool
 ntg_xy_is_greater(struct ntg_xy a, struct ntg_xy b)

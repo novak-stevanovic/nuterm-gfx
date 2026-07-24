@@ -417,7 +417,7 @@ void _ntg_scene_rm(ntg_scene* scene, ntg_object* object)
 
     ntg_scene_mark_dirty(scene);
 
-    _ntg_focus_manager_invalidate(scene->_fm, object);
+    _ntg_focus_manager_on_scene_object_rm(scene->_fm, object);
 }
 
 void _ntg_scene_register(ntg_scene* scene, ntg_object* object)

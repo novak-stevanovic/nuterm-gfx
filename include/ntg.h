@@ -85,7 +85,7 @@ ntg_enable(
 NTG_API void
 ntg_disable(void);
 
-// adjust mouse pos when focus manager dispatches to focus scope and focus scope dispatches to object
 // add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED
+// test: focus scopes, opts, etc.
 
 #endif // NTG_H

@@ -22,8 +22,8 @@ struct ntg_focus_manager_hooks
             ntg_object* old_focused,
             ntg_object* new_focused);
 
-    void (*on_scope_push_fn)(ntg_focus_manager* fm, const struct ntg_focus_scope* scope);
-    void (*on_scope_pop_fn)(ntg_focus_manager* fm, const struct ntg_focus_scope* scope);
+    void (*on_scope_push_fn)(ntg_focus_manager* fm, ntg_focus_scope* scope);
+    void (*on_scope_pop_fn)(ntg_focus_manager* fm, ntg_focus_scope* scope);
 };
 
 struct ntg_focus_manager
@@ -56,7 +56,7 @@ ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object);
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API ntg_focus_scope*
 ntg_focus_manager_push_scope(
         ntg_focus_manager* fm,
         const ntg_focus_scope* scope,
@@ -119,6 +119,6 @@ void _ntg_focus_manager_deinit(ntg_focus_manager* fm);
 /* ------------------------------------------------------ */
 
 
-void _ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed);
+void _ntg_focus_manager_on_scene_object_rm(ntg_focus_manager* fm, ntg_object* removed);
 
 #endif // NTG_FOCUS_MANAGER_H

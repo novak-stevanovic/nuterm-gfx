@@ -82,6 +82,8 @@ void init_bs(); // border styles
 void init_ap(); // attach policies
 void init_fs(); // focus scopes
 
+const struct ntg_focus_scope_vtable FS1_VTABLE;
+
 bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
 {
     bool consumed = ntg_loop_dispatch_event(loop, event);
@@ -100,9 +102,8 @@ bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
     return false;
 }
 
-bool fs1_on_key_fn(
-        void* _,
-        const struct ntg_focus_key_ctx* ctx,
+bool fs1_handle_key_fn(
+        ntg_focus_scope* scope,
         struct nt_key_event key)
 {
     if(nt_key_event_utf32_check(key, '9', false))
@@ -113,15 +114,15 @@ bool fs1_on_key_fn(
     return false;
 }
 
-bool fs1_on_mouse_fn(
-        void* data,
-        const struct ntg_focus_mouse_ctx* ctx,
-        struct nt_mouse_event mouse)
+bool fs1_handle_mouse_fn(
+        ntg_focus_scope* scope,
+        struct nt_mouse_event mouse,
+        ntg_object* clicked)
 {
-    bool consumed = ntg_focus_scope_dispatch_mouse_stc(data, ctx, mouse);
+    bool consumed = ntg_focus_scope_handle_mouse_fn(scope, mouse, clicked);
     if(consumed) return true;
 
-    ntg_object_remove_from_scene(ctx->clicked);
+    ntg_object_remove_from_scene(clicked);
 
     return true;
 }
@@ -446,25 +447,13 @@ void init_ap()
     ntg_cleanup_batch_add(batch, &sflt_ap, ntg_anchor_policy_deinit_, NULL, &_status);
 }
 
+const struct ntg_focus_scope_vtable FS1_VTABLE = {
+    .handle_key_fn = fs1_handle_key_fn,
+    .handle_mouse_fn = fs1_handle_mouse_fn
+};
+
 void init_fs()
 {
-    fs1 = (struct ntg_focus_scope) {
-        .root = ntg_obj(&south),
-        .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
-        .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
-        .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
-        .on_key_fn = fs1_on_key_fn,
-        .on_mouse_fn = fs1_on_mouse_fn,
-        .data = NULL
-    };
-
-    fs2 = (struct ntg_focus_scope) {
-        .root = NULL,
-        .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
-        .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
-        .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
-        .on_key_fn = ntg_focus_scope_dispatch_key,
-        .on_mouse_fn = ntg_focus_scope_dispatch_mouse_stc,
-        .data = NULL
-    };
+    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&south), NULL, NULL, NULL);
+    ntg_focus_scope_init(&fs2, NULL, NULL, NULL, NULL);
 }

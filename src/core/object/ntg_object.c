@@ -498,11 +498,11 @@ void ntg_object_unanchor(ntg_object* root)
     root->_base = NULL;
     root->_anchor_policy = NULL;
 
-    if(scene)
-        _ntg_scene_rm_object_tree(scene, root);
-
     if(base->hooks.on_anchored_rm_fn)
         base->hooks.on_anchored_rm_fn(base, root);
+
+    if(scene)
+        _ntg_scene_rm_object_tree(scene, root);
 
     if(root->hooks.on_base_rm_fn)
         root->hooks.on_base_rm_fn(root, base);
