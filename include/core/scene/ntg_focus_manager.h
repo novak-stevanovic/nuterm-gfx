@@ -47,12 +47,7 @@ struct ntg_focus_manager
 /* FOCUS */
 /* ------------------------------------------------------ */
 
-/* Requests focus for `object`, or clears focus when `object` is `NULL`. A
- * non-`NULL` object must lie within the active rooted scope. Focus and unfocus
- * hooks are notified, but their return values are ignored.
- *
- * RETURN VALUE:
- * `true` when the scope permits the requested state; otherwise `false`. */
+
 NTG_API bool
 ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object);
 
@@ -60,17 +55,7 @@ ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object);
 /* SCOPES */
 /* ------------------------------------------------------ */
 
-/* Pushes a focus scope unless the current scope blocks pushes. A rooted scope
- * must belong to one of the scene layers; focus is cleared after a successful
- * push.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `fm` or `scope` is `NULL`.
- * - `NTG_ERR_SCENE_EMPTY`: a rooted scope is requested while the scene has no
- *   layers.
- * - `NTG_ERR_SCOPE_NOT_IN_SCENE`: the scope root is not inside any scene layer.
- * - `NTG_ERR_ALLOC_FAIL`: the scope stack cannot grow.
- * - `NTG_ERR_UNEXPECTED`: the scope-stack operation fails unexpectedly. */
+
 NTG_API void
 ntg_focus_manager_push_scope(
         ntg_focus_manager* fm,
@@ -79,18 +64,13 @@ ntg_focus_manager_push_scope(
 
 /* ------------------------------------------------------ */
 
-/* Pops the active scope, restores the previous scope and its last focused
- * object when valid, and always keeps the default scope. A `NULL` manager is
- * ignored. */
+
 NTG_API void
 ntg_focus_manager_pop_scope(ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */
 
-/* Returns the scope at the top of an initialized focus-manager stack.
- *
- * RETURN VALUE:
- * The active scope, or `NULL` when `fm` is `NULL` or the stack is empty. */
+
 NTG_API ntg_focus_scope*
 ntg_focus_manager_get_active_scope(const ntg_focus_manager* fm);
 
@@ -100,21 +80,13 @@ ntg_focus_manager_get_active_scope(const ntg_focus_manager* fm);
 /* EVENT */
 /* ------------------------------------------------------ */
 
-/* Passes a key event to the active scope handler.
- *
- * RETURN VALUE:
- * `true` when the active scope handles the event; otherwise `false`. */
+
 NTG_API bool
 ntg_focus_manager_feed_key(ntg_focus_manager* fm, struct nt_key_event key);
 
 /* ------------------------------------------------------ */
 
-/* Hit-tests the scene, applies active-scope modal and outside-click rules, then
- * passes the mouse event to the active scope handler or eligible outside
- * object.
- *
- * RETURN VALUE:
- * `true` when the event is handled; otherwise `false`. */
+
 NTG_API bool
 ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse);
 
@@ -130,12 +102,7 @@ ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-/* Initializes scene focus state and pushes the built-in default focus scope.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `fm` or `scene` is `NULL`.
- * - `NTG_ERR_ALLOC_FAIL`: scope-stack storage cannot be allocated.
- * - `NTG_ERR_UNEXPECTED`: default-scope creation fails unexpectedly. */
+
 void _ntg_focus_manager_init(
         ntg_focus_manager* fm,
         ntg_scene* scene,
@@ -144,17 +111,14 @@ void _ntg_focus_manager_init(
 
 /* ------------------------------------------------------ */
 
-/* Clears focus, releases the scope stack, and resets the manager. Passing
- * `NULL` has no effect. */
+
 void _ntg_focus_manager_deinit(ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */
 /* INVALIDATE */
 /* ------------------------------------------------------ */
 
-/* Marks each rooted scope invalid when `removed` is equal to or lies below that
- * scope root, then synchronizes the stack and restores or clears focus as
- * required. A `NULL` manager is ignored. */
+
 void _ntg_focus_manager_invalidate(ntg_focus_manager* fm, ntg_object* removed);
 
 #endif // NTG_FOCUS_MANAGER_H

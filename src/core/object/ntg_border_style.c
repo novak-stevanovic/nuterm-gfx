@@ -206,14 +206,14 @@ void ntg_border_style_init_single(
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
-        .top_left     = 0x250C, /* ┌ */
-        .top          = 0x2500, /* ─ */
-        .top_right    = 0x2510, /* ┐ */
-        .right        = 0x2502, /* │ */
-        .bottom_right = 0x2518, /* ┘ */
-        .bottom       = 0x2500, /* ─ */
-        .bottom_left  = 0x2514, /* └ */
-        .left         = 0x2502, /* │ */
+        .top_left     = 0x250C, 
+        .top          = 0x2500, 
+        .top_right    = 0x2510, 
+        .right        = 0x2502, 
+        .bottom_right = 0x2518, 
+        .bottom       = 0x2500, 
+        .bottom_left  = 0x2514, 
+        .left         = 0x2502, 
         .padding      = ' '
     };
 
@@ -245,14 +245,14 @@ void ntg_border_style_init_double(
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
-        .top_left     = 0x2554, /* ╔ */
-        .top          = 0x2550, /* ═ */
-        .top_right    = 0x2557, /* ╗ */
-        .right        = 0x2551, /* ║ */
-        .bottom_right = 0x255D, /* ╝ */
-        .bottom       = 0x2550, /* ═ */
-        .bottom_left  = 0x255A, /* ╚ */
-        .left         = 0x2551, /* ║ */
+        .top_left     = 0x2554, 
+        .top          = 0x2550, 
+        .top_right    = 0x2557, 
+        .right        = 0x2551, 
+        .bottom_right = 0x255D, 
+        .bottom       = 0x2550, 
+        .bottom_left  = 0x255A, 
+        .left         = 0x2551, 
         .padding      = ' '
     };
 
@@ -284,14 +284,14 @@ void ntg_border_style_init_rounded(
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
-        .top_left     = 0x256D, /* ╭ */
-        .top          = 0x2500, /* ─ */
-        .top_right    = 0x256E, /* ╮ */
-        .right        = 0x2502, /* │ */
-        .bottom_right = 0x256F, /* ╯ */
-        .bottom       = 0x2500, /* ─ */
-        .bottom_left  = 0x2570, /* ╰ */
-        .left         = 0x2502, /* │ */
+        .top_left     = 0x256D, 
+        .top          = 0x2500, 
+        .top_right    = 0x256E, 
+        .right        = 0x2502, 
+        .bottom_right = 0x256F, 
+        .bottom       = 0x2500, 
+        .bottom_left  = 0x2570, 
+        .left         = 0x2502, 
         .padding      = ' '
     };
 
@@ -323,14 +323,14 @@ void ntg_border_style_init_heavy(
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
-        .top_left     = 0x250F, /* ┏ */
-        .top          = 0x2501, /* ━ */
-        .top_right    = 0x2513, /* ┓ */
-        .right        = 0x2503, /* ┃ */
-        .bottom_right = 0x251B, /* ┛ */
-        .bottom       = 0x2501, /* ━ */
-        .bottom_left  = 0x2517, /* ┗ */
-        .left         = 0x2503, /* ┃ */
+        .top_left     = 0x250F, 
+        .top          = 0x2501, 
+        .top_right    = 0x2513, 
+        .right        = 0x2503, 
+        .bottom_right = 0x251B, 
+        .bottom       = 0x2501, 
+        .bottom_left  = 0x2517, 
+        .left         = 0x2503, 
         .padding      = ' '
     };
 
@@ -362,14 +362,14 @@ void ntg_border_style_init_dashed(
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
-        .top_left     = 0x250C, /* fallback ┌ */
-        .top          = 0x254C, /* ╌ (U+254C) */
-        .top_right    = 0x2510, /* ┐ */
-        .right        = 0x254E, /* ╎ (U+254E) */
-        .bottom_right = 0x2518, /* ┘ */
-        .bottom       = 0x254C, /* ╌ */
-        .bottom_left  = 0x2514, /* └ */
-        .left         = 0x254E, /* ╎ */
+        .top_left     = 0x250C, 
+        .top          = 0x254C, 
+        .top_right    = 0x2510, 
+        .right        = 0x254E, 
+        .bottom_right = 0x2518, 
+        .bottom       = 0x254C, 
+        .bottom_left  = 0x2514, 
+        .left         = 0x254E, 
         .padding      = ' '
     };
 
@@ -550,7 +550,7 @@ static void border_9x_style_draw_fn(
     left = ntg_vcell_new(data->type, data->gfx, data->symbols.left);
     padding = ntg_vcell_new(data->type, data->gfx, data->symbols.padding);
 
-    // Draw padding
+    
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
@@ -559,7 +559,7 @@ static void border_9x_style_draw_fn(
         }
     }
 
-    // Draw west & east
+    
     if(size.y >= 1)
     {
         if(border_size.w > 0)
@@ -578,7 +578,7 @@ static void border_9x_style_draw_fn(
         }
     }
 
-    // Draw north & south
+    
     if(size.x >= 3)
     {
         if(border_size.n > 0)

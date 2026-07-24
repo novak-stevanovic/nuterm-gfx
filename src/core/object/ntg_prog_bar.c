@@ -99,7 +99,7 @@ void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
     ntg_object_deinit((ntg_object*)prog_bar);
 }
 
-void ntg_prog_bar_deinit_v(void* _prog_bar)
+void ntg_prog_bar_deinit_void(void* _prog_bar)
 {
     ntg_prog_bar_deinit(_prog_bar);
 }

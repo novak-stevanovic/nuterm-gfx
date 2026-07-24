@@ -49,7 +49,7 @@ size_t ntg_sap_cap_round_robin(
     double space_left = space_pool;
     size_t it_grow;
 
-    /* Compute total grow */
+    
     for(i = 0; i < count; i++)
     {
         it_grow = (grows != NULL) ? grows[i] : 1;
@@ -67,7 +67,7 @@ size_t ntg_sap_cap_round_robin(
     double it_grow_factor;
     double it_to_distribute;
     
-    /* Initial distribution */
+    
     bool loop = true;
     while(loop)
     {
@@ -78,9 +78,9 @@ size_t ntg_sap_cap_round_robin(
             it_grow_factor = (1.0 * it_grow) / total_grow;
             if(it_grow_factor == 0) continue;
 
-            /* Test space_left */
+            
             if(is_equal_double(space_left, 0)) break;
-            /* Test caps[i] */
+            
             if(out_size_map[i] + distributed[i] >= caps[i]) continue;
 
             it_to_distribute = _min2_double(space_left, it_grow_factor);

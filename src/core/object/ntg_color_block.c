@@ -44,7 +44,7 @@ void ntg_color_block_deinit(ntg_color_block* color_block)
     ntg_object_deinit((ntg_object*)color_block);
 }
 
-void ntg_color_block_deinit_v(void* _color_block)
+void ntg_color_block_deinit_void(void* _color_block)
 {
     ntg_color_block_deinit(_color_block);
 }

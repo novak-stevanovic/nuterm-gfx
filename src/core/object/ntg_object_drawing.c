@@ -86,7 +86,7 @@ void ntg_object_drawing_place(
     struct ntg_xy dest_size = ntg_object_drawing_get_size(dest_drawing);
     struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
-    if(ntg_xy_size_is_zero(src_size)) return; // success, nothing to draw
+    if(ntg_xy_size_is_zero(src_size)) return; 
 
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
@@ -127,7 +127,7 @@ void ntg_object_drawing_place_(
     struct ntg_xy dest_size = ntg_stage_drawing_get_size(dest_drawing);
     struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
-    if(ntg_xy_size_is_zero(src_size)) return; // success, nothing to draw
+    if(ntg_xy_size_is_zero(src_size)) return; 
 
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 

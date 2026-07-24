@@ -60,11 +60,7 @@ struct ntg_opts
     enum ntg_unsupported_term_mode unsupported_term_mode;
 };
 
-/* Returns the default options used when `ntg_enable()` receives `NULL` opts.
- *
- * RETURN VALUE:
- * Mouse input and the alternate screen are enabled, the cursor is hidden, and
- * unsupported terminals are ignored. */
+
 NTG_API struct ntg_opts
 ntg_opts_def(void);
 
@@ -76,15 +72,7 @@ ntg_opts_def(void);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-/* Initializes the underlying terminal library and applies the requested
- * terminal modes. Passing `NULL` for `opts` uses `ntg_opts_def()`. Passing
- * `NULL` for `log_filepath` disables file logging.
- *
- * ERROR CODES:
- * - `NTG_ERR_LOG_INIT_FAIL`: the log file cannot be opened.
- * - `NTG_ERR_UNSUPP_TERM`: the terminal is unsupported and the selected
- *   unsupported-terminal mode is `NTG_UNSUPPORTED_TERM_STOP`.
- * - `NTG_ERR_UNEXPECTED`: terminal initialization fails unexpectedly. */
+
 NTG_API void
 ntg_enable(
         const struct ntg_opts* opts,
@@ -93,17 +81,11 @@ ntg_enable(
 
 /* ------------------------------------------------------ */
 
-/* Restores terminal modes changed by `ntg_enable()`, shuts down the underlying
- * terminal library, and closes the active log. Calling it before
- * `ntg_enable()` has no effect. */
+
 NTG_API void
 ntg_disable(void);
 
-/* TODO:
- * add vtable to other classes: renderer, stage, scene, focus_scope, etc also add deinit_fn to allow inheritance
- * make handlers for on_key and on_mouse inside vtable, not inside hooks struct(make them return void)
- * adjust mouse pos when focus manager dispatches to focus scope and focus scope dispatches to object
- * remove comments from everywhere because they may be outdated. When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED
-*/
+// adjust mouse pos when focus manager dispatches to focus scope and focus scope dispatches to object
+// add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED
 
 #endif // NTG_H

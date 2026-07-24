@@ -26,16 +26,13 @@ struct ntg_stage_drawing
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-/* Initializes an empty rendered-cell stage drawing.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `drawing` is `NULL`. */
+
 NTG_API void
 ntg_stage_drawing_init(ntg_stage_drawing* drawing, int* out_status);
 
 /* ------------------------------------------------------ */
 
-/* Releases stage-drawing storage. Passing `NULL` has no effect. */
+
 NTG_API void
 ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
 
@@ -43,24 +40,13 @@ ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
 /* SIZE */
 /* ------------------------------------------------------ */
 
-/* Gets stage-drawing dimensions.
- *
- * RETURN VALUE:
- * The drawing size, or `(0, 0)` when `drawing` is `NULL`. */
+
 NTG_API struct ntg_xy
 ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing);
 
 /* ------------------------------------------------------ */
 
-/* Resizes a stage drawing, preserves overlapping rendered cells, and fills
- * newly added cells with the default cell. `size_cap` caps only extra reserved
- * capacity.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `drawing` is `NULL`.
- * - `NTG_ERR_ALLOC_FAIL`: drawing storage cannot be allocated.
- * - `NTG_ERR_OUT_OF_BOUNDS`: a dimension product or byte allocation size would
- *   overflow `size_t`. */
+
 NTG_API void
 ntg_stage_drawing_set_size(
         ntg_stage_drawing* drawing,
@@ -72,11 +58,7 @@ ntg_stage_drawing_set_size(
 /* CELLS */
 /* ------------------------------------------------------ */
 
-/* Reads a rendered cell from a stage drawing.
- *
- * RETURN VALUE:
- * The stored cell, or the default cell when the drawing is `NULL` or the
- * position is out of bounds. */
+
 static inline struct ntg_cell
 ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
 {
@@ -85,8 +67,7 @@ ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
     return ntg_cell_vecgrid_get(&drawing->__data, pos);
 }
 
-/* Writes a rendered cell in a stage drawing. A `NULL` drawing or out-of-bounds
- * position is ignored. */
+
 static inline void
 ntg_stage_drawing_set(ntg_stage_drawing* drawing, struct ntg_cell cell, struct ntg_xy pos)
 {

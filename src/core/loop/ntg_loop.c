@@ -175,7 +175,7 @@ void ntg_loop_deinit(ntg_loop* loop, int* out_status)
     init_default(loop);
 }
 
-void ntg_loop_deinit_v(void* _loop)
+void ntg_loop_deinit_void(void* _loop)
 {
     if(!_loop) return;
 
@@ -235,7 +235,7 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
     else
         owns_renderer = false;
 
-    /* loop */
+    
     unsigned int timeout = 1000 / loop->_framerate;
     struct timespec ts_start, ts_end;
     int64_t process_elapsed_ns;
@@ -284,7 +284,7 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
         if(loop->__on_event_fn)
             loop->__on_event_fn(loop, event);
 
-        // Frame end
+        
         if(event.type == NT_EVENT_TIMEOUT)
         {
             _ntg_platform_execute_all(loop->_platform);
@@ -297,7 +297,7 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
                 {
                     _ntg_stage_compose(loop->_stage, loop->_arena);
                     _ntg_stage_clean(loop->_stage);
-                    // ntg_loop_break(loop, NTG_LOOP_STOP_CLEAN);
+                    
                 }
                 drawing = &(loop->_stage->_drawing);
             }
@@ -316,11 +316,11 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
 
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
-        // Subtract time taken inside the loop iteration
+        
         process_elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
             + (int64_t)(ts_end.tv_nsec - ts_start.tv_nsec);
-        // process_elapsed_ns =
-        //         (process_elapsed_ns > 0) ? process_elapsed_ns : 0;
+        
+        
 
         process_elapsed_ms = process_elapsed_ns / 1000000LL;
         loop->_elapsed += (event_elapsed + process_elapsed_ms);
@@ -413,7 +413,7 @@ void ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage, int* out_status)
         }
         if(stage)
         {
-            // If stage already has loop
+            
             if(stage->_loop)
             {
                 ntg_loop_set_stage(stage->_loop, NULL, NULL);

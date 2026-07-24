@@ -84,7 +84,7 @@ void ntg_main_panel_deinit(ntg_main_panel* panel)
     ntg_object_deinit((ntg_object*)panel);
 }
 
-void ntg_main_panel_deinit_v(void* _panel)
+void ntg_main_panel_deinit_void(void* _panel)
 {
     ntg_main_panel_deinit(_panel);
 }
@@ -318,7 +318,7 @@ void ntg_main_panel_constrain_fn(
             .min_size = west_msr.min_size + center_msr.min_size + east_msr.min_size,
             .nat_size = west_msr.nat_size + center_msr.nat_size + east_msr.nat_size,
             .max_size = west_msr.max_size + center_msr.max_size + east_msr.max_size,
-            .grow = 0 // ?
+            .grow = 0 
         };
 
         if(size >= wce_msr.nat_size)
@@ -350,7 +350,7 @@ void ntg_main_panel_constrain_fn(
 
             ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena, &_status);
         }
-        else // size < wce_msr.min-size
+        else 
         {
             caps[0] = west_msr.min_size;
             caps[1] = center_msr.min_size;
@@ -371,7 +371,7 @@ void ntg_main_panel_constrain_fn(
         center_size =  _sizes[1];
         east_size =  _sizes[2];
     }
-    else // NTG_ORIENT_V
+    else 
     {
         struct ntg_object_measure wce_msr = {
             .min_size = _max3_size(west_msr.min_size, center_msr.min_size, east_msr.min_size),
@@ -384,7 +384,7 @@ void ntg_main_panel_constrain_fn(
             .min_size = wce_msr.min_size + north_msr.min_size + south_msr.min_size,
             .nat_size = wce_msr.nat_size + north_msr.nat_size + south_msr.nat_size,
             .max_size = wce_msr.max_size + north_msr.max_size + south_msr.max_size,
-            .grow = 0 // ?
+            .grow = 0 
         };
 
         if(size >= total_msr.nat_size)
@@ -433,7 +433,7 @@ void ntg_main_panel_constrain_fn(
         if(_status != 0) return;
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
-        if(alloced_size < size) // add more
+        if(alloced_size < size) 
             _sizes[1] = size - _sizes[0] - _sizes[2];
 
         north_size = _sizes[0];

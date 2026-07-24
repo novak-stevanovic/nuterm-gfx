@@ -348,11 +348,11 @@ static struct ntg_xy sidefloat_arrange_fn(
 
     if(!base) return ntg_xy(0, 0);
 
-    // struct ntg_xy base_pos;
-    // base_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(base, ntg_dxy(0, 0)));
+    
+    
 
-    // const ntg_scene* scene = ntg_object_get_scene(ctx->root);
-    // struct ntg_xy scene_size = (scene ? scene->_size : ntg_xy(0, 0));
+    
+    
 
     struct ntg_xy pos = ntg_xy(0, 0);
 

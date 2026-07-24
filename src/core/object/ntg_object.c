@@ -626,9 +626,9 @@ struct ntg_dxy ntg_object_map_to_ancestor(
         it = it->_parent;
     }
 
-    /* If ancestor is non-NULL, it must be reached (must be an ancestor). */
-    // if(ancestor != NULL)
-        // assert(it == ancestor);
+    
+    
+        
 
     return out;
 }
@@ -812,7 +812,7 @@ void ntg_object_deinit(ntg_object* object)
     if(!object) return;
 
     ntg_scene* scene = ntg_object_get_scene_(object);
-    // Root AND is part of scene scene
+    
     if(ntg_object_is_true_root(object) && scene)
     {
         ntg_scene_set_root(scene, NULL, NULL);
@@ -855,7 +855,7 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
     if(child->_parent != NULL)
         ntg_object_detach(child);
 
-    if(child->__scene) // is root of scene
+    if(child->__scene) 
         ntg_scene_set_root(child->__scene, NULL, NULL);
 
     if(child->_base)
@@ -1676,12 +1676,12 @@ void _ntg_object_arrange(ntg_object* object, sarena* arena, int* out_status)
 
     ntg_object* it_child;
     struct ntg_xy it_pos;
-    // struct ntg_xy it_old_pos;
+    
     for(i = 0; i < map.size; i++)
     {
         it_child = map.keys[i];
         it_pos = map.vals[i];
-        // it_old_pos = it_child->_pos;
+        
 
         it_pos = ntg_xy_add(it_pos, dcr_sum);
 
@@ -1699,7 +1699,7 @@ void _ntg_object_draw(ntg_object* object, sarena* arena, int* out_status)
     if(!object || !arena)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    // Set object drawing size
+    
 
     int _status;
     
@@ -1956,9 +1956,9 @@ static void get_dcr_size(
 {
     size_t extra;
 
-    // inner_measure.min_size += pref_size[0] + pref_size[1];
-    // inner_measure.nat_size += pref_size[0] + pref_size[1];
-    // inner_measure.min_size += pref_size[0] + pref_size[1];
+    
+    
+    
 
     if(enable == NTG_OBJECT_DCR_ENABLE_MIN)
         extra = _ssub_size(size, inner_measure.min_size);
@@ -2012,7 +2012,7 @@ static bool vconstrain_border(ntg_object* object, sarena* arena)
 
     if(!hborder_missing && vborder_missing)
     {
-        // ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_HCONSTRAIN);
+        
         object->__skip_hborder = true;
         object->__repeat = true;
         return true;
@@ -2031,12 +2031,12 @@ static bool vconstrain_border(ntg_object* object, sarena* arena)
             object->_border.size.s = 0;
         }
     }
-    else if(hborder_missing && vborder_missing) // both are missing
+    else if(hborder_missing && vborder_missing) 
     {
         object->_border.size.n = 0;
         object->_border.size.s = 0;
     }
-    else // neither
+    else 
     {
         object->_border.size.n = n;
         object->_border.size.s = s;
@@ -2066,7 +2066,7 @@ static bool vconstrain_padding(ntg_object* object, sarena* arena)
 
     if(!hpadding_missing && vpadding_missing)
     {
-        // ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_HCONSTRAIN);
+        
         object->__skip_hpadding = true;
         object->__repeat = true;
         return true;
@@ -2085,12 +2085,12 @@ static bool vconstrain_padding(ntg_object* object, sarena* arena)
             object->_padding.size.s = 0;
         }
     }
-    else if(hpadding_missing && vpadding_missing) // both are missing
+    else if(hpadding_missing && vpadding_missing) 
     {
         object->_padding.size.n = 0;
         object->_padding.size.s = 0;
     }
-    else // neither
+    else 
     {
         object->_padding.size.n = n;
         object->_padding.size.s = s;
@@ -2175,7 +2175,7 @@ static void draw_optimized(ntg_object* object, sarena* arena)
 
     size_t i, j;
 
-    // Draw object content
+    
     if(object->__vtable->draw_fn)
     {
         object->__vtable->draw_fn(object, &content_drawing, object->layout_cache, arena);
@@ -2186,7 +2186,7 @@ static void draw_optimized(ntg_object* object, sarena* arena)
     struct ntg_xy offset = ntg_xy(psize.w, psize.n); 
     struct ntg_xy ji;
 
-    // Update object's actual drawing
+    
 
     for(i = 0; i < object_size.y; i++)
     {
@@ -2227,7 +2227,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
     if(tmp_drawing_init(&object_drawing, object_size, bg, arena) != 0)
         return;
 
-    // Draw border
+    
     if(border_style->draw_fn)
     {
         border_style->draw_fn(border_style->data, object_size, bsize, &object_drawing);
@@ -2235,7 +2235,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
 
     size_t i, j;
 
-    // Constrain border to its size
+    
     for(i = bsize.n; i < (object_size.y - bsize.s); i++)
     {
         for(j = bsize.w; j < (object_size.x - bsize.e); j++)
@@ -2244,7 +2244,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
         }
     }
 
-    // Draw object content
+    
     if(object->__vtable->draw_fn)
     {
         object->__vtable->draw_fn(object, &content_drawing, object->layout_cache, arena);
@@ -2252,7 +2252,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
 
     struct ntg_vcell it_src_cell;
 
-    // Place content drawing onto border drawing
+    
 
     struct ntg_xy offset = ntg_xy(bsize.w + psize.w, bsize.n + psize.n); 
     struct ntg_xy ji;
@@ -2271,7 +2271,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
         }
     }
 
-    // Update object's actual drawing
+    
 
     for(i = 0; i < object_size.y; i++)
     {

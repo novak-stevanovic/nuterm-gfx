@@ -9,9 +9,7 @@
 /* ERROR CODES */
 /* -------------------------------------------------------------------------- */
 
-/* A function that accepts an `out_status` parameter reports success by
- * setting it to 0, and reports failure by setting it to the appropriate
- * error code. */
+
 
 #define NTG_ERROR_BASE 4000
 

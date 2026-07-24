@@ -13,7 +13,8 @@
 
 struct ntg_renderer_vtable
 {
-    void (*render_fn)(ntg_renderer* renderer,
+    void (*render_fn)(
+            ntg_renderer* renderer,
             const ntg_stage_drawing* stage_drawing,
             sarena* arena);
 };
@@ -28,10 +29,11 @@ struct ntg_renderer_hooks
 
 struct ntg_renderer
 {
-    struct ntg_renderer_vtable __vtable;
-    void* data;
+    const struct ntg_renderer_vtable* __vtable;
 
     struct ntg_renderer_hooks hooks;
+
+    void* data;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -39,11 +41,19 @@ struct ntg_renderer
 /* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
+
+NTG_API void
+ntg_renderer_init(ntg_renderer* renderer, int* out_status);
+
+NTG_API void
+ntg_renderer_deinit(ntg_renderer* renderer);
+
+/* ------------------------------------------------------ */
 /* RENDER */
 /* ------------------------------------------------------ */
 
-/* Invokes the renderer virtual function and then the render hook. Only a `NULL`
- * renderer is ignored; `stage_drawing` and `arena` are forwarded unchanged. */
 NTG_API void
 ntg_renderer_render(
         ntg_renderer* renderer,
@@ -58,26 +68,18 @@ ntg_renderer_render(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
-/* Initializes a renderer by copying a virtual table that provides a render
- * callback.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `renderer` is `NULL`.
- * - `NTG_ERR_BAD_VTABLE`: `vtable` or its `render_fn` is `NULL`. */
 NTG_API void
-ntg_renderer_init(
+ntg_renderer_init_override(
         ntg_renderer* renderer,
         const struct ntg_renderer_vtable* vtable,
         int* out_status);
 
-/* ------------------------------------------------------ */
-
-/* Clears a renderer base. Passing `NULL` has no effect. */
 NTG_API void
-ntg_renderer_deinit(ntg_renderer* renderer);
+ntg_renderer_render_fn(
+        ntg_renderer* renderer,
+        const ntg_stage_drawing* stage_drawing,
+        sarena* arena);
+
+NTG_API extern const struct ntg_renderer_vtable NTG_RENDERER_VTABLE_DEFAULT;
 
 #endif // NTG_RENDERER_H

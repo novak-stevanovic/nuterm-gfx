@@ -164,13 +164,13 @@ int main(int argc, char *argv[])
     init_fs();
 
     ntg_scene_init(&scene, NULL, &_status);
-    ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_void, NULL, &_status);
 
     ntg_stage_init(&stage, &_status);
-    ntg_cleanup_batch_add(batch, &stage, ntg_stage_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &stage, ntg_stage_deinit_void, NULL, &_status);
 
     ntg_loop_init(&loop, &stage, NULL, 60, 4, loop_on_event_fn, &_status);
-    ntg_cleanup_batch_add(batch, &loop, ntg_loop_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &loop, ntg_loop_deinit_void, NULL, &_status);
 
     // ATTACH ROOTS, SCENE, STAGE
 
@@ -207,7 +207,7 @@ void init_north()
     north_label_opts.wrap =NTG_TEXT_WRAP_WORD;
 
     ntg_label_init(&north, &north_label_opts, &_status);
-    ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_void, NULL, &_status);
     ntg_label_set_text_unsafe(&north, lorem, 0, &_status);
 
     struct ntg_padding_opts north_pad_opts = ntg_padding_opts_def();
@@ -220,13 +220,13 @@ void init_center()
     int _status;
 
     ntg_box_init(&center, NULL, &_status);
-    ntg_cleanup_batch_add(batch, &center, ntg_box_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &center, ntg_box_deinit_void, NULL, &_status);
 
     ntg_color_block_init(&c_cb1, nt_color_new_auto(200, 0, 40), &_status);
-    ntg_cleanup_batch_add(batch, &c_cb1, ntg_color_block_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &c_cb1, ntg_color_block_deinit_void, NULL, &_status);
 
     ntg_color_block_init(&c_cb2, nt_color_new_auto(40, 0, 200), &_status);
-    ntg_cleanup_batch_add(batch, &c_cb2, ntg_color_block_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &c_cb2, ntg_color_block_deinit_void, NULL, &_status);
 
     struct ntg_layout_opts center_layout_opts = (ntg_obj(&center))->_layout_opts;
     center_layout_opts.min_cont_size.y = 15;
@@ -257,7 +257,7 @@ void init_south()
     south_box_opts.spacing = 1;
 
     ntg_box_init(&south_box, &south_box_opts, &_status);
-    ntg_cleanup_batch_add(batch, &south_box, ntg_box_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &south_box, ntg_box_deinit_void, NULL, &_status);
 
     ntg_object_set_border_opts(ntg_obj(&south_box), &border_opts);
 
@@ -270,7 +270,7 @@ void init_south()
         .style = NT_STYLE_DEFAULT
     };
     ntg_label_init(&sb_label1, &sb_label1_opts, &_status);
-    ntg_cleanup_batch_add(batch, &sb_label1, ntg_label_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &sb_label1, ntg_label_deinit_void, NULL, &_status);
     ntg_label_set_text_unsafe(&sb_label1, "Test1", 0, &_status);
 
     ntg_object_set_padding_opts(ntg_obj(&sb_label1), &pad_opts);
@@ -284,7 +284,7 @@ void init_south()
         .style = NT_STYLE_DEFAULT
     };
     ntg_label_init(&sb_label2, &sb_label2_opts, &_status);
-    ntg_cleanup_batch_add(batch, &sb_label2, ntg_label_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &sb_label2, ntg_label_deinit_void, NULL, &_status);
 
     ntg_label_set_text_unsafe(&sb_label2, "Test2", 0, &_status);
     ntg_object_set_padding_opts(ntg_obj(&sb_label2), &pad_opts);
@@ -300,7 +300,7 @@ void init_south()
     sb_label3_opts.wrap =NTG_TEXT_WRAP_WORD;
 
     ntg_label_init(&sb_label3, &sb_label3_opts, &_status);
-    ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_void, NULL, &_status);
 
     ntg_label_set_text_unsafe(&sb_label3, lorem, 0, &_status);
     
@@ -322,7 +322,7 @@ void init_south()
     ntg_object_set_padding_opts(ntg_obj(&s_label), &pad_opts);
 
     ntg_label_init(&s_label, &s_label_opts, &_status);
-    ntg_cleanup_batch_add(batch, &s_label, ntg_label_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &s_label, ntg_label_deinit_void, NULL, &_status);
 
     ntg_label_set_text_unsafe(&s_label, "ABCD", 0, &_status);
 
@@ -334,7 +334,7 @@ void init_south()
     south_opts.bg = ntg_vcell_bg(nt_color_new_auto(255, 255, 0));
 
     ntg_box_init(&south, &south_opts, &_status);
-    ntg_cleanup_batch_add(batch, &south, ntg_box_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &south, ntg_box_deinit_void, NULL, &_status);
 
     ntg_object_set_border_opts(ntg_obj(&south), &border_opts);
 
@@ -351,7 +351,7 @@ void init_flt_label()
     label_opts.bg_mode =NTG_TEXT_BG_FLT;
 
     ntg_label_init(&flt_label, &label_opts, &_status);
-    ntg_cleanup_batch_add(batch, &flt_label, ntg_label_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &flt_label, ntg_label_deinit_void, NULL, &_status);
 
     ntg_label_set_text_unsafe(&flt_label, "Floating label example", 0, &_status);
 
@@ -398,7 +398,7 @@ void init_sflt_label()
 
     ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat", 0, &_status);
 
-    ntg_cleanup_batch_add(batch, &sflt_label, ntg_label_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &sflt_label, ntg_label_deinit_void, NULL, &_status);
 }
 
 void init_root()
@@ -407,7 +407,7 @@ void init_root()
 
     ntg_main_panel_init(&root, NULL, &_status);
 
-    ntg_cleanup_batch_add(batch, &root, ntg_main_panel_deinit_v, NULL, &_status);
+    ntg_cleanup_batch_add(batch, &root, ntg_main_panel_deinit_void, NULL, &_status);
     ntg_main_panel_set(&root, ntg_obj(&north), NTG_MAIN_PANEL_NORTH, &_status);
     ntg_main_panel_set(&root, ntg_obj(&center), NTG_MAIN_PANEL_CENTER, &_status);
     ntg_main_panel_set(&root, ntg_obj(&south), NTG_MAIN_PANEL_SOUTH, &_status);

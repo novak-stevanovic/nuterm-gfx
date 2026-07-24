@@ -4,7 +4,7 @@
 #include "shared/ntg_shared_internal.h"
 #include <string.h>
 
-/* UGLY CODE - TODO: rewrite sometime */
+
 
 /* ========================================================================== */
 /* STATIC */
@@ -428,7 +428,7 @@ void ntg_text_draw_fn(
 
     struct ntg_text_opts opts = text_obj->_opts;
 
-    /* Init cont matrix */
+    
     struct ntg_xy cont_size =
         (opts.orient == NTG_ORIENT_H) ?
         size :
@@ -444,15 +444,15 @@ void ntg_text_draw_fn(
 
     size_t capped_indent = _min2_size(opts.indent, cont_size.x);
 
-    /* Create cont matrix */
+    
     size_t cont_i = 0, cont_j = 0;
-    /* align variables */
+    
     size_t it_row_align_indent, it_row_effective_indent;
-    /* wrap variables */
+    
     size_t _it_wrows_count;
     struct ntg_str32_view* _it_wrows;
     uint32_t* it_cont;
-    /* justify variables */
+    
     size_t it_wrow_cont_space, it_wrow_extra_space,
             it_wrow_space_count, it_wrow_space_counter;
     for(i = 0; i < row_count; i++)
@@ -480,7 +480,7 @@ void ntg_text_draw_fn(
         {
             if(cont_i >= cont_size.y) break;
 
-            /* Avoid overflow in switch statement */
+            
             _it_wrows[j].len = _min2_size(_it_wrows[j].len, cont_size.x);
 
             if(opts.text_mode == NTG_TEXT_ALIGN)
@@ -491,7 +491,7 @@ void ntg_text_draw_fn(
             else
                 it_row_align_indent = 0;
 
-            /* If true row, add capped indent */
+            
             it_row_effective_indent = (j == 0) ?
                 _max2_size(capped_indent, it_row_align_indent) :
                 it_row_align_indent;
@@ -514,7 +514,7 @@ void ntg_text_draw_fn(
                     }
                     it_wrow_space_counter++;
                 }
-                if(cont_j >= cont_size.x) break; // if indent is too big
+                if(cont_j >= cont_size.x) break; 
 
                 it_cont = &(cont_buff[cont_size.x * cont_i + cont_j]);
                 (*it_cont) = _it_wrows[j].data[k];
@@ -527,7 +527,7 @@ void ntg_text_draw_fn(
         }
     }
 
-    /* Transpose the cont matrix if needed */
+    
     struct ntg_vcell it_cell;
     struct ntg_xy it_xy;
     for(i = 0; i < cont_size.y; i++)
@@ -713,7 +713,7 @@ static struct ntg_object_measure measure_wwrap_fn(
 
             for(j = 0; j < it_word_count; j++)
             {
-                // if first word in row, count indent
+                
                 j_word_adj_indent = (j == 0) ? indent : 0;
 
                 max_word_len = _max2_size(max_word_len,
@@ -871,7 +871,7 @@ static size_t get_wrows_wwrap(
 
             if(i == (word_count - 1))
             {
-                /* process last row */
+                
 
                 it_row_end_word = words[i];
 
@@ -882,12 +882,12 @@ static size_t get_wrows_wwrap(
                 };
 
                 wrow_counter++;
-                // it_row_start_word = words[i];
+                
             }
         }
         else
         {
-            /* next row */
+            
 
             if(it_row_word_count > 0)
             {
@@ -904,12 +904,12 @@ static size_t get_wrows_wwrap(
                 wrow_counter++;
             }
 
-            if(it_word.len < for_size) // can fit in next row
+            if(it_word.len < for_size) 
             {
                 it_row_len = it_word.len;
                 it_row_word_count = 1;
 
-                /* process last row */
+                
                 if(i == (word_count - 1))
                 {
                     it_row_end_word = words[i];
@@ -920,14 +920,14 @@ static size_t get_wrows_wwrap(
                                 &(it_row_start_word.data[0])
                     };
 
-                    // it_row_start_word = words[i];
+                    
 
                     wrow_counter++;
                 }
             }
-            else // can't fit in next row(or can, but just right)
+            else 
             {
-                /* next row, again */
+                
 
                 it_row_end_word = words[i];
 

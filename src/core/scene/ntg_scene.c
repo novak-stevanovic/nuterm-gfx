@@ -61,6 +61,8 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 /* STATIC */
 /* ========================================================================== */
 
+static const struct ntg_scene_vtable VTABLE_EMPTY = {0};
+
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
@@ -68,8 +70,6 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 static void init_default(ntg_scene* scene)
 {
     (*scene) = (ntg_scene) {0};
-    scene->hooks.on_key_fn = ntg_scene_dispatch_key;
-    scene->hooks.on_mouse_fn = ntg_scene_dispatch_mouse;
 }
 
 /* ========================================================================== */
@@ -89,35 +89,11 @@ void ntg_scene_init(
         const struct ntg_focus_scope_keybinds* init_scope_keybinds,
         int* out_status)
 {
-    ntg_init_status(out_status); 
-
-    if(!scene)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
-    init_default(scene);
-
-    scene->_fm = malloc(sizeof(ntg_focus_manager));
-    if(!scene->_fm)
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-    int _status;
-    _ntg_focus_manager_init(scene->_fm, scene, init_scope_keybinds, &_status);
-
-    if(_status != 0)
-    {
-        free(scene->_fm); 
-        scene->_fm = NULL;
-
-        switch(_status)
-        {
-            case NTG_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
-    }
-
+    ntg_scene_init_override(
+            scene,
+            &NTG_SCENE_VTABLE_DEFAULT,
+            init_scope_keybinds,
+            out_status);
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -133,7 +109,7 @@ void ntg_scene_deinit(ntg_scene* scene)
     init_default(scene);
 }
 
-void ntg_scene_deinit_v(void* _scene)
+void ntg_scene_deinit_void(void* _scene)
 {
     if(!_scene) return;
 
@@ -232,20 +208,19 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
 
     ntg_object* old_root = scene->_root;
 
-    // Remove old root
-    if(old_root) // already has root?
+    
+    if(old_root) 
     {
         _ntg_object_root_set_scene(old_root, NULL);
-        /* If an element is focused, _ntg_scene_rm_object_tree() will take care
-         * of it. */
+        
         _ntg_scene_rm_object_tree(scene, old_root);
     }
 
-    // Update new root state
+    
     if(root)
     {
-        // If root has old scene, remove
-        if(ntg_object_is_true_root(root)) // true root
+        
+        if(ntg_object_is_true_root(root)) 
         {
             ntg_scene* scene = ntg_object_get_scene_(root);
             if(scene)
@@ -253,7 +228,7 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
                 ntg_scene_set_root(scene, NULL, NULL);
             }
         }
-        else if(ntg_object_is_root(root)) // layer
+        else if(ntg_object_is_root(root)) 
         {
             ntg_object_unanchor(root);
         }
@@ -278,39 +253,97 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_scene_dispatch_key(ntg_scene* scene, struct nt_key_event key)
-{
-    if(!scene) return false;
-
-    return ntg_focus_manager_feed_key(scene->_fm, key);
-}
-
-bool ntg_scene_dispatch_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
-{
-    if(!scene) return false;
-
-    return ntg_focus_manager_feed_mouse(scene->_fm, mouse);
-}
-
 bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key_event key)
 {
     if(!scene) return false;
 
+    bool handled = false;
+
+    if(scene->__vtable && scene->__vtable->handle_key_fn)
+        handled = scene->__vtable->handle_key_fn(scene, key);
+
     if(scene->hooks.on_key_fn)
-        return scene->hooks.on_key_fn(scene, key);
-    else
-        return false;
+        scene->hooks.on_key_fn(scene, key);
+
+    return handled;
 }
 
 bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 {
     if(!scene) return false;
 
+    bool handled = false;
+
+    if(scene->__vtable && scene->__vtable->handle_mouse_fn)
+        handled = scene->__vtable->handle_mouse_fn(scene, mouse);
+
     if(scene->hooks.on_mouse_fn)
-        return scene->hooks.on_mouse_fn(scene, mouse);
-    else
-        return false;
+        scene->hooks.on_mouse_fn(scene, mouse);
+
+    return handled;
 }
+
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
+
+void ntg_scene_init_override(
+        ntg_scene* scene,
+        const struct ntg_scene_vtable* vtable,
+        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        int* out_status)
+{
+    ntg_init_status(out_status); 
+
+    if(!scene)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    init_default(scene);
+
+    scene->__vtable = (vtable ? vtable : &VTABLE_EMPTY);
+
+    scene->_fm = malloc(sizeof(ntg_focus_manager));
+    if(!scene->_fm)
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+    int _status;
+    _ntg_focus_manager_init(scene->_fm, scene, init_scope_keybinds, &_status);
+
+    if(_status != 0)
+    {
+        free(scene->_fm); 
+        scene->_fm = NULL;
+
+        switch(_status)
+        {
+            case NTG_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+
+            default:
+                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        }
+    }
+
+}
+
+bool ntg_scene_dispatch_key_fn(ntg_scene* scene, struct nt_key_event key)
+{
+    if(!scene) return false;
+
+    return ntg_focus_manager_feed_key(scene->_fm, key);
+}
+
+bool ntg_scene_dispatch_mouse_fn(ntg_scene* scene, struct nt_mouse_event mouse)
+{
+    if(!scene) return false;
+
+    return ntg_focus_manager_feed_mouse(scene->_fm, mouse);
+}
+
+const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT = {
+    .handle_key_fn = ntg_scene_dispatch_key_fn,
+    .handle_mouse_fn = ntg_scene_dispatch_mouse_fn
+};
 
 /* ========================================================================== */
 /* INTERNAL */
@@ -375,7 +408,7 @@ void _ntg_scene_add(ntg_scene* scene, ntg_object* object)
     if(!scene || !object) return;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
-    ntg_scene_mark_dirty(scene); // just in case
+    ntg_scene_mark_dirty(scene); 
 }
 
 void _ntg_scene_rm(ntg_scene* scene, ntg_object* object)
@@ -392,7 +425,7 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
     if(!scene || !object) return;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
-    ntg_scene_mark_dirty(scene); // just in case
+    ntg_scene_mark_dirty(scene); 
 
     if(scene->hooks.on_object_register_fn)
         scene->hooks.on_object_register_fn(scene, object);
@@ -531,9 +564,9 @@ static void collect_layers_by_z_internal(
         size_t* counter,
         size_t cap)
 {
-    // assert(scene);
-    // assert(counter);
-    // assert(it_root);
+    
+    
+    
 
     const ntg_object_vec* children = &(it_root->_children);
     const ntg_object_vec* anchored = &(it_root->_anchored);
@@ -591,7 +624,7 @@ static void collect_layers_by_z_internal(
 static void 
 layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 {
-    // Sentinel node just returns
+    
     if(!root) return;
 
     const struct ntg_anchor_policy* policy = root->_anchor_policy;
@@ -603,12 +636,12 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
         .repeat = false
     };
 
-    // H MEASURE
+    
 
     if(it == 0)
         hmeasure_tree(root, &layout_data);
 
-    // H CONSTRAIN
+    
     
     size_t hsize = 0;
     if(policy->constrain_fn)
@@ -630,11 +663,11 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 
     hconstrain_tree(root, &layout_data);
 
-    // V MEASURE
+    
 
     vmeasure_tree(root, &layout_data);
 
-    // V CONSTRAIN
+    
     
     size_t vsize = 0;
     if(policy->constrain_fn)
@@ -658,7 +691,7 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 
     struct ntg_xy size = ntg_xy(hsize, vsize);
     
-    // FIX UP
+    
 
     fixup_tree(root, &layout_data);
 

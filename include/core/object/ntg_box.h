@@ -22,18 +22,13 @@ struct ntg_box_opts
     struct ntg_vcell bg;
 };
 
-/* Creates horizontal box defaults with start alignment on both axes, zero
- * spacing, and the default full-space background cell.
- *
- * RETURN VALUE:
- * The default `ntg_box_opts` value. */
+
 NTG_API struct ntg_box_opts
 ntg_box_opts_def();
 
 /* ------------------------------------------------------ */
 
-/* Compares two box option values. Pointer identity counts as equal; otherwise a
- * `NULL` value differs from a non-`NULL` value. */
+
 NTG_API bool
 ntg_box_opts_are_eql(
         const struct ntg_box_opts* opts1,
@@ -70,13 +65,7 @@ struct ntg_box
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-/* Initializes a box container and its base object. A `NULL` options pointer
- * selects defaults.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `box` is `NULL`.
- * - `NTG_ERR_ALLOC_FAIL`: base-object or box resources cannot be allocated.
- * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
+
 NTG_API void
 ntg_box_init(
         ntg_box* box,
@@ -85,23 +74,21 @@ ntg_box_init(
 
 /* ------------------------------------------------------ */
 
-/* Detaches all children and releases resources owned by a box. Passing `NULL`
- * has no effect. */
+
 NTG_API void
 ntg_box_deinit(ntg_box* box);
 
 /* ------------------------------------------------------ */
 
-/* Void-pointer adapter for `ntg_box_deinit`, intended for cleanup callbacks. */
+
 NTG_API void
-ntg_box_deinit_v(void* _box);
+ntg_box_deinit_void(void* _box);
 
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
 
-/* Updates box orientation, alignment, spacing, and background. A `NULL` options
- * pointer applies defaults; unchanged options are ignored. */
+
 NTG_API void
 ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
 
@@ -109,32 +96,19 @@ ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
 /* CHILDREN */
 /* ------------------------------------------------------ */
 
-/* Gets the box-owned vector of child object pointers in insertion order.
- *
- * RETURN VALUE:
- * A read-only vector pointer, or `NULL` when `box` is `NULL`. */
+
 NTG_API const struct ntg_object_vec*
 ntg_box_get_children(const ntg_box* box);
 
 /* ------------------------------------------------------ */
 
-/* Appends `child` to the box and attaches it to the box object tree. Existing
- * parent, scene-root, or anchor relationships on the child are removed by the
- * base attachment API.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `box` or `child` is `NULL`.
- * - `NTG_ERR_MAX_CHILDREN`: the object child limit has been reached.
- * - `NTG_ERR_ALLOC_FAIL`: the child vector cannot grow.
- * - `NTG_ERR_UNEXPECTED`: the base attachment API reports another failure,
- *   including `child == box`. */
+
 NTG_API void
 ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status);
 
 /* ------------------------------------------------------ */
 
-/* Removes `child` from the box when it is a direct child. Missing or `NULL`
- * inputs are ignored. */
+
 NTG_API void
 ntg_box_rm_child(ntg_box* box, ntg_object* child);
 
@@ -146,16 +120,7 @@ ntg_box_rm_child(ntg_box* box, ntg_object* child);
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-/* Initializes the box portion of an object derived from `NTG_TYPE_BOX`, using
- * the supplied virtual table and concrete type descriptor. A `NULL` options
- * pointer selects defaults.
- *
- * ERROR CODES:
- * - `NTG_ERR_INVALID_ARG`: `box` or `type` is `NULL`.
- * - `NTG_ERR_INVALID_TYPE`: `type` is not derived from `NTG_TYPE_BOX`.
- * - `NTG_ERR_BAD_VTABLE`: `vtable` or `vtable->deinit_fn` is `NULL`.
- * - `NTG_ERR_ALLOC_FAIL`: base-object or box resources cannot be allocated.
- * - `NTG_ERR_UNEXPECTED`: base-object initialization fails unexpectedly. */
+
 NTG_API void
 ntg_box_init_inherit(
         ntg_box* box,
@@ -165,7 +130,7 @@ ntg_box_init_inherit(
 
 /* ------------------------------------------------------ */
 
-/* Implements box measurement for an object virtual table. */
+
 NTG_API struct ntg_object_measure
 ntg_box_measure_fn(
         const ntg_object* _box,
@@ -175,7 +140,7 @@ ntg_box_measure_fn(
 
 /* ------------------------------------------------------ */
 
-/* Assigns constrained child sizes for the requested axis. */
+
 NTG_API void
 ntg_box_constrain_fn(
         const ntg_object* _box,
@@ -186,7 +151,7 @@ ntg_box_constrain_fn(
 
 /* ------------------------------------------------------ */
 
-/* Assigns child positions inside the box content area. */
+
 NTG_API void
 ntg_box_arrange_fn(
         const ntg_object* _box,
@@ -196,17 +161,17 @@ ntg_box_arrange_fn(
 
 /* ------------------------------------------------------ */
 
-/* Marks the box layout dirty after a base-level child removal. */
+
 NTG_API void
 ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child);
 
 /* ------------------------------------------------------ */
 
-/* Virtual deinitializer that dispatches to `ntg_box_deinit`. */
+
 NTG_API void
 ntg_box_deinit_fn(ntg_object* _box);
 
-/* Default virtual table used by `ntg_box_init`. */
+
 NTG_API extern const struct ntg_object_vtable NTG_BOX_VTABLE;
 
 #endif // NTG_BOX_H

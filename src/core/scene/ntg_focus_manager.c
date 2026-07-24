@@ -69,8 +69,6 @@ void _ntg_focus_manager_init(
             NULL,
             init_scope_keybinds,
             NULL,
-            ntg_focus_scope_handle_key_fn,
-            ntg_focus_scope_handle_mouse_fn,
             &_status);
 
     switch(_status)
@@ -138,25 +136,25 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
     bool focusable = false;
     ntg_object* old_focused = fm->_focused;
 
-    if(object) // FOCUS
+    if(object) 
     {
         const struct ntg_focus_scope* scope = ntg_focus_manager_get_active_scope(fm);
-        // assert(scope);
+        
         if(!scope) return false;
 
         ntg_object* scope_root = scope->_root;
 
-        if(scope_root) // SCOPE HAS ROOT
+        if(scope_root) 
         {
-            if(ntg_object_is_descendant_eq(scope_root, object)) // FOCUSABLE
+            if(ntg_object_is_descendant_eq(scope_root, object)) 
                 focusable = true;
-            else // NOT FOCUSABLE
+            else 
                 focusable = false;
         }
-        else // NO ROOT SO FOCUSABLE
+        else 
             focusable = true;
     }
-    else // UNFOCUS
+    else 
         focusable = true;
         
     if(focusable)
@@ -202,7 +200,7 @@ void ntg_focus_manager_push_scope(
             return;
     }
 
-    if(scope->_root) // make sure that scope root is desc of any layer root
+    if(scope->_root) 
     {
         size_t layer_count = ntg_scene_collect_layers_by_z(fm->_scene, NULL, 0);
         if(layer_count == 0)
@@ -270,7 +268,7 @@ void ntg_focus_manager_pop_scope(ntg_focus_manager* fm)
 {
     if(!fm) return;
 
-    // Keep the default scope inside the list
+    
     if(fm->__scope_stack->size < 2)
         return;
 
@@ -351,7 +349,7 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
     struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
     struct ntg_xy adj_pos = ntg_xy(0, 0);
 
-    // struct xy pos_root_spacentg_object_map_to_descendant(NULL, scope->_root, ntg_dxy_from_xy(pos));
+    
 
     int _status;
 
@@ -367,12 +365,12 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
         return false;
     }
 
-    // Inside scope
+    
     if((!scope->_root) || ntg_object_is_descendant_eq(scope->_root, hit))
     {
         return ntg_focus_scope_feed_mouse(scope, mouse, hit);
     }
-    else // OUTSIDE SCOPE
+    else 
     {
         if(scope->_opts.out_click_mode == NTG_FOCUS_SCOPE_OUT_CLICK_CLR)
             ntg_focus_manager_request_focus(fm, NULL);
@@ -402,7 +400,7 @@ static void scope_stack_pop(ntg_focus_manager* fm)
 
     ntg_focus_scope_list_popf(fm->__scope_stack, NULL);
 
-    // Head is assumed to exist, one node is pushed on init...
+    
     struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
     if(!head)
         return;
@@ -427,7 +425,7 @@ static void scope_stack_sync(ntg_focus_manager* fm)
         head = fm->__scope_stack->head;
     }
 
-    /* The default scope must always remain usable. */
+    
     if(head && !head->data->valid)
         head->data->valid = true;
 }

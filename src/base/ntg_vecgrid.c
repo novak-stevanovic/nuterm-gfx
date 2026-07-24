@@ -69,8 +69,8 @@ void ntg_vecgrid_set_size(
         ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
 
     size_t size_prod = size.x * size.y;
-    // struct ntg_xy old_size = vecgrid->_size;
-    // size_t old_size_prod = old_size.x * old_size.y;
+    
+    
     size_t size_cap_prod = size_cap.x * size_cap.y;
     size_t shrink_threshold = vecgrid->_capacity / modifier;
 

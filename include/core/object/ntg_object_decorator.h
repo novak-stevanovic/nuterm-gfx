@@ -44,35 +44,25 @@ struct ntg_padding_opts
 /* BORDER & PADDING */
 /* ------------------------------------------------------ */
 
-/* Creates default border options with the default style, zero preferred insets,
- * and minimum enable mode.
- *
- * RETURN VALUE:
- * The default `ntg_border_opts` value. */
+
 NTG_API struct ntg_border_opts
 ntg_border_opts_def();
 
 /* ------------------------------------------------------ */
 
-/* Compares two border option values. Pointer identity counts as equal;
- * otherwise a `NULL` value differs from a non-`NULL` value. */
+
 NTG_API bool
 ntg_border_opts_are_eql(
         const struct ntg_border_opts* opts1,
         const struct ntg_border_opts* opts2);
 
-/* Creates default padding options with zero preferred insets and minimum enable
- * mode.
- *
- * RETURN VALUE:
- * The default `ntg_padding_opts` value. */
+
 NTG_API struct ntg_padding_opts
 ntg_padding_opts_def();
 
 /* ------------------------------------------------------ */
 
-/* Compares two padding option values. Pointer identity counts as equal;
- * otherwise a `NULL` value differs from a non-`NULL` value. */
+
 NTG_API bool
 ntg_padding_opts_are_eql(
         const struct ntg_padding_opts* opts1,

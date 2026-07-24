@@ -124,7 +124,7 @@ void ntg_label_deinit(ntg_label* label)
     init_default(label);
 }
 
-void ntg_label_deinit_v(void* _label)
+void ntg_label_deinit_void(void* _label)
 {
     ntg_label_deinit(_label);
 }
