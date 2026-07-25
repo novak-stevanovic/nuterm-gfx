@@ -85,7 +85,9 @@ ntg_enable(
 NTG_API void
 ntg_disable(void);
 
+// TODO:
+
+// ntg_button, ntg_input_field, ntg_list, ntg_table(?)
 // add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED
-// test: focus scopes, opts, etc.
 
 #endif // NTG_H
