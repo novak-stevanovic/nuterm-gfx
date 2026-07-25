@@ -78,7 +78,9 @@ typedef enum ntg_focus_scope_in_click_mode ntg_focus_scope_in_click_mode;
 typedef enum ntg_focus_scope_block_mode ntg_focus_scope_block_mode;
 
 typedef struct ntg_object ntg_object;
-typedef enum ntg_object_mouse_type ntg_object_mouse_type;
+typedef enum ntg_object_click_type ntg_object_mouse_type;
+typedef enum ntg_object_clickable_mode ntg_object_clickable_mode;
+typedef enum ntg_object_focusable_mode ntg_object_focusable_mode;
 typedef enum ntg_object_dcr_enable ntg_object_dcr_enable;
 typedef enum ntg_object_type ntg_object_type;
 typedef struct ntg_object_vec ntg_object_vec;

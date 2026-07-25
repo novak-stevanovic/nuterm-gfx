@@ -122,7 +122,7 @@ bool fs1_handle_mouse_fn(
     bool consumed = ntg_focus_scope_handle_mouse_fn(scope, mouse, clicked);
     if(consumed) return true;
 
-    ntg_object_remove_from_scene(clicked);
+    // ntg_object_remove_from_scene(clicked);
 
     return true;
 }
@@ -379,9 +379,10 @@ void init_sflt_label()
     struct ntg_label_opts opts = ntg_label_opts_def();
     ntg_log_log("ABCD LABEL | ROOT | SOUTH: %p %p %p", &s_label, &root, &south);
 
-    opts.wrap =NTG_TEXT_WRAP_WORD;
-    opts.text_mode = NTG_TEXT_JUSTIFY;
-    opts.sec_align = NTG_ALIGN_1;
+    opts.wrap = NTG_TEXT_WRAP_WORD;
+    opts.text_mode = NTG_TEXT_ALIGN;
+    opts.prim_align = NTG_ALIGN_3;
+    opts.sec_align = NTG_ALIGN_3;
     opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(255, 255, 255),
         .fg = nt_color_new_auto(0, 0, 0),
@@ -400,6 +401,8 @@ void init_sflt_label()
     ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat", 0, &_status);
 
     ntg_cleanup_batch_add(batch, &sflt_label, ntg_label_deinit_void, NULL, &_status);
+
+    ntg_object_set_clickable(ntg_obj(&sflt_label), NTG_OBJECT_CLICKABLE_BORDER);
 }
 
 void init_root()
@@ -454,6 +457,9 @@ const struct ntg_focus_scope_vtable FS1_VTABLE = {
 
 void init_fs()
 {
-    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&south), NULL, NULL, NULL);
+    struct ntg_focus_scope_opts opts = ntg_focus_scope_opts_def();
+    opts.input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS;
+    opts.out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_CLR;
+    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&south), NULL, &opts, NULL);
     ntg_focus_scope_init(&fs2, NULL, NULL, NULL, NULL);
 }

@@ -220,7 +220,7 @@ bool ntg_focus_scope_handle_mouse_fn(
 
             if(clicked->_clickable)
             {
-                return ntg_object_feed_mouse(clicked, mouse, NTG_OBJECT_MOUSE_TRUE);
+                return ntg_object_feed_mouse(clicked, mouse, NTG_OBJECT_CLICK_TRUE);
             }
         }
         else
@@ -237,7 +237,7 @@ bool ntg_focus_scope_handle_mouse_fn(
 
             if(clicked->_clickable)
             {
-                return ntg_object_feed_mouse(clicked, mouse, NTG_OBJECT_MOUSE_TRUE);
+                return ntg_object_feed_mouse(clicked, mouse, NTG_OBJECT_CLICK_TRUE);
             }
             else
                 return false;
@@ -273,7 +273,7 @@ bool ntg_focus_scope_handle_mouse_bubble_fn(
             {
                 if(it_obj->_clickable)
                 {
-                    if(ntg_object_feed_mouse(it_obj, mouse, NTG_OBJECT_MOUSE_TRUE))
+                    if(ntg_object_feed_mouse(it_obj, mouse, NTG_OBJECT_CLICK_TRUE))
                         return true;
                 }
 
@@ -302,7 +302,7 @@ bool ntg_focus_scope_handle_mouse_bubble_fn(
             {
                 if(it_obj->_clickable)
                 {
-                    if(ntg_object_feed_mouse(it_obj, mouse, NTG_OBJECT_MOUSE_TRUE))
+                    if(ntg_object_feed_mouse(it_obj, mouse, NTG_OBJECT_CLICK_TRUE))
                         return true;
                 }
 
@@ -384,27 +384,27 @@ static bool handle_key_keybind(
         if(nt_key_event_are_eql(scope->_keybinds.left_click_key, key))
         {
             struct nt_mouse_event mouse = nt_mouse_event_new_left(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_MOUSE_SCENE);
+            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.right_click_key))
         {
             struct nt_mouse_event mouse = nt_mouse_event_new_right(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_MOUSE_SCENE);
+            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.middle_click_key))
         {
             struct nt_mouse_event mouse = nt_mouse_event_new_middle(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_MOUSE_SCENE);
+            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.scroll_up_key))
         {
             struct nt_mouse_event mouse = nt_mouse_event_new_scrollup(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_MOUSE_SCENE);
+            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.scroll_down_key))
         {
             struct nt_mouse_event mouse = nt_mouse_event_new_scrolldwn(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_MOUSE_SCENE);
+            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.cancel_key))
         {

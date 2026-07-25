@@ -166,7 +166,7 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
             _ntg_object_unfocus(old_focused, object);
 
         if(object)
-            _ntg_object_unfocus(object, old_focused);
+            _ntg_object_focus(object, old_focused);
 
         return true;
     }
@@ -385,7 +385,7 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
             mouse.x = adj_pos.x;
             mouse.y = adj_pos.y;
 
-            return ntg_object_feed_mouse(hit, mouse, NTG_OBJECT_MOUSE_TRUE);
+            return ntg_object_feed_mouse(hit, mouse, NTG_OBJECT_CLICK_TRUE);
         }
         else
             return false;

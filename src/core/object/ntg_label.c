@@ -24,12 +24,13 @@ label_opts_from_text(
     (*label_opts) = (struct ntg_label_opts) {
         .orient = text_opts->orient,
         .gfx = text_opts->gfx,
+        .focused_gfx = text_opts->focused_gfx,
         .text_mode = text_opts->text_mode,
         .bg_mode = text_opts->bg_mode,
         .prim_align = text_opts->prim_align,
         .sec_align = text_opts->sec_align,
         .wrap = text_opts->wrap,
-        .indent = text_opts->wrap,
+        .indent = text_opts->indent
     };
 }
 
@@ -43,12 +44,13 @@ label_opts_extract(
     (*out_text_opts) = (struct ntg_text_opts) {
         .orient = label_opts->orient,
         .gfx = label_opts->gfx,
+        .focused_gfx = label_opts->focused_gfx,
         .text_mode = label_opts->text_mode,
         .bg_mode = label_opts->bg_mode,
         .prim_align = label_opts->prim_align,
         .sec_align = label_opts->sec_align,
         .wrap = label_opts->wrap,
-        .indent = label_opts->wrap,
+        .indent = label_opts->indent
     };
 }
 
@@ -112,6 +114,10 @@ void ntg_label_init(
     {
         ntg_label_set_opts(label, opts);
         ntg_label_set_text_unsafe(label, "", 0, NULL);
+
+        // TODO:
+        ntg_object_set_focusable(ntg_obj(label), NTG_OBJECT_FOCUSABLE);
+        ntg_object_set_clickable(ntg_obj(label), NTG_OBJECT_CLICKABLE);
     }
 }
 
@@ -277,8 +283,7 @@ void ntg_label_focus_fn(ntg_object* _label, ntg_object* old_focused)
     ntg_text_focus_fn(_label, old_focused);
 }
 
-void
-ntg_label_unfocus_fn(ntg_object* _label, ntg_object* new_focused)
+void ntg_label_unfocus_fn(ntg_object* _label, ntg_object* new_focused)
 {
     ntg_text_unfocus_fn(_label, new_focused);
 }

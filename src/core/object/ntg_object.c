@@ -697,22 +697,22 @@ bool ntg_object_feed_mouse(
         ntg_object_mouse_type type)
 {
     if(!object) return false;
-    if(!object->_clickable) return false;
+    if(object->_clickable == NTG_OBJECT_UNCLICKABLE) return false;
 
     bool consumed = false;
 
-    struct ntg_insets border_size = object->_border.size;
+    struct ntg_insets padding_size = object->_padding.size;
     struct ntg_xy cont_size = ntg_object_get_size_cont(object);
     struct ntg_xy size = ntg_object_get_size(object);
 
     if((mouse.x >= size.x) || (mouse.y >= size.y))
         return false;
-    
-    if(!object->_border_clickable &&
-        ((mouse.x < border_size.w) || (mouse.y < border_size.n) ||
-        (mouse.x >= cont_size.x) || (mouse.y >= cont_size.y)))
+
+    if((mouse.x > (padding_size.w + cont_size.x)) ||
+        (mouse.y > (padding_size.n + cont_size.y)))
     {
-        return false;
+        if(!(object->_clickable == NTG_OBJECT_CLICKABLE_BORDER))
+            return false;
     }
 
     if(object->__vtable->process_mouse_fn)
@@ -748,9 +748,8 @@ static void init_default(ntg_object* object)
 
     object->__base_bg = ntg_vcell_def();
 
-    object->_clickable = false;
-    object->_border_clickable = false;
-    object->_focusable = false;
+    object->_clickable = NTG_OBJECT_UNCLICKABLE;
+    object->_focusable = NTG_OBJECT_UNFOCUSABLE;
 }
 
 void ntg_object_init_inherit(
@@ -900,11 +899,11 @@ void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW | NTG_OBJECT_DIRTY_RENDER);
 }
 
-void ntg_object_set_focusable(ntg_object* object, bool focusable)
+void ntg_object_set_focusable(ntg_object* object, ntg_object_focusable_mode mode)
 {
     if(!object) return;
 
-    if(object->_focusable)
+    if(object->_focusable == NTG_OBJECT_FOCUSABLE)
     {
         const ntg_scene* scene = ntg_object_get_scene(object);
         if(scene)
@@ -915,15 +914,14 @@ void ntg_object_set_focusable(ntg_object* object, bool focusable)
         }
     }
 
-    object->_focusable = focusable;
+    object->_focusable = mode;
 }
 
-void ntg_object_set_clickable(ntg_object* object, bool clickable, bool border_clickable)
+void ntg_object_set_clickable(ntg_object* object, ntg_object_clickable_mode mode)
 {
     if(!object) return;
 
-    object->_clickable = clickable;
-    object->_border_clickable = border_clickable;
+    object->_clickable = mode;
 }
 
 /* ========================================================================== */

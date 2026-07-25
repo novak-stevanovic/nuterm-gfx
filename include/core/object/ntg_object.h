@@ -33,10 +33,8 @@ struct ntg_layout_opts
     int z_index;
 };
 
-
 NTG_API struct ntg_layout_opts
 ntg_layout_opts_def();
-
 
 NTG_API bool
 ntg_layout_opts_are_eql(
@@ -113,7 +111,6 @@ struct ntg_object_hooks
             ntg_object* object,
             struct nt_mouse_event mouse,
             ntg_object_mouse_type type);
-
     
     void (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
     
@@ -164,10 +161,23 @@ struct ntg_object_hooks
 
 /* ------------------------------------------------------ */
 
-enum ntg_object_mouse_type
+enum ntg_object_click_type
 {
-    NTG_OBJECT_MOUSE_TRUE,
-    NTG_OBJECT_MOUSE_SCENE
+    NTG_OBJECT_CLICK_TRUE,
+    NTG_OBJECT_CLICK_KEYBIND
+};
+
+enum ntg_object_focusable_mode
+{
+    NTG_OBJECT_UNFOCUSABLE,
+    NTG_OBJECT_FOCUSABLE
+};
+
+enum ntg_object_clickable_mode
+{
+    NTG_OBJECT_UNCLICKABLE,
+    NTG_OBJECT_CLICKABLE,
+    NTG_OBJECT_CLICKABLE_BORDER
 };
 
 /* ------------------------------------------------------ */
@@ -224,7 +234,8 @@ struct ntg_object
 
     struct
     {
-        bool _focusable, _clickable, _border_clickable;
+        ntg_object_clickable_mode _clickable;
+        ntg_object_focusable_mode _focusable;
     };
 
     struct
@@ -509,10 +520,10 @@ NTG_API void
 ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 
 NTG_API void
-ntg_object_set_focusable(ntg_object* object, bool focusable);
+ntg_object_set_focusable(ntg_object* object, ntg_object_focusable_mode mode);
 
 NTG_API void
-ntg_object_set_clickable(ntg_object* object, bool clickable, bool border_clickable);
+ntg_object_set_clickable(ntg_object* object, ntg_object_clickable_mode mode);
 
 /* ========================================================================== */
 /* INTERNAL */
