@@ -180,8 +180,8 @@ int main(int argc, char *argv[])
     ntg_object_anchor(ntg_obj(&root), ntg_obj(&flt_label), &flt_ap, &_status);
     ntg_object_anchor(ntg_obj(&flt_label), ntg_obj(&sflt_label), &sflt_ap, &_status);
 
-    ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
-    ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
+    // ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
+    // ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
 
     ntg_loop_exit_status loop_status = ntg_loop_run(&loop, &_status);
     ntg_log_log("LOOP END | STATUS: %d", loop_status);
@@ -348,8 +348,11 @@ void init_flt_label()
     int _status;
 
     struct ntg_label_opts label_opts = ntg_label_opts_def();
-    label_opts.wrap =NTG_TEXT_WRAP_WORD;
-    label_opts.bg_mode =NTG_TEXT_BG_FLT;
+    label_opts.wrap = NTG_TEXT_WRAP_WORD;
+    label_opts.bg_mode = NTG_TEXT_BG_FLT;
+    label_opts.focused_gfx = (struct nt_gfx) {
+        .fg = nt_color_new_auto(0, 0, 0)
+    };
 
     ntg_label_init(&flt_label, &label_opts, &_status);
     ntg_cleanup_batch_add(batch, &flt_label, ntg_label_deinit_void, NULL, &_status);

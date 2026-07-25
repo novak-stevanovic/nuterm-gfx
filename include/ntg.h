@@ -60,7 +60,6 @@ struct ntg_opts
     enum ntg_unsupported_term_mode unsupported_term_mode;
 };
 
-
 NTG_API struct ntg_opts
 ntg_opts_def(void);
 
@@ -68,19 +67,11 @@ ntg_opts_def(void);
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
-
 NTG_API void
 ntg_enable(
         const struct ntg_opts* opts,
         const char* log_filepath,
         int* out_status);
-
-/* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_disable(void);

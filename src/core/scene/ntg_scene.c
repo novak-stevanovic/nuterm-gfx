@@ -153,15 +153,19 @@ ntg_object* ntg_scene_hit_test(
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
     size_t i = layer_count;
+    struct ntg_dxy it_adj_pos_dxy;
     struct ntg_xy it_adj_pos;
     struct ntg_xy _out_object_pos;
     ntg_object* hit = NULL;
     while(i > 0)
     {
         i--;
-        it_adj_pos = ntg_xy_from_dxy(
-                ntg_object_map_from_scene(layers[i],
-                ntg_dxy_from_xy(pos)));
+        it_adj_pos_dxy = ntg_object_map_from_scene(layers[i], ntg_dxy_from_xy(pos));
+
+        if((it_adj_pos_dxy.x < 0) || (it_adj_pos_dxy.y < 0))
+            continue;
+
+        it_adj_pos = ntg_xy_from_dxy(it_adj_pos_dxy);
 
         hit = ntg_object_hit_test(layers[i], it_adj_pos, &_out_object_pos);
         if(hit) break;

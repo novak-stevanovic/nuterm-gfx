@@ -114,10 +114,6 @@ void ntg_label_init(
     {
         ntg_label_set_opts(label, opts);
         ntg_label_set_text_unsafe(label, "", 0, NULL);
-
-        // TODO:
-        ntg_object_set_focusable(ntg_obj(label), NTG_OBJECT_FOCUSABLE);
-        ntg_object_set_clickable(ntg_obj(label), NTG_OBJECT_CLICKABLE);
     }
 }
 
@@ -252,6 +248,11 @@ void ntg_label_init_inherit(
     }
 
     init_default(label);
+
+
+        // TODO:
+        ntg_object_set_focusable(ntg_obj(label), NTG_OBJECT_FOCUSABLE);
+        ntg_object_set_clickable(ntg_obj(label), NTG_OBJECT_CLICKABLE);
 }
 
 struct ntg_object_measure
