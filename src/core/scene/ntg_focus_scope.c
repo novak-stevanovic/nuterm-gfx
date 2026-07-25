@@ -21,6 +21,29 @@ static bool handle_key_keybind(
 /* ========================================================================== */
 
 /* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+const struct ntg_focus_scope_keybinds NTG_FOCUS_SCOPE_KEYBINDS_EMPTY = {0};
+
+const struct ntg_focus_scope_keybinds NTG_FOCUS_SCOPE_KEYBINDS_DEF = {
+    .cancel_key = (struct nt_key_event) {
+        .type = NT_KEY_EVENT_UTF32,
+        .utf32 = {
+            .alt = false,
+            .cp = 27
+        }
+    },
+    .left_click_key = (struct nt_key_event) {
+        .type = NT_KEY_EVENT_UTF32,
+        .utf32 = {
+            .alt = false,
+            .cp = 13
+        }
+    }
+};
+
+/* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
@@ -92,8 +115,7 @@ void ntg_focus_scope_set_keybinds(
 {
     if(!scope) return;
 
-    struct ntg_focus_scope_keybinds zero_keybinds = {0};
-    scope->_keybinds = (keybinds ? (*keybinds) : zero_keybinds);
+    scope->_keybinds = (keybinds ? (*keybinds) : NTG_FOCUS_SCOPE_KEYBINDS_DEF);
 }
 
 /* ------------------------------------------------------ */

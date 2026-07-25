@@ -132,6 +132,7 @@ ntg_object* ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
         struct ntg_xy* out_object_pos,
+        ntg_object_hit_result* out_hit,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -155,7 +156,8 @@ ntg_object* ntg_scene_hit_test(
     size_t i = layer_count;
     struct ntg_dxy it_adj_pos_dxy;
     struct ntg_xy it_adj_pos;
-    struct ntg_xy _out_object_pos;
+    // struct ntg_xy _out_object_pos;
+    // ntg_object_hit_result _hit;
     ntg_object* hit = NULL;
     while(i > 0)
     {
@@ -167,21 +169,13 @@ ntg_object* ntg_scene_hit_test(
 
         it_adj_pos = ntg_xy_from_dxy(it_adj_pos_dxy);
 
-        hit = ntg_object_hit_test(layers[i], it_adj_pos, &_out_object_pos);
+        hit = ntg_object_hit_test(layers[i], it_adj_pos, out_object_pos, out_hit);
         if(hit) break;
     }
 
     free(layers);
 
-    if(hit)
-    {
-        if(out_object_pos)
-            (*out_object_pos) = _out_object_pos;
-
-        return hit;
-    }
-    else
-        return NULL;
+    return hit;
 }
 
 size_t ntg_scene_collect_layers_by_z(

@@ -356,7 +356,7 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
 
     int _status;
 
-    ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos, &adj_pos, &_status);
+    ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos, &adj_pos, NULL, &_status);
     if(_status != 0)
         return false;
 

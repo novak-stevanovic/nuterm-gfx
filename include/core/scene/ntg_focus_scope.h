@@ -45,6 +45,12 @@ struct ntg_focus_scope_keybinds
             cancel_key;
 };
 
+NTG_API extern const struct ntg_focus_scope_keybinds
+NTG_FOCUS_SCOPE_KEYBINDS_EMPTY;
+
+NTG_API extern const struct ntg_focus_scope_keybinds
+NTG_FOCUS_SCOPE_KEYBINDS_DEF;
+
 struct ntg_focus_scope_vtable
 {
     bool (*handle_key_fn)(ntg_focus_scope* scope, struct nt_key_event key);

@@ -28,6 +28,7 @@
 #include "core/object/ntg_prog_bar.h"
 #include "core/object/ntg_text.h"
 #include "core/object/ntg_label.h"
+#include "core/object/ntg_button.h"
 #include "core/object/ntg_color_block.h"
 #include "core/object/ntg_main_panel.h"
 #include "core/object/ntg_box.h"
@@ -79,6 +80,6 @@ ntg_disable(void);
 // TODO:
 
 // ntg_button, ntg_input_field, ntg_list, ntg_table(?)
-// add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED
+// add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
 
 #endif // NTG_H

@@ -35,6 +35,11 @@ const ntg_type NTG_TYPE_LABEL = {
     ._size = sizeof(ntg_label)
 };
 
+const ntg_type NTG_TYPE_BUTTON = {
+    .__parent = &NTG_TYPE_TEXT,
+    ._size = sizeof(ntg_button)
+};
+
 const ntg_type NTG_TYPE_COLOR_BLOCK = {
     .__parent = &NTG_TYPE_OBJECT,
     ._size = sizeof(ntg_color_block)

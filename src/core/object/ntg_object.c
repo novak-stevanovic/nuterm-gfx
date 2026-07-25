@@ -357,7 +357,8 @@ size_t ntg_object_get_children_by_z(
 ntg_object* ntg_object_hit_test(
         ntg_object* object,
         struct ntg_xy pos,
-        struct ntg_xy* out_local_pos)
+        struct ntg_xy* out_local_pos,
+        ntg_object_hit_result* out_hit)
 {
     if(!object) return NULL;
 
@@ -373,6 +374,7 @@ ntg_object* ntg_object_hit_test(
 
     size_t i;
     struct ntg_xy it_child_local;
+    ntg_object_hit_result _hit;
     struct ntg_dxy it_adj_pos;
     ntg_object* it_child;
     ntg_object* it_hit;
@@ -383,17 +385,41 @@ ntg_object* ntg_object_hit_test(
 
         if(ntg_dxy_is_in_rectagle(it_adj_pos, ntg_dxy(0, 0), ntg_dxy_from_xy(it_child->_size)))
         {
-            it_hit = ntg_object_hit_test(it_child, ntg_xy_from_dxy(it_adj_pos), &it_child_local);
+            it_hit = ntg_object_hit_test(it_child, ntg_xy_from_dxy(it_adj_pos), &it_child_local, &_hit);
 
             if(it_hit && (it_child->_layout_opts.z_index > curr_z))
             {
                 best_obj = it_hit;
                 curr_z = it_child->_layout_opts.z_index;
+                
                 if(out_local_pos) (*out_local_pos) = it_child_local;
+
+                if(out_hit)
+                {
+                    struct ntg_insets padding_size = object->_padding.size;
+                    struct ntg_xy cont_size = ntg_object_get_size_cont(object);
+                    // struct ntg_xy size = ntg_object_get_size(object);
+
+                    // if((pos.x >= size.x) || (pos.y >= size.y))
+                        // return NULL;
+
+                    if((pos.x > (padding_size.w + cont_size.x)) ||
+                        (pos.y > (padding_size.n + cont_size.y)))
+                    {
+                        (*out_hit) = NTG_OBJECT_HIT_BORD;
+                    }
+                    else if((pos.x > cont_size.x) || (pos.y > cont_size.y))
+                    {
+                        (*out_hit) = NTG_OBJECT_HIT_PAD;
+                    }
+                    else
+                    {
+                        (*out_hit) = NTG_OBJECT_HIT_CONT;
+                    }
+                }
             }
         }
     }
-
     return best_obj;
 }
 
@@ -694,25 +720,25 @@ bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key)
 bool ntg_object_feed_mouse(
         ntg_object* object,
         struct nt_mouse_event mouse,
-        ntg_object_mouse_type type)
+        ntg_object_click_type type)
 {
     if(!object) return false;
-    if(object->_clickable == NTG_OBJECT_UNCLICKABLE) return false;
+    if(!object->_clickable) return false;
 
     bool consumed = false;
 
-    struct ntg_insets padding_size = object->_padding.size;
-    struct ntg_xy cont_size = ntg_object_get_size_cont(object);
     struct ntg_xy size = ntg_object_get_size(object);
-
     if((mouse.x >= size.x) || (mouse.y >= size.y))
         return false;
 
-    if((mouse.x > (padding_size.w + cont_size.x)) ||
-        (mouse.y > (padding_size.n + cont_size.y)))
+    struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
+    ntg_object_hit_result _hit_result;
+    ntg_object_hit_test(object, pos, NULL, &_hit_result);
+
+    if(!(object->_clickable == NTG_OBJECT_CLICKABLE_BORDER) &&
+        (_hit_result == NTG_OBJECT_HIT_BORD))
     {
-        if(!(object->_clickable == NTG_OBJECT_CLICKABLE_BORDER))
-            return false;
+        return false;
     }
 
     if(object->__vtable->process_mouse_fn)

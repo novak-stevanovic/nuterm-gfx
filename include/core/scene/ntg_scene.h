@@ -5,8 +5,6 @@
 #include "shared/ntg_shared.h"
 #include "base/ntg_xy.h"
 
-
-
 /* ========================================================================== */
 /* PUBLIC */
 /* ========================================================================== */
@@ -114,12 +112,12 @@ ntg_scene_mark_dirty(ntg_scene* scene);
 /* GENERAL */
 /* ------------------------------------------------------ */
 
-
 NTG_API ntg_object*
 ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
         struct ntg_xy* out_object_pos,
+        ntg_object_hit_result* out_hit,
         int* out_status);
 
 /* ------------------------------------------------------ */

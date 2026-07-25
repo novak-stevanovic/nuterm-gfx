@@ -83,12 +83,11 @@ struct ntg_object_vtable
     bool (*process_mouse_fn)(
             ntg_object* object,
             struct nt_mouse_event mouse,
-            ntg_object_mouse_type type);
+            ntg_object_click_type type);
 
     void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
     void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
 
-    
     void (*cont_resize_fn)(
             ntg_object* object,
             struct ntg_xy old_size,
@@ -110,7 +109,7 @@ struct ntg_object_hooks
     void (*on_mouse_fn)(
             ntg_object* object,
             struct nt_mouse_event mouse,
-            ntg_object_mouse_type type);
+            ntg_object_click_type type);
     
     void (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
     
@@ -176,8 +175,15 @@ enum ntg_object_focusable_mode
 enum ntg_object_clickable_mode
 {
     NTG_OBJECT_UNCLICKABLE,
-    NTG_OBJECT_CLICKABLE,
+    NTG_OBJECT_CLICKABLE_CONT,
     NTG_OBJECT_CLICKABLE_BORDER
+};
+
+enum ntg_object_hit_result
+{
+    NTG_OBJECT_HIT_CONT,
+    NTG_OBJECT_HIT_PAD,
+    NTG_OBJECT_HIT_BORD
 };
 
 /* ------------------------------------------------------ */
@@ -345,12 +351,12 @@ ntg_object_get_children_by_z(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API ntg_object*
 ntg_object_hit_test(
         ntg_object* object,
         struct ntg_xy pos,
-        struct ntg_xy* out_local_pos);
+        struct ntg_xy* out_local_pos,
+        ntg_object_hit_result* out_hit);
 
 /* ------------------------------------------------------ */
 
@@ -434,7 +440,6 @@ ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_dxy
 ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 
@@ -453,7 +458,7 @@ NTG_API bool
 ntg_object_feed_mouse(
         ntg_object* object,
         struct nt_mouse_event mouse,
-        ntg_object_mouse_type type);
+        ntg_object_click_type type);
 
 /* ------------------------------------------------------ */
 /* TRAVERSE HELPERS */
@@ -493,7 +498,6 @@ static void fn_name(ntg_object* object, void* data)                            \
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-
 NTG_API void
 ntg_object_init_inherit(
         ntg_object* object,
@@ -503,18 +507,15 @@ ntg_object_init_inherit(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_object_deinit(ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);

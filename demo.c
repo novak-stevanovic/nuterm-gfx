@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <assert.h>
 
+// TODO: mouse bubbling doesnt work, there is no indicator that it is bubble
+
 const char* lorem = 
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi ullamcorper "
 "a diam ut mollis. Sed sed diam eu erat consequat finibus pulvinar eu eros. "
@@ -61,7 +63,7 @@ ntg_stage stage;
 ntg_scene scene;
 ntg_loop loop;
 
-ntg_label flt_label;
+ntg_button flt_button;
 
 unsigned int sflt_counter = 0;
 
@@ -75,7 +77,7 @@ struct ntg_focus_scope fs1, fs2;
 void init_north();
 void init_center();
 void init_south();
-void init_flt_label();
+void init_flt_button();
 void init_sflt_label();
 void init_root();
 void init_bs(); // border styles
@@ -83,6 +85,30 @@ void init_ap(); // attach policies
 void init_fs(); // focus scopes
 
 const struct ntg_focus_scope_vtable FS1_VTABLE;
+
+// TODO: remove
+struct ntg_object_vtable ROOT_VTABLE;
+
+// TODO: remove
+bool root_button_mouse_fn(
+        ntg_object* object,
+        struct nt_mouse_event mouse,
+        ntg_object_click_type type)
+{
+    ntg_loop_break(&loop, true);
+
+    return true;
+}
+
+bool flt_button_mouse_fn(ntg_object* object, struct nt_mouse_event mouse, ntg_object_click_type type)
+{
+    if(type == NTG_OBJECT_CLICK_KEYBIND)
+    {
+        ntg_loop_break(&loop, true);
+        return true;
+    }
+    else return false;
+}
 
 bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
 {
@@ -119,7 +145,7 @@ bool fs1_handle_mouse_fn(
         struct nt_mouse_event mouse,
         ntg_object* clicked)
 {
-    bool consumed = ntg_focus_scope_handle_mouse_fn(scope, mouse, clicked);
+    bool consumed = ntg_focus_scope_handle_mouse_bubble_fn(scope, mouse, clicked);
     if(consumed) return true;
 
     // ntg_object_remove_from_scene(clicked);
@@ -127,7 +153,7 @@ bool fs1_handle_mouse_fn(
     return true;
 }
 
-void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse, ntg_object_mouse_type type)
+void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse, ntg_object_click_type type)
 {
     ntg_label* label = ntg_lbl(_label);
 
@@ -144,6 +170,9 @@ void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse, ntg_objec
 
 int main(int argc, char *argv[])
 {
+    // TODO: remove
+    ROOT_VTABLE = NTG_MAIN_PANEL_VTABLE;
+    ROOT_VTABLE.process_mouse_fn = root_button_mouse_fn;
     int _status;
     struct ntg_opts opts = ntg_opts_def();
     // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
@@ -159,10 +188,13 @@ int main(int argc, char *argv[])
     init_north();
     init_center();
     init_south();
-    init_flt_label();
+    init_flt_button();
     init_sflt_label();
     init_root();
     init_fs();
+
+    // TODO: remove
+    (ntg_obj(&root))->__vtable = &ROOT_VTABLE;
 
     ntg_scene_init(&scene, NULL, &_status);
     ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_void, NULL, &_status);
@@ -177,11 +209,12 @@ int main(int argc, char *argv[])
 
     ntg_scene_set_root(&scene, ntg_obj(&root), &_status);
     ntg_stage_set_scene(&stage, &scene, &_status);
-    ntg_object_anchor(ntg_obj(&root), ntg_obj(&flt_label), &flt_ap, &_status);
-    ntg_object_anchor(ntg_obj(&flt_label), ntg_obj(&sflt_label), &sflt_ap, &_status);
+    ntg_object_anchor(ntg_obj(&root), ntg_obj(&flt_button), &flt_ap, &_status);
+    ntg_object_anchor(ntg_obj(&flt_button), ntg_obj(&sflt_label), &sflt_ap, &_status);
 
     // ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
-    // ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
+    // TODO: remove
+    ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
 
     ntg_loop_exit_status loop_status = ntg_loop_run(&loop, &_status);
     ntg_log_log("LOOP END | STATUS: %d", loop_status);
@@ -343,36 +376,38 @@ void init_south()
     ntg_box_add_child(&south, ntg_obj(&south_box), &_status);
 }
 
-void init_flt_label()
+void init_flt_button()
 {
     int _status;
 
-    struct ntg_label_opts label_opts = ntg_label_opts_def();
-    label_opts.wrap = NTG_TEXT_WRAP_WORD;
-    label_opts.bg_mode = NTG_TEXT_BG_FLT;
-    label_opts.focused_gfx = (struct nt_gfx) {
-        .fg = nt_color_new_auto(0, 0, 0)
+    struct ntg_button_opts opts = ntg_button_opts_def();
+    opts.wrap = NTG_TEXT_WRAP_WORD;
+    opts.bg_mode = NTG_TEXT_BG_FLT;
+    opts.focused_gfx = (struct nt_gfx) {
+        .fg = nt_color_new_auto(255, 165, 0),
+        .style = nt_style_new_uniform(NT_STYLE_VAL_BOLD),
+        .bg = nt_color_new_auto(255, 255, 255)
     };
 
-    ntg_label_init(&flt_label, &label_opts, &_status);
-    ntg_cleanup_batch_add(batch, &flt_label, ntg_label_deinit_void, NULL, &_status);
+    ntg_button_init(&flt_button, &opts, flt_button_mouse_fn, &_status);
+    ntg_cleanup_batch_add(batch, &flt_button, ntg_button_deinit_void, NULL, &_status);
 
-    ntg_label_set_text_unsafe(&flt_label, "Floating label example", 0, &_status);
+    ntg_button_set_text_unsafe(&flt_button, "Floating button example", 0, &_status);
 
-    struct ntg_layout_opts flt_label_layout_opts = (ntg_obj(&flt_label))->_layout_opts;
-    flt_label_layout_opts.z_index = 1;
-    ntg_object_set_layout_opts(ntg_obj(&flt_label), &flt_label_layout_opts);
+    struct ntg_layout_opts flt_button_layout_opts = (ntg_obj(&flt_button))->_layout_opts;
+    flt_button_layout_opts.z_index = 1;
+    ntg_object_set_layout_opts(ntg_obj(&flt_button), &flt_button_layout_opts);
 
     struct ntg_padding_opts pad_opts = ntg_padding_opts_def();
     pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
-    ntg_object_set_padding_opts(ntg_obj(&flt_label), &pad_opts);
+    ntg_object_set_padding_opts(ntg_obj(&flt_button), &pad_opts);
 
     struct ntg_border_opts border_opts = ntg_border_opts_def();
     border_opts.pref_size = ntg_insets(1, 1, 1, 1);
     border_opts.style = &flt_rounded_border;
-    ntg_object_set_border_opts(ntg_obj(&flt_label), &border_opts);
+    ntg_object_set_border_opts(ntg_obj(&flt_button), &border_opts);
 
-    // ntg_object_set_user_min_size_cont(ntg_obj(&flt_label), ntg_xy(1000, 1000));
+    // ntg_object_set_user_min_size_cont(ntg_obj(&flt_button), ntg_xy(1000, 1000));
 }
 
 void init_sflt_label()
@@ -383,8 +418,8 @@ void init_sflt_label()
     ntg_log_log("ABCD LABEL | ROOT | SOUTH: %p %p %p", &s_label, &root, &south);
 
     opts.wrap = NTG_TEXT_WRAP_WORD;
+    opts.text_mode = NTG_TEXT_JUSTIFY;
     opts.text_mode = NTG_TEXT_ALIGN;
-    opts.prim_align = NTG_ALIGN_3;
     opts.sec_align = NTG_ALIGN_3;
     opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(255, 255, 255),
@@ -463,6 +498,10 @@ void init_fs()
     struct ntg_focus_scope_opts opts = ntg_focus_scope_opts_def();
     opts.input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS;
     opts.out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_CLR;
+
+    // TODO: switch
+    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&root), NULL, &opts, NULL);
     ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&south), NULL, &opts, NULL);
+
     ntg_focus_scope_init(&fs2, NULL, NULL, NULL, NULL);
 }

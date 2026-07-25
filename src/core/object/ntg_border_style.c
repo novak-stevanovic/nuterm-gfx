@@ -284,16 +284,30 @@ void ntg_border_style_init_rounded(
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_border_style_9x_sym sym = {
-        .top_left     = 0x256D, 
+        .top_left     = 0x256d, 
         .top          = 0x2500, 
-        .top_right    = 0x256E, 
+        .top_right    = 0x256e, 
         .right        = 0x2502, 
-        .bottom_right = 0x256F, 
+        .bottom_right = 0x256f, 
         .bottom       = 0x2500, 
         .bottom_left  = 0x2570, 
         .left         = 0x2502, 
         .padding      = ' '
     };
+
+    /*
+    struct ntg_border_style_9x_sym sym = {
+        .top_left     = 'A', 
+        .top          = 'A', 
+        .top_right    = 'A', 
+        .right        = 'A', 
+        .bottom_right = 'A', 
+        .bottom       = 'A', 
+        .bottom_left  = 'A', 
+        .left         = 'A', 
+        .padding      = 'A'
+    };
+    */
 
     int _status;
 
