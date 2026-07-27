@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 {
     int _status;
     struct ntg_opts opts = ntg_opts_def();
-    // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
+    opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
     ntg_enable(&opts, "/home/novak/Desktop/ntg_log.txt", &_status);
     assert(!_status);
 

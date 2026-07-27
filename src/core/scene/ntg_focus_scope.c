@@ -12,9 +12,12 @@
 static const struct ntg_focus_scope_vtable VTABLE_EMPTY = {0};
 
 static void init_default(ntg_focus_scope* scope);
-static bool handle_key_keybind(
+
+static bool handle_key_keybind(ntg_focus_scope* scope, struct nt_key_event key);
+static void handle_mouse_focus(
         ntg_focus_scope* scope,
-        struct nt_key_event key);
+        struct nt_mouse_event mouse,
+        ntg_object* clicked);
 
 /* ========================================================================== */
 /* PUBLIC */
@@ -142,6 +145,8 @@ bool ntg_focus_scope_feed_mouse(
 {
     if(!scope) return false;
 
+    handle_mouse_focus(scope, mouse, clicked);
+
     if(scope->__vtable && scope->__vtable->handle_mouse_fn)
         return scope->__vtable->handle_mouse_fn(scope, mouse, clicked);
     else
@@ -240,27 +245,6 @@ bool ntg_focus_scope_handle_mouse_fn(
         ntg_object* clicked)
 {
     if(!scope) return false;
-
-    ntg_focus_manager* fm = scope->_fm;
-    ntg_object* focused = fm->_focused;
-
-    // Decide new focus
-    if(focused)
-    {
-        if(clicked)
-        {
-            if(focused != clicked && clicked->_focusable)
-                ntg_focus_manager_request_focus(fm, clicked);
-            else
-                ntg_focus_manager_request_focus(fm, NULL);
-        }
-    }
-    else
-    {
-        if(clicked && clicked->_focusable)
-            ntg_focus_manager_request_focus(fm, clicked);
-    }
-
     if(!clicked) return false;
 
     struct ntg_object_mouse event = {
@@ -284,27 +268,6 @@ bool ntg_focus_scope_handle_mouse_bubble_fn(
         ntg_object* clicked)
 {
     if(!scope) return false;
-
-    ntg_focus_manager* fm = scope->_fm;
-    ntg_object* focused = fm->_focused;
-
-    // Decide new focus
-    if(focused)
-    {
-        if(clicked)
-        {
-            if(focused != clicked && clicked->_focusable)
-                ntg_focus_manager_request_focus(fm, clicked);
-            else
-                ntg_focus_manager_request_focus(fm, NULL);
-        }
-    }
-    else
-    {
-        if(clicked && clicked->_focusable)
-            ntg_focus_manager_request_focus(fm, clicked);
-    }
-
     if(!clicked) return false;
 
     struct ntg_object_mouse event = {
@@ -432,4 +395,38 @@ static bool handle_key_keybind(
     }
     else
         return false;
+}
+
+static void handle_mouse_focus(
+        ntg_focus_scope* scope,
+        struct nt_mouse_event mouse,
+        ntg_object* clicked)
+{
+    if(!(mouse.type == NT_MOUSE_EVENT_CLICK_LEFT))
+        return;
+
+    ntg_focus_manager* fm = scope->_fm;
+    ntg_object* focused = fm->_focused;
+
+    // Decide new focus
+    if(focused)
+    {
+        if(clicked)
+        {
+            if(clicked->_focusable)
+            {
+                if(focused != clicked)
+                    ntg_focus_manager_request_focus(fm, clicked);
+            }
+            else
+                ntg_focus_manager_request_focus(fm, NULL);
+        }
+        else
+            ntg_focus_manager_request_focus(fm, NULL);
+    }
+    else
+    {
+        if(clicked && clicked->_focusable)
+            ntg_focus_manager_request_focus(fm, clicked);
+    }
 }
