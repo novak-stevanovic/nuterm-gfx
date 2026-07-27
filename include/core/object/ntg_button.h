@@ -65,10 +65,7 @@ NTG_API void
 ntg_button_init(
         ntg_button* button,
         const struct ntg_button_opts* opts,
-        bool (*process_mouse_fn)(
-                ntg_object* object,
-                struct nt_mouse_event mouse,
-                ntg_object_click_type type),
+        bool (*mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event),
         int* out_status);
 
 NTG_API void
@@ -92,12 +89,9 @@ ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts);
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_button_set_on_click_fn(
+ntg_button_set_click_fn(
         ntg_button* button,
-        bool (*process_mouse_fn)(
-                ntg_object* object,
-                struct nt_mouse_event mouse,
-                ntg_object_click_type type));
+        bool (*mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event));
 
 /* ------------------------------------------------------ */
 /* TEXT */

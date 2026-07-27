@@ -51,7 +51,7 @@ struct ntg_focus_scope_opts ntg_focus_scope_opts_def()
 {
     return (struct ntg_focus_scope_opts) {
         .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
-        .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
+        .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_CLR,
         .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE
     };
 };
@@ -190,7 +190,13 @@ bool ntg_focus_scope_handle_key_fn(
     ntg_object* focused = fm->_focused;
 
     if(focused)
-        return ntg_object_feed_key(focused, key);
+    {
+        struct ntg_object_key event = {
+            .key = key,
+            .target = focused
+        };
+        return ntg_object_feed_key(focused, &event);
+    }
     else
         return false;
 }
@@ -206,10 +212,15 @@ bool ntg_focus_scope_handle_key_bubble_fn(
 
     if(focused)
     {
+        struct ntg_object_key event = {
+            .key = key,
+            .target = focused
+        };
+
         ntg_object* it_obj = focused;
         while(it_obj)
         {
-            if(ntg_object_feed_key(it_obj, key))
+            if(ntg_object_feed_key(it_obj, &event))
                 return true;
 
             if(it_obj == scope->_root)
@@ -233,41 +244,35 @@ bool ntg_focus_scope_handle_mouse_fn(
     ntg_focus_manager* fm = scope->_fm;
     ntg_object* focused = fm->_focused;
 
+    // Decide new focus
     if(focused)
     {
         if(clicked)
         {
-            if(focused != clicked)
+            if(focused != clicked && clicked->_focusable)
                 ntg_focus_manager_request_focus(fm, clicked);
-
-            if(clicked->_clickable)
-            {
-                return ntg_object_feed_mouse(clicked, mouse, NTG_OBJECT_CLICK_TRUE);
-            }
-        }
-        else
-        {
-            ntg_focus_manager_request_focus(fm, NULL);
-            return false;
+            else
+                ntg_focus_manager_request_focus(fm, NULL);
         }
     }
     else
     {
-        if(clicked)
-        {
+        if(clicked && clicked->_focusable)
             ntg_focus_manager_request_focus(fm, clicked);
+    }
 
-            if(clicked->_clickable)
-            {
-                return ntg_object_feed_mouse(clicked, mouse, NTG_OBJECT_CLICK_TRUE);
-            }
-            else
-                return false;
-        }
-        else
-        {
-            return false;
-        }
+    if(!clicked) return false;
+
+    struct ntg_object_mouse event = {
+        .mouse = mouse,
+        .target = clicked,
+        .from_keybind = false
+    };
+
+    // Pass event
+    if(clicked->_clickable)
+    {
+        return ntg_object_feed_mouse(clicked, &event);
     }
 
     return false;
@@ -283,64 +288,48 @@ bool ntg_focus_scope_handle_mouse_bubble_fn(
     ntg_focus_manager* fm = scope->_fm;
     ntg_object* focused = fm->_focused;
 
+    // Decide new focus
     if(focused)
     {
         if(clicked)
         {
-            if(focused != clicked)
+            if(focused != clicked && clicked->_focusable)
                 ntg_focus_manager_request_focus(fm, clicked);
-
-            ntg_object* it_obj = clicked;
-            while(it_obj)
-            {
-                if(it_obj->_clickable)
-                {
-                    if(ntg_object_feed_mouse(it_obj, mouse, NTG_OBJECT_CLICK_TRUE))
-                        return true;
-                }
-
-                if(it_obj == scope->_root)
-                    break;
-
-                it_obj = it_obj->_parent;
-            }
-
-            return false;
-        }
-        else
-        {
-            ntg_focus_manager_request_focus(fm, NULL);
-            return false;
+            else
+                ntg_focus_manager_request_focus(fm, NULL);
         }
     }
     else
     {
-        if(clicked)
-        {
+        if(clicked && clicked->_focusable)
             ntg_focus_manager_request_focus(fm, clicked);
-
-            ntg_object* it_obj = clicked;
-            while(it_obj)
-            {
-                if(it_obj->_clickable)
-                {
-                    if(ntg_object_feed_mouse(it_obj, mouse, NTG_OBJECT_CLICK_TRUE))
-                        return true;
-                }
-
-                if(it_obj == scope->_root)
-                    break;
-
-                it_obj = it_obj->_parent;
-            }
-
-            return false;
-        }
-        else
-        {
-            return false;
-        }
     }
+
+    if(!clicked) return false;
+
+    struct ntg_object_mouse event = {
+        .mouse = mouse,
+        .target = clicked,
+        .from_keybind = false
+    };
+
+    // Bubble event
+    ntg_object* it_obj = clicked;
+    while(it_obj)
+    {
+        if(it_obj->_clickable)
+        {
+            if(ntg_object_feed_mouse(it_obj, &event))
+                return true;
+        }
+
+        if(it_obj == scope->_root)
+            break;
+
+        it_obj = it_obj->_parent;
+    }
+
+    return false;
 }
 
 const struct ntg_focus_scope_vtable NTG_FOCUS_SCOPE_VTABLE_DEFAULT = {
@@ -403,30 +392,35 @@ static bool handle_key_keybind(
 
     if(focused)
     {
+        struct ntg_object_mouse event = {
+            .target = focused,
+            .from_keybind = true
+        };
+
         if(nt_key_event_are_eql(scope->_keybinds.left_click_key, key))
         {
-            struct nt_mouse_event mouse = nt_mouse_event_new_left(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
+            event.mouse = nt_mouse_event_new_left(0, 0);
+            return ntg_object_feed_mouse(focused, &event);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.right_click_key))
         {
-            struct nt_mouse_event mouse = nt_mouse_event_new_right(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
+            event.mouse = nt_mouse_event_new_right(0, 0);
+            return ntg_object_feed_mouse(focused, &event);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.middle_click_key))
         {
-            struct nt_mouse_event mouse = nt_mouse_event_new_middle(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
+            event.mouse = nt_mouse_event_new_middle(0, 0);
+            return ntg_object_feed_mouse(focused, &event);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.scroll_up_key))
         {
-            struct nt_mouse_event mouse = nt_mouse_event_new_scrollup(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
+            event.mouse = nt_mouse_event_new_scrollup(0, 0);
+            return ntg_object_feed_mouse(focused, &event);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.scroll_down_key))
         {
-            struct nt_mouse_event mouse = nt_mouse_event_new_scrolldwn(0, 0);
-            return ntg_object_feed_mouse(focused, mouse, NTG_OBJECT_CLICK_KEYBIND);
+            event.mouse = nt_mouse_event_new_scrolldwn(0, 0);
+            return ntg_object_feed_mouse(focused, &event);
         }
         else if(nt_key_event_are_eql(key, scope->_keybinds.cancel_key))
         {

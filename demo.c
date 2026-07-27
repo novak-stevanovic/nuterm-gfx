@@ -3,8 +3,6 @@
 #include <unistd.h>
 #include <assert.h>
 
-// TODO: mouse bubbling doesnt work, there is no indicator that it is bubble
-
 const char* lorem = 
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi ullamcorper "
 "a diam ut mollis. Sed sed diam eu erat consequat finibus pulvinar eu eros. "
@@ -86,23 +84,9 @@ void init_fs(); // focus scopes
 
 const struct ntg_focus_scope_vtable FS1_VTABLE;
 
-// TODO: remove
-struct ntg_object_vtable ROOT_VTABLE;
-
-// TODO: remove
-bool root_button_mouse_fn(
-        ntg_object* object,
-        struct nt_mouse_event mouse,
-        ntg_object_click_type type)
+bool flt_button_mouse_fn(ntg_object* object, const struct ntg_object_mouse* event)
 {
-    ntg_loop_break(&loop, true);
-
-    return true;
-}
-
-bool flt_button_mouse_fn(ntg_object* object, struct nt_mouse_event mouse, ntg_object_click_type type)
-{
-    if(type == NTG_OBJECT_CLICK_KEYBIND)
+    if(event->from_keybind)
     {
         ntg_loop_break(&loop, true);
         return true;
@@ -128,15 +112,20 @@ bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
     return false;
 }
 
-bool fs1_handle_key_fn(
-        ntg_focus_scope* scope,
-        struct nt_key_event key)
+bool root_handle_key_fn(ntg_object* object, const struct ntg_object_key* event)
 {
-    if(nt_key_event_utf32_check(key, '9', false))
+    if(nt_key_event_utf32_check(event->key, '8', false))
     {
         ntg_loop_break(&loop, true);
         return true;
     }
+    return false;
+}
+
+bool fs1_handle_key_fn(
+        ntg_focus_scope* scope,
+        struct nt_key_event key)
+{
     return false;
 }
 
@@ -153,13 +142,13 @@ bool fs1_handle_mouse_fn(
     return true;
 }
 
-void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse, ntg_object_click_type type)
+void sflt_on_mouse_fn(ntg_object* _label, const struct ntg_object_mouse* event)
 {
     ntg_label* label = ntg_lbl(_label);
 
-    if(mouse.type == NT_MOUSE_EVENT_CLICK_LEFT)
+    if(event->mouse.type == NT_MOUSE_EVENT_CLICK_LEFT)
         sflt_counter++;
-    else if(mouse.type == NT_MOUSE_EVENT_CLICK_RIGHT)
+    else if(event->mouse.type == NT_MOUSE_EVENT_CLICK_RIGHT)
         sflt_counter--;
 
     char buff[50];
@@ -170,9 +159,6 @@ void sflt_on_mouse_fn(ntg_object* _label, struct nt_mouse_event mouse, ntg_objec
 
 int main(int argc, char *argv[])
 {
-    // TODO: remove
-    ROOT_VTABLE = NTG_MAIN_PANEL_VTABLE;
-    ROOT_VTABLE.process_mouse_fn = root_button_mouse_fn;
     int _status;
     struct ntg_opts opts = ntg_opts_def();
     // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
@@ -193,9 +179,6 @@ int main(int argc, char *argv[])
     init_root();
     init_fs();
 
-    // TODO: remove
-    (ntg_obj(&root))->__vtable = &ROOT_VTABLE;
-
     ntg_scene_init(&scene, NULL, &_status);
     ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_void, NULL, &_status);
 
@@ -213,8 +196,7 @@ int main(int argc, char *argv[])
     ntg_object_anchor(ntg_obj(&flt_button), ntg_obj(&sflt_label), &sflt_ap, &_status);
 
     // ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
-    // TODO: remove
-    ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
+    // ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
 
     ntg_loop_exit_status loop_status = ntg_loop_run(&loop, &_status);
     ntg_log_log("LOOP END | STATUS: %d", loop_status);
@@ -443,11 +425,16 @@ void init_sflt_label()
     ntg_object_set_clickable(ntg_obj(&sflt_label), NTG_OBJECT_CLICKABLE_BORDER);
 }
 
+struct ntg_object_vtable root_vtable;
+
 void init_root()
 {
     int _status;
 
-    ntg_main_panel_init(&root, NULL, &_status);
+    root_vtable = NTG_MAIN_PANEL_VTABLE;
+    root_vtable.process_key_fn = root_handle_key_fn;
+
+    ntg_main_panel_init_inherit(&root, &root_vtable, &NTG_TYPE_MAIN_PANEL, &_status);
 
     ntg_cleanup_batch_add(batch, &root, ntg_main_panel_deinit_void, NULL, &_status);
     ntg_main_panel_set(&root, ntg_obj(&north), NTG_MAIN_PANEL_NORTH, &_status);
@@ -489,18 +476,16 @@ void init_ap()
 }
 
 const struct ntg_focus_scope_vtable FS1_VTABLE = {
-    .handle_key_fn = fs1_handle_key_fn,
-    .handle_mouse_fn = fs1_handle_mouse_fn
+    .handle_key_fn = ntg_focus_scope_handle_key_bubble_fn,
+    .handle_mouse_fn = ntg_focus_scope_handle_mouse_bubble_fn
 };
 
 void init_fs()
 {
     struct ntg_focus_scope_opts opts = ntg_focus_scope_opts_def();
-    opts.input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS;
+    opts.input_mode = NTG_FOCUS_SCOPE_INPUT_MODAL;
     opts.out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_CLR;
 
-    // TODO: switch
-    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&root), NULL, &opts, NULL);
     ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&south), NULL, &opts, NULL);
 
     ntg_focus_scope_init(&fs2, NULL, NULL, NULL, NULL);

@@ -102,10 +102,7 @@ bool ntg_button_opts_are_eql(
 void ntg_button_init(
         ntg_button* button,
         const struct ntg_button_opts* opts,
-        bool (*process_mouse_fn)(
-                ntg_object* object,
-                struct nt_mouse_event mouse,
-                ntg_object_click_type type),
+        bool (*mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event),
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -113,7 +110,7 @@ void ntg_button_init(
     int _status;
 
     struct ntg_object_vtable vtable = NTG_BUTTON_VTABLE;
-    vtable.process_mouse_fn = process_mouse_fn;
+    vtable.process_mouse_fn = mouse_fn;
 
     ntg_button_init_inherit(button, &vtable, &NTG_TYPE_BUTTON, &_status);
     if(!_status)
@@ -182,16 +179,13 @@ void ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
 /* CLICK HANDLER */
 /* ------------------------------------------------------ */
 
-void ntg_button_set_on_click_fn(
+void ntg_button_set_click_fn(
         ntg_button* button,
-        bool (*process_mouse_fn)(
-                ntg_object* object,
-                struct nt_mouse_event mouse,
-                ntg_object_click_type type))
+        bool (*mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event))
 {
     if(!button) return; 
 
-    button->__vtable.process_mouse_fn = process_mouse_fn;
+    button->__vtable.process_mouse_fn = mouse_fn;
 }
 
 /* ------------------------------------------------------ */

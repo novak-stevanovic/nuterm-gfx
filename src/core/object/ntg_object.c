@@ -652,10 +652,6 @@ struct ntg_dxy ntg_object_map_to_ancestor(
         it = it->_parent;
     }
 
-    
-    
-        
-
     return out;
 }
 
@@ -698,40 +694,39 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point)
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_object_feed_key(ntg_object* object, struct nt_key_event key)
+bool ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event)
 {
     if(!object) return false;
+    if(!event) return false;
+    if(!event->target) return false;
 
     bool consumed = false;
 
     if(object->__vtable->process_key_fn)
     {
-        consumed = consumed || object->__vtable->process_key_fn(object, key);
+        consumed = object->__vtable->process_key_fn(object, event);
     }
 
     if(object->hooks.on_key_fn)
     {
-        object->hooks.on_key_fn(object, key);
+        object->hooks.on_key_fn(object, event);
     }
 
     return consumed;
 }
 
-bool ntg_object_feed_mouse(
-        ntg_object* object,
-        struct nt_mouse_event mouse,
-        ntg_object_click_type type)
+bool ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* event)
 {
     if(!object) return false;
     if(!object->_clickable) return false;
-
-    bool consumed = false;
+    if(!event) return false;
+    if(!event->target) return false;
 
     struct ntg_xy size = ntg_object_get_size(object);
-    if((mouse.x >= size.x) || (mouse.y >= size.y))
+    if((event->mouse.x >= size.x) || (event->mouse.y >= size.y))
         return false;
 
-    struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
+    struct ntg_xy pos = ntg_xy(event->mouse.x, event->mouse.y);
     ntg_object_hit_result _hit_result;
     ntg_object_hit_test(object, pos, NULL, &_hit_result);
 
@@ -741,14 +736,16 @@ bool ntg_object_feed_mouse(
         return false;
     }
 
+    bool consumed = false;
+
     if(object->__vtable->process_mouse_fn)
     {
-        consumed = consumed || object->__vtable->process_mouse_fn(object, mouse, type);
+        consumed = object->__vtable->process_mouse_fn(object, event);
     }
 
     if(object->hooks.on_mouse_fn)
     {
-        object->hooks.on_mouse_fn(object, mouse, type);
+        object->hooks.on_mouse_fn(object, event);
     }
 
     return consumed;

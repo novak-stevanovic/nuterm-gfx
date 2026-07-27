@@ -385,7 +385,16 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
             mouse.x = adj_pos.x;
             mouse.y = adj_pos.y;
 
-            return ntg_object_feed_mouse(hit, mouse, NTG_OBJECT_CLICK_TRUE);
+            struct ntg_object_mouse event = {
+                .mouse = mouse,
+                .target = hit,
+                .from_keybind = false
+            };
+            
+            if(hit->_clickable)
+                return ntg_object_feed_mouse(hit, &event);
+            else
+                return false;
         }
         else
             return false;

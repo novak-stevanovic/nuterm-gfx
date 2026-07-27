@@ -1,6 +1,7 @@
 #ifndef NTG_OBJECT_H
 #define NTG_OBJECT_H
 
+#include "nt_event.h"
 #include "shared/ntg_shared.h"
 #include "core/object/ntg_object_drawing.h"
 #include "thirdparty/genc.h"
@@ -43,6 +44,21 @@ ntg_layout_opts_are_eql(
 
 /* ------------------------------------------------------ */
 
+struct ntg_object_key
+{
+    struct nt_key_event key;
+    ntg_object* target;
+};
+
+struct ntg_object_mouse
+{
+    struct nt_mouse_event mouse;
+    ntg_object* target;
+    bool from_keybind;
+};
+
+/* ------------------------------------------------------ */
+
 struct ntg_object_vtable
 {
     struct ntg_object_measure (*measure_fn)(
@@ -79,11 +95,8 @@ struct ntg_object_vtable
 
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
 
-    bool (*process_key_fn)(ntg_object* object, struct nt_key_event key);
-    bool (*process_mouse_fn)(
-            ntg_object* object,
-            struct nt_mouse_event mouse,
-            ntg_object_click_type type);
+    bool (*process_key_fn)(ntg_object* object, const struct ntg_object_key* event);
+    bool (*process_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
 
     void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
     void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
@@ -103,13 +116,8 @@ struct ntg_object_vtable
 
 struct ntg_object_hooks
 {
-    
-    void (*on_key_fn)(ntg_object* object, struct nt_key_event key);
-    
-    void (*on_mouse_fn)(
-            ntg_object* object,
-            struct nt_mouse_event mouse,
-            ntg_object_click_type type);
+    void (*on_key_fn)(ntg_object* object, const struct ntg_object_key* event);
+    void (*on_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
     
     void (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
     
@@ -159,12 +167,6 @@ struct ntg_object_hooks
 };
 
 /* ------------------------------------------------------ */
-
-enum ntg_object_click_type
-{
-    NTG_OBJECT_CLICK_TRUE,
-    NTG_OBJECT_CLICK_KEYBIND
-};
 
 enum ntg_object_focusable_mode
 {
@@ -449,16 +451,13 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 
 
 NTG_API bool
-ntg_object_feed_key(ntg_object* object, struct nt_key_event key);
+ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event);
 
 /* ------------------------------------------------------ */
 
 
 NTG_API bool
-ntg_object_feed_mouse(
-        ntg_object* object,
-        struct nt_mouse_event mouse,
-        ntg_object_click_type type);
+ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* event);
 
 /* ------------------------------------------------------ */
 /* TRAVERSE HELPERS */

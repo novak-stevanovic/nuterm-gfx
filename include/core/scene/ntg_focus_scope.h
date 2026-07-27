@@ -20,8 +20,8 @@ enum ntg_focus_scope_input_mode
 
 enum ntg_focus_scope_out_click_mode
 {
-    NTG_FOCUS_SCOPE_OUT_CLICK_KEEP,
-    NTG_FOCUS_SCOPE_OUT_CLICK_CLR
+    NTG_FOCUS_SCOPE_OUT_CLICK_CLR,
+    NTG_FOCUS_SCOPE_OUT_CLICK_KEEP
 };
 
 enum ntg_focus_scope_block_mode
