@@ -21,13 +21,12 @@ struct ntg_label_opts
     ntg_align sec_align;
     ntg_text_bg_mode bg_mode;
     ntg_text_wrap wrap;
+    ntg_text_scroll_mode scroll;
     size_t indent;
 };
 
-
 NTG_API struct ntg_label_opts
 ntg_label_opts_def();
-
 
 NTG_API bool
 ntg_label_opts_are_eql(
@@ -119,7 +118,8 @@ ntg_label_set_text(
 NTG_API void
 ntg_label_init_inherit(
         ntg_label* label,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_object_vtable* object_vtable,
+        const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
         int* out_status);
 
@@ -146,6 +146,15 @@ ntg_label_focus_fn(ntg_object* _label, ntg_object* old_focused);
 NTG_API void
 ntg_label_unfocus_fn(ntg_object* _label, ntg_object* new_focused);
 
-NTG_API extern const struct ntg_object_vtable NTG_LABEL_VTABLE;
+NTG_API extern const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT;
+
+NTG_API void
+ntg_label_post_draw_fn(
+        const ntg_text* _label,
+        ntg_object_tmp_drawing* out_drawing,
+        void* layout_ch,
+        sarena* arena);
+
+NTG_API extern const struct ntg_text_vtable NTG_LABEL_VTABLE_TEXT;
 
 #endif // NTG_LABEL_H

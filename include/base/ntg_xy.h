@@ -305,7 +305,7 @@ ntg_dxy_get(struct ntg_dxy xy, ntg_orient orient)
 }
 
 
-static inline bool ntg_xy_is_in_rectagle(
+static inline bool ntg_xy_is_in_rectangle(
         struct ntg_xy pos,
         struct ntg_xy rec_start,
         struct ntg_xy rec_end)
@@ -325,7 +325,7 @@ ntg_xy_from_oxy(struct ntg_oxy orient_xy)
 }
 
 
-static inline bool ntg_dxy_is_in_rectagle(
+static inline bool ntg_dxy_is_in_rectangle(
         struct ntg_dxy pos,
         struct ntg_dxy rec_start,
         struct ntg_dxy rec_end)

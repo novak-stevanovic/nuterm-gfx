@@ -30,6 +30,7 @@ label_opts_from_text(
         .prim_align = text_opts->prim_align,
         .sec_align = text_opts->sec_align,
         .wrap = text_opts->wrap,
+        .scroll = text_opts->scroll,
         .indent = text_opts->indent
     };
 }
@@ -50,6 +51,7 @@ label_opts_extract(
         .prim_align = label_opts->prim_align,
         .sec_align = label_opts->sec_align,
         .wrap = label_opts->wrap,
+        .scroll = label_opts->scroll,
         .indent = label_opts->indent
     };
 }
@@ -109,7 +111,12 @@ void ntg_label_init(
 
     int _status;
 
-    ntg_label_init_inherit(label, &NTG_LABEL_VTABLE, &NTG_TYPE_LABEL, &_status);
+    ntg_label_init_inherit(
+            label,
+            &NTG_LABEL_VTABLE_OBJECT,
+            &NTG_LABEL_VTABLE_TEXT,
+            &NTG_TYPE_LABEL,
+            &_status);
     if(!_status)
     {
         ntg_label_set_opts(label, opts);
@@ -223,7 +230,8 @@ void ntg_label_set_text(
 
 void ntg_label_init_inherit(
         ntg_label* label,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_object_vtable* object_vtable,
+        const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
         int* out_status)
 {
@@ -237,7 +245,7 @@ void ntg_label_init_inherit(
     if(!ntg_type_instance_of(type, &NTG_TYPE_LABEL))
         ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
 
-    ntg_text_init_inherit(ntg_txt(label), vtable, type, &_status);
+    ntg_text_init_inherit(ntg_txt(label), object_vtable, text_vtable, type, &_status);
     switch(_status)
     {
         case 0:
@@ -290,10 +298,20 @@ void ntg_label_unfocus_fn(ntg_object* _label, ntg_object* new_focused)
     ntg_text_unfocus_fn(_label, new_focused);
 }
 
-const struct ntg_object_vtable NTG_LABEL_VTABLE = {
+const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT = {
     .measure_fn = ntg_label_measure_fn,
     .draw_fn = ntg_label_draw_fn,
     .deinit_fn = ntg_label_deinit_fn,
     .focus_fn = ntg_label_focus_fn,
     .unfocus_fn = ntg_label_unfocus_fn
+};
+
+void ntg_label_post_draw_fn(
+        const ntg_text* _label,
+        ntg_object_tmp_drawing* out_drawing,
+        void* layout_ch,
+        sarena* arena) {}
+
+const struct ntg_text_vtable NTG_LABEL_VTABLE_TEXT = {
+    .post_draw_fn = ntg_label_post_draw_fn,
 };

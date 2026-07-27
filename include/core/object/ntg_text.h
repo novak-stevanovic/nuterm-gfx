@@ -22,6 +22,12 @@ enum ntg_text_wrap
     NTG_TEXT_WRAP_WORD
 };
 
+enum ntg_text_scroll_mode
+{
+    NTG_TEXT_SCROLL_OFF,
+    NTG_TEXT_SCROLL_ON
+};
+
 enum ntg_text_mode
 {
     NTG_TEXT_ALIGN,
@@ -51,13 +57,12 @@ struct ntg_text_opts
     ntg_align sec_align;
     ntg_text_bg_mode bg_mode;
     ntg_text_wrap wrap;
+    ntg_text_scroll_mode scroll;
     size_t indent;
 };
 
-
 NTG_API struct ntg_text_opts
 ntg_text_opts_def();
-
 
 NTG_API bool
 ntg_text_opts_are_eql(
@@ -66,9 +71,22 @@ ntg_text_opts_are_eql(
 
 /* ------------------------------------------------------ */
 
+struct ntg_text_vtable
+{
+    void (*post_draw_fn)(
+        const ntg_text* text,
+        ntg_object_tmp_drawing* out_drawing,
+        void* layout_ch,
+        sarena* arena);
+};
+
+/* ------------------------------------------------------ */
+
 struct ntg_text
 {
     ntg_object __base;
+
+    const struct ntg_text_vtable* __vtable;
 
     struct ntg_text_opts _opts;
     
@@ -79,6 +97,11 @@ struct ntg_text
         char* data;
         size_t len;
     } _text;
+
+    struct
+    {
+        struct ntg_xy _scroll;
+    };
 
     struct
     {
@@ -93,10 +116,9 @@ struct ntg_text
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------ */
+/* ------------------------------------------------------ */ 
 /* OPTS */
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts);
@@ -115,7 +137,6 @@ ntg_text_set_text_unsafe(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_text_set_text(
         ntg_text* text_obj,
@@ -127,13 +148,13 @@ ntg_text_set_text(
 NTG_API void
 ntg_text_init_inherit(
         ntg_text* text_obj,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_object_vtable* object_vtable,
+        const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
         int* out_status);
 
 NTG_API void
 ntg_text_deinit(ntg_text* text_obj);
-
 
 NTG_API struct ntg_object_measure
 ntg_text_measure_fn(
@@ -142,14 +163,12 @@ ntg_text_measure_fn(
         void* _layout_cache,
         sarena* arena);
 
-
 NTG_API void
 ntg_text_draw_fn(
         const ntg_object* _text_obj,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
         sarena* arena);
-
 
 NTG_API void
 ntg_text_deinit_fn(ntg_object* _text_obj);
@@ -159,7 +178,6 @@ ntg_text_focus_fn(ntg_object* object, ntg_object* old_focused);
 
 NTG_API void
 ntg_text_unfocus_fn(ntg_object* object, ntg_object* new_focused);
-
 
 NTG_API extern const struct ntg_object_vtable NTG_TEXT_VTABLE;
 

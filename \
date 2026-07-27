@@ -4,9 +4,6 @@
 #include "shared/ntg_shared_internal.h"
 #include <string.h>
 
-// TODO:
-#include <assert.h>
-
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
@@ -97,7 +94,6 @@ struct ntg_text_opts ntg_text_opts_def()
         .prim_align = NTG_ALIGN_1,
         .sec_align = NTG_ALIGN_1,
         .wrap = NTG_TEXT_WRAP_NONE,
-        .scroll = NTG_TEXT_SCROLL_OFF,
         .indent = 0,
     };
 }
@@ -120,7 +116,6 @@ bool ntg_text_opts_are_eql(
            (opts1->sec_align == opts2->sec_align) &&
            (opts1->bg_mode == opts2->bg_mode) &&
            (opts1->wrap == opts2->wrap) &&
-           (opts1->scroll == opts2->scroll) &&
            (opts1->indent == opts2->indent));
 }
 
@@ -432,32 +427,25 @@ void ntg_text_draw_fn(
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
     if((text_obj->_text.len == 0) || (text_obj->_text.data == NULL)) return;
 
+    struct ntg_xy size = ntg_object_get_size_cont(_text_obj);
+    if(ntg_xy_is_zero(ntg_xy_size(size))) return;
+
     struct ntg_text_opts opts = text_obj->_opts;
 
-    struct ntg_xy cont_size = ntg_object_get_size_cont(_text_obj);
-    struct ntg_xy nat_size = ntg_object_get_nat_size(_text_obj);
-    struct ntg_xy full_size = (opts.scroll ? nat_size : cont_size);
-
-    if(ntg_xy_is_zero(ntg_xy_size(cont_size))) return;
-    if(ntg_xy_is_zero(ntg_xy_size(full_size))) return;
-
-    // struct ntg_xy scroll = text_obj->_scroll;
-    // if(scroll.x + 
-
-    struct ntg_xy full_size_adj =
+    struct ntg_xy cont_size =
         (opts.orient == NTG_ORIENT_H) ?
-        full_size :
-        ntg_xy_transpose(full_size);
+        size :
+        ntg_xy_transpose(size);
 
     size_t i, j, k;
-    size_t full_size_prod = full_size_adj.x * full_size_adj.y;
-    uint32_t* full_buff = sarena_malloc(arena, sizeof(uint32_t) * full_size_prod);
-    for(i = 0; i < full_size_prod; i++) full_buff[i] = ' ';
+    size_t cont_size_prod = cont_size.x * cont_size.y;
+    uint32_t* cont_buff = sarena_malloc(arena, sizeof(uint32_t) * cont_size_prod);
+    for(i = 0; i < cont_size_prod; i++) cont_buff[i] = ' ';
 
     size_t row_count = text_obj->_cache.utf32_row_count;
     const struct ntg_str32_view* rows = text_obj->_cache.utf32_rows;
 
-    size_t capped_indent = _min2_size(opts.indent, full_size_adj.x);
+    size_t capped_indent = _min2_size(opts.indent, cont_size.x);
     
     size_t cont_i = 0, cont_j = 0;
     
@@ -468,7 +456,7 @@ void ntg_text_draw_fn(
     uint32_t* it_cont;
     
     size_t it_wrow_cont_space, it_wrow_extra_space,
-           it_wrow_space_count, it_wrow_space_counter;
+            it_wrow_space_count, it_wrow_space_counter;
     for(i = 0; i < row_count; i++)
     {
         _it_wrows = NULL;
@@ -476,15 +464,15 @@ void ntg_text_draw_fn(
         {
             case NTG_TEXT_WRAP_NONE:
                _it_wrows_count = get_wrows_nowrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena);
+                       cont_size.x, &_it_wrows, arena);
                 break;
             case NTG_TEXT_WRAP_CHAR:
                _it_wrows_count = get_wrows_wrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena);
+                       cont_size.x, &_it_wrows, arena);
                 break;
             case NTG_TEXT_WRAP_WORD:
                _it_wrows_count = get_wrows_wwrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena);
+                       cont_size.x, &_it_wrows, arena);
                 break;
             default:
                 return;
@@ -492,14 +480,14 @@ void ntg_text_draw_fn(
 
         for(j = 0; j < _it_wrows_count; j++)
         {
-            if(cont_i >= full_size_adj.y) break;
+            if(cont_i >= cont_size.y) break;
 
             
-            _it_wrows[j].len = _min2_size(_it_wrows[j].len, full_size_adj.x);
+            _it_wrows[j].len = _min2_size(_it_wrows[j].len, cont_size.x);
 
             if(opts.text_mode == NTG_TEXT_ALIGN)
             {
-                it_row_align_indent = ntg_align_offset(full_size_adj.x,
+                it_row_align_indent = ntg_align_offset(cont_size.x,
                         _it_wrows[j].len, opts.prim_align);
             }
             else
@@ -514,7 +502,7 @@ void ntg_text_draw_fn(
             it_wrow_space_counter = 0;
             it_wrow_space_count = ntg_str32_count(_it_wrows[j], ' ');
             it_wrow_cont_space = _it_wrows[j].len + it_row_effective_indent;
-            it_wrow_extra_space = _ssub_size(full_size_adj.x, it_wrow_cont_space);
+            it_wrow_extra_space = _ssub_size(cont_size.x, it_wrow_cont_space);
             for(k = 0; k < _it_wrows[j].len; k++)
             {
                 if(_it_wrows[j].data[k] == ' ')
@@ -528,9 +516,9 @@ void ntg_text_draw_fn(
                     }
                     it_wrow_space_counter++;
                 }
-                if(cont_j >= full_size_adj.x) break; 
+                if(cont_j >= cont_size.x) break; 
 
-                it_cont = &(full_buff[full_size_adj.x * cont_i + cont_j]);
+                it_cont = &(cont_buff[cont_size.x * cont_i + cont_j]);
                 (*it_cont) = _it_wrows[j].data[k];
 
                 cont_j++;
@@ -541,55 +529,23 @@ void ntg_text_draw_fn(
         }
     }
 
-    struct ntg_xy vp_size = cont_size;
-    struct ntg_xy vp_start = ntg_xy(0, 0);
-    if(opts.scroll)
-    {
-        vp_start = ntg_xy(
-            _min2_size(nat_size.x, text_obj->_scroll.x + vp_size.x),
-            _min2_size(nat_size.y, text_obj->_scroll.y + vp_size.y)
-        );
-    }
-
-    struct ntg_xy vp_end = ntg_xy_add(vp_start, vp_size);
-
     struct ntg_vcell it_cell;
-    struct ntg_xy it_xy, it_cont_xy;
-    for(i = 0; i < vp_size.y; i++)
+    struct ntg_xy it_xy;
+    for(i = 0; i < cont_size.y; i++)
     {
-        for(j = 0; j < vp_size.x; j++)
+        for(j = 0; j < cont_size.x; j++)
         {
             it_xy = (opts.orient == NTG_ORIENT_H) ? ntg_xy(j, i) : ntg_xy(i, j);
-            it_cont_xy = (opts.orient == NTG_ORIENT_H) ? 
-                (ntg_xy_add(ntg_xy(j, i), vp_start)) :
-                (ntg_xy_add(ntg_xy(i, j), vp_start));
 
-            if(!ntg_xy_is_in_rectangle(it_xy, vp_start, vp_end))
-            {
-                //TODO:
-                assert(0);
-                continue;
-            }
-            if(!ntg_xy_is_in_rectangle(it_cont_xy, ntg_xy(0, 0), cont_size))
-            {
-                //TODO:
-                assert(0);
-                continue;
-            }
-
-
-            it_cont = &(full_buff[full_size_adj.x * i + j]);
+            it_cont = &(cont_buff[cont_size.x * i + j]);
 
             it_cell = (opts.bg_mode == NTG_TEXT_BG_FULL) ?
                     ntg_vcell_full(*it_cont, text_obj->_gfx) :
                     ntg_vcell_overlay(*it_cont, text_obj->_gfx.fg, text_obj->_gfx.style);
 
-            ntg_object_tmp_drawing_set(out_drawing, it_cell, it_cont_xy);
+            ntg_object_tmp_drawing_set(out_drawing, it_cell, it_xy);
         }
     }
-
-    if(text_obj->__vtable && text_obj->__vtable->post_draw_fn)
-        text_obj->__vtable->post_draw_fn(text_obj, out_drawing, _layout_cache, arena);
 }
 
 void ntg_text_deinit_fn(ntg_object* _text_obj)

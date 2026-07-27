@@ -50,9 +50,8 @@ struct ntg_object_measure
 };
 
 
-static inline bool ntg_object_measure_are_eql(
-        struct ntg_object_measure m1,
-        struct ntg_object_measure m2)
+static inline bool
+ntg_object_measure_are_eql(struct ntg_object_measure m1, struct ntg_object_measure m2)
 {
     return ((m1.min_size == m2.min_size) &&
             (m1.nat_size == m2.nat_size) &&
@@ -108,7 +107,6 @@ struct ntg_object_tmp_drawing
     struct ntg_xy size;
 };
 
-
 static inline struct ntg_vcell
 ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy pos)
 {
@@ -136,7 +134,6 @@ static inline void ntg_object_tmp_drawing_set(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-
 NTG_API void
 ntg_object_mark_dirty(ntg_object* object, uint8_t dirty);
 
@@ -144,114 +141,95 @@ ntg_object_mark_dirty(ntg_object* object, uint8_t dirty);
 /* MEASURE & SIZE HELPERS */
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_xy
 ntg_object_get_min_size(const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API struct ntg_xy
 ntg_object_get_nat_size(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_xy
 ntg_object_get_max_size(const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API struct ntg_xy
 ntg_object_get_size(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_object_measure
 ntg_object_get_measure(const ntg_object* object, ntg_orient orient);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API size_t
 ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_xy
 ntg_object_get_min_size_cont(const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API struct ntg_xy
 ntg_object_get_nat_size_cont(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_xy
 ntg_object_get_max_size_cont(const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API struct ntg_xy
 ntg_object_get_size_cont(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_object_measure
 ntg_object_get_measure_cont(const ntg_object* object, ntg_orient orient);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API size_t
 ntg_object_get_size_1d_cont(const ntg_object* object, ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API size_t
 ntg_object_get_for_size_cont(const ntg_object* object, ntg_orient orient);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API struct ntg_xy
 ntg_object_get_min_size_pad(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_xy
 ntg_object_get_nat_size_pad(const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API struct ntg_xy
 ntg_object_get_max_size_pad(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_xy
 ntg_object_get_size_pad(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_object_measure
 ntg_object_get_measure_pad(const ntg_object* object, ntg_orient orient);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API size_t
 ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient);
@@ -263,7 +241,6 @@ ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient);
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
-
 
 void _ntg_object_hmeasure(ntg_object* object, sarena* arena, int* out_status);
 
@@ -279,13 +256,11 @@ void _ntg_object_arrange(ntg_object* object, sarena* arena, int* out_status);
 
 void _ntg_object_draw(ntg_object* object, sarena* arena, int* out_status);
 
-
 void _ntg_object_root_set_hsize(ntg_object* object, size_t size);
 
 void _ntg_object_root_set_vsize(ntg_object* object, size_t size);
 
 void _ntg_object_root_set_pos(ntg_object* object, struct ntg_xy pos);
-
 
 void _ntg_object_clean(ntg_object* object, uint8_t clean);
 

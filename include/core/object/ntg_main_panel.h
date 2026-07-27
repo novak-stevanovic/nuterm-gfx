@@ -17,12 +17,10 @@ struct ntg_main_panel_opts
     struct ntg_vcell bg;
 };
 
-
 NTG_API struct ntg_main_panel_opts
 ntg_main_panel_opts_def();
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_main_panel_opts_are_eql(
@@ -98,7 +96,6 @@ ntg_main_panel_deinit_void(void* _panel);
 /* CHILDREN */
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_main_panel_set(
         ntg_main_panel* panel,
@@ -109,7 +106,6 @@ ntg_main_panel_set(
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_main_panel_set_opts(
@@ -124,7 +120,6 @@ ntg_main_panel_set_opts(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-
 NTG_API void
 ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
@@ -134,7 +129,6 @@ ntg_main_panel_init_inherit(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_object_measure
 ntg_main_panel_measure_fn(
         const ntg_object* _panel,
@@ -143,7 +137,6 @@ ntg_main_panel_measure_fn(
         sarena* arena);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_main_panel_constrain_fn(
@@ -155,7 +148,6 @@ ntg_main_panel_constrain_fn(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
@@ -165,16 +157,13 @@ ntg_main_panel_arrange_fn(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_main_panel_child_rm_fn(ntg_object* _panel, ntg_object* child);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_main_panel_deinit_fn(ntg_object* _panel);
-
 
 NTG_API extern const struct ntg_object_vtable NTG_MAIN_PANEL_VTABLE;
 

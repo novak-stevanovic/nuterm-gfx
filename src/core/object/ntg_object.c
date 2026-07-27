@@ -362,7 +362,7 @@ ntg_object* ntg_object_hit_test(
 {
     if(!object) return NULL;
 
-    if(!ntg_xy_is_in_rectagle(pos, ntg_xy(0, 0), object->_size))
+    if(!ntg_xy_is_in_rectangle(pos, ntg_xy(0, 0), object->_size))
     {
         if(out_local_pos) *out_local_pos = ntg_xy(0, 0);
         return NULL;
@@ -383,7 +383,7 @@ ntg_object* ntg_object_hit_test(
         it_child = object->_children.data[i];
         it_adj_pos = ntg_dxy_sub(ntg_dxy_from_xy(pos), ntg_dxy_from_xy(it_child->_pos));
 
-        if(ntg_dxy_is_in_rectagle(it_adj_pos, ntg_dxy(0, 0), ntg_dxy_from_xy(it_child->_size)))
+        if(ntg_dxy_is_in_rectangle(it_adj_pos, ntg_dxy(0, 0), ntg_dxy_from_xy(it_child->_size)))
         {
             it_hit = ntg_object_hit_test(it_child, ntg_xy_from_dxy(it_adj_pos), &it_child_local, &_hit);
 

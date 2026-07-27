@@ -29,6 +29,7 @@ button_opts_from_text(
         .prim_align = text_opts->prim_align,
         .sec_align = text_opts->sec_align,
         .wrap = text_opts->wrap,
+        .scroll = text_opts->scroll,
         .indent = text_opts->indent
     };
 }
@@ -49,6 +50,7 @@ button_opts_extract(
         .prim_align = button_opts->prim_align,
         .sec_align = button_opts->sec_align,
         .wrap = button_opts->wrap,
+        .scroll = button_opts->scroll,
         .indent = button_opts->indent
     };
 }
@@ -88,6 +90,7 @@ bool ntg_button_opts_are_eql(
            (opts1->sec_align == opts2->sec_align) &&
            (opts1->bg_mode == opts2->bg_mode) &&
            (opts1->wrap == opts2->wrap) &&
+           (opts1->scroll == opts2->scroll) &&
            (opts1->indent == opts2->indent));
 }
 
@@ -109,10 +112,10 @@ void ntg_button_init(
 
     int _status;
 
-    struct ntg_object_vtable vtable = NTG_BUTTON_VTABLE;
+    struct ntg_object_vtable vtable = NTG_BUTTON_VTABLE_OBJECT;
     vtable.process_mouse_fn = mouse_fn;
 
-    ntg_button_init_inherit(button, &vtable, &NTG_TYPE_BUTTON, &_status);
+    ntg_button_init_inherit(button, &vtable, &NTG_BUTTON_VTABLE_TEXT, &NTG_TYPE_BUTTON, &_status);
     if(!_status)
     {
         ntg_button_set_opts(button, opts);
@@ -242,7 +245,8 @@ void ntg_button_set_text(
 
 void ntg_button_init_inherit(
         ntg_button* button,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_object_vtable* object_vtable,
+        const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
         int* out_status)
 {
@@ -256,9 +260,9 @@ void ntg_button_init_inherit(
     if(!ntg_type_instance_of(type, &NTG_TYPE_BUTTON))
         ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
 
-    button->__vtable = (vtable ? (*vtable) : NTG_BUTTON_VTABLE);
+    button->__vtable = (object_vtable ? (*object_vtable) : NTG_BUTTON_VTABLE_OBJECT);
 
-    ntg_text_init_inherit(ntg_txt(button), &button->__vtable, type, &_status);
+    ntg_text_init_inherit(ntg_txt(button), &button->__vtable, text_vtable, type, &_status);
     switch(_status)
     {
         case 0:
@@ -310,10 +314,20 @@ void ntg_button_unfocus_fn(ntg_object* _button, ntg_object* new_focused)
     ntg_text_unfocus_fn(_button, new_focused);
 }
 
-const struct ntg_object_vtable NTG_BUTTON_VTABLE = {
+const struct ntg_object_vtable NTG_BUTTON_VTABLE_OBJECT = {
     .measure_fn = ntg_button_measure_fn,
     .draw_fn = ntg_button_draw_fn,
     .deinit_fn = ntg_button_deinit_fn,
     .focus_fn = ntg_button_focus_fn,
     .unfocus_fn = ntg_button_unfocus_fn
+};
+
+void ntg_button_post_draw_fn(
+        const ntg_text* _button,
+        ntg_object_tmp_drawing* out_drawing,
+        void* layout_ch,
+        sarena* arena) {}
+
+const struct ntg_text_vtable NTG_BUTTON_VTABLE_TEXT = {
+    .post_draw_fn = ntg_button_post_draw_fn
 };
