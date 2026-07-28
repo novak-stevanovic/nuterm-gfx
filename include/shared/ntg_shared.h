@@ -96,7 +96,7 @@ typedef struct ntg_widget_vec ntg_widget_vec;
 typedef struct ntg_text ntg_text;
 typedef enum ntg_text_wrap ntg_text_wrap;
 typedef enum ntg_text_scroll_mode ntg_text_scroll_mode;
-typedef enum ntg_text_mode ntg_text_mode;
+typedef enum ntg_text_line_mode ntg_text_line_mode;
 typedef enum ntg_text_bg_mode ntg_text_bg_mode;
 typedef enum ntg_text_set_flags ntg_text_set_flags;
 typedef struct ntg_label ntg_label;

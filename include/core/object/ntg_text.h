@@ -22,16 +22,10 @@ enum ntg_text_wrap
     NTG_TEXT_WRAP_WORD
 };
 
-enum ntg_text_scroll_mode
+enum ntg_text_line_mode
 {
-    NTG_TEXT_SCROLL_OFF,
-    NTG_TEXT_SCROLL_ON
-};
-
-enum ntg_text_mode
-{
-    NTG_TEXT_ALIGN,
-    NTG_TEXT_JUSTIFY
+    NTG_TEXT_LINE_ALIGN,
+    NTG_TEXT_LINE_JUSTIFY
 };
 
 enum ntg_text_bg_mode
@@ -52,12 +46,15 @@ struct ntg_text_opts
 {
     ntg_orient orient;
     struct nt_gfx gfx, focused_gfx;
-    ntg_text_mode text_mode;
-    ntg_align prim_align; 
+    ntg_text_wrap wrap;
+    ntg_text_line_mode line_mode;
+    ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
     ntg_align sec_align;
     ntg_text_bg_mode bg_mode;
-    ntg_text_wrap wrap;
-    ntg_text_scroll_mode scroll;
+
+    // TODO:
+    size_t prim_scrolloff; // active only if NTG_TEXT_WRAP_NONE
+    size_t sec_scrolloff;
     size_t indent;
 };
 
@@ -100,6 +97,8 @@ struct ntg_text
 
     struct
     {
+        // TODO: add setter, override resize fn
+        // Primary axis scroll works only if wrap is disabled.
         struct ntg_xy _scroll;
     };
 

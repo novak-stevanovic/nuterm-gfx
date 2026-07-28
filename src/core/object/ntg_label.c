@@ -25,13 +25,14 @@ label_opts_from_text(
         .orient = text_opts->orient,
         .gfx = text_opts->gfx,
         .focused_gfx = text_opts->focused_gfx,
-        .text_mode = text_opts->text_mode,
+        .line_mode = text_opts->line_mode,
         .bg_mode = text_opts->bg_mode,
         .prim_align = text_opts->prim_align,
         .sec_align = text_opts->sec_align,
         .wrap = text_opts->wrap,
-        .scroll = text_opts->scroll,
-        .indent = text_opts->indent
+        .indent = text_opts->indent,
+        .prim_scrolloff = text_opts->prim_scrolloff,
+        .sec_scrolloff = text_opts->sec_scrolloff
     };
 }
 
@@ -46,13 +47,14 @@ label_opts_extract(
         .orient = label_opts->orient,
         .gfx = label_opts->gfx,
         .focused_gfx = label_opts->focused_gfx,
-        .text_mode = label_opts->text_mode,
+        .wrap = label_opts->wrap,
+        .line_mode = label_opts->line_mode,
         .bg_mode = label_opts->bg_mode,
         .prim_align = label_opts->prim_align,
         .sec_align = label_opts->sec_align,
-        .wrap = label_opts->wrap,
-        .scroll = label_opts->scroll,
-        .indent = label_opts->indent
+        .indent = label_opts->indent,
+        .prim_scrolloff = label_opts->prim_scrolloff,
+        .sec_scrolloff = label_opts->sec_scrolloff
     };
 }
 
@@ -86,12 +88,14 @@ bool ntg_label_opts_are_eql(
 
     return ((opts1->orient == opts2->orient) &&
            nt_gfx_are_eql(opts1->gfx, opts2->gfx) &&
-           (opts1->text_mode == opts2->text_mode) &&
+           (opts1->wrap == opts2->wrap) &&
+           (opts1->line_mode == opts2->line_mode) &&
            (opts1->prim_align == opts2->prim_align) &&
            (opts1->sec_align == opts2->sec_align) &&
            (opts1->bg_mode == opts2->bg_mode) &&
-           (opts1->wrap == opts2->wrap) &&
-           (opts1->indent == opts2->indent));
+           (opts1->indent == opts2->indent) &&
+           (opts1->prim_scrolloff == opts2->prim_scrolloff) &&
+           (opts1->sec_scrolloff == opts2->sec_scrolloff));
 }
 
 /* -------------------------------------------------------------------------- */

@@ -229,6 +229,8 @@ void init_north()
     struct ntg_padding_opts north_pad_opts = ntg_padding_opts_def();
     north_pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
     //ntg_object_set_padding_opts(ntg_obj(&north), &north_pad_opts);
+
+    (ntg_txt(&north))->_scroll = ntg_xy(1000, 0);
 }
 
 void init_center()
@@ -313,7 +315,7 @@ void init_south()
         .fg = nt_color_new_auto(255, 255, 255),
         .style = NT_STYLE_DEFAULT
     };
-    sb_label3_opts.wrap =NTG_TEXT_WRAP_WORD;
+    sb_label3_opts.wrap = NTG_TEXT_WRAP_WORD;
 
     ntg_label_init(&sb_label3, &sb_label3_opts, &_status);
     ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_void, NULL, &_status);
@@ -400,8 +402,8 @@ void init_sflt_label()
     ntg_log_log("ABCD LABEL | ROOT | SOUTH: %p %p %p", &s_label, &root, &south);
 
     opts.wrap = NTG_TEXT_WRAP_WORD;
-    opts.text_mode = NTG_TEXT_JUSTIFY;
-    opts.text_mode = NTG_TEXT_ALIGN;
+    opts.line_mode = NTG_TEXT_LINE_JUSTIFY;
+    opts.line_mode = NTG_TEXT_LINE_ALIGN;
     opts.sec_align = NTG_ALIGN_3;
     opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(255, 255, 255),
