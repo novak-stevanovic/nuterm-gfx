@@ -226,7 +226,7 @@ ntg_focus_scope* ntg_focus_manager_push_scope(
 
     if(head)
     {
-        head->data->scope->_last_focused = fm->_focused;
+        _ntg_focus_scope_set_last_focused(head->data->scope, fm->_focused);
     }
 
     ntg_focus_scope* new_scope = malloc(sizeof(ntg_focus_scope));
@@ -424,8 +424,7 @@ static void scope_stack_pop(ntg_focus_manager* fm)
         return;
 
     ntg_focus_manager_request_focus(fm, head->data->scope->_last_focused);
-
-    head->data->scope->_last_focused = NULL;
+    _ntg_focus_scope_set_last_focused(head->data->scope, NULL);
 
     if(fm->hooks.on_scope_pop_fn)
         fm->hooks.on_scope_pop_fn(fm, popped_scope);

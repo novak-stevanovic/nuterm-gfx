@@ -102,7 +102,7 @@ bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
     if(event.type == NT_EVENT_KEY)
     {
         struct nt_key_event key = *(struct nt_key_event*)event.data;
-        if(nt_key_event_utf32_check(key, 'q', false))
+        if(nt_key_event_utf32_check_alt(key, 'q', false))
         {
             ntg_loop_break(loop, true);
             return true;
@@ -114,7 +114,7 @@ bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
 
 bool root_handle_key_fn(ntg_object* object, const struct ntg_object_key* event)
 {
-    if(nt_key_event_utf32_check(event->key, '8', false))
+    if(nt_key_event_utf32_check_alt(event->key, '8', false))
     {
         ntg_loop_break(&loop, true);
         return true;
@@ -134,7 +134,7 @@ bool fs1_handle_mouse_fn(
         struct nt_mouse_event mouse,
         ntg_object* clicked)
 {
-    bool consumed = ntg_focus_scope_handle_mouse_bubble_fn(scope, mouse, clicked);
+    bool consumed = ntg_focus_scope_dispatch_mouse_bubble_fn(scope, mouse, clicked);
     if(consumed) return true;
 
     // ntg_object_remove_from_scene(clicked);
@@ -431,10 +431,10 @@ struct ntg_object_vtable root_vtable;
 
 void init_root()
 {
-    int _status;
-
     root_vtable = NTG_MAIN_PANEL_VTABLE;
     root_vtable.process_key_fn = root_handle_key_fn;
+
+    int _status;
 
     ntg_main_panel_init_inherit(&root, &root_vtable, &NTG_TYPE_MAIN_PANEL, &_status);
 
@@ -478,8 +478,8 @@ void init_ap()
 }
 
 const struct ntg_focus_scope_vtable FS1_VTABLE = {
-    .handle_key_fn = ntg_focus_scope_handle_key_bubble_fn,
-    .handle_mouse_fn = ntg_focus_scope_handle_mouse_bubble_fn
+    .dispatch_key_fn = ntg_focus_scope_dispatch_key_bubble_fn,
+    .dispatch_mouse_fn = ntg_focus_scope_dispatch_mouse_bubble_fn
 };
 
 void init_fs()

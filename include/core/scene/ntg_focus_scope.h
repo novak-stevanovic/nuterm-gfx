@@ -14,6 +14,10 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------ */
+/* OPTS */
+/* ------------------------------------------------------ */
+
 enum ntg_focus_scope_input_mode
 {
     NTG_FOCUS_SCOPE_INPUT_MODELESS,
@@ -32,33 +36,72 @@ enum ntg_focus_scope_block_mode
     NTG_FOCUS_SCOPE_BLOCK_TRUE
 };
 
+enum ntg_focus_scope_keybind_mode
+{
+    NTG_FOCUS_SCOPE_KEYBIND_FIRST,
+    NTG_FOCUS_SCOPE_DISPATCH_FIRST
+};
+
+enum ntg_focus_scope_mouse_opts
+{
+    NTG_FOCUS_SCOPE_MOUSE_FOCUSED_DISPATCH = 0 << 0,
+    NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS = 1 << 1,
+    NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS = 1 << 0
+};
+
 struct ntg_focus_scope_opts
 {
     ntg_focus_scope_input_mode input_mode;
     ntg_focus_scope_out_click_mode out_click_mode;
     ntg_focus_scope_block_mode block_mode;
+    ntg_focus_scope_keybind_mode keybind_mode;
+
+    /* Indexing is done using nt_mouse_event_type enum */
+    ntg_focus_scope_mouse_opts mouse_opts[5];
 };
+
+NTG_API struct ntg_focus_scope_opts
+ntg_focus_scope_opts_def();
+
+/* ------------------------------------------------------ */
+/* KEYBINDS */
+/* ------------------------------------------------------ */
+
+struct ntg_focus_scope_keybind
+{
+    bool bound; // if (bound == false), `key` is ignored
+    struct nt_key_event key;
+};
+
+// Helper constructor
+static inline struct ntg_focus_scope_keybind
+ntg_focus_scope_keybind_new(struct nt_key_event key)
+{
+    return (struct ntg_focus_scope_keybind) { .bound = true, .key = key };
+}
 
 struct ntg_focus_scope_keybinds
 {
-    struct nt_key_event left_click_key,
-            right_click_key, middle_click_key,
-            scroll_up_key, scroll_down_key,
-            cancel_key;
+    struct ntg_focus_scope_keybind left_click,
+            right_click, middle_click,
+            scroll_up, scroll_down,
+            cancel;
 };
 
+// Left click is bound to enter, cancel to escape
 NTG_API extern const struct ntg_focus_scope_keybinds
-NTG_FOCUS_SCOPE_KEYBINDS_EMPTY;
+NTG_FOCUS_SCOPE_KEYBINDS_DEFAULT;
 
-NTG_API extern const struct ntg_focus_scope_keybinds
-NTG_FOCUS_SCOPE_KEYBINDS_DEF;
+/* ------------------------------------------------------ */
+/* FOCUS SCOPE */
+/* ------------------------------------------------------ */
 
 struct ntg_focus_scope_vtable
 {
-    bool (*handle_key_fn)(ntg_focus_scope* scope, struct nt_key_event key);
+    bool (*dispatch_key_fn)(ntg_focus_scope* scope, struct nt_key_event key);
 
     // mouse coordinates are provided in `clicked` object space
-    bool (*handle_mouse_fn)(
+    bool (*dispatch_mouse_fn)(
             ntg_focus_scope* scope,
             struct nt_mouse_event mouse,
             ntg_object* clicked);
@@ -83,9 +126,6 @@ struct ntg_focus_scope
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
-
-NTG_API struct ntg_focus_scope_opts
-ntg_focus_scope_opts_def();
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -153,21 +193,21 @@ ntg_focus_scope_init_override(
         int* out_status);
 
 NTG_API bool
-ntg_focus_scope_handle_key_fn(ntg_focus_scope* scope, struct nt_key_event key);
+ntg_focus_scope_dispatch_key_fn(ntg_focus_scope* scope, struct nt_key_event key);
 
 NTG_API bool
-ntg_focus_scope_handle_key_bubble_fn(
+ntg_focus_scope_dispatch_key_bubble_fn(
         ntg_focus_scope* scope,
         struct nt_key_event key);
 
 NTG_API bool
-ntg_focus_scope_handle_mouse_fn(
+ntg_focus_scope_dispatch_mouse_fn(
         ntg_focus_scope* scope,
         struct nt_mouse_event mouse,
         ntg_object* clicked);
 
 NTG_API bool
-ntg_focus_scope_handle_mouse_bubble_fn(
+ntg_focus_scope_dispatch_mouse_bubble_fn(
         ntg_focus_scope* scope,
         struct nt_mouse_event mouse,
         ntg_object* clicked);
@@ -185,7 +225,7 @@ NTG_FOCUS_SCOPE_VTABLE_DEFAULT;
 
 void _ntg_focus_scope_attach(ntg_focus_scope* scope, ntg_focus_manager* fm);
 
-void _ntg_focus_scope_set_last_fcoused(ntg_focus_scope* scope, ntg_object* object);
+void _ntg_focus_scope_set_last_focused(ntg_focus_scope* scope, ntg_object* object);
 
 void _ntg_focus_scope_invalidate(ntg_focus_scope* scope);
 
