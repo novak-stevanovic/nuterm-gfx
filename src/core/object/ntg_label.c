@@ -14,49 +14,6 @@ static void init_default(ntg_label* label)
     label->hooks = (struct ntg_label_hooks) {0};
 }
 
-static void
-label_opts_from_text(
-        struct ntg_label_opts* label_opts,
-        const struct ntg_text_opts* text_opts)
-{
-    if(!label_opts || !text_opts) return;
-
-    (*label_opts) = (struct ntg_label_opts) {
-        .orient = text_opts->orient,
-        .gfx = text_opts->gfx,
-        .focused_gfx = text_opts->focused_gfx,
-        .line_mode = text_opts->line_mode,
-        .bg_mode = text_opts->bg_mode,
-        .prim_align = text_opts->prim_align,
-        .sec_align = text_opts->sec_align,
-        .wrap = text_opts->wrap,
-        .indent = text_opts->indent,
-        .prim_scrolloff = text_opts->prim_scrolloff,
-        .sec_scrolloff = text_opts->sec_scrolloff
-    };
-}
-
-static void
-label_opts_extract(
-        const struct ntg_label_opts* label_opts,
-        struct ntg_text_opts* out_text_opts)
-{
-    if(!label_opts || !out_text_opts) return;
-
-    (*out_text_opts) = (struct ntg_text_opts) {
-        .orient = label_opts->orient,
-        .gfx = label_opts->gfx,
-        .focused_gfx = label_opts->focused_gfx,
-        .wrap = label_opts->wrap,
-        .line_mode = label_opts->line_mode,
-        .bg_mode = label_opts->bg_mode,
-        .prim_align = label_opts->prim_align,
-        .sec_align = label_opts->sec_align,
-        .indent = label_opts->indent,
-        .prim_scrolloff = label_opts->prim_scrolloff,
-        .sec_scrolloff = label_opts->sec_scrolloff
-    };
-}
 
 /* ========================================================================== */
 /* PUBLIC */
@@ -68,12 +25,9 @@ label_opts_extract(
 
 struct ntg_label_opts ntg_label_opts_def()
 {
-    struct ntg_text_opts def_text_opts = ntg_text_opts_def();
-
-    struct ntg_label_opts label_opts = {0};
-    label_opts_from_text(&label_opts, &def_text_opts);
-
-    return label_opts;
+    return (struct ntg_label_opts) {
+        .text_opts = ntg_text_opts_def()
+    };
 }
 
 bool ntg_label_opts_are_eql(
@@ -86,16 +40,7 @@ bool ntg_label_opts_are_eql(
     if(!opts1 || !opts2)
         return false;
 
-    return ((opts1->orient == opts2->orient) &&
-           nt_gfx_are_eql(opts1->gfx, opts2->gfx) &&
-           (opts1->wrap == opts2->wrap) &&
-           (opts1->line_mode == opts2->line_mode) &&
-           (opts1->prim_align == opts2->prim_align) &&
-           (opts1->sec_align == opts2->sec_align) &&
-           (opts1->bg_mode == opts2->bg_mode) &&
-           (opts1->indent == opts2->indent) &&
-           (opts1->prim_scrolloff == opts2->prim_scrolloff) &&
-           (opts1->sec_scrolloff == opts2->sec_scrolloff));
+    return ntg_text_opts_are_eql(&opts1->text_opts, &opts2->text_opts);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -155,7 +100,7 @@ void ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts)
     if(!label)
         (*out_opts) = ntg_label_opts_def();
     else
-        label_opts_from_text(out_opts, &(ntg_txt(label))->_opts);
+        out_opts->text_opts = (ntg_txt(label))->_opts;
 }
 
 void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
@@ -169,10 +114,7 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
     if(ntg_label_opts_are_eql(&new_opts, &old_opts))
         return;
 
-    struct ntg_text_opts new_opts_text = {0};
-    label_opts_extract(&new_opts, &new_opts_text);
-
-    ntg_text_set_opts(ntg_txt(label), &new_opts_text);
+    ntg_text_set_opts(ntg_txt(label), &new_opts.text_opts);
 
     if(label->hooks.on_opts_chng_fn)
     {

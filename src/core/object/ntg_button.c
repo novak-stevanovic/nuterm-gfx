@@ -9,48 +9,6 @@
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-static void button_opts_from_text(
-        struct ntg_button_opts* button_opts,
-        const struct ntg_text_opts* text_opts)
-{
-    if(!button_opts || !text_opts) return;
-
-    (*button_opts) = (struct ntg_button_opts) {
-        .orient = text_opts->orient,
-        .gfx = text_opts->gfx,
-        .focused_gfx = text_opts->focused_gfx,
-        .wrap = text_opts->wrap,
-        .line_mode = text_opts->line_mode,
-        .bg_mode = text_opts->bg_mode,
-        .prim_align = text_opts->prim_align,
-        .sec_align = text_opts->sec_align,
-        .indent = text_opts->indent,
-        .prim_scrolloff = text_opts->prim_scrolloff,
-        .sec_scrolloff = text_opts->sec_scrolloff
-    };
-}
-
-static void button_opts_extract(
-        const struct ntg_button_opts* button_opts,
-        struct ntg_text_opts* out_text_opts)
-{
-    if(!button_opts || !out_text_opts) return;
-
-    (*out_text_opts) = (struct ntg_text_opts) {
-        .orient = button_opts->orient,
-        .gfx = button_opts->gfx,
-        .focused_gfx = button_opts->focused_gfx,
-        .wrap = button_opts->wrap,
-        .line_mode = button_opts->line_mode,
-        .bg_mode = button_opts->bg_mode,
-        .prim_align = button_opts->prim_align,
-        .sec_align = button_opts->sec_align,
-        .indent = button_opts->indent,
-        .prim_scrolloff = button_opts->prim_scrolloff,
-        .sec_scrolloff = button_opts->sec_scrolloff
-    };
-}
-
 /* ========================================================================== */
 /* PUBLIC */
 /* ========================================================================== */
@@ -61,12 +19,9 @@ static void button_opts_extract(
 
 struct ntg_button_opts ntg_button_opts_def()
 {
-    struct ntg_text_opts def_text_opts = ntg_text_opts_def();
-
-    struct ntg_button_opts button_opts = {0};
-    button_opts_from_text(&button_opts, &def_text_opts);
-
-    return button_opts;
+    return (struct ntg_button_opts) {
+        .text_opts = ntg_text_opts_def()
+    };
 }
 
 bool ntg_button_opts_are_eql(
@@ -79,16 +34,7 @@ bool ntg_button_opts_are_eql(
     if(!opts1 || !opts2)
         return false;
 
-    return ((opts1->orient == opts2->orient) &&
-           nt_gfx_are_eql(opts1->gfx, opts2->gfx) &&
-           (opts1->wrap == opts2->wrap) &&
-           (opts1->line_mode == opts2->line_mode) &&
-           (opts1->prim_align == opts2->prim_align) &&
-           (opts1->sec_align == opts2->sec_align) &&
-           (opts1->bg_mode == opts2->bg_mode) &&
-           (opts1->indent == opts2->indent) &&
-           (opts1->prim_scrolloff == opts2->prim_scrolloff) &&
-           (opts1->sec_scrolloff == opts2->sec_scrolloff));
+    return ntg_text_opts_are_eql(&opts1->text_opts, &opts2->text_opts);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -148,7 +94,7 @@ void ntg_button_get_opts(const ntg_button* button, struct ntg_button_opts* out_o
     if(!button)
         (*out_opts) = ntg_button_opts_def();
     else
-        button_opts_from_text(out_opts, &(ntg_txt(button))->_opts);
+        out_opts->text_opts = (ntg_txt(button))->_opts;
 }
 
 void ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
@@ -162,10 +108,7 @@ void ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
     if(ntg_button_opts_are_eql(&new_opts, &old_opts))
         return;
 
-    struct ntg_text_opts new_opts_text = {0};
-    button_opts_extract(&new_opts, &new_opts_text);
-
-    ntg_text_set_opts(ntg_txt(button), &new_opts_text);
+    ntg_text_set_opts(ntg_txt(button), &new_opts.text_opts);
 
     if(button->hooks.on_opts_chng_fn)
     {

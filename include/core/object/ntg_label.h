@@ -14,17 +14,7 @@
 
 struct ntg_label_opts
 {
-    ntg_orient orient;
-    struct nt_gfx gfx, focused_gfx;
-    ntg_text_wrap wrap;
-    ntg_text_line_mode line_mode;
-    ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
-    ntg_align sec_align;
-    ntg_text_bg_mode bg_mode;
-
-    size_t prim_scrolloff; // active only if NTG_TEXT_WRAP_NONE
-    size_t sec_scrolloff;
-    size_t indent;
+    struct ntg_text_opts text_opts;
 };
 
 NTG_API struct ntg_label_opts

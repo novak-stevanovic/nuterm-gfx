@@ -218,9 +218,9 @@ void init_north()
         .style = nt_style_new_uniform(NT_STYLE_VAL_BOLD)
     };
     struct ntg_label_opts north_label_opts = ntg_label_opts_def();
-    north_label_opts.gfx = label_gfx;
-    north_label_opts.indent = 2;
-    north_label_opts.wrap =NTG_TEXT_WRAP_WORD;
+    north_label_opts.text_opts.gfx = label_gfx;
+    north_label_opts.text_opts.indent = 2;
+    north_label_opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
 
     ntg_label_init(&north, &north_label_opts, &_status);
     ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_void, NULL, &_status);
@@ -282,7 +282,7 @@ void init_south()
     // SOUTH BOX LABEL1
 
     struct ntg_label_opts sb_label1_opts = ntg_label_opts_def();
-    sb_label1_opts.gfx = (struct nt_gfx) {
+    sb_label1_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(250, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
         .style = NT_STYLE_DEFAULT
@@ -296,7 +296,7 @@ void init_south()
     // SOUTH BOX LABEL2
 
     struct ntg_label_opts sb_label2_opts = ntg_label_opts_def();
-    sb_label2_opts.gfx = (struct nt_gfx) {
+    sb_label2_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(150, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
         .style = NT_STYLE_DEFAULT
@@ -310,12 +310,12 @@ void init_south()
     // SOUTH BOX LABEL3
 
     struct ntg_label_opts sb_label3_opts = ntg_label_opts_def();
-    sb_label3_opts.gfx = (struct nt_gfx) {
+    sb_label3_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(100, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
         .style = NT_STYLE_DEFAULT
     };
-    sb_label3_opts.wrap = NTG_TEXT_WRAP_WORD;
+    sb_label3_opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
 
     ntg_label_init(&sb_label3, &sb_label3_opts, &_status);
     ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_void, NULL, &_status);
@@ -331,7 +331,7 @@ void init_south()
     // SOUTH LABEL
 
     struct ntg_label_opts s_label_opts = ntg_label_opts_def();
-    s_label_opts.gfx = (struct nt_gfx) {
+    s_label_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(50, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
         .style = NT_STYLE_DEFAULT
@@ -365,9 +365,9 @@ void init_flt_button()
     int _status;
 
     struct ntg_button_opts opts = ntg_button_opts_def();
-    opts.wrap = NTG_TEXT_WRAP_WORD;
-    opts.bg_mode = NTG_TEXT_BG_FLT;
-    opts.focused_gfx = (struct nt_gfx) {
+    opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
+    opts.text_opts.bg_mode = NTG_TEXT_BG_FLT;
+    opts.text_opts.focused_gfx = (struct nt_gfx) {
         .fg = nt_color_new_auto(255, 165, 0),
         .style = nt_style_new_uniform(NT_STYLE_VAL_BOLD),
         .bg = nt_color_new_auto(255, 255, 255)
@@ -401,11 +401,11 @@ void init_sflt_label()
     struct ntg_label_opts opts = ntg_label_opts_def();
     ntg_log_log("ABCD LABEL | ROOT | SOUTH: %p %p %p", &s_label, &root, &south);
 
-    opts.wrap = NTG_TEXT_WRAP_WORD;
-    opts.line_mode = NTG_TEXT_LINE_JUSTIFY;
-    opts.line_mode = NTG_TEXT_LINE_ALIGN;
-    opts.sec_align = NTG_ALIGN_3;
-    opts.gfx = (struct nt_gfx) {
+    opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
+    opts.text_opts.line_mode = NTG_TEXT_LINE_JUSTIFY;
+    opts.text_opts.line_mode = NTG_TEXT_LINE_ALIGN;
+    opts.text_opts.sec_align = NTG_ALIGN_3;
+    opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(255, 255, 255),
         .fg = nt_color_new_auto(0, 0, 0),
         .style = nt_style_new_uniform(NT_STYLE_VAL_ITALIC)

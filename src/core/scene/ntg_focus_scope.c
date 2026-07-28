@@ -402,9 +402,6 @@ static void handle_mouse_focus(
         struct nt_mouse_event mouse,
         ntg_object* clicked)
 {
-    if(!(mouse.type == NT_MOUSE_EVENT_CLICK_LEFT))
-        return;
-
     ntg_focus_manager* fm = scope->_fm;
     ntg_object* focused = fm->_focused;
 
