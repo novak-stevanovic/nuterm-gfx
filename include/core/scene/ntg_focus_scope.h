@@ -42,11 +42,11 @@ enum ntg_focus_scope_keybind_mode
     NTG_FOCUS_SCOPE_DISPATCH_FIRST
 };
 
-enum ntg_focus_scope_mouse_opts
+enum ntg_focus_scope_mouse_flag
 {
-    NTG_FOCUS_SCOPE_MOUSE_FOCUSED_DISPATCH = 0 << 0,
-    NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS = 1 << 1,
-    NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS = 1 << 0
+    NTG_FOCUS_SCOPE_MOUSE_FOCUSED_DISPATCH = 1u << 1,
+    NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS = 1u << 2,
+    NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS = 1u << 3
 };
 
 struct ntg_focus_scope_opts
@@ -57,7 +57,7 @@ struct ntg_focus_scope_opts
     ntg_focus_scope_keybind_mode keybind_mode;
 
     /* Indexing is done using nt_mouse_event_type enum */
-    ntg_focus_scope_mouse_opts mouse_opts[5];
+    uint8_t mouse_flags[5];
 };
 
 NTG_API struct ntg_focus_scope_opts
@@ -74,11 +74,8 @@ struct ntg_focus_scope_keybind
 };
 
 // Helper constructor
-static inline struct ntg_focus_scope_keybind
-ntg_focus_scope_keybind_new(struct nt_key_event key)
-{
-    return (struct ntg_focus_scope_keybind) { .bound = true, .key = key };
-}
+NTG_API struct ntg_focus_scope_keybind
+ntg_focus_scope_keybind_new(struct nt_key_event key);
 
 struct ntg_focus_scope_keybinds
 {

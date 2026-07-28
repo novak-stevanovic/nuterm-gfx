@@ -146,9 +146,9 @@ void sflt_on_mouse_fn(ntg_object* _label, const struct ntg_object_mouse* event)
 {
     ntg_label* label = ntg_lbl(_label);
 
-    if(event->mouse.type == NT_MOUSE_EVENT_CLICK_LEFT)
+    if(event->mouse.type == NT_MOUSE_CLICK_LEFT)
         sflt_counter++;
-    else if(event->mouse.type == NT_MOUSE_EVENT_CLICK_RIGHT)
+    else if(event->mouse.type == NT_MOUSE_CLICK_RIGHT)
         sflt_counter--;
 
     char buff[50];

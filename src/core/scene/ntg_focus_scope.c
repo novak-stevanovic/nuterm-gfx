@@ -34,20 +34,39 @@ static inline bool is_bound(struct ntg_focus_scope_keybind kb, struct nt_key_eve
 
 struct ntg_focus_scope_opts ntg_focus_scope_opts_def()
 {
-    return (struct ntg_focus_scope_opts) {
+     struct ntg_focus_scope_opts opts = {
         .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
         .out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_CLR,
         .block_mode = NTG_FOCUS_SCOPE_BLOCK_FALSE,
         .keybind_mode = NTG_FOCUS_SCOPE_KEYBIND_FIRST,
-
+        .mouse_flags = {0, 0, 0, 0, 0}
     };
+
+    opts.mouse_flags[NT_MOUSE_CLICK_LEFT] ^= (NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS ^
+                                              NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS);
+
+    opts.mouse_flags[NT_MOUSE_CLICK_RIGHT] ^= (NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS ^
+                                               NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS);
+
+    opts.mouse_flags[NT_MOUSE_CLICK_MIDDLE] ^= NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS;
+
+    opts.mouse_flags[NT_MOUSE_SCROLL_UP] ^= NTG_FOCUS_SCOPE_MOUSE_FOCUSED_DISPATCH;
+
+    opts.mouse_flags[NT_MOUSE_SCROLL_DOWN] ^= NTG_FOCUS_SCOPE_MOUSE_FOCUSED_DISPATCH;
+
+    return opts;
 };
+
+struct ntg_focus_scope_keybind ntg_focus_scope_keybind_new(struct nt_key_event key)
+{
+    return (struct ntg_focus_scope_keybind) { .bound = true, .key = key };
+}
 
 const struct ntg_focus_scope_keybinds NTG_FOCUS_SCOPE_KEYBINDS_DEFAULT = {
     .cancel = {
         true,
         (struct nt_key_event) {
-            .type = NT_KEY_EVENT_UTF32,
+            .type = NT_KEY_UTF32,
             .utf32 = {
                 .alt = false,
                 .cp = 27
@@ -57,7 +76,7 @@ const struct ntg_focus_scope_keybinds NTG_FOCUS_SCOPE_KEYBINDS_DEFAULT = {
     .left_click = {
         true,
         (struct nt_key_event) {
-            .type = NT_KEY_EVENT_UTF32,
+            .type = NT_KEY_UTF32,
             .utf32 = {
                 .alt = false,
                 .cp = 13 
@@ -386,27 +405,27 @@ static bool handle_key_keybind(
 
         if(is_bound(scope->_keybinds.left_click, key))
         {
-            event.mouse.type = NT_MOUSE_EVENT_CLICK_LEFT;
+            event.mouse.type = NT_MOUSE_CLICK_LEFT;
             return ntg_object_feed_mouse(focused, &event);
         }
         else if(is_bound(scope->_keybinds.right_click, key))
         {
-            event.mouse.type = NT_MOUSE_EVENT_CLICK_RIGHT;
+            event.mouse.type = NT_MOUSE_CLICK_RIGHT;
             return ntg_object_feed_mouse(focused, &event);
         }
         else if(is_bound(scope->_keybinds.middle_click, key))
         {
-            event.mouse.type = NT_MOUSE_EVENT_CLICK_MIDDLE;
+            event.mouse.type = NT_MOUSE_CLICK_MIDDLE;
             return ntg_object_feed_mouse(focused, &event);
         }
         else if(is_bound(scope->_keybinds.scroll_up, key))
         {
-            event.mouse.type = NT_MOUSE_EVENT_SCROLL_UP;
+            event.mouse.type = NT_MOUSE_SCROLL_UP;
             return ntg_object_feed_mouse(focused, &event);
         }
         else if(is_bound(scope->_keybinds.scroll_down, key))
         {
-            event.mouse.type = NT_MOUSE_EVENT_SCROLL_DOWN;
+            event.mouse.type = NT_MOUSE_SCROLL_DOWN;
             return ntg_object_feed_mouse(focused, &event);
         }
         else if(is_bound(scope->_keybinds.cancel, key))
@@ -438,7 +457,7 @@ static void handle_mouse_focus(
             {
                 if(focused != clicked)
                 {
-                    if(mouse.type == NT_MOUSE_EVENT_CLICK_LEFT)
+                    if(mouse.type == NT_MOUSE_CLICK_LEFT)
                         ntg_focus_manager_request_focus(fm, clicked);
                     else
                         ntg_focus_manager_request_focus(fm, NULL);
@@ -454,7 +473,7 @@ static void handle_mouse_focus(
     {
         if(clicked && clicked->_focusable)
         {
-            if(mouse.type == NT_MOUSE_EVENT_CLICK_LEFT)
+            if(mouse.type == NT_MOUSE_CLICK_LEFT)
                 ntg_focus_manager_request_focus(fm, clicked);
         }
     }
