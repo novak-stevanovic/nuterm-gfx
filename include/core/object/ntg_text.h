@@ -126,7 +126,6 @@ ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts);
 /* TEXT */
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_text_set_text_unsafe(
         ntg_text* text_obj,
@@ -143,6 +142,17 @@ ntg_text_set_text(
         size_t len,
         ntg_text_set_flags flags,
         int* out_status);
+
+/* ------------------------------------------------------ */
+/* SCROLL */
+/* ------------------------------------------------------ */
+
+NTG_API void
+ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll);
+
+/* ------------------------------------------------------ */
+/* INHERIT */
+/* ------------------------------------------------------ */
 
 NTG_API void
 ntg_text_init_inherit(

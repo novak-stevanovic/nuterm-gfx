@@ -32,24 +32,21 @@ static inline int _clamp_int(int min, int mid, int max)
     return mid;
 }
 
-
-static inline bool _in_between(size_t min, size_t between, size_t max)
+static inline bool _in_between_size(size_t min, size_t between, size_t max)
 {
     return ((between > min) && (between < max));
 }
 
 
-static inline bool _in_between_eq(size_t min, size_t between, size_t max)
+static inline bool _in_between_eq_size(size_t min, size_t between, size_t max)
 {
     return ((between >= min) && (between <= max));
 }
-
 
 static inline size_t _max2_size(size_t x, size_t y)
 {
     return (x > y) ? x : y;
 }
-
 
 static inline size_t _min2_size(size_t x, size_t y)
 {
@@ -68,14 +65,12 @@ static inline unsigned int _min2_uint(unsigned int x, unsigned int y)
     return (x > y) ? y : x;
 }
 
-
 static inline size_t _max3_size(size_t x, size_t y, size_t z)
 {
     size_t tmp = _max2_size(x, y);
 
     return _max2_size(tmp, z);
 }
-
 
 static inline size_t _min3_size(size_t x, size_t y, size_t z)
 {
@@ -95,7 +90,6 @@ static inline ssize_t _min2_ssize(ssize_t x, ssize_t y)
 {
     return (x > y) ? y : x;
 }
-
 
 static inline double _min2_double(double x, double y)
 {
@@ -117,26 +111,15 @@ static inline bool _double_are_eql(double a, double b)
     return diff > -eps && diff < eps;
 }
 
-
-static inline size_t _ssub_size(size_t x, size_t y)
+static inline size_t _sub2_size(size_t x, size_t y)
 {
     return (x > y) ? x - y : 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+static inline size_t _sub3_size(size_t x, size_t y, size_t z)
+{
+    return ((x >= (y + z)) ? ((x - y) - z) : 0);
+}
 
 #define ntg_return(ret_val, out_status_param, out_status)                      \
     do                                                                         \

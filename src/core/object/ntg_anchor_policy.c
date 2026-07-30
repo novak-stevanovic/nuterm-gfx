@@ -197,7 +197,7 @@ static size_t float_constrain_fn(
 
     size_t base_size = ntg_xy_get(base->_size, orient);
     size_t shrink = ntg_insets_sum(opts->shrink, orient);
-    size_t size = _min2_size(_ssub_size(base_size, shrink), root_measure.nat_size);
+    size_t size = _min2_size(_sub2_size(base_size, shrink), root_measure.nat_size);
 
     size_t thresh;
     switch(opts->enable)
@@ -293,14 +293,14 @@ static size_t sidefloat_constrain_fn(
         case NTG_SIDE_E:
             available_space = (orient == NTG_ORIENT_V) ?
                 (capped ? base_size : scene_size) :
-                _ssub_size(scene_size, base_size + base_pos);
+                _sub2_size(scene_size, base_size + base_pos);
 
             break;
 
         case NTG_SIDE_S:
             available_space = (orient == NTG_ORIENT_H) ?
                 (capped ? base_size : scene_size) :
-                _ssub_size(scene_size, base_size + base_pos);
+                _sub2_size(scene_size, base_size + base_pos);
             break;
 
         case NTG_SIDE_W:
@@ -364,26 +364,26 @@ static struct ntg_xy sidefloat_arrange_fn(
     {
         case NTG_SIDE_N:
             pos.x = (size_diff.x > 0) ?
-                _ssub_size(base->_pos.x, size_diff.x) :
+                _sub2_size(base->_pos.x, size_diff.x) :
                 base->_pos.x + ntg_align_offset_d(root->_size.x, base->_size.x, opts->align);
-            pos.y = _ssub_size(base->_pos.y, root->_size.y);
+            pos.y = _sub2_size(base->_pos.y, root->_size.y);
             break;
         case NTG_SIDE_E:
             pos.x = base->_pos.x + base->_size.x;
             pos.y = (size_diff.y > 0) ? 
-                _ssub_size(base->_pos.y, size_diff.y) :
+                _sub2_size(base->_pos.y, size_diff.y) :
                 base->_pos.y + ntg_align_offset_d(root->_size.y, base->_size.y, opts->align);
             break;
         case NTG_SIDE_S:
             pos.x = (size_diff.x > 0) ?
-                _ssub_size(base->_pos.x, size_diff.x) :
+                _sub2_size(base->_pos.x, size_diff.x) :
                 base->_pos.x + ntg_align_offset_d(root->_size.x, base->_size.x, opts->align);
             pos.y = base->_pos.y + base->_size.y;
             break;
         case NTG_SIDE_W:
-            pos.x = _ssub_size(base->_pos.x, root->_size.x);
+            pos.x = _sub2_size(base->_pos.x, root->_size.x);
             pos.y = (size_diff.y > 0) ? 
-                _ssub_size(base->_pos.y, size_diff.y) :
+                _sub2_size(base->_pos.y, size_diff.y) :
                 base->_pos.y + ntg_align_offset_d(root->_size.y, base->_size.y, opts->align);
             break;
     }

@@ -319,7 +319,7 @@ void ntg_box_constrain_fn(
             if(size >= min_size) 
             {
                 size_t pref_spacing = calculate_total_spacing(box->_opts.spacing, children->size);
-                extra_size = _ssub_size(size - min_size, pref_spacing);
+                extra_size = _sub2_size(size - min_size, pref_spacing);
 
                 for(i = 0; i < children->size; i++)
                 {

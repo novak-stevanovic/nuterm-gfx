@@ -711,8 +711,8 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
             pos = policy->arrange_fn(policy->data, &arrange_ctx, arena);
             pos = ntg_xy_pos_clamp(pos, size, scene->_size);
 
-            pos.x -= _ssub_size(pos.x + size.x, scene->_size.x);
-            pos.y -= _ssub_size(pos.y + size.y, scene->_size.y);
+            pos.x -= _sub2_size(pos.x + size.x, scene->_size.x);
+            pos.y -= _sub2_size(pos.y + size.y, scene->_size.y);
         }
 
         if(!ntg_xy_are_eql(root->_pos, pos))

@@ -112,23 +112,24 @@ bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
     return false;
 }
 
-bool root_handle_key_fn(ntg_object* object, const struct ntg_object_key* event)
-{
-    if(nt_key_event_utf32_check_alt(event->key, '8', false))
-    {
-        ntg_loop_break(&loop, true);
-        return true;
-    }
-    return false;
-}
-
-bool fs1_handle_key_fn(
+bool fs1_dispatch_mouse_fn(
         ntg_focus_scope* scope,
-        struct nt_key_event key)
+        struct nt_mouse_event mouse,
+        ntg_object* clicked)
 {
-    return false;
+    struct ntg_xy curr_scroll = (ntg_txt(&north))->_scroll;
+
+    if(mouse.type == NT_MOUSE_SCROLL_DOWN)
+        curr_scroll.y += 1;
+    else if(mouse.type == NT_MOUSE_SCROLL_UP)
+        curr_scroll.y = ((curr_scroll.y > 0) ? (curr_scroll.y - 1) : 0);
+
+    ntg_text_set_scroll(ntg_txt(&north), curr_scroll);
+
+    return true;
 }
 
+/*
 bool fs1_handle_mouse_fn(
         ntg_focus_scope* scope,
         struct nt_mouse_event mouse,
@@ -141,6 +142,7 @@ bool fs1_handle_mouse_fn(
 
     return true;
 }
+*/
 
 void sflt_on_mouse_fn(ntg_object* _label, const struct ntg_object_mouse* event)
 {
@@ -196,7 +198,7 @@ int main(int argc, char *argv[])
     ntg_object_anchor(ntg_obj(&flt_button), ntg_obj(&sflt_label), &sflt_ap, &_status);
 
     // ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
-    // ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
+    ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
 
     ntg_loop_exit_status loop_status = ntg_loop_run(&loop, &_status);
     ntg_log_log("LOOP END | STATUS: %d", loop_status);
@@ -229,8 +231,6 @@ void init_north()
     struct ntg_padding_opts north_pad_opts = ntg_padding_opts_def();
     north_pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
     //ntg_object_set_padding_opts(ntg_obj(&north), &north_pad_opts);
-
-    (ntg_txt(&north))->_scroll = ntg_xy(1000, 0);
 }
 
 void init_center()
@@ -431,12 +431,9 @@ struct ntg_object_vtable root_vtable;
 
 void init_root()
 {
-    root_vtable = NTG_MAIN_PANEL_VTABLE;
-    root_vtable.process_key_fn = root_handle_key_fn;
-
     int _status;
 
-    ntg_main_panel_init_inherit(&root, &root_vtable, &NTG_TYPE_MAIN_PANEL, &_status);
+    ntg_main_panel_init(&root, NULL, &_status);
 
     ntg_cleanup_batch_add(batch, &root, ntg_main_panel_deinit_void, NULL, &_status);
     ntg_main_panel_set(&root, ntg_obj(&north), NTG_MAIN_PANEL_NORTH, &_status);
@@ -479,7 +476,7 @@ void init_ap()
 
 const struct ntg_focus_scope_vtable FS1_VTABLE = {
     .dispatch_key_fn = ntg_focus_scope_dispatch_key_bubble_fn,
-    .dispatch_mouse_fn = ntg_focus_scope_dispatch_mouse_bubble_fn
+    .dispatch_mouse_fn = fs1_dispatch_mouse_fn
 };
 
 void init_fs()
@@ -488,7 +485,7 @@ void init_fs()
     opts.input_mode = NTG_FOCUS_SCOPE_INPUT_MODAL;
     opts.out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_CLR;
 
-    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&south), NULL, &opts, NULL);
+    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&root), NULL, &opts, NULL);
 
-    ntg_focus_scope_init(&fs2, NULL, NULL, NULL, NULL);
+    // ntg_focus_scope_init(&fs2, NULL, NULL, NULL, NULL);
 }

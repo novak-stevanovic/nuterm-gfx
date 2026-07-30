@@ -8,8 +8,6 @@
 /* PUBLIC */
 /* ========================================================================== */
 
-// TODO: keybind mode
-
 /* -------------------------------------------------------------------------- */
 /* TYPES */
 /* -------------------------------------------------------------------------- */
@@ -44,9 +42,8 @@ enum ntg_focus_scope_keybind_mode
 
 enum ntg_focus_scope_mouse_flag
 {
-    NTG_FOCUS_SCOPE_MOUSE_FOCUSED_DISPATCH = 1u << 1,
-    NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS = 1u << 2,
-    NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS = 1u << 3
+    NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS = (1u << 1),
+    NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS = (1u << 2)
 };
 
 struct ntg_focus_scope_opts

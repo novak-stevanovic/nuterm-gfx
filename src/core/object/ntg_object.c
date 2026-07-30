@@ -919,7 +919,7 @@ void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
 
     object->__base_bg = base_bg;
 
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW | NTG_OBJECT_DIRTY_RENDER);
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
 }
 
 void ntg_object_set_focusable(ntg_object* object, ntg_object_focusable_mode mode)
@@ -1065,7 +1065,7 @@ void ntg_object_pos_map_set(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_object_mark_dirty(ntg_object* object, uint8_t dirty)
+void ntg_object_mark_dirty(ntg_object* object, uint32_t dirty)
 {
     if(!object) return;
 
@@ -1211,9 +1211,9 @@ ntg_object_get_measure_cont(const ntg_object* object, ntg_orient orient)
     size_t sub = ntg_insets_sum(pref_border_size, orient) +
             ntg_insets_sum(pref_padding_size, orient);
 
-    m.min_size = _ssub_size(m.min_size, sub);
-    m.nat_size = _ssub_size(m.nat_size, sub);
-    m.max_size = _ssub_size(m.max_size, sub);
+    m.min_size = _sub2_size(m.min_size, sub);
+    m.nat_size = _sub2_size(m.nat_size, sub);
+    m.max_size = _sub2_size(m.max_size, sub);
 
     return m;
 }
@@ -1230,7 +1230,7 @@ size_t ntg_object_get_size_1d_cont(const ntg_object* object, ntg_orient orient)
     size_t sub = ntg_insets_sum(border_size, orient) +
             ntg_insets_sum(padding_size, orient);
 
-    return _ssub_size(s, sub);
+    return _sub2_size(s, sub);
 }
 
 size_t ntg_object_get_for_size_cont(const ntg_object* object, ntg_orient orient)
@@ -1308,9 +1308,9 @@ ntg_object_get_measure_pad(const ntg_object* object, ntg_orient orient)
 
     size_t sub = ntg_insets_sum(pref_border_size, orient);
 
-    m.min_size = _ssub_size(m.min_size, sub);
-    m.nat_size = _ssub_size(m.nat_size, sub);
-    m.max_size = _ssub_size(m.max_size, sub);
+    m.min_size = _sub2_size(m.min_size, sub);
+    m.nat_size = _sub2_size(m.nat_size, sub);
+    m.max_size = _sub2_size(m.max_size, sub);
 
     return m;
 }
@@ -1325,7 +1325,7 @@ size_t ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient)
 
     size_t sub = ntg_insets_sum(border_size, orient);
 
-    return _ssub_size(s, sub);
+    return _sub2_size(s, sub);
 }
 
 /* ========================================================================== */
@@ -1720,8 +1720,6 @@ void _ntg_object_draw(ntg_object* object, sarena* arena, int* out_status)
     if(!object || !arena)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    
-
     int _status;
     
     const ntg_scene* scene = ntg_object_get_scene_(object);
@@ -1798,11 +1796,11 @@ void _ntg_object_root_set_pos(ntg_object* object, struct ntg_xy pos)
     object->_pos = pos;
 }
 
-void _ntg_object_clean(ntg_object* object, uint8_t dirty)
+void _ntg_object_clean(ntg_object* object, uint32_t clean)
 {
     if(!object) return;
 
-    object->_dirty &= ~dirty;
+    object->_dirty &= (~clean);
 }
 
 void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene)
@@ -1982,9 +1980,9 @@ static void get_dcr_size(
     
 
     if(enable == NTG_OBJECT_DCR_ENABLE_MIN)
-        extra = _ssub_size(size, inner_measure.min_size);
+        extra = _sub2_size(size, inner_measure.min_size);
     else if(enable == NTG_OBJECT_DCR_ENABLE_NAT)
-        extra = _ssub_size(size, inner_measure.nat_size);
+        extra = _sub2_size(size, inner_measure.nat_size);
     else extra = size;
 
     out_size[0] = 0;

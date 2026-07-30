@@ -50,10 +50,6 @@ struct ntg_focus_scope_opts ntg_focus_scope_opts_def()
 
     opts.mouse_flags[NT_MOUSE_CLICK_MIDDLE] ^= NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS;
 
-    opts.mouse_flags[NT_MOUSE_SCROLL_UP] ^= NTG_FOCUS_SCOPE_MOUSE_FOCUSED_DISPATCH;
-
-    opts.mouse_flags[NT_MOUSE_SCROLL_DOWN] ^= NTG_FOCUS_SCOPE_MOUSE_FOCUSED_DISPATCH;
-
     return opts;
 };
 
@@ -289,17 +285,27 @@ bool ntg_focus_scope_dispatch_mouse_fn(
 {
     if(!scope) return false;
     if(!clicked) return false;
+    if(!scope->_fm) return false;
+
+    bool click = (mouse.type == NT_MOUSE_CLICK_LEFT) ||
+            (mouse.type == NT_MOUSE_CLICK_RIGHT) ||
+            (mouse.type == NT_MOUSE_CLICK_MIDDLE);
+
+    ntg_object* target = (click ? clicked : scope->_fm->_focused);
+
+    if(!click && !scope->_fm->_focused)
+        return false;
 
     struct ntg_object_mouse event = {
         .mouse = mouse,
-        .target = clicked,
+        .target = target,
         .from_keybind = false
     };
 
     // Pass event
-    if(clicked->_clickable)
+    if(target->_clickable)
     {
-        return ntg_object_feed_mouse(clicked, &event);
+        return ntg_object_feed_mouse(target, &event);
     }
 
     return false;
@@ -312,15 +318,25 @@ bool ntg_focus_scope_dispatch_mouse_bubble_fn(
 {
     if(!scope) return false;
     if(!clicked) return false;
+    if(!scope->_fm) return false;
+
+    bool click = (mouse.type == NT_MOUSE_CLICK_LEFT) ||
+            (mouse.type == NT_MOUSE_CLICK_RIGHT) ||
+            (mouse.type == NT_MOUSE_CLICK_MIDDLE);
+    
+    if(!click && !scope->_fm->_focused)
+        return false;
+
+    ntg_object* target = (click ? clicked : scope->_fm->_focused);
 
     struct ntg_object_mouse event = {
         .mouse = mouse,
-        .target = clicked,
+        .target = target,
         .from_keybind = false
     };
 
     // Bubble event
-    ntg_object* it_obj = clicked;
+    ntg_object* it_obj = target;
     while(it_obj)
     {
         if(it_obj->_clickable)
@@ -448,6 +464,10 @@ static void handle_mouse_focus(
     ntg_focus_manager* fm = scope->_fm;
     ntg_object* focused = fm->_focused;
 
+    uint8_t flag = (mouse.type <= 4) ?
+        scope->_opts.mouse_flags[mouse.type] :
+        0;
+
     // Decide new focus
     if(focused)
     {
@@ -457,24 +477,32 @@ static void handle_mouse_focus(
             {
                 if(focused != clicked)
                 {
-                    if(mouse.type == NT_MOUSE_CLICK_LEFT)
+                    if(flag & NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS)
                         ntg_focus_manager_request_focus(fm, clicked);
-                    else
+                    else if(flag & NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS)
                         ntg_focus_manager_request_focus(fm, NULL);
                 }
             }
             else
-                ntg_focus_manager_request_focus(fm, NULL);
+            {
+                if(flag & NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS)
+                    ntg_focus_manager_request_focus(fm, NULL);
+            }
         }
         else
-            ntg_focus_manager_request_focus(fm, NULL);
+        {
+            if(flag & NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS)
+                ntg_focus_manager_request_focus(fm, NULL);
+        }
     }
     else
     {
         if(clicked && clicked->_focusable)
         {
-            if(mouse.type == NT_MOUSE_CLICK_LEFT)
+            if(flag & NTG_FOCUS_SCOPE_MOUSE_CAN_FOCUS)
                 ntg_focus_manager_request_focus(fm, clicked);
+            else if(flag & NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS)
+                ntg_focus_manager_request_focus(fm, NULL);
         }
     }
 }

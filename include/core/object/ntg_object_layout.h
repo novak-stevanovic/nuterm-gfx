@@ -6,32 +6,6 @@
 #include "base/ntg_cell.h"
 #include <stdint.h>
 
-#define NTG_OBJECT_DIRTY_NONE 0
-#define NTG_OBJECT_DIRTY_HMEASURE (1 << 0)
-#define NTG_OBJECT_DIRTY_HCONSTRAIN (1 << 1)
-#define NTG_OBJECT_DIRTY_VMEASURE (1 << 2)
-#define NTG_OBJECT_DIRTY_VCONSTRAIN (1 << 3)
-#define NTG_OBJECT_DIRTY_ARRANGE (1 << 4)
-#define NTG_OBJECT_DIRTY_DRAW (1 << 5)
-#define NTG_OBJECT_DIRTY_RENDER (1 << 6)
-
-#define NTG_OBJECT_DIRTY_MEASURE ( \
-    NTG_OBJECT_DIRTY_HMEASURE | \
-    NTG_OBJECT_DIRTY_VMEASURE)
-
-#define NTG_OBJECT_DIRTY_CONSTRAIN ( \
-    NTG_OBJECT_DIRTY_HCONSTRAIN | \
-    NTG_OBJECT_DIRTY_VCONSTRAIN)
-
-#define NTG_OBJECT_DIRTY_FULL ( \
-    NTG_OBJECT_DIRTY_HMEASURE | \
-    NTG_OBJECT_DIRTY_HCONSTRAIN | \
-    NTG_OBJECT_DIRTY_VMEASURE | \
-    NTG_OBJECT_DIRTY_VCONSTRAIN | \
-    NTG_OBJECT_DIRTY_ARRANGE | \
-    NTG_OBJECT_DIRTY_DRAW | \
-    NTG_OBJECT_DIRTY_RENDER)
-
 /* ========================================================================== */
 /* PUBLIC */
 /* ========================================================================== */
@@ -39,6 +13,37 @@
 /* -------------------------------------------------------------------------- */
 /* TYPES */
 /* -------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------ */
+/* DIRTY */
+/* ------------------------------------------------------ */
+
+enum ntg_object_dirty_flag
+{
+    /* These flags can be set by the user or in the layout process.
+     * They are cleaned by the scene. */
+    NTG_OBJECT_DIRTY_HMEASURE = (1u << 0),
+    NTG_OBJECT_DIRTY_HCONSTRAIN = (1u << 1),
+    NTG_OBJECT_DIRTY_VMEASURE = (1u << 2),
+    NTG_OBJECT_DIRTY_VCONSTRAIN = (1u << 3),
+    NTG_OBJECT_DIRTY_ARRANGE = (1u << 4),
+    NTG_OBJECT_DIRTY_DRAW = (1u << 5),
+
+    /* This flag is set in draw phase automatically. It is cleaned by the stage. */
+    NTG_OBJECT_DIRTY_RENDER = (1u << 6)
+};
+
+#define NTG_OBJECT_DIRTY_MEASURE (NTG_OBJECT_DIRTY_HMEASURE | NTG_OBJECT_DIRTY_VMEASURE)
+
+#define NTG_OBJECT_DIRTY_CONSTRAIN (NTG_OBJECT_DIRTY_HCONSTRAIN | NTG_OBJECT_DIRTY_VCONSTRAIN)
+
+#define NTG_OBJECT_DIRTY_FULL (                                                \
+    NTG_OBJECT_DIRTY_HMEASURE |                                                \
+    NTG_OBJECT_DIRTY_HCONSTRAIN |                                              \
+    NTG_OBJECT_DIRTY_VMEASURE |                                                \
+    NTG_OBJECT_DIRTY_VCONSTRAIN |                                              \
+    NTG_OBJECT_DIRTY_ARRANGE |                                                 \
+    NTG_OBJECT_DIRTY_DRAW )
 
 /* ------------------------------------------------------ */
 /* MEASURE PHASE */
@@ -135,7 +140,7 @@ static inline void ntg_object_tmp_drawing_set(
 /* -------------------------------------------------------------------------- */
 
 NTG_API void
-ntg_object_mark_dirty(ntg_object* object, uint8_t dirty);
+ntg_object_mark_dirty(ntg_object* object, uint32_t dirty);
 
 /* ------------------------------------------------------ */
 /* MEASURE & SIZE HELPERS */
@@ -262,6 +267,6 @@ void _ntg_object_root_set_vsize(ntg_object* object, size_t size);
 
 void _ntg_object_root_set_pos(ntg_object* object, struct ntg_xy pos);
 
-void _ntg_object_clean(ntg_object* object, uint8_t clean);
+void _ntg_object_clean(ntg_object* object, uint32_t clean);
 
 #endif // NTG_OBJECT_LAYOUT_H
