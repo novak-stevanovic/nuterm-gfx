@@ -15,12 +15,6 @@
 
 struct ntg_attach_policy;
 
-struct ntg_scene_vtable
-{
-    bool (*handle_key_fn)(ntg_scene* scene, struct nt_key_event key);
-    bool (*handle_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse);
-};
-
 struct ntg_scene_hooks
 {
     void (*on_key_fn)(ntg_scene* scene, struct nt_key_event key);
@@ -152,6 +146,17 @@ ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse);
 /* ========================================================================== */
 /* PROTECTED */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_scene_vtable
+{
+    bool (*handle_key_fn)(ntg_scene* scene, struct nt_key_event key);
+    bool (*handle_mouse_fn)(ntg_scene* scene, struct nt_mouse_event mouse);
+};
+
 
 NTG_API void
 ntg_scene_init_override(

@@ -94,7 +94,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena);
 struct ntg_border_opts ntg_border_opts_def()
 {
     return (struct ntg_border_opts) {
-        .style = ntg_border_style_def(),
+        .style = &NTG_BORDER_STYLE_DEFAULT,
         .pref_size = ntg_insets(0, 0, 0, 0),
         .enable = NTG_OBJECT_DCR_ENABLE_MIN
     };
@@ -600,7 +600,7 @@ void ntg_object_set_border_opts(
 
     object->_border.opts = new_opts;
     if(!object->_border.opts.style)
-        object->_border.opts.style = ntg_border_style_def();
+        object->_border.opts.style = &NTG_BORDER_STYLE_DEFAULT;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
@@ -767,7 +767,7 @@ static void init_default(ntg_object* object)
 
     object->_border.opts = ntg_border_opts_def();
     object->_padding.opts = ntg_padding_opts_def();
-    object->_anchor_policy = ntg_anchor_policy_root();
+    object->_anchor_policy = &NTG_ANCHOR_POLICY_ROOT;
 
     object->__base_bg = ntg_vcell_def();
 
@@ -2246,15 +2246,10 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
     if(tmp_drawing_init(&object_drawing, object_size, bg, arena) != 0)
         return;
 
-    
-    if(border_style->draw_fn)
-    {
-        border_style->draw_fn(border_style->data, object_size, bsize, &object_drawing);
-    }
+    _ntg_border_style_draw(border_style, object_size, bsize, &object_drawing);
 
     size_t i, j;
 
-    
     for(i = bsize.n; i < (object_size.y - bsize.s); i++)
     {
         for(j = bsize.w; j < (object_size.x - bsize.e); j++)
@@ -2270,8 +2265,6 @@ static void draw_unoptimized(ntg_object* object, sarena* arena)
     }
 
     struct ntg_vcell it_src_cell;
-
-    
 
     struct ntg_xy offset = ntg_xy(bsize.w + psize.w, bsize.n + psize.n); 
     struct ntg_xy ji;

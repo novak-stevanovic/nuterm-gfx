@@ -6,9 +6,6 @@
 #include "core/object/ntg_object_drawing.h"
 #include "thirdparty/genc.h"
 #include "core/object/ntg_object_layout.h"
-#include "core/object/ntg_border_style.h"
-#include "core/object/ntg_anchor_policy.h"
-#include "core/object/ntg_object_decorator.h"
 
 #define NTG_OBJECT_MAX_CHILDREN 500
 #define NTG_OBJECT_MAX_ANCHORED 200
@@ -26,7 +23,43 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
+/* ------------------------------------------------------ */
+/* BORDER/PADDING */
+/* ------------------------------------------------------ */
+
+enum ntg_object_dcr_enable
+{
+    NTG_OBJECT_DCR_ENABLE_MIN = 0,
+    NTG_OBJECT_DCR_ENABLE_NAT,
+    NTG_OBJECT_DCR_ENABLE_ALWAYS
+};
+
+struct ntg_border_opts
+{
+    ntg_object_dcr_enable enable;
+    struct ntg_insets pref_size;
+    const struct ntg_border_style* style;
+};
+
+NTG_API struct ntg_border_opts ntg_border_opts_def();
+
+NTG_API bool
+ntg_border_opts_are_eql(const struct ntg_border_opts* o1, const struct ntg_border_opts* o2);
+
+struct ntg_padding_opts
+{
+    ntg_object_dcr_enable enable;
+    struct ntg_insets pref_size;
+};
+
+NTG_API struct ntg_padding_opts ntg_padding_opts_def();
+
+NTG_API bool
+ntg_padding_opts_are_eql(const struct ntg_padding_opts* o1, const struct ntg_padding_opts* o2);
+
+/* ------------------------------------------------------ */
+/* LAYOUT */
+/* ------------------------------------------------------ */
 
 struct ntg_layout_opts
 {
@@ -34,14 +67,10 @@ struct ntg_layout_opts
     int z_index;
 };
 
-NTG_API struct ntg_layout_opts
-ntg_layout_opts_def();
+NTG_API struct ntg_layout_opts ntg_layout_opts_def();
 
-NTG_API bool
-ntg_layout_opts_are_eql(
-        const struct ntg_layout_opts* opts1,
-        const struct ntg_layout_opts* opts2);
-
+/* ------------------------------------------------------ */
+/* EVENT */
 /* ------------------------------------------------------ */
 
 struct ntg_object_key
@@ -58,60 +87,31 @@ struct ntg_object_mouse
 };
 
 /* ------------------------------------------------------ */
+/* FOCUSABLE/CLICKABLE */
+/* ------------------------------------------------------ */
 
-struct ntg_object_vtable
+enum ntg_object_focusable_mode
 {
-    struct ntg_object_measure (*measure_fn)(
-            const ntg_object* object,
-            ntg_orient orient,
-            void* layout_ch,
-            sarena* arena);
-
-    void (*constrain_fn)(
-            const ntg_object* object,
-            ntg_orient orient,
-            ntg_object_size_map* out_size_map,
-            void* layout_ch,
-            sarena* arena);
-
-    bool (*fixup_fn)(
-            const ntg_object* object,
-            void* layout_ch,
-            sarena* arena);
-
-    void (*arrange_fn)(
-            const ntg_object* object,
-            ntg_object_pos_map* out_pos_map,
-            void* layout_ch,
-            sarena* arena);
-
-    void (*draw_fn)(
-            const ntg_object* object,
-            ntg_object_tmp_drawing* out_drawing,
-            void* layout_ch,
-            sarena* arena);
-
-    void (*deinit_fn)(ntg_object* object);
-
-    void (*rm_child_fn)(ntg_object* object, ntg_object* child);
-
-    bool (*process_key_fn)(ntg_object* object, const struct ntg_object_key* event);
-    bool (*process_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
-
-    void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
-    void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
-
-    void (*cont_resize_fn)(
-            ntg_object* object,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
-
-    void (*resize_fn)(
-            ntg_object* object,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
+    NTG_OBJECT_UNFOCUSABLE,
+    NTG_OBJECT_FOCUSABLE
 };
 
+enum ntg_object_clickable_mode
+{
+    NTG_OBJECT_UNCLICKABLE,
+    NTG_OBJECT_CLICKABLE_CONT,
+    NTG_OBJECT_CLICKABLE_BORDER
+};
+
+enum ntg_object_hit_result
+{
+    NTG_OBJECT_HIT_CONT,
+    NTG_OBJECT_HIT_PAD,
+    NTG_OBJECT_HIT_BORD
+};
+
+/* ------------------------------------------------------ */
+/* HOOKS */
 /* ------------------------------------------------------ */
 
 struct ntg_object_hooks
@@ -167,28 +167,10 @@ struct ntg_object_hooks
 };
 
 /* ------------------------------------------------------ */
-
-enum ntg_object_focusable_mode
-{
-    NTG_OBJECT_UNFOCUSABLE,
-    NTG_OBJECT_FOCUSABLE
-};
-
-enum ntg_object_clickable_mode
-{
-    NTG_OBJECT_UNCLICKABLE,
-    NTG_OBJECT_CLICKABLE_CONT,
-    NTG_OBJECT_CLICKABLE_BORDER
-};
-
-enum ntg_object_hit_result
-{
-    NTG_OBJECT_HIT_CONT,
-    NTG_OBJECT_HIT_PAD,
-    NTG_OBJECT_HIT_BORD
-};
-
+/* NTG_OBJECT */
 /* ------------------------------------------------------ */
+
+GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
 
 struct ntg_object
 {
@@ -262,72 +244,60 @@ void ntg_object_vdeinit(ntg_object* object);
 /* OBJECT TREE */
 /* ------------------------------------------------------ */
 
-
 NTG_API size_t
 ntg_object_get_tree_size(const ntg_object* root);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API const ntg_object*
 ntg_object_get_root(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API ntg_object*
 ntg_object_get_root_(ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API const ntg_object*
 ntg_object_get_layer_root(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API ntg_object*
 ntg_object_get_layer_root_(ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API ntg_scene*
 ntg_object_get_scene_(ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API const ntg_scene*
 ntg_object_get_scene(const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_object_is_true_root(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API bool
 ntg_object_is_root(const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_object_is_only_layer_root(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API bool
 ntg_object_is_focused(const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_object_is_descendant(
@@ -336,14 +306,12 @@ ntg_object_is_descendant(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API bool
 ntg_object_is_descendant_eq(
         const ntg_object* object,
         const ntg_object* descendant);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API size_t
 ntg_object_get_children_by_z(
@@ -362,12 +330,10 @@ ntg_object_hit_test(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_object_detach(ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_object_anchor(
@@ -378,12 +344,10 @@ ntg_object_anchor(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_object_unanchor(ntg_object* root);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_object_remove_from_scene(ntg_object* object);
@@ -392,7 +356,6 @@ ntg_object_remove_from_scene(ntg_object* object);
 /* CONTROL */
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_object_set_layout_opts(
         ntg_object* object,
@@ -400,14 +363,12 @@ ntg_object_set_layout_opts(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_object_set_border_opts(
         ntg_object* object,
         const struct ntg_border_opts* opts);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_object_set_padding_opts(
@@ -418,7 +379,6 @@ ntg_object_set_padding_opts(
 /* SPACE MAPPING */
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_dxy
 ntg_object_map_to_ancestor(
         const ntg_object* object,
@@ -427,7 +387,6 @@ ntg_object_map_to_ancestor(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_dxy
 ntg_object_map_to_descendant(
         const ntg_object* object,
@@ -435,7 +394,6 @@ ntg_object_map_to_descendant(
         struct ntg_dxy point);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API struct ntg_dxy
 ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
@@ -449,12 +407,10 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 /* EVENT */
 /* ------------------------------------------------------ */
 
-
 NTG_API bool
 ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* event);
@@ -494,6 +450,63 @@ static void fn_name(ntg_object* object, void* data)                            \
 /* ========================================================================== */
 
 /* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_object_vtable
+{
+    struct ntg_object_measure (*measure_fn)(
+            const ntg_object* object,
+            ntg_orient orient,
+            void* layout_ch,
+            sarena* arena);
+
+    void (*constrain_fn)(
+            const ntg_object* object,
+            ntg_orient orient,
+            ntg_object_size_map* out_size_map,
+            void* layout_ch,
+            sarena* arena);
+
+    bool (*fixup_fn)(
+            const ntg_object* object,
+            void* layout_ch,
+            sarena* arena);
+
+    void (*arrange_fn)(
+            const ntg_object* object,
+            ntg_object_pos_map* out_pos_map,
+            void* layout_ch,
+            sarena* arena);
+
+    void (*draw_fn)(
+            const ntg_object* object,
+            ntg_object_tmp_drawing* out_drawing,
+            void* layout_ch,
+            sarena* arena);
+
+    void (*deinit_fn)(ntg_object* object);
+
+    void (*rm_child_fn)(ntg_object* object, ntg_object* child);
+
+    bool (*process_key_fn)(ntg_object* object, const struct ntg_object_key* event);
+    bool (*process_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
+
+    void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
+    void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
+
+    void (*cont_resize_fn)(
+            ntg_object* object,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
+
+    void (*resize_fn)(
+            ntg_object* object,
+            struct ntg_xy old_size,
+            struct ntg_xy new_size);
+};
+
+/* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
@@ -519,11 +532,17 @@ ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
 NTG_API void
 ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 
+/* ------------------------------------------------------ */
+
 NTG_API void
 ntg_object_set_focusable(ntg_object* object, ntg_object_focusable_mode mode);
 
+/* ------------------------------------------------------ */
+
 NTG_API void
 ntg_object_set_clickable(ntg_object* object, ntg_object_clickable_mode mode);
+
+/* ------------------------------------------------------ */
 
 /* ========================================================================== */
 /* INTERNAL */
@@ -533,9 +552,7 @@ ntg_object_set_clickable(ntg_object* object, ntg_object_clickable_mode mode);
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-
 void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
-
 
 void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
 

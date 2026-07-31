@@ -150,6 +150,9 @@ ntg_text_set_text(
 NTG_API void
 ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll);
 
+NTG_API void
+ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff);
+
 /* ------------------------------------------------------ */
 /* INHERIT */
 /* ------------------------------------------------------ */

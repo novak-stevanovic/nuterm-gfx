@@ -23,8 +23,8 @@
 #include "core/loop/ntg_loop.h"
 #include "core/object/ntg_object_layout.h"
 #include "core/object/ntg_object.h"
-#include "core/object/ntg_object_decorator.h"
-#include "core/object/ntg_border_style.h"
+#include "core/object/border/ntg_border_style.h"
+#include "core/object/border/ntg_border_9x.h"
 #include "core/object/ntg_prog_bar.h"
 #include "core/object/ntg_text.h"
 #include "core/object/ntg_label.h"
@@ -36,7 +36,9 @@
 #include "core/scene/ntg_scene.h"
 #include "core/scene/ntg_focus_manager.h"
 #include "core/scene/ntg_focus_scope.h"
-#include "core/object/ntg_anchor_policy.h"
+#include "core/object/anchor/ntg_anchor_policy.h"
+#include "core/object/anchor/ntg_float.h"
+#include "core/object/anchor/ntg_sidefloat.h"
 #include "core/stage/ntg_stage_drawing.h"
 #include "core/stage/ntg_stage.h"
 
@@ -69,17 +71,20 @@ ntg_opts_def(void);
 /* -------------------------------------------------------------------------- */
 
 NTG_API void
-ntg_enable(
-        const struct ntg_opts* opts,
-        const char* log_filepath,
-        int* out_status);
+ntg_enable(const struct ntg_opts* opts, const char* log_filepath, int* out_status);
 
 NTG_API void
 ntg_disable(void);
 
 // TODO:
 
-// ntg_input_field, ntg_list, ntg_table(?)
+// border cell type so text overlay works properly?
+// fix: scrolloff doesnt make sense for ntg_text since there is no cursor.
+// add scroll capping for ntg_text on set and on resize
+// add more functions to vtables
+// what if cursor stays on?
+
+// ntg_input_field, ntg_list, ntg_dialogue
 // add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
 
 #endif // NTG_H

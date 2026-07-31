@@ -90,17 +90,6 @@ NTG_FOCUS_SCOPE_KEYBINDS_DEFAULT;
 /* FOCUS SCOPE */
 /* ------------------------------------------------------ */
 
-struct ntg_focus_scope_vtable
-{
-    bool (*dispatch_key_fn)(ntg_focus_scope* scope, struct nt_key_event key);
-
-    // mouse coordinates are provided in `clicked` object space
-    bool (*dispatch_mouse_fn)(
-            ntg_focus_scope* scope,
-            struct nt_mouse_event mouse,
-            ntg_object* clicked);
-};
-
 struct ntg_focus_scope
 {
     const struct ntg_focus_scope_vtable* __vtable;
@@ -172,6 +161,22 @@ ntg_focus_scope_feed_mouse(
 /* ========================================================================== */
 /* PROTECTED */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_focus_scope_vtable
+{
+    bool (*dispatch_key_fn)(ntg_focus_scope* scope, struct nt_key_event key);
+
+    // mouse coordinates are provided in `clicked` object space
+    bool (*dispatch_mouse_fn)(
+            ntg_focus_scope* scope,
+            struct nt_mouse_event mouse,
+            ntg_object* clicked);
+};
+
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */

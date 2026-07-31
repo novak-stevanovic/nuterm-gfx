@@ -19,7 +19,6 @@ struct ntg_prog_bar_style
     struct ntg_vcell threshold_style;
 };
 
-
 NTG_API struct ntg_prog_bar_style
 ntg_prog_bar_style_def();
 
@@ -160,10 +159,8 @@ ntg_prog_bar_draw_fn(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_prog_bar_deinit_fn(ntg_object* _prog_bar);
-
 
 NTG_API extern const struct ntg_object_vtable NTG_PROG_BAR_VTABLE;
 

@@ -358,6 +358,21 @@ void ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll)
     ntg_object_mark_dirty(ntg_obj(text_obj), NTG_OBJECT_DIRTY_DRAW);
 }
 
+void ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff)
+{
+    if(!text_obj) return;
+    if((scroll_diff.x == 0) && (scroll_diff.y == 0))
+        return;
+
+    struct ntg_dxy curr_scroll_dxy = ntg_dxy_from_xy(text_obj->_scroll);
+
+    struct ntg_dxy scroll_dxy = ntg_dxy_add(curr_scroll_dxy, scroll_diff);
+
+    struct ntg_xy scroll = ntg_xy_from_dxy(scroll_dxy);
+
+    ntg_text_set_scroll(text_obj, scroll);
+}
+
 /* ========================================================================== */
 /* PROTECTED */
 /* ========================================================================== */
@@ -461,10 +476,32 @@ void ntg_text_draw_fn(
 
     struct ntg_xy cont_size = ntg_object_get_size_cont(_text_obj);
     struct ntg_xy nat_size = ntg_object_get_nat_size(_text_obj);
-    struct ntg_xy full_size = (
-        opts.wrap == NTG_TEXT_WRAP_NONE ?
-        ntg_xy(_max2_size(nat_size.x, cont_size.x), _max2_size(nat_size.y, cont_size.y)) :
-        cont_size);
+
+    /* Determine full size */
+
+    struct ntg_xy full_size;
+
+    if(opts.wrap == NTG_TEXT_WRAP_NONE)
+    {
+        full_size = ntg_xy(
+            _max2_size(nat_size.x, cont_size.x),
+            _max2_size(nat_size.y, cont_size.y));
+    }
+    else
+    {
+        if(opts.orient == NTG_ORIENT_H)
+        {
+            full_size = ntg_xy(
+                cont_size.x,
+                _max2_size(nat_size.y, cont_size.y));
+        }
+        else
+        {
+            full_size = ntg_xy(
+                _max2_size(nat_size.x, cont_size.x),
+                cont_size.y);
+        }
+    }
 
     if(ntg_xy_is_zero(ntg_xy_size(cont_size))) return;
     if(ntg_xy_is_zero(ntg_xy_size(full_size))) return;

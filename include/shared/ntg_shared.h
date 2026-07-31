@@ -80,6 +80,11 @@ typedef enum ntg_focus_scope_keybind_mode ntg_focus_scope_keybind_mode;
 typedef enum ntg_focus_scope_mouse_flags ntg_focus_scope_mouse_flags;
 
 typedef struct ntg_object ntg_object;
+typedef struct ntg_border_style ntg_border_style;
+typedef struct ntg_anchor_policy ntg_anchor_policy;
+typedef struct ntg_float ntg_float;
+typedef struct ntg_sidefloat ntg_sidefloat;
+typedef struct ntg_border_9x ntg_border_9x;
 typedef enum ntg_object_dirty_flag ntg_object_dirty_flag;
 typedef enum ntg_object_clickable_mode ntg_object_clickable_mode;
 typedef enum ntg_object_focusable_mode ntg_object_focusable_mode;

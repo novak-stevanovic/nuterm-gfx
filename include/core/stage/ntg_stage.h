@@ -12,12 +12,6 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_stage_vtable
-{
-    bool (*handle_key_fn)(ntg_stage* stage, struct nt_key_event key);
-    bool (*handle_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse);
-};
-
 struct ntg_stage_hooks
 {
     void (*on_key_fn)(ntg_stage* stage, struct nt_key_event key);
@@ -101,6 +95,17 @@ ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
 /* ========================================================================== */
 /* PROTECTED */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_stage_vtable
+{
+    bool (*handle_key_fn)(ntg_stage* stage, struct nt_key_event key);
+    bool (*handle_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse);
+};
+
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */

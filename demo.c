@@ -51,7 +51,7 @@ const char* lorem =
 "vestibulum diam.";
 
 ntg_cleanup_batch* batch;
-struct ntg_border_style flt_rounded_border, def_rounded_border;
+ntg_border_9x flt_rounded_border, def_rounded_border;
 ntg_main_panel root;
 ntg_label north;
 ntg_box center, south, south_box;
@@ -65,10 +65,10 @@ ntg_button flt_button;
 
 unsigned int sflt_counter = 0;
 
-struct ntg_anchor_policy flt_ap;
+ntg_float flt_ap;
 
 ntg_label sflt_label;
-struct ntg_anchor_policy sflt_ap;
+ntg_sidefloat sflt_ap;
 
 struct ntg_focus_scope fs1, fs2;
 
@@ -107,6 +107,42 @@ bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
             ntg_loop_break(loop, true);
             return true;
         }
+    }
+
+    return false;
+}
+
+bool fs1_dispatch_key_fn(ntg_focus_scope* scope, struct nt_key_event key)
+{
+    if(nt_key_event_esc_check(key, NT_ESC_KEY_ARR_UP))
+    {
+        ntg_text_scroll(ntg_txt(&north), ntg_dxy(0, -1));
+        return true;
+    }
+    else if(nt_key_event_esc_check(key, NT_ESC_KEY_ARR_RIGHT))
+    {
+        ntg_text_scroll(ntg_txt(&north), ntg_dxy(1, 0));
+        return true;
+    }
+    else if(nt_key_event_esc_check(key, NT_ESC_KEY_ARR_DOWN))
+    {
+        ntg_text_scroll(ntg_txt(&north), ntg_dxy(0, 1));
+        return true;
+    }
+    else if(nt_key_event_esc_check(key, NT_ESC_KEY_ARR_LEFT))
+    {
+        ntg_text_scroll(ntg_txt(&north), ntg_dxy(-1, 0));
+        return true;
+    }
+    else if(nt_key_event_utf32_check(key, 'w'))
+    {
+        struct ntg_label_opts north_opts;
+        ntg_label_get_opts(&north, &north_opts);
+
+        north_opts.text_opts.wrap = (north_opts.text_opts.wrap + 1) % 3;
+        ntg_label_set_opts(&north, &north_opts);
+
+        return true;
     }
 
     return false;
@@ -164,6 +200,7 @@ int main(int argc, char *argv[])
     int _status;
     struct ntg_opts opts = ntg_opts_def();
     opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
+    // opts.cursor_mode = NTG_CURSOR_SHOW;
     ntg_enable(&opts, "/home/novak/Desktop/ntg_log.txt", &_status);
     assert(!_status);
 
@@ -194,8 +231,16 @@ int main(int argc, char *argv[])
 
     ntg_scene_set_root(&scene, ntg_obj(&root), &_status);
     ntg_stage_set_scene(&stage, &scene, &_status);
-    ntg_object_anchor(ntg_obj(&root), ntg_obj(&flt_button), &flt_ap, &_status);
-    ntg_object_anchor(ntg_obj(&flt_button), ntg_obj(&sflt_label), &sflt_ap, &_status);
+    ntg_object_anchor(
+            ntg_obj(&root),
+            ntg_obj(&flt_button),
+            &flt_ap.__base,
+            &_status);
+    ntg_object_anchor(
+            ntg_obj(&flt_button),
+            ntg_obj(&sflt_label),
+            &sflt_ap.__base,
+            &_status);
 
     // ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
     ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
@@ -265,7 +310,7 @@ void init_south()
 
     struct ntg_border_opts border_opts = ntg_border_opts_def();
     border_opts.pref_size = ntg_insets(1, 1, 1, 1);
-    border_opts.style = &def_rounded_border;
+    border_opts.style = &def_rounded_border.__base;
     border_opts.enable = NTG_OBJECT_DCR_ENABLE_ALWAYS;
 
     // SOUTH BOX
@@ -388,7 +433,7 @@ void init_flt_button()
 
     struct ntg_border_opts border_opts = ntg_border_opts_def();
     border_opts.pref_size = ntg_insets(1, 1, 1, 1);
-    border_opts.style = &flt_rounded_border;
+    border_opts.style = &flt_rounded_border.__base;
     ntg_object_set_border_opts(ntg_obj(&flt_button), &border_opts);
 
     // ntg_object_set_user_min_size_cont(ntg_obj(&flt_button), ntg_xy(1000, 1000));
@@ -445,37 +490,65 @@ void init_bs()
 {
     int _status;
 
-    ntg_border_style_init_rounded(&flt_rounded_border, NT_GFX_DEFAULT, true, &_status);
-    ntg_cleanup_batch_add(batch, &flt_rounded_border, ntg_border_style_deinit_, NULL, &_status);
-    ntg_border_style_init_rounded(&def_rounded_border, NT_GFX_DEFAULT, false, &_status);
-    ntg_cleanup_batch_add(batch, &def_rounded_border, ntg_border_style_deinit_, NULL, &_status);
+    ntg_border_9x_init_rounded(
+            &flt_rounded_border,
+            NT_GFX_DEFAULT,
+            true,
+            &_status);
+    ntg_cleanup_batch_add(
+            batch,
+            &flt_rounded_border,
+            ntg_border_9x_deinit_void,
+            NULL,
+            &_status);
+    ntg_border_9x_init_rounded(
+            &def_rounded_border,
+            NT_GFX_DEFAULT,
+            false,
+            &_status);
+    ntg_cleanup_batch_add(
+            batch,
+            &def_rounded_border,
+            ntg_border_9x_deinit_void,
+            NULL,
+            &_status);
 }
 
 void init_ap()
 {
     int _status;
 
-    struct ntg_float_policy_opts flt_opts = ntg_float_policy_opts_def();
+    struct ntg_float_opts flt_opts = ntg_float_opts_def();
     flt_opts.prim_align = NTG_ALIGN_2;
     flt_opts.sec_align = NTG_ALIGN_2;
-    flt_opts.enable = NTG_FLOAT_POLICY_ENABLE_ALWAYS;
+    flt_opts.enable = NTG_FLOAT_ENABLE_ALWAYS;
 
-    ntg_anchor_policy_init_float(&flt_ap, &flt_opts, &_status);
+    ntg_float_init(&flt_ap, &flt_opts, &_status);
 
-    ntg_cleanup_batch_add(batch, &flt_ap, ntg_anchor_policy_deinit_, NULL, &_status);
+    ntg_cleanup_batch_add(
+            batch,
+            &flt_ap,
+            ntg_float_deinit_void,
+            NULL,
+            &_status);
 
-    struct ntg_sidefloat_policy_opts sflt_opts = ntg_sidefloat_policy_opts_def();
+    struct ntg_sidefloat_opts sflt_opts = ntg_sidefloat_opts_def();
     sflt_opts.align = NTG_ALIGN_2;
     sflt_opts.side = NTG_SIDE_W;
-    sflt_opts.thresh = NTG_SIDEFLOAT_POLICY_THRESH_ALWAYS;
+    sflt_opts.thresh = NTG_SIDEFLOAT_THRESH_ALWAYS;
 
-    ntg_anchor_policy_init_sidefloat(&sflt_ap, &sflt_opts, &_status);
+    ntg_sidefloat_init(&sflt_ap, &sflt_opts, &_status);
 
-    ntg_cleanup_batch_add(batch, &sflt_ap, ntg_anchor_policy_deinit_, NULL, &_status);
+    ntg_cleanup_batch_add(
+            batch,
+            &sflt_ap,
+            ntg_sidefloat_deinit_void,
+            NULL,
+            &_status);
 }
 
 const struct ntg_focus_scope_vtable FS1_VTABLE = {
-    .dispatch_key_fn = ntg_focus_scope_dispatch_key_bubble_fn,
+    .dispatch_key_fn = fs1_dispatch_key_fn,
     .dispatch_mouse_fn = fs1_dispatch_mouse_fn
 };
 
@@ -485,7 +558,7 @@ void init_fs()
     opts.input_mode = NTG_FOCUS_SCOPE_INPUT_MODAL;
     opts.out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_CLR;
 
-    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(&root), NULL, &opts, NULL);
+    ntg_focus_scope_init_override(&fs1, &FS1_VTABLE, ntg_obj(NULL), NULL, &opts, NULL);
 
     // ntg_focus_scope_init(&fs2, NULL, NULL, NULL, NULL);
 }

@@ -124,7 +124,8 @@ ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy 
 }
 
 
-static inline void ntg_object_tmp_drawing_set(
+static inline void
+ntg_object_tmp_drawing_set(
         ntg_object_tmp_drawing* drawing,
         struct ntg_vcell cell,
         struct ntg_xy pos)

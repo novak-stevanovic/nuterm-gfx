@@ -641,18 +641,17 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 
     
     
-    size_t hsize = 0;
-    if(policy->constrain_fn)
-    {
-        struct ntg_anchor_constrain_ctx hconstrain_ctx = {
-            .root = root,
-            .base = base
-        };
-        hsize = policy->constrain_fn(policy->data,
-                NTG_ORIENT_H, &hconstrain_ctx, arena);
+    struct ntg_anchor_constrain_ctx constrain_ctx = {
+        .root = root,
+        .base = base
+    };
 
-        hsize = _clamp_size(0, hsize, scene->_size.x);
-    }
+    size_t hsize = _ntg_anchor_policy_constrain(
+            policy,
+            NTG_ORIENT_H,
+            &constrain_ctx,
+            arena);
+    hsize = _clamp_size(0, hsize, scene->_size.x);
 
     if(root->_size.x != hsize)
     {
@@ -667,18 +666,12 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 
     
     
-    size_t vsize = 0;
-    if(policy->constrain_fn)
-    {
-        struct ntg_anchor_constrain_ctx vconstrain_ctx = {
-            .root = root,
-            .base = base
-        };
-        vsize = policy->constrain_fn(policy->data,
-                NTG_ORIENT_V, &vconstrain_ctx, arena);
-
-        vsize = _clamp_size(0, vsize, scene->_size.y);
-    }
+    size_t vsize = _ntg_anchor_policy_constrain(
+            policy,
+            NTG_ORIENT_V,
+            &constrain_ctx,
+            arena);
+    vsize = _clamp_size(0, vsize, scene->_size.y);
 
     if(root->_size.y != vsize)
     {
@@ -699,21 +692,20 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
     }
     else
     {
-        struct ntg_xy pos = ntg_xy(0, 0);
-        if(policy->arrange_fn)
-        {
-            struct ntg_anchor_arrange_ctx arrange_ctx = {
-                .base = base,
-                .root = root,
-                .size = size,
-            };
+        struct ntg_anchor_arrange_ctx arrange_ctx = {
+            .base = base,
+            .root = root,
+            .size = size,
+        };
 
-            pos = policy->arrange_fn(policy->data, &arrange_ctx, arena);
-            pos = ntg_xy_pos_clamp(pos, size, scene->_size);
+        struct ntg_xy pos = _ntg_anchor_policy_arrange(
+                policy,
+                &arrange_ctx,
+                arena);
+        pos = ntg_xy_pos_clamp(pos, size, scene->_size);
 
-            pos.x -= _sub2_size(pos.x + size.x, scene->_size.x);
-            pos.y -= _sub2_size(pos.y + size.y, scene->_size.y);
-        }
+        pos.x -= _sub2_size(pos.x + size.x, scene->_size.x);
+        pos.y -= _sub2_size(pos.y + size.y, scene->_size.y);
 
         if(!ntg_xy_are_eql(root->_pos, pos))
         {

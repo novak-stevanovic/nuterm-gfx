@@ -11,14 +11,6 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_renderer_vtable
-{
-    void (*render_fn)(
-            ntg_renderer* renderer,
-            const ntg_stage_drawing* stage_drawing,
-            sarena* arena);
-};
-
 struct ntg_renderer_hooks
 {
     void (*on_render_fn)(
@@ -63,6 +55,19 @@ ntg_renderer_render(
 /* ========================================================================== */
 /* PROTECTED */
 /* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+struct ntg_renderer_vtable
+{
+    void (*render_fn)(
+            ntg_renderer* renderer,
+            const ntg_stage_drawing* stage_drawing,
+            sarena* arena);
+};
+
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
