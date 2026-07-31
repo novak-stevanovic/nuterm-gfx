@@ -72,7 +72,7 @@ ntg_focus_manager_pop_scope(ntg_focus_manager* fm);
 
 
 NTG_API ntg_focus_scope*
-ntg_focus_manager_get_active_scope(const ntg_focus_manager* fm);
+ntg_focus_manager_get_active_scope(ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */
 

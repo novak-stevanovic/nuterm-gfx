@@ -108,7 +108,7 @@ struct ntg_text
 
         size_t utf32_row_count;
         struct ntg_str32_view* utf32_rows;
-    } _cache;
+    } __cache;
 };
 
 /* -------------------------------------------------------------------------- */

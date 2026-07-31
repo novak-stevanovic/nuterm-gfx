@@ -84,9 +84,9 @@ static void init_default(ntg_text* text_obj)
 
     text_obj->_scroll = ntg_xy(0, 0);
 
-    text_obj->_cache.utf32_text = (struct ntg_str32) {0};
-    text_obj->_cache.utf32_rows = NULL;
-    text_obj->_cache.utf32_row_count = 0;
+    text_obj->__cache.utf32_text = (struct ntg_str32) {0};
+    text_obj->__cache.utf32_rows = NULL;
+    text_obj->__cache.utf32_row_count = 0;
 }
 
 /* ========================================================================== */
@@ -144,7 +144,12 @@ void ntg_text_deinit(ntg_text* text_obj)
 {
     if(!text_obj) return;
 
-    free(text_obj->_text.data);
+    if(text_obj->_text.data)
+        free(text_obj->_text.data);
+    if(text_obj->__cache.utf32_text.data)
+        free(text_obj->__cache.utf32_text.data);
+    if(text_obj->__cache.utf32_rows)
+        free(text_obj->__cache.utf32_rows);
 
     init_default(text_obj);
 
@@ -263,14 +268,14 @@ void ntg_text_set_text(
     if(text_text.len == 0)
     {
         free(text_obj->_text.data);
-        free(text_obj->_cache.utf32_text.data);
-        free(text_obj->_cache.utf32_rows);
+        free(text_obj->__cache.utf32_text.data);
+        free(text_obj->__cache.utf32_rows);
 
         text_obj->_text.data = text_text.data;
         text_obj->_text.len = text_text.len;
-        text_obj->_cache.utf32_text = (struct ntg_str32) {0};
-        text_obj->_cache.utf32_rows = NULL;
-        text_obj->_cache.utf32_row_count = 0;
+        text_obj->__cache.utf32_text = (struct ntg_str32) {0};
+        text_obj->__cache.utf32_rows = NULL;
+        text_obj->__cache.utf32_row_count = 0;
 
         ntg_object_mark_dirty((ntg_object*)text_obj,
             NTG_OBJECT_DIRTY_FULL);
@@ -330,14 +335,14 @@ void ntg_text_set_text(
     ntg_str32_split(ntg_str32_get_view(utf32_text, 0), '\n', new_rows, row_count);
 
     free(text_obj->_text.data);
-    free(text_obj->_cache.utf32_text.data);
-    free(text_obj->_cache.utf32_rows);
+    free(text_obj->__cache.utf32_text.data);
+    free(text_obj->__cache.utf32_rows);
 
     text_obj->_text.data = text_text.data;
     text_obj->_text.len = text_text.len;
-    text_obj->_cache.utf32_text = utf32_text;
-    text_obj->_cache.utf32_rows = new_rows;
-    text_obj->_cache.utf32_row_count = row_count;
+    text_obj->__cache.utf32_text = utf32_text;
+    text_obj->__cache.utf32_rows = new_rows;
+    text_obj->__cache.utf32_row_count = row_count;
 
     ntg_object_mark_dirty((ntg_object*)text_obj,
             NTG_OBJECT_DIRTY_FULL);
@@ -434,8 +439,8 @@ struct ntg_object_measure ntg_text_measure_fn(
 
     if(text_obj->_text.len == 0) return (struct ntg_object_measure) {0};
 
-    size_t row_count = text_obj->_cache.utf32_row_count;
-    const struct ntg_str32_view* rows = text_obj->_cache.utf32_rows;
+    size_t row_count = text_obj->__cache.utf32_row_count;
+    const struct ntg_str32_view* rows = text_obj->__cache.utf32_rows;
 
     if(row_count == 0) return (struct ntg_object_measure) {0};
 
@@ -516,8 +521,8 @@ void ntg_text_draw_fn(
     uint32_t* full_buff = sarena_malloc(arena, sizeof(uint32_t) * full_size_prod);
     for(i = 0; i < full_size_prod; i++) full_buff[i] = ' ';
 
-    size_t row_count = text_obj->_cache.utf32_row_count;
-    const struct ntg_str32_view* rows = text_obj->_cache.utf32_rows;
+    size_t row_count = text_obj->__cache.utf32_row_count;
+    const struct ntg_str32_view* rows = text_obj->__cache.utf32_rows;
 
     size_t capped_indent = _min2_size(opts.indent, _sub2_size(full_size_adj.x, 1));
     

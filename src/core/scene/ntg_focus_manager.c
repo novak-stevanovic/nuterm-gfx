@@ -99,6 +99,16 @@ void _ntg_focus_manager_deinit(ntg_focus_manager* fm)
 
     if(fm->__scope_stack)
     {
+        while(fm->__scope_stack->size > 1)
+            ntg_focus_manager_pop_scope(fm);
+
+        ntg_focus_scope* head = ntg_focus_manager_get_active_scope(fm);
+        if(head)
+        {
+            ntg_focus_scope_deinit(head);
+            free(head);
+        }
+
         ntg_focus_scope_list_deinit(fm->__scope_stack, NULL);
         free(fm->__scope_stack);
     }
@@ -279,8 +289,7 @@ void ntg_focus_manager_pop_scope(ntg_focus_manager* fm)
     scope_stack_sync(fm);
 }
 
-struct ntg_focus_scope*
-ntg_focus_manager_get_active_scope(const ntg_focus_manager* fm)
+ntg_focus_scope* ntg_focus_manager_get_active_scope(ntg_focus_manager* fm)
 {
     if(!fm) return NULL;
 

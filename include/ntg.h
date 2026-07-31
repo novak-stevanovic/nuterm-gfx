@@ -78,6 +78,7 @@ ntg_disable(void);
 
 // TODO:
 
+// focus scope stack size
 // border cell type so text overlay works properly?
 // fix: scrolloff doesnt make sense for ntg_text since there is no cursor.
 // add scroll capping for ntg_text on set and on resize
