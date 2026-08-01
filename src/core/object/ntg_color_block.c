@@ -143,7 +143,7 @@ void ntg_color_block_draw_fn(
         {
             ntg_object_tmp_drawing_set(
                     out_drawing,
-                    ntg_vcell_bg(color_block->_color),
+                    ntg_vcell_new_bg(color_block->_color),
                     ntg_xy(j, i));
         }
     }

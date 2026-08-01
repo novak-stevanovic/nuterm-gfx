@@ -63,7 +63,7 @@ typedef struct ntg_ptask_list ntg_ptask_list;
 typedef struct ntg_platform ntg_platform;
 
 typedef struct ntg_renderer ntg_renderer;
-typedef struct ntg_def_renderer ntg_def_renderer;
+typedef struct ntg_default_renderer ntg_default_renderer;
 
 typedef struct ntg_stage ntg_stage;
 typedef struct ntg_stage_drawing ntg_stage_drawing;

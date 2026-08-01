@@ -1,5 +1,5 @@
-#ifndef NTG_DEF_RENDERER_H
-#define NTG_DEF_RENDERER_H
+#ifndef NTG_DEFAULT_RENDERER_H
+#define NTG_DEFAULT_RENDERER_H
 
 #include "shared/ntg_shared.h"
 #include "core/renderer/ntg_renderer.h"
@@ -13,7 +13,7 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_def_renderer
+struct ntg_default_renderer
 {
     ntg_renderer __base;
 
@@ -32,19 +32,19 @@ struct ntg_def_renderer
 
 
 NTG_API void
-ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status);
+ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status);
 
 /* ------------------------------------------------------ */
 
 
 NTG_API void
-ntg_def_renderer_deinit(ntg_def_renderer* renderer);
+ntg_default_renderer_deinit(ntg_default_renderer* renderer);
 
 /* ------------------------------------------------------ */
 
 
 NTG_API void
-ntg_def_renderer_deinit_(void* _renderer);
+ntg_default_renderer_deinit_(void* _renderer);
 
 /* ========================================================================== */
 /* INTERNAL */
@@ -60,6 +60,6 @@ void _ntg_def_renderer_render_fn(
         const ntg_stage_drawing* stage_drawing,
         sarena* arena);
 
-NTG_API extern const struct ntg_renderer_vtable NTG_DEF_RENDERER_VTABLE;
+NTG_API extern const struct ntg_renderer_vtable NTG_DEFAULT_RENDERER_VTABLE;
 
-#endif // NTG_DEF_RENDERER_H
+#endif // NTG_DEFAULT_RENDERER_H

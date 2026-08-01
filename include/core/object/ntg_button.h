@@ -18,7 +18,7 @@ struct ntg_button_opts
 };
 
 NTG_API struct ntg_button_opts
-ntg_button_opts_def();
+ntg_button_opts_default();
 
 NTG_API bool
 ntg_button_opts_are_eql(

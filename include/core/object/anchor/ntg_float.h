@@ -29,7 +29,7 @@ struct ntg_float_opts
 };
 
 NTG_API struct ntg_float_opts
-ntg_float_opts_def();
+ntg_float_opts_default();
 
 struct ntg_float
 {

@@ -16,7 +16,7 @@
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status)
+void ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status)
 {
     ntg_init_status(out_status);
 
@@ -25,7 +25,7 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status)
 
     ntg_renderer_init_override(
             (ntg_renderer*)renderer,
-            &NTG_DEF_RENDERER_VTABLE,
+            &NTG_DEFAULT_RENDERER_VTABLE,
             NULL);
 
     int _status;
@@ -53,17 +53,17 @@ void ntg_def_renderer_init(ntg_def_renderer* renderer, int* out_status)
 /* RENDER HELPERS */
 /* ------------------------------------------------------ */
 
-static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size);
+static void full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size);
 
 static void optimized_render(
-        ntg_def_renderer* renderer,
+        ntg_default_renderer* renderer,
         const ntg_stage_drawing* drawing,
         struct ntg_xy size,
         struct ntg_xy old_size,
         sarena* arena);
 
 static void full_render(
-        ntg_def_renderer* renderer,
+        ntg_default_renderer* renderer,
         const ntg_stage_drawing* drawing,
         struct ntg_xy size,
         sarena* arena);
@@ -80,7 +80,7 @@ static void full_render(
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_def_renderer_deinit(ntg_def_renderer* renderer)
+void ntg_default_renderer_deinit(ntg_default_renderer* renderer)
 {
     if(!renderer) return;
 
@@ -91,11 +91,11 @@ void ntg_def_renderer_deinit(ntg_def_renderer* renderer)
     ntg_renderer_deinit((ntg_renderer*)renderer);
 }
 
-void ntg_def_renderer_deinit_(void* _renderer)
+void ntg_default_renderer_deinit_(void* _renderer)
 {
     if(!_renderer) return;
 
-    ntg_def_renderer_deinit(_renderer);
+    ntg_default_renderer_deinit(_renderer);
 }
 
 /* ========================================================================== */
@@ -119,7 +119,7 @@ void _ntg_def_renderer_render_fn(
 
     int _status;
 
-    ntg_def_renderer* renderer = (ntg_def_renderer*)_renderer;
+    ntg_default_renderer* renderer = (ntg_default_renderer*)_renderer;
     struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
     bool resize = !(ntg_xy_are_eql(renderer->__old_size, size));
 
@@ -156,7 +156,7 @@ void _ntg_def_renderer_render_fn(
     nt_buffer_disable(NT_BUFF_FLUSH);
 }
 
-const struct ntg_renderer_vtable NTG_DEF_RENDERER_VTABLE = {
+const struct ntg_renderer_vtable NTG_DEFAULT_RENDERER_VTABLE = {
     .render_fn = _ntg_def_renderer_render_fn
 };
 
@@ -172,7 +172,7 @@ const struct ntg_renderer_vtable NTG_DEF_RENDERER_VTABLE = {
 /* RENDER HELPERS */
 /* ------------------------------------------------------ */
 
-static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
+static void full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size)
 {
     size_t i, j;
     for(i = 0; i < size.y; i++)
@@ -181,7 +181,7 @@ static void full_empty_render(ntg_def_renderer* renderer, struct ntg_xy size)
         {
             ntg_stage_drawing_set(
                     &renderer->__backbuff,
-                    ntg_cell_def(),
+                    ntg_cell_default(),
                     ntg_xy(j, i));
         }
     }
@@ -212,7 +212,7 @@ static inline size_t fwd_equal_gfx_search(
 }
 
 static void optimized_render(
-        ntg_def_renderer* renderer,
+        ntg_default_renderer* renderer,
         const ntg_stage_drawing* drawing,
         struct ntg_xy size,
         struct ntg_xy old_size,
@@ -274,7 +274,7 @@ static void optimized_render(
 }
 
 static void full_render(
-        ntg_def_renderer* renderer,
+        ntg_default_renderer* renderer,
         const ntg_stage_drawing* drawing,
         struct ntg_xy size,
         sarena* arena)

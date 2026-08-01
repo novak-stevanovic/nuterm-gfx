@@ -203,7 +203,7 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
     bool owns_renderer;
     if(!loop->_renderer)
     {
-        ntg_def_renderer* def_renderer = malloc(sizeof(*def_renderer));
+        ntg_default_renderer* def_renderer = malloc(sizeof(*def_renderer));
         if(!def_renderer)
         {
             sarena_destroy(loop->_arena);
@@ -213,7 +213,7 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
         }
 
         loop->_renderer = (ntg_renderer*)def_renderer;
-        ntg_def_renderer_init(def_renderer, &_status);
+        ntg_default_renderer_init(def_renderer, &_status);
         if(_status != 0)
         {
             free(def_renderer);
@@ -336,7 +336,7 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
 
     if(owns_renderer)
     {
-        ntg_def_renderer_deinit((ntg_def_renderer*)loop->_renderer);
+        ntg_default_renderer_deinit((ntg_default_renderer*)loop->_renderer);
         free(loop->_renderer);
         loop->_renderer = NULL;
     }

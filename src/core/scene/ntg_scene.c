@@ -724,7 +724,7 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_HMEASURE)
     {
-        ntg_log_log("NTG_DEF_SCENE | M1 | %p", object);
+        ntg_log_log("NTG_DEFAULT_SCENE | M1 | %p", object);
 
         int _status;
         _ntg_object_hmeasure(object, arena, &_status);
@@ -744,7 +744,7 @@ static void hconstrain_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_HCONSTRAIN)
     {
-        ntg_log_log("NTG_DEF_SCENE | C1 | %p", object);
+        ntg_log_log("NTG_DEFAULT_SCENE | C1 | %p", object);
 
         int _status;
         _ntg_object_hconstrain(object, arena, &_status);
@@ -764,7 +764,7 @@ static void vmeasure_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_VMEASURE)
     {
-        ntg_log_log("NTG_DEF_SCENE | M2 | %p", object);
+        ntg_log_log("NTG_DEFAULT_SCENE | M2 | %p", object);
 
         int _status;
         _ntg_object_vmeasure(object, arena, &_status);
@@ -784,7 +784,7 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_VCONSTRAIN)
     {
-        ntg_log_log("NTG_DEF_SCENE | C2 | %p", object);
+        ntg_log_log("NTG_DEFAULT_SCENE | C2 | %p", object);
 
         int _status;
         _ntg_object_vconstrain(object, arena, &_status);
@@ -816,7 +816,7 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_ARRANGE)
     {
-        ntg_log_log("NTG_DEF_SCENE | A | %p", object);
+        ntg_log_log("NTG_DEFAULT_SCENE | A | %p", object);
 
         int _status;
         _ntg_object_arrange(object, arena, &_status);
@@ -836,7 +836,7 @@ static void draw_fn(ntg_object* object, void* _layout_data)
 
     if(object->_dirty & NTG_OBJECT_DIRTY_DRAW)
     {
-        ntg_log_log("NTG_DEF_SCENE | D | %p", object);
+        ntg_log_log("NTG_DEFAULT_SCENE | D | %p", object);
 
         int _status;
         _ntg_object_draw(object, arena, &_status);

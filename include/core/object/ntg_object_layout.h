@@ -115,12 +115,12 @@ struct ntg_object_tmp_drawing
 static inline struct ntg_vcell
 ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy pos)
 {
-    if(!drawing) return ntg_vcell_def();
+    if(!drawing) return ntg_vcell_new_default();
 
     if(ntg_xy_is_lesser(pos, drawing->size))
         return drawing->data[drawing->size.x * pos.y + pos.x];
     else
-        return ntg_vcell_def();
+        return ntg_vcell_new_default();
 }
 
 

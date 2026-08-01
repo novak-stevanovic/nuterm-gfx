@@ -17,10 +17,10 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_button_opts ntg_button_opts_def()
+struct ntg_button_opts ntg_button_opts_default()
 {
     return (struct ntg_button_opts) {
-        .text_opts = ntg_text_opts_def()
+        .text_opts = ntg_text_opts_default()
     };
 }
 
@@ -92,7 +92,7 @@ void ntg_button_get_opts(const ntg_button* button, struct ntg_button_opts* out_o
     if(!out_opts) return;
 
     if(!button)
-        (*out_opts) = ntg_button_opts_def();
+        (*out_opts) = ntg_button_opts_default();
     else
         out_opts->text_opts = (ntg_txt(button))->_opts;
 }
@@ -101,7 +101,7 @@ void ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
 {
     if(!button) return;
 
-    struct ntg_button_opts new_opts = (opts ? (*opts) : ntg_button_opts_def());
+    struct ntg_button_opts new_opts = (opts ? (*opts) : ntg_button_opts_default());
     struct ntg_button_opts old_opts = {0};
     ntg_button_get_opts(button, &old_opts);
 

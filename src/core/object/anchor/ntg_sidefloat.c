@@ -36,7 +36,7 @@ static const struct ntg_anchor_policy_vtable VTABLE = {
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_sidefloat_opts ntg_sidefloat_opts_def()
+struct ntg_sidefloat_opts ntg_sidefloat_opts_default()
 {
     return (struct ntg_sidefloat_opts) {
         .align = NTG_ALIGN_1,
@@ -66,14 +66,14 @@ void ntg_sidefloat_init(
     if(_status)
         ntg_vreturn(out_status, _status);
 
-    sidefloat_ap->_opts = opts ? (*opts) : ntg_sidefloat_opts_def();
+    sidefloat_ap->_opts = opts ? (*opts) : ntg_sidefloat_opts_default();
 }
 
 void ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap)
 {
     if(!sidefloat_ap) return;
 
-    sidefloat_ap->_opts = ntg_sidefloat_opts_def();
+    sidefloat_ap->_opts = ntg_sidefloat_opts_default();
     ntg_anchor_policy_deinit(&sidefloat_ap->__base);
 }
 

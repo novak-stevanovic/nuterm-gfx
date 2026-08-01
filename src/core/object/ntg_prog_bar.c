@@ -10,12 +10,12 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_prog_bar_style ntg_prog_bar_style_def()
+struct ntg_prog_bar_style ntg_prog_bar_style_default()
 {
     return (struct ntg_prog_bar_style) {
-        .complete_style = ntg_vcell_bg(nt_color_new_auto(0, 255, 0)),
-        .uncomplete_style = ntg_vcell_bg(nt_color_new_auto(255, 0, 0)),
-        .threshold_style = ntg_vcell_bg(nt_color_new_auto(0, 255, 0))
+        .complete_style = ntg_vcell_new_bg(nt_color_new_auto(0, 255, 0)),
+        .uncomplete_style = ntg_vcell_new_bg(nt_color_new_auto(255, 0, 0)),
+        .threshold_style = ntg_vcell_new_bg(nt_color_new_auto(0, 255, 0))
     };
 }
 
@@ -39,11 +39,11 @@ bool ntg_prog_bar_style_are_eql(
 
 /* ------------------------------------------------------ */
 
-struct ntg_prog_bar_opts ntg_prog_bar_opts_def()
+struct ntg_prog_bar_opts ntg_prog_bar_opts_default()
 {
     return (struct ntg_prog_bar_opts) {
         .orient = NTG_ORIENT_H,
-        .style = ntg_prog_bar_style_def()
+        .style = ntg_prog_bar_style_default()
     };
 }
 
@@ -93,7 +93,7 @@ void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
     if(!prog_bar) return;
 
     prog_bar->_prog = 0.0;
-    prog_bar->_opts = ntg_prog_bar_opts_def();
+    prog_bar->_opts = ntg_prog_bar_opts_default();
     prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
 
     ntg_object_deinit((ntg_object*)prog_bar);
@@ -116,7 +116,7 @@ void ntg_prog_bar_set_opts(
 
     struct ntg_prog_bar_opts old_opts = prog_bar->_opts;
     struct ntg_prog_bar_opts new_opts =
-            (opts ? (*opts) : ntg_prog_bar_opts_def());
+            (opts ? (*opts) : ntg_prog_bar_opts_default());
 
     if(ntg_prog_bar_opts_are_eql(&old_opts, &new_opts))
         return;
@@ -192,7 +192,7 @@ void ntg_prog_bar_init_inherit(
     }
 
     prog_bar->_prog = 0.0;
-    prog_bar->_opts = ntg_prog_bar_opts_def();
+    prog_bar->_opts = ntg_prog_bar_opts_default();
     prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
 }
 

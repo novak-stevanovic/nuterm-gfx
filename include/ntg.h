@@ -63,8 +63,7 @@ struct ntg_opts
     enum ntg_unsupported_term_mode unsupported_term_mode;
 };
 
-NTG_API struct ntg_opts
-ntg_opts_def(void);
+NTG_API struct ntg_opts ntg_opts_default(void);
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
@@ -73,19 +72,27 @@ ntg_opts_def(void);
 NTG_API void
 ntg_enable(const struct ntg_opts* opts, const char* log_filepath, int* out_status);
 
+NTG_API const struct ntg_opts*
+ntg_get_opts(void);
+
 NTG_API void
 ntg_disable(void);
 
 // TODO:
 
-// focus scope stack size
-// border cell type so text overlay works properly?
-// fix: scrolloff doesnt make sense for ntg_text since there is no cursor.
-// add scroll capping for ntg_text on set and on resize
+// NTG_TEXT:
+// draw_fn: (sec_align not incorporated, can use nat_size for full_size, overlay not working properly)
+// scroll: scrolloff doesnt make sense for ntg_text since there is no cursor.
+// scroll: add scroll capping on set and on resize
+
+// GLOBAL:
 // add more functions to vtables
 // what if cursor stays on?
 
+// IMPLEMENT:
 // ntg_input_field, ntg_list, ntg_dialogue
+
+// FINISH:
 // add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
 
 #endif // NTG_H

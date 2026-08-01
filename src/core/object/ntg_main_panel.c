@@ -26,10 +26,10 @@ static void get_children(
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_main_panel_opts ntg_main_panel_opts_def()
+struct ntg_main_panel_opts ntg_main_panel_opts_default()
 {
     return (struct ntg_main_panel_opts) {
-        .bg = ntg_vcell_def()
+        .bg = ntg_vcell_new_default()
     };
 }
 
@@ -77,7 +77,7 @@ void ntg_main_panel_deinit(ntg_main_panel* panel)
 {
     if(!panel) return;
 
-    panel->_opts = ntg_main_panel_opts_def();
+    panel->_opts = ntg_main_panel_opts_default();
     memset(panel->_children, 0, sizeof(panel->_children));
     panel->hooks = (struct ntg_main_panel_hooks) {0};
 
@@ -151,7 +151,7 @@ void ntg_main_panel_set_opts(
 
     struct ntg_main_panel_opts old_opts = panel->_opts;
     struct ntg_main_panel_opts new_opts =
-            (opts ? (*opts) : ntg_main_panel_opts_def());
+            (opts ? (*opts) : ntg_main_panel_opts_default());
 
     if(ntg_main_panel_opts_are_eql(&old_opts, &new_opts))
         return;
@@ -200,7 +200,7 @@ void ntg_main_panel_init_inherit(
         
     }
 
-    panel->_opts = ntg_main_panel_opts_def();
+    panel->_opts = ntg_main_panel_opts_default();
     memset(panel->_children, 0, sizeof(panel->_children));
     panel->hooks = (struct ntg_main_panel_hooks) {0};
 }

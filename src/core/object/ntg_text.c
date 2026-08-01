@@ -74,7 +74,7 @@ static int trim_text(struct ntg_str* text);
 
 static void init_default(ntg_text* text_obj)
 {
-    text_obj->_opts = ntg_text_opts_def();
+    text_obj->_opts = ntg_text_opts_default();
     text_obj->__vtable = NULL;
 
     text_obj->_gfx = NT_GFX_DEFAULT;
@@ -97,7 +97,7 @@ static void init_default(ntg_text* text_obj)
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_text_opts ntg_text_opts_def()
+struct ntg_text_opts ntg_text_opts_default()
 {
     return (struct ntg_text_opts) {
         .orient = NTG_ORIENT_H,
@@ -168,7 +168,7 @@ void ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
     ntg_object* _text = ntg_obj(text_obj);
 
     struct ntg_text_opts old_opts = text_obj->_opts;
-    struct ntg_text_opts new_opts = (opts ? (*opts) : ntg_text_opts_def());
+    struct ntg_text_opts new_opts = (opts ? (*opts) : ntg_text_opts_default());
 
     if(ntg_text_opts_are_eql(&old_opts, &new_opts))
         return;
@@ -179,8 +179,8 @@ void ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 
     struct ntg_vcell cell =
             (text_obj->_opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_bg(gfx.bg) :
-            ntg_vcell_overlay(' ',  gfx.fg, gfx.style);
+            ntg_vcell_new_bg(gfx.bg) :
+            ntg_vcell_new_overlay(' ',  gfx.fg, gfx.style);
 
     ntg_object_set_base_bg(_text, cell);
 
@@ -480,7 +480,7 @@ void ntg_text_draw_fn(
     struct ntg_text_opts opts = text_obj->_opts;
 
     struct ntg_xy cont_size = ntg_object_get_size_cont(_text_obj);
-    struct ntg_xy nat_size = ntg_object_get_nat_size(_text_obj);
+    struct ntg_xy cont_nat_size = ntg_object_get_nat_size_cont(_text_obj);
 
     /* Determine full size */
 
@@ -489,8 +489,8 @@ void ntg_text_draw_fn(
     if(opts.wrap == NTG_TEXT_WRAP_NONE)
     {
         full_size = ntg_xy(
-            _max2_size(nat_size.x, cont_size.x),
-            _max2_size(nat_size.y, cont_size.y));
+            _max2_size(cont_nat_size.x, cont_size.x),
+            _max2_size(cont_nat_size.y, cont_size.y));
     }
     else
     {
@@ -498,12 +498,12 @@ void ntg_text_draw_fn(
         {
             full_size = ntg_xy(
                 cont_size.x,
-                _max2_size(nat_size.y, cont_size.y));
+                _max2_size(cont_nat_size.y, cont_size.y));
         }
         else
         {
             full_size = ntg_xy(
-                _max2_size(nat_size.x, cont_size.x),
+                _max2_size(cont_nat_size.x, cont_size.x),
                 cont_size.y);
         }
     }
@@ -519,6 +519,8 @@ void ntg_text_draw_fn(
     size_t i, j, k;
     size_t full_size_prod = full_size_adj.x * full_size_adj.y;
     uint32_t* full_buff = sarena_malloc(arena, sizeof(uint32_t) * full_size_prod);
+    if(!full_buff) return;
+
     for(i = 0; i < full_size_prod; i++) full_buff[i] = ' ';
 
     size_t row_count = text_obj->__cache.utf32_row_count;
@@ -565,8 +567,10 @@ void ntg_text_draw_fn(
 
             if(opts.line_mode == NTG_TEXT_LINE_ALIGN)
             {
-                it_row_align_indent = ntg_align_offset(full_size_adj.x,
-                        _it_wrows[j].len, opts.prim_align);
+                it_row_align_indent = ntg_align_offset(
+                        full_size_adj.x,
+                        _it_wrows[j].len,
+                        opts.prim_align);
             }
             else
                 it_row_align_indent = 0;
@@ -646,8 +650,8 @@ void ntg_text_draw_fn(
 
             it_cell =
                 (opts.bg_mode == NTG_TEXT_BG_FULL) ?
-                ntg_vcell_full(*it_cont, text_obj->_gfx) :
-                ntg_vcell_overlay(*it_cont, text_obj->_gfx.fg, text_obj->_gfx.style);
+                ntg_vcell_new_full(*it_cont, text_obj->_gfx) :
+                ntg_vcell_new_overlay(*it_cont, text_obj->_gfx.fg, text_obj->_gfx.style);
 
             dst_xy = (opts.orient == NTG_ORIENT_H) ? ntg_xy(j, i) : ntg_xy(i, j);
 
@@ -674,8 +678,8 @@ void ntg_text_focus_fn(ntg_object* object, ntg_object* old_focused)
 
     struct ntg_vcell cell =
             (text->_opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_bg(text->_gfx.bg) :
-            ntg_vcell_overlay(' ',  text->_gfx.fg, text->_gfx.style);
+            ntg_vcell_new_bg(text->_gfx.bg) :
+            ntg_vcell_new_overlay(' ',  text->_gfx.fg, text->_gfx.style);
 
     ntg_object_set_base_bg(object, cell);
 
@@ -692,8 +696,8 @@ void ntg_text_unfocus_fn(ntg_object* object, ntg_object* new_focused)
 
     struct ntg_vcell cell =
             (text->_opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_bg(text->_gfx.bg) :
-            ntg_vcell_overlay(' ',  text->_gfx.fg, text->_gfx.style);
+            ntg_vcell_new_bg(text->_gfx.bg) :
+            ntg_vcell_new_overlay(' ',  text->_gfx.fg, text->_gfx.style);
 
     ntg_object_set_base_bg(object, cell);
 

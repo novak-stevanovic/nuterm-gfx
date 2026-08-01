@@ -28,14 +28,14 @@ static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_box_opts ntg_box_opts_def()
+struct ntg_box_opts ntg_box_opts_default()
 {
     return (struct ntg_box_opts) {
         .orient = NTG_ORIENT_H,
         .prim_align = NTG_ALIGN_1,
         .sec_align = NTG_ALIGN_1,
         .spacing = 0,
-        .bg = ntg_vcell_def()
+        .bg = ntg_vcell_new_default()
     };
 }
 
@@ -83,7 +83,7 @@ void ntg_box_deinit(ntg_box* box)
 {
     if(!box) return;
 
-    box->_opts = ntg_box_opts_def();
+    box->_opts = ntg_box_opts_default();
     box->hooks = (struct ntg_box_hooks) {0};
 
     free(((ntg_object*)box)->layout_cache);
@@ -102,7 +102,7 @@ void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
     if(!box) return;
 
     struct ntg_box_opts old_opts = box->_opts;
-    struct ntg_box_opts new_opts = (opts ? (*opts) : ntg_box_opts_def());
+    struct ntg_box_opts new_opts = (opts ? (*opts) : ntg_box_opts_default());
 
     if(ntg_box_opts_are_eql(&old_opts, &new_opts))
         return;
@@ -201,7 +201,7 @@ void ntg_box_init_inherit(
         
     }
 
-    box->_opts = ntg_box_opts_def();
+    box->_opts = ntg_box_opts_default();
     box->hooks = (struct ntg_box_hooks) {0};
 
     ((ntg_object*)box)->layout_cache =

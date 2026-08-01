@@ -123,7 +123,7 @@ static void border_style_draw_fn(
         {
             ntg_object_tmp_drawing_set(
                     out_drawing,
-                    ntg_vcell_def(),
+                    ntg_vcell_new_default(),
                     ntg_xy(j, i));
         }
     }

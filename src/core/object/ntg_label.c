@@ -23,10 +23,10 @@ static void init_default(ntg_label* label)
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_label_opts ntg_label_opts_def()
+struct ntg_label_opts ntg_label_opts_default()
 {
     return (struct ntg_label_opts) {
-        .text_opts = ntg_text_opts_def()
+        .text_opts = ntg_text_opts_default()
     };
 }
 
@@ -98,7 +98,7 @@ void ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts)
     if(!out_opts) return;
 
     if(!label)
-        (*out_opts) = ntg_label_opts_def();
+        (*out_opts) = ntg_label_opts_default();
     else
         out_opts->text_opts = (ntg_txt(label))->_opts;
 }
@@ -107,7 +107,7 @@ void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 {
     if(!label) return;
 
-    struct ntg_label_opts new_opts = (opts ? (*opts) : ntg_label_opts_def());
+    struct ntg_label_opts new_opts = (opts ? (*opts) : ntg_label_opts_default());
     struct ntg_label_opts old_opts = {0};
     ntg_label_get_opts(label, &old_opts);
 

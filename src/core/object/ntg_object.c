@@ -91,7 +91,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena);
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_border_opts ntg_border_opts_def()
+struct ntg_border_opts ntg_border_opts_default()
 {
     return (struct ntg_border_opts) {
         .style = &NTG_BORDER_STYLE_DEFAULT,
@@ -115,7 +115,7 @@ bool ntg_border_opts_are_eql(
             (opts1->style == opts2->style));
 }
 
-struct ntg_padding_opts ntg_padding_opts_def()
+struct ntg_padding_opts ntg_padding_opts_default()
 {
     return (struct ntg_padding_opts) {
         .pref_size = ntg_insets(0, 0, 0, 0),
@@ -137,7 +137,7 @@ bool ntg_padding_opts_are_eql(
     ntg_insets_are_eql(opts1->pref_size, opts2->pref_size));
 }
 
-struct ntg_layout_opts ntg_layout_opts_def()
+struct ntg_layout_opts ntg_layout_opts_default()
 {
     struct ntg_xy min_size, max_size, grow;
     min_size = ntg_xy(NTG_OBJECT_MIN_SIZE_UNSET, NTG_OBJECT_MIN_SIZE_UNSET);
@@ -573,7 +573,7 @@ void ntg_object_set_layout_opts(
     if(!object) return;
 
     struct ntg_layout_opts old_opts = object->_layout_opts;
-    struct ntg_layout_opts new_opts = (opts ? (*opts) : ntg_layout_opts_def());
+    struct ntg_layout_opts new_opts = (opts ? (*opts) : ntg_layout_opts_default());
 
     if(ntg_layout_opts_are_eql(&old_opts, &new_opts))
         return;
@@ -593,7 +593,7 @@ void ntg_object_set_border_opts(
     if(!object) return;
 
     struct ntg_border_opts old_opts = object->_border.opts;
-    struct ntg_border_opts new_opts = (opts ? (*opts) : ntg_border_opts_def());
+    struct ntg_border_opts new_opts = (opts ? (*opts) : ntg_border_opts_default());
 
     if(ntg_border_opts_are_eql(&old_opts, &new_opts))
         return;
@@ -615,7 +615,7 @@ void ntg_object_set_padding_opts(
     if(!object) return;
 
     struct ntg_padding_opts old_opts = object->_padding.opts;
-    struct ntg_padding_opts new_opts = (opts ? (*opts) : ntg_padding_opts_def());
+    struct ntg_padding_opts new_opts = (opts ? (*opts) : ntg_padding_opts_default());
 
     if(ntg_padding_opts_are_eql(&old_opts, &new_opts))
         return;
@@ -763,13 +763,13 @@ static void init_default(ntg_object* object)
 {
     (*object) = (ntg_object) {0};
 
-    object->_layout_opts = ntg_layout_opts_def();
+    object->_layout_opts = ntg_layout_opts_default();
 
-    object->_border.opts = ntg_border_opts_def();
-    object->_padding.opts = ntg_padding_opts_def();
+    object->_border.opts = ntg_border_opts_default();
+    object->_padding.opts = ntg_padding_opts_default();
     object->_anchor_policy = &NTG_ANCHOR_POLICY_ROOT;
 
-    object->__base_bg = ntg_vcell_def();
+    object->__base_bg = ntg_vcell_new_default();
 
     object->_clickable = NTG_OBJECT_UNCLICKABLE;
     object->_focusable = NTG_OBJECT_UNFOCUSABLE;

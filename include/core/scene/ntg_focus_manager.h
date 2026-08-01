@@ -55,37 +55,35 @@ ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object);
 /* SCOPES */
 /* ------------------------------------------------------ */
 
-
 NTG_API ntg_focus_scope*
-ntg_focus_manager_push_scope(
+ntg_focus_manager_stack_push(
         ntg_focus_manager* fm,
         const ntg_focus_scope* scope,
         int* out_status);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
-ntg_focus_manager_pop_scope(ntg_focus_manager* fm);
+ntg_focus_manager_stack_pop(ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API ntg_focus_scope*
-ntg_focus_manager_get_active_scope(ntg_focus_manager* fm);
+ntg_focus_manager_stack_get_active(ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */
+
+NTG_API size_t
+ntg_focus_manager_stack_get_size(const ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */
 /* EVENT */
 /* ------------------------------------------------------ */
 
-
 NTG_API bool
 ntg_focus_manager_feed_key(ntg_focus_manager* fm, struct nt_key_event key);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse);
@@ -102,7 +100,6 @@ ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-
 void _ntg_focus_manager_init(
         ntg_focus_manager* fm,
         ntg_scene* scene,
@@ -111,13 +108,11 @@ void _ntg_focus_manager_init(
 
 /* ------------------------------------------------------ */
 
-
 void _ntg_focus_manager_deinit(ntg_focus_manager* fm);
 
 /* ------------------------------------------------------ */
 /* INVALIDATE */
 /* ------------------------------------------------------ */
-
 
 void _ntg_focus_manager_on_scene_object_rm(ntg_focus_manager* fm, ntg_object* removed);
 

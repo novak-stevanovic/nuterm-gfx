@@ -36,7 +36,7 @@ static const struct ntg_anchor_policy_vtable VTABLE = {
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_float_opts ntg_float_opts_def()
+struct ntg_float_opts ntg_float_opts_default()
 {
     return (struct ntg_float_opts) {
         .enable = NTG_FLOAT_ENABLE_MIN,
@@ -66,14 +66,14 @@ void ntg_float_init(
     if(_status)
         ntg_vreturn(out_status, _status);
 
-    float_ap->_opts = opts ? (*opts) : ntg_float_opts_def();
+    float_ap->_opts = opts ? (*opts) : ntg_float_opts_default();
 }
 
 void ntg_float_deinit(ntg_float* float_ap)
 {
     if(!float_ap) return;
 
-    float_ap->_opts = ntg_float_opts_def();
+    float_ap->_opts = ntg_float_opts_default();
     ntg_anchor_policy_deinit(&float_ap->__base);
 }
 

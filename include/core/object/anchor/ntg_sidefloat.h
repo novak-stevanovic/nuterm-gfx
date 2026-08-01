@@ -33,7 +33,7 @@ struct ntg_sidefloat_opts
     enum ntg_sidefloat_size_cap size_cap;
 };
 
-NTG_API struct ntg_sidefloat_opts ntg_sidefloat_opts_def();
+NTG_API struct ntg_sidefloat_opts ntg_sidefloat_opts_default();
 
 struct ntg_sidefloat
 {

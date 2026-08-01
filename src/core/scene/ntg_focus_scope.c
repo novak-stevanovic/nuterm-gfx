@@ -32,7 +32,7 @@ static inline bool is_bound(struct ntg_focus_scope_keybind kb, struct nt_key_eve
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_focus_scope_opts ntg_focus_scope_opts_def()
+struct ntg_focus_scope_opts ntg_focus_scope_opts_default()
 {
      struct ntg_focus_scope_opts opts = {
         .input_mode = NTG_FOCUS_SCOPE_INPUT_MODELESS,
@@ -135,7 +135,7 @@ void ntg_focus_scope_set_opts(
 {
     if(!scope) return;
 
-    scope->_opts = (opts ? (*opts) : ntg_focus_scope_opts_def());
+    scope->_opts = (opts ? (*opts) : ntg_focus_scope_opts_default());
 }
 
 void ntg_focus_scope_set_keybinds(

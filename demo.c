@@ -198,7 +198,7 @@ void sflt_on_mouse_fn(ntg_object* _label, const struct ntg_object_mouse* event)
 int main(int argc, char *argv[])
 {
     int _status;
-    struct ntg_opts opts = ntg_opts_def();
+    struct ntg_opts opts = ntg_opts_default();
     opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
     // opts.cursor_mode = NTG_CURSOR_SHOW;
     ntg_enable(&opts, "/home/novak/Desktop/ntg_log.txt", &_status);
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
             &_status);
 
     // ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
-    ntg_focus_manager_push_scope(scene._fm, &fs1, &_status);
+    ntg_focus_manager_stack_push(scene._fm, &fs1, &_status);
 
     ntg_loop_exit_status loop_status = ntg_loop_run(&loop, &_status);
     ntg_log_log("LOOP END | STATUS: %d", loop_status);
@@ -264,7 +264,7 @@ void init_north()
         .bg = nt_color_new_auto(143, 0, 255),
         .style = nt_style_new_uniform(NT_STYLE_VAL_BOLD)
     };
-    struct ntg_label_opts north_label_opts = ntg_label_opts_def();
+    struct ntg_label_opts north_label_opts = ntg_label_opts_default();
     north_label_opts.text_opts.gfx = label_gfx;
     north_label_opts.text_opts.indent = 2;
     north_label_opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
@@ -273,7 +273,7 @@ void init_north()
     ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_void, NULL, &_status);
     ntg_label_set_text_unsafe(&north, lorem, 0, &_status);
 
-    struct ntg_padding_opts north_pad_opts = ntg_padding_opts_def();
+    struct ntg_padding_opts north_pad_opts = ntg_padding_opts_default();
     north_pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
     //ntg_object_set_padding_opts(ntg_obj(&north), &north_pad_opts);
 }
@@ -305,17 +305,17 @@ void init_south()
 {
     int _status;
 
-    struct ntg_padding_opts pad_opts = ntg_padding_opts_def();
+    struct ntg_padding_opts pad_opts = ntg_padding_opts_default();
     pad_opts.pref_size = ntg_insets(1, 1, 1, 1);
 
-    struct ntg_border_opts border_opts = ntg_border_opts_def();
+    struct ntg_border_opts border_opts = ntg_border_opts_default();
     border_opts.pref_size = ntg_insets(1, 1, 1, 1);
     border_opts.style = &def_rounded_border.__base;
     border_opts.enable = NTG_OBJECT_DCR_ENABLE_ALWAYS;
 
     // SOUTH BOX
 
-    struct ntg_box_opts south_box_opts = ntg_box_opts_def();
+    struct ntg_box_opts south_box_opts = ntg_box_opts_default();
     south_box_opts.orient = NTG_ORIENT_V;
     south_box_opts.spacing = 1;
 
@@ -326,7 +326,7 @@ void init_south()
 
     // SOUTH BOX LABEL1
 
-    struct ntg_label_opts sb_label1_opts = ntg_label_opts_def();
+    struct ntg_label_opts sb_label1_opts = ntg_label_opts_default();
     sb_label1_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(250, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
@@ -340,7 +340,7 @@ void init_south()
 
     // SOUTH BOX LABEL2
 
-    struct ntg_label_opts sb_label2_opts = ntg_label_opts_def();
+    struct ntg_label_opts sb_label2_opts = ntg_label_opts_default();
     sb_label2_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(150, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
@@ -354,7 +354,7 @@ void init_south()
 
     // SOUTH BOX LABEL3
 
-    struct ntg_label_opts sb_label3_opts = ntg_label_opts_def();
+    struct ntg_label_opts sb_label3_opts = ntg_label_opts_default();
     sb_label3_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(100, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
@@ -375,7 +375,7 @@ void init_south()
 
     // SOUTH LABEL
 
-    struct ntg_label_opts s_label_opts = ntg_label_opts_def();
+    struct ntg_label_opts s_label_opts = ntg_label_opts_default();
     s_label_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(50, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
@@ -393,8 +393,8 @@ void init_south()
 
     // SOUTH
 
-    struct ntg_box_opts south_opts = ntg_box_opts_def();
-    south_opts.bg = ntg_vcell_bg(nt_color_new_auto(255, 255, 0));
+    struct ntg_box_opts south_opts = ntg_box_opts_default();
+    south_opts.bg = ntg_vcell_new_bg(nt_color_new_auto(255, 255, 0));
 
     ntg_box_init(&south, &south_opts, &_status);
     ntg_cleanup_batch_add(batch, &south, ntg_box_deinit_void, NULL, &_status);
@@ -409,7 +409,7 @@ void init_flt_button()
 {
     int _status;
 
-    struct ntg_button_opts opts = ntg_button_opts_def();
+    struct ntg_button_opts opts = ntg_button_opts_default();
     opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
     opts.text_opts.bg_mode = NTG_TEXT_BG_FLT;
     opts.text_opts.focused_gfx = (struct nt_gfx) {
@@ -427,11 +427,11 @@ void init_flt_button()
     flt_button_layout_opts.z_index = 1;
     ntg_object_set_layout_opts(ntg_obj(&flt_button), &flt_button_layout_opts);
 
-    struct ntg_padding_opts pad_opts = ntg_padding_opts_def();
+    struct ntg_padding_opts pad_opts = ntg_padding_opts_default();
     pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
     ntg_object_set_padding_opts(ntg_obj(&flt_button), &pad_opts);
 
-    struct ntg_border_opts border_opts = ntg_border_opts_def();
+    struct ntg_border_opts border_opts = ntg_border_opts_default();
     border_opts.pref_size = ntg_insets(1, 1, 1, 1);
     border_opts.style = &flt_rounded_border.__base;
     ntg_object_set_border_opts(ntg_obj(&flt_button), &border_opts);
@@ -443,7 +443,7 @@ void init_sflt_label()
 {
     int _status;
 
-    struct ntg_label_opts opts = ntg_label_opts_def();
+    struct ntg_label_opts opts = ntg_label_opts_default();
     ntg_log_log("ABCD LABEL | ROOT | SOUTH: %p %p %p", &s_label, &root, &south);
 
     opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
@@ -518,7 +518,7 @@ void init_ap()
 {
     int _status;
 
-    struct ntg_float_opts flt_opts = ntg_float_opts_def();
+    struct ntg_float_opts flt_opts = ntg_float_opts_default();
     flt_opts.prim_align = NTG_ALIGN_2;
     flt_opts.sec_align = NTG_ALIGN_2;
     flt_opts.enable = NTG_FLOAT_ENABLE_ALWAYS;
@@ -532,7 +532,7 @@ void init_ap()
             NULL,
             &_status);
 
-    struct ntg_sidefloat_opts sflt_opts = ntg_sidefloat_opts_def();
+    struct ntg_sidefloat_opts sflt_opts = ntg_sidefloat_opts_default();
     sflt_opts.align = NTG_ALIGN_2;
     sflt_opts.side = NTG_SIDE_W;
     sflt_opts.thresh = NTG_SIDEFLOAT_THRESH_ALWAYS;
@@ -554,7 +554,7 @@ const struct ntg_focus_scope_vtable FS1_VTABLE = {
 
 void init_fs()
 {
-    struct ntg_focus_scope_opts opts = ntg_focus_scope_opts_def();
+    struct ntg_focus_scope_opts opts = ntg_focus_scope_opts_default();
     opts.input_mode = NTG_FOCUS_SCOPE_INPUT_MODAL;
     opts.out_click_mode = NTG_FOCUS_SCOPE_OUT_CLICK_CLR;
 

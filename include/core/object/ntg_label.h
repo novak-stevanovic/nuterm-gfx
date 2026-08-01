@@ -18,7 +18,7 @@ struct ntg_label_opts
 };
 
 NTG_API struct ntg_label_opts
-ntg_label_opts_def();
+ntg_label_opts_default();
 
 NTG_API bool
 ntg_label_opts_are_eql(

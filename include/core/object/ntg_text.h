@@ -59,7 +59,7 @@ struct ntg_text_opts
 };
 
 NTG_API struct ntg_text_opts
-ntg_text_opts_def();
+ntg_text_opts_default();
 
 NTG_API bool
 ntg_text_opts_are_eql(

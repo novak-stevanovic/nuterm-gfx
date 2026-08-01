@@ -272,7 +272,7 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
         {
             ntg_stage_drawing_set(
                     &stage->_drawing,
-                    ntg_cell_def(),
+                    ntg_cell_default(),
                     ntg_xy(j, i));
         }
     }

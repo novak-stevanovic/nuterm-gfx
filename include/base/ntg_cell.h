@@ -88,7 +88,7 @@ struct ntg_vcell_vecgrid
 
 
 static inline struct ntg_cell 
-ntg_cell_def()
+ntg_cell_default()
 {
     return (struct ntg_cell) {
         .cp = ' ',
@@ -130,7 +130,7 @@ static inline struct ntg_cell
 ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
 {
     if(!vecgrid)
-        return ntg_cell_def();
+        return ntg_cell_default();
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
@@ -139,7 +139,7 @@ ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
     }
     else
     {
-        return ntg_cell_def();
+        return ntg_cell_default();
     }
 }
 
@@ -182,9 +182,8 @@ ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
     return rval;
 }
 
-
 static inline struct ntg_vcell 
-ntg_vcell_def()
+ntg_vcell_new_default()
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
@@ -195,9 +194,8 @@ ntg_vcell_def()
     };
 }
 
-
 static inline struct ntg_vcell 
-ntg_vcell_full(uint32_t cp, struct nt_gfx gfx)
+ntg_vcell_new_full(uint32_t cp, struct nt_gfx gfx)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
@@ -208,9 +206,8 @@ ntg_vcell_full(uint32_t cp, struct nt_gfx gfx)
     };
 }
 
-
 static inline struct ntg_vcell 
-ntg_vcell_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
+ntg_vcell_new_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_OVERLAY,
@@ -222,18 +219,16 @@ ntg_vcell_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
     };
 }
 
-
 static inline struct ntg_vcell 
-ntg_vcell_transparent()
+ntg_vcell_new_transparent()
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_TRANSPARENT
     };
 }
 
-
 static inline struct ntg_vcell 
-ntg_vcell_bg(struct nt_color color)
+ntg_vcell_new_bg(struct nt_color color)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
@@ -247,7 +242,6 @@ ntg_vcell_bg(struct nt_color color)
         }
     };
 }
-
 
 static inline bool
 ntg_vcell_are_eql(struct ntg_vcell c1, struct ntg_vcell c2)
@@ -292,13 +286,11 @@ ntg_vcell_overwrite(struct ntg_vcell overwriting, struct ntg_cell overwritten)
 /* VCELL VECGRID */
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid);
 
 NTG_API void
 ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid);
-
 
 NTG_API void
 ntg_vcell_vecgrid_set_size(
@@ -310,12 +302,11 @@ ntg_vcell_vecgrid_set_size(
 NTG_API struct ntg_xy
 ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid);
 
-
 static inline struct ntg_vcell
 ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
 {
     if(!vecgrid)
-        return ntg_vcell_def();
+        return ntg_vcell_new_default();
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
@@ -324,10 +315,9 @@ ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
     }
     else
     {
-        return ntg_vcell_def();
+        return ntg_vcell_new_default();
     }
 }
-
 
 static inline void
 ntg_vcell_vecgrid_set(ntg_vcell_vecgrid* vecgrid, struct ntg_vcell cell, struct ntg_xy pos)

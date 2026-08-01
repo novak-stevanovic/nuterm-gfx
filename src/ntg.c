@@ -27,7 +27,7 @@
 /* OPTIONS */
 /* ------------------------------------------------------ */
 
-struct ntg_opts ntg_opts_def(void)
+struct ntg_opts ntg_opts_default(void)
 {
     return (struct ntg_opts) {
         .mouse_mode = NTG_MOUSE_ENABLE,
@@ -69,7 +69,7 @@ void ntg_enable(
 
     int _status;
 
-    _opts = (opts ? (*opts) : ntg_opts_def());
+    _opts = (opts ? (*opts) : ntg_opts_default());
 
     if(log_filepath != NULL)
     {
@@ -109,6 +109,11 @@ void ntg_enable(
         _opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
 
     _enabled = true;
+}
+
+const struct ntg_opts* ntg_get_opts(void)
+{
+    return (_enabled ? &_opts : NULL);
 }
 
 void ntg_disable(void)
