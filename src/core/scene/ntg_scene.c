@@ -428,6 +428,9 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
     if(scene->hooks.on_object_register_fn)
         scene->hooks.on_object_register_fn(scene, object);
 
+    if(object->__vtable->set_scene_fn)
+        object->__vtable->set_scene_fn(object, scene);
+
     if(object->hooks.on_scene_set_fn)
         object->hooks.on_scene_set_fn(object, scene);
 
@@ -449,6 +452,9 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
 
     if(scene->hooks.on_object_unregister_fn)
         scene->hooks.on_object_unregister_fn(scene, object);
+
+    if(object->__vtable->rm_scene_fn)
+        object->__vtable->rm_scene_fn(object, scene);
 
     if(object->hooks.on_scene_rm_fn)
         object->hooks.on_scene_rm_fn(object, scene);

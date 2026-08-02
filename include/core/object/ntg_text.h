@@ -52,9 +52,6 @@ struct ntg_text_opts
     ntg_align sec_align;
     ntg_text_bg_mode bg_mode;
 
-    // TODO:
-    size_t prim_scrolloff; // active only if NTG_TEXT_WRAP_NONE
-    size_t sec_scrolloff;
     size_t indent;
 };
 
@@ -186,10 +183,16 @@ NTG_API void
 ntg_text_deinit_fn(ntg_object* _text_obj);
 
 NTG_API void
-ntg_text_focus_fn(ntg_object* object, ntg_object* old_focused);
+ntg_text_focus_fn(ntg_object* _text_obj, ntg_object* old_focused);
 
 NTG_API void
-ntg_text_unfocus_fn(ntg_object* object, ntg_object* new_focused);
+ntg_text_unfocus_fn(ntg_object* _text_obj, ntg_object* new_focused);
+
+NTG_API void
+ntg_text_cont_resize_fn(
+        ntg_object* _text_obj,
+        struct ntg_xy old_size,
+        struct ntg_xy new_size);
 
 NTG_API extern const struct ntg_object_vtable NTG_TEXT_VTABLE;
 

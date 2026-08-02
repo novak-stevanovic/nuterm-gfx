@@ -307,6 +307,7 @@ void init_south()
 
     struct ntg_padding_opts pad_opts = ntg_padding_opts_default();
     pad_opts.pref_size = ntg_insets(1, 1, 1, 1);
+    pad_opts.enable = NTG_OBJECT_DCR_ENABLE_ALWAYS;
 
     struct ntg_border_opts border_opts = ntg_border_opts_default();
     border_opts.pref_size = ntg_insets(1, 1, 1, 1);
@@ -366,6 +367,7 @@ void init_south()
     ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_void, NULL, &_status);
 
     ntg_label_set_text_unsafe(&sb_label3, lorem, 0, &_status);
+    ntg_object_set_padding_opts(ntg_obj(&sb_label3), &pad_opts);
     
     // CONNECT
 

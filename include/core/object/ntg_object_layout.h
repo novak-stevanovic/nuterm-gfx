@@ -112,6 +112,12 @@ struct ntg_object_tmp_drawing
     struct ntg_xy size;
 };
 
+enum ntg_object_draw_status
+{
+    NTG_OBJECT_DRAW_SUCCESS = 0,
+    NTG_OBJECT_DRAW_FAIL
+};
+
 static inline struct ntg_vcell
 ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy pos)
 {
@@ -122,7 +128,6 @@ ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy 
     else
         return ntg_vcell_new_default();
 }
-
 
 static inline void
 ntg_object_tmp_drawing_set(

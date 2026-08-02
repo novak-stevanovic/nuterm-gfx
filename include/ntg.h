@@ -81,11 +81,10 @@ ntg_disable(void);
 // TODO:
 
 // NTG_TEXT:
-// draw_fn: (sec_align not incorporated, can use nat_size for full_size, overlay not working properly)
-// scroll: scrolloff doesnt make sense for ntg_text since there is no cursor.
 // scroll: add scroll capping on set and on resize
 
 // GLOBAL:
+// layout fail: dont clean
 // add more functions to vtables
 // what if cursor stays on?
 

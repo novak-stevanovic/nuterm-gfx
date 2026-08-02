@@ -153,12 +153,10 @@ struct ntg_object_hooks
             const struct ntg_layout_opts* old_opts,
             const struct ntg_layout_opts* new_opts);
 
-    
     void (*on_cont_resize_fn)(
             ntg_object* object,
             struct ntg_xy old_size,
             struct ntg_xy new_size);
-
     
     void (*on_resize_fn)(
             ntg_object* object,
@@ -489,6 +487,18 @@ struct ntg_object_vtable
 
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
 
+    void (*add_anchored_fn)(ntg_object* object, ntg_object* anchored);
+    void (*rm_anchored_fn)(ntg_object* object, ntg_object* anchored);
+
+    void (*set_base_fn)(ntg_object* object, ntg_object* anchored);
+    void (*rm_base_fn)(ntg_object* object, ntg_object* anchored);
+
+    void (*set_parent_fn)(ntg_object* object, ntg_object* new_parent);
+    void (*rm_parent_fn)(ntg_object* object, ntg_object* old_parent);
+
+    void (*set_scene_fn)(ntg_object* object, ntg_scene* new_scene);
+    void (*rm_scene_fn)(ntg_object* object, ntg_scene* old_scene);
+
     bool (*process_key_fn)(ntg_object* object, const struct ntg_object_key* event);
     bool (*process_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
 
@@ -504,6 +514,21 @@ struct ntg_object_vtable
             ntg_object* object,
             struct ntg_xy old_size,
             struct ntg_xy new_size);
+
+    void (*chng_border_opts_fn)(
+            ntg_object* object,
+            const struct ntg_border_opts* old_opts,
+            const struct ntg_border_opts* new_opts);
+
+    void (*chng_padding_opts_fn)(
+            ntg_object* object,
+            const struct ntg_padding_opts* old_opts,
+            const struct ntg_padding_opts* new_opts);
+
+    void (*chng_layout_opts_fn)(
+            ntg_object* object,
+            const struct ntg_layout_opts* old_opts,
+            const struct ntg_layout_opts* new_opts);
 };
 
 /* -------------------------------------------------------------------------- */

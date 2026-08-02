@@ -444,8 +444,11 @@ void ntg_object_detach(ntg_object* object)
 
     ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
 
-    if(object->hooks.on_child_rm_fn)
-        object->hooks.on_child_rm_fn(parent, object);
+    if(parent->hooks.on_child_rm_fn)
+        parent->hooks.on_child_rm_fn(parent, object);
+
+    if(object->__vtable->rm_parent_fn)
+        object->__vtable->rm_parent_fn(object, parent);
 
     if(object->hooks.on_parent_rm_fn)
         object->hooks.on_parent_rm_fn(object, parent);
@@ -501,8 +504,14 @@ void ntg_object_anchor(
     if(scene)
         _ntg_scene_add_object_tree(scene, root);
 
+    if(base->__vtable->add_anchored_fn)
+        base->__vtable->add_anchored_fn(base, root);
+
     if(base->hooks.on_anchored_add_fn)
         base->hooks.on_anchored_add_fn(base, root);
+
+    if(root->__vtable->set_base_fn)
+        root->__vtable->set_base_fn(root, base);
 
     if(root->hooks.on_base_set_fn)
         root->hooks.on_base_set_fn(root, base);
@@ -524,11 +533,17 @@ void ntg_object_unanchor(ntg_object* root)
     root->_base = NULL;
     root->_anchor_policy = NULL;
 
+    if(base->__vtable->rm_anchored_fn)
+        base->__vtable->rm_anchored_fn(base, root);
+
     if(base->hooks.on_anchored_rm_fn)
         base->hooks.on_anchored_rm_fn(base, root);
 
     if(scene)
         _ntg_scene_rm_object_tree(scene, root);
+
+    if(root->__vtable->rm_base_fn)
+        root->__vtable->rm_base_fn(root, base);
 
     if(root->hooks.on_base_rm_fn)
         root->hooks.on_base_rm_fn(root, base);
@@ -582,6 +597,14 @@ void ntg_object_set_layout_opts(
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
+    if(object->__vtable->chng_layout_opts_fn)
+    {
+        object->__vtable->chng_layout_opts_fn(
+                object,
+                &old_opts,
+                &object->_layout_opts);
+    }
+
     if(object->hooks.on_layout_opts_chng_fn)
         object->hooks.on_layout_opts_chng_fn(object, &old_opts, &object->_layout_opts);
 }
@@ -604,6 +627,14 @@ void ntg_object_set_border_opts(
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
+    if(object->__vtable->chng_border_opts_fn)
+    {
+        object->__vtable->chng_border_opts_fn(
+                object,
+                &old_opts,
+                &object->_border.opts);
+    }
+
     if(object->hooks.on_border_opts_chng_fn)
         object->hooks.on_border_opts_chng_fn(object, &old_opts, &object->_border.opts);
 }
@@ -623,6 +654,14 @@ void ntg_object_set_padding_opts(
     object->_padding.opts = new_opts;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+
+    if(object->__vtable->chng_padding_opts_fn)
+    {
+        object->__vtable->chng_padding_opts_fn(
+                object,
+                &old_opts,
+                &object->_padding.opts);
+    }
 
     if(object->hooks.on_padding_opts_chng_fn)
         object->hooks.on_padding_opts_chng_fn(object, &old_opts, &object->_padding.opts);
@@ -903,6 +942,9 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
     if(scene)
         _ntg_scene_add_object_tree(scene, child);
 
+    if(child->__vtable->set_parent_fn)
+        child->__vtable->set_parent_fn(child, parent);
+
     if(parent->hooks.on_child_add_fn)
         parent->hooks.on_child_add_fn(parent, child);
 
@@ -911,6 +953,8 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
 
     if(scene)
         _ntg_scene_register_tree(scene, child);
+
+    ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
 }
 
 void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
