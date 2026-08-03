@@ -26,39 +26,27 @@ struct ntg_default_renderer
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
-
 NTG_API void
 ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status);
-
-/* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_default_renderer_deinit(ntg_default_renderer* renderer);
 
-/* ------------------------------------------------------ */
+NTG_API void
+ntg_default_renderer_deinit_void(void* _renderer);
 
+/* ========================================================================== */
+/* PROTECTED */
+/* ========================================================================== */
 
 NTG_API void
-ntg_default_renderer_deinit_(void* _renderer);
-
-/* ========================================================================== */
-/* INTERNAL */
-/* ========================================================================== */
-
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-
-void _ntg_def_renderer_render_fn(
+ntg_default_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
         sarena* arena);
+
+NTG_API void
+ntg_default_renderer_deinit_fn(ntg_renderer* _renderer);
 
 NTG_API extern const struct ntg_renderer_vtable NTG_DEFAULT_RENDERER_VTABLE;
 

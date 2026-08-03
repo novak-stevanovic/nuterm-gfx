@@ -55,7 +55,8 @@ bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_loop_init(ntg_loop* loop,
+void ntg_loop_init(
+        ntg_loop* loop,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
         unsigned int framerate,
@@ -249,6 +250,10 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
     loop->_status = NTG_LOOP_RUNNING;
     nt_get_term_size(&loop->_app_size.x, &loop->_app_size.y);
 
+    int _recompose;
+
+    const struct ntg_opts* opts = ntg_get_opts();
+
     if(loop->_stage)
         _ntg_stage_set_size(loop->_stage, loop->_app_size);
     while(true)
@@ -284,7 +289,6 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
         if(loop->__on_event_fn)
             loop->__on_event_fn(loop, event);
 
-        
         if(event.type == NT_EVENT_TIMEOUT)
         {
             _ntg_platform_execute_all(loop->_platform);
@@ -295,8 +299,11 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
             {
                 if(loop->_stage->_dirty)
                 {
-                    _ntg_stage_compose(loop->_stage, loop->_arena);
-                    _ntg_stage_clean(loop->_stage);
+                    _recompose = 0;
+                    _ntg_stage_compose(loop->_stage, loop->_arena, &_recompose);
+                    
+                    if(!_recompose)
+                        _ntg_stage_clean(loop->_stage);
                     
                 }
                 drawing = &(loop->_stage->_drawing);
@@ -304,6 +311,7 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
             else drawing = NULL;
 
             ntg_renderer_render(loop->_renderer, drawing, loop->_arena);
+            nt_cursor_move(0, 0, NULL);
 
             sarena_rewind(loop->_arena);
             (loop->_frame)++;
@@ -320,8 +328,6 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
         process_elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
             + (int64_t)(ts_end.tv_nsec - ts_start.tv_nsec);
         
-        
-
         process_elapsed_ms = process_elapsed_ns / 1000000LL;
         loop->_elapsed += (event_elapsed + process_elapsed_ms);
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;

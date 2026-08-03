@@ -136,6 +136,6 @@ NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 void _ntg_stage_clean(ntg_stage* stage);
 void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop);
 void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
-void _ntg_stage_compose(ntg_stage* stage, sarena* arena);
+void _ntg_stage_compose(ntg_stage* stage, sarena* arena, int* out_recompose);
 
 #endif // NTG_STAGE_H

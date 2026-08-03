@@ -120,14 +120,16 @@ ntg_label_measure_fn(
         const ntg_object* _label,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_remeasure);
 
 NTG_API void
 ntg_label_draw_fn(
         const ntg_object* _label,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_redraw);
 
 NTG_API void
 ntg_label_deinit_fn(ntg_object* _label);

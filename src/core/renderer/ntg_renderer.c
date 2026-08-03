@@ -5,38 +5,18 @@
 /* STATIC */
 /* ========================================================================== */
 
-static const struct ntg_renderer_vtable VTABLE_EMPTY = {0};
-
 /* ========================================================================== */
 /* PUBLIC */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
-void ntg_renderer_init(ntg_renderer* renderer, int* out_status)
+void ntg_renderer_vdeinit(ntg_renderer* renderer)
 {
-    ntg_renderer_init_override(
-            renderer,
-            &NTG_RENDERER_VTABLE_DEFAULT,
-            out_status);
+    if(!renderer)
+        return;
+
+    if(renderer->__vtable->deinit_fn)
+        renderer->__vtable->deinit_fn(renderer);
 }
-
-void ntg_renderer_deinit(ntg_renderer* renderer)
-{
-    if(!renderer) return;
-
-    (*renderer) = (ntg_renderer) {0};
-}
-
-/* ------------------------------------------------------ */
-/* RENDER */
-/* ------------------------------------------------------ */
 
 void ntg_renderer_render(
         ntg_renderer* renderer,
@@ -56,11 +36,7 @@ void ntg_renderer_render(
 /* PROTECTED */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-void ntg_renderer_init_override(
+void ntg_renderer_init_inherit(
         ntg_renderer* renderer,
         const struct ntg_renderer_vtable* vtable,
         int* out_status)
@@ -70,20 +46,17 @@ void ntg_renderer_init_override(
     if(!renderer)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
+    if(!vtable || !vtable->render_fn || !vtable->deinit_fn)
+        ntg_vreturn(out_status, NTG_ERR_BAD_VTABLE);
+
     (*renderer) = (ntg_renderer) {0};
-    renderer->__vtable = (vtable ? vtable : &VTABLE_EMPTY);
+
+    renderer->__vtable = vtable;
 }
 
-void ntg_renderer_render_fn(
-        ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing,
-        sarena* arena)
+void ntg_renderer_deinit(ntg_renderer* renderer)
 {
-    (void)renderer;
-    (void)stage_drawing;
-    (void)arena;
-}
+    if(!renderer) return;
 
-const struct ntg_renderer_vtable NTG_RENDERER_VTABLE_DEFAULT = {
-    .render_fn = ntg_renderer_render_fn
-};
+    (*renderer) = (ntg_renderer) {0};
+}

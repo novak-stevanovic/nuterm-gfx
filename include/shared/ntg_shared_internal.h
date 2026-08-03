@@ -140,7 +140,7 @@ static inline size_t _sub3_size(size_t x, size_t y, size_t z)
 #define ntg_init_status(out_status_param) \
     if((out_status_param)) (*(out_status_param)) = 0;
 
-#define ntg_set_status(out_status_param, out_status) \
-    if((out_status_param)) (*(out_status_param)) = (out_status);
+#define ntg_set_out(out_param, out_val) \
+    if((out_param)) (*(out_param)) = (out_val);
 
 #endif // NTG_SHARED_INTERNAL_H

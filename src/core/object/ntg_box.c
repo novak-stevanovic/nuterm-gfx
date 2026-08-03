@@ -217,7 +217,8 @@ struct ntg_object_measure ntg_box_measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_remeasure)
 {
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
@@ -272,7 +273,8 @@ void ntg_box_constrain_fn(
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_reconstrain)
 {
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
@@ -289,8 +291,17 @@ void ntg_box_constrain_fn(
     size_t extra_size;
     size_t array_size = children->size * sizeof(size_t);
     size_t* caps = (size_t*)sarena_malloc(arena, array_size);
-    if(!caps) return;
+    if(!caps)
+    {
+        ntg_set_out(out_reconstrain, 1);
+        return;
+    }
     size_t* _sizes = (size_t*)sarena_malloc(arena, array_size);
+    if(!_sizes)
+    {
+        ntg_set_out(out_reconstrain, 1);
+        return;
+    }
     size_t* grows = NULL;
 
     const ntg_object* it_child;
@@ -301,7 +312,11 @@ void ntg_box_constrain_fn(
         if(size >= nat_size) 
         {
             grows = (size_t*)sarena_malloc(arena, array_size);
-            if(!grows) return;
+            if(!grows)
+            {
+                ntg_set_out(out_reconstrain, 1);
+                return;
+            }
             extra_size = size - nat_size; 
 
             for(i = 0; i < children->size; i++)
@@ -346,7 +361,11 @@ void ntg_box_constrain_fn(
         }
 
         ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children->size, arena, &_status);
-        if(_status != 0) return;
+        if(_status)
+        {
+            ntg_set_out(out_reconstrain, 1);
+            return;
+        }
 
         for(i = 0; i < children->size; i++)
         {
@@ -379,7 +398,8 @@ void ntg_box_arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_rearrange)
 {
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
@@ -388,7 +408,6 @@ void ntg_box_arrange_fn(
     if(children->size == 0) return;
 
     int _status;
-
     
     ntg_orient orient = box->_opts.orient;
     ntg_align prim_align = box->_opts.prim_align;
@@ -398,7 +417,6 @@ void ntg_box_arrange_fn(
     const ntg_object* it_child;
     struct ntg_xy it_size;
     struct ntg_oxy _it_size;
-
     
     struct ntg_oxy _size = ntg_oxy_from_xy(size, orient);
     struct ntg_oxy _children_size = ntg_oxy(0, 0, orient);
@@ -412,7 +430,6 @@ void ntg_box_arrange_fn(
         _children_size.prim_val += _it_size.prim_val;
         _children_size.sec_val = _max2_size(_children_size.sec_val, _it_size.sec_val);
     }
-
     
     size_t pref_spacing = calculate_total_spacing(box->_opts.spacing, children->size);
     size_t total_spacing = _min2_size(pref_spacing, _size.prim_val - _children_size.prim_val);
@@ -421,23 +438,32 @@ void ntg_box_arrange_fn(
     size_t array_size = children->size * sizeof(size_t);
 
     size_t* spacing_caps = (size_t*)sarena_malloc(arena, array_size);
-    if(!spacing_caps) return;
+    if(!spacing_caps)
+    {
+        ntg_set_out(out_rearrange, 1);
+        return;
+    }
     for(i = 0; i < (children->size - 1); i++)
         spacing_caps[i] = NTG_SIZE_MAX;
 
     size_t* _spacing_after = (size_t*)sarena_calloc(arena, array_size);
-    if(!_spacing_after) return;
+    if(!_spacing_after)
+    {
+        ntg_set_out(out_rearrange, 1);
+        return;
+    }
 
     ntg_sap_cap_round_robin(spacing_caps, NULL, _spacing_after,
             total_spacing, children->size - 1, arena, &_status);
-
-    if(_status != 0) return;
-
+    if(_status)
+    {
+        ntg_set_out(out_rearrange, 1);
+        return;
+    }
     
     struct ntg_oxy _cont_size = ntg_oxy(
             _children_size.prim_val + total_spacing,
             _children_size.sec_val, orient);
-
     
     struct ntg_oxy _base_offset = ntg_oxy(
         ntg_align_offset(_cont_size.prim_val, _size.prim_val, prim_align),

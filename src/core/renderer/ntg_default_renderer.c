@@ -5,53 +5,8 @@
 // TODO: Vertical optimized rendering?
 
 /* ========================================================================== */
-/* PUBLIC */
-/* ========================================================================== */
-
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
-void ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status)
-{
-    ntg_init_status(out_status);
-
-    if(!renderer)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
-    ntg_renderer_init_override(
-            (ntg_renderer*)renderer,
-            &NTG_DEFAULT_RENDERER_VTABLE,
-            NULL);
-
-    int _status;
-    ntg_stage_drawing_init(&renderer->__backbuff, &_status);
-    switch(_status)
-    {
-        case 0:
-            break;
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-    }
-
-    renderer->__old_size = ntg_xy(0, 0);
-}
-
-/* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
-
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* RENDER HELPERS */
-/* ------------------------------------------------------ */
 
 static void full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size);
 
@@ -72,26 +27,42 @@ static void full_render(
 /* PUBLIC */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+void ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status)
+{
+    ntg_init_status(out_status);
 
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
+    if(!renderer)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    ntg_renderer_init_inherit(
+            (ntg_renderer*)renderer,
+            &NTG_DEFAULT_RENDERER_VTABLE,
+            NULL);
+
+    int _status;
+    ntg_stage_drawing_init(&renderer->__backbuff, &_status);
+    switch(_status)
+    {
+        case 0:
+            break;
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
+
+    renderer->__old_size = ntg_xy(0, 0);
+}
 
 void ntg_default_renderer_deinit(ntg_default_renderer* renderer)
 {
     if(!renderer) return;
 
+    renderer->__old_size = ntg_xy(0, 0);
     ntg_stage_drawing_deinit(&renderer->__backbuff);
 
-    renderer->__old_size = ntg_xy(0, 0);
-
-    ntg_renderer_deinit((ntg_renderer*)renderer);
+    ntg_renderer_deinit(ntg_rnd(renderer));
 }
 
-void ntg_default_renderer_deinit_(void* _renderer)
+void ntg_default_renderer_deinit_void(void* _renderer)
 {
     if(!_renderer) return;
 
@@ -99,18 +70,10 @@ void ntg_default_renderer_deinit_(void* _renderer)
 }
 
 /* ========================================================================== */
-/* INTERNAL */
+/* PROTECTED */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* RENDER */
-/* ------------------------------------------------------ */
-
-void _ntg_def_renderer_render_fn(
+void ntg_default_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
         sarena* arena)
@@ -156,21 +119,19 @@ void _ntg_def_renderer_render_fn(
     nt_buffer_disable(NT_BUFF_FLUSH);
 }
 
+void ntg_default_renderer_deinit_fn(ntg_renderer* _renderer)
+{
+    ntg_default_renderer_deinit((ntg_default_renderer*)_renderer);
+}
+
 const struct ntg_renderer_vtable NTG_DEFAULT_RENDERER_VTABLE = {
-    .render_fn = _ntg_def_renderer_render_fn
+    .render_fn = ntg_default_renderer_render_fn,
+    .deinit_fn = ntg_default_renderer_deinit_fn
 };
 
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
-
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------ */
-/* RENDER HELPERS */
-/* ------------------------------------------------------ */
 
 static void full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size)
 {

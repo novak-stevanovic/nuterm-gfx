@@ -116,7 +116,8 @@ struct ntg_object_measure ntg_color_block_measure_fn(
         const ntg_object* _color_block,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_remeasure)
 {
     return (struct ntg_object_measure) {
         .min_size = DEFAULT_SIZE,
@@ -130,10 +131,10 @@ void ntg_color_block_draw_fn(
         const ntg_object* _color_block,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_redraw)
 {
-    const ntg_color_block* color_block =
-            (const ntg_color_block*)_color_block;
+    const ntg_color_block* color_block = ntg_cb(_color_block);
     struct ntg_xy size = ntg_object_get_size_cont(_color_block);
 
     size_t i, j;

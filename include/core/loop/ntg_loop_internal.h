@@ -52,8 +52,6 @@ GENC_SIMPLE_LIST_GENERATE(ntg_task_list, struct ntg_task);
 struct ntg_task_runner
 {
     ntg_platform* __platform;
-
-    
     
     ntg_loop* __loop;
 

@@ -48,10 +48,8 @@ struct ntg_loop
     uint64_t _elapsed; 
     uint64_t _frame; 
 
-    
     sarena* _arena;
 
-    
     ntg_renderer* _renderer;
 
     ntg_task_runner* _task_runner;
@@ -71,7 +69,6 @@ struct ntg_loop
 /* EVENT */
 /* ------------------------------------------------------ */
 
-
 NTG_API bool
 ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
 
@@ -79,9 +76,9 @@ ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-
 NTG_API void
-ntg_loop_init(ntg_loop* loop,
+ntg_loop_init(
+        ntg_loop* loop,
         ntg_stage* init_stage,
         ntg_renderer* renderer,
         unsigned int framerate,
@@ -91,12 +88,10 @@ ntg_loop_init(ntg_loop* loop,
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_loop_deinit(ntg_loop* loop, int* out_status);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_loop_deinit_void(void* _loop);
@@ -105,24 +100,20 @@ ntg_loop_deinit_void(void* _loop);
 /* CONTROL */
 /* ------------------------------------------------------ */
 
-
 NTG_API enum ntg_loop_exit_status
 ntg_loop_run(ntg_loop* loop, int* out_status);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_loop_break(ntg_loop* loop, ntg_loop_stop_mode stop_mode);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_loop_set_stage(ntg_loop* loop, ntg_stage* stage, int* out_status);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_loop_is_running(const ntg_loop* loop);
@@ -130,7 +121,6 @@ ntg_loop_is_running(const ntg_loop* loop);
 /* ------------------------------------------------------ */
 /* TASKS */
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_task_runner_execute(
@@ -140,7 +130,6 @@ ntg_task_runner_execute(
         int* out_status);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_platform_execute_later(

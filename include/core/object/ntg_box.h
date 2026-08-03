@@ -136,7 +136,8 @@ ntg_box_measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_remeasure);
 
 /* ------------------------------------------------------ */
 
@@ -147,7 +148,8 @@ ntg_box_constrain_fn(
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_reconstrain);
 
 /* ------------------------------------------------------ */
 
@@ -157,20 +159,18 @@ ntg_box_arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_rearrange);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_box_deinit_fn(ntg_object* _box);
-
 
 NTG_API extern const struct ntg_object_vtable NTG_BOX_VTABLE;
 

@@ -19,7 +19,7 @@ static void get_objects_in_drawing_order_layer_internal(
         ntg_object** buff,
         size_t* counter);
 static void draw_object(ntg_stage* stage, ntg_object* object);
-static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
+static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena, int* out_recompose);
 
 /* ========================================================================== */
 /* PUBLIC */
@@ -241,7 +241,7 @@ void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
         stage->hooks.on_size_chng_fn(stage, old_size, size);
 }
 
-void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
+void _ntg_stage_compose(ntg_stage* stage, sarena* arena, int* out_recompose)
 {
     if(!stage || !arena) return;
 
@@ -252,15 +252,21 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
     {
         struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
         ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap, &_status);
-        if(_status != 0) return;
+        if(_status != 0)
+        {
+            ntg_set_out(out_recompose, 1);
+            return;
+        }
     }
 
     if(ntg_xy_size_is_zero(size)) return;
 
+    int _relayout = 0;
     if(stage->_scene && stage->_scene->_dirty)
     {
-        _ntg_scene_layout(stage->_scene, arena);
-        _ntg_scene_clean(stage->_scene);
+        _ntg_scene_layout(stage->_scene, arena, &_relayout);
+        if(!_relayout)
+            _ntg_scene_clean(stage->_scene);
     }
 
     if(ntg_xy_size_is_zero(size)) return;
@@ -283,12 +289,26 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena)
     size_t layer_count = ntg_scene_collect_layers_by_z(stage->_scene, NULL, 0);
 
     ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
-    if(!layers) return;
+    if(!layers)
+    {
+        ntg_set_out(out_recompose, 1);
+        return;
+    }
 
     ntg_scene_collect_layers_by_z(stage->_scene, layers, layer_count);
 
+    int _recompose = 0;
     for(i = 0; i < layer_count; i++)
-        draw_layer(stage, layers[i], arena);
+    {
+        draw_layer(stage, layers[i], arena, &_recompose);
+        if(_recompose)
+        {
+            ntg_set_out(out_recompose, 1);
+            return;
+        }
+    }
+
+    ntg_set_out(out_recompose, _relayout);
 }
 
 
@@ -366,7 +386,7 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     _ntg_object_clean(object, NTG_OBJECT_DIRTY_RENDER);
 }
 
-static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena)
+static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena, int* out_recompose)
 {
     if(!root) return;
 
@@ -375,7 +395,11 @@ static void draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena)
         return;
 
     ntg_object** buff = sarena_calloc(arena, sizeof(ntg_object*) * tree_size);
-    if(!buff) return;
+    if(!buff)
+    {
+        ntg_set_out(out_recompose, 1);
+        return;
+    }
 
     get_objects_in_drawing_order_layer(root, buff);
 

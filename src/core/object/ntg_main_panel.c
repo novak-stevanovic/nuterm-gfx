@@ -209,7 +209,8 @@ struct ntg_object_measure ntg_main_panel_measure_fn(
         const ntg_object* _panel,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_remeasure)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
 
@@ -277,7 +278,8 @@ void ntg_main_panel_constrain_fn(
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_reconstrain)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
     size_t size = ntg_object_get_size_1d_cont(_panel, orient);
@@ -363,6 +365,12 @@ void ntg_main_panel_constrain_fn(
             ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena, &_status);
         }
 
+        if(_status != 0)
+        {
+            ntg_set_out(out_reconstrain, 1);
+            return;
+        }
+
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size)
             _sizes[1] = size - _sizes[0] - _sizes[2];
@@ -430,7 +438,11 @@ void ntg_main_panel_constrain_fn(
             ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena, &_status);
         }
 
-        if(_status != 0) return;
+        if(_status != 0)
+        {
+            ntg_set_out(out_reconstrain, 1);
+            return;
+        }
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size) 
@@ -460,7 +472,8 @@ void ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
         ntg_object_pos_map* out_pos_map,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_rearrange)
 {
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
     struct ntg_xy size = ntg_object_get_size_cont(_panel);

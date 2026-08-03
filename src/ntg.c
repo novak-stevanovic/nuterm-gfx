@@ -32,7 +32,7 @@ struct ntg_opts ntg_opts_default(void)
     return (struct ntg_opts) {
         .mouse_mode = NTG_MOUSE_ENABLE,
         .alt_screen_mode = NTG_ALT_SCREEN_ENABLE,
-        .cursor_mode = NTG_CURSOR_HIDE,
+        // .cursor_mode = NTG_CURSOR_HIDE,
         .unsupported_term_mode = NTG_UNSUPPORTED_TERM_IGNORE
     };
 }
@@ -100,8 +100,8 @@ void ntg_enable(
     if(_opts.mouse_mode == NTG_MOUSE_ENABLE)
         nt_mouse_mode_enable(NULL);
 
-    if(_opts.cursor_mode == NTG_CURSOR_HIDE)
-        nt_cursor_hide(NULL);
+    // if(_opts.cursor_mode == NTG_CURSOR_HIDE)
+    nt_cursor_hide(NULL);
 
     if(_opts.alt_screen_mode == NTG_ALT_SCREEN_ENABLE)
         nt_alt_screen_enable(&alt_screen_err);
@@ -123,8 +123,8 @@ void ntg_disable(void)
     if(_opts.mouse_mode == NTG_MOUSE_ENABLE)
         nt_mouse_mode_disable(NULL);
 
-    if(_opts.cursor_mode == NTG_CURSOR_HIDE)
-        nt_cursor_show(NULL);
+    // if(_opts.cursor_mode == NTG_CURSOR_HIDE)
+    nt_cursor_show(NULL);
 
     if(_opts.alt_screen_mode == NTG_ALT_SCREEN_ENABLE)
         nt_alt_screen_disable(NULL);

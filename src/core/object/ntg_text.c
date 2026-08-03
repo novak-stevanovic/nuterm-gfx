@@ -13,11 +13,7 @@
 
 static const struct ntg_text_vtable TEXT_VTABLE_EMPTY = {0};
 
-static struct ntg_xy calculate_effective_scroll(
-        struct ntg_xy scroll_opts_adj,
-        struct ntg_xy vp_size_adj,
-        struct ntg_xy full_size_adj,
-        ntg_text_wrap wrap);
+static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj);
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
@@ -29,19 +25,22 @@ static size_t get_wrows_nowrap(
         struct ntg_str32_view row,
         size_t for_size,
         struct ntg_str32_view** out_rows,
-        sarena* arena);
+        sarena* arena,
+        int* out_retry);
 
 static size_t get_wrows_wrap(
         struct ntg_str32_view row,
         size_t for_size,
         struct ntg_str32_view** out_rows,
-        sarena* arena);
+        sarena* arena,
+        int* out_retry);
 
 static size_t get_wrows_wwrap(
         struct ntg_str32_view row,
         size_t for_size,
         struct ntg_str32_view** out_rows,
-        sarena* arena);
+        sarena* arena,
+        int* out_retry);
 
 static struct ntg_object_measure measure_nowrap_fn(
         const ntg_text* text_obj,
@@ -49,7 +48,8 @@ static struct ntg_object_measure measure_nowrap_fn(
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
-        sarena* arena);
+        sarena* arena,
+        int* out_remeasure);
 
 static struct ntg_object_measure measure_wrap_fn(
         const ntg_text* text_obj,
@@ -57,7 +57,8 @@ static struct ntg_object_measure measure_wrap_fn(
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
-        sarena* arena);
+        sarena* arena,
+        int* out_remeasure);
 
 static struct ntg_object_measure measure_wwrap_fn(
         const ntg_text* text_obj,
@@ -65,7 +66,8 @@ static struct ntg_object_measure measure_wwrap_fn(
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
-        sarena* arena);
+        sarena* arena,
+        int* out_remeasure);
 
 static int trim_text(struct ntg_str* text);
 
@@ -355,6 +357,8 @@ void ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll)
 
     text_obj->_scroll = scroll;
 
+    text_obj->_scroll = calculate_effective_scroll(text_obj);
+
     ntg_object_mark_dirty(ntg_obj(text_obj), NTG_OBJECT_DIRTY_DRAW);
 }
 
@@ -426,7 +430,8 @@ struct ntg_object_measure ntg_text_measure_fn(
         const ntg_object* _text_obj,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_remeasure)
 {
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
     size_t for_size = ntg_object_get_for_size_cont(_text_obj, orient);
@@ -444,15 +449,15 @@ struct ntg_object_measure ntg_text_measure_fn(
     {
         case NTG_TEXT_WRAP_NONE:
             result = measure_nowrap_fn(text_obj, rows,
-                    row_count, orient, for_size, arena);
+                    row_count, orient, for_size, arena, out_remeasure);
             break;
         case NTG_TEXT_WRAP_CHAR:
             result = measure_wrap_fn(text_obj, rows,
-                    row_count, orient, for_size, arena);
+                    row_count, orient, for_size, arena, out_remeasure);
             break;
         case NTG_TEXT_WRAP_WORD:
             result = measure_wwrap_fn(text_obj, rows,
-                    row_count, orient, for_size, arena);
+                    row_count, orient, for_size, arena, out_remeasure);
             break;
 
         default:
@@ -467,7 +472,8 @@ void ntg_text_draw_fn(
         const ntg_object* _text_obj,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_redraw)
 {
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
     if((text_obj->_text.len == 0) || (text_obj->_text.data == NULL)) return;
@@ -509,7 +515,11 @@ void ntg_text_draw_fn(
     size_t i, j, k;
     size_t full_size_prod = full_size_adj.x * full_size_adj.y;
     uint32_t* full_buff = sarena_malloc(arena, sizeof(uint32_t) * full_size_prod);
-    if(!full_buff) return;
+    if(!full_buff)
+    {
+        ntg_set_out(out_redraw, 1);
+        return;
+    }
 
     for(i = 0; i < full_size_prod; i++) full_buff[i] = ' ';
 
@@ -535,19 +545,21 @@ void ntg_text_draw_fn(
         {
             case NTG_TEXT_WRAP_NONE:
                _it_wrows_count = get_wrows_nowrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena);
+                       full_size_adj.x, &_it_wrows, arena, out_redraw);
                 break;
             case NTG_TEXT_WRAP_CHAR:
                _it_wrows_count = get_wrows_wrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena);
+                       full_size_adj.x, &_it_wrows, arena, out_redraw);
                 break;
             case NTG_TEXT_WRAP_WORD:
                _it_wrows_count = get_wrows_wwrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena);
+                       full_size_adj.x, &_it_wrows, arena, out_redraw);
                 break;
             default:
                 return;
         }
+
+        if(_it_wrows_count == SIZE_MAX) return;
 
         for(j = 0; j < _it_wrows_count; j++)
         {
@@ -605,34 +617,23 @@ void ntg_text_draw_fn(
         }
     }
 
-    /* Viewport size */
+    /* Viewport size is content size */
 
-    struct ntg_xy vp_size = cont_size;
+    struct ntg_xy scroll = calculate_effective_scroll(text_obj);
 
-    struct ntg_xy vp_size_adj =
+    struct ntg_xy scroll_adj = 
         (opts.orient == NTG_ORIENT_H) ?
-        vp_size :
-        ntg_xy_transpose(vp_size);
-
-    /* Scroll */
-
-    struct ntg_xy scroll_opts_adj = 
-        (opts.orient == NTG_ORIENT_H) ?
-        text_obj->_scroll :
-        ntg_xy_transpose(text_obj->_scroll);
-
-    // TODO: fix scroll
-
-    struct ntg_xy scroll_adj = calculate_effective_scroll(
-            scroll_opts_adj, vp_size_adj, full_size_adj, opts.wrap);
+        scroll :
+        ntg_xy_transpose(scroll);
 
     struct ntg_xy src_xy;
     struct ntg_xy dst_xy;
     struct ntg_vcell it_cell;
     uint32_t it_cont;
-    for(i = 0; i < vp_size.y; i++)
+
+    for(i = 0; i < cont_size.y; i++)
     {
-        for(j = 0; j < vp_size.x; j++)
+        for(j = 0; j < cont_size.x; j++)
         {
             src_xy = ntg_xy(scroll_adj.x + j, scroll_adj.y + i);
 
@@ -702,12 +703,14 @@ void ntg_text_unfocus_fn(ntg_object* object, ntg_object* new_focused)
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
 }
 
-// TODO
 void ntg_text_cont_resize_fn(
         ntg_object* object,
         struct ntg_xy old_size,
         struct ntg_xy new_size)
 {
+    ntg_text* text = ntg_txt(object);
+
+    text->_scroll = calculate_effective_scroll(text);
 }
 
 const struct ntg_object_vtable NTG_TEXT_VTABLE = {
@@ -733,7 +736,8 @@ static struct ntg_object_measure measure_nowrap_fn(
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
-        sarena* arena)
+        sarena* arena,
+        int* out_remeasure)
 {
     size_t indent = text_obj->_opts.indent;
     size_t text_orient = text_obj->_opts.orient;
@@ -772,7 +776,9 @@ static struct ntg_object_measure measure_wrap_fn(
         const struct ntg_str32_view* rows,
         size_t row_count,
         ntg_orient orient,
-        size_t for_size, sarena* arena)
+        size_t for_size,
+        sarena* arena,
+        int* out_remeasure)
 {
     size_t indent = text_obj->_opts.indent;
     size_t text_orient = text_obj->_opts.orient;
@@ -804,7 +810,10 @@ static struct ntg_object_measure measure_wrap_fn(
         for(i = 0; i < row_count; i++)
         {
             it_row_wrow_count = get_wrows_wrap(rows[i], for_size,
-                    &it_row_wrows, arena);
+                    &it_row_wrows, arena, out_remeasure);
+
+            if(it_row_wrow_count == SIZE_MAX)
+                return (struct ntg_object_measure) {0};
 
             row_counter += it_row_wrow_count;
         }
@@ -824,7 +833,8 @@ static struct ntg_object_measure measure_wwrap_fn(
         size_t row_count,
         ntg_orient orient,
         size_t for_size,
-        sarena* arena)
+        sarena* arena,
+        int* out_remeasure)
 {
     size_t indent = text_obj->_opts.indent;
     size_t text_orient = text_obj->_opts.orient;
@@ -846,6 +856,11 @@ static struct ntg_object_measure measure_wwrap_fn(
             it_word_count = ntg_str32_count(rows[i], ' ') + 1;
             it_words = sarena_malloc(arena, sizeof(struct ntg_str32_view) *
                                      it_word_count);
+            if(!it_words)
+            {
+                ntg_set_out(out_remeasure, 1);
+                return (struct ntg_object_measure) {0};
+            }
             ntg_str32_split(rows[i], ' ', it_words, it_word_count);
 
             for(j = 0; j < it_word_count; j++)
@@ -873,7 +888,10 @@ static struct ntg_object_measure measure_wwrap_fn(
         for(i = 0; i < row_count; i++)
         {
             it_row_wrow_count = get_wrows_wwrap(rows[i], for_size,
-                    &it_row_wrows, arena);
+                    &it_row_wrows, arena, out_remeasure);
+
+            if(it_row_wrow_count == SIZE_MAX)
+                return (struct ntg_object_measure) {0};
 
             row_counter += it_row_wrow_count;
         }
@@ -891,14 +909,19 @@ static size_t get_wrows_nowrap(
         const struct ntg_str32_view row,
         size_t for_size,
         struct ntg_str32_view** out_wrows,
-        sarena* arena)
+        sarena* arena,
+        int* out_retry)
 {
     if(for_size == 0) return 0;
 
     if((row.len == 0) || (row.data == NULL))
     {
         (*out_wrows) = sarena_malloc(arena, sizeof(struct ntg_str32_view));
-        if(!*out_wrows) return 0;
+        if(!*out_wrows)
+        {
+            ntg_set_out(out_retry, 1);
+            return SIZE_MAX;
+        }
 
         (*out_wrows)[0] = (struct ntg_str32_view) {
             .data = row.data,
@@ -908,7 +931,11 @@ static size_t get_wrows_nowrap(
     }
 
     (*out_wrows) = sarena_malloc(arena, sizeof(struct ntg_str32_view));
-    if(!*out_wrows) return 0;
+    if(!*out_wrows)
+    {
+        ntg_set_out(out_retry, 1);
+        return SIZE_MAX;
+    }
     (*out_wrows)[0] = (struct ntg_str32_view) {
         .data = row.data,
         .len = _min2_size(for_size, row.len)
@@ -920,14 +947,19 @@ static size_t get_wrows_wrap(
         const struct ntg_str32_view row,
         size_t for_size,
         struct ntg_str32_view** out_wrows,
-        sarena* arena)
+        sarena* arena,
+        int* out_retry)
 {
     if(for_size == 0) return 0;
 
     if((row.len == 0) || (row.data == NULL))
     {
         (*out_wrows) = sarena_malloc(arena, sizeof(struct ntg_str32_view));
-        if(!*out_wrows) return 0;
+        if(!*out_wrows)
+        {
+            ntg_set_out(out_retry, 1);
+            return SIZE_MAX;
+        }
         (*out_wrows)[0] = (struct ntg_str32_view) {
             .data = row.data,
             .len = 0
@@ -938,7 +970,11 @@ static size_t get_wrows_wrap(
     size_t wrow_count = (row.len + for_size - 1) / for_size;
     struct ntg_str32_view* wrows = sarena_malloc(arena,
             wrow_count * sizeof(struct ntg_str32_view));
-    if(!wrows) return 0;
+    if(!wrows)
+    {
+        ntg_set_out(out_retry, 1);
+        return SIZE_MAX;
+    }
 
     size_t i;
     size_t it_start = 0, it_end;
@@ -962,7 +998,8 @@ static size_t get_wrows_wwrap(
         const struct ntg_str32_view row,
         size_t for_size,
         struct ntg_str32_view** out_wrows,
-        sarena* arena)
+        sarena* arena,
+        int* out_retry)
 {
     if(for_size == 0) return 0;
 
@@ -970,7 +1007,11 @@ static size_t get_wrows_wwrap(
     {
         (*out_wrows) = (struct ntg_str32_view*)sarena_malloc(
                 arena, sizeof(struct ntg_str32_view));
-        if(!*out_wrows) return 0;
+        if(!*out_wrows)
+        {
+            ntg_set_out(out_retry, 1);
+            return SIZE_MAX;
+        }
 
         (*out_wrows)[0] = (struct ntg_str32_view) {
             .data = row.data,
@@ -982,12 +1023,20 @@ static size_t get_wrows_wwrap(
     struct ntg_str32_view *words, *wrows;
     size_t word_count = ntg_str32_count(row, ' ') + 1;
     words = sarena_malloc(arena, word_count * sizeof(struct ntg_str32_view));
-    if(!words) return 0;
+    if(!words)
+    {
+        ntg_set_out(out_retry, 1);
+        return SIZE_MAX;
+    }
     ntg_str32_split(row, ' ', words, word_count);
     size_t wrow_max_count = word_count;
 
     wrows = sarena_malloc(arena, wrow_max_count * sizeof(struct ntg_str32_view));
-    if(!wrows) return 0;
+    if(!wrows)
+    {
+        ntg_set_out(out_retry, 1);
+        return SIZE_MAX;
+    }
 
     struct ntg_str32_view it_word;
     size_t it_row_len = 0;
@@ -1133,18 +1182,31 @@ static int trim_text(struct ntg_str* text)
     return 0;
 }
 
-static struct ntg_xy calculate_effective_scroll(
-        struct ntg_xy scroll_opts_adj,
-        struct ntg_xy vp_size_adj,
-        struct ntg_xy full_size_adj,
-        ntg_text_wrap wrap)
+static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
 {
+    struct ntg_xy opts_scroll = text_obj->_scroll;
+    struct ntg_xy cont_size = ntg_object_get_size_cont(ntg_obj(text_obj));
+    struct ntg_xy cont_nat_size = ntg_object_get_nat_size_cont(ntg_obj(text_obj));
+    struct ntg_xy full_size;
+
+    if(text_obj->_opts.wrap == NTG_TEXT_WRAP_NONE)
+    {
+        full_size = ntg_xy(cont_nat_size.x, cont_nat_size.y);
+    }
+    else
+    {
+        if(text_obj->_opts.orient == NTG_ORIENT_H)
+            full_size = ntg_xy(cont_size.x, cont_nat_size.y);
+        else
+            full_size = ntg_xy(cont_nat_size.x, cont_size.y);
+    }
+
     struct ntg_xy scroll = ntg_xy(
-        _min2_size(scroll_opts_adj.x, _sub2_size(full_size_adj.x, vp_size_adj.x)),
-        _min2_size(scroll_opts_adj.y, _sub2_size(full_size_adj.y, vp_size_adj.y))
+        _min2_size(opts_scroll.x, _sub2_size(full_size.x, cont_size.x)),
+        _min2_size(opts_scroll.y, _sub2_size(full_size.y, cont_size.y))
     );
 
-    if(wrap != NTG_TEXT_WRAP_NONE)
+    if(text_obj->_opts.wrap != NTG_TEXT_WRAP_NONE)
         scroll.x = 0;
 
     return scroll;

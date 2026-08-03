@@ -371,13 +371,18 @@ void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
         scene->hooks.on_size_chng_fn(scene, old_size, size);
 }
 
-void _ntg_scene_layout(ntg_scene* scene, sarena* arena)
+void _ntg_scene_layout(ntg_scene* scene, sarena* arena, int* out_relayout)
 {
     if(!scene) return;
 
     size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
 
     ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
+    if(!layers)
+    {
+        ntg_set_out(out_relayout, 1);
+        return;
+    }
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
     size_t i;
@@ -628,7 +633,6 @@ static void collect_layers_by_z_internal(
 static void 
 layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 {
-    
     if(!root) return;
 
     const struct ntg_anchor_policy* policy = root->_anchor_policy;
@@ -640,12 +644,8 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
         .repeat = false
     };
 
-    
-
     if(it == 0)
         hmeasure_tree(root, &layout_data);
-
-    
     
     struct ntg_anchor_constrain_ctx constrain_ctx = {
         .root = root,
@@ -666,12 +666,8 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 
     hconstrain_tree(root, &layout_data);
 
-    
-
     vmeasure_tree(root, &layout_data);
 
-    
-    
     size_t vsize = _ntg_anchor_policy_constrain(
             policy,
             NTG_ORIENT_V,
@@ -688,8 +684,6 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 
     struct ntg_xy size = ntg_xy(hsize, vsize);
     
-    
-
     fixup_tree(root, &layout_data);
 
     if(layout_data.repeat)
@@ -732,9 +726,9 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | M1 | %p", object);
 
-        int _status;
-        _ntg_object_hmeasure(object, arena, &_status);
-        if(!_status)
+        int _remeasure = 0;
+        _ntg_object_hmeasure(object, arena, &_remeasure);
+        if(!_remeasure)
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_HMEASURE);
     }
     else
@@ -752,9 +746,9 @@ static void hconstrain_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | C1 | %p", object);
 
-        int _status;
-        _ntg_object_hconstrain(object, arena, &_status);
-        if(!_status)
+        int _reconstrain = 0;
+        _ntg_object_hconstrain(object, arena, &_reconstrain);
+        if(!_reconstrain)
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_HCONSTRAIN);
     }
     else
@@ -772,10 +766,10 @@ static void vmeasure_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | M2 | %p", object);
 
-        int _status;
-        _ntg_object_vmeasure(object, arena, &_status);
-        if(!_status)
-            _ntg_object_clean(object, NTG_OBJECT_DIRTY_VMEASURE);
+        int _remeasure = 0;
+        _ntg_object_vmeasure(object, arena, &_remeasure);
+        if(!_remeasure)
+            _ntg_object_clean(object, NTG_OBJECT_DIRTY_HMEASURE);
     }
     else
     {
@@ -792,9 +786,9 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | C2 | %p", object);
 
-        int _status;
-        _ntg_object_vconstrain(object, arena, &_status);
-        if(!_status)
+        int _reconstrain = 0;
+        _ntg_object_vconstrain(object, arena, &_reconstrain);
+        if(!_reconstrain)
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_VCONSTRAIN);
     }
     else
@@ -824,9 +818,9 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | A | %p", object);
 
-        int _status;
-        _ntg_object_arrange(object, arena, &_status);
-        if(!_status)
+        int _rearrange = 0;
+        _ntg_object_arrange(object, arena, &_rearrange);
+        if(!_rearrange)
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_ARRANGE);
     }
     else
@@ -844,9 +838,9 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | D | %p", object);
 
-        int _status;
-        _ntg_object_draw(object, arena, &_status);
-        if(!_status)
+        int _redraw = 0;
+        _ntg_object_draw(object, arena, &_redraw);
+        if(!_redraw)
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_DRAW);
     }
     else

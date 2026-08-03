@@ -18,7 +18,7 @@
 #include "base/ntg_event.h"
 #include "base/ntg_vecgrid.h"
 #include "base/ntg_type.h"
-#include "core/renderer/ntg_def_renderer.h"
+#include "core/renderer/ntg_default_renderer.h"
 #include "core/renderer/ntg_renderer.h"
 #include "core/loop/ntg_loop.h"
 #include "core/object/ntg_object_layout.h"
@@ -52,14 +52,12 @@
 
 enum ntg_mouse_mode { NTG_MOUSE_ENABLE, NTG_MOUSE_DISABLE };
 enum ntg_alt_screen_mode { NTG_ALT_SCREEN_ENABLE, NTG_ALT_SCREEN_DISABLE };
-enum ntg_cursor_mode { NTG_CURSOR_HIDE, NTG_CURSOR_SHOW };
 enum ntg_unsupported_term_mode { NTG_UNSUPPORTED_TERM_IGNORE, NTG_UNSUPPORTED_TERM_STOP };
 
 struct ntg_opts
 {
     enum ntg_mouse_mode mouse_mode;
     enum ntg_alt_screen_mode alt_screen_mode;
-    enum ntg_cursor_mode cursor_mode;
     enum ntg_unsupported_term_mode unsupported_term_mode;
 };
 
@@ -80,13 +78,10 @@ ntg_disable(void);
 
 // TODO:
 
-// NTG_TEXT:
-// scroll: add scroll capping on set and on resize
-
 // GLOBAL:
-// layout fail: dont clean
 // add more functions to vtables
-// what if cursor stays on?
+
+// ntg_renderer: loop ref
 
 // IMPLEMENT:
 // ntg_input_field, ntg_list, ntg_dialogue

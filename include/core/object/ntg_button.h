@@ -42,7 +42,7 @@ struct ntg_button
 {
     ntg_text __base;
 
-    struct ntg_object_vtable __vtable;
+    bool (*__click_fn)(ntg_button* button, const struct ntg_object_mouse* event);
     struct ntg_button_hooks hooks;
 };
 
@@ -58,7 +58,7 @@ NTG_API void
 ntg_button_init(
         ntg_button* button,
         const struct ntg_button_opts* opts,
-        bool (*mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event),
+        bool (*click_fn)(ntg_button* button, const struct ntg_object_mouse* event),
         int* out_status);
 
 NTG_API void
@@ -84,7 +84,7 @@ ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts);
 NTG_API void
 ntg_button_set_click_fn(
         ntg_button* button,
-        bool (*mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event));
+        bool (*click_fn)(ntg_button* button, const struct ntg_object_mouse* event));
 
 /* ------------------------------------------------------ */
 /* TEXT */
@@ -118,7 +118,6 @@ ntg_button_set_text(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-// `vtable` is copied into button's internal vtable
 NTG_API void
 ntg_button_init_inherit(
         ntg_button* button,
@@ -132,17 +131,22 @@ ntg_button_measure_fn(
         const ntg_object* _button,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_remeasure);
 
 NTG_API void
 ntg_button_draw_fn(
         const ntg_object* _button,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_redraw);
 
 NTG_API void
 ntg_button_deinit_fn(ntg_object* _button);
+
+NTG_API bool
+ntg_button_process_mouse_fn(ntg_object* _button, const struct ntg_object_mouse* event);
 
 NTG_API void
 ntg_button_focus_fn(ntg_object* _button, ntg_object* old_focused);

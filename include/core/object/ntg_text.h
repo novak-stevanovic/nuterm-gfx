@@ -94,8 +94,6 @@ struct ntg_text
 
     struct
     {
-        // TODO: add setter, override resize fn
-        // Primary axis scroll works only if wrap is disabled.
         struct ntg_xy _scroll;
     };
 
@@ -170,14 +168,16 @@ ntg_text_measure_fn(
         const ntg_object* _text_obj,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_remeasure);
 
 NTG_API void
 ntg_text_draw_fn(
         const ntg_object* _text_obj,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
-        sarena* arena);
+        sarena* arena,
+        int* out_redraw);
 
 NTG_API void
 ntg_text_deinit_fn(ntg_object* _text_obj);

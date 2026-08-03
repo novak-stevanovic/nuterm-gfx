@@ -54,7 +54,6 @@ struct ntg_object_measure
     size_t min_size, nat_size, max_size, grow;
 };
 
-
 static inline bool
 ntg_object_measure_are_eql(struct ntg_object_measure m1, struct ntg_object_measure m2)
 {
@@ -68,14 +67,12 @@ ntg_object_measure_are_eql(struct ntg_object_measure m1, struct ntg_object_measu
 /* CONSTRAIN PHASE */
 /* ------------------------------------------------------ */
 
-
 NTG_API size_t
 ntg_object_size_map_get(
         const ntg_object_size_map* map,
         const ntg_object* object);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_object_size_map_set(
@@ -253,19 +250,19 @@ ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient);
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_object_hmeasure(ntg_object* object, sarena* arena, int* out_status);
+void _ntg_object_hmeasure(ntg_object* object, sarena* arena, int* out_remeasure);
 
-void _ntg_object_hconstrain(ntg_object* object, sarena* arena, int* out_status);
+void _ntg_object_hconstrain(ntg_object* object, sarena* arena, int* out_reconstrain);
 
-void _ntg_object_vmeasure(ntg_object* object, sarena* arena, int* out_status);
+void _ntg_object_vmeasure(ntg_object* object, sarena* arena, int* out_remeasure);
 
-void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_status);
+void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_reconstrain);
 
 bool _ntg_object_fixup(ntg_object* object, sarena* arena);
 
-void _ntg_object_arrange(ntg_object* object, sarena* arena, int* out_status);
+void _ntg_object_arrange(ntg_object* object, sarena* arena, int* out_rearrange);
 
-void _ntg_object_draw(ntg_object* object, sarena* arena, int* out_status);
+void _ntg_object_draw(ntg_object* object, sarena* arena, int* out_redraw);
 
 void _ntg_object_root_set_hsize(ntg_object* object, size_t size);
 

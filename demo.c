@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
     ntg_stage_init(&stage, &_status);
     ntg_cleanup_batch_add(batch, &stage, ntg_stage_deinit_void, NULL, &_status);
 
-    ntg_loop_init(&loop, &stage, NULL, 60, 4, loop_on_event_fn, &_status);
+    ntg_loop_init(&loop, &stage, NULL, 500, 4, loop_on_event_fn, &_status);
     ntg_cleanup_batch_add(batch, &loop, ntg_loop_deinit_void, NULL, &_status);
 
     // ATTACH ROOTS, SCENE, STAGE
@@ -384,9 +384,10 @@ void init_south()
         .style = NT_STYLE_DEFAULT
     };
     ntg_label_set_opts(&s_label, &s_label_opts);
-    ntg_object_set_padding_opts(ntg_obj(&s_label), &pad_opts);
 
     ntg_label_init(&s_label, &s_label_opts, &_status);
+    ntg_object_set_padding_opts(ntg_obj(&s_label), &pad_opts);
+
     ntg_cleanup_batch_add(batch, &s_label, ntg_label_deinit_void, NULL, &_status);
 
     ntg_label_set_text_unsafe(&s_label, "ABCD", 0, &_status);

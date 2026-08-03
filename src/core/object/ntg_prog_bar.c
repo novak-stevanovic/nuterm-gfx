@@ -200,7 +200,8 @@ struct ntg_object_measure ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
         ntg_orient orient,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_remeasure)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
 
@@ -226,7 +227,8 @@ void ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         ntg_object_tmp_drawing* out_drawing,
         void* _layout_cache,
-        sarena* arena)
+        sarena* arena,
+        int* out_redraw)
 {
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
     struct ntg_xy size = ntg_object_get_size_cont(_prog_bar);
