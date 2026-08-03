@@ -78,13 +78,15 @@ ntg_disable(void);
 
 // TODO:
 
-// GLOBAL:
-// add more functions to vtables
-
+// FIX:
+// global: add more functions to vtables
+// ntg_task_runner: start threads on run, remove FORCE stop
 // ntg_renderer: loop ref
 
 // IMPLEMENT:
-// ntg_input_field, ntg_list, ntg_dialogue
+// ntg_input_field
+// ntg_list
+// ntg_dialogue
 
 // FINISH:
 // add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments

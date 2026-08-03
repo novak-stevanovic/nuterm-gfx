@@ -66,15 +66,11 @@ struct ntg_loop
 /* -------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------ */
-/* EVENT */
+/* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
 NTG_API bool
-ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event);
-
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
+ntg_loop_dispatch_event_fn(ntg_loop* loop, struct nt_event event);
 
 NTG_API void
 ntg_loop_init(
@@ -83,7 +79,7 @@ ntg_loop_init(
         ntg_renderer* renderer,
         unsigned int framerate,
         unsigned int workers,
-        bool (*handle_event_fn)(ntg_loop* loop, struct nt_event event),
+        bool (*dispatch_event_fn)(ntg_loop* loop, struct nt_event event),
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -100,7 +96,7 @@ ntg_loop_deinit_void(void* _loop);
 /* CONTROL */
 /* ------------------------------------------------------ */
 
-NTG_API enum ntg_loop_exit_status
+NTG_API ntg_loop_exit_status
 ntg_loop_run(ntg_loop* loop, int* out_status);
 
 /* ------------------------------------------------------ */

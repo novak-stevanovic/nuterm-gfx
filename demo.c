@@ -84,19 +84,15 @@ void init_fs(); // focus scopes
 
 const struct ntg_focus_scope_vtable FS1_VTABLE;
 
-bool flt_button_mouse_fn(ntg_object* object, const struct ntg_object_mouse* event)
+bool flt_button_mouse_fn(ntg_button* button)
 {
-    if(event->from_keybind)
-    {
-        ntg_loop_break(&loop, true);
-        return true;
-    }
-    else return false;
+    ntg_loop_break(&loop, true);
+    return true;
 }
 
 bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
 {
-    bool consumed = ntg_loop_dispatch_event(loop, event);
+    bool consumed = ntg_loop_dispatch_event_fn(loop, event);
     if(consumed) return true;
 
     if(event.type == NT_EVENT_KEY)
@@ -153,6 +149,9 @@ bool fs1_dispatch_mouse_fn(
         struct nt_mouse_event mouse,
         ntg_object* clicked)
 {
+    if(ntg_focus_scope_dispatch_mouse_fn(scope, mouse, clicked))
+        return true;
+
     struct ntg_xy curr_scroll = (ntg_txt(&north))->_scroll;
 
     if(mouse.type == NT_MOUSE_SCROLL_DOWN)

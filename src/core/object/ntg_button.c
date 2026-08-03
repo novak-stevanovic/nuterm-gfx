@@ -48,7 +48,7 @@ bool ntg_button_opts_are_eql(
 void ntg_button_init(
         ntg_button* button,
         const struct ntg_button_opts* opts,
-        bool (*click_fn)(ntg_button* button, const struct ntg_object_mouse* event),
+        bool (*click_fn)(ntg_button* button),
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -122,9 +122,7 @@ void ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
 /* CLICK HANDLER */
 /* ------------------------------------------------------ */
 
-void ntg_button_set_click_fn(
-        ntg_button* button,
-        bool (*click_fn)(ntg_button* button, const struct ntg_object_mouse* event))
+void ntg_button_set_click_fn(ntg_button* button, bool (*click_fn)(ntg_button* button))
 {
     if(!button) return; 
 
@@ -252,12 +250,12 @@ void ntg_button_deinit_fn(ntg_object* _button)
 
 bool ntg_button_process_mouse_fn(ntg_object* _button, const struct ntg_object_mouse* event)
 {
-    if(_button) return false;
+    if(!_button) return false;
 
     ntg_button* button = ntg_btn(_button);
 
-    if(button->__click_fn)
-        return button->__click_fn(button, event);
+    if(button->__click_fn && (event->mouse.type == NT_MOUSE_CLICK_LEFT))
+        return button->__click_fn(button);
     else
         return false;
 }
@@ -276,6 +274,7 @@ const struct ntg_object_vtable NTG_BUTTON_VTABLE_OBJECT = {
     .measure_fn = ntg_button_measure_fn,
     .draw_fn = ntg_button_draw_fn,
     .deinit_fn = ntg_button_deinit_fn,
+    .process_mouse_fn = ntg_button_process_mouse_fn,
     .focus_fn = ntg_button_focus_fn,
     .unfocus_fn = ntg_button_unfocus_fn
 };

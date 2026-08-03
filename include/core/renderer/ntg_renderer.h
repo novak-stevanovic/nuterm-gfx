@@ -36,6 +36,9 @@ NTG_API void
 ntg_renderer_vdeinit(ntg_renderer* renderer);
 
 NTG_API void
+ntg_renderer_move(ntg_renderer* dest, const ntg_renderer* src);
+
+NTG_API void
 ntg_renderer_render(
         ntg_renderer* renderer,
         const ntg_stage_drawing* stage_drawing,

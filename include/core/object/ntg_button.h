@@ -42,7 +42,7 @@ struct ntg_button
 {
     ntg_text __base;
 
-    bool (*__click_fn)(ntg_button* button, const struct ntg_object_mouse* event);
+    bool (*__click_fn)(ntg_button* button);
     struct ntg_button_hooks hooks;
 };
 
@@ -58,7 +58,7 @@ NTG_API void
 ntg_button_init(
         ntg_button* button,
         const struct ntg_button_opts* opts,
-        bool (*click_fn)(ntg_button* button, const struct ntg_object_mouse* event),
+        bool (*click_fn)(ntg_button* button),
         int* out_status);
 
 NTG_API void
@@ -82,9 +82,7 @@ ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts);
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_button_set_click_fn(
-        ntg_button* button,
-        bool (*click_fn)(ntg_button* button, const struct ntg_object_mouse* event));
+ntg_button_set_click_fn(ntg_button* button, bool (*click_fn)(ntg_button* button));
 
 /* ------------------------------------------------------ */
 /* TEXT */

@@ -29,7 +29,7 @@ static void update_stage(ntg_loop* loop);
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_loop_dispatch_event(ntg_loop* loop, struct nt_event event)
+bool ntg_loop_dispatch_event_fn(ntg_loop* loop, struct nt_event event)
 {
     if(!loop) return false;
 
@@ -61,7 +61,7 @@ void ntg_loop_init(
         ntg_renderer* renderer,
         unsigned int framerate,
         unsigned int workers,
-        bool (*on_event_fn)(ntg_loop* loop, struct nt_event event),
+        bool (*dispatch_event_fn)(ntg_loop* loop, struct nt_event event),
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -149,7 +149,7 @@ void ntg_loop_init(
         }
     }
 
-    loop->__on_event_fn = on_event_fn;
+    loop->__on_event_fn = dispatch_event_fn;
 }
 
 void ntg_loop_deinit(ntg_loop* loop, int* out_status)
@@ -183,7 +183,7 @@ void ntg_loop_deinit_void(void* _loop)
     ntg_loop_deinit(_loop, NULL);
 }
 
-enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
+ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
 {
     ntg_init_status(out_status);
 
@@ -251,8 +251,6 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
     nt_get_term_size(&loop->_app_size.x, &loop->_app_size.y);
 
     int _recompose;
-
-    const struct ntg_opts* opts = ntg_get_opts();
 
     if(loop->_stage)
         _ntg_stage_set_size(loop->_stage, loop->_app_size);
@@ -323,10 +321,10 @@ enum ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
         }
 
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
-
         
-        process_elapsed_ns = (int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL
-            + (int64_t)(ts_end.tv_nsec - ts_start.tv_nsec);
+        process_elapsed_ns = 
+            ((int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL) +
+            ((int64_t)(ts_end.tv_nsec - ts_start.tv_nsec));
         
         process_elapsed_ms = process_elapsed_ns / 1000000LL;
         loop->_elapsed += (event_elapsed + process_elapsed_ms);
@@ -495,7 +493,7 @@ static void init_default(ntg_loop* loop)
 {
     if(!loop) return;
 
-    loop->__on_event_fn = ntg_loop_dispatch_event;
+    loop->__on_event_fn = ntg_loop_dispatch_event_fn;
 
     loop->_status = NTG_LOOP_READY;
     loop->__exit_status = NTG_LOOP_EXIT_CLEAN;
