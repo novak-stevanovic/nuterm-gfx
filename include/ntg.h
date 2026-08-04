@@ -79,6 +79,7 @@ ntg_disable(void);
 // TODO:
 
 // FIX:
+// If layout fn fails due to alloc fail for example, object will stay dirty but layout wont trigger again.
 // Always call layout v functions because of layout cache?
 // Adjustable arena allocations?
 // ntg_task_runner: start threads on run()
