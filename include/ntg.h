@@ -79,9 +79,11 @@ ntg_disable(void);
 // TODO:
 
 // FIX:
-// global: add more functions to vtables
-// ntg_task_runner: start threads on run, remove FORCE stop
-// ntg_renderer: loop ref
+// Always call layout v functions because of layout cache?
+// Adjustable arena allocations?
+// ntg_task_runner: start threads on run()
+// ntg_renderer: loop ptr
+// Add max iterations to layout_layer() fn
 
 // IMPLEMENT:
 // ntg_input_field

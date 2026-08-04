@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
 {
     int _status;
     struct ntg_opts opts = ntg_opts_default();
-    opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
+    // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
     // opts.cursor_mode = NTG_CURSOR_SHOW;
     ntg_enable(&opts, "/home/novak/Desktop/ntg_log.txt", &_status);
     assert(!_status);
@@ -473,8 +473,6 @@ void init_sflt_label()
 
     ntg_object_set_clickable(ntg_obj(&sflt_label), NTG_OBJECT_CLICKABLE_BORDER);
 }
-
-struct ntg_object_vtable root_vtable;
 
 void init_root()
 {

@@ -377,6 +377,9 @@ void _ntg_scene_layout(ntg_scene* scene, sarena* arena, int* out_relayout)
 
     size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
 
+    if(layer_count == 0)
+        return;
+
     ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
     if(!layers)
     {

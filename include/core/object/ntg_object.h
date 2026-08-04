@@ -199,6 +199,10 @@ struct ntg_object
         struct ntg_xy _pos;
         ntg_object_drawing _drawing;
         bool __skip_hborder, __skip_hpadding, __repeat;
+        bool __special_repeat;
+        // TODO:
+        // size_t __locked_vborder_n, __locked_vborder_s;
+        // size_t __locked_vpadding_n, __locked_vpadding_s;
         uint8_t _dirty;
     };
 

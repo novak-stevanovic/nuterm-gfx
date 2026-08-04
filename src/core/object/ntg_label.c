@@ -218,8 +218,7 @@ ntg_label_measure_fn(
         sarena* arena,
         int* out_remeasure)
 {
-    return ntg_text_measure_fn(
-            _label, orient, _layout_cache, arena, out_remeasure);
+    return ntg_text_measure_fn(_label, orient, _layout_cache, arena, out_remeasure);
 }
 
 void ntg_label_draw_fn(
@@ -229,8 +228,7 @@ void ntg_label_draw_fn(
         sarena* arena,
         int* out_redraw)
 {
-    ntg_text_draw_fn(
-            _label, out_drawing, _layout_cache, arena, out_redraw);
+    ntg_text_draw_fn(_label, out_drawing, _layout_cache, arena, out_redraw);
 }
 
 void ntg_label_deinit_fn(ntg_object* _label)

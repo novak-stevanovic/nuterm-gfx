@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include "ntg.h"
+#include <assert.h>
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
@@ -1549,8 +1550,8 @@ void _ntg_object_hconstrain(ntg_object* object, sarena* arena, int* out_reconstr
             it_size = _min2_size(content_size, it_size);
 
             it_child->_size.x = it_size;
-            it_child->__skip_hborder = false;
-            it_child->__skip_hpadding = false;
+            // it_child->__skip_hborder = false;
+            // it_child->__skip_hpadding = false;
         }
     }
 
@@ -1631,7 +1632,10 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_reconstr
     object->__old_size.y = size;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_ARRANGE | NTG_OBJECT_DIRTY_DRAW);
-    bool ret = vconstrain_border(object, arena) || vconstrain_padding(object, arena);
+    bool repeat_border = vconstrain_border(object, arena);
+    bool repeat_padding = vconstrain_padding(object, arena);
+    bool ret = (repeat_border || repeat_padding);
+    object->__repeat = ret;
     if(ret)
     {
         ntg_set_out(out_reconstrain, 1);
@@ -1647,6 +1651,7 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_reconstr
 
     ntg_object* it_child;
     size_t it_old_size;
+    bool hborder_missing, hpadding_missing;
     if(content_size == 0)
     {
         for(i = 0; i < object->_children.size; i++)
@@ -1657,7 +1662,25 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_reconstr
             if(it_old_size != 0)
             {
                 it_child->_size.y = 0;
-                ntg_object_mark_dirty(it_child, NTG_OBJECT_DIRTY_VCONSTRAIN);
+
+                hborder_missing = 
+                        (ntg_insets_hsum(it_child->_border.opts.pref_size) > 0) &&
+                        (ntg_insets_hsum(it_child->_border.size) == 0);
+                hpadding_missing = 
+                        (ntg_insets_hsum(it_child->_padding.opts.pref_size) > 0) &&
+                        (ntg_insets_hsum(it_child->_padding.size) == 0);
+
+                if(hborder_missing || hpadding_missing)
+                {
+                    it_child->__skip_hborder = false;
+                    it_child->__skip_hpadding = false;
+                    it_child->__special_repeat = true;
+                    ntg_object_mark_dirty(it_child, NTG_OBJECT_DIRTY_VCONSTRAIN);
+                }
+                else
+                {
+                    ntg_object_mark_dirty(it_child, NTG_OBJECT_DIRTY_VCONSTRAIN);
+                }
             }
         }
 
@@ -1690,7 +1713,24 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_reconstr
 
         if(it_old_size != it_size)
         {
-            ntg_object_mark_dirty(it_child, NTG_OBJECT_DIRTY_VCONSTRAIN);
+            hborder_missing = 
+                    (ntg_insets_hsum(it_child->_border.opts.pref_size) > 0) &&
+                    (ntg_insets_hsum(it_child->_border.size) == 0);
+            hpadding_missing = 
+                    (ntg_insets_hsum(it_child->_padding.opts.pref_size) > 0) &&
+                    (ntg_insets_hsum(it_child->_padding.size) == 0);
+
+            if(hborder_missing || hpadding_missing)
+            {
+                it_child->__skip_hborder = false;
+                it_child->__skip_hpadding = false;
+                it_child->__special_repeat = true;
+                ntg_object_mark_dirty(it_child, NTG_OBJECT_DIRTY_VCONSTRAIN);
+            }
+            else
+            {
+                ntg_object_mark_dirty(it_child, NTG_OBJECT_DIRTY_VCONSTRAIN);
+            }
 
             it_child->_size.y = it_size;
         }
@@ -1874,10 +1914,27 @@ void _ntg_object_root_set_vsize(ntg_object* object, size_t size)
     size_t old = object->_size.y;
     object->__old_size.y = old;
 
+    bool hborder_missing, hpadding_missing;
     if(old != size)
     {
-        ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_VCONSTRAIN);
+        hborder_missing = 
+                (ntg_insets_hsum(object->_border.opts.pref_size) > 0) &&
+                (ntg_insets_hsum(object->_border.size) == 0);
+        hpadding_missing = 
+                (ntg_insets_hsum(object->_padding.opts.pref_size) > 0) &&
+                (ntg_insets_hsum(object->_padding.size) == 0);
 
+        if(hborder_missing || hpadding_missing)
+        {
+            object->__skip_hborder = false;
+            object->__skip_hpadding = false;
+            object->__special_repeat = true;
+            ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_CONSTRAIN);
+        }
+        else
+        {
+            ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_VCONSTRAIN);
+        }
         object->_size.y = size;
     }
 }
@@ -2069,10 +2126,6 @@ static void get_dcr_size(
 {
     size_t extra;
 
-    
-    
-    
-
     if(enable == NTG_OBJECT_DCR_ENABLE_MIN)
         extra = _sub2_size(size, inner_measure.min_size);
     else if(enable == NTG_OBJECT_DCR_ENABLE_NAT)
@@ -2090,7 +2143,7 @@ static void calculate_border_hsize(ntg_object* object,
     size_t we_pref_size[2];
     we_pref_size[0] = object->_border.opts.pref_size.w;
     we_pref_size[1] = object->_border.opts.pref_size.e;
-    size_t _sizes[2] = {0};
+    size_t _sizes[2] = {0, 0};
 
     get_dcr_size(
             object->_border.opts.enable,
@@ -2106,108 +2159,142 @@ static void calculate_border_hsize(ntg_object* object,
 
 static bool vconstrain_border(ntg_object* object, sarena* arena)
 {
-    struct ntg_insets border_size = object->_border.size;
     struct ntg_insets pref_border_size = object->_border.opts.pref_size;
-
-    size_t n, s;
-    calculate_border_vsize(object, arena, &n, &s);
-
-    struct ntg_insets tmp_border_size = border_size;
-    tmp_border_size.n = n;
-    tmp_border_size.s = s;
 
     bool hborder_missing = 
             (ntg_insets_hsum(pref_border_size) > 0) &&
-            (ntg_insets_hsum(tmp_border_size) == 0);
+            (ntg_insets_hsum(object->_border.size) == 0);
+
+    size_t n = 0, s = 0;
+    calculate_border_vsize(object, arena, &n, &s);
+
+    object->_border.size.n = n;
+    object->_border.size.s = s;
+
     bool vborder_missing = 
             (ntg_insets_vsum(pref_border_size) > 0) &&
-            (ntg_insets_vsum(tmp_border_size) == 0);
+            (ntg_insets_vsum(object->_border.size) == 0);
 
-    if(!hborder_missing && vborder_missing)
+    if(hborder_missing)
     {
-        object->__skip_hborder = true;
-        object->__repeat = true;
-        return true;
-    }
-    else if(hborder_missing && !vborder_missing)
-    {
-        if(object->__skip_hborder)
+        if(object->__skip_hborder) // Missing cuz skipped
         {
-            object->__skip_hborder = false;
-            object->__repeat = true;
-            return true;
+            // object->__skip_hborder = false;
+            if(vborder_missing) // Vborder missing
+                return false;
+            else // Vborder present
+            {
+                object->_border.size.n = 0;
+                object->_border.size.s = 0;
+                return false;
+            }
         }
         else
         {
-            object->_border.size.n = 0;
-            object->_border.size.s = 0;
+            if(vborder_missing) // Vborder missing
+                return false;
+            else // Vborder present
+            {
+                object->_border.size.n = 0;
+                object->_border.size.s = 0;
+                if(object->__special_repeat)
+                {
+                    object->__special_repeat = false;
+                    return true;
+                }
+                else
+                    return false;
+            }
         }
     }
-    else if(hborder_missing && vborder_missing) 
+    else
     {
-        object->_border.size.n = 0;
-        object->_border.size.s = 0;
+        if(object->__skip_hborder) // Skipped but not missing???
+        {
+            ntg_log_log("ANOVAK");
+            assert(0);
+        }
+        else
+        {
+            if(vborder_missing)
+            {
+                object->__skip_hborder = true;
+                return true;
+            }
+            else
+                return false;
+        }
     }
-    else 
-    {
-        object->_border.size.n = n;
-        object->_border.size.s = s;
-    }
-
-    return false;
 }
 
 static bool vconstrain_padding(ntg_object* object, sarena* arena)
 {
-    struct ntg_insets padding_size = object->_padding.size;
     struct ntg_insets pref_padding_size = object->_padding.opts.pref_size;
-
-    size_t n, s;
-    calculate_padding_vsize(object, arena, &n, &s);
-
-    struct ntg_insets tmp_padding_size = padding_size;
-    tmp_padding_size.n = n;
-    tmp_padding_size.s = s;
 
     bool hpadding_missing = 
             (ntg_insets_hsum(pref_padding_size) > 0) &&
-            (ntg_insets_hsum(tmp_padding_size) == 0);
+            (ntg_insets_hsum(object->_padding.size) == 0);
+
+    size_t n = 0, s = 0;
+    calculate_padding_vsize(object, arena, &n, &s);
+
+    object->_padding.size.n = n;
+    object->_padding.size.s = s;
+
     bool vpadding_missing = 
             (ntg_insets_vsum(pref_padding_size) > 0) &&
-            (ntg_insets_vsum(tmp_padding_size) == 0);
+            (ntg_insets_vsum(object->_padding.size) == 0);
 
-    if(!hpadding_missing && vpadding_missing)
+    if(hpadding_missing)
     {
-        object->__skip_hpadding = true;
-        object->__repeat = true;
-        return true;
-    }
-    else if(hpadding_missing && !vpadding_missing)
-    {
-        if(object->__skip_hpadding)
+        if(object->__skip_hpadding) // Missing cuz skipped
         {
-            object->__skip_hpadding = false;
-            object->__repeat = true;
-            return true;
+            // object->__skip_hpadding = false;
+            if(vpadding_missing) // Vpadding missing
+                return false;
+            else // Vpadding present
+            {
+                object->_padding.size.n = 0;
+                object->_padding.size.s = 0;
+                return false;
+            }
         }
         else
         {
-            object->_padding.size.n = 0;
-            object->_padding.size.s = 0;
+            if(vpadding_missing) // Vpadding missing
+                return false;
+            else // Vpadding present
+            {
+                object->_padding.size.n = 0;
+                object->_padding.size.s = 0;
+                if(object->__special_repeat)
+                {
+                    object->__special_repeat = false;
+                    return true;
+                }
+                else
+                    return false;
+            }
         }
     }
-    else if(hpadding_missing && vpadding_missing) 
+    else
     {
-        object->_padding.size.n = 0;
-        object->_padding.size.s = 0;
+        if(object->__skip_hpadding) // Skipped but not missing???
+        {
+            ntg_log_log("ANOVAK");
+            assert(0);
+        }
+        else
+        {
+            if(vpadding_missing)
+            {
+                object->__skip_hpadding = true;
+                return true;
+            }
+            else
+                return false;
+        }
     }
-    else 
-    {
-        object->_padding.size.n = n;
-        object->_padding.size.s = s;
-    }
-
-    return false;
 }
 
 static void calculate_border_vsize(ntg_object* object,
@@ -2216,7 +2303,7 @@ static void calculate_border_vsize(ntg_object* object,
     size_t ns_pref_size[2];
     ns_pref_size[0] = object->_border.opts.pref_size.n;
     ns_pref_size[1] = object->_border.opts.pref_size.s;
-    size_t _sizes[2] = {0};
+    size_t _sizes[2] = {0, 0};
 
     get_dcr_size(
             object->_border.opts.enable,
@@ -2236,7 +2323,7 @@ static void calculate_padding_hsize(ntg_object* object,
     size_t we_pref_size[2];
     we_pref_size[0] = object->_padding.opts.pref_size.w;
     we_pref_size[1] = object->_padding.opts.pref_size.e;
-    size_t _sizes[2] = {0};
+    size_t _sizes[2] = {0, 0};
 
     get_dcr_size(
             object->_padding.opts.enable,
@@ -2257,7 +2344,7 @@ static void calculate_padding_vsize(ntg_object* object,
     ns_pref_size[0] = object->_padding.opts.pref_size.n;
     ns_pref_size[1] = object->_padding.opts.pref_size.s;
 
-    size_t _sizes[2] = {0};
+    size_t _sizes[2] = {0, 0};
 
      get_dcr_size(
              object->_padding.opts.enable,

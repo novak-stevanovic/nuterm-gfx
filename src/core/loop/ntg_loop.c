@@ -197,7 +197,7 @@ ntg_loop_exit_status ntg_loop_run(ntg_loop* loop, int* out_status)
 
     size_t resize_counter = 0, sigwinch_counter = 0;
 
-    loop->_arena = sarena_create(2000000);
+    loop->_arena = sarena_create(10000000);
     if(!loop->_arena)
         ntg_return(NTG_LOOP_EXIT_ERROR, out_status, NTG_ERR_ALLOC_FAIL);
 

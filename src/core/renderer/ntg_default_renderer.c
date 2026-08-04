@@ -93,10 +93,10 @@ void ntg_default_renderer_render_fn(
 
     if(_status != 0) return;
 
-    void* buffer = sarena_malloc(arena, 50000);
+    void* buffer = sarena_malloc(arena, 100000);
     if(!buffer) return;
 
-    nt_buffer_enable(buffer, 50000, NULL);
+    nt_buffer_enable(buffer, 100000, NULL);
 
     if(stage_drawing == NULL)
     {
