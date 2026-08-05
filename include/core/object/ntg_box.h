@@ -135,7 +135,6 @@ NTG_API struct ntg_object_measure
 ntg_box_measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
-        void* _layout_cache,
         sarena* arena,
         int* out_remeasure);
 
@@ -147,7 +146,6 @@ ntg_box_constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* _layout_cache,
         sarena* arena,
         int* out_reconstrain);
 
@@ -158,7 +156,6 @@ NTG_API void
 ntg_box_arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
-        void* _layout_cache,
         sarena* arena,
         int* out_rearrange);
 

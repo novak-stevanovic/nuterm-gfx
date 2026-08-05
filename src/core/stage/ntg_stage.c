@@ -42,9 +42,9 @@ void ntg_stage_deinit(ntg_stage* stage)
 {
     if(!stage) return;
 
-    if(stage->_loop)
+    if(stage->_in_loop)
     {
-        ntg_loop_set_stage(stage->_loop, NULL, NULL);
+        ntg_loop_set_stage(NULL, NULL);
     }
 
     if(stage->_scene)
@@ -311,20 +311,25 @@ void _ntg_stage_compose(ntg_stage* stage, sarena* arena, int* out_recompose)
     ntg_set_out(out_recompose, _relayout);
 }
 
-
-void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop)
+void _ntg_stage_enter_loop(ntg_stage* stage)
 {
     if(!stage) return;
 
-    if(stage->_loop == loop) return;
+    stage->_in_loop = true;
+    ntg_stage_mark_dirty(stage);
+}
 
-    stage->_loop = loop;
-    if(loop)
-        ntg_stage_mark_dirty(stage);
+void _ntg_stage_leave_loop(ntg_stage* stage)
+{
+    if(!stage) return;
+
+    stage->_in_loop = false;
 }
 
 void _ntg_stage_clean(ntg_stage* stage)
 {
+    if(!stage) return;
+
     stage->_dirty = false;
 }
 
@@ -375,6 +380,9 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
 
     struct ntg_xy abs_pos;
     abs_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
+
+    if(object->_dirty & NTG_OBJECT_DIRTY_DRAW)
+        return;
 
     int _status;
     ntg_object_drawing_place_(

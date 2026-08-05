@@ -576,10 +576,6 @@ static void collect_layers_by_z_internal(
         size_t* counter,
         size_t cap)
 {
-    
-    
-    
-
     const ntg_object_vec* children = &(it_root->_children);
     const ntg_object_vec* anchored = &(it_root->_anchored);
 
@@ -689,6 +685,7 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
     
     fixup_tree(root, &layout_data);
 
+    //ntg_log_log("IT: %d", it);
     if(layout_data.repeat)
     {
         layout_layer(scene, root, it + 1, arena);

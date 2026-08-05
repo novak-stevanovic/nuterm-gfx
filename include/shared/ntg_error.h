@@ -9,8 +9,6 @@
 /* ERROR CODES */
 /* -------------------------------------------------------------------------- */
 
-
-
 #define NTG_ERROR_BASE 4000
 
 #define NTG_ERR_UNEXPECTED (NTG_ERROR_BASE + 1)
@@ -27,7 +25,8 @@
 
 #define NTG_ERR_THREAD_SPAWN (NTG_ERROR_BASE + 101)
 
-#define NTG_ERR_LOOP_RUNNING (NTG_ERROR_BASE + 102)
+// #define NTG_ERR_LOOP_RUNNING (NTG_ERROR_BASE + 102)
+#define NTG_ERR_LOOP_INVALID_STATE (NTG_ERROR_BASE + 102)
 
 #define NTG_ERR_MAX_ANCHORED (NTG_ERROR_BASE + 103)
 #define NTG_ERR_MAX_CHILDREN (NTG_ERROR_BASE + 104)

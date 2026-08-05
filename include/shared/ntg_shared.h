@@ -53,9 +53,7 @@ typedef struct ntg_keybind ntg_keybind;
 /* CORE */
 /* ------------------------------------------------------ */
 
-typedef struct ntg_loop ntg_loop;
 typedef enum ntg_loop_status ntg_loop_status;
-typedef enum ntg_loop_stop_mode ntg_loop_stop_mode;
 typedef enum ntg_loop_exit_status ntg_loop_exit_status;
 typedef struct ntg_task_runner ntg_task_runner;
 typedef struct ntg_task_list ntg_task_list;

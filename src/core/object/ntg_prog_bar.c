@@ -199,7 +199,6 @@ void ntg_prog_bar_init_inherit(
 struct ntg_object_measure ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
         ntg_orient orient,
-        void* _layout_cache,
         sarena* arena,
         int* out_remeasure)
 {
@@ -226,7 +225,6 @@ struct ntg_object_measure ntg_prog_bar_measure_fn(
 void ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         ntg_object_tmp_drawing* out_drawing,
-        void* _layout_cache,
         sarena* arena,
         int* out_redraw)
 {

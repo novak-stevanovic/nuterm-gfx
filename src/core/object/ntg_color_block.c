@@ -115,7 +115,6 @@ void ntg_color_block_init_inherit(
 struct ntg_object_measure ntg_color_block_measure_fn(
         const ntg_object* _color_block,
         ntg_orient orient,
-        void* _layout_cache,
         sarena* arena,
         int* out_remeasure)
 {
@@ -130,7 +129,6 @@ struct ntg_object_measure ntg_color_block_measure_fn(
 void ntg_color_block_draw_fn(
         const ntg_object* _color_block,
         ntg_object_tmp_drawing* out_drawing,
-        void* _layout_cache,
         sarena* arena,
         int* out_redraw)
 {

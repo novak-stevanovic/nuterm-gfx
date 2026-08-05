@@ -224,23 +224,19 @@ struct ntg_object_measure
 ntg_button_measure_fn(
         const ntg_object* _button,
         ntg_orient orient,
-        void* _layout_cache,
         sarena* arena,
         int* out_remeasure)
 {
-    return ntg_text_measure_fn(
-            _button, orient, _layout_cache, arena, out_remeasure);
+    return ntg_text_measure_fn(_button, orient, arena, out_remeasure);
 }
 
 void ntg_button_draw_fn(
         const ntg_object* _button,
         ntg_object_tmp_drawing* out_drawing,
-        void* _layout_cache,
         sarena* arena,
         int* out_redraw)
 {
-    ntg_text_draw_fn(
-            _button, out_drawing, _layout_cache, arena, out_redraw);
+    ntg_text_draw_fn(_button, out_drawing, arena, out_redraw);
 }
 
 void ntg_button_deinit_fn(ntg_object* _button)
@@ -282,7 +278,6 @@ const struct ntg_object_vtable NTG_BUTTON_VTABLE_OBJECT = {
 void ntg_button_post_draw_fn(
         const ntg_text* _button,
         ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
         sarena* arena) {}
 
 const struct ntg_text_vtable NTG_BUTTON_VTABLE_TEXT = {

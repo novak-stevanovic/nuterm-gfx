@@ -1398,7 +1398,7 @@ void _ntg_object_hmeasure(ntg_object* object, sarena* arena, int* out_remeasure)
     if(object->__vtable->measure_fn)
     {
         measure = object->__vtable->measure_fn(object,
-                NTG_ORIENT_H, object->layout_cache, arena, &_remeasure);
+                NTG_ORIENT_H, arena, &_remeasure);
 
         if(_remeasure)
             measure = (struct ntg_object_measure) {0};
@@ -1530,7 +1530,7 @@ void _ntg_object_hconstrain(ntg_object* object, sarena* arena, int* out_reconstr
     if(object->__vtable->constrain_fn)
     {
         object->__vtable->constrain_fn(object, NTG_ORIENT_H,
-                &map, object->layout_cache, arena, &_reconstrain);
+                &map, arena, &_reconstrain);
     }
 
     size_t it_size;
@@ -1570,7 +1570,7 @@ void _ntg_object_vmeasure(ntg_object* object, sarena* arena, int* out_remeasure)
     if(object->__vtable->measure_fn)
     {
         measure = object->__vtable->measure_fn(object,
-                NTG_ORIENT_V, object->layout_cache, arena, &_remeasure);
+                NTG_ORIENT_V, arena, &_remeasure);
 
         if(_remeasure)
             measure = (struct ntg_object_measure) {0};
@@ -1699,7 +1699,7 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_reconstr
     if(object->__vtable->constrain_fn)
     {
         object->__vtable->constrain_fn(object, NTG_ORIENT_V,
-                &map, object->layout_cache, arena, &_reconstrain);
+                &map, arena, &_reconstrain);
     }
 
     size_t it_size;
@@ -1748,8 +1748,7 @@ bool _ntg_object_fixup(ntg_object* object, sarena* arena)
     bool repeat_fn = false;
     if(object->__vtable->fixup_fn)
     {
-        repeat_fn = object->__vtable->fixup_fn(object,
-                object->layout_cache, arena);;
+        repeat_fn = object->__vtable->fixup_fn(object, arena);;
     }
 
     if(repeat_dcr || repeat_fn)
@@ -1816,7 +1815,7 @@ void _ntg_object_arrange(ntg_object* object, sarena* arena, int* out_rearrange)
 
     int _rearrange = 0;
     if(object->__vtable->arrange_fn)
-        object->__vtable->arrange_fn(object, &map, object->layout_cache, arena, &_rearrange);
+        object->__vtable->arrange_fn(object, &map, arena, &_rearrange);
 
     struct ntg_xy dcr_sum = ntg_xy(
             object->_border.size.w + object->_padding.size.w,
@@ -1864,9 +1863,18 @@ void _ntg_object_draw(ntg_object* object, sarena* arena, int* out_redraw)
             ntg_set_out(out_redraw, 1);
             return;
     }
-
+    
     if(ntg_xy_size_is_zero(object->_size))
         return;
+
+    size_t i, j;
+    for(i = 0; i < object->_size.y; i++)
+    {
+        for(j = 0; j < object->_size.x; j++)
+        {
+            ntg_object_drawing_set(&object->_drawing, ntg_vcell_new_default(), ntg_xy(j, i));
+        }
+    }
 
     int _redraw = 0;
     if(ntg_insets_hsum(object->_border.size) || ntg_insets_vsum(object->_border.size))
@@ -2378,7 +2386,7 @@ static void draw_optimized(ntg_object* object, sarena* arena, int* out_redraw)
     int _redraw = 0;
     if(object->__vtable->draw_fn)
     {
-        object->__vtable->draw_fn(object, &content_drawing, object->layout_cache, arena, &_redraw);
+        object->__vtable->draw_fn(object, &content_drawing, arena, &_redraw);
     }
 
     struct ntg_vcell it_src_cell;
@@ -2451,7 +2459,7 @@ static void draw_unoptimized(ntg_object* object, sarena* arena, int* out_redraw)
     int _redraw = 0;
     if(object->__vtable->draw_fn)
     {
-        object->__vtable->draw_fn(object, &content_drawing, object->layout_cache, arena, &_redraw);
+        object->__vtable->draw_fn(object, &content_drawing, arena, &_redraw);
     }
 
     struct ntg_vcell it_src_cell;

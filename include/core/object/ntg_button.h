@@ -128,7 +128,6 @@ NTG_API struct ntg_object_measure
 ntg_button_measure_fn(
         const ntg_object* _button,
         ntg_orient orient,
-        void* _layout_cache,
         sarena* arena,
         int* out_remeasure);
 
@@ -136,7 +135,6 @@ NTG_API void
 ntg_button_draw_fn(
         const ntg_object* _button,
         ntg_object_tmp_drawing* out_drawing,
-        void* _layout_cache,
         sarena* arena,
         int* out_redraw);
 
@@ -158,7 +156,6 @@ NTG_API void
 ntg_button_post_draw_fn(
         const ntg_text* _button,
         ntg_object_tmp_drawing* out_drawing,
-        void* layout_ch,
         sarena* arena);
 
 NTG_API extern const struct ntg_text_vtable NTG_BUTTON_VTABLE_TEXT;

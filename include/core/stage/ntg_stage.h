@@ -27,10 +27,8 @@ struct ntg_stage_hooks
             struct ntg_xy old_size,
             struct ntg_xy new_size);
 
-    void (*on_loop_chng_fn)(
-            ntg_stage* stage,
-            ntg_loop* old_loop,
-            ntg_loop* new_loop);
+    void (*on_loop_enter_fn)(ntg_stage* stage);
+    void (*on_loop_leave_fn)(ntg_stage* stage);
 };
 
 struct ntg_stage
@@ -42,7 +40,7 @@ struct ntg_stage
     struct ntg_xy _size;
     ntg_stage_drawing _drawing;
 
-    ntg_loop* _loop;
+    bool _in_loop;
 
     bool _dirty;
 
@@ -106,7 +104,6 @@ struct ntg_stage_vtable
     bool (*handle_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse);
 };
 
-
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
@@ -134,7 +131,8 @@ NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 /* -------------------------------------------------------------------------- */
 
 void _ntg_stage_clean(ntg_stage* stage);
-void _ntg_stage_set_loop(ntg_stage* stage, ntg_loop* loop);
+void _ntg_stage_enter_loop(ntg_stage* stage);
+void _ntg_stage_leave_loop(ntg_stage* stage);
 void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
 void _ntg_stage_compose(ntg_stage* stage, sarena* arena, int* out_recompose);
 

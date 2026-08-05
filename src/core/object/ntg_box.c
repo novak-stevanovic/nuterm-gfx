@@ -10,11 +10,6 @@
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-struct box_layout_cache
-{
-    struct ntg_object_measure measure[2];
-};
-
 static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 {
     return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
@@ -85,9 +80,6 @@ void ntg_box_deinit(ntg_box* box)
 
     box->_opts = ntg_box_opts_default();
     box->hooks = (struct ntg_box_hooks) {0};
-
-    free(((ntg_object*)box)->layout_cache);
-    ((ntg_object*)box)->layout_cache = NULL;
 
     ntg_object_deinit((ntg_object*)box);
 }
@@ -203,26 +195,16 @@ void ntg_box_init_inherit(
 
     box->_opts = ntg_box_opts_default();
     box->hooks = (struct ntg_box_hooks) {0};
-
-    ((ntg_object*)box)->layout_cache =
-            malloc(sizeof(struct box_layout_cache));
-    if(!((ntg_object*)box)->layout_cache)
-    {
-        ntg_object_deinit((ntg_object*)box);
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-    }
 }
 
 struct ntg_object_measure ntg_box_measure_fn(
         const ntg_object* _box,
         ntg_orient orient,
-        void* _layout_cache,
         sarena* arena,
         int* out_remeasure)
 {
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
-    struct box_layout_cache* layout_cache = _layout_cache;
 
     if(children->size == 0) return (struct ntg_object_measure) {0};
 
@@ -263,8 +245,6 @@ struct ntg_object_measure ntg_box_measure_fn(
         .grow = 1
     };
 
-    layout_cache->measure[orient] = measure;
-
     return measure;
 }
 
@@ -272,21 +252,20 @@ void ntg_box_constrain_fn(
         const ntg_object* _box,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
-        void* _layout_cache,
         sarena* arena,
         int* out_reconstrain)
 {
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
     size_t size = ntg_object_get_size_1d_cont(_box, orient);
-    struct box_layout_cache* layout_cache = _layout_cache;
 
     if(children->size == 0) return;
 
     int _status;
 
-    size_t min_size = layout_cache->measure[orient].min_size;
-    size_t nat_size = layout_cache->measure[orient].nat_size;
+    struct ntg_object_measure cont_measure = ntg_object_get_measure_cont(_box, orient);
+    size_t min_size = cont_measure.min_size;
+    size_t nat_size = cont_measure.nat_size;
 
     size_t extra_size;
     size_t array_size = children->size * sizeof(size_t);
@@ -397,7 +376,6 @@ void ntg_box_constrain_fn(
 void ntg_box_arrange_fn(
         const ntg_object* _box,
         ntg_object_pos_map* out_pos_map,
-        void* _layout_cache,
         sarena* arena,
         int* out_rearrange)
 {

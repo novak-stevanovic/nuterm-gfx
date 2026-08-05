@@ -429,7 +429,6 @@ void ntg_text_init_inherit(
 struct ntg_object_measure ntg_text_measure_fn(
         const ntg_object* _text_obj,
         ntg_orient orient,
-        void* _layout_cache,
         sarena* arena,
         int* out_remeasure)
 {
@@ -471,7 +470,6 @@ struct ntg_object_measure ntg_text_measure_fn(
 void ntg_text_draw_fn(
         const ntg_object* _text_obj,
         ntg_object_tmp_drawing* out_drawing,
-        void* _layout_cache,
         sarena* arena,
         int* out_redraw)
 {
@@ -659,7 +657,7 @@ void ntg_text_draw_fn(
     }
 
     if(text_obj->__vtable && text_obj->__vtable->post_draw_fn)
-        text_obj->__vtable->post_draw_fn(text_obj, out_drawing, _layout_cache, arena);
+        text_obj->__vtable->post_draw_fn(text_obj, out_drawing, arena);
 }
 
 void ntg_text_deinit_fn(ntg_object* _text_obj)

@@ -4,5 +4,6 @@ gdb.txt
 ntg_log.txt
 *.swp
 compile_commands.json
-libnuterm.so
-libnuterm.a
+libnutermgfx.so
+libnutermgfx.a
+demo

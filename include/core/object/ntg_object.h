@@ -193,7 +193,7 @@ struct ntg_object
 
     struct
     {
-        void* layout_cache;
+        // void* layout_cache;
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
         struct ntg_xy _pos;
@@ -460,7 +460,6 @@ struct ntg_object_vtable
     struct ntg_object_measure (*measure_fn)(
             const ntg_object* object,
             ntg_orient orient,
-            void* layout_ch,
             sarena* arena,
             int* out_remeasure);
 
@@ -468,26 +467,20 @@ struct ntg_object_vtable
             const ntg_object* object,
             ntg_orient orient,
             ntg_object_size_map* out_size_map,
-            void* layout_ch,
             sarena* arena,
             int* out_reconstrain);
 
-    bool (*fixup_fn)(
-            const ntg_object* object,
-            void* layout_ch,
-            sarena* arena);
+    bool (*fixup_fn)(const ntg_object* object, sarena* arena);
 
     void (*arrange_fn)(
             const ntg_object* object,
             ntg_object_pos_map* out_pos_map,
-            void* layout_ch,
             sarena* arena,
             int* out_rearrange);
 
     void (*draw_fn)(
             const ntg_object* object,
             ntg_object_tmp_drawing* out_drawing,
-            void* layout_ch,
             sarena* arena,
             int* out_redraw);
 

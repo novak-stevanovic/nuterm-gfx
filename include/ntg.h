@@ -80,18 +80,20 @@ ntg_disable(void);
 
 // FIX:
 // If layout fn fails due to alloc fail for example, object will stay dirty but layout wont trigger again.
-// Always call layout v functions because of layout cache?
+// Add max iterations to layout_layer() fn
+
+// ntg_loop/ntg_renderer:
 // Adjustable arena allocations?
 // ntg_task_runner: start threads on run()
 // ntg_renderer: loop ptr
-// Add max iterations to layout_layer() fn
 
 // IMPLEMENT:
-// ntg_input_field
+// ntg_input
 // ntg_list
 // ntg_dialogue
 
 // FINISH:
+// Error codes
 // add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
 
 #endif // NTG_H

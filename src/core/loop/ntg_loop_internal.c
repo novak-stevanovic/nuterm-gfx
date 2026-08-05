@@ -103,15 +103,6 @@ void _ntg_platform_execute_all(ntg_platform* platform)
     pthread_mutex_unlock(&platform->__lock);
 }
 
-void _ntg_platform_invalidate(ntg_platform* platform)
-{
-    if(!platform) return;
-
-    pthread_mutex_lock(&platform->__lock);
-    platform->__loop = NULL;
-    pthread_mutex_unlock(&platform->__lock);
-}
-
 bool _ntg_platform_is_valid(ntg_platform* platform)
 {
     if(!platform) return false;
@@ -149,11 +140,7 @@ void _ntg_task_runner_init(
     pthread_mutex_init(&task_runner->__lock, NULL);
     pthread_cond_init(&task_runner->__cond, NULL);
 
-    task_runner->__init = true;
-
     ntg_task_list_init(&task_runner->__tasks, NULL);
-
-    task_runner->__running = 0;
 
     int status;
     size_t i, j;
@@ -177,6 +164,7 @@ void _ntg_task_runner_init(
     }
 
     task_runner->__loop = loop;
+    task_runner->__running = 0;
 }
 
 void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
@@ -184,7 +172,6 @@ void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
     if(!task_runner) return;
 
     pthread_mutex_lock(&task_runner->__lock);
-    task_runner->__init = false;
     pthread_cond_broadcast(&task_runner->__cond);
     pthread_mutex_unlock(&task_runner->__lock);
 
@@ -201,29 +188,12 @@ void _ntg_task_runner_deinit(ntg_task_runner* task_runner)
 
     ntg_task_list_deinit(&task_runner->__tasks, NULL);
 
-    task_runner->__running = 0;
     task_runner->__loop = NULL;
 }
 
 bool _ntg_task_runner_is_running(ntg_task_runner* task_runner)
 {
-    if(!task_runner) return false;
-
-    size_t running = 0;
-
-    pthread_mutex_lock(&task_runner->__lock);
-
-    if(!task_runner->__init)
-    {
-        pthread_mutex_unlock(&task_runner->__lock);
-        return false;
-    }
-
-    running = task_runner->__running;
-
-    pthread_mutex_unlock(&task_runner->__lock);
-
-    return (running > 0);
+    return (task_runner ? (task_runner->__running > 0) : false);
 }
 
 void _ntg_task_runner_execute(
@@ -238,7 +208,7 @@ void _ntg_task_runner_execute(
 
     pthread_mutex_lock(&task_runner->__lock);
 
-    if(!task_runner->__loop || !task_runner->__init)
+    if(!task_runner->__loop)
     {
         pthread_mutex_unlock(&task_runner->__lock);
         return;
@@ -265,28 +235,6 @@ void _ntg_task_runner_execute(
     pthread_mutex_unlock(&task_runner->__lock);
 }
 
-void _ntg_task_runner_invalidate(ntg_task_runner* task_runner)
-{
-    if(!task_runner) return;
-
-    pthread_mutex_lock(&task_runner->__lock);
-    task_runner->__loop = false;
-    pthread_mutex_unlock(&task_runner->__lock);
-}
-
-bool _ntg_task_runner_is_valid(ntg_task_runner* task_runner)
-{
-    if(!task_runner) return false;
-
-    bool valid;
-
-    pthread_mutex_lock(&task_runner->__lock);
-    valid = (task_runner->__loop != NULL);
-    pthread_mutex_unlock(&task_runner->__lock);
-
-    return valid;
-}
-
 static void* worker_fn(void* _data)
 {
     ntg_task_runner* runner = (ntg_task_runner*)_data;
@@ -295,15 +243,9 @@ static void* worker_fn(void* _data)
     {
         pthread_mutex_lock(&runner->__lock);
 
-        while(runner->__init && (runner->__tasks.size == 0))
+        while(runner->__tasks.size == 0)
         {
             pthread_cond_wait(&runner->__cond, &runner->__lock);
-        }
-
-        if(!runner->__init)
-        {
-            pthread_mutex_unlock(&runner->__lock);
-            break;
         }
 
         struct ntg_task task = *(runner->__tasks.head->data);
