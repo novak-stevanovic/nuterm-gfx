@@ -9,7 +9,7 @@
 #define NTG_LOOP_FRAMERATE_AUTO 60
 #define NTG_LOOP_FRAMERATE_MAX 500
 
-#define NTG_LOOP_ARENA_SIZE_DEFAULT ((size_t)2000000)
+#define NTG_LOOP_ARENA_SIZE_AUTO ((size_t)2000000)
 
 /* ========================================================================== */
 /* PUBLIC */
@@ -65,6 +65,9 @@ ntg_loop_dispatch_event_fn_default(struct nt_event event);
 NTG_API void
 ntg_loop_start(unsigned int framerate, int* out_status);
 
+NTG_API void
+ntg_loop_stop();
+
 /* ------------------------------------------------------ */
 /* TASKS & PLATFORM */
 /* ------------------------------------------------------ */
@@ -81,9 +84,6 @@ ntg_loop_execute(/* ??? */);
 /* ------------------------------------------------------ */
 /* IN-LOOP */
 /* ------------------------------------------------------ */
-
-NTG_API void
-ntg_loop_stop(int* out_status);
 
 NTG_API ntg_stage*
 ntg_loop_get_stage();

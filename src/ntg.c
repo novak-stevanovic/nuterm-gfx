@@ -3,7 +3,6 @@
 #include <pthread.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "core/loop/ntg_loop_internal.h"
 #include "shared/ntg_shared_internal.h"
 
 #define UCONV_IMPLEMENTATION

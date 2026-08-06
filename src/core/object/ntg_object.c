@@ -1962,13 +1962,44 @@ void _ntg_object_clean(ntg_object* object, uint32_t clean)
     object->_dirty &= (~clean);
 }
 
-void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene)
+void _ntg_object_enter_scene(ntg_object* object, ntg_scene* scene)
 {
     if(!object) return;
 
     object->__skip_hborder = false;
     object->__skip_hpadding = false;
     object->__repeat = false;
+
+    if(object->__vtable->set_scene_fn)
+        object->__vtable->set_scene_fn(object, scene);
+}
+
+void _ntg_object_on_scene_enter(ntg_object* object, ntg_scene* scene)
+{
+    if(!object) return;
+
+    if(object->hooks.on_scene_set_fn)
+        object->hooks.on_scene_set_fn(object, scene);
+}
+
+void _ntg_object_scene_leave(ntg_object* object, ntg_scene* scene)
+{
+    if(!object) return;
+
+    object->__skip_hborder = false;
+    object->__skip_hpadding = false;
+    object->__repeat = false;
+
+    if(object->__vtable->rm_scene_fn)
+        object->__vtable->rm_scene_fn(object, scene);
+}
+
+void _ntg_object_on_scene_leave(ntg_object* object, ntg_scene* scene)
+{
+    if(!object) return;
+
+    if(object->hooks.on_scene_rm_fn)
+        object->hooks.on_scene_rm_fn(object, scene);
 }
 
 void _ntg_object_focus(ntg_object* object, ntg_object* old_focused)

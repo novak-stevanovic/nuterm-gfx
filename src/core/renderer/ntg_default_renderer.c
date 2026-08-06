@@ -34,12 +34,20 @@ void ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status)
     if(!renderer)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
+    int _status;
+
     ntg_renderer_init_inherit(
             (ntg_renderer*)renderer,
             &NTG_DEFAULT_RENDERER_VTABLE,
-            NULL);
+            &_status);
+    switch(_status)
+    {
+        case 0:
+            break;
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 
-    int _status;
     ntg_stage_drawing_init(&renderer->__backbuff, &_status);
     switch(_status)
     {

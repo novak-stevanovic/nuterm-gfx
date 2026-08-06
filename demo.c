@@ -59,7 +59,6 @@ ntg_label s_label, sb_label1, sb_label2, sb_label3;
 ntg_color_block c_cb1, c_cb2;
 ntg_stage stage;
 ntg_scene scene;
-ntg_loop loop;
 
 ntg_button flt_button;
 
@@ -86,13 +85,13 @@ const struct ntg_focus_scope_vtable FS1_VTABLE;
 
 bool flt_button_mouse_fn(ntg_button* button)
 {
-    ntg_loop_break(&loop, true);
+    ntg_loop_stop();
     return true;
 }
 
-bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
+bool loop_on_event_fn(struct nt_event event)
 {
-    bool consumed = ntg_loop_dispatch_event_fn(loop, event);
+    bool consumed = ntg_loop_dispatch_event_fn_default(event);
     if(consumed) return true;
 
     if(event.type == NT_EVENT_KEY)
@@ -100,7 +99,7 @@ bool loop_on_event_fn(ntg_loop* loop, struct nt_event event)
         struct nt_key_event key = *(struct nt_key_event*)event.data;
         if(nt_key_event_utf32_check_alt(key, 'q', false))
         {
-            ntg_loop_break(loop, true);
+            ntg_loop_stop();
             return true;
         }
     }
@@ -223,8 +222,14 @@ int main(int argc, char *argv[])
     ntg_stage_init(&stage, &_status);
     ntg_cleanup_batch_add(batch, &stage, ntg_stage_deinit_void, NULL, &_status);
 
-    ntg_loop_init(&loop, &stage, NULL, 500, 4, loop_on_event_fn, &_status);
-    ntg_cleanup_batch_add(batch, &loop, ntg_loop_deinit_void, NULL, &_status);
+    ntg_loop_init(
+        NULL,
+        loop_on_event_fn,
+        NTG_LOOP_WORKERS_AUTO,
+        NTG_LOOP_ARENA_SIZE_AUTO,
+        &stage,
+        &_status);
+    assert(!_status);
 
     // ATTACH ROOTS, SCENE, STAGE
 
@@ -244,10 +249,13 @@ int main(int argc, char *argv[])
     // ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
     ntg_focus_manager_stack_push(scene._fm, &fs1, &_status);
 
-    ntg_loop_exit_status loop_status = ntg_loop_run(&loop, &_status);
-    ntg_log_log("LOOP END | STATUS: %d", loop_status);
+    ntg_loop_start(60, &_status);
+    assert(!_status);
 
     ntg_cleanup_batch_finish(batch);
+
+    ntg_loop_deinit(&_status);
+    assert(!_status);
 
     ntg_disable();
 

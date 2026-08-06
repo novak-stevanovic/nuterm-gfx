@@ -581,6 +581,10 @@ ntg_object_set_clickable(ntg_object* object, ntg_object_clickable_mode mode);
 void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
 
 void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
+void _ntg_object_enter_scene(ntg_object* object, ntg_scene* scene);
+void _ntg_object_on_scene_enter(ntg_object* object, ntg_scene* scene);
+void _ntg_object_scene_leave(ntg_object* object, ntg_scene* scene);
+void _ntg_object_on_scene_leave(ntg_object* object, ntg_scene* scene);
 
 void _ntg_object_focus(ntg_object* object, ntg_object* old_focused);
 void _ntg_object_unfocus(ntg_object* object, ntg_object* new_focused);

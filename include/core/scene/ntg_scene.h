@@ -30,11 +30,8 @@ struct ntg_scene_hooks
             struct ntg_xy old_size,
             struct ntg_xy new_size);
 
-    void (*on_stage_chng_fn)(
-            ntg_scene* scene,
-            ntg_stage* old_stage,
-            ntg_stage* new_stage);
-
+    void (*on_stage_enter_fn)(ntg_scene* scene, ntg_stage* stage);
+    void (*on_stage_leave_fn)(ntg_scene* scene, ntg_stage* stage);
     
     void (*on_object_register_fn)(ntg_scene* scene, ntg_object* object);
     void (*on_object_unregister_fn)(ntg_scene* scene, ntg_object* object);
@@ -185,25 +182,21 @@ NTG_API extern const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT;
 
 
 void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
-
-void _ntg_scene_layout(ntg_scene* scene, sarena* arena, int* out_relayout);
+bool _ntg_scene_layout(ntg_scene* scene, sarena* arena);
 
 void _ntg_scene_clean(ntg_scene* scene);
 
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);
-
+void _ntg_scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage);
+void _ntg_scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage);
 
 void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root);
-
 void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root);
 
-
 void _ntg_scene_register(ntg_scene* scene, ntg_object* root);
-
 void _ntg_scene_unregister(ntg_scene* scene, ntg_object* root);
 
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root);
-
 void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root);
 
 #endif // NTG_SCENE_H

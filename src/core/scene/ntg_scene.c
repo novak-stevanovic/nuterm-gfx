@@ -20,7 +20,7 @@ struct ntg_scene_layout_data
 {
     ntg_scene* scene;
     sarena* arena;
-    bool repeat;
+    bool new_it, relayout;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -31,7 +31,7 @@ struct ntg_scene_layout_data
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-static void 
+static bool
 layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena);
 
 static void collect_layers_by_z_internal(
@@ -371,21 +371,15 @@ void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
         scene->hooks.on_size_chng_fn(scene, old_size, size);
 }
 
-void _ntg_scene_layout(ntg_scene* scene, sarena* arena, int* out_relayout)
+bool _ntg_scene_layout(ntg_scene* scene, sarena* arena)
 {
-    if(!scene) return;
+    if(!scene) return false;
 
     size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
 
-    if(layer_count == 0)
-        return;
+    if(layer_count == 0) return false;
 
     ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
-    if(!layers)
-    {
-        ntg_set_out(out_relayout, 1);
-        return;
-    }
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
     size_t i;
@@ -407,6 +401,24 @@ void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
     if(scene->_stage == stage) return;
 
     scene->_stage = stage;
+    if(stage)
+        ntg_scene_mark_dirty(scene);
+}
+
+void _ntg_scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage)
+{
+    if(!scene) return;
+
+    if(scene->hooks.on_stage_enter_fn)
+        scene->hooks.on_stage_enter_fn(scene, stage);
+}
+
+void _ntg_scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage)
+{
+    if(!scene) return;
+
+    if(scene->hooks.on_stage_leave_fn)
+        scene->hooks.on_stage_leave_fn(scene, stage);
 }
 
 void _ntg_scene_add(ntg_scene* scene, ntg_object* object)
@@ -436,11 +448,7 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
     if(scene->hooks.on_object_register_fn)
         scene->hooks.on_object_register_fn(scene, object);
 
-    if(object->__vtable->set_scene_fn)
-        object->__vtable->set_scene_fn(object, scene);
-
-    if(object->hooks.on_scene_set_fn)
-        object->hooks.on_scene_set_fn(object, scene);
+    _ntg_object_enter_scene(object, scene);
 
     if(ntg_object_is_only_layer_root(object))
     {
@@ -452,6 +460,8 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
                 scene->hooks.on_layer_add_fn(scene, object);
         }
     }
+
+    _ntg_object_on_scene_enter(object, scene);
 }
 
 void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
@@ -461,11 +471,7 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
     if(scene->hooks.on_object_unregister_fn)
         scene->hooks.on_object_unregister_fn(scene, object);
 
-    if(object->__vtable->rm_scene_fn)
-        object->__vtable->rm_scene_fn(object, scene);
-
-    if(object->hooks.on_scene_rm_fn)
-        object->hooks.on_scene_rm_fn(object, scene);
+    _ntg_object_scene_leave(object, scene);
 
     if(ntg_object_is_only_layer_root(object))
     {
@@ -475,6 +481,8 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
                 scene->hooks.on_layer_rm_fn(scene, object);
         }
     }
+
+    _ntg_object_on_scene_leave(object, scene);
 }
 
 void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root)
@@ -629,10 +637,10 @@ static void collect_layers_by_z_internal(
     }
 }
 
-static void 
+static bool 
 layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 {
-    if(!root) return;
+    if(!root) return false;
 
     const struct ntg_anchor_policy* policy = root->_anchor_policy;
     ntg_object* base = root->_base;
@@ -640,7 +648,8 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
     struct ntg_scene_layout_data layout_data = {
         .scene = scene,
         .arena = arena,
-        .repeat = false
+        .new_it = false,
+        .relayout = false
     };
 
     if(it == 0)
@@ -686,9 +695,9 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
     fixup_tree(root, &layout_data);
 
     //ntg_log_log("IT: %d", it);
-    if(layout_data.repeat)
+    if(layout_data.new_it)
     {
-        layout_layer(scene, root, it + 1, arena);
+        return (layout_data.relayout || layout_layer(scene, root, it + 1, arena));
     }
     else
     {
@@ -714,6 +723,8 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 
         arrange_tree(root, &layout_data);
         draw_tree(root, &layout_data);
+
+        return layout_data.relayout;
     }
 }
 
@@ -805,7 +816,7 @@ static void fixup_fn(ntg_object* object, void* _layout_data)
     if(_ntg_object_fixup(object, arena))
     {
         ntg_log_log("Object: %p demanded repeat", object);
-        layout_data->repeat = true;
+        layout_data->new_it = true;
     }
 }
 

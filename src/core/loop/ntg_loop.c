@@ -8,7 +8,7 @@
 /* STATIC */
 /* ========================================================================== */
 
-static struct
+struct ntg_loop
 {
     enum ntg_loop_status status;
 
@@ -24,10 +24,15 @@ static struct
     {
         unsigned int framerate;
         ntg_stage* stage;
+        ntg_stage* pending_stage;
         struct ntg_xy app_size;
     } running;
 
-} loop = {0};
+};
+
+static struct ntg_loop loop = {0};
+
+static void update_stage();
 
 /* ========================================================================== */
 /* PUBLIC */
@@ -49,16 +54,7 @@ static void init_default()
 {
     loop.status = NTG_LOOP_DEINIT;
 
-    loop.init.renderer = NULL;
-    loop.init._owns_renderer = false;
-    loop.init._init_renderer = false;
-    loop.init.dispatch_event_fn = NULL;
-    loop.init.arena = NULL;
-
-    loop.running.stage = NULL;
-    loop.running.framerate = 0;
-    loop.running.app_size = ntg_xy(0, 0);
-
+    loop = (struct ntg_loop) {0};
     // loop.frame_count = 0;
 }
 
@@ -124,7 +120,7 @@ void ntg_loop_init(
         }
 
         int _status;
-        ntg_default_renderer_init((ntg_default_renderer*)renderer, &_status);  
+        ntg_default_renderer_init((ntg_default_renderer*)loop.init.renderer, &_status);  
 
         switch(_status)
         {
@@ -262,7 +258,7 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
                 if(loop.running.stage->_dirty)
                 {
                     _recompose = 0;
-                    _ntg_stage_compose(loop.running.stage, loop.init.arena, &_recompose);
+                    ntg_stage_compose(loop.running.stage, loop.init.arena, &_recompose);
                     
                     if(!_recompose)
                         _ntg_stage_clean(loop.running.stage);
@@ -313,17 +309,92 @@ ntg_loop_execute(/* ??? */);
 /* IN-LOOP */
 /* ------------------------------------------------------ */
 
-NTG_API void
-ntg_loop_stop(int* out_status);
+void ntg_loop_stop()
+{
+    if(loop.status != NTG_LOOP_RUNNING)
+        return;
 
-NTG_API ntg_stage*
-ntg_loop_get_stage();
+    loop.status = NTG_LOOP_STOPPING;
+}
 
-NTG_API void
-ntg_loop_set_stage(ntg_stage* stage, int* out_status);
+ntg_stage* ntg_loop_get_stage()
+{
+    if((loop.status != NTG_LOOP_RUNNING) && (loop.status != NTG_LOOP_STOPPING))
+        return NULL;
+    else
+        return loop.running.stage;
+}
 
-NTG_API struct ntg_xy
-ntg_loop_get_app_size();
+void ntg_loop_set_stage(ntg_stage* stage, int* out_status)
+{
+    ntg_init_status(out_status);
+    
+    if(loop.status == NTG_LOOP_DEINIT)
+        ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
 
-NTG_API unsigned int
-ntg_loop_get_framerate();
+    if((loop.status == NTG_LOOP_RUNNING) || (loop.status == NTG_LOOP_STOPPING))
+    {
+        loop.running.pending_stage = stage;
+    }
+    else
+    {
+        ntg_stage* old_stage = loop.running.stage;
+
+        if(old_stage == stage) return;
+
+        if(old_stage)
+        {
+            _ntg_stage_leave_loop(old_stage);
+            // _ntg_stage_set_size(old_stage, ntg_xy(0, 0));
+        }
+        if(stage)
+        {
+            _ntg_stage_enter_loop(stage);
+            _ntg_stage_set_size(stage, loop.running.app_size);
+        }
+
+        loop.running.stage = stage;
+        loop.running.pending_stage = stage;
+    }
+}
+
+struct ntg_xy ntg_loop_get_app_size()
+{
+    if((loop.status != NTG_LOOP_RUNNING) && (loop.status != NTG_LOOP_STOPPING))
+        return ntg_xy(0, 0);
+    else
+        return loop.running.app_size;
+}
+
+unsigned int ntg_loop_get_framerate()
+{
+    if((loop.status != NTG_LOOP_RUNNING) && (loop.status != NTG_LOOP_STOPPING))
+        return 0;
+    else
+        return loop.running.framerate;
+}
+
+static void update_stage()
+{
+    ntg_stage* old = loop.running.stage;
+    ntg_stage* new = loop.running.pending_stage;
+
+    if(old == new) return;
+
+    // if(new && new->_loop) return;
+
+    if(old)
+    {
+        _ntg_stage_leave_loop(old);
+        _ntg_stage_set_size(old, ntg_xy(0, 0));
+    }
+    if(new)
+    {
+        _ntg_stage_enter_loop(new);
+        _ntg_stage_set_size(new, loop.running.app_size);
+        ntg_stage_mark_dirty(new);
+    }
+
+    loop.running.stage = new;
+    loop.running.pending_stage = new;
+}

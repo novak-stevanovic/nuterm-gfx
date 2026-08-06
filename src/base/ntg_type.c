@@ -1,5 +1,5 @@
 #include "ntg.h"
-#include "core/loop/ntg_loop_internal.h"
+// #include "core/loop/ntg_loop_internal.h"
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
