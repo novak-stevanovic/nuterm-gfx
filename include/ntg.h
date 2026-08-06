@@ -87,6 +87,8 @@ ntg_disable(void);
 // ntg_task_runner: start threads on run()
 // ntg_renderer: loop ptr
 
+// TODO: update virtual layout function signatures, also init_inherit functions for objects to include layout_dt
+
 // IMPLEMENT:
 // ntg_input
 // ntg_list

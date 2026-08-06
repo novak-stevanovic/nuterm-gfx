@@ -27,7 +27,6 @@ struct ntg_loop
         ntg_stage* pending_stage;
         struct ntg_xy app_size;
     } running;
-
 };
 
 static struct ntg_loop loop = {0};
@@ -143,11 +142,14 @@ void ntg_loop_init(
     loop.status = NTG_LOOP_READY;
 
     loop.running.stage = init_stage;
+    loop.running.pending_stage = init_stage;
 }
 
 // What if there are active tasks?
 void ntg_loop_deinit(int* out_status)
 {
+    ntg_set_out(out_status, 0);
+
     if((loop.status == NTG_LOOP_RUNNING) || (loop.status == NTG_LOOP_STOPPING))
         ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
 
@@ -189,6 +191,8 @@ bool ntg_loop_dispatch_event_fn_default(struct nt_event event)
 
 void ntg_loop_start(unsigned int framerate, int* out_status)
 {
+    ntg_set_out(out_status, 0);
+
     if(loop.status != NTG_LOOP_READY)
         ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
 
@@ -211,16 +215,13 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
 
     nt_get_term_size(&loop.running.app_size.x, &loop.running.app_size.y);
 
-    int _recompose;
-
     loop.status = NTG_LOOP_RUNNING;
     if(loop.running.stage)
         _ntg_stage_set_size(loop.running.stage, loop.running.app_size);
     while(true)
     {
-        if(loop.status == NTG_LOOP_STOPPING) break;
-
         update_stage(loop);
+        if(loop.status == NTG_LOOP_STOPPING) break;
 
         event_elapsed = nt_event_wait(&event, timeout, &_status);
         if(_status != 0) continue;
@@ -257,19 +258,16 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
             {
                 if(loop.running.stage->_dirty)
                 {
-                    _recompose = 0;
-                    ntg_stage_compose(loop.running.stage, loop.init.arena, &_recompose);
-                    
-                    if(!_recompose)
+                    if(!ntg_stage_compose(loop.running.stage, loop.init.arena))
+                    {
                         _ntg_stage_clean(loop.running.stage);
-                    
+                    }
                 }
                 drawing = &(loop.running.stage->_drawing);
             }
             else drawing = NULL;
 
             ntg_renderer_render(loop.init.renderer, drawing, loop.init.arena);
-            nt_cursor_move(0, 0, NULL);
 
             sarena_rewind(loop.init.arena);
             // (loop.frame_count)++;

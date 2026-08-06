@@ -193,6 +193,7 @@ struct ntg_object
 
     struct
     {
+        struct ntg_object_layout_dt* layout_dt;
         // void* layout_cache;
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
@@ -200,9 +201,6 @@ struct ntg_object
         ntg_object_drawing _drawing;
         bool __skip_hborder, __skip_hpadding, __repeat;
         bool __special_repeat;
-        // TODO:
-        // size_t __locked_vborder_n, __locked_vborder_s;
-        // size_t __locked_vpadding_n, __locked_vpadding_s;
         uint8_t _dirty;
     };
 
@@ -470,7 +468,7 @@ struct ntg_object_vtable
             sarena* arena,
             int* out_reconstrain);
 
-    bool (*fixup_fn)(const ntg_object* object, sarena* arena);
+    bool (*post_constrain_fn)(const ntg_object* object, sarena* arena);
 
     void (*arrange_fn)(
             const ntg_object* object,
@@ -541,6 +539,7 @@ ntg_object_init_inherit(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -581,7 +580,7 @@ ntg_object_set_clickable(ntg_object* object, ntg_object_clickable_mode mode);
 void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
 
 void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
-void _ntg_object_enter_scene(ntg_object* object, ntg_scene* scene);
+void _ntg_object_scene_enter(ntg_object* object, ntg_scene* scene);
 void _ntg_object_on_scene_enter(ntg_object* object, ntg_scene* scene);
 void _ntg_object_scene_leave(ntg_object* object, ntg_scene* scene);
 void _ntg_object_on_scene_leave(ntg_object* object, ntg_scene* scene);

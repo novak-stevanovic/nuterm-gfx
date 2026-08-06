@@ -6,7 +6,7 @@
 
 #define DEBUG 0
 
-#define LAYER_LAYOUT_MAX_IT 10
+#define LAYER_LAYOUT_MAX_IT 20
 
 /* ========================================================================== */
 /* STATIC */
@@ -43,7 +43,7 @@ static void collect_layers_by_z_internal(
 
 static void hmeasure_fn(ntg_object* object, void* _layout_data);
 static void hconstrain_fn(ntg_object* object, void* _layout_data);
-static void fixup_fn(ntg_object* object, void* _layout_data);
+static void post_constrain_fn(ntg_object* object, void* _layout_data);
 static void vmeasure_fn(ntg_object* object, void* _layout_data);
 static void vconstrain_fn(ntg_object* object, void* _layout_data);
 static void arrange_fn(ntg_object* object, void* _layout_data);
@@ -53,7 +53,7 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(hmeasure_tree, hmeasure_fn);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(hconstrain_tree, hconstrain_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(vmeasure_tree, vmeasure_fn);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(vconstrain_tree, vconstrain_fn);
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fixup_tree, fixup_fn);
+NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fixup_tree, post_constrain_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(arrange_tree, arrange_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 
@@ -206,7 +206,6 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
 
     ntg_object* old_root = scene->_root;
 
-    
     if(old_root) 
     {
         _ntg_object_root_set_scene(old_root, NULL);
@@ -214,7 +213,6 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
         _ntg_scene_rm_object_tree(scene, old_root);
     }
 
-    
     if(root)
     {
         
@@ -383,8 +381,11 @@ bool _ntg_scene_layout(ntg_scene* scene, sarena* arena)
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
     size_t i;
+    bool relayout = false;
     for(i = 0; i < layer_count; i++)
-        layout_layer(scene, layers[i], 0, arena);
+        relayout = relayout || layout_layer(scene, layers[i], 0, arena);
+
+    return relayout;
 }
 
 void _ntg_scene_clean(ntg_scene* scene)
@@ -448,7 +449,7 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
     if(scene->hooks.on_object_register_fn)
         scene->hooks.on_object_register_fn(scene, object);
 
-    _ntg_object_enter_scene(object, scene);
+    _ntg_object_scene_enter(object, scene);
 
     if(ntg_object_is_only_layer_root(object))
     {
@@ -695,7 +696,7 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
     fixup_tree(root, &layout_data);
 
     //ntg_log_log("IT: %d", it);
-    if(layout_data.new_it)
+    if(layout_data.new_it && (it < LAYER_LAYOUT_MAX_IT))
     {
         return (layout_data.relayout || layout_layer(scene, root, it + 1, arena));
     }
@@ -737,9 +738,9 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | M1 | %p", object);
 
-        int _remeasure = 0;
-        _ntg_object_hmeasure(object, arena, &_remeasure);
-        if(!_remeasure)
+        uint32_t layout_flags = 0;
+        _ntg_object_hmeasure(object, arena, &layout_flags);
+        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_HMEASURE);
     }
     else
@@ -757,9 +758,9 @@ static void hconstrain_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | C1 | %p", object);
 
-        int _reconstrain = 0;
-        _ntg_object_hconstrain(object, arena, &_reconstrain);
-        if(!_reconstrain)
+        uint32_t layout_flags = 0;
+        _ntg_object_hconstrain(object, arena, &layout_flags);
+        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_HCONSTRAIN);
     }
     else
@@ -777,9 +778,9 @@ static void vmeasure_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | M2 | %p", object);
 
-        int _remeasure = 0;
-        _ntg_object_vmeasure(object, arena, &_remeasure);
-        if(!_remeasure)
+        uint32_t layout_flags = 0;
+        _ntg_object_vmeasure(object, arena, &layout_flags);
+        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_HMEASURE);
     }
     else
@@ -797,9 +798,9 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | C2 | %p", object);
 
-        int _reconstrain = 0;
-        _ntg_object_vconstrain(object, arena, &_reconstrain);
-        if(!_reconstrain)
+        uint32_t layout_flags = 0;
+        _ntg_object_vconstrain(object, arena, &layout_flags);
+        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_VCONSTRAIN);
     }
     else
@@ -808,12 +809,12 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
     }
 }
 
-static void fixup_fn(ntg_object* object, void* _layout_data)
+static void post_constrain_fn(ntg_object* object, void* _layout_data)
 {
     struct ntg_scene_layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(_ntg_object_fixup(object, arena))
+    if(_ntg_object_post_constrain(object, arena))
     {
         ntg_log_log("Object: %p demanded repeat", object);
         layout_data->new_it = true;
@@ -829,9 +830,9 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | A | %p", object);
 
-        int _rearrange = 0;
-        _ntg_object_arrange(object, arena, &_rearrange);
-        if(!_rearrange)
+        uint32_t layout_flags = 0;
+        _ntg_object_arrange(object, arena, &layout_flags);
+        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_ARRANGE);
     }
     else
@@ -849,9 +850,9 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | D | %p", object);
 
-        int _redraw = 0;
-        _ntg_object_draw(object, arena, &_redraw);
-        if(!_redraw)
+        uint32_t layout_flags = 0;
+        _ntg_object_draw(object, arena, &layout_flags);
+        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_DRAW);
     }
     else

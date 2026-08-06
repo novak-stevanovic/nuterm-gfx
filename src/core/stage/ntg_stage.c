@@ -219,7 +219,7 @@ const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT = {
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-bool _ntg_stage_compose(ntg_stage* stage, sarena* arena, int* out_recompose)
+bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
 {
     if(!stage || !arena) return false;
 
@@ -234,11 +234,9 @@ bool _ntg_stage_compose(ntg_stage* stage, sarena* arena, int* out_recompose)
             return true;
     }
 
-    int _relayout = 0;
     if(stage->_scene && stage->_scene->_dirty)
     {
-        _ntg_scene_layout(stage->_scene, arena, &_relayout);
-        if(!_relayout)
+        if(!_ntg_scene_layout(stage->_scene, arena))
             _ntg_scene_clean(stage->_scene);
     }
 
@@ -270,7 +268,7 @@ bool _ntg_stage_compose(ntg_stage* stage, sarena* arena, int* out_recompose)
     bool rval = false;
     for(i = 0; i < layer_count; i++)
     {
-        rval = rval ||  draw_layer(stage, layers[i], arena);
+        rval = rval || draw_layer(stage, layers[i], arena);
     }
 
     return rval;

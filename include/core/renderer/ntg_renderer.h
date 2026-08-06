@@ -56,8 +56,8 @@ struct ntg_renderer_vtable
             const ntg_stage_drawing* stage_drawing,
             sarena* arena);
 
-    void (*attach_loop_fn)(ntg_renderer* renderer);
-    void (*detach_loop_fn)(ntg_renderer* renderer);
+    void (*loop_enter_fn)(ntg_renderer* renderer);
+    void (*loop_leave_fn)(ntg_renderer* renderer);
 
     void (*deinit_fn)(ntg_renderer* renderer);
 };

@@ -819,6 +819,7 @@ void ntg_object_init_inherit(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -863,8 +864,8 @@ void ntg_object_init_inherit(
     }
 
     object->_type = type;
-
     object->__vtable = vtable;
+    object->layout_dt = layout_dt;
 
     ntg_object_drawing_init(&object->_drawing);
 }
@@ -903,6 +904,9 @@ void ntg_object_deinit(ntg_object* object)
     ntg_object_vec_deinit(&object->_children, NULL);
     ntg_object_vec_deinit(&object->_anchored, NULL);
     ntg_object_drawing_deinit(&object->_drawing);
+
+    if(object->layout_dt && object->layout_dt->free_fn)
+        object->layout_dt->free_fn(object->layout_dt);
 
     init_default(object);
 }
@@ -1020,6 +1024,11 @@ void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene)
 /* -------------------------------------------------------------------------- */
 /* TYPES */
 /* -------------------------------------------------------------------------- */
+
+void ntg_object_layout_dt_free_fn(struct ntg_object_layout_dt* data)
+{
+    if(data) free(data);
+}
 
 /* ------------------------------------------------------ */
 /* MEASURE PHASE */
@@ -1739,16 +1748,16 @@ void _ntg_object_vconstrain(ntg_object* object, sarena* arena, int* out_reconstr
     ntg_set_out(out_reconstrain, _reconstrain);
 }
 
-bool _ntg_object_fixup(ntg_object* object, sarena* arena)
+bool _ntg_object_post_constrain(ntg_object* object, sarena* arena)
 {
     if(!object || !arena)
         return false;
 
     bool repeat_dcr = object->__repeat;
     bool repeat_fn = false;
-    if(object->__vtable->fixup_fn)
+    if(object->__vtable->post_constrain_fn)
     {
-        repeat_fn = object->__vtable->fixup_fn(object, arena);;
+        repeat_fn = object->__vtable->post_constrain_fn(object, arena);;
     }
 
     if(repeat_dcr || repeat_fn)
@@ -1962,7 +1971,7 @@ void _ntg_object_clean(ntg_object* object, uint32_t clean)
     object->_dirty &= (~clean);
 }
 
-void _ntg_object_enter_scene(ntg_object* object, ntg_scene* scene)
+void _ntg_object_scene_enter(ntg_object* object, ntg_scene* scene)
 {
     if(!object) return;
 
@@ -1972,6 +1981,9 @@ void _ntg_object_enter_scene(ntg_object* object, ntg_scene* scene)
 
     if(object->__vtable->set_scene_fn)
         object->__vtable->set_scene_fn(object, scene);
+
+    if(object->layout_dt && object->layout_dt->reset_fn)
+        object->layout_dt->reset_fn(object->layout_dt);
 }
 
 void _ntg_object_on_scene_enter(ntg_object* object, ntg_scene* scene)
