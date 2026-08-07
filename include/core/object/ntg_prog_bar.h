@@ -135,6 +135,7 @@ ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -143,9 +144,11 @@ ntg_prog_bar_init_inherit(
 NTG_API struct ntg_object_measure
 ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure);
+        uint32_t* relayout,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 
@@ -153,9 +156,11 @@ ntg_prog_bar_measure_fn(
 NTG_API void
 ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        int* out_redraw);
+        uint32_t* relayout,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 

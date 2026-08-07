@@ -65,6 +65,7 @@ void ntg_main_panel_init(
             panel,
             &NTG_MAIN_PANEL_VTABLE,
             &NTG_TYPE_MAIN_PANEL,
+            NULL,
             &_status);
 
     if(_status)
@@ -101,8 +102,7 @@ void ntg_main_panel_set(
 {
     ntg_init_status(out_status);
 
-    if(!panel || (pos < NTG_MAIN_PANEL_NORTH) ||
-            (pos > NTG_MAIN_PANEL_CENTER))
+    if(!panel || (pos < NTG_MAIN_PANEL_NORTH) || (pos > NTG_MAIN_PANEL_CENTER))
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     ntg_object* old_child = panel->_children[pos];
@@ -176,6 +176,7 @@ void ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -188,7 +189,8 @@ void ntg_main_panel_init_inherit(
 
     int _status;
 
-    ntg_object_init_inherit((ntg_object*)panel, vtable, type, &_status);
+    ntg_object_init_inherit(
+            (ntg_object*)panel, vtable, type, layout_dt, &_status);
     switch(_status)
     {
         case 0:
@@ -207,10 +209,16 @@ void ntg_main_panel_init_inherit(
 
 struct ntg_object_measure ntg_main_panel_measure_fn(
         const ntg_object* _panel,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
 
     ntg_object *north, *east, *south, *west, *center;
@@ -274,13 +282,26 @@ struct ntg_object_measure ntg_main_panel_measure_fn(
 
 void ntg_main_panel_constrain_fn(
         const ntg_object* _panel,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
-        int* out_reconstrain)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
     size_t size = ntg_object_get_size_1d_cont(_panel, orient);
+
+    if(_panel->_children.size == 0) return;
+    if(size == 0)
+    {
+        ntg_object_zero_constrain(_panel, out_size_map);
+        return;
+    }
 
     ntg_object *north, *east, *south, *west, *center;
     get_children(main_panel, &north, &east, &south, &west, &center);
@@ -364,10 +385,7 @@ void ntg_main_panel_constrain_fn(
         }
 
         if(_status != 0)
-        {
-            ntg_set_out(out_reconstrain, 1);
-            return;
-        }
+            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size)
@@ -437,10 +455,7 @@ void ntg_main_panel_constrain_fn(
         }
 
         if(_status != 0)
-        {
-            ntg_set_out(out_reconstrain, 1);
-            return;
-        }
+            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size) 
@@ -454,38 +469,47 @@ void ntg_main_panel_constrain_fn(
         center_size = _sizes[1];
     }
 
-    if(north != NULL)
+    if(north)
         ntg_object_size_map_set(out_size_map, north, north_size);
-    if(east != NULL)
+    if(east)
         ntg_object_size_map_set(out_size_map, east, east_size);
-    if(south != NULL)
+    if(south)
         ntg_object_size_map_set(out_size_map, south, south_size);
-    if(west != NULL)
+    if(west)
         ntg_object_size_map_set(out_size_map, west, west_size);
-    if(center != NULL)
+    if(center)
         ntg_object_size_map_set(out_size_map, center, center_size);
 }
 
 void ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_pos_map* out_pos_map,
         sarena* arena,
-        int* out_rearrange)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
     struct ntg_xy size = ntg_object_get_size_cont(_panel);
 
     ntg_object *north, *east, *south, *west, *center;
     get_children(main_panel, &north, &east, &south, &west, &center);
 
-    struct ntg_xy north_size = (north != NULL) ?
-        north->_size : ntg_xy(0, 0);
-    struct ntg_xy east_size = (east != NULL) ?
-        east->_size : ntg_xy(0, 0);
-    struct ntg_xy south_size = (south != NULL) ?
-        south->_size : ntg_xy(0, 0);
-    struct ntg_xy west_size = (west != NULL) ?
-        west->_size : ntg_xy(0, 0);
+    if(_panel->_children.size == 0) return;
+    if(ntg_xy_size_is_zero(size))
+    {
+        ntg_object_zero_arrange(_panel, out_pos_map);
+        return;
+    }
+
+    struct ntg_xy north_size = (north != NULL) ? north->_size : ntg_xy(0, 0);
+    struct ntg_xy east_size = (east != NULL) ? east->_size : ntg_xy(0, 0);
+    struct ntg_xy south_size = (south != NULL) ? south->_size : ntg_xy(0, 0);
+    struct ntg_xy west_size = (west != NULL) ? west->_size : ntg_xy(0, 0);
 
     size_t west_east_width = west_size.x + east_size.x;
     size_t north_south_height = north_size.y + south_size.y;
@@ -499,15 +523,15 @@ void ntg_main_panel_arrange_fn(
     struct ntg_xy west_pos = ntg_xy(0, north_size.y);
     struct ntg_xy center_pos = ntg_xy(west_size.x, north_size.y);
 
-    if(north != NULL)
+    if(north)
         ntg_object_pos_map_set(out_pos_map, north, north_pos);
-    if(east != NULL)
+    if(east)
         ntg_object_pos_map_set(out_pos_map, east, east_pos);
-    if(south != NULL)
+    if(south)
         ntg_object_pos_map_set(out_pos_map, south, south_pos);
-    if(west != NULL)
+    if(west)
         ntg_object_pos_map_set(out_pos_map, west, west_pos);
-    if(center != NULL)
+    if(center)
         ntg_object_pos_map_set(out_pos_map, center, center_pos);
 }
 

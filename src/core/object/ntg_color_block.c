@@ -26,6 +26,7 @@ void ntg_color_block_init(
             color_block,
             &NTG_COLOR_BLOCK_VTABLE,
             &NTG_TYPE_COLOR_BLOCK,
+            NULL,
             &_status);
 
     if(!_status)
@@ -84,6 +85,7 @@ void ntg_color_block_init_inherit(
         ntg_color_block* color_block,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -96,7 +98,8 @@ void ntg_color_block_init_inherit(
 
     int _status;
 
-    ntg_object_init_inherit((ntg_object*)color_block, vtable, type, &_status);
+    ntg_object_init_inherit(
+            (ntg_object*)color_block, vtable, type, layout_dt, &_status);
     switch(_status)
     {
         case 0:
@@ -114,10 +117,16 @@ void ntg_color_block_init_inherit(
 
 struct ntg_object_measure ntg_color_block_measure_fn(
         const ntg_object* _color_block,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     return (struct ntg_object_measure) {
         .min_size = DEFAULT_SIZE,
         .nat_size = DEFAULT_SIZE,
@@ -128,12 +137,20 @@ struct ntg_object_measure ntg_color_block_measure_fn(
 
 void ntg_color_block_draw_fn(
         const ntg_object* _color_block,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        int* out_redraw)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_color_block* color_block = ntg_cb(_color_block);
     struct ntg_xy size = ntg_object_get_size_cont(_color_block);
+
+    if(ntg_xy_size_is_zero(size)) return;
 
     size_t i, j;
     for(i = 0; i < size.y; i++)

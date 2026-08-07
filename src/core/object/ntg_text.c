@@ -390,6 +390,7 @@ void ntg_text_init_inherit(
         const struct ntg_object_vtable* object_vtable,
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -402,7 +403,8 @@ void ntg_text_init_inherit(
 
     int _status;
 
-    ntg_object_init_inherit((ntg_object*)text_obj, object_vtable, type, &_status);
+    ntg_object_init_inherit(
+            (ntg_object*)text_obj, object_vtable, type, layout_dt, &_status);
     switch(_status)
     {
         case 0:
@@ -428,10 +430,17 @@ void ntg_text_init_inherit(
 
 struct ntg_object_measure ntg_text_measure_fn(
         const ntg_object* _text_obj,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
+    int _remeasure = 0;
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
     size_t for_size = ntg_object_get_for_size_cont(_text_obj, orient);
     if(for_size == 0) return (struct ntg_object_measure) {0};
@@ -448,15 +457,15 @@ struct ntg_object_measure ntg_text_measure_fn(
     {
         case NTG_TEXT_WRAP_NONE:
             result = measure_nowrap_fn(text_obj, rows,
-                    row_count, orient, for_size, arena, out_remeasure);
+                    row_count, orient, for_size, arena, &_remeasure);
             break;
         case NTG_TEXT_WRAP_CHAR:
             result = measure_wrap_fn(text_obj, rows,
-                    row_count, orient, for_size, arena, out_remeasure);
+                    row_count, orient, for_size, arena, &_remeasure);
             break;
         case NTG_TEXT_WRAP_WORD:
             result = measure_wwrap_fn(text_obj, rows,
-                    row_count, orient, for_size, arena, out_remeasure);
+                    row_count, orient, for_size, arena, &_remeasure);
             break;
 
         default:
@@ -464,21 +473,33 @@ struct ntg_object_measure ntg_text_measure_fn(
             break;
     }
 
+    if(_remeasure)
+        ntg_return(result, out_status, NTG_ERR_LAYOUT_FAIL);
+
     return result;
 }
 
 void ntg_text_draw_fn(
         const ntg_object* _text_obj,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        int* out_redraw)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
+    struct ntg_xy cont_size = ntg_object_get_size_cont(_text_obj);
+    if(ntg_xy_size_is_zero(cont_size)) return;
+
+    int _redraw = 0;
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
     if((text_obj->_text.len == 0) || (text_obj->_text.data == NULL)) return;
 
     struct ntg_text_opts opts = text_obj->_opts;
 
-    struct ntg_xy cont_size = ntg_object_get_size_cont(_text_obj);
     struct ntg_xy cont_nat_size = ntg_object_get_nat_size_cont(_text_obj);
 
     /* Determine full size */
@@ -502,8 +523,7 @@ void ntg_text_draw_fn(
             full_size = ntg_xy(cont_nat_size.x, cont_size.y);
     }
 
-    if(ntg_xy_is_zero(ntg_xy_size(cont_size))) return;
-    if(ntg_xy_is_zero(ntg_xy_size(full_size))) return;
+    if(ntg_xy_size_is_zero(full_size)) return;
 
     struct ntg_xy full_size_adj =
         (opts.orient == NTG_ORIENT_H) ?
@@ -514,10 +534,7 @@ void ntg_text_draw_fn(
     size_t full_size_prod = full_size_adj.x * full_size_adj.y;
     uint32_t* full_buff = sarena_malloc(arena, sizeof(uint32_t) * full_size_prod);
     if(!full_buff)
-    {
-        ntg_set_out(out_redraw, 1);
-        return;
-    }
+        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
 
     for(i = 0; i < full_size_prod; i++) full_buff[i] = ' ';
 
@@ -543,21 +560,22 @@ void ntg_text_draw_fn(
         {
             case NTG_TEXT_WRAP_NONE:
                _it_wrows_count = get_wrows_nowrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena, out_redraw);
+                       full_size_adj.x, &_it_wrows, arena, &_redraw);
                 break;
             case NTG_TEXT_WRAP_CHAR:
                _it_wrows_count = get_wrows_wrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena, out_redraw);
+                       full_size_adj.x, &_it_wrows, arena, &_redraw);
                 break;
             case NTG_TEXT_WRAP_WORD:
                _it_wrows_count = get_wrows_wwrap(rows[i],
-                       full_size_adj.x, &_it_wrows, arena, out_redraw);
+                       full_size_adj.x, &_it_wrows, arena, &_redraw);
                 break;
             default:
                 return;
         }
 
-        if(_it_wrows_count == SIZE_MAX) return;
+        if(_redraw || (_it_wrows_count == SIZE_MAX))
+            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
 
         for(j = 0; j < _it_wrows_count; j++)
         {

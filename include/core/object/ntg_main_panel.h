@@ -125,6 +125,7 @@ ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -132,28 +133,34 @@ ntg_main_panel_init_inherit(
 NTG_API struct ntg_object_measure
 ntg_main_panel_measure_fn(
         const ntg_object* _panel,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure);
+        uint32_t* relayout,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 
 NTG_API void
 ntg_main_panel_constrain_fn(
         const ntg_object* _panel,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
-        int* out_reconstrain);
+        uint32_t* relayout,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 
 NTG_API void
 ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_pos_map* out_pos_map,
         sarena* arena,
-        int* out_rearrange);
+        uint32_t* relayout,
+        int* out_status);
 
 /* ------------------------------------------------------ */
 

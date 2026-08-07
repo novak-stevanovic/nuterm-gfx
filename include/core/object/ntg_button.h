@@ -122,21 +122,26 @@ ntg_button_init_inherit(
         const struct ntg_object_vtable* object_vtable,
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status);
 
 NTG_API struct ntg_object_measure
 ntg_button_measure_fn(
         const ntg_object* _button,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure);
+        uint32_t* relayout,
+        int* out_status);
 
 NTG_API void
 ntg_button_draw_fn(
         const ntg_object* _button,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        int* out_redraw);
+        uint32_t* relayout,
+        int* out_status);
 
 NTG_API void
 ntg_button_deinit_fn(ntg_object* _button);

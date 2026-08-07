@@ -38,4 +38,6 @@
 
 #define NTG_ERR_UTF_CONV (NTG_ERROR_BASE + 200)
 
+#define NTG_ERR_LAYOUT_FAIL (NTG_ERROR_BASE + 201)
+
 #endif // NTG_ERROR_H

@@ -66,6 +66,7 @@ void ntg_box_init(
             box,
             &NTG_BOX_VTABLE,
             &NTG_TYPE_BOX,
+            NULL,
             &_status);
 
     if(!_status)
@@ -169,6 +170,7 @@ void ntg_box_init_inherit(
         ntg_box* box,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -181,7 +183,8 @@ void ntg_box_init_inherit(
 
     int _status;
 
-    ntg_object_init_inherit((ntg_object*)box, vtable, type, &_status);
+    ntg_object_init_inherit(
+            (ntg_object*)box, vtable, type, layout_dt, &_status);
     switch(_status)
     {
         case 0:
@@ -199,10 +202,16 @@ void ntg_box_init_inherit(
 
 struct ntg_object_measure ntg_box_measure_fn(
         const ntg_object* _box,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
 
@@ -250,16 +259,27 @@ struct ntg_object_measure ntg_box_measure_fn(
 
 void ntg_box_constrain_fn(
         const ntg_object* _box,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
-        int* out_reconstrain)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
     size_t size = ntg_object_get_size_1d_cont(_box, orient);
 
     if(children->size == 0) return;
+    if(size == 0)
+    {
+        ntg_object_zero_constrain(_box, out_size_map);
+        return;
+    }
 
     int _status;
 
@@ -271,16 +291,10 @@ void ntg_box_constrain_fn(
     size_t array_size = children->size * sizeof(size_t);
     size_t* caps = (size_t*)sarena_malloc(arena, array_size);
     if(!caps)
-    {
-        ntg_set_out(out_reconstrain, 1);
-        return;
-    }
+        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
     size_t* _sizes = (size_t*)sarena_malloc(arena, array_size);
     if(!_sizes)
-    {
-        ntg_set_out(out_reconstrain, 1);
-        return;
-    }
+        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
     size_t* grows = NULL;
 
     const ntg_object* it_child;
@@ -292,10 +306,7 @@ void ntg_box_constrain_fn(
         {
             grows = (size_t*)sarena_malloc(arena, array_size);
             if(!grows)
-            {
-                ntg_set_out(out_reconstrain, 1);
-                return;
-            }
+                ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
             extra_size = size - nat_size; 
 
             for(i = 0; i < children->size; i++)
@@ -340,11 +351,8 @@ void ntg_box_constrain_fn(
         }
 
         ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children->size, arena, &_status);
-        if(_status)
-        {
-            ntg_set_out(out_reconstrain, 1);
-            return;
-        }
+        if(_status != 0)
+            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
 
         for(i = 0; i < children->size; i++)
         {
@@ -375,15 +383,26 @@ void ntg_box_constrain_fn(
 
 void ntg_box_arrange_fn(
         const ntg_object* _box,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_pos_map* out_pos_map,
         sarena* arena,
-        int* out_rearrange)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_object_vec* children = ntg_box_get_children(box);
     struct ntg_xy size = ntg_object_get_size_cont(_box);
 
     if(children->size == 0) return;
+    if(ntg_xy_size_is_zero(size))
+    {
+        ntg_object_zero_arrange(_box, out_pos_map);
+        return;
+    }
 
     int _status;
     
@@ -417,27 +436,18 @@ void ntg_box_arrange_fn(
 
     size_t* spacing_caps = (size_t*)sarena_malloc(arena, array_size);
     if(!spacing_caps)
-    {
-        ntg_set_out(out_rearrange, 1);
-        return;
-    }
+        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
     for(i = 0; i < (children->size - 1); i++)
         spacing_caps[i] = NTG_SIZE_MAX;
 
     size_t* _spacing_after = (size_t*)sarena_calloc(arena, array_size);
     if(!_spacing_after)
-    {
-        ntg_set_out(out_rearrange, 1);
-        return;
-    }
+        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
 
     ntg_sap_cap_round_robin(spacing_caps, NULL, _spacing_after,
             total_spacing, children->size - 1, arena, &_status);
-    if(_status)
-    {
-        ntg_set_out(out_rearrange, 1);
-        return;
-    }
+    if(_status != 0)
+        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
     
     struct ntg_oxy _cont_size = ntg_oxy(
             _children_size.prim_val + total_spacing,

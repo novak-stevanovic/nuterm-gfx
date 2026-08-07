@@ -80,6 +80,7 @@ void ntg_prog_bar_init(
             prog_bar,
             &NTG_PROG_BAR_VTABLE,
             &NTG_TYPE_PROG_BAR,
+            NULL,
             &_status);
 
     if(!_status)
@@ -167,6 +168,7 @@ void ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -179,7 +181,8 @@ void ntg_prog_bar_init_inherit(
 
     int _status;
 
-    ntg_object_init_inherit((ntg_object*)prog_bar, vtable, type, &_status);
+    ntg_object_init_inherit(
+            (ntg_object*)prog_bar, vtable, type, layout_dt, &_status);
     switch(_status)
     {
         case 0:
@@ -198,10 +201,16 @@ void ntg_prog_bar_init_inherit(
 
 struct ntg_object_measure ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
 
     if(orient == prog_bar->_opts.orient)
@@ -224,14 +233,20 @@ struct ntg_object_measure ntg_prog_bar_measure_fn(
 
 void ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        int* out_redraw)
+        uint32_t* relayout,
+        int* out_status)
 {
+    (void)layout_dt;
+    (void)relayout;
+    ntg_init_status(out_status);
+
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
     struct ntg_xy size = ntg_object_get_size_cont(_prog_bar);
 
-    if(ntg_xy_is_zero(ntg_xy_size(size))) return;
+    if(ntg_xy_size_is_zero(size)) return;
 
     struct ntg_oxy _size =
             ntg_oxy_from_xy(size, prog_bar->_opts.orient);

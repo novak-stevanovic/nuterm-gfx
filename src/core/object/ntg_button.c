@@ -60,6 +60,7 @@ void ntg_button_init(
         &NTG_BUTTON_VTABLE_OBJECT,
         &NTG_BUTTON_VTABLE_TEXT,
         &NTG_TYPE_BUTTON,
+        NULL,
         &_status);
     if(!_status)
     {
@@ -186,6 +187,7 @@ void ntg_button_init_inherit(
         const struct ntg_object_vtable* object_vtable,
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
+        struct ntg_object_layout_dt* layout_dt,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -201,7 +203,9 @@ void ntg_button_init_inherit(
     button->hooks = (struct ntg_button_hooks) {0};
     button->__click_fn = NULL;
 
-    ntg_text_init_inherit(ntg_txt(button), object_vtable, text_vtable, type, &_status);
+    ntg_text_init_inherit(
+            ntg_txt(button), object_vtable, text_vtable, type,
+            layout_dt, &_status);
     switch(_status)
     {
         case 0:
@@ -223,20 +227,31 @@ void ntg_button_init_inherit(
 struct ntg_object_measure
 ntg_button_measure_fn(
         const ntg_object* _button,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_orient orient,
         sarena* arena,
-        int* out_remeasure)
+        uint32_t* relayout,
+        int* out_status)
 {
-    return ntg_text_measure_fn(_button, orient, arena, out_remeasure);
+    ntg_init_status(out_status);
+
+    return ntg_text_measure_fn(
+            _button, layout_dt, orient, arena, relayout, out_status);
 }
 
 void ntg_button_draw_fn(
         const ntg_object* _button,
+        struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        int* out_redraw)
+        uint32_t* relayout,
+        int* out_status)
 {
-    ntg_text_draw_fn(_button, out_drawing, arena, out_redraw);
+    ntg_init_status(out_status);
+
+    if(ntg_xy_size_is_zero(ntg_object_get_size_cont(_button))) return;
+
+    ntg_text_draw_fn(_button, layout_dt, out_drawing, arena, relayout, out_status);
 }
 
 void ntg_button_deinit_fn(ntg_object* _button)

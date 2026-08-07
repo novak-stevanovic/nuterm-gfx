@@ -268,7 +268,8 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     bool rval = false;
     for(i = 0; i < layer_count; i++)
     {
-        rval = rval || draw_layer(stage, layers[i], arena);
+        bool layer_redraw = draw_layer(stage, layers[i], arena);
+        rval = rval || layer_redraw;
     }
 
     return rval;

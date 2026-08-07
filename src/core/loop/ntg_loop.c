@@ -288,6 +288,8 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
         // loop.elapsed += (event_elapsed + process_elapsed_ms);
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
+
+    loop.status = NTG_LOOP_READY;
 }
 
 /* ------------------------------------------------------ */

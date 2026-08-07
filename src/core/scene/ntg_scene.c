@@ -20,7 +20,7 @@ struct ntg_scene_layout_data
 {
     ntg_scene* scene;
     sarena* arena;
-    bool new_it, relayout;
+    bool new_it, stay_dirty;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -41,9 +41,9 @@ static void collect_layers_by_z_internal(
         size_t* counter,
         size_t cap);
 
+static inline bool new_it(uint32_t flags);
 static void hmeasure_fn(ntg_object* object, void* _layout_data);
 static void hconstrain_fn(ntg_object* object, void* _layout_data);
-static void post_constrain_fn(ntg_object* object, void* _layout_data);
 static void vmeasure_fn(ntg_object* object, void* _layout_data);
 static void vconstrain_fn(ntg_object* object, void* _layout_data);
 static void arrange_fn(ntg_object* object, void* _layout_data);
@@ -53,7 +53,6 @@ NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(hmeasure_tree, hmeasure_fn);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(hconstrain_tree, hconstrain_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(vmeasure_tree, vmeasure_fn);
 NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(vconstrain_tree, vconstrain_fn);
-NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fixup_tree, post_constrain_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(arrange_tree, arrange_fn);
 NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(draw_tree, draw_fn);
 
@@ -383,7 +382,10 @@ bool _ntg_scene_layout(ntg_scene* scene, sarena* arena)
     size_t i;
     bool relayout = false;
     for(i = 0; i < layer_count; i++)
-        relayout = relayout || layout_layer(scene, layers[i], 0, arena);
+    {
+        bool layer_relayout = layout_layer(scene, layers[i], 0, arena);
+        relayout = relayout || layer_relayout;
+    }
 
     return relayout;
 }
@@ -650,11 +652,10 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
         .scene = scene,
         .arena = arena,
         .new_it = false,
-        .relayout = false
+        .stay_dirty = false
     };
 
-    if(it == 0)
-        hmeasure_tree(root, &layout_data);
+    hmeasure_tree(root, &layout_data);
     
     struct ntg_anchor_constrain_ctx constrain_ctx = {
         .root = root,
@@ -693,40 +694,43 @@ layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
 
     struct ntg_xy size = ntg_xy(hsize, vsize);
     
-    fixup_tree(root, &layout_data);
+    struct ntg_anchor_arrange_ctx arrange_ctx = {
+        .base = base,
+        .root = root,
+        .size = size,
+    };
 
-    //ntg_log_log("IT: %d", it);
-    if(layout_data.new_it && (it < LAYER_LAYOUT_MAX_IT))
+    struct ntg_xy pos = _ntg_anchor_policy_arrange(
+            policy,
+            &arrange_ctx,
+            arena);
+    pos = ntg_xy_pos_clamp(pos, size, scene->_size);
+
+    pos.x -= _sub2_size(pos.x + size.x, scene->_size.x);
+    pos.y -= _sub2_size(pos.y + size.y, scene->_size.y);
+
+    if(!ntg_xy_are_eql(root->_pos, pos))
     {
-        return (layout_data.relayout || layout_layer(scene, root, it + 1, arena));
+        _ntg_object_root_set_pos(root, pos);
     }
-    else
+
+    arrange_tree(root, &layout_data);
+    draw_tree(root, &layout_data);
+
+    if(layout_data.new_it)
     {
-        struct ntg_anchor_arrange_ctx arrange_ctx = {
-            .base = base,
-            .root = root,
-            .size = size,
-        };
-
-        struct ntg_xy pos = _ntg_anchor_policy_arrange(
-                policy,
-                &arrange_ctx,
-                arena);
-        pos = ntg_xy_pos_clamp(pos, size, scene->_size);
-
-        pos.x -= _sub2_size(pos.x + size.x, scene->_size.x);
-        pos.y -= _sub2_size(pos.y + size.y, scene->_size.y);
-
-        if(!ntg_xy_are_eql(root->_pos, pos))
-        {
-            _ntg_object_root_set_pos(root, pos);
-        }
-
-        arrange_tree(root, &layout_data);
-        draw_tree(root, &layout_data);
-
-        return layout_data.relayout;
+        if((it + 1) < LAYER_LAYOUT_MAX_IT)
+            return layout_layer(scene, root, it + 1, arena);
+        else
+            return true;
     }
+
+    return layout_data.stay_dirty;
+}
+
+static inline bool new_it(uint32_t flags)
+{
+    return ((flags & NTG_OBJECT_DIRTY_FULL) != 0);
 }
 
 static void hmeasure_fn(ntg_object* object, void* _layout_data)
@@ -738,10 +742,17 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | M1 | %p", object);
 
-        uint32_t layout_flags = 0;
-        _ntg_object_hmeasure(object, arena, &layout_flags);
-        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
+        int _status = 0;
+        uint32_t _relayout = 0;
+        _ntg_object_hmeasure(object, arena, &_relayout, &_status);
+        if(_status)
+            layout_data->stay_dirty = true;
+        else
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_HMEASURE);
+
+        if(_relayout)
+            ntg_object_mark_dirty(object, _relayout);
+        layout_data->new_it = layout_data->new_it || new_it(_relayout);
     }
     else
     {
@@ -758,10 +769,17 @@ static void hconstrain_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | C1 | %p", object);
 
-        uint32_t layout_flags = 0;
-        _ntg_object_hconstrain(object, arena, &layout_flags);
-        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
+        int _status = 0;
+        uint32_t _relayout = 0;
+        _ntg_object_hconstrain(object, arena, &_relayout, &_status);
+        if(_status != 0)
+            layout_data->stay_dirty = true;
+        else
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_HCONSTRAIN);
+
+        if(_relayout)
+            ntg_object_mark_dirty(object, _relayout);
+        layout_data->new_it = layout_data->new_it || new_it(_relayout);
     }
     else
     {
@@ -778,10 +796,17 @@ static void vmeasure_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | M2 | %p", object);
 
-        uint32_t layout_flags = 0;
-        _ntg_object_vmeasure(object, arena, &layout_flags);
-        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
-            _ntg_object_clean(object, NTG_OBJECT_DIRTY_HMEASURE);
+        int _status = 0;
+        uint32_t _relayout = 0;
+        _ntg_object_vmeasure(object, arena, &_relayout, &_status);
+        if(_status != 0)
+            layout_data->stay_dirty = true;
+        else
+            _ntg_object_clean(object, NTG_OBJECT_DIRTY_VMEASURE);
+
+        if(_relayout)
+            ntg_object_mark_dirty(object, _relayout);
+        layout_data->new_it = layout_data->new_it || new_it(_relayout);
     }
     else
     {
@@ -798,26 +823,21 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | C2 | %p", object);
 
-        uint32_t layout_flags = 0;
-        _ntg_object_vconstrain(object, arena, &layout_flags);
-        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
+        int _status = 0;
+        uint32_t _relayout = 0;
+        _ntg_object_vconstrain(object, arena, &_relayout, &_status);
+        if(_status != 0)
+            layout_data->stay_dirty = true;
+        else
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_VCONSTRAIN);
+
+        if(_relayout)
+            ntg_object_mark_dirty(object, _relayout);
+        layout_data->new_it = layout_data->new_it || new_it(_relayout);
     }
     else
     {
         ntg_log_log("OPTIMIZE: Object %p not dirty(VC)", object);
-    }
-}
-
-static void post_constrain_fn(ntg_object* object, void* _layout_data)
-{
-    struct ntg_scene_layout_data* layout_data = _layout_data;
-    sarena* arena = layout_data->arena; 
-
-    if(_ntg_object_post_constrain(object, arena))
-    {
-        ntg_log_log("Object: %p demanded repeat", object);
-        layout_data->new_it = true;
     }
 }
 
@@ -830,10 +850,17 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | A | %p", object);
 
-        uint32_t layout_flags = 0;
-        _ntg_object_arrange(object, arena, &layout_flags);
-        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
+        int _status = 0;
+        uint32_t _relayout = 0;
+        _ntg_object_arrange(object, arena, &_relayout, &_status);
+        if(_status != 0)
+            layout_data->stay_dirty = true;
+        else
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_ARRANGE);
+
+        if(_relayout)
+            ntg_object_mark_dirty(object, _relayout);
+        layout_data->new_it = layout_data->new_it || new_it(_relayout);
     }
     else
     {
@@ -850,10 +877,17 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_DEFAULT_SCENE | D | %p", object);
 
-        uint32_t layout_flags = 0;
-        _ntg_object_draw(object, arena, &layout_flags);
-        if(!(layout_flags & NTG_OBJECT_LAYOUT_STAY_DIRTY))
+        int _status = 0;
+        uint32_t _relayout = 0;
+        _ntg_object_draw(object, arena, &_relayout, &_status);
+        if(_status != 0)
+            layout_data->stay_dirty = true;
+        else
             _ntg_object_clean(object, NTG_OBJECT_DIRTY_DRAW);
+
+        if(_relayout)
+            ntg_object_mark_dirty(object, _relayout);
+        layout_data->new_it = layout_data->new_it || new_it(_relayout);
     }
     else
     {

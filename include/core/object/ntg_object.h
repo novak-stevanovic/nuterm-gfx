@@ -5,7 +5,6 @@
 #include "shared/ntg_shared.h"
 #include "core/object/ntg_object_drawing.h"
 #include "thirdparty/genc.h"
-#include "core/object/ntg_object_layout.h"
 
 #define NTG_OBJECT_MAX_CHILDREN 500
 #define NTG_OBJECT_MAX_ANCHORED 200
@@ -199,7 +198,7 @@ struct ntg_object
         struct ntg_xy _size;
         struct ntg_xy _pos;
         ntg_object_drawing _drawing;
-        bool __skip_hborder, __skip_hpadding, __repeat;
+        bool __skip_hborder, __skip_hpadding;
         bool __special_repeat;
         uint8_t _dirty;
     };
@@ -457,30 +456,36 @@ struct ntg_object_vtable
 {
     struct ntg_object_measure (*measure_fn)(
             const ntg_object* object,
+            struct ntg_object_layout_dt* layout_dt,
             ntg_orient orient,
             sarena* arena,
-            int* out_remeasure);
+            uint32_t* relayout,
+            int* out_status);
 
     void (*constrain_fn)(
             const ntg_object* object,
+            struct ntg_object_layout_dt* layout_dt,
             ntg_orient orient,
             ntg_object_size_map* out_size_map,
             sarena* arena,
-            int* out_reconstrain);
-
-    bool (*post_constrain_fn)(const ntg_object* object, sarena* arena);
+            uint32_t* relayout,
+            int* out_status);
 
     void (*arrange_fn)(
             const ntg_object* object,
+            struct ntg_object_layout_dt* layout_dt,
             ntg_object_pos_map* out_pos_map,
             sarena* arena,
-            int* out_rearrange);
+            uint32_t* relayout,
+            int* out_status);
 
     void (*draw_fn)(
             const ntg_object* object,
+            struct ntg_object_layout_dt* layout_dt,
             ntg_object_tmp_drawing* out_drawing,
             sarena* arena,
-            int* out_redraw);
+            uint32_t* relayout,
+            int* out_status);
 
     void (*deinit_fn)(ntg_object* object);
 
