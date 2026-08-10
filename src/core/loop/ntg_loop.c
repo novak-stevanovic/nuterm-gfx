@@ -274,7 +274,7 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
             }
             else drawing = NULL;
 
-            ntg_renderer_render(loop.init.renderer, drawing, loop.init.arena);
+            ntg_renderer_render(loop.init.renderer, drawing, loop.init.arena, &_status);
 
             sarena_rewind(loop.init.arena);
             // (loop.frame_count)++;

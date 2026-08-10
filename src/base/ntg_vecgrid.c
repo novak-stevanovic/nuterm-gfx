@@ -52,9 +52,10 @@ void ntg_vecgrid_set_size(
 {
     ntg_init_status(out_status);
 
-    if((!vecgrid) || (data_size == 0) || (modifier <= 1.05))
+    if((!vecgrid) || (data_size == 0))
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
+    if(modifier < 1.1) modifier = 1.1;
     size_cap.x = _max2_size(size_cap.x, 1);
     size_cap.y = _max2_size(size_cap.y, 1);
 

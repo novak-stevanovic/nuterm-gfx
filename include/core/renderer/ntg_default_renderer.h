@@ -54,7 +54,8 @@ NTG_API void
 ntg_default_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
-        sarena* arena);
+        sarena* arena,
+        int* out_status);
 
 NTG_API void
 ntg_default_renderer_deinit_fn(ntg_renderer* _renderer);

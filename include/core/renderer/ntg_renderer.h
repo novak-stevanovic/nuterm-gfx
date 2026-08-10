@@ -39,7 +39,8 @@ NTG_API void
 ntg_renderer_render(
         ntg_renderer* renderer,
         const ntg_stage_drawing* stage_drawing,
-        sarena* arena);
+        sarena* arena,
+        int* out_status);
 
 /* ========================================================================== */
 /* PROTECTED */
@@ -54,7 +55,8 @@ struct ntg_renderer_vtable
     void (*render_fn)(
             ntg_renderer* renderer,
             const ntg_stage_drawing* stage_drawing,
-            sarena* arena);
+            sarena* arena,
+            int* out_status);
 
     void (*loop_enter_fn)(ntg_renderer* renderer);
     void (*loop_leave_fn)(ntg_renderer* renderer);

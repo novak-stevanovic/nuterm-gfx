@@ -54,5 +54,14 @@ void ntg_stage_drawing_set_size(
     if(drawing == NULL)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    ntg_cell_vecgrid_set_size(&drawing->__data, size, size_cap, out_status);
+    int _status = 0;
+    ntg_cell_vecgrid_set_size(&drawing->__data, size, size_cap, &_status);
+    switch(_status)
+    {
+        case 0: break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+    }
 }

@@ -9,16 +9,16 @@
 /* STATIC */
 /* ========================================================================== */
 
-static void full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size);
+static int full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size);
 
-static void optimized_render(
+static int optimized_render(
         ntg_default_renderer* renderer,
         const ntg_stage_drawing* drawing,
         struct ntg_xy size,
         struct ntg_xy old_size,
         sarena* arena);
 
-static void full_render(
+static int full_render(
         ntg_default_renderer* renderer,
         const ntg_stage_drawing* drawing,
         struct ntg_xy size,
@@ -103,43 +103,72 @@ void ntg_default_renderer_deinit_void(void* _renderer)
 void ntg_default_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
-        sarena* arena)
+        sarena* arena,
+        int* out_status)
 {
-    if(!_renderer) return;
+    ntg_set_out(out_status, 0);
+    if(!_renderer)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     int _status;
 
     ntg_default_renderer* renderer = (ntg_default_renderer*)_renderer;
-    struct ntg_xy size = ntg_stage_drawing_get_size(stage_drawing);
+    struct ntg_xy size = (stage_drawing ? ntg_stage_drawing_get_size(stage_drawing) : ntg_xy(0, 0));
     bool resize = !(ntg_xy_are_eql(renderer->__old_size, size));
 
     struct ntg_xy old_size;
     old_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap, &_status);
-    if(_status != 0) return;
+    if(_status)
+        ntg_vreturn(out_status, NTG_ERR_RENDER_FAIL);
 
-    nt_buffer_enable(renderer->__buff, renderer->__buff_size, NULL);
+    int rval = 0;
+    bool buff_disable = false;
+
+    nt_buffer_enable(renderer->__buff, renderer->__buff_size, &_status);
+    switch(_status)
+    {
+        case 0:
+            buff_disable = true;
+            break;
+        default:
+            rval = NTG_ERR_RENDER_FAIL_RCVR;
+            break;
+    }
+    if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
 
     if(stage_drawing == NULL)
     {
-        full_empty_render(renderer, size);
+        _status = full_empty_render(renderer, size);
+        if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
     }
     else
     {
         if(resize)
         {
-            nt_erase_screen(NULL);
-            nt_erase_scrollback(NULL);
-            full_render(renderer, stage_drawing, size, arena);
+            nt_erase_screen(&_status);
+            if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
+
+            nt_erase_scrollback(&_status);
+            if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
+
+            _status = full_render(renderer, stage_drawing, size, arena);
+            if(_status) rval = _status;
         }
         else
-            optimized_render(renderer, stage_drawing, size, old_size, arena);
+        {
+            _status = optimized_render(renderer, stage_drawing, size, old_size, arena);
+            if(_status) rval = _status;
+        }
     }
 
     renderer->__old_size = size;
 
-    nt_buffer_disable(NT_BUFF_FLUSH);
+    if(buff_disable)
+        nt_buffer_disable(NT_BUFF_FLUSH);
+
+    ntg_set_out(out_status, rval);
 }
 
 void ntg_default_renderer_deinit_fn(ntg_renderer* _renderer)
@@ -156,7 +185,7 @@ const struct ntg_renderer_vtable NTG_DEFAULT_RENDERER_VTABLE = {
 /* STATIC */
 /* ========================================================================== */
 
-static void full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size)
+static int full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size)
 {
     size_t i, j;
     for(i = 0; i < size.y; i++)
@@ -170,8 +199,15 @@ static void full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size
         }
     }
 
-    nt_erase_screen(NULL);
-    nt_erase_scrollback(NULL);
+    int _status = 0;
+    int rval = 0;
+
+    nt_erase_screen(&_status);
+    if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
+    nt_erase_scrollback(&_status);
+    if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
+
+    return rval;
 }
 
 static inline size_t fwd_equal_gfx_search(
@@ -195,7 +231,7 @@ static inline size_t fwd_equal_gfx_search(
     return counter;
 }
 
-static void optimized_render(
+static int optimized_render(
         ntg_default_renderer* renderer,
         const ntg_stage_drawing* drawing,
         struct ntg_xy size,
@@ -203,18 +239,19 @@ static void optimized_render(
         sarena* arena)
 {
     uint32_t* row32_buff = sarena_malloc(arena, size.x * sizeof(uint32_t));
-    if(!row32_buff) return;
+    if(!row32_buff) return NTG_ERR_RENDER_FAIL;
 
     size_t row_buff_cap = size.x * 4;
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
-    if(!row_buff) return;
+    if(!row_buff) return NTG_ERR_RENDER_FAIL;
+
+    int rval = 0;
 
     size_t i, j, k;
     size_t it_opt;
     struct ntg_cell it_draw_cell;
     struct ntg_cell it_bb_cell;
-    int _uc_status;
-    int _int;
+    int _status;
     size_t _uc_len;
     for(i = 0; i < size.y; i++)
     {
@@ -241,40 +278,44 @@ static void optimized_render(
 
                 ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j + k, i));
             }
-            ntg_log_log("RENDER OPT: %d", k);
-
             uc_utf32_to_utf8(row32_buff, k, row_buff,
                     row_buff_cap, 0, NULL, &_uc_len,
-                    &_uc_status);
-            if(_uc_status != 0) return;
-
-            nt_cursor_move(j, i, &_int);
-            
-            nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, NULL);
-
+                    &_status);
+            if(!_status)
+            {
+                nt_cursor_move(j, i, &_status);
+                if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
+                nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, &_status);
+                if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
+            }
+            else
+                rval = NTG_ERR_RENDER_FAIL_RCVR;
             j += k;
         }
     }
+
+    return rval;
 }
 
-static void full_render(
+static int full_render(
         ntg_default_renderer* renderer,
         const ntg_stage_drawing* drawing,
         struct ntg_xy size,
         sarena* arena)
 {
     uint32_t* row32_buff = sarena_malloc(arena, size.x * sizeof(uint32_t));
-    if(!row32_buff) return;
+    if(!row32_buff) return NTG_ERR_RENDER_FAIL;
 
     size_t row_buff_cap = size.x * 4;
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
-    if(!row_buff) return;
+    if(!row_buff) return NTG_ERR_RENDER_FAIL;
+
+    int rval = 0;
 
     size_t i, j, k;
     size_t it_opt;
     struct ntg_cell it_draw_cell;
-    int _uc_status;
-    int _int;
+    int _status;
     size_t _uc_len;
     for(i = 0; i < size.y; i++)
     {
@@ -293,18 +334,22 @@ static void full_render(
 
                 ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j + k, i));
             }
-            ntg_log_log("RENDER OPT: %d",k);
 
             uc_utf32_to_utf8(row32_buff, k, row_buff,
                     row_buff_cap, 0, NULL, &_uc_len,
-                    &_uc_status);
-            if(_uc_status != 0) return;
-
-            nt_cursor_move(j, i, &_int);
-            
-            nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, NULL);
-
+                    &_status);
+            if(!_status)
+            {
+                nt_cursor_move(j, i, &_status);
+                if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
+                nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, &_status);
+                if(_status) rval = NTG_ERR_RENDER_FAIL_RCVR;
+            }
+            else
+                rval = NTG_ERR_RENDER_FAIL_RCVR;
             j += k;
         }
     }
+
+    return rval;
 }

@@ -50,9 +50,23 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-enum ntg_mouse_mode { NTG_MOUSE_ENABLE, NTG_MOUSE_DISABLE };
-enum ntg_alt_screen_mode { NTG_ALT_SCREEN_ENABLE, NTG_ALT_SCREEN_DISABLE };
-enum ntg_unsupported_term_mode { NTG_UNSUPPORTED_TERM_IGNORE, NTG_UNSUPPORTED_TERM_STOP };
+enum ntg_mouse_mode
+{ 
+    NTG_MOUSE_ENABLE = 0,
+    NTG_MOUSE_DISABLE
+};
+
+enum ntg_alt_screen_mode
+{ 
+    NTG_ALT_SCREEN_ENABLE = 0,
+    NTG_ALT_SCREEN_DISABLE
+};
+
+enum ntg_unsupported_term_mode 
+{ 
+    NTG_UNSUPPORTED_TERM_IGNORE = 0,
+    NTG_UNSUPPORTED_TERM_STOP
+};
 
 struct ntg_opts
 {
@@ -61,7 +75,8 @@ struct ntg_opts
     enum ntg_unsupported_term_mode unsupported_term_mode;
 };
 
-NTG_API struct ntg_opts ntg_opts_default(void);
+NTG_API struct ntg_opts
+ntg_opts_default();
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
@@ -71,15 +86,14 @@ NTG_API void
 ntg_enable(const struct ntg_opts* opts, const char* log_filepath, int* out_status);
 
 NTG_API const struct ntg_opts*
-ntg_get_opts(void);
+ntg_get_opts();
 
 NTG_API void
-ntg_disable(void);
+ntg_disable();
 
 // TODO:
 
 // FIX:
-// ntg_default_renderer: handle error
 // ntg_loop: stopping doesnt clear screen(?)
 
 // IMPLEMENT:

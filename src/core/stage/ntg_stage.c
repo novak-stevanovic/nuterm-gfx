@@ -12,6 +12,7 @@
 static const struct ntg_stage_vtable VTABLE_EMPTY = {0};
 
 static void init_default(ntg_stage* stage);
+static void init_default_drawing(ntg_stage* stage);
 
 static void get_objects_in_drawing_order_layer(ntg_object* root, ntg_object** buff);
 static void get_objects_in_drawing_order_layer_internal(
@@ -230,7 +231,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     {
         struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
         ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap, &_status);
-        if(_status != 0)
+        if(_status)
             return true;
     }
 
@@ -241,18 +242,6 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     }
 
     if(ntg_xy_size_is_zero(size)) return false;
-
-    size_t i, j;
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            ntg_stage_drawing_set(
-                    &stage->_drawing,
-                    ntg_cell_default(),
-                    ntg_xy(j, i));
-        }
-    }
 
     if(!stage->_scene) return false;
     if(!stage->_scene->_root) return false;
@@ -265,7 +254,11 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
 
     ntg_scene_collect_layers_by_z(stage->_scene, layers, layer_count);
 
+    /* Drawing is happening so default init cells */
+    init_default_drawing(stage);
+
     bool rval = false;
+    size_t i;
     for(i = 0; i < layer_count; i++)
     {
         bool layer_redraw = draw_layer(stage, layers[i], arena);
@@ -332,7 +325,28 @@ void _ntg_stage_leave_loop(ntg_stage* stage)
 
 static void init_default(ntg_stage* stage)
 {
+    if(!stage) return;
+
     (*stage) = (ntg_stage) {0};
+}
+
+static void init_default_drawing(ntg_stage* stage)
+{
+    if(!stage) return;
+
+    struct ntg_xy size = ntg_stage_drawing_get_size(&stage->_drawing);
+
+    size_t i, j;
+    for(i = 0; i < size.y; i++)
+    {
+        for(j = 0; j < size.x; j++)
+        {
+            ntg_stage_drawing_set(
+                    &stage->_drawing,
+                    ntg_cell_default(),
+                    ntg_xy(j, i));
+        }
+    }
 }
 
 static void get_objects_in_drawing_order_layer(

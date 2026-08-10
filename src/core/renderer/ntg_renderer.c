@@ -21,12 +21,13 @@ void ntg_renderer_vdeinit(ntg_renderer* renderer)
 void ntg_renderer_render(
         ntg_renderer* renderer,
         const ntg_stage_drawing* stage_drawing,
-        sarena* arena)
+        sarena* arena,
+        int* out_status)
 {
     if(!renderer) return;
 
     if(renderer->__vtable && renderer->__vtable->render_fn)
-        renderer->__vtable->render_fn(renderer, stage_drawing, arena);
+        renderer->__vtable->render_fn(renderer, stage_drawing, arena, out_status);
 
     if(renderer->hooks.on_render_fn)
         renderer->hooks.on_render_fn(renderer, stage_drawing, arena);
