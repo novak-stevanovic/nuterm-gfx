@@ -9,11 +9,6 @@
 #define NTG_OBJECT_MAX_CHILDREN 500
 #define NTG_OBJECT_MAX_ANCHORED 200
 
-#define NTG_OBJECT_MIN_SIZE_UNSET 0
-#define NTG_OBJECT_MAX_SIZE_UNSET NTG_SIZE_MAX
-#define NTG_OBJECT_GROW_UNSET NTG_SIZE_MAX
-#define NTG_OBJECT_Z_INDEX_UNSET 0
-
 /* ========================================================================== */
 /* PUBLIC */
 /* ========================================================================== */
@@ -60,6 +55,11 @@ ntg_padding_opts_are_eql(const struct ntg_padding_opts* o1, const struct ntg_pad
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
+#define NTG_OBJECT_MIN_SIZE_UNSET 0
+#define NTG_OBJECT_MAX_SIZE_UNSET NTG_SIZE_MAX
+#define NTG_OBJECT_GROW_UNSET NTG_SIZE_MAX
+#define NTG_OBJECT_Z_INDEX_UNSET 0
+
 struct ntg_layout_opts
 {
     struct ntg_xy min_cont_size, max_cont_size, grow;
@@ -67,6 +67,15 @@ struct ntg_layout_opts
 };
 
 NTG_API struct ntg_layout_opts ntg_layout_opts_default();
+
+struct ntg_object_layout_result
+{
+    struct ntg_xy min_size, nat_size, max_size, grow;
+    struct ntg_xy size, cont_size;
+    struct ntg_insets border_size, padding_size;
+    struct ntg_xy abs_pos;
+    bool first_layout; // True if this is the first layout after scene enter
+};
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -106,7 +115,7 @@ enum ntg_object_hit_result
 {
     NTG_OBJECT_HIT_CONT,
     NTG_OBJECT_HIT_PAD,
-    NTG_OBJECT_HIT_BORD
+    NTG_OBJECT_HIT_BORDER
 };
 
 /* ------------------------------------------------------ */
@@ -119,7 +128,6 @@ struct ntg_object_hooks
     void (*on_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
     
     void (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
-    
     void (*on_unfocus_fn)(ntg_object* object, ntg_object* new_focused);
 
     void (*on_child_rm_fn)(ntg_object* object, ntg_object* child);
@@ -152,15 +160,7 @@ struct ntg_object_hooks
             const struct ntg_layout_opts* old_opts,
             const struct ntg_layout_opts* new_opts);
 
-    void (*on_cont_resize_fn)(
-            ntg_object* object,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
-    
-    void (*on_resize_fn)(
-            ntg_object* object,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
+    void (*on_layout_finalize_fn)(ntg_object* object);
 };
 
 /* ------------------------------------------------------ */
@@ -193,14 +193,13 @@ struct ntg_object
     struct
     {
         struct ntg_object_layout_dt* layout_dt;
-        // void* layout_cache;
         struct ntg_xy _min_size, _nat_size, _max_size, _grow;
         struct ntg_xy _size;
         struct ntg_xy _pos;
         ntg_object_drawing _drawing;
         bool __skip_hborder, __skip_hpadding;
         bool __special_repeat;
-        uint8_t _dirty;
+        uint8_t _dirty, __repeat;
     };
 
     const struct ntg_object_vtable* __vtable;
@@ -227,10 +226,7 @@ struct ntg_object
         ntg_object_focusable_mode _focusable;
     };
 
-    struct
-    {
-        struct ntg_xy __old_size, __old_cont_size;
-    };
+    struct ntg_object_layout_result _old_layout_result;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -378,6 +374,9 @@ ntg_object_set_padding_opts(
 /* SPACE MAPPING */
 /* ------------------------------------------------------ */
 
+NTG_API struct ntg_xy
+ntg_object_get_abs_pos(const ntg_object* object);
+
 NTG_API struct ntg_dxy
 ntg_object_map_to_ancestor(
         const ntg_object* object,
@@ -418,7 +417,7 @@ ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* event);
 /* TRAVERSE HELPERS */
 /* ------------------------------------------------------ */
 
-#define NTG_OBJECT_TRAVERSE_PREORDER_DEFINE(fn_name, perform_fn)               \
+#define NTG_OBJECT_DEF_TRAVERSE_PREORDER(fn_name, perform_fn)                  \
 static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
@@ -431,7 +430,7 @@ static void fn_name(ntg_object* object, void* data)                            \
     }                                                                          \
 }                                                                              \
 
-#define NTG_OBJECT_TRAVERSE_POSTORDER_DEFINE(fn_name, perform_fn)              \
+#define NTG_OBJECT_DEF_TRAVERSE_POSTORDER(fn_name, perform_fn)                 \
 static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
@@ -487,8 +486,11 @@ struct ntg_object_vtable
             uint32_t* relayout,
             int* out_status);
 
+    void (*layout_finalize_fn)(ntg_object* object, sarena* arena);
+
     void (*deinit_fn)(ntg_object* object);
 
+    // Child add is non-virtual
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
 
     void (*add_anchored_fn)(ntg_object* object, ntg_object* anchored);
@@ -508,16 +510,6 @@ struct ntg_object_vtable
 
     void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
     void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
-
-    void (*cont_resize_fn)(
-            ntg_object* object,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
-
-    void (*resize_fn)(
-            ntg_object* object,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
 
     void (*chng_border_opts_fn)(
             ntg_object* object,

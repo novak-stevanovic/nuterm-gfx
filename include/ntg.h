@@ -79,24 +79,21 @@ ntg_disable(void);
 // TODO:
 
 // FIX:
-// finish removing validate layout phase (rethink and re-add hooks, vtable calls):
-// ntg_default_renderer: Adjustable arena allocations?
-// layout: object in hconstrain may request draw thru `relayout` param and thus make the scene perform and additional layout pass
-// Add max iterations to layout_layer() fn
-
-// RENAME:
-// DEFAULT -> AUTO in some places
+// ntg_default_renderer: handle error
+// ntg_loop: stopping doesnt clear screen(?)
 
 // IMPLEMENT:
-// ntg_text: auto focus gfx
 // worker threads & platform
 // ntg_input
 // ntg_list
 // ntg_dialogue
 
 // FINISH:
-// Error codes
+// Error codes: change values
 // add some old useful comments that were deleted
 // add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
+
+// AFTER RELEASE:
+// optimize layout_layer(): if scene is dirty all layer trees are traversed, even clean ones
 
 #endif // NTG_H

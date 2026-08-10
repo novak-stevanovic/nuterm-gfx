@@ -13,8 +13,6 @@
 
 static const struct ntg_text_vtable TEXT_VTABLE_EMPTY = {0};
 
-static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj);
-
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
@@ -69,7 +67,11 @@ static struct ntg_object_measure measure_wwrap_fn(
         sarena* arena,
         int* out_remeasure);
 
+static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj);
+
 static int trim_text(struct ntg_str* text);
+
+static void update_object_bg(ntg_text* text_obj);
 
 /* ------------------------------------------------------ */
 
@@ -100,7 +102,7 @@ static void init_default(ntg_text* text_obj)
 
 struct ntg_text_opts ntg_text_opts_default()
 {
-    return (struct ntg_text_opts) {
+    struct ntg_text_opts opts =  {
         .orient = NTG_ORIENT_H,
         .gfx = NT_GFX_DEFAULT,
         .wrap = NTG_TEXT_WRAP_NONE,
@@ -111,7 +113,12 @@ struct ntg_text_opts ntg_text_opts_default()
         .sec_align = NTG_ALIGN_1,
         .indent = 0,
     };
+
+    opts.focused_gfx = nt_gfx_style_reverse(opts.gfx);
+
+    return opts;
 }
+
 bool ntg_text_opts_are_eql(
         const struct ntg_text_opts* opts1,
         const struct ntg_text_opts* opts2)
@@ -162,8 +169,6 @@ void ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 {
     if(!text_obj) return;
 
-    ntg_object* _text = ntg_obj(text_obj);
-
     struct ntg_text_opts old_opts = text_obj->_opts;
     struct ntg_text_opts new_opts = (opts ? (*opts) : ntg_text_opts_default());
 
@@ -172,19 +177,14 @@ void ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 
     text_obj->_opts = new_opts;
 
-    struct nt_gfx gfx = text_obj->_opts.gfx;
-
-    struct ntg_vcell cell =
-            (text_obj->_opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_new_bg(gfx.bg) :
-            ntg_vcell_new_transparent();
-
-    ntg_object_set_base_bg(_text, cell);
-
-    text_obj->_gfx = 
+    struct nt_gfx gfx =
         (ntg_object_is_focused(ntg_obj(text_obj)) ?
         new_opts.focused_gfx :
         new_opts.gfx);
+
+    text_obj->_gfx = gfx;
+
+    update_object_bg(text_obj);
 
     ntg_object_mark_dirty((ntg_object*)text_obj, NTG_OBJECT_DIRTY_FULL);
 }
@@ -691,12 +691,7 @@ void ntg_text_focus_fn(ntg_object* object, ntg_object* old_focused)
 
     text->_gfx = text->_opts.focused_gfx;
 
-    struct ntg_vcell cell =
-            (text->_opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_new_bg(text->_gfx.bg) :
-            ntg_vcell_new_transparent();
-
-    ntg_object_set_base_bg(object, cell);
+    update_object_bg(text);
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
 }
@@ -709,20 +704,12 @@ void ntg_text_unfocus_fn(ntg_object* object, ntg_object* new_focused)
 
     text->_gfx = text->_opts.gfx;
 
-    struct ntg_vcell cell =
-            (text->_opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_new_bg(text->_gfx.bg) :
-            ntg_vcell_new_transparent();
-
-    ntg_object_set_base_bg(object, cell);
+    update_object_bg(text);
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
 }
 
-void ntg_text_cont_resize_fn(
-        ntg_object* object,
-        struct ntg_xy old_size,
-        struct ntg_xy new_size)
+void ntg_text_layout_finalize_fn(ntg_object* object, sarena* arena)
 {
     ntg_text* text = ntg_txt(object);
 
@@ -732,10 +719,10 @@ void ntg_text_cont_resize_fn(
 const struct ntg_object_vtable NTG_TEXT_VTABLE = {
     .measure_fn = ntg_text_measure_fn,
     .draw_fn = ntg_text_draw_fn,
+    .layout_finalize_fn = ntg_text_layout_finalize_fn,
     .deinit_fn = ntg_text_deinit_fn,
     .focus_fn = ntg_text_focus_fn,
-    .unfocus_fn = ntg_text_unfocus_fn,
-    .cont_resize_fn = ntg_text_cont_resize_fn
+    .unfocus_fn = ntg_text_unfocus_fn
 };
 
 /* ========================================================================== */
@@ -1144,6 +1131,37 @@ static size_t get_wrows_wwrap(
     return wrow_counter;
 }
 
+static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
+{
+    struct ntg_xy opts_scroll = text_obj->_scroll;
+    struct ntg_xy cont_size = ntg_object_get_size_cont(ntg_obj(text_obj));
+    struct ntg_xy cont_nat_size = ntg_object_get_nat_size_cont(ntg_obj(text_obj));
+    struct ntg_xy full_size;
+
+    if(text_obj->_opts.wrap == NTG_TEXT_WRAP_NONE)
+    {
+        full_size = ntg_xy(cont_nat_size.x, cont_nat_size.y);
+    }
+    else
+    {
+        if(text_obj->_opts.orient == NTG_ORIENT_H)
+            full_size = ntg_xy(cont_size.x, cont_nat_size.y);
+        else
+            full_size = ntg_xy(cont_nat_size.x, cont_size.y);
+    }
+
+    struct ntg_xy scroll = ntg_xy(
+        _min2_size(opts_scroll.x, _sub2_size(full_size.x, cont_size.x)),
+        _min2_size(opts_scroll.y, _sub2_size(full_size.y, cont_size.y))
+    );
+
+    if(text_obj->_opts.wrap != NTG_TEXT_WRAP_NONE)
+        scroll.x = 0;
+
+    return scroll;
+}
+
+
 static int trim_text(struct ntg_str* text)
 {
     if((text->len == 0) || (text->data == NULL))
@@ -1198,32 +1216,14 @@ static int trim_text(struct ntg_str* text)
     return 0;
 }
 
-static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
+static void update_object_bg(ntg_text* text_obj)
 {
-    struct ntg_xy opts_scroll = text_obj->_scroll;
-    struct ntg_xy cont_size = ntg_object_get_size_cont(ntg_obj(text_obj));
-    struct ntg_xy cont_nat_size = ntg_object_get_nat_size_cont(ntg_obj(text_obj));
-    struct ntg_xy full_size;
+    if(!text_obj) return;
 
-    if(text_obj->_opts.wrap == NTG_TEXT_WRAP_NONE)
-    {
-        full_size = ntg_xy(cont_nat_size.x, cont_nat_size.y);
-    }
-    else
-    {
-        if(text_obj->_opts.orient == NTG_ORIENT_H)
-            full_size = ntg_xy(cont_size.x, cont_nat_size.y);
-        else
-            full_size = ntg_xy(cont_nat_size.x, cont_size.y);
-    }
+    struct ntg_vcell cell =
+            (text_obj->_opts.bg_mode == NTG_TEXT_BG_FULL) ?
+            ntg_vcell_new_full(' ', text_obj->_gfx) :
+            ntg_vcell_new_transparent();
 
-    struct ntg_xy scroll = ntg_xy(
-        _min2_size(opts_scroll.x, _sub2_size(full_size.x, cont_size.x)),
-        _min2_size(opts_scroll.y, _sub2_size(full_size.y, cont_size.y))
-    );
-
-    if(text_obj->_opts.wrap != NTG_TEXT_WRAP_NONE)
-        scroll.x = 0;
-
-    return scroll;
+    ntg_object_set_base_bg(ntg_obj(text_obj), cell);
 }

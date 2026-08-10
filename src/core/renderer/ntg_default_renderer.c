@@ -1,6 +1,7 @@
 #include "nt.h"
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
+#include <stdlib.h>
 
 // TODO: Vertical optimized rendering?
 
@@ -27,11 +28,14 @@ static void full_render(
 /* PUBLIC */
 /* ========================================================================== */
 
-void ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status)
+void ntg_default_renderer_init(
+        ntg_default_renderer* renderer,
+        size_t buff_size,
+        int* out_status)
 {
     ntg_init_status(out_status);
 
-    if(!renderer)
+    if(!renderer || !buff_size)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     int _status;
@@ -54,18 +58,33 @@ void ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status)
         case 0:
             break;
         default:
+            ntg_renderer_deinit(ntg_rnd(renderer));
             ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
 
+    renderer->__buff = malloc(buff_size);
+    if(!renderer->__buff)
+    {
+        ntg_stage_drawing_deinit(&renderer->__backbuff);
+        ntg_renderer_deinit(ntg_rnd(renderer));
+        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
+
     renderer->__old_size = ntg_xy(0, 0);
+    renderer->__buff_size = buff_size;
 }
 
 void ntg_default_renderer_deinit(ntg_default_renderer* renderer)
 {
     if(!renderer) return;
 
-    renderer->__old_size = ntg_xy(0, 0);
     ntg_stage_drawing_deinit(&renderer->__backbuff);
+    free(renderer->__buff);
+
+    renderer->__backbuff = (ntg_stage_drawing) {0};
+    renderer->__old_size = ntg_xy(0, 0);
+    renderer->__buff = NULL;
+    renderer->__buff_size = 0;
 
     ntg_renderer_deinit(ntg_rnd(renderer));
 }
@@ -98,13 +117,9 @@ void ntg_default_renderer_render_fn(
     old_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
     ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap, &_status);
-
     if(_status != 0) return;
 
-    void* buffer = sarena_malloc(arena, 1000);
-    if(!buffer) return;
-
-    nt_buffer_enable(buffer, 1000, NULL);
+    nt_buffer_enable(renderer->__buff, renderer->__buff_size, NULL);
 
     if(stage_drawing == NULL)
     {

@@ -16,7 +16,7 @@ struct ntg_loop
     {
         ntg_renderer* renderer;
         bool _init_renderer, _owns_renderer;
-        bool (*dispatch_event_fn)(struct nt_event event);
+        bool (*dispatch_event_fn)(const struct nt_event* event);
         sarena* arena;
     } init;
 
@@ -75,7 +75,7 @@ static void deinit()
 
 void ntg_loop_init(
         ntg_renderer* renderer,
-        bool (*dispatch_event_fn)(struct nt_event event),
+        bool (*dispatch_event_fn)(const struct nt_event* event),
         unsigned int workers,
         size_t arena_size,
         ntg_stage* init_stage,
@@ -119,8 +119,10 @@ void ntg_loop_init(
         }
 
         int _status;
-        ntg_default_renderer_init((ntg_default_renderer*)loop.init.renderer, &_status);  
-
+        ntg_default_renderer_init(
+                (ntg_default_renderer*)loop.init.renderer,
+                NTG_DEFAULT_RENDERER_BUFF_SIZE_AUTO,
+                &_status);  
         switch(_status)
         {
             case 0: break;
@@ -136,7 +138,8 @@ void ntg_loop_init(
         loop.init._owns_renderer = true;
     }
 
-    loop.init.dispatch_event_fn = (dispatch_event_fn ?
+    loop.init.dispatch_event_fn = (
+            dispatch_event_fn ?
             dispatch_event_fn :
             ntg_loop_dispatch_event_fn_default);
     loop.status = NTG_LOOP_READY;
@@ -165,19 +168,23 @@ ntg_loop_status ntg_loop_get_status()
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_loop_dispatch_event_fn_default(struct nt_event event)
+bool ntg_loop_dispatch_event_fn_default(const struct nt_event* event)
 {
+    if(!event) return false;
+
     ntg_stage* stage = loop.running.stage;
     if(stage)
     {
-        if(event.type == NT_EVENT_KEY)
+        if(event->type == NT_EVENT_KEY)
         {
-            struct nt_key_event key = *(struct nt_key_event*)event.data;
+            struct nt_key_event key;
+            NT_EVENT_FILL_DATA((*event), &key);
             return ntg_stage_feed_key(stage, key);
         }
-        else if(event.type == NT_EVENT_MOUSE)
+        else if(event->type == NT_EVENT_MOUSE)
         {
-            struct nt_mouse_event mouse = *(struct nt_mouse_event*)event.data;
+            struct nt_mouse_event mouse;
+            NT_EVENT_FILL_DATA((*event), &mouse);
             return ntg_stage_feed_mouse(stage, mouse);
         }
         else return false;
@@ -209,7 +216,7 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
     uint64_t process_elapsed_ms;
     const ntg_stage_drawing* drawing;
 
-    struct nt_event event;
+    struct nt_event event = {0};
     struct nt_resize_event resize_event;
     unsigned int event_elapsed;
 
@@ -230,7 +237,7 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
 
         if(event.type == NT_EVENT_RESIZE)
         {
-            resize_event = *(struct nt_resize_event*)event.data;
+            NT_EVENT_FILL_DATA(event, &resize_event);
             loop.running.app_size.x = resize_event.new_x;
             loop.running.app_size.y = resize_event.new_y;
 
@@ -246,7 +253,7 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
         }
 
         if(loop.init.dispatch_event_fn)
-            loop.init.dispatch_event_fn(event);
+            loop.init.dispatch_event_fn(&event);
 
         if(event.type == NT_EVENT_TIMEOUT)
         {

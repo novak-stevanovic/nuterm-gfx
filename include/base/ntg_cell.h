@@ -228,7 +228,7 @@ ntg_vcell_new_transparent()
 }
 
 static inline struct ntg_vcell 
-ntg_vcell_new_bg(struct nt_color color)
+ntg_vcell_new_full_bg(struct nt_color color)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,

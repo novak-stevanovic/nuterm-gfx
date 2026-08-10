@@ -13,9 +13,9 @@
 struct ntg_prog_bar_style ntg_prog_bar_style_default()
 {
     return (struct ntg_prog_bar_style) {
-        .complete_style = ntg_vcell_new_bg(nt_color_new_auto(0, 255, 0)),
-        .uncomplete_style = ntg_vcell_new_bg(nt_color_new_auto(255, 0, 0)),
-        .threshold_style = ntg_vcell_new_bg(nt_color_new_auto(0, 255, 0))
+        .complete = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0)),
+        .uncomplete = ntg_vcell_new_full_bg(nt_color_new_auto(255, 0, 0)),
+        .threshold = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0))
     };
 }
 
@@ -29,12 +29,12 @@ bool ntg_prog_bar_style_are_eql(
     if(!style1 || !style2)
         return false;
 
-    return (ntg_vcell_are_eql(style1->complete_style,
-                             style2->complete_style) &&
-            ntg_vcell_are_eql(style1->uncomplete_style,
-                             style2->uncomplete_style) &&
-            ntg_vcell_are_eql(style1->threshold_style,
-                             style2->threshold_style));
+    return (ntg_vcell_are_eql(style1->complete,
+                             style2->complete) &&
+            ntg_vcell_are_eql(style1->uncomplete,
+                             style2->uncomplete) &&
+            ntg_vcell_are_eql(style1->threshold,
+                             style2->threshold));
 }
 
 /* ------------------------------------------------------ */
@@ -265,15 +265,15 @@ void ntg_prog_bar_draw_fn(
             it_xy = ntg_xy_from_oxy(_it_xy);
 
             if(complete_count == _size.prim_val)
-                it_cell = prog_bar->_opts.style.complete_style;
+                it_cell = prog_bar->_opts.style.complete;
             else if(complete_count == 0)
-                it_cell = prog_bar->_opts.style.uncomplete_style;
+                it_cell = prog_bar->_opts.style.uncomplete;
             else if(i < (complete_count - 1))
-                it_cell = prog_bar->_opts.style.complete_style;
+                it_cell = prog_bar->_opts.style.complete;
             else if(i == (complete_count - 1))
-                it_cell = prog_bar->_opts.style.threshold_style;
+                it_cell = prog_bar->_opts.style.threshold;
             else
-                it_cell = prog_bar->_opts.style.uncomplete_style;
+                it_cell = prog_bar->_opts.style.uncomplete;
 
             ntg_object_tmp_drawing_set(out_drawing, it_cell, it_xy);
         }

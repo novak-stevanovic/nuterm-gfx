@@ -9,7 +9,9 @@
 /* ERROR CODES */
 /* -------------------------------------------------------------------------- */
 
+#ifndef NTG_ERROR_BASE
 #define NTG_ERROR_BASE 4000
+#endif // NTG_ERROR_BASE
 
 #define NTG_ERR_UNEXPECTED (NTG_ERROR_BASE + 1)
 #define NTG_ERR_INVALID_ARG (NTG_ERROR_BASE + 2)

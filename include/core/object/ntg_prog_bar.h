@@ -14,9 +14,8 @@
 
 struct ntg_prog_bar_style
 {
-    struct ntg_vcell complete_style;
-    struct ntg_vcell uncomplete_style;
-    struct ntg_vcell threshold_style;
+    struct ntg_vcell complete,
+        uncomplete, threshold;
 };
 
 NTG_API struct ntg_prog_bar_style

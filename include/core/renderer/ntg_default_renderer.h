@@ -5,6 +5,8 @@
 #include "core/renderer/ntg_renderer.h"
 #include "core/stage/ntg_stage_drawing.h"
 
+#define NTG_DEFAULT_RENDERER_BUFF_SIZE_AUTO 50000
+
 /* ========================================================================== */
 /* PUBLIC */
 /* ========================================================================== */
@@ -20,6 +22,12 @@ struct ntg_default_renderer
     ntg_stage_drawing __backbuff;
 
     struct ntg_xy __old_size;
+
+    struct
+    {
+        char* __buff;
+        size_t __buff_size;
+    };
 };
 
 /* -------------------------------------------------------------------------- */
@@ -27,7 +35,10 @@ struct ntg_default_renderer
 /* -------------------------------------------------------------------------- */
 
 NTG_API void
-ntg_default_renderer_init(ntg_default_renderer* renderer, int* out_status);
+ntg_default_renderer_init(
+        ntg_default_renderer* renderer,
+        size_t buff_size,
+        int* out_status);
 
 NTG_API void
 ntg_default_renderer_deinit(ntg_default_renderer* renderer);

@@ -5,6 +5,8 @@
 #include "shared/ntg_shared.h"
 #include "base/ntg_xy.h"
 
+#define NTG_SCENE_MAX_IT_AUTO 20
+
 /* ========================================================================== */
 /* PUBLIC */
 /* ========================================================================== */
@@ -51,13 +53,11 @@ struct ntg_scene
     const struct ntg_scene_vtable* __vtable;
 
     ntg_stage* _stage;
-
-    ntg_focus_manager* _fm;
-    struct ntg_focus_scope_keybinds _default_keybinds;
-
     ntg_object* _root;
-
     struct ntg_xy _size;
+    ntg_focus_manager* _fm;
+
+    unsigned int __max_it;
 
     bool _dirty;
 
@@ -74,11 +74,11 @@ struct ntg_scene
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_scene_init(
         ntg_scene* scene,
         const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        unsigned int max_it,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -160,6 +160,7 @@ ntg_scene_init_override(
         ntg_scene* scene,
         const struct ntg_scene_vtable* vtable,
         const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        unsigned int max_it,
         int* out_status);
 
 
@@ -179,7 +180,6 @@ NTG_API extern const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT;
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
-
 
 void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
 bool _ntg_scene_layout(ntg_scene* scene, sarena* arena);

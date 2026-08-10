@@ -70,7 +70,6 @@ void ntg_vecgrid_set_size(
 
     size_t size_prod = size.x * size.y;
     
-    
     size_t size_cap_prod = size_cap.x * size_cap.y;
     size_t shrink_threshold = vecgrid->_capacity / modifier;
 

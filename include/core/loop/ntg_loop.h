@@ -37,8 +37,8 @@ enum ntg_loop_status
 
 NTG_API void
 ntg_loop_init(
-        ntg_renderer* renderer,
-        bool (*dispatch_event_fn)(struct nt_event event),
+        ntg_renderer* custom_renderer,
+        bool (*dispatch_event_fn)(const struct nt_event* event),
         unsigned int workers,
         size_t arena_size,
         ntg_stage* init_stage,
@@ -56,7 +56,7 @@ ntg_loop_get_status();
 /* ------------------------------------------------------ */
 
 NTG_API bool
-ntg_loop_dispatch_event_fn_default(struct nt_event event);
+ntg_loop_dispatch_event_fn_default(const struct nt_event* event);
 
 /* ------------------------------------------------------ */
 /* START */

@@ -89,14 +89,17 @@ bool flt_button_mouse_fn(ntg_button* button)
     return true;
 }
 
-bool loop_on_event_fn(struct nt_event event)
+bool loop_on_event_fn(const struct nt_event* event)
 {
+    if(!event) return false;
+
     bool consumed = ntg_loop_dispatch_event_fn_default(event);
     if(consumed) return true;
 
-    if(event.type == NT_EVENT_KEY)
+    if(event->type == NT_EVENT_KEY)
     {
-        struct nt_key_event key = *(struct nt_key_event*)event.data;
+        struct nt_key_event key;
+        NT_EVENT_FILL_DATA((*event), &key);
         if(nt_key_event_utf32_check_alt(key, 'q', false))
         {
             ntg_loop_stop();
@@ -216,7 +219,7 @@ int main(int argc, char *argv[])
     init_root();
     init_fs();
 
-    ntg_scene_init(&scene, NULL, &_status);
+    ntg_scene_init(&scene, NULL, NTG_SCENE_MAX_IT_AUTO, &_status);
     ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_void, NULL, &_status);
 
     ntg_stage_init(&stage, &_status);
@@ -226,7 +229,7 @@ int main(int argc, char *argv[])
         NULL,
         loop_on_event_fn,
         NTG_LOOP_WORKERS_AUTO,
-        NTG_LOOP_ARENA_SIZE_AUTO,
+        1000000,
         &stage,
         &_status);
     assert(!_status);
@@ -269,7 +272,7 @@ void init_north()
     struct nt_gfx label_gfx = {
         .fg = nt_color_new_auto(255, 255, 255),
         .bg = nt_color_new_auto(143, 0, 255),
-        .style = nt_style_new_uniform(NT_STYLE_VAL_BOLD)
+        .style = nt_style_new_uniform(NT_STYLE_BOLD)
     };
     struct ntg_label_opts north_label_opts = ntg_label_opts_default();
     north_label_opts.text_opts.gfx = label_gfx;
@@ -404,7 +407,7 @@ void init_south()
     // SOUTH
 
     struct ntg_box_opts south_opts = ntg_box_opts_default();
-    south_opts.bg = ntg_vcell_new_bg(nt_color_new_auto(255, 255, 0));
+    south_opts.bg = ntg_vcell_new_full_bg(nt_color_new_auto(255, 255, 0));
 
     ntg_box_init(&south, &south_opts, &_status);
     ntg_cleanup_batch_add(batch, &south, ntg_box_deinit_void, NULL, &_status);
@@ -424,7 +427,7 @@ void init_flt_button()
     opts.text_opts.bg_mode = NTG_TEXT_BG_FLT;
     opts.text_opts.focused_gfx = (struct nt_gfx) {
         .fg = nt_color_new_auto(255, 165, 0),
-        .style = nt_style_new_uniform(NT_STYLE_VAL_BOLD),
+        .style = nt_style_new_uniform(NT_STYLE_BOLD),
         .bg = nt_color_new_auto(255, 255, 255)
     };
 
@@ -463,7 +466,7 @@ void init_sflt_label()
     opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(255, 255, 255),
         .fg = nt_color_new_auto(0, 0, 0),
-        .style = nt_style_new_uniform(NT_STYLE_VAL_ITALIC)
+        .style = nt_style_new_uniform(NT_STYLE_ITALIC)
     };
     ntg_label_set_opts(&sflt_label, &opts);
 

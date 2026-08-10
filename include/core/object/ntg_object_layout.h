@@ -38,10 +38,13 @@ enum ntg_object_dirty_flag
     NTG_OBJECT_DIRTY_HCONSTRAIN = (1u << 1),
     NTG_OBJECT_DIRTY_VMEASURE = (1u << 2),
     NTG_OBJECT_DIRTY_VCONSTRAIN = (1u << 3),
-    NTG_OBJECT_DIRTY_ARRANGE = (1u << 5),
-    NTG_OBJECT_DIRTY_DRAW = (1u << 6),
+    NTG_OBJECT_DIRTY_ARRANGE = (1u << 4),
+    NTG_OBJECT_DIRTY_DRAW = (1u << 5),
 
-    /* This flag is set in draw phase automatically. It is cleaned by the stage. */
+    /* Set by ntg_object internally. Cleaned by the scene. */
+    NTG_OBJECT_DIRTY_LAYOUT_FINALIZE = (1u << 6),
+
+    /* Set in draw phase automatically. It is cleaned by the stage. */
     NTG_OBJECT_DIRTY_RENDER = (1u << 7)
 };
 
@@ -55,7 +58,8 @@ enum ntg_object_dirty_flag
     NTG_OBJECT_DIRTY_VMEASURE |                                                \
     NTG_OBJECT_DIRTY_VCONSTRAIN |                                              \
     NTG_OBJECT_DIRTY_ARRANGE |                                                 \
-    NTG_OBJECT_DIRTY_DRAW )
+    NTG_OBJECT_DIRTY_DRAW    |                                                 \
+    NTG_OBJECT_DIRTY_LAYOUT_FINALIZE )
 
 /* ------------------------------------------------------ */
 /* MEASURE PHASE */
@@ -300,6 +304,8 @@ void _ntg_object_draw(
         sarena* arena,
         uint32_t* relayout,
         int* out_status);
+
+void _ntg_object_layout_finalize(ntg_object* object, sarena* arena);
 
 void _ntg_object_root_set_hsize(ntg_object* object, size_t size);
 void _ntg_object_root_set_vsize(ntg_object* object, size_t size);
