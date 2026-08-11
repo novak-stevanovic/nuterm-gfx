@@ -50,12 +50,6 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-enum ntg_mouse_mode
-{ 
-    NTG_MOUSE_ENABLE = 0,
-    NTG_MOUSE_DISABLE
-};
-
 enum ntg_alt_screen_mode
 { 
     NTG_ALT_SCREEN_ENABLE = 0,
@@ -70,7 +64,6 @@ enum ntg_unsupported_term_mode
 
 struct ntg_opts
 {
-    enum ntg_mouse_mode mouse_mode;
     enum ntg_alt_screen_mode alt_screen_mode;
     enum ntg_unsupported_term_mode unsupported_term_mode;
 };
@@ -94,7 +87,7 @@ ntg_disable();
 // TODO:
 
 // FIX:
-// ntg_loop: stopping doesnt clear screen(?)
+// inconsistent error handling: user should know about fatal errors
 
 // IMPLEMENT:
 // worker threads & platform

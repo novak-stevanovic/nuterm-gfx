@@ -41,6 +41,22 @@ static void update_stage();
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
+struct ntg_loop_init_opts ntg_loop_init_opts_default()
+{
+    return (struct ntg_loop_init_opts) {
+        .arena_size = NTG_LOOP_ARENA_SIZE_AUTO,
+        .workers = NTG_LOOP_WORKERS_AUTO
+    };
+}
+
+struct ntg_loop_start_opts ntg_loop_start_opts_default()
+{
+    return (struct ntg_loop_start_opts) {
+        .mouse_mode = NTG_LOOP_MOUSE_DISABLE,
+        .framerate = NTG_LOOP_FRAMERATE_AUTO
+    };
+}
+
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
@@ -76,9 +92,8 @@ static void deinit()
 void ntg_loop_init(
         ntg_renderer* renderer,
         bool (*dispatch_event_fn)(const struct nt_event* event),
-        unsigned int workers,
-        size_t arena_size,
         ntg_stage* init_stage,
+        const struct ntg_loop_init_opts* opts,
         int* out_status)
 {
     ntg_set_out(out_status, 0);
@@ -88,14 +103,27 @@ void ntg_loop_init(
 
     /* Opts */
 
-    if((arena_size == 0) || (workers == 0))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+    struct ntg_loop_init_opts opts_final;
+    if(opts)
+    {
+        if(opts->arena_size == 0)
+            ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
-    workers = _min2_uint(workers, NTG_LOOP_WORKERS_MAX);
+        /*
+        if(opts->workers > NTG_LOOP_WORKERS_MAX)
+            ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        */
+
+        opts_final = (*opts);
+    }
+    else
+    {
+        opts_final = ntg_loop_init_opts_default();
+    }
 
     /* Arena */
 
-    loop.init.arena = sarena_create(arena_size);
+    loop.init.arena = sarena_create(opts_final.arena_size);
     if(!loop.init.arena)
     {
         deinit();
@@ -196,19 +224,29 @@ bool ntg_loop_dispatch_event_fn_default(const struct nt_event* event)
 /* START/STOP */
 /* ------------------------------------------------------ */
 
-void ntg_loop_start(unsigned int framerate, int* out_status)
+void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
 {
     ntg_set_out(out_status, 0);
 
     if(loop.status != NTG_LOOP_READY)
         ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
 
-    framerate = _min2_uint(framerate, NTG_LOOP_FRAMERATE_MAX);
-    loop.running.framerate = framerate;
+    struct ntg_loop_start_opts opts_final;
+    if(opts)
+    {
+        opts_final = (*opts);
+        opts_final.framerate = _min2_uint(opts_final.framerate, NTG_LOOP_FRAMERATE_MAX);
+    }
+    else
+    {
+        opts_final = ntg_loop_start_opts_default();
+    }
+
+    loop.running.framerate = opts_final.framerate;
 
     sarena_rewind(loop.init.arena);
 
-    int _status;
+    int _status = 0 ,_tmp_status;
 
     unsigned int timeout = 1000 / loop.running.framerate;
     struct timespec ts_start, ts_end;
@@ -222,16 +260,27 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
 
     nt_get_term_size(&loop.running.app_size.x, &loop.running.app_size.y);
 
+    if(opts_final.mouse_mode == NTG_LOOP_MOUSE_ENABLE)
+        nt_mouse_mode_enable(NULL);
+
+    bool drain_events = true;
+
     loop.status = NTG_LOOP_RUNNING;
     if(loop.running.stage)
         _ntg_stage_set_size(loop.running.stage, loop.running.app_size);
     while(true)
     {
         update_stage(loop);
-        if(loop.status == NTG_LOOP_STOPPING) break;
+        if(loop.status == NTG_LOOP_STOPPING)
+            break;
 
-        event_elapsed = nt_event_wait(&event, timeout, &_status);
-        if(_status != 0) continue;
+        event_elapsed = nt_event_wait(&event, timeout, &_tmp_status);
+        if(_tmp_status)
+        {
+            _status = NTG_ERR_UNEXPECTED;
+            drain_events = false;
+            break;
+        }
 
         clock_gettime(CLOCK_MONOTONIC, &ts_start);
 
@@ -274,7 +323,9 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
             }
             else drawing = NULL;
 
-            ntg_renderer_render(loop.init.renderer, drawing, loop.init.arena, &_status);
+            ntg_renderer_render(loop.init.renderer, drawing, loop.init.arena, &_tmp_status);
+            if(_tmp_status)
+                ntg_log_log("RENDER ERR");
 
             sarena_rewind(loop.init.arena);
             // (loop.frame_count)++;
@@ -296,7 +347,39 @@ void ntg_loop_start(unsigned int framerate, int* out_status)
         timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
     }
 
-    loop.status = NTG_LOOP_READY;
+    ntg_renderer_render(loop.init.renderer, NULL, loop.init.arena, &_tmp_status);
+    if(_tmp_status)
+        ntg_log_log("RENDER ERR");
+
+    bool make_ready = true;
+
+    if(drain_events)
+    {
+        while(true)
+        {
+            nt_event_wait(&event, 0, &_tmp_status);
+
+            if(_tmp_status)
+            {
+                _status = NTG_ERR_UNEXPECTED;
+                make_ready = false;
+                break;
+            }
+
+            if(event.type == NT_EVENT_TIMEOUT)
+                break;
+        }
+    }
+
+    sarena_rewind(loop.init.arena);
+
+    if(opts_final.mouse_mode == NTG_LOOP_MOUSE_ENABLE)
+        nt_mouse_mode_disable(NULL);
+
+    if(make_ready)
+        loop.status = NTG_LOOP_READY;
+
+    ntg_set_out(out_status, _status);
 }
 
 /* ------------------------------------------------------ */

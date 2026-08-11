@@ -22,6 +22,7 @@ struct ntg_default_renderer
     ntg_stage_drawing __backbuff;
 
     struct ntg_xy __old_size;
+    bool __force_full_render;
 
     struct
     {

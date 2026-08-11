@@ -1,7 +1,10 @@
+#include "nt.h"
 #include "ntg.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
+
+void set_breakpoint() {}
 
 const char* lorem = 
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi ullamcorper "
@@ -228,9 +231,8 @@ int main(int argc, char *argv[])
     ntg_loop_init(
         NULL,
         loop_on_event_fn,
-        NTG_LOOP_WORKERS_AUTO,
-        1000000,
         &stage,
+        NULL,
         &_status);
     assert(!_status);
 
@@ -252,8 +254,27 @@ int main(int argc, char *argv[])
     // ntg_focus_manager_push_scope(scene._fm, &fs2, &_status);
     ntg_focus_manager_stack_push(scene._fm, &fs1, &_status);
 
-    ntg_loop_start(60, &_status);
+    struct ntg_loop_start_opts loop_start_opts = ntg_loop_start_opts_default();
+    loop_start_opts.mouse_mode = NTG_LOOP_MOUSE_ENABLE;
+    ntg_loop_start(&loop_start_opts, &_status);
+    ntg_log_log("STATUS: %d", _status);
     assert(!_status);
+
+    set_breakpoint();
+
+    nt_cursor_move(0, 0, NULL);
+    nt_write_str_unsafe("Loop end", NT_GFX_DEFAULT, NULL);
+
+    nt_buffer_flush(NULL);
+
+    set_breakpoint();
+
+    char c = getchar();
+    if(c == 'a')
+    {
+        ntg_loop_start(NULL, &_status);
+        assert(!_status);
+    }
 
     ntg_cleanup_batch_finish(batch);
 

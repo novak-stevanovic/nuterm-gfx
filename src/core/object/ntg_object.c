@@ -397,13 +397,20 @@ ntg_object* ntg_object_hit_test(
     /* Set `out_hit`, ancestors will choose the right one later */
 
     struct ntg_insets padding_size = object->_padding.size;
+    struct ntg_insets border_size = object->_border.size;
     struct ntg_xy cont_size = ntg_object_get_size_cont(object);
 
-    if((pos.x > (padding_size.w + cont_size.x)) || (pos.y > (padding_size.n + cont_size.y)))
+    if((pos.x > (padding_size.w + cont_size.x)) ||
+       (pos.x < border_size.w) ||
+       (pos.y > (padding_size.n + cont_size.y)) ||
+       (pos.y < border_size.n))
     {
         ntg_set_out(out_hit, NTG_OBJECT_HIT_BORDER);
     }
-    else if((pos.x > cont_size.x) || (pos.y > cont_size.y))
+    else if((pos.x > cont_size.x) ||
+            (pos.x < padding_size.w) ||
+            (pos.y > cont_size.y) ||
+            (pos.y < padding_size.n))
     {
         ntg_set_out(out_hit, NTG_OBJECT_HIT_PAD);
     }

@@ -3,14 +3,6 @@
 
 #include "shared/ntg_shared.h"
 
-#define NTG_LOOP_WORKERS_AUTO 8
-#define NTG_LOOP_WORKERS_MAX 32
-
-#define NTG_LOOP_FRAMERATE_AUTO 60
-#define NTG_LOOP_FRAMERATE_MAX 500
-
-#define NTG_LOOP_ARENA_SIZE_AUTO ((size_t)2000000)
-
 /* ========================================================================== */
 /* PUBLIC */
 /* ========================================================================== */
@@ -27,6 +19,40 @@ enum ntg_loop_status
     NTG_LOOP_STOPPING,
 };
 
+/* ------------------------------------------------------ */
+
+#define NTG_LOOP_WORKERS_AUTO 8
+#define NTG_LOOP_ARENA_SIZE_AUTO ((size_t)2000000)
+
+struct ntg_loop_init_opts
+{
+    unsigned int workers;
+    size_t arena_size;
+};
+
+NTG_API struct ntg_loop_init_opts
+ntg_loop_init_opts_default();
+
+/* ------------------------------------------------------ */
+
+#define NTG_LOOP_FRAMERATE_AUTO 60
+#define NTG_LOOP_FRAMERATE_MAX 500
+
+enum ntg_loop_mouse_mode
+{
+    NTG_LOOP_MOUSE_DISABLE = 0,
+    NTG_LOOP_MOUSE_ENABLE
+};
+
+struct ntg_loop_start_opts
+{
+    enum ntg_loop_mouse_mode mouse_mode; 
+    unsigned int framerate;
+};
+
+NTG_API struct ntg_loop_start_opts
+ntg_loop_start_opts_default();
+
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
@@ -39,9 +65,8 @@ NTG_API void
 ntg_loop_init(
         ntg_renderer* custom_renderer,
         bool (*dispatch_event_fn)(const struct nt_event* event),
-        unsigned int workers,
-        size_t arena_size,
         ntg_stage* init_stage,
+        const struct ntg_loop_init_opts* opts,
         int* out_status);
 
 // What if there are active tasks?
@@ -63,7 +88,7 @@ ntg_loop_dispatch_event_fn_default(const struct nt_event* event);
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_loop_start(unsigned int framerate, int* out_status);
+ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status);
 
 NTG_API void
 ntg_loop_stop();
