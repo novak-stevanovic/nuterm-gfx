@@ -86,9 +86,6 @@ ntg_disable();
 
 // TODO:
 
-// FIX:
-// inconsistent error handling: user should know about fatal errors
-
 // IMPLEMENT:
 // worker threads & platform
 // ntg_input

@@ -149,7 +149,7 @@ void ntg_loop_init(
         int _status;
         ntg_default_renderer_init(
                 (ntg_default_renderer*)loop.init.renderer,
-                NTG_DEFAULT_RENDERER_BUFF_SIZE_AUTO,
+                NTG_DEFAULT_RENDERER_TERM_SIZE_AUTO,
                 &_status);  
         switch(_status)
         {

@@ -400,19 +400,19 @@ ntg_object* ntg_object_hit_test(
     struct ntg_insets border_size = object->_border.size;
     struct ntg_xy cont_size = ntg_object_get_size_cont(object);
 
-    if((pos.x > (padding_size.w + cont_size.x)) ||
+    if((pos.x > (padding_size.w + cont_size.x + padding_size.e)) ||
        (pos.x < border_size.w) ||
-       (pos.y > (padding_size.n + cont_size.y)) ||
+       (pos.y > (padding_size.n + cont_size.y + padding_size.s)) ||
        (pos.y < border_size.n))
     {
         ntg_set_out(out_hit, NTG_OBJECT_HIT_BORDER);
     }
-    else if((pos.x > cont_size.x) ||
-            (pos.x < padding_size.w) ||
-            (pos.y > cont_size.y) ||
-            (pos.y < padding_size.n))
+    else if((pos.x >= cont_size.x) ||
+            (pos.x < (border_size.w + padding_size.w)) ||
+            (pos.y >= cont_size.y) ||
+            (pos.y < (border_size.n + padding_size.n)))
     {
-        ntg_set_out(out_hit, NTG_OBJECT_HIT_PAD);
+        ntg_set_out(out_hit, NTG_OBJECT_HIT_PADDING);
     }
     else
     {

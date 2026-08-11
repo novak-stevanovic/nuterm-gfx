@@ -114,7 +114,7 @@ enum ntg_object_clickable_mode
 enum ntg_object_hit_result
 {
     NTG_OBJECT_HIT_CONT,
-    NTG_OBJECT_HIT_PAD,
+    NTG_OBJECT_HIT_PADDING,
     NTG_OBJECT_HIT_BORDER
 };
 

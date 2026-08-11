@@ -30,12 +30,12 @@ static int full_render(
 
 void ntg_default_renderer_init(
         ntg_default_renderer* renderer,
-        size_t buff_size,
+        size_t term_buff_size,
         int* out_status)
 {
     ntg_init_status(out_status);
 
-    if(!renderer || !buff_size)
+    if(!renderer || !term_buff_size)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     int _status;
@@ -62,8 +62,8 @@ void ntg_default_renderer_init(
             ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
     }
 
-    renderer->__buff = malloc(buff_size);
-    if(!renderer->__buff)
+    renderer->__term_buff = malloc(term_buff_size);
+    if(!renderer->__term_buff)
     {
         ntg_stage_drawing_deinit(&renderer->__backbuff);
         ntg_renderer_deinit(ntg_rnd(renderer));
@@ -72,7 +72,7 @@ void ntg_default_renderer_init(
 
     renderer->__old_size = ntg_xy(0, 0);
     renderer->__force_full_render = false;
-    renderer->__buff_size = buff_size;
+    renderer->__term_buff_size = term_buff_size;
 }
 
 void ntg_default_renderer_deinit(ntg_default_renderer* renderer)
@@ -80,13 +80,13 @@ void ntg_default_renderer_deinit(ntg_default_renderer* renderer)
     if(!renderer) return;
 
     ntg_stage_drawing_deinit(&renderer->__backbuff);
-    free(renderer->__buff);
+    free(renderer->__term_buff);
 
     renderer->__backbuff = (ntg_stage_drawing) {0};
     renderer->__old_size = ntg_xy(0, 0);
     renderer->__force_full_render = false;
-    renderer->__buff = NULL;
-    renderer->__buff_size = 0;
+    renderer->__term_buff = NULL;
+    renderer->__term_buff_size = 0;
 
     ntg_renderer_deinit(ntg_rnd(renderer));
 }
@@ -131,7 +131,7 @@ void ntg_default_renderer_render_fn(
         ntg_vreturn(out_status, NTG_ERR_RENDER_FAIL);
     }
 
-    nt_buffer_enable(renderer->__buff, renderer->__buff_size, &_status);
+    nt_buffer_enable(renderer->__term_buff, renderer->__term_buff_size, &_status);
     if(_status)
     {
         renderer->__force_full_render = true;
@@ -148,15 +148,13 @@ void ntg_default_renderer_render_fn(
     else if(full_render_req)
     {
         nt_erase_screen(&_status);
-        if(_status)
-            rval = NTG_ERR_RENDER_FAIL;
+        if(_status) rval = NTG_ERR_RENDER_FAIL;
 
         nt_erase_scrollback(&_status);
-        if(_status)
-            rval = NTG_ERR_RENDER_FAIL;
+        if(_status) rval = NTG_ERR_RENDER_FAIL;
 
         if(full_render(renderer, stage_drawing, size, arena))
-            rval = NTG_ERR_RENDER_FAIL;
+            rval = NTG_ERR_RENDER_FAIL; 
     }
     else
     {
@@ -167,8 +165,7 @@ void ntg_default_renderer_render_fn(
     renderer->__old_size = size;
 
     nt_buffer_disable(NT_BUFF_FLUSH, &_status);
-    if(_status)
-        rval = NTG_ERR_RENDER_FAIL;
+    if(_status) rval = NTG_ERR_RENDER_FAIL;
 
     renderer->__force_full_render = (rval != 0);
 
