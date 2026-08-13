@@ -69,6 +69,55 @@ void ntg_stage_deinit_void(void* _stage)
 /* GENERAL */
 /* ------------------------------------------------------ */
 
+bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
+{
+    if(!stage || !arena) return false;
+
+    struct ntg_xy size = stage->_size;
+
+    int _status;
+    if(!ntg_xy_are_eql(ntg_stage_drawing_get_size(&stage->_drawing), size))
+    {
+        struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
+        ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap, &_status);
+        if(_status)
+            return true;
+    }
+
+    if(stage->_scene && stage->_scene->_dirty)
+    {
+        if(!_ntg_scene_layout(stage->_scene, arena))
+            _ntg_scene_clean(stage->_scene);
+    }
+
+    if(ntg_xy_size_is_zero(size)) return false;
+
+    if(!stage->_scene) return false;
+    if(!stage->_scene->_root) return false;
+
+    size_t layer_count = ntg_scene_collect_layers_by_z(stage->_scene, NULL, 0);
+
+    ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
+    if(!layers)
+        return true;
+
+    ntg_scene_collect_layers_by_z(stage->_scene, layers, layer_count);
+
+    /* Drawing is happening so default init cells */
+    init_default_drawing(stage);
+
+    bool rval = false;
+    size_t i;
+    for(i = 0; i < layer_count; i++)
+    {
+        bool layer_redraw = draw_layer(stage, layers[i], arena);
+        rval = rval || layer_redraw;
+    }
+
+    return rval;
+}
+
+
 void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status)
 {
     ntg_init_status(out_status);
@@ -219,54 +268,6 @@ const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT = {
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
-
-bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
-{
-    if(!stage || !arena) return false;
-
-    struct ntg_xy size = stage->_size;
-
-    int _status;
-    if(!ntg_xy_are_eql(ntg_stage_drawing_get_size(&stage->_drawing), size))
-    {
-        struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-        ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap, &_status);
-        if(_status)
-            return true;
-    }
-
-    if(stage->_scene && stage->_scene->_dirty)
-    {
-        if(!_ntg_scene_layout(stage->_scene, arena))
-            _ntg_scene_clean(stage->_scene);
-    }
-
-    if(ntg_xy_size_is_zero(size)) return false;
-
-    if(!stage->_scene) return false;
-    if(!stage->_scene->_root) return false;
-
-    size_t layer_count = ntg_scene_collect_layers_by_z(stage->_scene, NULL, 0);
-
-    ntg_object** layers = sarena_calloc(arena, sizeof(ntg_object*) * layer_count);
-    if(!layers)
-        return true;
-
-    ntg_scene_collect_layers_by_z(stage->_scene, layers, layer_count);
-
-    /* Drawing is happening so default init cells */
-    init_default_drawing(stage);
-
-    bool rval = false;
-    size_t i;
-    for(i = 0; i < layer_count; i++)
-    {
-        bool layer_redraw = draw_layer(stage, layers[i], arena);
-        rval = rval || layer_redraw;
-    }
-
-    return rval;
-}
 
 void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {

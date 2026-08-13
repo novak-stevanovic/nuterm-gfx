@@ -70,6 +70,10 @@ ntg_stage_deinit_void(void* _stage);
 /* GENERAL */
 /* ------------------------------------------------------ */
 
+/* Can be used for custom loop */
+NTG_API bool
+ntg_stage_compose(ntg_stage* stage, sarena* arena);
+
 NTG_API void
 ntg_stage_mark_dirty(ntg_stage* stage);
 
@@ -130,7 +134,6 @@ NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-bool ntg_stage_compose(ntg_stage* stage, sarena* arena);
 void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
 void _ntg_stage_clean(ntg_stage* stage);
 void _ntg_stage_enter_loop(ntg_stage* stage);

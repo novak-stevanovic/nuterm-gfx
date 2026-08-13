@@ -44,8 +44,7 @@ static void update_stage();
 struct ntg_loop_init_opts ntg_loop_init_opts_default()
 {
     return (struct ntg_loop_init_opts) {
-        .arena_size = NTG_LOOP_ARENA_SIZE_AUTO,
-        .workers = NTG_LOOP_WORKERS_AUTO
+        .arena_size = NTG_LOOP_ARENA_SIZE_AUTO
     };
 }
 
@@ -108,11 +107,6 @@ void ntg_loop_init(
     {
         if(opts->arena_size == 0)
             ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-
-        /*
-        if(opts->workers > NTG_LOOP_WORKERS_MAX)
-            ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
-        */
 
         opts_final = (*opts);
     }
@@ -348,8 +342,7 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
     }
 
     ntg_renderer_render(loop.init.renderer, NULL, loop.init.arena, &_tmp_status);
-    if(_tmp_status)
-        ntg_log_log("RENDER ERR");
+    if(_tmp_status) ntg_log_log("RENDER ERR");
 
     bool make_ready = true;
 

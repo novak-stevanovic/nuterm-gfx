@@ -55,10 +55,10 @@ typedef struct ntg_keybind ntg_keybind;
 
 typedef enum ntg_loop_status ntg_loop_status;
 typedef enum ntg_loop_exit_status ntg_loop_exit_status;
-typedef struct ntg_task_runner ntg_task_runner;
-typedef struct ntg_task_list ntg_task_list;
-typedef struct ntg_ptask_list ntg_ptask_list;
 typedef struct ntg_platform ntg_platform;
+
+typedef struct ntg_task_runner ntg_task_runner;
+typedef struct ntg_task_cancel_token ntg_task_cancel_token;
 
 typedef struct ntg_renderer ntg_renderer;
 typedef struct ntg_default_renderer ntg_default_renderer;

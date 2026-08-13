@@ -26,7 +26,6 @@ enum ntg_loop_status
 
 struct ntg_loop_init_opts
 {
-    unsigned int workers;
     size_t arena_size;
 };
 
@@ -94,21 +93,11 @@ NTG_API void
 ntg_loop_stop();
 
 /* ------------------------------------------------------ */
-/* TASKS & PLATFORM */
+/* IN-LOOP */
 /* ------------------------------------------------------ */
-
-NTG_API void
-ntg_loop_run_task(/* ??? */);
-
-NTG_API bool
-ntg_loop_has_running_tasks();
 
 NTG_API void
 ntg_loop_execute(/* ??? */);
-
-/* ------------------------------------------------------ */
-/* IN-LOOP */
-/* ------------------------------------------------------ */
 
 NTG_API ntg_stage*
 ntg_loop_get_stage();
