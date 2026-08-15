@@ -38,7 +38,7 @@ static void fn_name(void* data)                                                \
 
 
 NTG_API ntg_cleanup_batch*
-ntg_cleanup_batch_new();
+ntg_cleanup_batch_new(void);
 
 NTG_API void
 ntg_cleanup_batch_finish(ntg_cleanup_batch* batch);

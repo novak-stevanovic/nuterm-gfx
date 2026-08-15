@@ -23,7 +23,7 @@ static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_box_opts ntg_box_opts_default()
+struct ntg_box_opts ntg_box_opts_default(void)
 {
     return (struct ntg_box_opts) {
         .orient = NTG_ORIENT_H,

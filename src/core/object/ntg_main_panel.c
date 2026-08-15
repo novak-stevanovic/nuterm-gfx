@@ -26,7 +26,7 @@ static void get_children(
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_main_panel_opts ntg_main_panel_opts_default()
+struct ntg_main_panel_opts ntg_main_panel_opts_default(void)
 {
     return (struct ntg_main_panel_opts) {
         .bg = ntg_vcell_new_default()

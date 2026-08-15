@@ -36,7 +36,7 @@ static const struct ntg_anchor_policy_vtable VTABLE = {
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_sidefloat_opts ntg_sidefloat_opts_default()
+struct ntg_sidefloat_opts ntg_sidefloat_opts_default(void)
 {
     return (struct ntg_sidefloat_opts) {
         .align = NTG_ALIGN_1,

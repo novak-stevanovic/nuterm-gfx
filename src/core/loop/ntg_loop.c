@@ -73,8 +73,8 @@ timespec_to_ms(struct timespec ts)
            ((unsigned long long)ts.tv_nsec / 1000000);
 }
 
-static void update_stage();
-static void execute_ready_tasks();
+static void update_stage(void);
+static void execute_ready_tasks(void);
 
 /* ========================================================================== */
 /* PUBLIC */
@@ -84,14 +84,14 @@ static void execute_ready_tasks();
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_loop_init_opts ntg_loop_init_opts_default()
+struct ntg_loop_init_opts ntg_loop_init_opts_default(void)
 {
     return (struct ntg_loop_init_opts) {
         .arena_size = NTG_LOOP_ARENA_SIZE_AUTO
     };
 }
 
-struct ntg_loop_start_opts ntg_loop_start_opts_default()
+struct ntg_loop_start_opts ntg_loop_start_opts_default(void)
 {
     return (struct ntg_loop_start_opts) {
         .mouse_mode = NTG_LOOP_MOUSE_DISABLE,
@@ -107,7 +107,7 @@ struct ntg_loop_start_opts ntg_loop_start_opts_default()
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-static void init_default()
+static void init_default(void)
 {
     loop.state = NTG_LOOP_DEINIT;
 
@@ -115,7 +115,7 @@ static void init_default()
     // loop.frame_count = 0;
 }
 
-static void deinit()
+static void deinit(void)
 {
     if(loop.init.renderer && loop.init._owns_renderer)
     {
@@ -230,12 +230,12 @@ void ntg_loop_deinit(int* out_status)
     deinit();
 }
 
-ntg_loop_state ntg_loop_get_state()
+ntg_loop_state ntg_loop_get_state(void)
 {
     return loop.state;
 }
 
-bool ntg_loop_is_running()
+bool ntg_loop_is_running(void)
 {
     return ((loop.state == NTG_LOOP_RUNNING) || (loop.state == NTG_LOOP_STOPPING));
 }
@@ -437,7 +437,7 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
     ntg_set_out(out_status, _status);
 }
 
-void ntg_loop_stop()
+void ntg_loop_stop(void)
 {
     if(loop.state != NTG_LOOP_RUNNING)
         return;
@@ -524,7 +524,7 @@ void ntg_loop_schedule(
     }
 }
 
-void ntg_loop_tasks_clear()
+void ntg_loop_tasks_clear(void)
 {
     if(loop.state == NTG_LOOP_DEINIT)
         return;
@@ -537,7 +537,7 @@ void ntg_loop_tasks_clear()
     pthread_mutex_unlock(&loop.lock);
 }
 
-bool ntg_loop_has_tasks()
+bool ntg_loop_has_tasks(void)
 {
     if(loop.state == NTG_LOOP_DEINIT)
         return false;
@@ -557,7 +557,7 @@ bool ntg_loop_has_tasks()
 /* IN-LOOP ONLY */
 /* ------------------------------------------------------ */
 
-ntg_stage* ntg_loop_get_stage()
+ntg_stage* ntg_loop_get_stage(void)
 {
     if(!ntg_loop_is_running())
         return NULL;
@@ -600,7 +600,7 @@ void ntg_loop_set_stage(ntg_stage* stage, int* out_status)
     }
 }
 
-struct ntg_xy ntg_loop_get_app_size()
+struct ntg_xy ntg_loop_get_app_size(void)
 {
     if((loop.state != NTG_LOOP_RUNNING) && (loop.state != NTG_LOOP_STOPPING))
         return ntg_xy(0, 0);
@@ -608,7 +608,7 @@ struct ntg_xy ntg_loop_get_app_size()
         return loop.running.app_size;
 }
 
-unsigned int ntg_loop_get_framerate()
+unsigned int ntg_loop_get_framerate(void)
 {
     if((loop.state != NTG_LOOP_RUNNING) && (loop.state != NTG_LOOP_STOPPING))
         return 0;
@@ -616,7 +616,7 @@ unsigned int ntg_loop_get_framerate()
         return loop.running.framerate;
 }
 
-static void update_stage()
+static void update_stage(void)
 {
     ntg_stage* old = loop.running.stage;
     ntg_stage* new = loop.running.pending_stage;
@@ -645,31 +645,30 @@ static void update_stage()
     loop.running.pending_stage = new;
 }
 
-static void execute_ready_tasks()
+static void execute_ready_tasks(void)
 {
     struct timespec _time;
     clock_gettime(CLOCK_MONOTONIC, &_time);
 
     unsigned long long now_ms = timespec_to_ms(_time);
 
-    pthread_mutex_lock(&loop.lock);
-
-    struct ntg_task_list_node* head;
-    struct ntg_task* data;
-
-    while(loop.task_list.size > 0)
+    while(true)
     {
-        head = loop.task_list.head;
-        data = head->data;
+        pthread_mutex_lock(&loop.lock);
 
-        if(now_ms < data->exec_time_ms)
+        struct ntg_task_list_node* head = loop.task_list.head;
+        if(!head || (now_ms < head->data->exec_time_ms))
+        {
+            pthread_mutex_unlock(&loop.lock);
             break;
+        }
 
-        if(data->task_fn)
-            data->task_fn(data->data);
-
+        struct ntg_task task = (*head->data);
         ntg_task_list_popf(&loop.task_list, NULL);
-    }
 
-    pthread_mutex_unlock(&loop.lock);
+        pthread_mutex_unlock(&loop.lock);
+
+        if(task.task_fn)
+            task.task_fn(task.data);
+    }
 }

@@ -24,7 +24,7 @@ struct ntg_box_opts
 
 
 NTG_API struct ntg_box_opts
-ntg_box_opts_default();
+ntg_box_opts_default(void);
 
 /* ------------------------------------------------------ */
 

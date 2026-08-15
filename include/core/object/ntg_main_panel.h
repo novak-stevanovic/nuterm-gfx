@@ -18,7 +18,7 @@ struct ntg_main_panel_opts
 };
 
 NTG_API struct ntg_main_panel_opts
-ntg_main_panel_opts_default();
+ntg_main_panel_opts_default(void);
 
 /* ------------------------------------------------------ */
 

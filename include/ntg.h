@@ -70,7 +70,7 @@ struct ntg_opts
 };
 
 NTG_API struct ntg_opts
-ntg_opts_default();
+ntg_opts_default(void);
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
@@ -80,16 +80,12 @@ NTG_API void
 ntg_enable(const struct ntg_opts* opts, const char* log_filepath, int* out_status);
 
 NTG_API const struct ntg_opts*
-ntg_get_opts();
+ntg_get_opts(void);
 
 NTG_API void
-ntg_disable();
-
-// TODO:
-// GENC: remove cmp_fn
+ntg_disable(void);
 
 // IMPLEMENT:
-// worker threads & platform
 // ntg_input
 // ntg_list
 // ntg_dialogue

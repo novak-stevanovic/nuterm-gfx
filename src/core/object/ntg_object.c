@@ -108,7 +108,7 @@ static inline bool set_pos_helper(ntg_object* object, struct ntg_xy pos);
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_border_opts ntg_border_opts_default()
+struct ntg_border_opts ntg_border_opts_default(void)
 {
     return (struct ntg_border_opts) {
         .style = &NTG_BORDER_STYLE_DEFAULT,
@@ -132,7 +132,7 @@ bool ntg_border_opts_are_eql(
             (opts1->style == opts2->style));
 }
 
-struct ntg_padding_opts ntg_padding_opts_default()
+struct ntg_padding_opts ntg_padding_opts_default(void)
 {
     return (struct ntg_padding_opts) {
         .pref_size = ntg_insets(0, 0, 0, 0),
@@ -154,7 +154,7 @@ bool ntg_padding_opts_are_eql(
     ntg_insets_are_eql(opts1->pref_size, opts2->pref_size));
 }
 
-struct ntg_layout_opts ntg_layout_opts_default()
+struct ntg_layout_opts ntg_layout_opts_default(void)
 {
     struct ntg_xy min_size, max_size, grow;
     min_size = ntg_xy(NTG_OBJECT_MIN_SIZE_UNSET, NTG_OBJECT_MIN_SIZE_UNSET);

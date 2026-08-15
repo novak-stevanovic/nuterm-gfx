@@ -26,7 +26,7 @@ struct ntg_event
 
 
 NTG_API ntg_event_delegate*
-ntg_event_delegate_new();
+ntg_event_delegate_new(void);
 
 NTG_API void
 ntg_event_delegate_destroy(ntg_event_delegate* delegate);

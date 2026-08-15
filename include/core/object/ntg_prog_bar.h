@@ -19,7 +19,7 @@ struct ntg_prog_bar_style
 };
 
 NTG_API struct ntg_prog_bar_style
-ntg_prog_bar_style_default();
+ntg_prog_bar_style_default(void);
 
 /* ------------------------------------------------------ */
 
@@ -39,7 +39,7 @@ struct ntg_prog_bar_opts
 
 
 NTG_API struct ntg_prog_bar_opts
-ntg_prog_bar_opts_default();
+ntg_prog_bar_opts_default(void);
 
 /* ------------------------------------------------------ */
 

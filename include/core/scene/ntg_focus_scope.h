@@ -58,7 +58,7 @@ struct ntg_focus_scope_opts
 };
 
 NTG_API struct ntg_focus_scope_opts
-ntg_focus_scope_opts_default();
+ntg_focus_scope_opts_default(void);
 
 /* ------------------------------------------------------ */
 /* KEYBINDS */

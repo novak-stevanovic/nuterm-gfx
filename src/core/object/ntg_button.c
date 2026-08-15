@@ -17,7 +17,7 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_button_opts ntg_button_opts_default()
+struct ntg_button_opts ntg_button_opts_default(void)
 {
     return (struct ntg_button_opts) {
         .text_opts = ntg_text_opts_default()

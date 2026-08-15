@@ -36,7 +36,7 @@ static const struct ntg_anchor_policy_vtable VTABLE = {
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_float_opts ntg_float_opts_default()
+struct ntg_float_opts ntg_float_opts_default(void)
 {
     return (struct ntg_float_opts) {
         .enable = NTG_FLOAT_ENABLE_MIN,

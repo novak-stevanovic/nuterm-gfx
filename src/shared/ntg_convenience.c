@@ -38,7 +38,7 @@ struct ntg_cleanup_batch
 /* CLEANUP BATCH */
 /* ------------------------------------------------------ */
 
-ntg_cleanup_batch* ntg_cleanup_batch_new()
+ntg_cleanup_batch* ntg_cleanup_batch_new(void)
 {
     ntg_cleanup_batch* new = malloc(sizeof(struct ntg_cleanup_batch));
     if(!new) return NULL;

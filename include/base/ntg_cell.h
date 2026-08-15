@@ -88,7 +88,7 @@ struct ntg_vcell_vecgrid
 
 
 static inline struct ntg_cell 
-ntg_cell_default()
+ntg_cell_default(void)
 {
     return (struct ntg_cell) {
         .cp = ' ',
@@ -183,7 +183,7 @@ ntg_vcell_new(ntg_vcell_type type, struct nt_gfx gfx, uint32_t cp)
 }
 
 static inline struct ntg_vcell 
-ntg_vcell_new_default()
+ntg_vcell_new_default(void)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
@@ -220,7 +220,7 @@ ntg_vcell_new_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
 }
 
 static inline struct ntg_vcell 
-ntg_vcell_new_transparent()
+ntg_vcell_new_transparent(void)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_TRANSPARENT

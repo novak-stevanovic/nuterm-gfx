@@ -100,7 +100,7 @@ static void init_default(ntg_text* text_obj)
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_text_opts ntg_text_opts_default()
+struct ntg_text_opts ntg_text_opts_default(void)
 {
     struct ntg_text_opts opts =  {
         .orient = NTG_ORIENT_H,

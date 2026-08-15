@@ -35,7 +35,7 @@ struct ntg_border_opts
     const struct ntg_border_style* style;
 };
 
-NTG_API struct ntg_border_opts ntg_border_opts_default();
+NTG_API struct ntg_border_opts ntg_border_opts_default(void);
 
 NTG_API bool
 ntg_border_opts_are_eql(const struct ntg_border_opts* o1, const struct ntg_border_opts* o2);
@@ -46,7 +46,7 @@ struct ntg_padding_opts
     struct ntg_insets pref_size;
 };
 
-NTG_API struct ntg_padding_opts ntg_padding_opts_default();
+NTG_API struct ntg_padding_opts ntg_padding_opts_default(void);
 
 NTG_API bool
 ntg_padding_opts_are_eql(const struct ntg_padding_opts* o1, const struct ntg_padding_opts* o2);
@@ -66,7 +66,7 @@ struct ntg_layout_opts
     int z_index;
 };
 
-NTG_API struct ntg_layout_opts ntg_layout_opts_default();
+NTG_API struct ntg_layout_opts ntg_layout_opts_default(void);
 
 struct ntg_object_layout_result
 {

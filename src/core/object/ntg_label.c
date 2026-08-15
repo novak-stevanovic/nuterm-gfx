@@ -23,7 +23,7 @@ static void init_default(ntg_label* label)
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_label_opts ntg_label_opts_default()
+struct ntg_label_opts ntg_label_opts_default(void)
 {
     return (struct ntg_label_opts) {
         .text_opts = ntg_text_opts_default()

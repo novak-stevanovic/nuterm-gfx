@@ -10,7 +10,7 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-struct ntg_prog_bar_style ntg_prog_bar_style_default()
+struct ntg_prog_bar_style ntg_prog_bar_style_default(void)
 {
     return (struct ntg_prog_bar_style) {
         .complete = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0)),
@@ -39,7 +39,7 @@ bool ntg_prog_bar_style_are_eql(
 
 /* ------------------------------------------------------ */
 
-struct ntg_prog_bar_opts ntg_prog_bar_opts_default()
+struct ntg_prog_bar_opts ntg_prog_bar_opts_default(void)
 {
     return (struct ntg_prog_bar_opts) {
         .orient = NTG_ORIENT_H,

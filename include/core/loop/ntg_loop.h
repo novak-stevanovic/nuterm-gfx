@@ -30,7 +30,7 @@ struct ntg_loop_init_opts
 };
 
 NTG_API struct ntg_loop_init_opts
-ntg_loop_init_opts_default();
+ntg_loop_init_opts_default(void);
 
 /* ------------------------------------------------------ */
 
@@ -50,7 +50,7 @@ struct ntg_loop_start_opts
 };
 
 NTG_API struct ntg_loop_start_opts
-ntg_loop_start_opts_default();
+ntg_loop_start_opts_default(void);
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
@@ -73,10 +73,10 @@ NTG_API void
 ntg_loop_deinit(int* out_status);
 
 NTG_API ntg_loop_state
-ntg_loop_get_state();
+ntg_loop_get_state(void);
 
 NTG_API bool
-ntg_loop_is_running();
+ntg_loop_is_running(void);
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -93,7 +93,7 @@ NTG_API void
 ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status);
 
 NTG_API void
-ntg_loop_stop();
+ntg_loop_stop(void);
 
 /* ------------------------------------------------------ */
 /* EXECUTE */
@@ -114,25 +114,25 @@ ntg_loop_schedule(
  * that were pushed while the loop was inactive. */
 
 NTG_API void
-ntg_loop_tasks_clear();
+ntg_loop_tasks_clear(void);
 
 NTG_API bool
-ntg_loop_has_tasks();
+ntg_loop_has_tasks(void);
 
 /* ------------------------------------------------------ */
 /* IN-LOOP ONLY */
 /* ------------------------------------------------------ */
 
 NTG_API ntg_stage*
-ntg_loop_get_stage();
+ntg_loop_get_stage(void);
 
 NTG_API void
 ntg_loop_set_stage(ntg_stage* stage, int* out_status);
 
 NTG_API struct ntg_xy
-ntg_loop_get_app_size();
+ntg_loop_get_app_size(void);
 
 NTG_API unsigned int
-ntg_loop_get_framerate();
+ntg_loop_get_framerate(void);
 
 #endif // NTG_LOOP_H

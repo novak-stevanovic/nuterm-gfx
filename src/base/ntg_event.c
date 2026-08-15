@@ -32,7 +32,7 @@ struct ntg_event_binding
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-ntg_event_delegate* ntg_event_delegate_new()
+ntg_event_delegate* ntg_event_delegate_new(void)
 {
     ntg_event_delegate* new = malloc(sizeof(ntg_event_delegate));
     if(!new)
