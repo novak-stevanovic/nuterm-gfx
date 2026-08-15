@@ -11,7 +11,7 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-enum ntg_loop_status
+enum ntg_loop_state
 {
     NTG_LOOP_DEINIT = 0,
     NTG_LOOP_READY,
@@ -63,7 +63,7 @@ ntg_loop_start_opts_default();
 NTG_API void
 ntg_loop_init(
         ntg_renderer* custom_renderer,
-        bool (*dispatch_event_fn)(const struct nt_event* event),
+        bool (*on_event_fn)(const struct nt_event* event),
         ntg_stage* init_stage,
         const struct ntg_loop_init_opts* opts,
         int* out_status);
@@ -72,8 +72,11 @@ ntg_loop_init(
 NTG_API void
 ntg_loop_deinit(int* out_status);
 
-NTG_API ntg_loop_status
-ntg_loop_get_status();
+NTG_API ntg_loop_state
+ntg_loop_get_state();
+
+NTG_API bool
+ntg_loop_is_running();
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -83,7 +86,7 @@ NTG_API bool
 ntg_loop_dispatch_event_fn_default(const struct nt_event* event);
 
 /* ------------------------------------------------------ */
-/* START */
+/* START/STOP */
 /* ------------------------------------------------------ */
 
 NTG_API void
@@ -93,11 +96,32 @@ NTG_API void
 ntg_loop_stop();
 
 /* ------------------------------------------------------ */
-/* IN-LOOP */
+/* EXECUTE */
 /* ------------------------------------------------------ */
 
+#define NTG_LOOP_DELAY_MS_MAX 86400000L
+
+/* If loop is NTG_LOOP_READY the tasks will be executed on next ntg_loop_start(). */
+
 NTG_API void
-ntg_loop_execute(/* ??? */);
+ntg_loop_schedule(
+        void (*task_fn)(void* data),
+        void* data,
+        unsigned long delay_ms,
+        int* out_status);
+
+/* May be used before starting the loop or stopping the loop to discard any tasks
+ * that were pushed while the loop was inactive. */
+
+NTG_API void
+ntg_loop_tasks_clear();
+
+NTG_API bool
+ntg_loop_has_tasks();
+
+/* ------------------------------------------------------ */
+/* IN-LOOP ONLY */
+/* ------------------------------------------------------ */
 
 NTG_API ntg_stage*
 ntg_loop_get_stage();

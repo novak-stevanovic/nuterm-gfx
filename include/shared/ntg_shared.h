@@ -53,7 +53,7 @@ typedef struct ntg_keybind ntg_keybind;
 /* CORE */
 /* ------------------------------------------------------ */
 
-typedef enum ntg_loop_status ntg_loop_status;
+typedef enum ntg_loop_state ntg_loop_state;
 typedef enum ntg_loop_exit_status ntg_loop_exit_status;
 typedef struct ntg_platform ntg_platform;
 
@@ -104,7 +104,6 @@ typedef enum ntg_text_wrap ntg_text_wrap;
 typedef enum ntg_text_scroll_mode ntg_text_scroll_mode;
 typedef enum ntg_text_line_mode ntg_text_line_mode;
 typedef enum ntg_text_bg_mode ntg_text_bg_mode;
-typedef enum ntg_text_set_flags ntg_text_set_flags;
 typedef struct ntg_label ntg_label;
 typedef struct ntg_button ntg_button;
 typedef struct ntg_color_block ntg_color_block;

@@ -134,7 +134,7 @@ NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
+void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size, int* out_status);
 void _ntg_stage_clean(ntg_stage* stage);
 void _ntg_stage_enter_loop(ntg_stage* stage);
 void _ntg_stage_leave_loop(ntg_stage* stage);

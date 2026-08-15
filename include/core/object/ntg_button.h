@@ -95,7 +95,7 @@ NTG_API void
 ntg_button_set_text_unsafe(
         ntg_button* button,
         const char* text,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -105,7 +105,7 @@ ntg_button_set_text(
         ntg_button* button,
         const char* text,
         size_t len,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status);
 
 /* ========================================================================== */

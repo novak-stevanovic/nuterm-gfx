@@ -85,7 +85,7 @@ NTG_API void
 ntg_label_set_text_unsafe(
         ntg_label* label,
         const char* text,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status);
 
 /* ------------------------------------------------------ */
@@ -96,7 +96,7 @@ ntg_label_set_text(
         ntg_label* label,
         const char* text,
         size_t len,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status);
 
 /* ========================================================================== */

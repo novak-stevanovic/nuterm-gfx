@@ -148,7 +148,7 @@ struct ntg_str_view ntg_label_get_text(const struct ntg_label* label)
 void ntg_label_set_text_unsafe(
         ntg_label* label,
         const char* text,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status)
 {
     if(!label)
@@ -161,7 +161,7 @@ void ntg_label_set_text(
         ntg_label* label,
         const char* text,
         size_t len,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status)
 {
     ntg_text_set_text(ntg_txt(label), text, len, flags, out_status);

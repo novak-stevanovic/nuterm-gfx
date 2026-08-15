@@ -155,7 +155,7 @@ struct ntg_str_view ntg_button_get_text(const struct ntg_button* button)
 void ntg_button_set_text_unsafe(
         ntg_button* button,
         const char* text,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status)
 {
     if(!button)
@@ -168,7 +168,7 @@ void ntg_button_set_text(
         ntg_button* button,
         const char* text,
         size_t len,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status)
 {
     ntg_text_set_text(ntg_txt(button), text, len, flags, out_status);

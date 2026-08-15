@@ -288,7 +288,7 @@ static void* worker_fn(void* _runner)
         /* Decrement running task counter */
 
         pthread_mutex_lock(&runner->lock);
-        runner->running--;
+        (runner->running)--;
         pthread_mutex_unlock(&runner->lock);
     }
 

@@ -36,7 +36,13 @@ void ntg_cell_vecgrid_set_size(
     ntg_init_status(out_status);
 
     if(!vecgrid)
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX) ||
+    (size_cap.x > NTG_SIZE_MAX) || (size_cap.y > NTG_SIZE_MAX))
+    {
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+    }
 
     struct ntg_xy old = vecgrid->__base._size;
 
@@ -112,14 +118,25 @@ void ntg_vcell_vecgrid_set_size(
     ntg_init_status(out_status);
 
     if(!vecgrid)
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX) ||
+    (size_cap.x > NTG_SIZE_MAX) || (size_cap.y > NTG_SIZE_MAX))
+    {
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+    }
 
     struct ntg_xy old = vecgrid->__base._size;
 
     int _status;
 
-    ntg_vecgrid_set_size(&vecgrid->__base, size, 2.5,
-            size_cap, sizeof(struct ntg_vcell), &_status);
+    ntg_vecgrid_set_size(
+            &vecgrid->__base,
+            size,
+            2.5,
+            size_cap,
+            sizeof(struct ntg_vcell),
+            &_status);
     if(_status != 0)
     {
         switch(_status)

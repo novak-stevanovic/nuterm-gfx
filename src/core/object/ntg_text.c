@@ -192,7 +192,7 @@ void ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 void ntg_text_set_text_unsafe(
         ntg_text* text_obj,
         const char* text,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -207,7 +207,7 @@ void ntg_text_set_text(
         ntg_text* text_obj,
         const char* text,
         size_t len,
-        ntg_text_set_flags flags,
+        uint16_t flags,
         int* out_status)
 {
     ntg_init_status(out_status);

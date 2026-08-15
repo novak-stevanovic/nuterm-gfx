@@ -54,6 +54,12 @@ void ntg_stage_drawing_set_size(
     if(drawing == NULL)
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX) ||
+    (size_cap.x > NTG_SIZE_MAX) || (size_cap.y > NTG_SIZE_MAX))
+    {
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+    }
+
     int _status = 0;
     ntg_cell_vecgrid_set_size(&drawing->__data, size, size_cap, &_status);
     switch(_status)

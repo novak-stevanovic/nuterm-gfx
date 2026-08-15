@@ -356,9 +356,15 @@ const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT = {
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
+void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size, int* out_status)
 {
-    if(!scene) return;
+    ntg_set_out(out_status, 0);
+
+    if(!scene)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     struct ntg_xy old_size = scene->_size;
 

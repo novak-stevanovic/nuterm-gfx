@@ -55,6 +55,12 @@ void ntg_vecgrid_set_size(
     if((!vecgrid) || (data_size == 0))
         ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX) ||
+    (size_cap.x > NTG_SIZE_MAX) || (size_cap.y > NTG_SIZE_MAX))
+    {
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+    }
+
     if(modifier < 1.1) modifier = 1.1;
     size_cap.x = _max2_size(size_cap.x, 1);
     size_cap.y = _max2_size(size_cap.y, 1);
@@ -64,10 +70,10 @@ void ntg_vecgrid_set_size(
     if(ntg_xy_are_eql(vecgrid->_size, size)) return;
 
     if((size.x != 0) && (size.y > SIZE_MAX / size.x))
-        ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
+        ntg_vreturn(out_status, NTG_ERR_OVERFLOW);
 
     if((size_cap.x != 0) && (size_cap.y > SIZE_MAX / size_cap.x))
-        ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
+        ntg_vreturn(out_status, NTG_ERR_OVERFLOW);
 
     size_t size_prod = size.x * size.y;
     

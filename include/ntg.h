@@ -86,6 +86,7 @@ NTG_API void
 ntg_disable();
 
 // TODO:
+// GENC: remove cmp_fn
 
 // IMPLEMENT:
 // worker threads & platform

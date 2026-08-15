@@ -86,9 +86,35 @@ void init_fs(); // focus scopes
 
 const struct ntg_focus_scope_vtable FS1_VTABLE;
 
-bool flt_button_mouse_fn(ntg_button* button)
+void task_loop_stop(void* _)
 {
     ntg_loop_stop();
+}
+
+void task_change_text_1(void* _)
+{
+    ntg_button_set_text_unsafe(&flt_button, "1", NTG_TEXT_SET_RM_WS, NULL);
+}
+
+void task_change_text_2a(void* _)
+{
+    ntg_button_set_text_unsafe(&flt_button, "2a", NTG_TEXT_SET_RM_WS, NULL);
+}
+
+void task_change_text_2b(void* _)
+{
+    ntg_button_set_text_unsafe(&flt_button, "2b", NTG_TEXT_SET_RM_WS, NULL);
+}
+
+bool flt_button_mouse_fn(ntg_button* button)
+{
+    int _status;
+    ntg_loop_schedule(task_loop_stop, NULL, 5000, &_status);
+    ntg_loop_schedule(task_change_text_1, NULL, 1000, &_status);
+    ntg_loop_schedule(task_change_text_2a, NULL, 2000, &_status);
+    ntg_loop_schedule(task_change_text_2b, NULL, 2000, &_status);
+    assert(!_status);
+
     return true;
 }
 

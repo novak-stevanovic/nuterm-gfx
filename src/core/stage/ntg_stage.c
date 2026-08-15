@@ -135,7 +135,8 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status)
     {
         _ntg_scene_set_stage(old_scene, NULL);
 
-        _ntg_scene_set_size(old_scene, ntg_xy(0, 0));
+        /* Can only fail if size exceeds NTG_SIZE_MAX */
+        _ntg_scene_set_size(old_scene, ntg_xy(0, 0), NULL);
     }
 
     if(scene)
@@ -146,7 +147,9 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status)
         }
 
         _ntg_scene_set_stage(scene, stage);
-        _ntg_scene_set_size(scene, stage->_size);
+
+        /* Can only fail if size exceeds NTG_SIZE_MAX */
+        _ntg_scene_set_size(scene, stage->_size, NULL);
         ntg_scene_mark_dirty(scene);
     }
 
@@ -269,9 +272,15 @@ const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT = {
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
+void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size, int* out_status)
 {
-    if(!stage) return;
+    ntg_set_out(out_status, 0);
+
+    if(!stage)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
 
     if(ntg_xy_are_eql(stage->_size, size))
         return;
@@ -281,8 +290,19 @@ void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
     stage->_size = size;
     ntg_stage_mark_dirty(stage);
 
+    int _status;
+
     if(stage->_scene)
-        _ntg_scene_set_size(stage->_scene, size);
+    {
+        _ntg_scene_set_size(stage->_scene, size, &_status);
+        switch(_status)
+        {
+            case 0: break;
+            default:
+                ntg_set_out(out_status, NTG_ERR_UNEXPECTED);
+                break;
+        }
+    }
 
     if(stage->hooks.on_size_chng_fn)
         stage->hooks.on_size_chng_fn(stage, old_size, size);

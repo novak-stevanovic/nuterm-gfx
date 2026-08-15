@@ -3,7 +3,7 @@
 
 #include "shared/ntg_shared.h"
 
-#define NTG_SIZE_MAX 2000
+#define NTG_SIZE_MAX 10000
 
 /* ========================================================================== */
 /* PUBLIC */

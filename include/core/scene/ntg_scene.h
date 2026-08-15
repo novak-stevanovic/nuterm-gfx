@@ -181,7 +181,7 @@ NTG_API extern const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
+void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size, int* out_status);
 bool _ntg_scene_layout(ntg_scene* scene, sarena* arena);
 
 void _ntg_scene_clean(ntg_scene* scene);

@@ -2,21 +2,33 @@
 #include "shared/ntg_shared_internal.h"
 #include "nt.h"
 #include <stdlib.h>
+#include <pthread.h>
+#include <limits.h>
 #include <time.h>
 
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
 
+struct ntg_task
+{
+    void (*task_fn)(void* data);
+    void* data;
+
+    unsigned long long exec_time_ms;
+};
+
+GENC_LIST_GENERATE(ntg_task_list, struct ntg_task, NULL);
+
 struct ntg_loop
 {
-    enum ntg_loop_status status;
+    enum ntg_loop_state state;
 
     struct
     {
         ntg_renderer* renderer;
         bool _init_renderer, _owns_renderer;
-        bool (*dispatch_event_fn)(const struct nt_event* event);
+        bool (*on_event_fn)(const struct nt_event* event);
         sarena* arena;
     } init;
 
@@ -27,11 +39,42 @@ struct ntg_loop
         ntg_stage* pending_stage;
         struct ntg_xy app_size;
     } running;
+
+    struct
+    {
+        struct ntg_task_list task_list;
+        pthread_mutex_t lock;
+    };
 };
 
 static struct ntg_loop loop = {0};
 
+// prerequisite: (tv_sec * 1 000) + (tv_nsec / 1 000 000) <= ULLONG_MAX
+// valid, non-negative, normalized ts timespec
+static inline unsigned long long
+timespec_to_ms(struct timespec ts)
+{
+    /*
+    unsigned long long sec_ull = ts.tv_sec;
+    unsigned long long nsec_ull = ts.tv_nsec;
+
+    if((ULLONG_MAX / 1000) < sec_ull)
+        sec_ull = ULLONG_MAX / 1000;
+
+    unsigned long long sec_ull_ms = sec_ull * 1000;
+    unsigned long long nsec_ull_ms = nsec_ull / 1000000;
+
+    if((ULLONG_MAX - nsec_ull_ms) < sec_ull_ms)
+        sec_ull_ms = (ULLONG_MAX - nsec_ull_ms);
+
+    return sec_ull_ms + nsec_ull_ms; */
+
+    return ((unsigned long long)ts.tv_sec * 1000) +
+           ((unsigned long long)ts.tv_nsec / 1000000);
+}
+
 static void update_stage();
+static void execute_ready_tasks();
 
 /* ========================================================================== */
 /* PUBLIC */
@@ -66,7 +109,7 @@ struct ntg_loop_start_opts ntg_loop_start_opts_default()
 
 static void init_default()
 {
-    loop.status = NTG_LOOP_DEINIT;
+    loop.state = NTG_LOOP_DEINIT;
 
     loop = (struct ntg_loop) {0};
     // loop.frame_count = 0;
@@ -82,6 +125,9 @@ static void deinit()
         free(loop.init.renderer);
     }
 
+    pthread_mutex_destroy(&loop.lock);
+    ntg_task_list_deinit(&loop.task_list, NULL);
+
     if(loop.init.arena)
         sarena_destroy(loop.init.arena);
 
@@ -90,14 +136,14 @@ static void deinit()
 
 void ntg_loop_init(
         ntg_renderer* renderer,
-        bool (*dispatch_event_fn)(const struct nt_event* event),
+        bool (*on_event_fn)(const struct nt_event* event),
         ntg_stage* init_stage,
         const struct ntg_loop_init_opts* opts,
         int* out_status)
 {
     ntg_set_out(out_status, 0);
 
-    if(loop.status != NTG_LOOP_DEINIT)
+    if(loop.state != NTG_LOOP_DEINIT)
         ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
 
     /* Opts */
@@ -114,6 +160,9 @@ void ntg_loop_init(
     {
         opts_final = ntg_loop_init_opts_default();
     }
+
+    ntg_task_list_init(&loop.task_list, NULL); /* Can't fail */
+    pthread_mutex_init(&loop.lock, NULL); /* Can't fail */
 
     /* Arena */
 
@@ -160,11 +209,11 @@ void ntg_loop_init(
         loop.init._owns_renderer = true;
     }
 
-    loop.init.dispatch_event_fn = (
-            dispatch_event_fn ?
-            dispatch_event_fn :
+    loop.init.on_event_fn = (
+            on_event_fn ?
+            on_event_fn :
             ntg_loop_dispatch_event_fn_default);
-    loop.status = NTG_LOOP_READY;
+    loop.state = NTG_LOOP_READY;
 
     loop.running.stage = init_stage;
     loop.running.pending_stage = init_stage;
@@ -175,15 +224,20 @@ void ntg_loop_deinit(int* out_status)
 {
     ntg_set_out(out_status, 0);
 
-    if((loop.status == NTG_LOOP_RUNNING) || (loop.status == NTG_LOOP_STOPPING))
+    if(ntg_loop_is_running())
         ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
 
     deinit();
 }
 
-ntg_loop_status ntg_loop_get_status()
+ntg_loop_state ntg_loop_get_state()
 {
-    return loop.status;
+    return loop.state;
+}
+
+bool ntg_loop_is_running()
+{
+    return ((loop.state == NTG_LOOP_RUNNING) || (loop.state == NTG_LOOP_STOPPING));
 }
 
 /* ------------------------------------------------------ */
@@ -222,7 +276,7 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
 {
     ntg_set_out(out_status, 0);
 
-    if(loop.status != NTG_LOOP_READY)
+    if(loop.state != NTG_LOOP_READY)
         ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
 
     struct ntg_loop_start_opts opts_final;
@@ -244,8 +298,7 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
 
     unsigned int timeout = 1000 / loop.running.framerate;
     struct timespec ts_start, ts_end;
-    int64_t process_elapsed_ns;
-    uint64_t process_elapsed_ms;
+    unsigned long long process_elapsed_ms;
     const ntg_stage_drawing* drawing;
 
     struct nt_event event = {0};
@@ -253,19 +306,27 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
     unsigned int event_elapsed;
 
     nt_get_term_size(&loop.running.app_size.x, &loop.running.app_size.y);
+    loop.running.app_size.x = _clamp_size(0, loop.running.app_size.x, NTG_SIZE_MAX);
+    loop.running.app_size.y = _clamp_size(0, loop.running.app_size.y, NTG_SIZE_MAX);;
 
     if(opts_final.mouse_mode == NTG_LOOP_MOUSE_ENABLE)
         nt_mouse_mode_enable(NULL);
 
     bool drain_events = true;
 
-    loop.status = NTG_LOOP_RUNNING;
+    loop.state = NTG_LOOP_RUNNING;
     if(loop.running.stage)
-        _ntg_stage_set_size(loop.running.stage, loop.running.app_size);
+    {
+        /* Can't fail unless size overflows */
+        _ntg_stage_set_size(loop.running.stage, loop.running.app_size, NULL);
+    }
+
+    execute_ready_tasks();
+    
     while(true)
     {
-        update_stage(loop);
-        if(loop.status == NTG_LOOP_STOPPING)
+        update_stage();
+        if(loop.state == NTG_LOOP_STOPPING)
             break;
 
         event_elapsed = nt_event_wait(&event, timeout, &_tmp_status);
@@ -281,12 +342,13 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
         if(event.type == NT_EVENT_RESIZE)
         {
             NT_EVENT_FILL_DATA(event, &resize_event);
-            loop.running.app_size.x = resize_event.new_x;
-            loop.running.app_size.y = resize_event.new_y;
+            loop.running.app_size.x = _clamp_size(0, resize_event.new_x, NTG_SIZE_MAX);
+            loop.running.app_size.y = _clamp_size(0, resize_event.new_y, NTG_SIZE_MAX);;
 
             if(loop.running.stage)
             {
-                _ntg_stage_set_size(loop.running.stage, loop.running.app_size);
+                /* Can't fail unless size overflows */
+                _ntg_stage_set_size(loop.running.stage, loop.running.app_size, NULL);
             }
             // resize_counter++;
         }
@@ -295,14 +357,14 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
             // sigwinch_counter++;
         }
 
-        if(loop.init.dispatch_event_fn)
-            loop.init.dispatch_event_fn(&event);
+        if(loop.init.on_event_fn)
+            loop.init.on_event_fn(&event);
 
         if(event.type == NT_EVENT_TIMEOUT)
         {
-            // _ntg_platform_execute_all(loop.platform);
-
             timeout = 1000 / loop.running.framerate;
+
+            execute_ready_tasks();
 
             if(loop.running.stage)
             {
@@ -326,19 +388,14 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
         }
         else
         {
-            event_elapsed = (timeout >= event_elapsed) ? event_elapsed : timeout;
-            timeout -= event_elapsed;
+            timeout = _sub2_uint(timeout, event_elapsed);
         }
 
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
         
-        process_elapsed_ns = 
-            ((int64_t)(ts_end.tv_sec - ts_start.tv_sec) * 1000000000LL) +
-            ((int64_t)(ts_end.tv_nsec - ts_start.tv_nsec));
-        
-        process_elapsed_ms = process_elapsed_ns / 1000000LL;
-        // loop.elapsed += (event_elapsed + process_elapsed_ms);
-        timeout = (timeout > process_elapsed_ms) ? timeout - process_elapsed_ms : 0;
+        process_elapsed_ms = _sub2_ull(timespec_to_ms(ts_end), timespec_to_ms(ts_start));
+
+        timeout = ((timeout > process_elapsed_ms) ? (timeout - process_elapsed_ms) : 0);
     }
 
     ntg_renderer_render(loop.init.renderer, NULL, loop.init.arena, &_tmp_status);
@@ -369,40 +426,140 @@ void ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status)
     if(opts_final.mouse_mode == NTG_LOOP_MOUSE_ENABLE)
         nt_mouse_mode_disable(NULL);
 
+    loop.running.stage = NULL;
+    loop.running.pending_stage = NULL;
+    loop.running.framerate = 0;
+    loop.running.app_size = ntg_xy(0, 0);
+
     if(make_ready)
-        loop.status = NTG_LOOP_READY;
+        loop.state = NTG_LOOP_READY;
 
     ntg_set_out(out_status, _status);
 }
 
-/* ------------------------------------------------------ */
-/* TASKS & PLATFORM */
-/* ------------------------------------------------------ */
-
-NTG_API void
-ntg_loop_run_task(/* ??? */);
-
-NTG_API bool
-ntg_loop_has_running_tasks();
-
-NTG_API void
-ntg_loop_execute(/* ??? */);
-
-/* ------------------------------------------------------ */
-/* IN-LOOP */
-/* ------------------------------------------------------ */
-
 void ntg_loop_stop()
 {
-    if(loop.status != NTG_LOOP_RUNNING)
+    if(loop.state != NTG_LOOP_RUNNING)
         return;
 
-    loop.status = NTG_LOOP_STOPPING;
+    loop.state = NTG_LOOP_STOPPING;
 }
+
+/* ------------------------------------------------------ */
+/* EXECUTE*/
+/* ------------------------------------------------------ */
+
+void ntg_loop_schedule(
+        void (*task_fn)(void* data),
+        void* data,
+        unsigned long delay_ms,
+        int* out_status)
+{
+    ntg_set_out(out_status, 0);
+
+    if(!task_fn)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if(delay_ms > NTG_LOOP_DELAY_MS_MAX)
+        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+
+    if(loop.state == NTG_LOOP_DEINIT)
+        ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
+
+    int _status;
+
+    pthread_mutex_lock(&loop.lock);
+
+    struct timespec _time;
+    clock_gettime(CLOCK_MONOTONIC, &_time); 
+
+    unsigned long long now_ms = timespec_to_ms(_time);
+
+    struct ntg_task task = {
+        .task_fn = task_fn,
+        .data = data,
+        .exec_time_ms = now_ms + delay_ms
+    };
+
+    struct ntg_task_list_node* it = loop.task_list.head;
+    struct ntg_task* it_data;
+
+    while(it)
+    {
+        it_data = it->data;
+
+        if(task.exec_time_ms < it_data->exec_time_ms)
+        {
+            ntg_task_list_ins_before_node(&loop.task_list, task, it, &_status);
+
+            switch(_status)
+            {
+                case 0: break;
+                case GENC_ERR_ALLOC_FAIL:
+                        ntg_set_out(out_status, NTG_ERR_ALLOC_FAIL);
+                        break;
+                default:
+                        ntg_set_out(out_status, NTG_ERR_ALLOC_FAIL);
+                        break;
+            }
+            break;
+        }
+
+        it = it->next;
+    }
+
+    // Must be appended to tail
+    if(!it)
+        ntg_task_list_pushb(&loop.task_list, task, &_status);
+
+    pthread_mutex_unlock(&loop.lock);
+
+    switch(_status)
+    {
+        case 0: break;
+        case GENC_ERR_ALLOC_FAIL:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        default:
+                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+    }
+}
+
+void ntg_loop_tasks_clear()
+{
+    if(loop.state == NTG_LOOP_DEINIT)
+        return;
+
+    pthread_mutex_lock(&loop.lock);
+
+    while(loop.task_list.size > 0)
+        ntg_task_list_popf(&loop.task_list, NULL);
+
+    pthread_mutex_unlock(&loop.lock);
+}
+
+bool ntg_loop_has_tasks()
+{
+    if(loop.state == NTG_LOOP_DEINIT)
+        return false;
+
+    bool running;
+
+    pthread_mutex_lock(&loop.lock);
+
+    running = (loop.task_list.size > 0); 
+
+    pthread_mutex_unlock(&loop.lock);
+
+    return running;
+}
+
+/* ------------------------------------------------------ */
+/* IN-LOOP ONLY */
+/* ------------------------------------------------------ */
 
 ntg_stage* ntg_loop_get_stage()
 {
-    if((loop.status != NTG_LOOP_RUNNING) && (loop.status != NTG_LOOP_STOPPING))
+    if(!ntg_loop_is_running())
         return NULL;
     else
         return loop.running.stage;
@@ -412,10 +569,10 @@ void ntg_loop_set_stage(ntg_stage* stage, int* out_status)
 {
     ntg_init_status(out_status);
     
-    if(loop.status == NTG_LOOP_DEINIT)
+    if(loop.state == NTG_LOOP_DEINIT)
         ntg_vreturn(out_status, NTG_ERR_LOOP_INVALID_STATE);
 
-    if((loop.status == NTG_LOOP_RUNNING) || (loop.status == NTG_LOOP_STOPPING))
+    if((loop.state == NTG_LOOP_RUNNING) || (loop.state == NTG_LOOP_STOPPING))
     {
         loop.running.pending_stage = stage;
     }
@@ -433,7 +590,9 @@ void ntg_loop_set_stage(ntg_stage* stage, int* out_status)
         if(stage)
         {
             _ntg_stage_enter_loop(stage);
-            _ntg_stage_set_size(stage, loop.running.app_size);
+
+            /* Can only fail if app_size overflows */
+            _ntg_stage_set_size(stage, loop.running.app_size, NULL);
         }
 
         loop.running.stage = stage;
@@ -443,7 +602,7 @@ void ntg_loop_set_stage(ntg_stage* stage, int* out_status)
 
 struct ntg_xy ntg_loop_get_app_size()
 {
-    if((loop.status != NTG_LOOP_RUNNING) && (loop.status != NTG_LOOP_STOPPING))
+    if((loop.state != NTG_LOOP_RUNNING) && (loop.state != NTG_LOOP_STOPPING))
         return ntg_xy(0, 0);
     else
         return loop.running.app_size;
@@ -451,7 +610,7 @@ struct ntg_xy ntg_loop_get_app_size()
 
 unsigned int ntg_loop_get_framerate()
 {
-    if((loop.status != NTG_LOOP_RUNNING) && (loop.status != NTG_LOOP_STOPPING))
+    if((loop.state != NTG_LOOP_RUNNING) && (loop.state != NTG_LOOP_STOPPING))
         return 0;
     else
         return loop.running.framerate;
@@ -466,18 +625,51 @@ static void update_stage()
 
     // if(new && new->_loop) return;
 
+    int _status;
+
     if(old)
     {
         _ntg_stage_leave_loop(old);
-        _ntg_stage_set_size(old, ntg_xy(0, 0));
+        /* Can't fail unless app_size exceeds NTG_SIZE_MAX */
+        _ntg_stage_set_size(old, ntg_xy(0, 0), NULL);
     }
     if(new)
     {
         _ntg_stage_enter_loop(new);
-        _ntg_stage_set_size(new, loop.running.app_size);
+        /* Can't fail unless app_size exceeds NTG_SIZE_MAX */
+        _ntg_stage_set_size(new, loop.running.app_size, &_status);
         ntg_stage_mark_dirty(new);
     }
 
     loop.running.stage = new;
     loop.running.pending_stage = new;
+}
+
+static void execute_ready_tasks()
+{
+    struct timespec _time;
+    clock_gettime(CLOCK_MONOTONIC, &_time);
+
+    unsigned long long now_ms = timespec_to_ms(_time);
+
+    pthread_mutex_lock(&loop.lock);
+
+    struct ntg_task_list_node* head;
+    struct ntg_task* data;
+
+    while(loop.task_list.size > 0)
+    {
+        head = loop.task_list.head;
+        data = head->data;
+
+        if(now_ms < data->exec_time_ms)
+            break;
+
+        if(data->task_fn)
+            data->task_fn(data->data);
+
+        ntg_task_list_popf(&loop.task_list, NULL);
+    }
+
+    pthread_mutex_unlock(&loop.lock);
 }
