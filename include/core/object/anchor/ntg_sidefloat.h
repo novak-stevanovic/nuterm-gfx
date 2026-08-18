@@ -27,7 +27,7 @@ enum ntg_sidefloat_size_cap
 
 struct ntg_sidefloat_opts
 {
-    ntg_align align;
+    enum ntg_align align;
     enum ntg_side side;
     enum ntg_sidefloat_thresh thresh;
     enum ntg_sidefloat_size_cap size_cap;

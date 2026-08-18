@@ -19,31 +19,25 @@ struct ntg_task
     unsigned int priority;
 };
 
-GENC_LIST_GENERATE(ntg_task_list, struct ntg_task, NULL)
+GENC_LIST_GENERATE(ntg_task_list, struct ntg_task)
 
 struct ntg_task_runner
 {
-    struct
-    {
-        pthread_t* threads;
-        size_t thread_count;
-    };
+    pthread_t* threads;
+    size_t thread_count;
 
-    struct
-    {
-        struct ntg_task_list task_list;
+    struct ntg_task_list task_list;
 
-        unsigned int running;
-        bool stopping;
+    unsigned int running;
+    bool stopping;
 
-        /* Universal token for all tasks */
-        ntg_task_cancel_token cancel_token;
+    /* Universal token for all tasks */
+    ntg_task_cancel_token cancel_token;
 
-        /* Locks the containing struct */
-        pthread_mutex_t lock;
+    /* Locks the containing struct */
+    pthread_mutex_t lock;
 
-        pthread_cond_t cond;
-    };
+    pthread_cond_t cond;
 };
 
 static void* worker_fn(void* _runner);
@@ -79,7 +73,6 @@ ntg_task_runner* ntg_task_runner_new(unsigned int workers, int* out_status)
 
     /* Task list */
 
-    ntg_task_list_init(&new->task_list, NULL);
 
     /* Mutex & cond */
 
@@ -146,7 +139,7 @@ void ntg_task_runner_destroy(ntg_task_runner* runner, int* out_status)
 
     if(runner->threads) free(runner->threads);
 
-    ntg_task_list_deinit(&runner->task_list, NULL);
+    (void)ntg_task_list_deinit(&runner->task_list);
     pthread_mutex_destroy(&runner->lock);
     pthread_cond_destroy(&runner->cond);
 
@@ -177,15 +170,15 @@ void ntg_task_runner_execute(
 
     pthread_mutex_lock(&runner->lock);
 
-    struct ntg_task_list_node* it = runner->task_list.head;
+    struct ntg_task_list_node* it = ntg_task_list_head(&runner->task_list);
     struct ntg_task* it_data;
     while(it != NULL)
     {
-        it_data = it->data;
+        it_data = ntg_task_list_node_data(it);
 
         if(priority > it_data->priority)
         {
-            ntg_task_list_ins_before_node(&runner->task_list, task, it, &_status);
+            _status = ntg_task_list_ins_before_node(&runner->task_list, task, it);
             if(_status)
             {
                 pthread_mutex_unlock(&runner->lock);
@@ -195,12 +188,12 @@ void ntg_task_runner_execute(
             break;
         }
 
-        it = it->next;
+        it = ntg_task_list_node_next(it);
     }
 
     if(it == NULL) /* If at the end, no insertion happened */
     {
-        ntg_task_list_pushb(&runner->task_list, task, &_status);
+        _status = ntg_task_list_pushb(&runner->task_list, task);
         if(_status)
         {
             pthread_mutex_unlock(&runner->lock);
@@ -262,7 +255,7 @@ static void* worker_fn(void* _runner)
     {
         pthread_mutex_lock(&runner->lock);
 
-        while((runner->task_list.size < 1) && !runner->stopping)
+        while((ntg_task_list_size(&runner->task_list) < 1) && !runner->stopping)
         {
             pthread_cond_wait(&runner->cond, &runner->lock);
         }
@@ -275,8 +268,8 @@ static void* worker_fn(void* _runner)
 
         /* Retrieve & pop task */
 
-        struct ntg_task task = *(runner->task_list.head->data);
-        ntg_task_list_popf(&runner->task_list, NULL);
+        struct ntg_task task = *ntg_task_list_node_data(ntg_task_list_head(&runner->task_list));
+        (void)ntg_task_list_popf(&runner->task_list);
 
         pthread_mutex_unlock(&runner->lock);
 

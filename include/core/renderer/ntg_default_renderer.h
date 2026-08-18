@@ -24,11 +24,8 @@ struct ntg_default_renderer
     struct ntg_xy __old_size;
     bool __force_full_render;
 
-    struct
-    {
-        char* __term_buff;
-        size_t __term_buff_size;
-    };
+    char* __term_buff;
+    size_t __term_buff_size;
 };
 
 /* -------------------------------------------------------------------------- */

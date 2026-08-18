@@ -288,10 +288,10 @@ int main(int argc, char *argv[])
 
     set_breakpoint();
 
-    nt_cursor_move(0, 0, NULL);
-    nt_write_str_unsafe("Loop end", NT_GFX_DEFAULT, NULL);
+    (void)nt_cursor_move(0, 0);
+    (void)nt_write_str_unsafe("Loop end", NT_GFX_DEFAULT);
 
-    nt_buffer_flush(NULL);
+    (void)nt_buffer_flush();
 
     set_breakpoint();
 

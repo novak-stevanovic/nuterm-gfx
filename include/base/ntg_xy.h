@@ -45,7 +45,7 @@ enum ntg_align
 struct ntg_oxy
 {
     size_t prim_val, sec_val;
-    ntg_orient orient;
+    enum ntg_orient orient;
 };
 
 static const struct ntg_xy NTG_XY_MAX = { NTG_SIZE_MAX, NTG_SIZE_MAX };
@@ -205,14 +205,14 @@ ntg_xy_transpose(struct ntg_xy xy)
 
 
 static inline size_t
-ntg_xy_get(struct ntg_xy xy, ntg_orient orient)
+ntg_xy_get(struct ntg_xy xy, enum ntg_orient orient)
 {
     return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
 }
 
 
 static inline struct ntg_xy
-ntg_xy_set(struct ntg_xy xy, size_t val, ntg_orient orient)
+ntg_xy_set(struct ntg_xy xy, size_t val, enum ntg_orient orient)
 {
     if(orient == NTG_ORIENT_H)
         xy.x = val;
@@ -299,7 +299,7 @@ ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy val, struct ntg_dxy max)
 
 
 static inline size_t
-ntg_dxy_get(struct ntg_dxy xy, ntg_orient orient)
+ntg_dxy_get(struct ntg_dxy xy, enum ntg_orient orient)
 {
     return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
 }
@@ -339,8 +339,8 @@ static inline bool ntg_dxy_is_in_rectangle(
 /* ------------------------------------------------------ */
 
 
-static inline ntg_orient
-ntg_orient_get_other(ntg_orient ort)
+static inline enum ntg_orient
+ntg_orient_get_other(enum ntg_orient ort)
 {
     return (ort == NTG_ORIENT_H) ? NTG_ORIENT_V : NTG_ORIENT_H;
 }
@@ -351,7 +351,7 @@ ntg_orient_get_other(ntg_orient ort)
 
 
 static inline struct ntg_oxy
-ntg_oxy(size_t prim_val, size_t sec_val, ntg_orient orient)
+ntg_oxy(size_t prim_val, size_t sec_val, enum ntg_orient orient)
 {
     return (struct ntg_oxy) {
         .prim_val = prim_val,
@@ -372,7 +372,7 @@ ntg_oxy_size(struct ntg_oxy oxy)
 
 
 static inline struct ntg_oxy
-ntg_oxy_from_xy(struct ntg_xy xy, ntg_orient orient)
+ntg_oxy_from_xy(struct ntg_xy xy, enum ntg_orient orient)
 {
     if(orient == NTG_ORIENT_H)
         return ntg_oxy(xy.x, xy.y, NTG_ORIENT_H);
@@ -408,7 +408,7 @@ static inline size_t ntg_insets_vsum(struct ntg_insets insets)
 }
 
 
-static inline size_t ntg_insets_sum(struct ntg_insets insets, ntg_orient orient)
+static inline size_t ntg_insets_sum(struct ntg_insets insets, enum ntg_orient orient)
 {
     if(orient == NTG_ORIENT_H)
         return ntg_insets_hsum(insets);
@@ -438,6 +438,7 @@ static inline bool ntg_insets_is_zero(struct ntg_insets insets)
 
 static inline struct ntg_insets ntg_insets_zero(struct ntg_insets insets)
 {
+    (void)insets;
     return (struct ntg_insets) {0};
 }
 
@@ -455,7 +456,7 @@ static inline bool ntg_insets_are_eql(struct ntg_insets insets1, struct ntg_inse
 /* ------------------------------------------------------ */
 
 
-static inline ntg_orient ntg_side_get_orient(ntg_side side)
+static inline enum ntg_orient ntg_side_get_orient(enum ntg_side side)
 {
     if((side == NTG_SIDE_N) || (side == NTG_SIDE_S))
         return NTG_ORIENT_V;
@@ -469,7 +470,7 @@ static inline ntg_orient ntg_side_get_orient(ntg_side side)
 
 
 static inline size_t
-ntg_align_offset(size_t inner_size, size_t outer_size, ntg_align align)
+ntg_align_offset(size_t inner_size, size_t outer_size, enum ntg_align align)
 {
     if(inner_size > outer_size) inner_size = outer_size;
 
@@ -483,7 +484,7 @@ ntg_align_offset(size_t inner_size, size_t outer_size, ntg_align align)
 
 
 static inline ssize_t
-ntg_align_offset_d(ssize_t inner_size, ssize_t outer_size, ntg_align align)
+ntg_align_offset_d(ssize_t inner_size, ssize_t outer_size, enum ntg_align align)
 {
     if(align == NTG_ALIGN_1)
         return 0;

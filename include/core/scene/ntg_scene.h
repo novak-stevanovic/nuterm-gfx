@@ -3,6 +3,7 @@
 
 #include "ntg_focus_scope.h"
 #include "shared/ntg_shared.h"
+#include "core/object/ntg_object.h"
 #include "base/ntg_xy.h"
 
 #define NTG_SCENE_MAX_IT_AUTO 20
@@ -108,7 +109,7 @@ ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
         struct ntg_xy* out_object_pos,
-        ntg_object_hit_result* out_hit,
+        enum ntg_object_hit_result* out_hit,
         int* out_status);
 
 /* ------------------------------------------------------ */

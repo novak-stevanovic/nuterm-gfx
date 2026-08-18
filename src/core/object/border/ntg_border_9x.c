@@ -24,7 +24,7 @@
 
 struct border_9x_data
 {
-    ntg_vcell_type type;
+    enum ntg_vcell_type type;
     struct nt_gfx gfx;
 };
 
@@ -300,7 +300,7 @@ void ntg_border_9x_init_transparent(
 
 void ntg_border_9x_init_custom_9x(
         ntg_border_9x* style,
-        ntg_vcell_type type,
+        enum ntg_vcell_type type,
         struct nt_gfx gfx,
         const struct ntg_border_9x_sym* symbols,
         int* out_status)

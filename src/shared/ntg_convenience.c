@@ -17,7 +17,7 @@ struct ntg_cleanup_data
     void (*free_fn)(void* object);
 };
 
-GENC_VECTOR_GENERATE(ntg_cleanup_data_vec, struct ntg_cleanup_data, 1.5, NULL);
+GENC_VECTOR_GENERATE(ntg_cleanup_data_vec, struct ntg_cleanup_data, 1.5)
 
 struct ntg_cleanup_batch
 {
@@ -46,7 +46,12 @@ ntg_cleanup_batch* ntg_cleanup_batch_new(void)
     new->deinit = false;
     new->free = false;
 
-    ntg_cleanup_data_vec_init(&new->vec, 20, NULL);
+    new->vec = (struct ntg_cleanup_data_vec) {0};
+    if(ntg_cleanup_data_vec_prealloc(&new->vec, 20) != 0)
+    {
+        free(new);
+        return NULL;
+    }
 
     return new;
 }
@@ -59,9 +64,9 @@ void ntg_cleanup_batch_finish(ntg_cleanup_batch* batch)
 
     size_t i;
     struct ntg_cleanup_data it_data;
-    for(i = 0; i < batch->vec.size; i++)
+    for(i = 0; i < ntg_cleanup_data_vec_size(&batch->vec); i++)
     {
-        it_data = batch->vec.data[i];
+        it_data = ntg_cleanup_data_vec_data(&batch->vec)[i];
 
         if(it_data.deinit_fn)
             it_data.deinit_fn(it_data.data);
@@ -70,7 +75,7 @@ void ntg_cleanup_batch_finish(ntg_cleanup_batch* batch)
             it_data.free_fn(it_data.data);
     }
     
-    ntg_cleanup_data_vec_deinit(&batch->vec, NULL);
+    (void)ntg_cleanup_data_vec_deinit(&batch->vec);
 
     free(batch);
 }
@@ -94,13 +99,13 @@ void ntg_cleanup_batch_add(
     };
 
     int _status;
-    ntg_cleanup_data_vec_pushb(&batch->vec, cleanup_data, &_status);
+    _status = ntg_cleanup_data_vec_pushb(&batch->vec, cleanup_data);
 
     if(_status != 0)
     {
         switch(_status)
         {
-            case NTG_ERR_ALLOC_FAIL:
+            case GENC_ERR_ALLOC_FAIL:
                 ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
             default:

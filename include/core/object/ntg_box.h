@@ -14,9 +14,9 @@
 
 struct ntg_box_opts
 {
-    ntg_orient orient;
-    ntg_align prim_align;
-    ntg_align sec_align;
+    enum ntg_orient orient;
+    enum ntg_align prim_align;
+    enum ntg_align sec_align;
     size_t spacing;
 
     struct ntg_vcell bg;
@@ -97,7 +97,7 @@ ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
 /* ------------------------------------------------------ */
 
 
-NTG_API const struct ntg_object_vec*
+NTG_API const struct ntg_objptr_vec*
 ntg_box_get_children(const ntg_box* box);
 
 /* ------------------------------------------------------ */
@@ -136,7 +136,7 @@ NTG_API struct ntg_object_measure
 ntg_box_measure_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
         int* out_status);
@@ -148,7 +148,7 @@ NTG_API void
 ntg_box_constrain_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
         uint32_t* relayout,

@@ -189,12 +189,12 @@ ntg_object_get_size(const ntg_object* object);
 /* ------------------------------------------------------ */
 
 NTG_API struct ntg_object_measure
-ntg_object_get_measure(const ntg_object* object, ntg_orient orient);
+ntg_object_get_measure(const ntg_object* object, enum ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
 NTG_API size_t
-ntg_object_get_size_1d(const ntg_object* object, ntg_orient orient);
+ntg_object_get_size_1d(const ntg_object* object, enum ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
@@ -219,17 +219,17 @@ ntg_object_get_size_cont(const ntg_object* object);
 /* ------------------------------------------------------ */
 
 NTG_API struct ntg_object_measure
-ntg_object_get_measure_cont(const ntg_object* object, ntg_orient orient);
+ntg_object_get_measure_cont(const ntg_object* object, enum ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
 NTG_API size_t
-ntg_object_get_size_1d_cont(const ntg_object* object, ntg_orient orient);
+ntg_object_get_size_1d_cont(const ntg_object* object, enum ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
 NTG_API size_t
-ntg_object_get_for_size_cont(const ntg_object* object, ntg_orient orient);
+ntg_object_get_for_size_cont(const ntg_object* object, enum ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
@@ -254,12 +254,12 @@ ntg_object_get_size_pad(const ntg_object* object);
 /* ------------------------------------------------------ */
 
 NTG_API struct ntg_object_measure
-ntg_object_get_measure_pad(const ntg_object* object, ntg_orient orient);
+ntg_object_get_measure_pad(const ntg_object* object, enum ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
 NTG_API size_t
-ntg_object_get_size_1d_pad(const ntg_object* object, ntg_orient orient);
+ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orient);
 
 /* ========================================================================== */
 /* INTERNAL */

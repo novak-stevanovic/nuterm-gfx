@@ -131,7 +131,7 @@ void ntg_default_renderer_render_fn(
         ntg_vreturn(out_status, NTG_ERR_RENDER_FAIL);
     }
 
-    nt_buffer_enable(renderer->__term_buff, renderer->__term_buff_size, &_status);
+    _status = nt_buffer_enable(renderer->__term_buff, renderer->__term_buff_size);
     if(_status)
     {
         renderer->__force_full_render = true;
@@ -147,10 +147,10 @@ void ntg_default_renderer_render_fn(
     }
     else if(full_render_req)
     {
-        nt_erase_screen(&_status);
+        _status = nt_erase_screen();
         if(_status) rval = NTG_ERR_RENDER_FAIL;
 
-        nt_erase_scrollback(&_status);
+        _status = nt_erase_scrollback();
         if(_status) rval = NTG_ERR_RENDER_FAIL;
 
         if(full_render(renderer, stage_drawing, size, arena))
@@ -164,7 +164,7 @@ void ntg_default_renderer_render_fn(
 
     renderer->__old_size = size;
 
-    nt_buffer_disable(NT_BUFF_FLUSH, &_status);
+    _status = nt_buffer_disable(NT_BUFF_FLUSH, NULL);
     if(_status) rval = NTG_ERR_RENDER_FAIL;
 
     renderer->__force_full_render = (rval != 0);
@@ -203,9 +203,9 @@ static int full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size)
     int _status = 0;
     int rval = 0;
 
-    nt_erase_screen(&_status);
+    _status = nt_erase_screen();
     if(_status) rval = NTG_ERR_RENDER_FAIL;
-    nt_erase_scrollback(&_status);
+    _status = nt_erase_scrollback();
     if(_status) rval = NTG_ERR_RENDER_FAIL;
 
     return rval;
@@ -279,14 +279,13 @@ static int optimized_render(
 
                 ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j + k, i));
             }
-            uc_utf32_to_utf8(row32_buff, k, row_buff,
-                    row_buff_cap, 0, NULL, &_uc_len,
-                    &_status);
+            _status = uc_utf32_to_utf8(
+                    row32_buff, k, row_buff, row_buff_cap, 0, NULL, &_uc_len);
             if(!_status)
             {
-                nt_cursor_move(j, i, &_status);
+                _status = nt_cursor_move(j, i);
                 if(_status) rval = NTG_ERR_RENDER_FAIL;
-                nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, &_status);
+                _status = nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx);
                 if(_status) rval = NTG_ERR_RENDER_FAIL;
             }
             else
@@ -336,14 +335,13 @@ static int full_render(
                 ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j + k, i));
             }
 
-            uc_utf32_to_utf8(row32_buff, k, row_buff,
-                    row_buff_cap, 0, NULL, &_uc_len,
-                    &_status);
+            _status = uc_utf32_to_utf8(
+                    row32_buff, k, row_buff, row_buff_cap, 0, NULL, &_uc_len);
             if(!_status)
             {
-                nt_cursor_move(j, i, &_status);
+                _status = nt_cursor_move(j, i);
                 if(_status) rval = NTG_ERR_RENDER_FAIL;
-                nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx, &_status);
+                _status = nt_write_str((const char*)row_buff, _uc_len, it_draw_cell.gfx);
                 if(_status) rval = NTG_ERR_RENDER_FAIL;
             }
             else

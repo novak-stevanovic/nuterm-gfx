@@ -40,7 +40,7 @@ struct ntg_anchor_policy_vtable
 {
     size_t (*constrain_fn)(
             const ntg_anchor_policy* ap,
-            ntg_orient orient,
+            enum ntg_orient orient,
             const struct ntg_anchor_constrain_ctx* ctx,
             sarena* arena);
     struct ntg_xy (*arrange_fn)(
@@ -66,7 +66,7 @@ ntg_anchor_policy_deinit(ntg_anchor_policy* ap);
 
 size_t _ntg_anchor_policy_constrain(
         const ntg_anchor_policy* ap,
-        ntg_orient orient,
+        enum ntg_orient orient,
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena);
 

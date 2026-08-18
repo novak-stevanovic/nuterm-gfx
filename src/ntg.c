@@ -76,7 +76,7 @@ void ntg_enable(
             ntg_vreturn(out_status, _status);
     }
 
-    nt_init(&_status);
+    _status = nt_init();
 
     switch(_status)
     {
@@ -96,10 +96,10 @@ void ntg_enable(
     int alt_screen_err = 0;
 
     // if(_opts.cursor_mode == NTG_CURSOR_HIDE)
-    nt_cursor_hide(NULL);
+    (void)nt_cursor_hide();
 
     if(_opts.alt_screen_mode == NTG_ALT_SCREEN_ENABLE)
-        nt_alt_screen_enable(&alt_screen_err);
+        alt_screen_err = nt_alt_screen_enable();
     if(alt_screen_err)
         _opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
 
@@ -116,18 +116,18 @@ void ntg_disable(void)
     if(!_enabled) return;
 
     // if(_opts.cursor_mode == NTG_CURSOR_HIDE)
-    nt_cursor_show(NULL);
+    (void)nt_cursor_show();
 
     if(_opts.alt_screen_mode == NTG_ALT_SCREEN_ENABLE)
-        nt_alt_screen_disable(NULL);
+        (void)nt_alt_screen_disable();
     else
     {
-        nt_erase_screen(NULL);
-        nt_erase_scrollback(NULL);
-        nt_cursor_move(0, 0, NULL);
+        (void)nt_erase_screen();
+        (void)nt_erase_scrollback();
+        (void)nt_cursor_move(0, 0);
     }
 
-    nt_deinit(NULL);
+    nt_deinit();
 
     ntg_log_deinit();
 

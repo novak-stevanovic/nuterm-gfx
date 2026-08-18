@@ -10,7 +10,28 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-GENC_VECTOR_GENERATE(ntg_event_binding_vec, ntg_event_binding*, 1.3, NULL);
+GENC_VECTOR_GENERATE(ntg_event_binding_vec, ntg_event_binding*, 1.3)
+
+static int
+ntg_event_binding_vec_rm_value(
+        struct ntg_event_binding_vec* vec,
+        const ntg_event_binding* binding)
+{
+    if(!vec)
+        return GENC_ERR_INVALID_ARG;
+
+    ntg_event_binding** data = ntg_event_binding_vec_data(vec);
+    size_t size = ntg_event_binding_vec_size(vec);
+
+    size_t i;
+    for(i = 0; i < size; i++)
+    {
+        if(data[i] == binding)
+            return ntg_event_binding_vec_rm_at(vec, i);
+    }
+
+    return GENC_ERR_NO_DATA;
+}
 
 struct ntg_event_delegate
 {
@@ -38,8 +59,8 @@ ntg_event_delegate* ntg_event_delegate_new(void)
     if(!new)
         return NULL;
 
-    int status;
-    ntg_event_binding_vec_init(&new->bindings, 3, &status);
+    new->bindings = (struct ntg_event_binding_vec) {0};
+    int status = ntg_event_binding_vec_prealloc(&new->bindings, 3);
     if(status != 0)
     {
         free(new);
@@ -55,12 +76,12 @@ void ntg_event_delegate_destroy(ntg_event_delegate* delegate)
         return;
 
     size_t i;
-    for(i = 0; i < delegate->bindings.size; i++)
+    for(i = 0; i < ntg_event_binding_vec_size(&delegate->bindings); i++)
     {
-        delegate->bindings.data[i]->delegate = NULL;
+        ntg_event_binding_vec_data(&delegate->bindings)[i]->delegate = NULL;
     }
 
-    ntg_event_binding_vec_deinit(&delegate->bindings, NULL);
+    (void)ntg_event_binding_vec_deinit(&delegate->bindings);
     free(delegate);
 }
 
@@ -84,7 +105,7 @@ ntg_event_binding* ntg_event_bind(
     new->handler_fn = handler_fn;
 
     int _status;
-    ntg_event_binding_vec_pushb(&delegate->bindings, new, &_status);
+    _status = ntg_event_binding_vec_pushb(&delegate->bindings, new);
     if(_status != 0)
     {
         free(new);
@@ -109,9 +130,9 @@ void ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
     
     size_t i;
     ntg_event_binding* it_binding;
-    for(i = 0; i < delegate->bindings.size; i++)
+    for(i = 0; i < ntg_event_binding_vec_size(&delegate->bindings); i++)
     {
-        it_binding = delegate->bindings.data[i];
+        it_binding = ntg_event_binding_vec_data(&delegate->bindings)[i];
         it_binding->handler_fn(it_binding->subscriber, event);
     }
 }
@@ -123,7 +144,7 @@ void ntg_event_unbind(ntg_event_binding* binding)
 
     if(binding->delegate)
     {
-        ntg_event_binding_vec_rm(&binding->delegate->bindings, binding, NULL);
+        (void)ntg_event_binding_vec_rm_value(&binding->delegate->bindings, binding);
     }
 
     free(binding);

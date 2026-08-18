@@ -87,6 +87,10 @@ SRC_CFLAGS_WARN = -Wall
 SRC_CFLAGS_MAKE = -MMD -MP
 SRC_CFLAGS_INCLUDE = -Iinclude $(DEP_CFLAGS)
 
+ifeq ($(DEBUG),1)
+    SRC_CFLAGS_WARN = -Wall -Wextra -Wpedantic
+endif
+
 SO_FLAGS =
 ifeq ($(LIB_TYPE),so)
     SO_FLAGS = -DNTG_EXPORT -fvisibility=hidden -fPIC

@@ -11,7 +11,7 @@
 
 static size_t float_constrain_fn(
         const ntg_anchor_policy* ap,
-        ntg_orient orient,
+        enum ntg_orient orient,
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena);
 
@@ -92,7 +92,7 @@ void ntg_float_deinit_void(void* _float_ap)
 
 static size_t float_constrain_fn(
         const ntg_anchor_policy* ap,
-        ntg_orient orient,
+        enum ntg_orient orient,
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena)
 {

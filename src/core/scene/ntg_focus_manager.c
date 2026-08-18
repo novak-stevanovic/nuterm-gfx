@@ -16,7 +16,7 @@ struct ntg_focus_scope_data
     ntg_focus_scope* scope;
 };
 
-GENC_SIMPLE_LIST_GENERATE(ntg_focus_scope_list, struct ntg_focus_scope_data);
+GENC_FWD_LIST_GENERATE(ntg_focus_scope_list, struct ntg_focus_scope_data)
 
 /* -------------------------------------------------------------------------- */
 /* FUNCTIONS */
@@ -56,7 +56,7 @@ void _ntg_focus_manager_init(
     if(!fm->__scope_stack)
         ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
 
-    ntg_focus_scope_list_init(fm->__scope_stack, NULL);
+    *fm->__scope_stack = (ntg_focus_scope_list) {0};
 
     fm->_scene = scene;
     fm->_focused = NULL;
@@ -99,7 +99,7 @@ void _ntg_focus_manager_deinit(ntg_focus_manager* fm)
 
     if(fm->__scope_stack)
     {
-        while(fm->__scope_stack->size > 1)
+        while(ntg_focus_scope_list_size(fm->__scope_stack) > 1)
             ntg_focus_manager_stack_pop(fm);
 
         ntg_focus_scope* head = ntg_focus_manager_stack_get_active(fm);
@@ -109,7 +109,7 @@ void _ntg_focus_manager_deinit(ntg_focus_manager* fm)
             free(head);
         }
 
-        ntg_focus_scope_list_deinit(fm->__scope_stack, NULL);
+        (void)ntg_focus_scope_list_deinit(fm->__scope_stack);
         free(fm->__scope_stack);
     }
 
@@ -200,11 +200,11 @@ ntg_focus_scope* ntg_focus_manager_stack_push(
 
     int _status;
 
-    struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
+    struct ntg_focus_scope_list_node* head = ntg_focus_scope_list_head(fm->__scope_stack);
 
     if(head)
     {
-        if(head->data->scope->_opts.block_mode == NTG_FOCUS_SCOPE_BLOCK_TRUE)
+        if(ntg_focus_scope_list_node_data(head)->scope->_opts.block_mode == NTG_FOCUS_SCOPE_BLOCK_TRUE)
             return NULL;
     }
 
@@ -236,7 +236,7 @@ ntg_focus_scope* ntg_focus_manager_stack_push(
 
     if(head)
     {
-        _ntg_focus_scope_set_last_focused(head->data->scope, fm->_focused);
+        _ntg_focus_scope_set_last_focused(ntg_focus_scope_list_node_data(head)->scope, fm->_focused);
     }
 
     ntg_focus_scope* new_scope = malloc(sizeof(ntg_focus_scope));
@@ -254,7 +254,7 @@ ntg_focus_scope* ntg_focus_manager_stack_push(
     }
     data.scope = new_scope;
 
-    ntg_focus_scope_list_pushf(fm->__scope_stack, data, &_status);
+    _status = ntg_focus_scope_list_pushf(fm->__scope_stack, data);
     if(_status != 0)
     {
         free(new_scope);
@@ -281,7 +281,7 @@ void ntg_focus_manager_stack_pop(ntg_focus_manager* fm)
 {
     if(!fm) return;
     
-    if(fm->__scope_stack->size < 2)
+    if(ntg_focus_scope_list_size(fm->__scope_stack) < 2)
         return;
 
     scope_stack_pop(fm);
@@ -293,14 +293,14 @@ ntg_focus_scope* ntg_focus_manager_stack_get_active(ntg_focus_manager* fm)
 {
     if(!fm) return NULL;
 
-    return (fm->__scope_stack->head ? fm->__scope_stack->head->data->scope : NULL);
+    return (ntg_focus_scope_list_head(fm->__scope_stack) ? ntg_focus_scope_list_node_data(ntg_focus_scope_list_head(fm->__scope_stack))->scope : NULL);
 }
 
 size_t ntg_focus_manager_stack_get_size(const ntg_focus_manager* fm)
 {
     if(!fm) return 0;
 
-    return (fm->__scope_stack ? fm->__scope_stack->size : 0);
+    return (fm->__scope_stack ? ntg_focus_scope_list_size(fm->__scope_stack) : 0);
 }
 
 /* ========================================================================== */
@@ -322,17 +322,17 @@ void _ntg_focus_manager_on_scene_object_rm(ntg_focus_manager* fm, ntg_object* re
     if(removed && (fm->_focused == removed))
         ntg_focus_manager_request_focus(fm, NULL);
 
-    struct ntg_focus_scope_list_node* it_node = fm->__scope_stack->head;
+    struct ntg_focus_scope_list_node* it_node = ntg_focus_scope_list_head(fm->__scope_stack);
     struct ntg_focus_scope_data* it_data;
 
     while(it_node)
     {
-        it_data = it_node->data;
+        it_data = ntg_focus_scope_list_node_data(it_node);
 
         if(it_data->scope->_root && ntg_object_is_descendant_eq(it_data->scope->_root, removed))
             _ntg_focus_scope_invalidate(it_data->scope);
 
-        it_node = it_node->next;
+        it_node = ntg_focus_scope_list_node_next(it_node);
     }
 
     scope_stack_sync(fm);
@@ -427,20 +427,20 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
 
 static void scope_stack_pop(ntg_focus_manager* fm)
 {
-    struct ntg_focus_scope_list_node* old_head = fm->__scope_stack->head;
+    struct ntg_focus_scope_list_node* old_head = ntg_focus_scope_list_head(fm->__scope_stack);
     if(!old_head)
         return;
 
-    ntg_focus_scope* popped_scope = old_head->data->scope;
+    ntg_focus_scope* popped_scope = ntg_focus_scope_list_node_data(old_head)->scope;
 
-    ntg_focus_scope_list_popf(fm->__scope_stack, NULL);
+    (void)ntg_focus_scope_list_popf(fm->__scope_stack);
     
-    struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
+    struct ntg_focus_scope_list_node* head = ntg_focus_scope_list_head(fm->__scope_stack);
     if(!head)
         return;
 
-    ntg_focus_manager_request_focus(fm, head->data->scope->_last_focused);
-    _ntg_focus_scope_set_last_focused(head->data->scope, NULL);
+    ntg_focus_manager_request_focus(fm, ntg_focus_scope_list_node_data(head)->scope->_last_focused);
+    _ntg_focus_scope_set_last_focused(ntg_focus_scope_list_node_data(head)->scope, NULL);
 
     if(fm->hooks.on_scope_pop_fn)
         fm->hooks.on_scope_pop_fn(fm, popped_scope);
@@ -454,13 +454,13 @@ static void scope_stack_sync(ntg_focus_manager* fm)
     if(!fm || !fm->__scope_stack)
         return;
 
-    struct ntg_focus_scope_list_node* head = fm->__scope_stack->head;
-    while(head && !head->data->scope->__valid && (fm->__scope_stack->size > 1))
+    struct ntg_focus_scope_list_node* head = ntg_focus_scope_list_head(fm->__scope_stack);
+    while(head && !ntg_focus_scope_list_node_data(head)->scope->__valid && (ntg_focus_scope_list_size(fm->__scope_stack) > 1))
     {
         scope_stack_pop(fm);
-        head = fm->__scope_stack->head;
+        head = ntg_focus_scope_list_head(fm->__scope_stack);
     }
 
-    if(head && !head->data->scope->__valid)
-        head->data->scope->__valid = true;
+    if(head && !ntg_focus_scope_list_node_data(head)->scope->__valid)
+        ntg_focus_scope_list_node_data(head)->scope->__valid = true;
 }

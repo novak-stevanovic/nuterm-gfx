@@ -118,12 +118,15 @@ void ntg_color_block_init_inherit(
 struct ntg_object_measure ntg_color_block_measure_fn(
         const ntg_object* _color_block,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
         int* out_status)
 {
+    (void)_color_block;
     (void)layout_dt;
+    (void)orient;
+    (void)arena;
     (void)relayout;
     ntg_init_status(out_status);
 
@@ -144,6 +147,7 @@ void ntg_color_block_draw_fn(
         int* out_status)
 {
     (void)layout_dt;
+    (void)arena;
     (void)relayout;
     ntg_init_status(out_status);
 

@@ -113,6 +113,8 @@ static void border_style_draw_fn(
         struct ntg_insets border_size,
         ntg_object_tmp_drawing* out_drawing)
 {
+    (void)style;
+
     if(ntg_xy_size_is_zero(size)) return;
     if(ntg_insets_is_zero(border_size)) return;
 

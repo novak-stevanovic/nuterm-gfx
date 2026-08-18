@@ -48,13 +48,13 @@ static void arrange_fn(ntg_object* object, void* _layout_data);
 static void draw_fn(ntg_object* object, void* _layout_data);
 static void finalize_fn(ntg_object* object, void* _layout_data);
 
-NTG_OBJECT_DEF_TRAVERSE_POSTORDER(hmeasure_tree, hmeasure_fn);
-NTG_OBJECT_DEF_TRAVERSE_PREORDER(hconstrain_tree, hconstrain_fn);
-NTG_OBJECT_DEF_TRAVERSE_POSTORDER(vmeasure_tree, vmeasure_fn);
-NTG_OBJECT_DEF_TRAVERSE_PREORDER(vconstrain_tree, vconstrain_fn);
-NTG_OBJECT_DEF_TRAVERSE_POSTORDER(arrange_tree, arrange_fn);
-NTG_OBJECT_DEF_TRAVERSE_POSTORDER(draw_tree, draw_fn);
-NTG_OBJECT_DEF_TRAVERSE_POSTORDER(finalize_tree, finalize_fn);
+NTG_OBJECT_DEF_TRAVERSE_POSTORDER(hmeasure_tree, hmeasure_fn)
+NTG_OBJECT_DEF_TRAVERSE_PREORDER(hconstrain_tree, hconstrain_fn)
+NTG_OBJECT_DEF_TRAVERSE_POSTORDER(vmeasure_tree, vmeasure_fn)
+NTG_OBJECT_DEF_TRAVERSE_PREORDER(vconstrain_tree, vconstrain_fn)
+NTG_OBJECT_DEF_TRAVERSE_POSTORDER(arrange_tree, arrange_fn)
+NTG_OBJECT_DEF_TRAVERSE_POSTORDER(draw_tree, draw_fn)
+NTG_OBJECT_DEF_TRAVERSE_POSTORDER(finalize_tree, finalize_fn)
 
 /* ========================================================================== */
 /* STATIC */
@@ -133,7 +133,7 @@ ntg_object* ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
         struct ntg_xy* out_object_pos,
-        ntg_object_hit_result* out_hit,
+        enum ntg_object_hit_result* out_hit,
         int* out_status)
 {
     ntg_init_status(out_status);
@@ -158,7 +158,7 @@ ntg_object* ntg_scene_hit_test(
     struct ntg_dxy it_adj_pos_dxy;
     struct ntg_xy it_adj_pos;
     // struct ntg_xy _out_object_pos;
-    // ntg_object_hit_result _hit;
+    // enum ntg_object_hit_result _hit;
     ntg_object* hit = NULL;
     while(i > 0)
     {
@@ -505,15 +505,15 @@ void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root)
     _ntg_scene_add(scene, root);
 
     size_t i;
-    for(i = 0; i < root->_children.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
     {
-        ntg_object* child = root->_children.data[i];
+        ntg_object* child = ntg_objptr_vec_data(&root->_children)[i];
         _ntg_scene_add_object_tree(scene, child);
     }
 
-    for(i = 0; i < root->_anchored.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_anchored); i++)
     {
-        ntg_object* layer = root->_anchored.data[i];
+        ntg_object* layer = ntg_objptr_vec_data(&root->_anchored)[i];
         _ntg_scene_add_object_tree(scene, layer);
     }
 }
@@ -525,15 +525,15 @@ void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
     _ntg_scene_rm(scene, root);
 
     size_t i;
-    for(i = 0; i < root->_children.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
     {
-        ntg_object* child = root->_children.data[i];
+        ntg_object* child = ntg_objptr_vec_data(&root->_children)[i];
         _ntg_scene_rm_object_tree(scene, child);
     }
 
-    for(i = 0; i < root->_anchored.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_anchored); i++)
     {
-        ntg_object* layer = root->_anchored.data[i];
+        ntg_object* layer = ntg_objptr_vec_data(&root->_anchored)[i];
         _ntg_scene_rm_object_tree(scene, layer);
     }
 }
@@ -545,15 +545,15 @@ void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
     _ntg_scene_register(scene, root);
 
     size_t i;
-    for(i = 0; i < root->_children.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
     {
-        ntg_object* child = root->_children.data[i];
+        ntg_object* child = ntg_objptr_vec_data(&root->_children)[i];
         _ntg_scene_register_tree(scene, child);
     }
 
-    for(i = 0; i < root->_anchored.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_anchored); i++)
     {
-        ntg_object* layer = root->_anchored.data[i];
+        ntg_object* layer = ntg_objptr_vec_data(&root->_anchored)[i];
         _ntg_scene_register_tree(scene, layer);
     }
 }
@@ -565,15 +565,15 @@ void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
     _ntg_scene_unregister(scene, root);
 
     size_t i;
-    for(i = 0; i < root->_children.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
     {
-        ntg_object* child = root->_children.data[i];
+        ntg_object* child = ntg_objptr_vec_data(&root->_children)[i];
         _ntg_scene_unregister_tree(scene, child);
     }
 
-    for(i = 0; i < root->_anchored.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_anchored); i++)
     {
-        ntg_object* layer = root->_anchored.data[i];
+        ntg_object* layer = ntg_objptr_vec_data(&root->_anchored)[i];
         _ntg_scene_unregister_tree(scene, layer);
     }
 }
@@ -597,8 +597,8 @@ static void collect_layers_by_z_internal(
         size_t* counter,
         size_t cap)
 {
-    const ntg_object_vec* children = &(it_root->_children);
-    const ntg_object_vec* anchored = &(it_root->_anchored);
+    const ntg_objptr_vec* children = &(it_root->_children);
+    const ntg_objptr_vec* anchored = &(it_root->_anchored);
 
     size_t i;
     ntg_object* it_obj;
@@ -637,15 +637,15 @@ static void collect_layers_by_z_internal(
         (*counter)++;
     }
     
-    for(i = 0; i < anchored->size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(anchored); i++)
     {
-        collect_layers_by_z_internal(scene, anchored->data[i],
+        collect_layers_by_z_internal(scene, ntg_objptr_vec_data(anchored)[i],
             out_layers, counter, cap);
     }
 
-    for(i = 0; i < children->size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(children); i++)
     {
-        collect_layers_by_z_internal(scene, children->data[i],
+        collect_layers_by_z_internal(scene, ntg_objptr_vec_data(children)[i],
                 out_layers, counter, cap);
     }
 }

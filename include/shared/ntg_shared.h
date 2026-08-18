@@ -33,15 +33,10 @@ struct ntg_object_measure;
 /* BASE */
 /* ------------------------------------------------------ */
 
-typedef enum ntg_gfx_type ntg_gfx_type;
 typedef struct ntg_cell_grid ntg_cell_grid;
 typedef struct ntg_vcell_grid ntg_vcell_grid;
 typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;
 typedef struct ntg_vcell_vecgrid ntg_vcell_vecgrid;
-typedef enum ntg_vcell_type ntg_vcell_type;
-typedef enum ntg_orient ntg_orient;
-typedef enum ntg_side ntg_side;
-typedef enum ntg_align ntg_align;
 typedef struct ntg_vecgrid ntg_vecgrid;
 typedef struct ntg_type ntg_type;
 typedef struct ntg_event_delegate ntg_event_delegate;
@@ -53,8 +48,6 @@ typedef struct ntg_keybind ntg_keybind;
 /* CORE */
 /* ------------------------------------------------------ */
 
-typedef enum ntg_loop_state ntg_loop_state;
-typedef enum ntg_loop_exit_status ntg_loop_exit_status;
 typedef struct ntg_platform ntg_platform;
 
 typedef struct ntg_task_runner ntg_task_runner;
@@ -70,26 +63,13 @@ typedef struct ntg_scene ntg_scene;
 typedef struct ntg_focus_manager ntg_focus_manager;
 typedef struct ntg_focus_scope_list ntg_focus_scope_list;
 typedef struct ntg_focus_scope ntg_focus_scope;
-typedef enum ntg_focus_scope_input_mode ntg_focus_scope_input_mode;
-typedef enum ntg_focus_scope_out_click_mode ntg_focus_scope_out_click_mode;
-typedef enum ntg_focus_scope_in_click_mode ntg_focus_scope_in_click_mode;
-typedef enum ntg_focus_scope_block_mode ntg_focus_scope_block_mode;
-typedef enum ntg_focus_scope_keybind_mode ntg_focus_scope_keybind_mode;
-typedef enum ntg_focus_scope_mouse_flags ntg_focus_scope_mouse_flags;
-
 typedef struct ntg_object ntg_object;
 typedef struct ntg_border_style ntg_border_style;
 typedef struct ntg_anchor_policy ntg_anchor_policy;
 typedef struct ntg_float ntg_float;
 typedef struct ntg_sidefloat ntg_sidefloat;
 typedef struct ntg_border_9x ntg_border_9x;
-typedef enum ntg_object_dirty_flag ntg_object_dirty_flag;
-typedef enum ntg_object_clickable_mode ntg_object_clickable_mode;
-typedef enum ntg_object_focusable_mode ntg_object_focusable_mode;
-typedef enum ntg_object_dcr_enable ntg_object_dcr_enable;
-typedef enum ntg_object_type ntg_object_type;
-typedef enum ntg_object_hit_result ntg_object_hit_result;
-typedef struct ntg_object_vec ntg_object_vec;
+typedef struct ntg_objptr_vec ntg_objptr_vec;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_pos_map ntg_object_pos_map;
 typedef struct ntg_object_drawing ntg_object_drawing;
@@ -100,10 +80,6 @@ typedef struct ntg_widget ntg_widget;
 typedef struct ntg_widget_vec ntg_widget_vec;
 
 typedef struct ntg_text ntg_text;
-typedef enum ntg_text_wrap ntg_text_wrap;
-typedef enum ntg_text_scroll_mode ntg_text_scroll_mode;
-typedef enum ntg_text_line_mode ntg_text_line_mode;
-typedef enum ntg_text_bg_mode ntg_text_bg_mode;
 typedef struct ntg_label ntg_label;
 typedef struct ntg_button ntg_button;
 typedef struct ntg_color_block ntg_color_block;

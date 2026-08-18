@@ -146,8 +146,8 @@ struct ntg_str_view ntg_button_get_text(const struct ntg_button* button)
     else
     {
         return (struct ntg_str_view) {
-            .data = (ntg_txt(button))->_text.data,
-            .len = (ntg_txt(button))->_text.len,
+            .data = (ntg_txt(button))->_text,
+            .len = (ntg_txt(button))->_text_len,
         };
     }
 }
@@ -228,7 +228,7 @@ struct ntg_object_measure
 ntg_button_measure_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
         int* out_status)
@@ -293,7 +293,12 @@ const struct ntg_object_vtable NTG_BUTTON_VTABLE_OBJECT = {
 void ntg_button_post_draw_fn(
         const ntg_text* _button,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena) {}
+        sarena* arena)
+{
+    (void)_button;
+    (void)out_drawing;
+    (void)arena;
+}
 
 const struct ntg_text_vtable NTG_BUTTON_VTABLE_TEXT = {
     .post_draw_fn = ntg_button_post_draw_fn

@@ -4,7 +4,7 @@
 #include "nt_event.h"
 #include "shared/ntg_shared.h"
 #include "core/object/ntg_object_drawing.h"
-#include "thirdparty/genc.h"
+#include "core/object/ntg_objptr_vec.h"
 
 #define NTG_OBJECT_MAX_CHILDREN 500
 #define NTG_OBJECT_MAX_ANCHORED 200
@@ -30,7 +30,7 @@ enum ntg_object_dcr_enable
 
 struct ntg_border_opts
 {
-    ntg_object_dcr_enable enable;
+    enum ntg_object_dcr_enable enable;
     struct ntg_insets pref_size;
     const struct ntg_border_style* style;
 };
@@ -42,7 +42,7 @@ ntg_border_opts_are_eql(const struct ntg_border_opts* o1, const struct ntg_borde
 
 struct ntg_padding_opts
 {
-    ntg_object_dcr_enable enable;
+    enum ntg_object_dcr_enable enable;
     struct ntg_insets pref_size;
 };
 
@@ -167,64 +167,41 @@ struct ntg_object_hooks
 /* NTG_OBJECT */
 /* ------------------------------------------------------ */
 
-GENC_VECTOR_GENERATE(ntg_object_vec, ntg_object*, 1.5, NULL);
-
 struct ntg_object
 {
     const ntg_type* _type;
 
-    struct
-    {
-        ntg_scene* __scene; 
-        ntg_object* _parent;
-        ntg_object_vec _children;
-    };
+    ntg_scene* __scene;
+    ntg_object* _parent;
+    ntg_objptr_vec _children;
 
-    struct
-    {
-        ntg_object_vec _anchored;
-        ntg_object* _base;
-        const struct ntg_anchor_policy* _anchor_policy;
-    };
+    ntg_objptr_vec _anchored;
+    ntg_object* _base;
+    const struct ntg_anchor_policy* _anchor_policy;
 
     struct ntg_layout_opts _layout_opts;
     struct ntg_vcell __base_bg;
 
-    struct
-    {
-        struct ntg_object_layout_dt* layout_dt;
-        struct ntg_xy _min_size, _nat_size, _max_size, _grow;
-        struct ntg_xy _size;
-        struct ntg_xy _pos;
-        ntg_object_drawing _drawing;
-        bool __skip_hborder, __skip_hpadding;
-        bool __special_repeat;
-        uint8_t _dirty, __repeat;
-    };
+    struct ntg_object_layout_dt* layout_dt;
+    struct ntg_xy _min_size, _nat_size, _max_size, _grow;
+    struct ntg_xy _size;
+    struct ntg_xy _pos;
+    ntg_object_drawing _drawing;
+    bool __skip_hborder, __skip_hpadding;
+    bool __special_repeat;
+    uint8_t _dirty, __repeat;
 
     const struct ntg_object_vtable* __vtable;
     struct ntg_object_hooks hooks;
 
-    struct
-    {
-        struct
-        {
-            struct ntg_border_opts opts;
-            struct ntg_insets size;
-        } _border;
+    struct ntg_border_opts _border_opts;
+    struct ntg_insets _border_size;
 
-        struct
-        {
-            struct ntg_padding_opts opts;
-            struct ntg_insets size;
-        } _padding;
-    };
+    struct ntg_padding_opts _padding_opts;
+    struct ntg_insets _padding_size;
 
-    struct
-    {
-        ntg_object_clickable_mode _clickable;
-        ntg_object_focusable_mode _focusable;
-    };
+    enum ntg_object_clickable_mode _clickable;
+    enum ntg_object_focusable_mode _focusable;
 
     struct ntg_object_layout_result _old_layout_result;
 };
@@ -321,7 +298,7 @@ ntg_object_hit_test(
         ntg_object* object,
         struct ntg_xy pos,
         struct ntg_xy* out_local_pos,
-        ntg_object_hit_result* out_hit);
+        enum ntg_object_hit_result* out_hit);
 
 /* ------------------------------------------------------ */
 
@@ -422,11 +399,13 @@ static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
     perform_fn(object, data);                                                  \
-    const ntg_object_vec* children = &object->_children;                       \
+    const ntg_objptr_vec* children = &object->_children;                       \
+    ntg_object* const* children_data = ntg_objptr_vec_data(children);          \
+    size_t children_size = ntg_objptr_vec_size(children);                      \
     size_t i;                                                                  \
-    for(i = 0; i < children->size; i++)                                        \
+    for(i = 0; i < children_size; i++)                                         \
     {                                                                          \
-        fn_name(children->data[i], data);                                      \
+        fn_name(children_data[i], data);                                       \
     }                                                                          \
 }                                                                              \
 
@@ -434,11 +413,13 @@ static void fn_name(ntg_object* object, void* data)                            \
 static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
-    const ntg_object_vec* children = &object->_children;                       \
+    const ntg_objptr_vec* children = &object->_children;                       \
+    ntg_object* const* children_data = ntg_objptr_vec_data(children);          \
+    size_t children_size = ntg_objptr_vec_size(children);                      \
     size_t i;                                                                  \
-    for(i = 0; i < children->size; i++)                                        \
+    for(i = 0; i < children_size; i++)                                         \
     {                                                                          \
-        fn_name(children->data[i], data);                                      \
+        fn_name(children_data[i], data);                                       \
     }                                                                          \
     perform_fn(object, data);                                                  \
 }                                                                              \
@@ -456,7 +437,7 @@ struct ntg_object_vtable
     struct ntg_object_measure (*measure_fn)(
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
-            ntg_orient orient,
+            enum ntg_orient orient,
             sarena* arena,
             uint32_t* relayout,
             int* out_status);
@@ -464,7 +445,7 @@ struct ntg_object_vtable
     void (*constrain_fn)(
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
-            ntg_orient orient,
+            enum ntg_orient orient,
             ntg_object_size_map* out_size_map,
             sarena* arena,
             uint32_t* relayout,
@@ -557,12 +538,12 @@ ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_object_set_focusable(ntg_object* object, ntg_object_focusable_mode mode);
+ntg_object_set_focusable(ntg_object* object, enum ntg_object_focusable_mode mode);
 
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_object_set_clickable(ntg_object* object, ntg_object_clickable_mode mode);
+ntg_object_set_clickable(ntg_object* object, enum ntg_object_clickable_mode mode);
 
 /* ------------------------------------------------------ */
 

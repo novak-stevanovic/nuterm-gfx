@@ -389,10 +389,10 @@ static void get_objects_in_drawing_order_layer_internal(
 
     ntg_object** children_by_z = buff + (*counter);
 
-    ntg_object_get_children_by_z(root, children_by_z, root->_children.size);
-    (*counter) += root->_children.size;
+    ntg_object_get_children_by_z(root, children_by_z, ntg_objptr_vec_size(&root->_children));
+    (*counter) += ntg_objptr_vec_size(&root->_children);
 
-    for(i = 0; i < root->_children.size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
     {
         get_objects_in_drawing_order_layer_internal(children_by_z[i], buff, counter);
     }

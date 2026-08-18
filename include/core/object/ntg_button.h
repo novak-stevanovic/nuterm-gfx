@@ -129,7 +129,7 @@ NTG_API struct ntg_object_measure
 ntg_button_measure_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
         int* out_status);

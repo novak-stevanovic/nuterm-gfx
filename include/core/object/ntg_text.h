@@ -43,13 +43,13 @@ enum ntg_text_set_flags
 
 struct ntg_text_opts
 {
-    ntg_orient orient;
+    enum ntg_orient orient;
     struct nt_gfx gfx, focused_gfx;
-    ntg_text_wrap wrap;
-    ntg_text_line_mode line_mode;
-    ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
-    ntg_align sec_align;
-    ntg_text_bg_mode bg_mode;
+    enum ntg_text_wrap wrap;
+    enum ntg_text_line_mode line_mode;
+    enum ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
+    enum ntg_align sec_align;
+    enum ntg_text_bg_mode bg_mode;
 
     size_t indent;
 };
@@ -84,24 +84,14 @@ struct ntg_text
     
     struct nt_gfx _gfx;
 
-    struct
-    {
-        char* data;
-        size_t len;
-    } _text;
+    char* _text;
+    size_t _text_len;
 
-    struct
-    {
-        struct ntg_xy _scroll;
-    };
+    struct ntg_xy _scroll;
 
-    struct
-    {
-        struct ntg_str32 utf32_text;
-
-        size_t utf32_row_count;
-        struct ntg_str32_view* utf32_rows;
-    } __cache;
+    struct ntg_str32 __utf32_text;
+    size_t __utf32_row_count;
+    struct ntg_str32_view* __utf32_rows;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -166,7 +156,7 @@ NTG_API struct ntg_object_measure
 ntg_text_measure_fn(
         const ntg_object* _text_obj,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
         int* out_status);

@@ -6,7 +6,7 @@ Copyright (c) 2025 Novak Stevanović
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the “Software”), to deal
-in the Software without restriction, including without limitation the rights  
+in the Software without restriction, including without limitation the rights  a
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
 copies of the Software, and to permit persons to whom the Software is  
 furnished to do so, subject to the following conditions:  
@@ -27,136 +27,573 @@ THE SOFTWARE.
 #ifndef GENC_H
 #define GENC_H
 
+/* ========================================================================== */
 /* -------------------------------------------------------------------------- */
-
-/* HEADER BEGIN */
-
+/* HEADER - PUBLIC */
 /* -------------------------------------------------------------------------- */
-
-/* Types: VECTOR, LIST, SIMPLE LIST. */
+/* ========================================================================== */
 
 #include <stddef.h>
 #include <stdbool.h>
-
-/* -------------------------------------------------------------------------- */
-/* DEFINE */
-/* -------------------------------------------------------------------------- */
-
-typedef int (*genc_cmp_fn)(const void* container_data, const void* user_data);
-
-/* A function that accepts an `out_status` parameter reports success by
- * setting it to 0, and reports failure by setting it to the appropriate
- * error code. */
 
 #define GENC_ERR_BASE 1000
 #define GENC_ERR_INVALID_ARG (GENC_ERR_BASE + 1)
 #define GENC_ERR_ALLOC_FAIL (GENC_ERR_BASE + 2)
 #define GENC_ERR_OUT_OF_BOUNDS (GENC_ERR_BASE + 3)
 #define GENC_ERR_NO_DATA (GENC_ERR_BASE + 4)
-#define GENC_ERR_UNEXPECTED (GENC_ERR_BASE + 5)
+#define GENC_ERR_UNEXPECTED (GENC_ERR_BASE + 100)
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* VECTOR */
+/* ========================================================================== */
+
+/*
+
+GENC_VECTOR_GENERATE(name, type, growf) generates a type-safe dynamic vector API.
+
+|----------------------------------------------------------|
+| Types |
+|----------------------------------------------------------|
+
+If the built-in operations satisfy your program's needs, then you may treat the
+generated types as opaque.
+
+However, if you wish to implement your own operations, you may have to modify
+the underlying `genc_vector` directly.
+
+struct <name>
+{
+    struct genc_vector _data;
+};
+
+|----------------------------------------------------------|
+| Accessors |
+|----------------------------------------------------------|
+
+<type>* <name>_data(const struct <name>* vec);
+size_t <name>_size(const struct <name>* vec);
+size_t <name>_cap(const struct <name>* vec);
+
+|----------------------------------------------------------|
+| Operations |
+|----------------------------------------------------------|
+
+int <name>_deinit(struct <name>* vec);
+
+|----------------------------------------------------------|
+
+int <name>_pushb(struct <name>* vec, <type> data);
+
+|----------------------------------------------------------|
+
+int <name>_popb(struct <name>* vec);
+
+|----------------------------------------------------------|
+
+int <name>_ins(struct <name>* vec, <type> data, size_t pos);
+
+|----------------------------------------------------------|
+
+int <name>_rm_at(struct <name>* vec, size_t pos);
+
+|----------------------------------------------------------|
+
+int <name>_empty(struct <name>* vec);
+
+|----------------------------------------------------------|
+
+int <name>_fit(struct <name>* vec); 
+
+|----------------------------------------------------------|
+
+int <name>_prealloc(struct <name>* vec, size_t size);
+
+|----------------------------------------------------------|
+
+*/
+
+/* -------------------------------------------------------------------------- */
+/* VECTOR - GENERATOR MACRO */
 /* -------------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------- */
-/* VECTOR - PUBLIC */
-/* ---------------------------------------------------------------- */
+#define GENC_VECTOR_GENERATE(name, type, growf)                                \
+                                                                               \
+struct name                                                                    \
+{                                                                              \
+    struct genc_vector _data;                                                  \
+};                                                                             \
+                                                                               \
+static inline type *                                                           \
+name##_data(const struct name * v)                                             \
+{                                                                              \
+    return (v ? (type *)(v->_data.data) : NULL);                               \
+}                                                                              \
+                                                                               \
+static inline size_t                                                           \
+name##_size(const struct name * v)                                             \
+{                                                                              \
+    return (v ? v->_data.size : 0);                                            \
+}                                                                              \
+                                                                               \
+static inline size_t                                                           \
+name##_cap(const struct name * v)                                              \
+{                                                                              \
+    return (v ? v->_data.cap : 0);                                             \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_deinit(struct name * v)                                                 \
+{                                                                              \
+    return genc_vector_deinit((v ? &v->_data : NULL));                         \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_ins(struct name * v, type data, size_t pos)                             \
+{                                                                              \
+    return genc_vector_ins(                                                    \
+            (v ? &v->_data : NULL),                                            \
+            (const void*)&data,                                                \
+            pos,                                                               \
+            sizeof( type ),                                                    \
+            growf);                                                            \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_rm_at(struct name * v, size_t pos)                                      \
+{                                                                              \
+    return genc_vector_rm_at(                                                  \
+            (v ? &v->_data : NULL),                                            \
+            pos,                                                               \
+            sizeof( type ));                                                   \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_empty(struct name * v)                                                  \
+{                                                                              \
+    return genc_vector_empty((v ? &v->_data : NULL));                          \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_fit(struct name * v)                                                    \
+{                                                                              \
+    return genc_vector_fit((v ? &v->_data : NULL), sizeof( type ));            \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_popb(struct name * v)                                                   \
+{                                                                              \
+    return genc_vector_popb((v ? &v->_data : NULL));                           \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_pushb(struct name * v, type data)                                       \
+{                                                                              \
+    return genc_vector_pushb(                                                  \
+            (v ? &v->_data : NULL),                                            \
+            (const void*)&data,                                                \
+            sizeof( type ),                                                    \
+            growf);                                                            \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_prealloc(struct name * v, size_t size)                                  \
+{                                                                              \
+    return genc_vector_prealloc((v ? &v->_data : NULL), size, sizeof( type )); \
+}                                                                              \
 
-/* 
- * GENC_VECTOR_GENERATE(name, type, growf, cmp_fn) generates a type-safe dynamic
- * vector API.
+/* ========================================================================== */
+/* LIST */
+/* ========================================================================== */
 
- * `cmp_fn` is used for element comparisons, such as in `find()` or `rm`
- * functions. If `cmp_fn` is NULL, memcmp() is used instead.
- * `growf` specifies the vector’s growth factor. A value of 1.5 balances
- * memory usage and realloc efficiency.
- *
- * ---------------------------------------------------------
- * PROTOTYPES
- * ---------------------------------------------------------
- * 
- * struct <name>
- * {
- *     <type>* data;
- *     size_t size;
- *     size_t cap;
- * };
- * 
- * void <name>_init(struct <name>* vec, size_t init_cap, int* out_status);
- * void <name>_deinit(struct <name>* vec, int* out_status);
- * void <name>_pushb(struct <name>* vec, <type> data, int* out_status);
- * void <name>_popb(struct <name>* vec, int* out_status);
- * void <name>_ins(struct <name>* vec, <type> data, size_t pos, int* out_status);
- * void <name>_rm_at(struct <name>* vec, size_t pos, int* out_status);
- * void <name>_empty(struct <name>* vec, int* out_status);
- * void <name>_rm(struct <name>* vec, <type> data, int* out_status);
- * size_t <name>_find(const struct <name>* vec, <type> data, int* out_status);
- * bool <name>_exists(const struct <name>* vec, <type> data, int* out_status);
- * void <name>_fit(struct <name>* vec, int* out_status); 
- *
- * ---------------------------------------------------------
- * BEHAVIOR
- * ---------------------------------------------------------
- *
- * * void <name>_init() initializes the vector. It allocates the initial chunk of memory.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL or `init_cap` is 0,
- * 2) GENC_ERR_ALLOC_FAIL - initial allocation failed.
- *
- * void <name>_deinit() deinitializes the vector and frees all used memory.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL.
- *
- * void <name>_pushb() appends `data` to the end (back) of the vector.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
- * 2) GENC_ERR_ALLOC_FAIL - vector attempted to grow, allocation/realloc failed.
- *
- * void <name>_popb() removes the last element from the vector.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
- * 2) GENC_ERR_OUT_OF_BOUNDS - vector is empty.
- *
- * void <name>_ins() inserts `data` at position `pos`. If pos == size, insertion appends.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
- * 2) GENC_ERR_OUT_OF_BOUNDS - `pos` is greater than the size of the vector,
- * 3) GENC_ERR_ALLOC_FAIL - vector attempted to grow, allocation/realloc failed.
- *
- * void <name>_rm_at() removes the element at position `pos`.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
- * 2) GENC_ERR_OUT_OF_BOUNDS - `pos` is greater than or equal to the size of the vector.
- *
- * void <name>_empty() empties the vector.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL.
- *
- * void <name>_rm() removes the first occurrence of `data` found in the vector.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
- * 2) GENC_ERR_NO_DATA - found no matching `data` in `vec`.
- *
- * size_t <name>_find() searches for `data` and returns the position of the
- * first occurrence. On failure it returns `SIZE_MAX`.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL.
- *
- * bool <name>_exists() returns true if `data` exists in the vector.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL.
- *
- * void <name>_fit() shrinks the vector's capacity to match its size.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `vec` is NULL,
- * 2) GENC_ERR_ALLOC_FAIL - realloc failed.
- *
- */
+/*
 
-/* ---------------------------------------------------------------- */
-/* VECTOR - PRIVATE */
-/* ---------------------------------------------------------------- */
+GENC_LIST_GENERATE(name, type) generates a type-safe doubly-linked list API.
+
+|----------------------------------------------------------|
+| Types |
+|----------------------------------------------------------|
+
+If the built-in operations satisfy your program's needs, then you may treat the
+generated types as opaque.
+
+However, if you wish to implement your own operations, you may have to modify
+the underlying `genc_list` directly.
+
+struct <name>
+{
+    struct genc_list _data;
+};
+
+struct <name>_node;
+
+|----------------------------------------------------------|
+| Accessors |
+|----------------------------------------------------------|
+
+<name>_node* <name>_head(const struct <name>* list);
+<name>_node* <name>_tail(const struct <name>* list);
+size_t <name>_size(const struct <name>* list);
+
+|----------------------------------------------------------|
+
+<type>* <name>_node_data(const struct <name>_node* node);
+<name>_node* <name>_node_next(const struct <name>_node* node);
+<name>_node* <name>_node_prev(const struct <name>_node* node);
+
+|----------------------------------------------------------|
+| Operations |
+|----------------------------------------------------------|
+
+int <name>_deinit(struct <name>* list);
+
+|----------------------------------------------------------|
+
+int <name>_pushb(struct <name>* list, <type> data);
+
+|----------------------------------------------------------|
+
+int <name>_pushf(struct <name>* list, <type> data);
+
+|----------------------------------------------------------|
+
+int <name>_popb(struct <name>* list);
+
+|----------------------------------------------------------|
+
+int <name>_popf(struct <name>* list);
+
+|----------------------------------------------------------|
+
+int <name>_empty(struct <name>* list);
+
+|----------------------------------------------------------|
+
+struct <name>_node* <name>_at(const struct <name>* list, size_t pos);
+
+|----------------------------------------------------------|
+
+int <name>_ins_after_node(struct <name>* list, <type> data,
+                          struct <name>_node* node);
+
+|----------------------------------------------------------|
+
+int <name>_ins_before_node(struct <name>* list, <type> data,
+                           struct <name>_node* node);
+
+|----------------------------------------------------------|
+
+int <name>_ins_at(struct <name>* list, <type> data, size_t pos);
+
+|----------------------------------------------------------|
+
+int <name>_rm_node(struct <name>* list, struct <name>_node* node);
+
+|----------------------------------------------------------|
+
+*/
+
+/* -------------------------------------------------------------------------- */
+/* LIST - GENERATOR MACRO */
+/* -------------------------------------------------------------------------- */
+
+#define GENC_LIST_GENERATE(name, type)                                         \
+                                                                               \
+struct name##_node;                                                            \
+                                                                               \
+struct name                                                                    \
+{                                                                              \
+    struct genc_list _data;                                                    \
+};                                                                             \
+                                                                               \
+static inline struct name##_node *                                             \
+name##_head(const struct name * l)                                             \
+{                                                                              \
+    return (struct name##_node *)(l ? l->_data.head : NULL);                   \
+}                                                                              \
+                                                                               \
+static inline struct name##_node *                                             \
+name##_tail(const struct name * l)                                             \
+{                                                                              \
+    return (struct name##_node *)(l ? l->_data.tail : NULL);                   \
+}                                                                              \
+                                                                               \
+static inline size_t                                                           \
+name##_size(const struct name * l)                                             \
+{                                                                              \
+    return (l ? l->_data.size : 0);                                            \
+}                                                                              \
+                                                                               \
+static inline type *                                                           \
+name##_node_data(const struct name##_node * n)                                 \
+{                                                                              \
+    const struct genc_list_node *node =                                        \
+            (const struct genc_list_node *)n;                                  \
+    return (type *)(node ? node->data : NULL);                                 \
+}                                                                              \
+                                                                               \
+static inline struct name##_node *                                             \
+name##_node_next(const struct name##_node * n)                                 \
+{                                                                              \
+    const struct genc_list_node *node =                                        \
+            (const struct genc_list_node *)n;                                  \
+    return (struct name##_node *)(node ? node->next : NULL);                   \
+}                                                                              \
+                                                                               \
+static inline struct name##_node *                                             \
+name##_node_prev(const struct name##_node * n)                                 \
+{                                                                              \
+    const struct genc_list_node *node =                                        \
+            (const struct genc_list_node *)n;                                  \
+    return (struct name##_node *)(node ? node->prev : NULL);                   \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_deinit(struct name * l)                                                 \
+{                                                                              \
+    return genc_list_deinit(l ? &l->_data : NULL);                             \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_pushb(struct name * l, type data)                                       \
+{                                                                              \
+    return genc_list_pushb(                                                    \
+            l ? &l->_data : NULL,                                              \
+            (const void *)&data,                                               \
+            sizeof(type));                                                     \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_pushf(struct name * l, type data)                                       \
+{                                                                              \
+    return genc_list_pushf(                                                    \
+            l ? &l->_data : NULL,                                              \
+            (const void *)&data,                                               \
+            sizeof(type));                                                     \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_popf(struct name * l)                                                   \
+{                                                                              \
+    return genc_list_popf(l ? &l->_data : NULL);                               \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_popb(struct name * l)                                                   \
+{                                                                              \
+    return genc_list_popb(l ? &l->_data : NULL);                               \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_empty(struct name * l)                                                  \
+{                                                                              \
+    return genc_list_empty(l ? &l->_data : NULL);                              \
+}                                                                              \
+                                                                               \
+static inline struct name##_node *                                             \
+name##_at(const struct name * l, size_t pos)                                   \
+{                                                                              \
+    return (struct name##_node *)                                              \
+            genc_list_at(l ? &l->_data : NULL, pos);                           \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_ins_after_node(struct name * l, type data, struct name##_node * node)   \
+{                                                                              \
+    return genc_list_ins_after_node(                                           \
+            l ? &l->_data : NULL,                                              \
+            (const void *)&data,                                               \
+            (struct genc_list_node *)node,                                     \
+            sizeof(type));                                                     \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_ins_before_node(struct name * l, type data, struct name##_node * node)  \
+{                                                                              \
+    return genc_list_ins_before_node(                                          \
+            l ? &l->_data : NULL,                                              \
+            (const void *)&data,                                               \
+            (struct genc_list_node *)node,                                     \
+            sizeof(type));                                                     \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_rm_node(struct name * l, struct name##_node * node)                     \
+{                                                                              \
+    return genc_list_rm_node(                                                  \
+            l ? &l->_data : NULL,                                              \
+            (struct genc_list_node *)node);                                    \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_ins_at(struct name * l, type data, size_t pos)                          \
+{                                                                              \
+    return genc_list_ins_at(                                                   \
+            l ? &l->_data : NULL,                                              \
+            (const void *)&data,                                               \
+            pos,                                                               \
+            sizeof(type));                                                     \
+}                                                                              \
+
+/* ========================================================================== */
+/* FWD LIST */
+/* ========================================================================== */
+
+/*
+
+GENC_FWD_LIST_GENERATE(name, type) generates a type-safe forward list
+list API. This data structure is meant to be used for creating a stack
+or queue.
+
+|----------------------------------------------------------|
+| Types |
+|----------------------------------------------------------|
+
+If the built-in operations satisfy your program's needs, then you may treat the
+generated types as opaque.
+
+However, if you wish to implement your own operations, you may have to modify
+the underlying `genc_fwd_list` directly.
+
+struct <name>
+{
+    struct genc_fwd_list _data;
+};
+
+struct <name>_node;
+
+|----------------------------------------------------------|
+| Accessors |
+|----------------------------------------------------------|
+
+<name>_node* <name>_head(const struct <name>* list);
+<name>_node* <name>_tail(const struct <name>* list);
+size_t <name>_size(const struct <name>* list);
+
+|----------------------------------------------------------|
+
+<type>* <name>_node_data(const struct <name>_node* node);
+<name>_node* <name>_node_next(const struct <name>_node* node);
+
+|----------------------------------------------------------|
+| Operations |
+|----------------------------------------------------------|
+
+|----------------------------------------------------------|
+
+int <name>_deinit(struct <name>* list);
+
+|----------------------------------------------------------|
+
+int <name>_pushb(struct <name>* list, <type> data);
+
+|----------------------------------------------------------|
+
+int <name>_pushf(struct <name>* list, <type> data);
+
+|----------------------------------------------------------|
+
+int <name>_popf(struct <name>* list);
+
+|----------------------------------------------------------|
+
+int <name>_empty(struct <name>* list);
+
+|----------------------------------------------------------|
+
+*/
+
+/* -------------------------------------------------------------------------- */
+/* FWD LIST - GENERATOR MACRO */
+/* -------------------------------------------------------------------------- */
+
+#define GENC_FWD_LIST_GENERATE(name, type)                                     \
+                                                                               \
+struct name##_node;                                                            \
+                                                                               \
+struct name                                                                    \
+{                                                                              \
+    struct genc_fwd_list _data;                                                \
+};                                                                             \
+                                                                               \
+static inline struct name##_node *                                             \
+name##_head(const struct name * l)                                             \
+{                                                                              \
+    return (struct name##_node *)(l ? l->_data.head : NULL);                   \
+}                                                                              \
+                                                                               \
+static inline struct name##_node *                                             \
+name##_tail(const struct name * l)                                             \
+{                                                                              \
+    return (struct name##_node *)(l ? l->_data.tail : NULL);                   \
+}                                                                              \
+                                                                               \
+static inline size_t                                                           \
+name##_size(const struct name * l)                                             \
+{                                                                              \
+    return (l ? l->_data.size : 0);                                            \
+}                                                                              \
+                                                                               \
+static inline type *                                                           \
+name##_node_data(const struct name##_node * n)                                 \
+{                                                                              \
+    const struct genc_fwd_list_node *node =                                    \
+            (const struct genc_fwd_list_node *)n;                              \
+    return (type *)(node ? node->data : NULL);                                 \
+}                                                                              \
+                                                                               \
+static inline struct name##_node *                                             \
+name##_node_next(const struct name##_node * n)                                 \
+{                                                                              \
+    const struct genc_fwd_list_node *node =                                    \
+            (const struct genc_fwd_list_node *)n;                              \
+    return (struct name##_node *)(node ? node->next : NULL);                   \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_deinit(struct name * l)                                                 \
+{                                                                              \
+    return genc_fwd_list_deinit(l ? &l->_data : NULL);                         \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_pushb(struct name * l, type data)                                       \
+{                                                                              \
+    return genc_fwd_list_pushb(                                                \
+            l ? &l->_data : NULL,                                              \
+            (const void *)&data,                                               \
+            sizeof(type));                                                     \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_pushf(struct name * l, type data)                                       \
+{                                                                              \
+    return genc_fwd_list_pushf(                                                \
+            l ? &l->_data : NULL,                                              \
+            (const void *)&data,                                               \
+            sizeof(type));                                                     \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_popf(struct name * l)                                                   \
+{                                                                              \
+    return genc_fwd_list_popf(l ? &l->_data : NULL);                           \
+}                                                                              \
+                                                                               \
+static inline int                                                              \
+name##_empty(struct name * l)                                                  \
+{                                                                              \
+    return genc_fwd_list_empty(l ? &l->_data : NULL);                          \
+}                                                                              \
+
+/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* HEADER - INTERNAL */
+/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+
+/* ========================================================================== */
+/* VECTOR - INTERNAL */
+/* ========================================================================== */
 
 struct genc_vector
 {
@@ -165,257 +602,27 @@ struct genc_vector
     size_t cap;
 };
 
-void genc_vector_init(struct genc_vector* v, size_t init_cap, size_t _datasz,
-                      int* out_status);
-void genc_vector_deinit(struct genc_vector* v, int* out_status);
+int genc_vector_deinit(struct genc_vector* v);
 
-void genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
-                     size_t _datasz, double _growf, int* out_status);
+int genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
+                    size_t _datasz, double _growf);
 
-void genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz,
-                       int* out_status);
+int genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz);
 
-void genc_vector_empty(struct genc_vector* v, int* out_status);
+int genc_vector_empty(struct genc_vector* v);
 
-void genc_vector_fit(struct genc_vector* v, size_t _datasz, int* out_status);
+int genc_vector_fit(struct genc_vector* v, size_t _datasz);
 
-size_t genc_vector_find(const struct genc_vector* v, const void* _data,
-                        genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status);
+int genc_vector_prealloc(struct genc_vector* v, size_t size, size_t _datasz);
 
-void genc_vector_popb(struct genc_vector* v, size_t _datasz, int* out_status);
+int genc_vector_popb(struct genc_vector* v);
 
-void genc_vector_rm(struct genc_vector* v, const void* _data,
-                    genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status);
+int genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
+                      double _growf);
 
-void genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
-                       double _growf, int* out_status);
-
-bool genc_vector_exists(const struct genc_vector* v, const void* _data,
-                        genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status);
-
-/* ---------------------------------------------------------------- */
-/* VECTOR - GENERATOR MACRO */
-/* ---------------------------------------------------------------- */
-
-#define GENC_VECTOR_GENERATE(name, type, growf, cmp_fn)                        \
-                                                                               \
-struct name                                                                    \
-{                                                                              \
-    type * data;                                                               \
-    size_t size;                                                               \
-    size_t cap;                                                                \
-};                                                                             \
-                                                                               \
-static inline void                                                             \
-name##_init(struct name * v, size_t init_cap, int* out)                        \
-{                                                                              \
-    genc_vector_init((struct genc_vector*)v, init_cap, sizeof( type ), out);   \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_deinit(struct name * v, int* out)                                       \
-{                                                                              \
-    genc_vector_deinit((struct genc_vector*)v, out);                           \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_ins(struct name * v, type data, size_t pos, int* out)                   \
-{                                                                              \
-    genc_vector_ins((struct genc_vector*)v, (const void*)&data, pos,           \
-                    sizeof( type ), growf, out);                               \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_rm_at(struct name * v, size_t pos, int* out)                            \
-{                                                                              \
-    genc_vector_rm_at((struct genc_vector*)v, pos, sizeof( type ), out);       \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_empty(struct name * v, int* out)                                        \
-{                                                                              \
-    genc_vector_empty((struct genc_vector*)v, out);                            \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_fit(struct name * v, int* out)                                          \
-{                                                                              \
-    genc_vector_fit((struct genc_vector*)v, sizeof( type ), out);              \
-}                                                                              \
-                                                                               \
-static inline size_t                                                           \
-name##_find(const struct name * v, type data, int* out)                        \
-{                                                                              \
-    return genc_vector_find((const struct genc_vector*)v, (const void*)&data,  \
-                            cmp_fn, sizeof( type ), out);                      \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_popb(struct name * v, int* out)                                         \
-{                                                                              \
-    genc_vector_popb((struct genc_vector*)v, sizeof( type ), out);             \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_rm(struct name * v, type data, int* out)                                \
-{                                                                              \
-    genc_vector_rm((struct genc_vector*)v, (const void*)&data,                 \
-                   cmp_fn, sizeof( type ), out);                               \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_pushb(struct name * v, type data, int* out)                             \
-{                                                                              \
-    genc_vector_pushb((struct genc_vector*)v, (const void*)&data,              \
-                      sizeof( type ), growf, out);                             \
-}                                                                              \
-                                                                               \
-static inline bool                                                             \
-name##_exists(const struct name * v, type data, int* out)                      \
-{                                                                              \
-    return genc_vector_exists((const struct genc_vector*)v,                    \
-                              (const void*)&data, cmp_fn,                      \
-                              sizeof( type ), out);                            \
-}
-
-/* -------------------------------------------------------------------------- */
-/* LIST */
-/* -------------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------- */
-/* LIST - PUBLIC */
-/* ---------------------------------------------------------------- */
-
-/* 
- * GENC_LIST_GENERATE(name, type, cmp_fn) generates a type-safe doubly-linked
- * list API.
-
- * `cmp_fn` is used for element comparisons, such as in `find()` or `rm`
- * functions. If `cmp_fn` is NULL, memcmp() is used instead.
- *
- * ---------------------------------------------------------
- * PROTOTYPES
- * ---------------------------------------------------------
- * 
- * struct <name>_node
- * {
- *     <type> data;
- *     struct <name>_node* next;
- *     struct <name>_node* prev;
- * };
- * 
- * struct <name>
- * {
- *     size_t size;
- *     struct <name>_node* head;
- *     struct <name>_node* tail;
- * };
- *
- * void <name>_init(struct <name>* list, int* out_status);
- * void <name>_deinit(struct <name>* list, int* out_status);
- *
- * void <name>_pushb(struct <name>* list, <type> data, int* out_status);
- * void <name>_pushf(struct <name>* list, <type> data, int* out_status);
- * void <name>_popb(struct <name>* list, int* out_status);
- * void <name>_popf(struct <name>* list, int* out_status);
- *
- * struct <name>_node*
- * <name>_at(const struct <name>* list, size_t pos, int* out_status);
-
- * struct <name>_node*
- * <name>_find(const struct <name>* list, <type> data, int* out_status);
- * 
- * bool <name>_exists(const struct <name>* list, <type> data, int* out_status);
- *
- * void <name>_ins_after_node(struct <name>* list, <type> data,
- *                            struct <name>_node* node, int* out_status);
- * void <name>_ins_before_node(struct <name>* list, <type> data,
- *                             struct <name>_node* node, int* out_status);
- * void <name>_ins_at(struct <name>* list, <type> data, size_t pos,
-                      int* out_status);
- *
- * void <name>_rm_node(struct <name>* list, struct <name>_node* node,
-                       int* out_status);
- * void <name>_rm(struct <name>* list, <type> data, int* out_status);
- *
- * ---------------------------------------------------------
- * BEHAVIOR
- * ---------------------------------------------------------
- *
- * void <name>_init() initializes the list to empty.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL.
- *
- * void <name>_deinit() deinitializes the list and frees all nodes.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL.
- *
- * void <name>_pushb() appends `data` at the tail of the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_ALLOC_FAIL - allocation failed.
- *
- * void <name>_pushf() prepends `data` at the head of the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_ALLOC_FAIL - allocation failed.
- *
- * void <name>_popf() removes the head element.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_NO_DATA - list is empty.
- *
- * void <name>_popb() removes the tail element.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_NO_DATA - list is empty.
- *
- * struct <name>_node* <name>_at() returns pointer to node at index `pos`.
- * Returns NULL on invalid arg or out-of-range.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_OUT_OF_BOUNDS - `pos` >= size,
- *
- * struct <name>_node* <name>_find() finds the first node holding `data`.
- * Returns NULL if not found.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL.
- *
- * bool <name>_exists() returns true if `data` exists in the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2)
- *
- * void <name>_ins_after_node() inserts `data` after `node`.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_ALLOC_FAIL - allocation failed.
- *
- * void <name>_ins_before_node() inserts `data` before `node`.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL or `node` is NULL,
- * 2) GENC_ERR_ALLOC_FAIL - allocation failed.
- *
- * void <name>_ins_at() inserts `data` at index `pos`.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_OUT_OF_BOUNDS - `pos` > size,
- * 3) GENC_ERR_ALLOC_FAIL - allocation failed.
- *
- * void <name>_rm_node() removes the specified node from the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL or `node` is NULL.
- *
- * void <name>_rm() removes the first occurrence of `data` from the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_NO_DATA - no matching `data` found.
- *
- */
-
-/* ---------------------------------------------------------------- */
-/* LIST - PRIVATE */
-/* ---------------------------------------------------------------- */
+/* ========================================================================== */
+/* LIST - INTERNAL */
+/* ========================================================================== */
 
 struct genc_list_node
 {
@@ -429,395 +636,113 @@ struct genc_list
     size_t size;
 };
 
-void genc_list_init(struct genc_list* list, int* out_status);
-void genc_list_deinit(struct genc_list* list, int* out_status);
+int genc_list_deinit(struct genc_list* list);
 
-void genc_list_pushb(struct genc_list* list, const void* _data, size_t _datasz,
-                     int* out_status);
-void genc_list_pushf(struct genc_list* list, const void* _data, size_t _datasz,
-                     int* out_status);
-void genc_list_popf(struct genc_list* list, int* out_status);
-void genc_list_popb(struct genc_list* list, int* out_status);
+int genc_list_pushb(struct genc_list* list, const void* _data, size_t _datasz);
+int genc_list_pushf(struct genc_list* list, const void* _data, size_t _datasz);
 
-struct genc_list_node* 
-genc_list_find(const struct genc_list* list, const void* _data,
-               genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status);
+int genc_list_popf(struct genc_list* list);
+int genc_list_popb(struct genc_list* list);
+int genc_list_empty(struct genc_list* list);
 
-struct genc_list_node*
-genc_list_at(const struct genc_list* list, size_t pos, int* out_status);
+struct genc_list_node* genc_list_at(const struct genc_list* list, size_t pos);
 
-void genc_list_ins_after_node(struct genc_list* list, const void* _data,
-                              struct genc_list_node* node, size_t _datasz,
-                              int* out_status);
-void genc_list_ins_before_node(struct genc_list* list, const void* _data,
-                               struct genc_list_node* node, size_t _datasz,
-                               int* out_status);
-void genc_list_rm_node(struct genc_list* list, struct genc_list_node* node,
-                       int* out_status);
-// Convenience
+int genc_list_ins_after_node(struct genc_list* list, const void* _data,
 
-void genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
-                      size_t _datasz, int* out_status);
-void genc_list_rm(struct genc_list* list, const void* _data, genc_cmp_fn _cmp_fn,
-                  size_t _datasz, int* out_status);
+                              struct genc_list_node* node, size_t _datasz);
+int genc_list_ins_before_node(struct genc_list* list, const void* _data,
+                               struct genc_list_node* node, size_t _datasz);
 
+int genc_list_rm_node(struct genc_list* list, struct genc_list_node* node);
 
-bool genc_list_exists(const struct genc_list* list, const void* _data,
-                      genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status);
+int genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
+                      size_t _datasz);
 
-/* ---------------------------------------------------------------- */
-/* LIST - GENERATOR MACRO */
-/* ---------------------------------------------------------------- */
+/* ========================================================================== */
+/* FORWARD LIST - INTERNAL */
+/* ========================================================================== */
 
-#define GENC_LIST_GENERATE(name, type, cmp_fn)                                 \
-                                                                               \
-struct name##_node                                                             \
-{                                                                              \
-    type * data;                                                               \
-    struct name##_node *next, *prev;                                           \
-};                                                                             \
-                                                                               \
-struct name                                                                    \
-{                                                                              \
-    struct name##_node *head, *tail;                                           \
-    size_t size;                                                               \
-};                                                                             \
-                                                                               \
-static inline void                                                             \
-name##_init(struct name * l, int* out)                                         \
-{                                                                              \
-    genc_list_init((struct genc_list*)l, out);                                 \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_deinit(struct name * l, int* out)                                       \
-{                                                                              \
-    genc_list_deinit((struct genc_list*)l, out);                               \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_pushb(struct name * l, type data, int* out)                             \
-{                                                                              \
-    genc_list_pushb((struct genc_list*)l, (const void*)&data,                  \
-                    sizeof( type ), out);                                      \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_pushf(struct name * l, type data, int* out)                             \
-{                                                                              \
-    genc_list_pushf((struct genc_list*)l, (const void*)&data,                  \
-                    sizeof( type ), out);                                      \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_popf(struct name * l, int* out)                                         \
-{                                                                              \
-    genc_list_popf((struct genc_list*)l, out);                                 \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_popb(struct name * l, int* out)                                         \
-{                                                                              \
-    genc_list_popb((struct genc_list*)l, out);                                 \
-}                                                                              \
-                                                                               \
-static inline struct name##_node*                                              \
-name##_find(const struct name * l, type data, int* out)                        \
-{                                                                              \
-    struct genc_list_node* _node;                                              \
-    _node = genc_list_find((struct genc_list*)l, (const void*)&data, cmp_fn,   \
-                           sizeof( type ), out);                               \
-    return ( struct name##_node* )_node;                                       \
-}                                                                              \
-                                                                               \
-static inline struct name##_node*                                              \
-name##_at(const struct name * l, size_t pos, int* out)                         \
-{                                                                              \
-    struct genc_list_node* _node;                                              \
-    _node = genc_list_at((struct genc_list*)l, pos, out);                      \
-    return ( struct name##_node* )_node;                                       \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_ins_after_node(struct name * l, type data,                              \
-                      struct name##_node* node, int* out)                      \
-{                                                                              \
-    genc_list_ins_after_node((struct genc_list*)l, (const void*)&data,         \
-                             (struct genc_list_node*)node, sizeof( type ),     \
-                             out);                                             \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_ins_before_node(struct name * l, type data,                             \
-                       struct name##_node* node, int* out)                     \
-{                                                                              \
-    genc_list_ins_before_node((struct genc_list*)l, (const void*)&data,        \
-                              (struct genc_list_node*)node, sizeof( type ),    \
-                              out);                                            \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_rm_node(struct name * l, struct name##_node* node, int* out)            \
-{                                                                              \
-    genc_list_rm_node((struct genc_list*)l, (struct genc_list_node*)node,      \
-                      out);                                                    \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_ins_at(struct name * l, type data, size_t pos, int* out)                \
-{                                                                              \
-    genc_list_ins_at((struct genc_list*)l, (const void*)&data, pos,            \
-                     sizeof( type ), out);                                     \
-                                                                               \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_rm(struct name * l, type data, int* out)                                \
-{                                                                              \
-    genc_list_rm((struct genc_list*)l, (const void*)&data, cmp_fn,             \
-                 sizeof( type ), out);                                         \
-}                                                                              \
-                                                                               \
-static inline bool                                                             \
-name##_exists(const struct name * l, type data, int* out)                      \
-{                                                                              \
-    return genc_list_exists((const struct genc_list*)l, (const void*)&data,    \
-                            cmp_fn, sizeof( type ), out);                      \
-}
-
-/* -------------------------------------------------------------------------- */
-/* SIMPLE LIST */
-/* -------------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------- */
-/* SIMPLE LIST - PUBLIC */
-/* ---------------------------------------------------------------- */
-
-/* 
- * GENC_SIMPLE_LIST_GENERATE(name, type) generates a type-safe forward list
- * list API. This data structure is meant to be used for creating a stack
- * or queue.
- *
- * ---------------------------------------------------------
- * PROTOTYPES
- * ---------------------------------------------------------
- * 
- * struct <name>_node
- * {
- *     <type> data;
- *     struct <name>_node* next;
- * };
- * 
- * struct <name>
- * {
- *     size_t size;
- *     struct <name>_node *head, *tail;
- * };
- *
- * void <name>_init(struct <name>* list, int* out_status);
- * void <name>_deinit(struct <name>* list, int* out_status);
- * void <name>_pushb(struct <name>* list, <type> data, int* out_status);
- * void <name>_pushf(struct <name>* list, <type> data, int* out_status);
- * void <name>_popf(struct <name>* list, int* out_status);
- *
- * ---------------------------------------------------------
- * BEHAVIOR
- * ---------------------------------------------------------
- * 
- * void genc_simple_list_init() initializes an empty list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL.
- *
- * void genc_simple_list_deinit() frees all nodes in the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_UNEXPECTED - an internal pop failed.
- *
- * void genc_simple_list_pushb() appends a copy of `data` to the end of the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` or `data` is NULL, or `data_size` is 0,
- * 2) GENC_ERR_ALLOC_FAIL - memory allocation failed.
- *
- * void genc_simple_list_pushf() prepends a copy of `data` to the front of the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` or `data` is NULL, or `data_size` is 0,
- * 2) GENC_ERR_ALLOC_FAIL - memory allocation failed.
- *
- * void genc_simple_list_popf() removes the first node from the list.
- * ERRORS:
- * 1) GENC_ERR_INVALID_ARG - `list` is NULL,
- * 2) GENC_ERR_NO_DATA - the list is empty.
- *
- */
-
-/* ---------------------------------------------------------------- */
-/* SIMPLE LIST - PRIVATE */
-/* ---------------------------------------------------------------- */
-
-struct genc_simple_list_node
+struct genc_fwd_list_node
 {
     void* data;
-    struct genc_simple_list_node* next;
+    struct genc_fwd_list_node* next;
 };
 
-struct genc_simple_list
+struct genc_fwd_list
 {
     size_t size;
-    struct genc_simple_list_node *head, *tail;
+    struct genc_fwd_list_node *head, *tail;
 };
 
-void genc_simple_list_init(struct genc_simple_list* list, int* out_status);
-void genc_simple_list_deinit(struct genc_simple_list* list, int* out_status);
+int genc_fwd_list_deinit(struct genc_fwd_list* list);
 
-void genc_simple_list_pushb(struct genc_simple_list* list, const void* _data,
-                            size_t _datasz, int* out_status);
-void genc_simple_list_pushf(struct genc_simple_list* list, const void* _data,
-                            size_t _datasz, int* out_status);
-void genc_simple_list_popf(struct genc_simple_list* list, int* out_status);
+int genc_fwd_list_pushb(struct genc_fwd_list* list, const void* _data,
+                        size_t _datasz);
 
-/* ---------------------------------------------------------------- */
-/* SIMPLE LIST - GENERATOR MACRO */
-/* ---------------------------------------------------------------- */
+int genc_fwd_list_pushf(struct genc_fwd_list* list, const void* _data,
+                        size_t _datasz);
 
-#define GENC_SIMPLE_LIST_GENERATE(name, type)                                  \
-                                                                               \
-struct name##_node                                                             \
-{                                                                              \
-    type * data;                                                               \
-    struct name##_node* next;                                                  \
-};                                                                             \
-                                                                               \
-struct name                                                                    \
-{                                                                              \
-    size_t size;                                                               \
-    struct name##_node *head, *tail;                                           \
-};                                                                             \
-                                                                               \
-static inline void                                                             \
-name##_init(struct name * list, int* out)                                      \
-{                                                                              \
-    genc_simple_list_init((struct genc_simple_list*)list, out);                \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_deinit(struct name * list, int* out)                                    \
-{                                                                              \
-    genc_simple_list_deinit((struct genc_simple_list*)list, out);              \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_pushb(struct name * l, type data, int* out)                             \
-{                                                                              \
-    genc_simple_list_pushb((struct genc_simple_list*)l,                        \
-                           (const void*)&data, sizeof( type ), out);           \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_pushf(struct name * l, type data, int* out)                             \
-{                                                                              \
-    genc_simple_list_pushf((struct genc_simple_list*)l,                        \
-                           (const void*)&data, sizeof( type ), out);           \
-}                                                                              \
-                                                                               \
-static inline void                                                             \
-name##_popf(struct name * l, int* out)                                         \
-{                                                                              \
-    genc_simple_list_popf((struct genc_simple_list*)l, out);                   \
-}                                                                              \
+int genc_fwd_list_popf(struct genc_fwd_list* list);
 
-/* -------------------------------------------------------------------------- */
-
-/* HEADER END */
-
-/* -------------------------------------------------------------------------- */
+int genc_fwd_list_empty(struct genc_fwd_list* list);
 
 #endif // GENC_H
 
+/* ========================================================================== */
 /* -------------------------------------------------------------------------- */
-
-/* PRIVATE BEGIN */
-
+/* IMPLEMENTATION - INTERNAL */
 /* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
-#ifdef GENC_IMPLEMENTATION
+#if defined(GENC_IMPLEMENTATION) && !defined(GENC_IMPLEMENTATION_INCLUDED)
+#define GENC_IMPLEMENTATION_INCLUDED
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdalign.h>
 
-#define GENC_SET_OUT(out_ptr, val) \
-    if((out_ptr) != NULL) { (*(out_ptr)) = (val); }
+#define GENC_NOT_NULL(ptr)                                                     \
+    do                                                                         \
+    {                                                                          \
+        if(!(ptr)) return GENC_ERR_INVALID_ARG;                                \
+    } while(0)
 
-/* ---------------------------------------------------------------- */
+/* ========================================================================== */
 /* VECTOR */
-/* ---------------------------------------------------------------- */
+/* ========================================================================== */
 
-void genc_vector_init(struct genc_vector* v, size_t init_cap, size_t _datasz,
-                      int* out_status)
+int genc_vector_deinit(struct genc_vector* v)
 {
-    GENC_SET_OUT(out_status, 0);
-
-    if((v == NULL) || (init_cap == 0) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-
-    v->data = malloc(_datasz * init_cap);
-    if(v->data == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-        return;
-    }
-
-    v->size = 0;
-    v->cap = init_cap;
-}
-
-void genc_vector_deinit(struct genc_vector* v, int* out_status)
-{
-    GENC_SET_OUT(out_status, 0);
-
-    if(v == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    GENC_NOT_NULL(v);
 
     free(v->data);
     v->data = NULL;
     v->size = 0;
     v->cap = 0;
+
+    return 0;
 }
 
-void genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
-                     size_t _datasz, double _growf, int* out_status)
+int genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
+                     size_t _datasz, double _growf)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(v);
+    GENC_NOT_NULL(_data);
 
-    if((v == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
     if(pos > v->size)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_OUT_OF_BOUNDS);
-        return;
-    }
+        return GENC_ERR_OUT_OF_BOUNDS;
 
     if(v->size >= v->cap) // grow
     {
-        size_t new_cap = (size_t)(v->size * _growf);
-        if(new_cap <= v->cap) ++new_cap; // just in case the vector wouldn't grow
+        // Calculate new_cap
+        size_t new_cap = v->size * _growf;
+        if(new_cap <= v->cap)
+            new_cap = v->cap + 1;
 
         void* new_data = realloc(v->data, new_cap * _datasz);
         if(new_data == NULL)
-        {
-            GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-            return;
-        }
+            return GENC_ERR_ALLOC_FAIL;
 
         v->data = new_data;
         v->cap = new_cap;
@@ -834,238 +759,133 @@ void genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
 
     memcpy(vector_data + (pos * _datasz), _data, _datasz);
     ++(v->size);
+
+    return 0;
 }
 
-void genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz,
-                       int* out_status)
+int genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(v);
 
-    if((v == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
     if(pos >= v->size)
+        return GENC_ERR_OUT_OF_BOUNDS;
+
+    // Pop back
+    if(pos == (v->size - 1))
     {
-        GENC_SET_OUT(out_status, GENC_ERR_OUT_OF_BOUNDS);
-        return;
+        int err = genc_vector_popb(v);
+        switch(err)
+        {
+            case 0:
+                return 0;
+            default:
+                return GENC_ERR_UNEXPECTED;
+        }
     }
 
     char* vector_data = (char*)v->data;
 
-    if(pos < (v->size - 1))
-    {
-        memmove(vector_data + (pos * _datasz),
-                vector_data + ((pos + 1) * _datasz),
-                (v->size - pos - 1) * _datasz);
-    }
+    memmove(vector_data + (pos * _datasz),
+            vector_data + ((pos + 1) * _datasz),
+            (v->size - pos - 1) * _datasz);
 
     --(v->size);
+
+    return 0;
 }
 
-void genc_vector_empty(struct genc_vector* v, int* out_status)
+int genc_vector_empty(struct genc_vector* v)
 {
-    GENC_SET_OUT(out_status, 0);
-
-    if(v == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    GENC_NOT_NULL(v);
 
     v->size = 0;
+
+    return 0;
 }
 
-void genc_vector_fit(struct genc_vector* v, size_t _datasz, int* out_status)
+int genc_vector_fit(struct genc_vector* v, size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(v);
 
-    if((v == NULL) || (_datasz == 0))
+    if(v->size == v->cap) return 0;
+
+    if(v->size == 0)
     {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
+        free(v->data);
+        v->data = NULL;
+        v->cap = 0;
+        return 0;
     }
-
-    if(v->size == v->cap) return;
 
     void* new_data = realloc(v->data, v->size * _datasz);
     if(new_data == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-        return;
-    }
+        return GENC_ERR_ALLOC_FAIL;
     else
     {
         v->data = new_data;
         v->cap = v->size;
     }
+
+    return 0;
 }
 
-size_t genc_vector_find(const struct genc_vector* v, const void* _data,
-                        genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
+int genc_vector_prealloc(struct genc_vector* v, size_t size, size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(v);
 
-    if((v == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return SIZE_MAX;
-    }
+    if(size == 0) return 0;
 
-    const char* vector_data = (const char*)v->data;
+    size_t new_cap = v->cap + size;
 
-    size_t i;
-    const void* it_data;
+    void* new_data = realloc(v->data, new_cap * _datasz);
+    if(!new_data)
+        return GENC_ERR_ALLOC_FAIL;
 
-    if(_cmp_fn != NULL)
-    {
-        for(i = 0; i < v->size; i++)
-        {
-            it_data = vector_data + (i * _datasz);
+    v->data = new_data;
+    v->cap = new_cap;
 
-            if(_cmp_fn(it_data, _data) == 0)
-                return i;
-        }
-    }
-    else
-    {
-        for(i = 0; i < v->size; i++)
-        {
-            it_data = vector_data + (i * _datasz);
-
-            if(memcmp(it_data, _data, _datasz) == 0)
-                return i;
-        }
-    }
-
-    return SIZE_MAX;
+    return 0;
 }
 
-void genc_vector_popb(struct genc_vector* v, size_t _datasz, int* out_status)
+int genc_vector_popb(struct genc_vector* v)
 {
-    GENC_SET_OUT(out_status, 0);
-
-    if(v == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    GENC_NOT_NULL(v);
 
     if(v->size == 0)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_OUT_OF_BOUNDS);
-        return;
-    }
+        return GENC_ERR_NO_DATA;
 
-    int _status;
-    genc_vector_rm_at(v, v->size - 1, _datasz, &_status);
+    (v->size)--;
 
-    switch(_status)
-    {
-        case 0:
-            return;
-        default:
-            GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-            return;
-    }
+    return 0;
 }
 
-void genc_vector_rm(struct genc_vector* v, const void* _data,
-                    genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
+int genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
+                      double _growf)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(v);
+    GENC_NOT_NULL(_data);
 
-    if((v == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    int err = genc_vector_ins(v, _data, v->size, _datasz, _growf);
 
-    int _status;
-
-    size_t pos = genc_vector_find(v, _data, _cmp_fn, _datasz, &_status);
-    if(_status != 0)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-        return;
-    }
-
-    if(pos == SIZE_MAX)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_NO_DATA);
-        return;
-    }
-
-    genc_vector_rm_at(v, pos, _datasz, &_status);
-
-    switch(_status)
+    switch(err)
     {
         case 0:
-            return;
-        default:
-            GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-            return;
-    }
-}
-
-void genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
-                       double _growf, int* out_status)
-{
-    GENC_SET_OUT(out_status, 0);
-
-    if((v == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-
-    int _status;
-    genc_vector_ins(v, _data, v->size, _datasz, _growf, &_status);
-
-    switch(_status)
-    {
-        case 0:
-            return;
+            return 0;
         case GENC_ERR_ALLOC_FAIL:
-            GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-            return;
+            return GENC_ERR_ALLOC_FAIL;
         default:
-            GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-            return;
+            return GENC_ERR_UNEXPECTED;
     }
+
+    return 0;
 }
 
-bool genc_vector_exists(const struct genc_vector* v, const void* _data,
-                        genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
-{
-    GENC_SET_OUT(out_status, 0);
-
-    if((v == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return false;
-    }
-
-    int _status;
-    size_t pos = genc_vector_find(v, _data, _cmp_fn, _datasz, &_status);
-
-    switch(_status)
-    {
-        case 0:
-            return (pos != SIZE_MAX);
-        default:
-            GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-            return false;
-    }
-}
-
-/* ---------------------------------------------------------------- */
+/* ========================================================================== */
 /* LIST */
-/* ---------------------------------------------------------------- */
+/* ========================================================================== */
 
 static struct genc_list_node* 
-_genc_list_node_create(const void* data, size_t data_size)
+genc__list_node_create(const void* data, size_t data_size)
 {
     size_t node_size = sizeof(struct genc_list_node);
     struct genc_list_node* node = (struct genc_list_node*)malloc(node_size);
@@ -1086,55 +906,27 @@ _genc_list_node_create(const void* data, size_t data_size)
     return node;
 }
 
-void genc_list_init(struct genc_list* list, int* out_status)
+int genc_list_deinit(struct genc_list* list)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(list);
 
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    genc_list_empty(list);
 
     list->size = 0;
     list->head = NULL;
     list->tail = NULL;
+
+    return 0;
 }
 
-void genc_list_deinit(struct genc_list* list, int* out_status)
+int genc_list_pushb(struct genc_list* list, const void* _data, size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(list);
+    GENC_NOT_NULL(_data);
 
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-
-    while(list->size > 0) genc_list_popf(list, NULL);
-
-    list->size = 0;
-    list->head = NULL;
-    list->tail = NULL;
-}
-
-void genc_list_pushb(struct genc_list* list, const void* _data,
-                     size_t _datasz, int* out_status)
-{
-    GENC_SET_OUT(out_status, 0);
-
-    if((list == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-
-    struct genc_list_node* node = _genc_list_node_create(_data, _datasz);
+    struct genc_list_node* node = genc__list_node_create(_data, _datasz);
     if(node == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-        return;
-    }
+        return GENC_ERR_ALLOC_FAIL;
 
     if(list->size == 0)
     {
@@ -1150,25 +942,18 @@ void genc_list_pushb(struct genc_list* list, const void* _data,
     }
 
     ++(list->size);
+
+    return 0;
 }
 
-void genc_list_pushf(struct genc_list* list, const void* _data,
-                     size_t _datasz, int* out_status)
+int genc_list_pushf(struct genc_list* list, const void* _data, size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(list);
+    GENC_NOT_NULL(_data);
 
-    if((list == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-
-    struct genc_list_node* node = _genc_list_node_create(_data, _datasz);
+    struct genc_list_node* node = genc__list_node_create(_data, _datasz);
     if(node == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-        return;
-    }
+        return GENC_ERR_ALLOC_FAIL;
 
     if(list->size == 0)
     {
@@ -1184,22 +969,16 @@ void genc_list_pushf(struct genc_list* list, const void* _data,
     }
 
     ++(list->size);
+
+    return 0;
 }
 
-void genc_list_popf(struct genc_list* list, int* out_status)
+int genc_list_popf(struct genc_list* list)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(list);
 
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
     if(list->size == 0)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_NO_DATA);
-        return;
-    }
+        return GENC_ERR_NO_DATA;
 
     if(list->size == 1)
     {
@@ -1220,22 +999,16 @@ void genc_list_popf(struct genc_list* list, int* out_status)
     }
 
     --(list->size);
+
+    return 0;
 }
 
-void genc_list_popb(struct genc_list* list, int* out_status)
+int genc_list_popb(struct genc_list* list)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(list);
 
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
     if(list->size == 0)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_NO_DATA);
-        return;
-    }
+        return GENC_ERR_NO_DATA;
 
     if(list->size == 1)
     {
@@ -1255,23 +1028,25 @@ void genc_list_popb(struct genc_list* list, int* out_status)
     }
 
     --(list->size);
+
+    return 0;
+}
+
+int genc_list_empty(struct genc_list* list)
+{
+    GENC_NOT_NULL(list); 
+
+    while(list->size > 0)
+        genc_list_popf(list);
+
+    return 0;
 }
 
 struct genc_list_node*
-genc_list_at(const struct genc_list* list, size_t pos, int* out_status)
+genc_list_at(const struct genc_list* list, size_t pos)
 {
-    GENC_SET_OUT(out_status, 0);
-
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return NULL;
-    }
-    if(pos >= list->size)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_OUT_OF_BOUNDS);
-        return NULL;
-    }
+    if(!list) return NULL;
+    if(pos >= list->size) return NULL;
 
     struct genc_list_node* it_node;
     size_t i;
@@ -1291,80 +1066,36 @@ genc_list_at(const struct genc_list* list, size_t pos, int* out_status)
     return it_node;
 }
 
-struct genc_list_node* 
-genc_list_find(const struct genc_list* list, const void* _data,
-               genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
+int genc_list_ins_after_node(struct genc_list* list, const void* _data,
+                             struct genc_list_node* node, size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
-
-    if((list == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return NULL;
-    }
-
-    struct genc_list_node* it_node = list->head;
-
-    if(_cmp_fn != NULL)
-    {
-        while(it_node != NULL)
-        {
-            if(_cmp_fn(it_node->data, _data) == 0) return it_node;
-            it_node = it_node->next;
-        }
-    }
-    else
-    {
-        while(it_node != NULL)
-        {
-            if(memcmp(it_node->data, _data, _datasz) == 0) return it_node;
-            it_node = it_node->next;
-        }
-    }
-
-    return NULL;
-}
-
-void genc_list_ins_after_node(struct genc_list* list, const void* _data,
-                              struct genc_list_node* node, size_t _datasz,
-                              int* out_status)
-{
-    GENC_SET_OUT(out_status, 0);
-
-    if((list == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    GENC_NOT_NULL(list);
+    GENC_NOT_NULL(_data);
 
     if((node == NULL) || (node == list->tail))
     {
-        int _status;
+        int err;
 
         if(node == NULL)
-            genc_list_pushf(list, _data, _datasz, &_status);
+            err = genc_list_pushf(list, _data, _datasz);
         else if(node == list->tail)
-            genc_list_pushb(list, _data, _datasz, &_status);
+            err = genc_list_pushb(list, _data, _datasz);
 
-        switch(_status)
+        switch(err)
         {
-            case 0: return;
+            case 0: 
+                return 0;
             case GENC_ERR_ALLOC_FAIL:
-                GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-                return;
+                return GENC_ERR_ALLOC_FAIL;
             default:
-                GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-                return;
+                return GENC_ERR_UNEXPECTED;
         }
     }
     else
     {
-        struct genc_list_node* new_node = _genc_list_node_create(_data, _datasz);
+        struct genc_list_node* new_node = genc__list_node_create(_data, _datasz);
         if(new_node == NULL)
-        {
-            GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-            return;
-        }
+            return GENC_ERR_ALLOC_FAIL;
 
         struct genc_list_node* next = node->next;
 
@@ -1376,64 +1107,51 @@ void genc_list_ins_after_node(struct genc_list* list, const void* _data,
         next->prev = new_node;
 
         ++(list->size);
+
+        return 0;
     }
 }
 
-void genc_list_ins_before_node(struct genc_list* list, const void* _data,
-                               struct genc_list_node* node, size_t _datasz,
-                               int* out_status)
+int genc_list_ins_before_node(struct genc_list* list, const void* _data,
+                              struct genc_list_node* node, size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(list);
+    GENC_NOT_NULL(node);
+    GENC_NOT_NULL(_data);
 
-    if((list == NULL) || (_data == NULL) || (_datasz == 0) || (node == NULL))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    int err = genc_list_ins_after_node(list, _data, node->prev, _datasz);
 
-    int _status;
-    genc_list_ins_after_node(list, _data, node->prev, _datasz, &_status);
-
-    switch(_status)
+    switch(err)
     {
         case 0:
-            return;
+            return 0;
         case GENC_ERR_ALLOC_FAIL:
-            GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-            return;
+            return GENC_ERR_ALLOC_FAIL;
         default:
-            GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-            return;
+            return GENC_ERR_UNEXPECTED;
     }
 }
 
-void genc_list_rm_node(struct genc_list* list, struct genc_list_node* node,
-                       int* out_status)
+int genc_list_rm_node(struct genc_list* list, struct genc_list_node* node)
 {
-    GENC_SET_OUT(out_status, 0);
-
-    if((list == NULL) || (node == NULL))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    GENC_NOT_NULL(list);
+    GENC_NOT_NULL(node);
 
     if((node == list->head) || (node == list->tail))
     {
-        int _status;
+        int err;
 
         if(node == list->head)
-            genc_list_popf(list, &_status);
+            err = genc_list_popf(list);
         else if(node == list->tail)
-            genc_list_popb(list, &_status);
+            err = genc_list_popb(list);
 
-        switch(_status)
+        switch(err)
         {
             case 0:
-                return;
+                return 0;
             default:
-                GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-                return;
+                return GENC_ERR_UNEXPECTED;
         }
     }
     else
@@ -1448,114 +1166,63 @@ void genc_list_rm_node(struct genc_list* list, struct genc_list_node* node,
         free(node);
 
         --(list->size);
+
+        return 0;
     }
 }
 
-void genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
-                      size_t _datasz, int* out_status)
+int genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
+                     size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
-
-    if((list == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    GENC_NOT_NULL(list);
+    GENC_NOT_NULL(_data);
 
     if(pos > list->size)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_OUT_OF_BOUNDS);
-        return;
-    }
+        return GENC_ERR_OUT_OF_BOUNDS;
 
-    int _status;
+    int err;
 
     if(pos == list->size)
     {
-        genc_list_pushb(list, _data, _datasz, &_status);
-        switch(_status)
+        err = genc_list_pushb(list, _data, _datasz);
+        switch(err)
         {
             case 0:
-                return;
+                return 0;
             case GENC_ERR_ALLOC_FAIL:
-                GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-                return;
+                return GENC_ERR_ALLOC_FAIL;
             default:
-                GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-                return;
+                return GENC_ERR_UNEXPECTED;
         }
     }
     else
     {
-        struct genc_list_node* node = genc_list_at(list, pos, &_status);
+        struct genc_list_node* node = genc_list_at(list, pos);
         if(node == NULL)
-        {
-            GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-            return;
-        }
+            return GENC_ERR_UNEXPECTED;
 
-        genc_list_ins_before_node(list, _data, node, _datasz, &_status);
-        switch(_status)
+        err = genc_list_ins_before_node(list, _data, node, _datasz);
+        switch(err)
         {
             case 0:
-                return;
+                return 0;
             case GENC_ERR_ALLOC_FAIL:
-                GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-                return;
+                return GENC_ERR_ALLOC_FAIL;
             default:
-                GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-                return;
+                return GENC_ERR_UNEXPECTED;
         }
     }
 }
 
-void genc_list_rm(struct genc_list* list, const void* _data, genc_cmp_fn _cmp_fn,
-                  size_t _datasz, int* out_status)
+/* ========================================================================== */
+/* FWD LIST */
+/* ========================================================================== */
+
+static struct genc_fwd_list_node*
+genc__fwd_list_node_create(const void* data, size_t data_size)
 {
-    GENC_SET_OUT(out_status, 0);
-
-    if((list == NULL) || (_data == NULL) || (_datasz == 0))
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-
-    int _status;
-
-    struct genc_list_node* node;
-    node = genc_list_find(list, _data, _cmp_fn, _datasz, &_status);
-
-    if(_status != 0)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-        return;
-    }
-
-    if(node == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_NO_DATA);
-        return;
-    }
-
-    genc_list_rm_node(list, node, &_status);
-    if(_status != 0) GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-}
-
-bool genc_list_exists(const struct genc_list* list, const void* _data,
-                      genc_cmp_fn _cmp_fn, size_t _datasz, int* out_status)
-{
-    return (genc_list_find(list, _data, _cmp_fn, _datasz, out_status) != NULL);
-}
-
-/* -------------------------------------------------------------------------- */
-/* SIMPLE LIST */
-/* -------------------------------------------------------------------------- */
-
-static struct genc_simple_list_node*
-_genc_simple_list_node_create(const void* data, size_t data_size)
-{
-    size_t node_size = sizeof(struct genc_simple_list_node);
-    struct genc_simple_list_node* node = (struct genc_simple_list_node*)
+    size_t node_size = sizeof(struct genc_fwd_list_node);
+    struct genc_fwd_list_node* node = (struct genc_fwd_list_node*)
         malloc(node_size);
 
     if(node == NULL) return NULL;
@@ -1573,67 +1240,29 @@ _genc_simple_list_node_create(const void* data, size_t data_size)
     return node;
 }
 
-void genc_simple_list_init(struct genc_simple_list* list, int* out_status)
+int genc_fwd_list_deinit(struct genc_fwd_list* list)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(list);
     
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    genc_fwd_list_empty(list);
 
     list->size = 0;
     list->head = NULL;
     list->tail = NULL;
+
+    return 0;
 }
 
-void genc_simple_list_deinit(struct genc_simple_list* list, int* out_status)
+int genc_fwd_list_pushb(struct genc_fwd_list* list, const void* _data,
+                        size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
-    
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-    
-    int _status;
-    
-    while(list->size > 0)
-    {
-        genc_simple_list_popf(list, &_status);
+    GENC_NOT_NULL(list);
+    GENC_NOT_NULL(_data);
 
-        if(_status != 0)
-        {
-            GENC_SET_OUT(out_status, GENC_ERR_UNEXPECTED);
-            return;
-        }
-    }
-
-    list->size = 0;
-    list->head = NULL;
-    list->tail = NULL;
-}
-
-void genc_simple_list_pushb(struct genc_simple_list* list, const void* _data,
-                            size_t _datasz, int* out_status)
-{
-    GENC_SET_OUT(out_status, 0);
-    
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-    
-    struct genc_simple_list_node* new_node = _genc_simple_list_node_create(
-            _data, _datasz);
+    struct genc_fwd_list_node* new_node;  
+    new_node = genc__fwd_list_node_create(_data, _datasz);
     if(new_node == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-        return;
-    }
+        return GENC_ERR_ALLOC_FAIL;
 
     if(list->size == 0)
     {
@@ -1647,27 +1276,20 @@ void genc_simple_list_pushb(struct genc_simple_list* list, const void* _data,
     }
 
     ++(list->size);
+
+    return 0;
 }
 
-void genc_simple_list_pushf(struct genc_simple_list* list, const void* _data,
-                            size_t _datasz, int* out_status)
+int genc_fwd_list_pushf(struct genc_fwd_list* list, const void* _data,
+                        size_t _datasz)
 {
-    GENC_SET_OUT(out_status, 0);
+    GENC_NOT_NULL(list);
+    GENC_NOT_NULL(_data);
     
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
-
-    struct genc_simple_list_node*
-    new_node = _genc_simple_list_node_create(_data, _datasz);
-
+    struct genc_fwd_list_node*
+    new_node = genc__fwd_list_node_create(_data, _datasz);
     if(new_node == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_ALLOC_FAIL);
-        return;
-    }
+        return GENC_ERR_ALLOC_FAIL;
 
     if(list->size == 0)
     {
@@ -1681,23 +1303,16 @@ void genc_simple_list_pushf(struct genc_simple_list* list, const void* _data,
     }
 
     ++(list->size);
+
+    return 0;
 }
 
-void genc_simple_list_popf(struct genc_simple_list* list, int* out_status)
+int genc_fwd_list_popf(struct genc_fwd_list* list)
 {
-    GENC_SET_OUT(out_status, 0);
-    
-    if(list == NULL)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_INVALID_ARG);
-        return;
-    }
+    GENC_NOT_NULL(list);
     
     if(list->size == 0)
-    {
-        GENC_SET_OUT(out_status, GENC_ERR_NO_DATA);
-        return;
-    }
+        return GENC_ERR_NO_DATA;
 
     if(list->size == 1)
     {
@@ -1708,7 +1323,7 @@ void genc_simple_list_popf(struct genc_simple_list* list, int* out_status)
     }
     else
     {
-        struct genc_simple_list_node* old_head = list->head;
+        struct genc_fwd_list_node* old_head = list->head;
 
         list->head = list->head->next;
 
@@ -1717,12 +1332,18 @@ void genc_simple_list_popf(struct genc_simple_list* list, int* out_status)
     }
 
     --(list->size);
+
+    return 0;
 }
 
-/* -------------------------------------------------------------------------- */
+int genc_fwd_list_empty(struct genc_fwd_list* list)
+{
+    GENC_NOT_NULL(list);
 
-/* PRIVATE END */
+    while(list->size > 0)
+        genc_fwd_list_popf(list);
 
-/* -------------------------------------------------------------------------- */
+    return 0;
+}
 
-#endif // GENC_IMPLEMENTATION
+#endif // GENC_IMPLEMENTATION && !GENC_IMPLEMENTATION_INCLUDED

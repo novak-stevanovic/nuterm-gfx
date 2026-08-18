@@ -48,10 +48,10 @@ enum ntg_focus_scope_mouse_flag
 
 struct ntg_focus_scope_opts
 {
-    ntg_focus_scope_input_mode input_mode;
-    ntg_focus_scope_out_click_mode out_click_mode;
-    ntg_focus_scope_block_mode block_mode;
-    ntg_focus_scope_keybind_mode keybind_mode;
+    enum ntg_focus_scope_input_mode input_mode;
+    enum ntg_focus_scope_out_click_mode out_click_mode;
+    enum ntg_focus_scope_block_mode block_mode;
+    enum ntg_focus_scope_keybind_mode keybind_mode;
 
     /* Indexing is done using nt_mouse_event_type enum */
     uint8_t mouse_flags[5];

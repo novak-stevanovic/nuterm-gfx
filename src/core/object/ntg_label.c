@@ -139,8 +139,8 @@ struct ntg_str_view ntg_label_get_text(const struct ntg_label* label)
     else
     {
         return (struct ntg_str_view) {
-            .data = (ntg_txt(label))->_text.data,
-            .len = (ntg_txt(label))->_text.len,
+            .data = (ntg_txt(label))->_text,
+            .len = (ntg_txt(label))->_text_len,
         };
     }
 }
@@ -218,7 +218,7 @@ struct ntg_object_measure
 ntg_label_measure_fn(
         const ntg_object* _label,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
         int* out_status)
@@ -270,7 +270,12 @@ const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT = {
 void ntg_label_post_draw_fn(
         const ntg_text* _label,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena) {}
+        sarena* arena)
+{
+    (void)_label;
+    (void)out_drawing;
+    (void)arena;
+}
 
 const struct ntg_text_vtable NTG_LABEL_VTABLE_TEXT = {
     .post_draw_fn = ntg_label_post_draw_fn,

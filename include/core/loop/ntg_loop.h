@@ -72,7 +72,7 @@ ntg_loop_init(
 NTG_API void
 ntg_loop_deinit(int* out_status);
 
-NTG_API ntg_loop_state
+NTG_API enum ntg_loop_state
 ntg_loop_get_state(void);
 
 NTG_API bool

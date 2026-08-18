@@ -107,7 +107,7 @@ void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
-const struct ntg_object_vec* ntg_box_get_children(const ntg_box* box)
+const struct ntg_objptr_vec* ntg_box_get_children(const ntg_box* box)
 {
     if(!box) return NULL;
 
@@ -203,28 +203,29 @@ void ntg_box_init_inherit(
 struct ntg_object_measure ntg_box_measure_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
         int* out_status)
 {
     (void)layout_dt;
+    (void)arena;
     (void)relayout;
     ntg_init_status(out_status);
 
     const ntg_box* box = (const ntg_box*)_box;
-    const ntg_object_vec* children = ntg_box_get_children(box);
+    const ntg_objptr_vec* children = ntg_box_get_children(box);
 
-    if(children->size == 0) return (struct ntg_object_measure) {0};
+    if(ntg_objptr_vec_size(children) == 0) return (struct ntg_object_measure) {0};
 
     size_t min_size = 0, nat_size = 0, max_size = 0;
 
     size_t i;
     struct ntg_object_measure it_measure;
     const ntg_object* it_child;
-    for(i = 0; i < children->size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(children); i++)
     {
-        it_child = children->data[i];
+        it_child = ntg_objptr_vec_data(children)[i];
         it_measure = ntg_object_get_measure(it_child, orient);
 
         
@@ -245,7 +246,7 @@ struct ntg_object_measure ntg_box_measure_fn(
         }
     }
 
-    size_t spacing = calculate_total_spacing(box->_opts.spacing, children->size);
+    size_t spacing = calculate_total_spacing(box->_opts.spacing, ntg_objptr_vec_size(children));
 
      struct ntg_object_measure measure = {
         .min_size = min_size,
@@ -260,21 +261,22 @@ struct ntg_object_measure ntg_box_measure_fn(
 void ntg_box_constrain_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
         uint32_t* relayout,
         int* out_status)
 {
     (void)layout_dt;
+    (void)arena;
     (void)relayout;
     ntg_init_status(out_status);
 
     const ntg_box* box = (const ntg_box*)_box;
-    const ntg_object_vec* children = ntg_box_get_children(box);
+    const ntg_objptr_vec* children = ntg_box_get_children(box);
     size_t size = ntg_object_get_size_1d_cont(_box, orient);
 
-    if(children->size == 0) return;
+    if(ntg_objptr_vec_size(children) == 0) return;
     if(size == 0)
     {
         ntg_object_zero_constrain(_box, out_size_map);
@@ -288,7 +290,7 @@ void ntg_box_constrain_fn(
     size_t nat_size = cont_measure.nat_size;
 
     size_t extra_size;
-    size_t array_size = children->size * sizeof(size_t);
+    size_t array_size = ntg_objptr_vec_size(children) * sizeof(size_t);
     size_t* caps = (size_t*)sarena_malloc(arena, array_size);
     if(!caps)
         ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
@@ -309,9 +311,9 @@ void ntg_box_constrain_fn(
                 ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
             extra_size = size - nat_size; 
 
-            for(i = 0; i < children->size; i++)
+            for(i = 0; i < ntg_objptr_vec_size(children); i++)
             {
-                it_child = children->data[i];
+                it_child = ntg_objptr_vec_data(children)[i];
                 it_measure = ntg_object_get_measure(it_child, orient);
 
                 caps[i] = it_measure.max_size;
@@ -323,12 +325,12 @@ void ntg_box_constrain_fn(
         {
             if(size >= min_size) 
             {
-                size_t pref_spacing = calculate_total_spacing(box->_opts.spacing, children->size);
+                size_t pref_spacing = calculate_total_spacing(box->_opts.spacing, ntg_objptr_vec_size(children));
                 extra_size = _sub2_size(size - min_size, pref_spacing);
 
-                for(i = 0; i < children->size; i++)
+                for(i = 0; i < ntg_objptr_vec_size(children); i++)
                 {
-                    it_child = children->data[i];
+                    it_child = ntg_objptr_vec_data(children)[i];
                     it_measure = ntg_object_get_measure(it_child, orient);
 
                     caps[i] = it_measure.nat_size;
@@ -339,9 +341,9 @@ void ntg_box_constrain_fn(
             {
                 extra_size = size;
 
-                for(i = 0; i < children->size; i++)
+                for(i = 0; i < ntg_objptr_vec_size(children); i++)
                 {
-                    it_child = children->data[i];
+                    it_child = ntg_objptr_vec_data(children)[i];
                     it_measure = ntg_object_get_measure(it_child, orient);
 
                     caps[i] = it_measure.min_size;
@@ -350,13 +352,13 @@ void ntg_box_constrain_fn(
             }
         }
 
-        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, children->size, arena, &_status);
+        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, ntg_objptr_vec_size(children), arena, &_status);
         if(_status != 0)
             ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
 
-        for(i = 0; i < children->size; i++)
+        for(i = 0; i < ntg_objptr_vec_size(children); i++)
         {
-            it_child = children->data[i];
+            it_child = ntg_objptr_vec_data(children)[i];
 
             ntg_object_size_map_set(out_size_map, it_child, _sizes[i]);
         }
@@ -365,9 +367,9 @@ void ntg_box_constrain_fn(
     {
         size_t it_size;
 
-        for(i = 0; i < children->size; i++)
+        for(i = 0; i < ntg_objptr_vec_size(children); i++)
         {
-            it_child = children->data[i];
+            it_child = ntg_objptr_vec_data(children)[i];
             it_measure = ntg_object_get_measure(it_child, orient);
 
             it_size =_min2_size(size,
@@ -390,14 +392,15 @@ void ntg_box_arrange_fn(
         int* out_status)
 {
     (void)layout_dt;
+    (void)arena;
     (void)relayout;
     ntg_init_status(out_status);
 
     const ntg_box* box = (const ntg_box*)_box;
-    const ntg_object_vec* children = ntg_box_get_children(box);
+    const ntg_objptr_vec* children = ntg_box_get_children(box);
     struct ntg_xy size = ntg_object_get_size_cont(_box);
 
-    if(children->size == 0) return;
+    if(ntg_objptr_vec_size(children) == 0) return;
     if(ntg_xy_size_is_zero(size))
     {
         ntg_object_zero_arrange(_box, out_pos_map);
@@ -406,9 +409,9 @@ void ntg_box_arrange_fn(
 
     int _status;
     
-    ntg_orient orient = box->_opts.orient;
-    ntg_align prim_align = box->_opts.prim_align;
-    ntg_align sec_align = box->_opts.sec_align;
+    enum ntg_orient orient = box->_opts.orient;
+    enum ntg_align prim_align = box->_opts.prim_align;
+    enum ntg_align sec_align = box->_opts.sec_align;
 
     size_t i;
     const ntg_object* it_child;
@@ -417,9 +420,9 @@ void ntg_box_arrange_fn(
     
     struct ntg_oxy _size = ntg_oxy_from_xy(size, orient);
     struct ntg_oxy _children_size = ntg_oxy(0, 0, orient);
-    for(i = 0; i < children->size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(children); i++)
     {
-        it_child = children->data[i];
+        it_child = ntg_objptr_vec_data(children)[i];
 
         it_size = it_child->_size;
         _it_size = ntg_oxy_from_xy(it_size, orient);
@@ -428,16 +431,16 @@ void ntg_box_arrange_fn(
         _children_size.sec_val = _max2_size(_children_size.sec_val, _it_size.sec_val);
     }
     
-    size_t pref_spacing = calculate_total_spacing(box->_opts.spacing, children->size);
+    size_t pref_spacing = calculate_total_spacing(box->_opts.spacing, ntg_objptr_vec_size(children));
     size_t total_spacing = _min2_size(pref_spacing, _size.prim_val - _children_size.prim_val);
 
     
-    size_t array_size = children->size * sizeof(size_t);
+    size_t array_size = ntg_objptr_vec_size(children) * sizeof(size_t);
 
     size_t* spacing_caps = (size_t*)sarena_malloc(arena, array_size);
     if(!spacing_caps)
         ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
-    for(i = 0; i < (children->size - 1); i++)
+    for(i = 0; i < (ntg_objptr_vec_size(children) - 1); i++)
         spacing_caps[i] = NTG_SIZE_MAX;
 
     size_t* _spacing_after = (size_t*)sarena_calloc(arena, array_size);
@@ -445,7 +448,7 @@ void ntg_box_arrange_fn(
         ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
 
     ntg_sap_cap_round_robin(spacing_caps, NULL, _spacing_after,
-            total_spacing, children->size - 1, arena, &_status);
+            total_spacing, ntg_objptr_vec_size(children) - 1, arena, &_status);
     if(_status != 0)
         ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
     
@@ -460,9 +463,9 @@ void ntg_box_arrange_fn(
 
     struct ntg_oxy _it_extra_offset = ntg_oxy(0, 0, orient);
     struct ntg_xy it_pos;
-    for(i = 0; i < children->size; i++)
+    for(i = 0; i < ntg_objptr_vec_size(children); i++)
     {
-        it_child = children->data[i];
+        it_child = ntg_objptr_vec_data(children)[i];
 
         it_size = it_child->_size;
         _it_size = ntg_oxy_from_xy(it_size, orient);
@@ -487,6 +490,8 @@ void ntg_box_arrange_fn(
 
 void ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child)
 {
+    (void)child;
+
     ntg_box* box = (ntg_box*)_box;
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);

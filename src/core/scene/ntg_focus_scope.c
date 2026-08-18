@@ -51,7 +51,7 @@ struct ntg_focus_scope_opts ntg_focus_scope_opts_default(void)
     opts.mouse_flags[NT_MOUSE_CLICK_MIDDLE] ^= NTG_FOCUS_SCOPE_MOUSE_CAN_UNFOCUS;
 
     return opts;
-};
+}
 
 struct ntg_focus_scope_keybind ntg_focus_scope_keybind_new(struct nt_key_event key)
 {
@@ -61,22 +61,22 @@ struct ntg_focus_scope_keybind ntg_focus_scope_keybind_new(struct nt_key_event k
 const struct ntg_focus_scope_keybinds NTG_FOCUS_SCOPE_KEYBINDS_DEFAULT = {
     .cancel = {
         true,
-        (struct nt_key_event) {
+        {
             .type = NT_KEY_UTF32,
-            .utf32 = {
+            .data = { .utf32 = {
                 .alt = false,
                 .cp = 27
-            }
+            } }
         }
     },
     .left_click = {
         true,
-        (struct nt_key_event) {
+        {
             .type = NT_KEY_UTF32,
-            .utf32 = {
+            .data = { .utf32 = {
                 .alt = false,
                 .cp = 13 
-            }
+            } }
         }
     }
 };

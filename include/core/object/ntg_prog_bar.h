@@ -34,7 +34,7 @@ ntg_prog_bar_style_are_eql(
 struct ntg_prog_bar_opts
 {
     struct ntg_prog_bar_style style;
-    ntg_orient orient;
+    enum ntg_orient orient;
 };
 
 
@@ -144,7 +144,7 @@ NTG_API struct ntg_object_measure
 ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_orient orient,
+        enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
         int* out_status);
