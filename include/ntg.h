@@ -87,6 +87,12 @@ ntg_disable(void);
 
 /* TODO LIST
 
+FIX:
+more noticeable separators in big header files
+refactor names to follow ISO C (_ntg_foo => ntg__foo for private fns), (obj.__a => obj._a for private, obj._b => obj.ro_b for read-only ???)
+rethink hooks
+add layout_prepare vtable fn for text to set_text
+
 IMPLEMENT:
 ntg_input
 ntg_list
