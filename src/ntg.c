@@ -11,8 +11,6 @@
 #define SARENA_IMPLEMENTATION
 #include "thirdparty/sarena.h"
 
-#define GENC_IMPLEMENTATION
-#include "thirdparty/genc.h"
 
 /* ========================================================================== */
 /* PUBLIC */

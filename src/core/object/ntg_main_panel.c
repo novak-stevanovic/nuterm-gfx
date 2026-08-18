@@ -270,7 +270,7 @@ int ntg_main_panel_constrain_fn(
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
     size_t size = ntg_object_get_size_1d_cont(_panel, orient);
 
-    if(ntg_objptr_vec_size(&_panel->_children) == 0) return 0;
+    if(_panel->_children.size == 0) return 0;
     if(size == 0)
     {
         ntg_object_zero_constrain(_panel, out_size_map);
@@ -474,7 +474,7 @@ int ntg_main_panel_arrange_fn(
     ntg_object *north, *east, *south, *west, *center;
     get_children(main_panel, &north, &east, &south, &west, &center);
 
-    if(ntg_objptr_vec_size(&_panel->_children) == 0) return 0;
+    if(_panel->_children.size == 0) return 0;
     if(ntg_xy_size_is_zero(size))
     {
         ntg_object_zero_arrange(_panel, out_pos_map);

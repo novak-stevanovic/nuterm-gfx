@@ -494,15 +494,15 @@ void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root)
     _ntg_scene_add(scene, root);
 
     size_t i;
-    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
+    for(i = 0; i < root->_children.size; i++)
     {
-        ntg_object* child = ntg_objptr_vec_data(&root->_children)[i];
+        ntg_object* child = root->_children.data[i];
         _ntg_scene_add_object_tree(scene, child);
     }
 
-    for(i = 0; i < ntg_objptr_vec_size(&root->_anchored); i++)
+    for(i = 0; i < root->_anchored.size; i++)
     {
-        ntg_object* layer = ntg_objptr_vec_data(&root->_anchored)[i];
+        ntg_object* layer = root->_anchored.data[i];
         _ntg_scene_add_object_tree(scene, layer);
     }
 }
@@ -514,15 +514,15 @@ void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
     _ntg_scene_rm(scene, root);
 
     size_t i;
-    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
+    for(i = 0; i < root->_children.size; i++)
     {
-        ntg_object* child = ntg_objptr_vec_data(&root->_children)[i];
+        ntg_object* child = root->_children.data[i];
         _ntg_scene_rm_object_tree(scene, child);
     }
 
-    for(i = 0; i < ntg_objptr_vec_size(&root->_anchored); i++)
+    for(i = 0; i < root->_anchored.size; i++)
     {
-        ntg_object* layer = ntg_objptr_vec_data(&root->_anchored)[i];
+        ntg_object* layer = root->_anchored.data[i];
         _ntg_scene_rm_object_tree(scene, layer);
     }
 }
@@ -534,15 +534,15 @@ void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
     _ntg_scene_register(scene, root);
 
     size_t i;
-    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
+    for(i = 0; i < root->_children.size; i++)
     {
-        ntg_object* child = ntg_objptr_vec_data(&root->_children)[i];
+        ntg_object* child = root->_children.data[i];
         _ntg_scene_register_tree(scene, child);
     }
 
-    for(i = 0; i < ntg_objptr_vec_size(&root->_anchored); i++)
+    for(i = 0; i < root->_anchored.size; i++)
     {
-        ntg_object* layer = ntg_objptr_vec_data(&root->_anchored)[i];
+        ntg_object* layer = root->_anchored.data[i];
         _ntg_scene_register_tree(scene, layer);
     }
 }
@@ -554,15 +554,15 @@ void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
     _ntg_scene_unregister(scene, root);
 
     size_t i;
-    for(i = 0; i < ntg_objptr_vec_size(&root->_children); i++)
+    for(i = 0; i < root->_children.size; i++)
     {
-        ntg_object* child = ntg_objptr_vec_data(&root->_children)[i];
+        ntg_object* child = root->_children.data[i];
         _ntg_scene_unregister_tree(scene, child);
     }
 
-    for(i = 0; i < ntg_objptr_vec_size(&root->_anchored); i++)
+    for(i = 0; i < root->_anchored.size; i++)
     {
-        ntg_object* layer = ntg_objptr_vec_data(&root->_anchored)[i];
+        ntg_object* layer = root->_anchored.data[i];
         _ntg_scene_unregister_tree(scene, layer);
     }
 }
@@ -626,15 +626,15 @@ static void collect_layers_by_z_internal(
         (*counter)++;
     }
     
-    for(i = 0; i < ntg_objptr_vec_size(anchored); i++)
+    for(i = 0; i < anchored->size; i++)
     {
-        collect_layers_by_z_internal(scene, ntg_objptr_vec_data(anchored)[i],
+        collect_layers_by_z_internal(scene, anchored->data[i],
             out_layers, counter, cap);
     }
 
-    for(i = 0; i < ntg_objptr_vec_size(children); i++)
+    for(i = 0; i < children->size; i++)
     {
-        collect_layers_by_z_internal(scene, ntg_objptr_vec_data(children)[i],
+        collect_layers_by_z_internal(scene, children->data[i],
                 out_layers, counter, cap);
     }
 }

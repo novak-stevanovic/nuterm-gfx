@@ -10,7 +10,7 @@
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 
-GENC_VECTOR_GENERATE(ntg_event_binding_vec, ntg_event_binding*, 1.3)
+GENC_VECTOR_INLINE(ntg_event_binding_vec, ntg_event_binding*, 1.3)
 
 static int
 ntg_event_binding_vec_rm_value(
@@ -20,8 +20,8 @@ ntg_event_binding_vec_rm_value(
     if(!vec)
         return GENC_ERR_INV_ARG;
 
-    ntg_event_binding** data = ntg_event_binding_vec_data(vec);
-    size_t size = ntg_event_binding_vec_size(vec);
+    ntg_event_binding** data = vec->data;
+    size_t size = vec->size;
 
     size_t i;
     for(i = 0; i < size; i++)
@@ -76,9 +76,9 @@ void ntg_event_delegate_destroy(ntg_event_delegate* delegate)
         return;
 
     size_t i;
-    for(i = 0; i < ntg_event_binding_vec_size(&delegate->bindings); i++)
+    for(i = 0; i < delegate->bindings.size; i++)
     {
-        ntg_event_binding_vec_data(&delegate->bindings)[i]->delegate = NULL;
+        delegate->bindings.data[i]->delegate = NULL;
     }
 
     (void)ntg_event_binding_vec_deinit(&delegate->bindings);
@@ -114,6 +114,8 @@ int ntg_event_bind(
         {
             case GENC_ERR_ALLOC_FAIL:
                 return NTG_ERR_ALLOC_FAIL;
+            case GENC_ERR_OVERFLOW:
+                return NTG_ERR_OVERFLOW;
 
             default:
                 return NTG_ERR_UNEXPECTED;
@@ -131,9 +133,9 @@ void ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
     
     size_t i;
     ntg_event_binding* it_binding;
-    for(i = 0; i < ntg_event_binding_vec_size(&delegate->bindings); i++)
+    for(i = 0; i < delegate->bindings.size; i++)
     {
-        it_binding = ntg_event_binding_vec_data(&delegate->bindings)[i];
+        it_binding = delegate->bindings.data[i];
         it_binding->handler_fn(it_binding->subscriber, event);
     }
 }
@@ -145,7 +147,8 @@ void ntg_event_unbind(ntg_event_binding* binding)
 
     if(binding->delegate)
     {
-        (void)ntg_event_binding_vec_rm_value(&binding->delegate->bindings, binding);
+        (void)ntg_event_binding_vec_rm_value(
+                &binding->delegate->bindings, binding);
     }
 
     free(binding);

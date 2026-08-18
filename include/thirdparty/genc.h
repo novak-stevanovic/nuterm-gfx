@@ -1,84 +1,74 @@
 /*
-
-MIT License
-
-Copyright (c) 2025 Novak Stevanović
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the “Software”), to deal
-in the Software without restriction, including without limitation the rights  a
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
-copies of the Software, and to permit persons to whom the Software is  
-furnished to do so, subject to the following conditions:  
-
-The above copyright notice and this permission notice shall be included in all  
-copies or substantial portions of the Software.  
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN  
-THE SOFTWARE.  
-
-*/
+ * MIT License
+ *
+ * Copyright (c) 2025 Novak Stevanović
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
-/* HEADER - PUBLIC */
+/* DEFINE */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
 #ifndef GENC_H
 #define GENC_H
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define GENC_ERR_BASE 1000
 #define GENC_ERR_INV_ARG (GENC_ERR_BASE + 1)
 #define GENC_ERR_ALLOC_FAIL (GENC_ERR_BASE + 2)
 #define GENC_ERR_OUT_OF_BOUNDS (GENC_ERR_BASE + 3)
 #define GENC_ERR_NO_DATA (GENC_ERR_BASE + 4)
+#define GENC_ERR_OVERFLOW (GENC_ERR_BASE + 5)
 #define GENC_ERR_UNEXPECTED (GENC_ERR_BASE + 100)
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* VECTOR */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/*
+/* GENC_VECTOR_DECLARE() and GENC_VECTOR_DEFINE() generate a type-safe dynamic
+ * vector API. GENC_VECTOR_INLINE() generates both with `static inline`.
+ *
+ * The generated structure must be zero-initialized before its first use. */
 
-* GENC_VECTOR_GENERATE(name, type, growf) generates a type-safe dynamic
-* vector API.
+/* ========================================================================== */
+/* VECTOR - PROTOTYPES */
+/* ========================================================================== */
 
-* The generated structure must be zero-initialized before its first use.
-
-|----------------------------------------------------------|
-| Types |
-|----------------------------------------------------------|
-
-* If the built-in operations satisfy your program's needs, then you may treat
-* the generated types as opaque.
-
-* However, if you wish to implement your own operations, you may have to modify
-* the underlying `genc_vector` directly.
+/* --------------------------------------------------------|
 
 struct <name>
 {
-    struct genc_vector _data;
+    <type>* data;
+    size_t size;
+    size_t cap;
 };
 
-|----------------------------------------------------------|
-| Accessors |
-|----------------------------------------------------------|
-
-<type>* <name>_data(const struct <name>* vec);
-size_t <name>_size(const struct <name>* vec);
-size_t <name>_cap(const struct <name>* vec);
-
-|----------------------------------------------------------|
-| Operations |
 |----------------------------------------------------------|
 
 * Deinitializes the vector and frees allocated memory.
@@ -99,6 +89,7 @@ int <name>_deinit(struct <name>* vec);
 * ERROR CODES:
 * GENC_ERR_INV_ARG: `vec` is NULL.
 * GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+* GENC_ERR_OVERFLOW: The required capacity cannot be represented.
 
 int <name>_pushb(struct <name>* vec, <type> data);
 
@@ -124,6 +115,7 @@ int <name>_popb(struct <name>* vec);
 * GENC_ERR_INV_ARG: `vec` is NULL.
 * GENC_ERR_OUT_OF_BOUNDS: `pos` is greater than the vector size.
 * GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+* GENC_ERR_OVERFLOW: The required capacity cannot be represented.
 
 int <name>_ins(struct <name>* vec, <type> data, size_t pos);
 
@@ -159,6 +151,7 @@ int <name>_empty(struct <name>* vec);
 * ERROR CODES:
 * GENC_ERR_INV_ARG: `vec` is NULL.
 * GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+* GENC_ERR_OVERFLOW: The vector size in bytes cannot be represented.
 
 int <name>_fit(struct <name>* vec);
 
@@ -171,145 +164,269 @@ int <name>_fit(struct <name>* vec);
 * ERROR CODES:
 * GENC_ERR_INV_ARG: `vec` is NULL.
 * GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+* GENC_ERR_OVERFLOW: The requested capacity cannot be represented.
 
 int <name>_prealloc(struct <name>* vec, size_t size);
 
-|----------------------------------------------------------|
+|-------------------------------------------------------- */
 
-*/
+/* ========================================================================== */
+/* VECTOR - GENERATOR MACROS */
+/* ========================================================================== */
 
 /* -------------------------------------------------------------------------- */
-/* VECTOR - GENERATOR MACRO */
+/* VECTOR - DECLARE */
 /* -------------------------------------------------------------------------- */
 
-#define GENC_VECTOR_GENERATE(name, type, growf)                                \
+#define GENC_VECTOR_DECLARE(NAME, TYPE, GROWF, FN_PREFIX)                      \
                                                                                \
-struct name                                                                    \
+struct NAME                                                                    \
 {                                                                              \
-    struct genc_vector _data;                                                  \
+    TYPE * data;                                                               \
+    size_t size;                                                               \
+    size_t cap;                                                                \
 };                                                                             \
                                                                                \
-static inline type *                                                           \
-name##_data(const struct name * v)                                             \
+FN_PREFIX int                                                                  \
+NAME##_deinit(struct NAME * v);                                                \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_ins(struct NAME * v, TYPE data, size_t pos);                            \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_rm_at(struct NAME * v, size_t pos);                                     \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_empty(struct NAME * v);                                                 \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_fit(struct NAME * v);                                                   \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_prealloc(struct NAME * v, size_t size);                                 \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popb(struct NAME * v);                                                  \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushb(struct NAME * v, TYPE data);                                      \
+
+/* -------------------------------------------------------------------------- */
+/* VECTOR - DEFINE */
+/* -------------------------------------------------------------------------- */
+
+#define GENC_VECTOR_DEFINE(NAME, TYPE, GROWF, FN_PREFIX)                       \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_deinit(struct NAME * v)                                                 \
 {                                                                              \
-    return (v ? (type *)(v->_data.data) : NULL);                               \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    free(v->data);                                                             \
+    v->data = NULL;                                                            \
+    v->size = 0;                                                               \
+    v->cap = 0;                                                                \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline size_t                                                           \
-name##_size(const struct name * v)                                             \
+FN_PREFIX int                                                                  \
+NAME##_ins(struct NAME * v, TYPE data, size_t pos)                             \
 {                                                                              \
-    return (v ? v->_data.size : 0);                                            \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if(pos > v->size) return GENC_ERR_OUT_OF_BOUNDS;                           \
+                                                                               \
+    if(v->size >= v->cap) /* grow */                                           \
+    {                                                                          \
+        /* Calculate new_cap */                                                \
+        size_t new_cap = v->size * GROWF;                                      \
+        if(new_cap <= v->cap)                                                  \
+        {                                                                      \
+            if(v->cap == SIZE_MAX) return GENC_ERR_OVERFLOW;                   \
+            new_cap = v->cap + 1;                                              \
+        }                                                                      \
+                                                                               \
+        if(new_cap > (SIZE_MAX / sizeof(TYPE)))                                \
+            return GENC_ERR_OVERFLOW;                                          \
+                                                                               \
+        void* new_data = realloc(v->data, new_cap * sizeof(TYPE));             \
+        if(new_data == NULL)                                                   \
+            return GENC_ERR_ALLOC_FAIL;                                        \
+                                                                               \
+        v->data = new_data;                                                    \
+        v->cap = new_cap;                                                      \
+    }                                                                          \
+                                                                               \
+    char* vector_data = (char*)v->data;                                        \
+                                                                               \
+    if(pos < v->size) /* make space */                                         \
+    {                                                                          \
+        memmove(vector_data + ((pos + 1) * sizeof(TYPE)),                      \
+                vector_data + (pos * sizeof(TYPE)),                            \
+                (v->size - pos) * sizeof(TYPE));                               \
+    }                                                                          \
+                                                                               \
+    v->data[pos] = data;                                                       \
+    ++(v->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline size_t                                                           \
-name##_cap(const struct name * v)                                              \
+FN_PREFIX int                                                                  \
+NAME##_rm_at(struct NAME * v, size_t pos)                                      \
 {                                                                              \
-    return (v ? v->_data.cap : 0);                                             \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if(pos >= v->size) return GENC_ERR_OUT_OF_BOUNDS;                          \
+                                                                               \
+    if(pos == (v->size - 1))                                                   \
+        return NAME##_popb(v);                                                 \
+                                                                               \
+    char* vector_data = (char*)v->data;                                        \
+                                                                               \
+    memmove(vector_data + (pos * sizeof(TYPE)),                                \
+            vector_data + ((pos + 1) * sizeof(TYPE)),                          \
+            (v->size - pos - 1) * sizeof(TYPE));                               \
+                                                                               \
+    --(v->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline int                                                              \
-name##_deinit(struct name * v)                                                 \
+FN_PREFIX int                                                                  \
+NAME##_empty(struct NAME * v)                                                  \
 {                                                                              \
-    return genc_vector_deinit((v ? &v->_data : NULL));                         \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    v->size = 0;                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline int                                                              \
-name##_ins(struct name * v, type data, size_t pos)                             \
+FN_PREFIX int                                                                  \
+NAME##_fit(struct NAME * v)                                                    \
 {                                                                              \
-    return genc_vector_ins(                                                    \
-            (v ? &v->_data : NULL),                                            \
-            (const void*)&data,                                                \
-            pos,                                                               \
-            sizeof( type ),                                                    \
-            growf);                                                            \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    if(v->size == v->cap) return 0;                                            \
+                                                                               \
+    if(v->size == 0)                                                           \
+    {                                                                          \
+        free(v->data);                                                         \
+        v->data = NULL;                                                        \
+        v->cap = 0;                                                            \
+        return 0;                                                              \
+    }                                                                          \
+                                                                               \
+    if(v->size > (SIZE_MAX / sizeof(TYPE)))                                    \
+        return GENC_ERR_OVERFLOW;                                              \
+                                                                               \
+    void* new_data = realloc(v->data, v->size * sizeof(TYPE));                 \
+    if(new_data == NULL)                                                       \
+        return GENC_ERR_ALLOC_FAIL;                                            \
+                                                                               \
+    v->data = new_data;                                                        \
+    v->cap = v->size;                                                          \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline int                                                              \
-name##_rm_at(struct name * v, size_t pos)                                      \
+FN_PREFIX int                                                                  \
+NAME##_prealloc(struct NAME * v, size_t size)                                  \
 {                                                                              \
-    return genc_vector_rm_at(                                                  \
-            (v ? &v->_data : NULL),                                            \
-            pos,                                                               \
-            sizeof( type ));                                                   \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    if(size == 0) return 0;                                                    \
+                                                                               \
+    if(size > (SIZE_MAX - v->cap))                                             \
+        return GENC_ERR_OVERFLOW;                                              \
+                                                                               \
+    size_t new_cap = v->cap + size;                                            \
+                                                                               \
+    if(new_cap > (SIZE_MAX / sizeof(TYPE)))                                    \
+        return GENC_ERR_OVERFLOW;                                              \
+                                                                               \
+    void* new_data = realloc(v->data, new_cap * sizeof(TYPE));                 \
+    if(new_data == NULL)                                                       \
+        return GENC_ERR_ALLOC_FAIL;                                            \
+                                                                               \
+    v->data = new_data;                                                        \
+    v->cap = new_cap;                                                          \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline int                                                              \
-name##_empty(struct name * v)                                                  \
+FN_PREFIX int                                                                  \
+NAME##_popb(struct NAME * v)                                                   \
 {                                                                              \
-    return genc_vector_empty((v ? &v->_data : NULL));                          \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    if(v->size == 0)                                                           \
+        return GENC_ERR_NO_DATA;                                               \
+                                                                               \
+    --(v->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline int                                                              \
-name##_fit(struct name * v)                                                    \
+FN_PREFIX int                                                                  \
+NAME##_pushb(struct NAME * v, TYPE data)                                       \
 {                                                                              \
-    return genc_vector_fit((v ? &v->_data : NULL), sizeof( type ));            \
-}                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
                                                                                \
-static inline int                                                              \
-name##_popb(struct name * v)                                                   \
-{                                                                              \
-    return genc_vector_popb((v ? &v->_data : NULL));                           \
-}                                                                              \
+    int err = NAME##_ins(v, data, v->size);                                    \
                                                                                \
-static inline int                                                              \
-name##_pushb(struct name * v, type data)                                       \
-{                                                                              \
-    return genc_vector_pushb(                                                  \
-            (v ? &v->_data : NULL),                                            \
-            (const void*)&data,                                                \
-            sizeof( type ),                                                    \
-            growf);                                                            \
-}                                                                              \
-                                                                               \
-static inline int                                                              \
-name##_prealloc(struct name * v, size_t size)                                  \
-{                                                                              \
-    return genc_vector_prealloc((v ? &v->_data : NULL), size, sizeof( type )); \
+    switch(err)                                                                \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        case GENC_ERR_ALLOC_FAIL:                                              \
+            return GENC_ERR_ALLOC_FAIL;                                        \
+        case GENC_ERR_OVERFLOW:                                                \
+            return GENC_ERR_OVERFLOW;                                          \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
 }                                                                              \
 
+/* -------------------------------------------------------------------------- */
+/* VECTOR - INLINE */
+/* -------------------------------------------------------------------------- */
+
+#define GENC_VECTOR_INLINE(NAME, TYPE, GROWF)                                  \
+    GENC_VECTOR_DECLARE(NAME, TYPE, GROWF, static inline)                      \
+    GENC_VECTOR_DEFINE(NAME, TYPE, GROWF, static inline)                       \
+
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* LIST */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/*
+/* GENC_LIST_DECLARE() and GENC_LIST_DEFINE() generate a type-safe doubly-linked
+ * list API. GENC_LIST_INLINE() generates both with `static inline`.
+ *
+ * The generated structure must be zero-initialized before its first use. */
 
-* GENC_LIST_GENERATE(name, type) generates a type-safe doubly-linked list API.
+/* ========================================================================== */
+/* LIST - PROTOTYPES */
+/* ========================================================================== */
 
-* The generated structure must be zero-initialized before its first use.
+/* --------------------------------------------------------|
+
+struct <name>_node
+{
+    <type> data;
+    struct <name>_node *next, *prev;
+};
 
 |----------------------------------------------------------|
-| Types |
-|----------------------------------------------------------|
-
-* If the built-in operations satisfy your program's needs, then you may treat
-* the generated types as opaque.
-
-* However, if you wish to implement your own operations, you may have to modify
-* the underlying `genc_list` directly.
 
 struct <name>
 {
-    struct genc_list _data;
+    struct <name>_node *head, *tail;
+    size_t size;
 };
 
-struct <name>_node;
-
-|----------------------------------------------------------|
-| Accessors |
-|----------------------------------------------------------|
-
-<name>_node* <name>_head(const struct <name>* list);
-<name>_node* <name>_tail(const struct <name>* list);
-size_t <name>_size(const struct <name>* list);
-
-|----------------------------------------------------------|
-
-<type>* <name>_node_data(const struct <name>_node* node);
-<name>_node* <name>_node_next(const struct <name>_node* node);
-<name>_node* <name>_node_prev(const struct <name>_node* node);
-
-|----------------------------------------------------------|
-| Operations |
 |----------------------------------------------------------|
 
 * Deinitializes the list and frees all nodes.
@@ -382,15 +499,8 @@ int <name>_empty(struct <name>* list);
 
 |----------------------------------------------------------|
 
-* Returns the node at `pos`, or NULL if `pos` is invalid.
-
-* RETURN VALUE: Node at `pos`, or NULL on failure.
-
-struct <name>_node* <name>_at(const struct <name>* list, size_t pos);
-
-|----------------------------------------------------------|
-
 * Inserts an element after `node`, or at the front if `node` is NULL.
+* If non-NULL, `node` must belong to `list`.
 
 * RETURN VALUE: 0 on success, error code on failure.
 
@@ -398,12 +508,12 @@ struct <name>_node* <name>_at(const struct <name>* list, size_t pos);
 * GENC_ERR_INV_ARG: `list` is NULL.
 * GENC_ERR_ALLOC_FAIL: Memory allocation failed.
 
-int <name>_ins_after_node(struct <name>* list, <type> data,
-                          struct <name>_node* node);
+int <name>_ins_after(struct <name>* list, <type> data,
+                      struct <name>_node* node);
 
 |----------------------------------------------------------|
 
-* Inserts an element before `node`.
+* Inserts an element before `node`. `node` must belong to `list`.
 
 * RETURN VALUE: 0 on success, error code on failure.
 
@@ -411,223 +521,352 @@ int <name>_ins_after_node(struct <name>* list, <type> data,
 * GENC_ERR_INV_ARG: `list` or `node` is NULL.
 * GENC_ERR_ALLOC_FAIL: Memory allocation failed.
 
-int <name>_ins_before_node(struct <name>* list, <type> data,
-                           struct <name>_node* node);
+int <name>_ins_before(struct <name>* list, <type> data,
+                       struct <name>_node* node);
 
 |----------------------------------------------------------|
 
-* Inserts an element at `pos`.
-
-* RETURN VALUE: 0 on success, error code on failure.
-
-* ERROR CODES:
-* GENC_ERR_INV_ARG: `list` is NULL.
-* GENC_ERR_OUT_OF_BOUNDS: `pos` is greater than the list size.
-* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
-
-int <name>_ins_at(struct <name>* list, <type> data, size_t pos);
-
-|----------------------------------------------------------|
-
-* Removes `node` from the list and frees it.
+* Removes `node` from the list and frees it. `node` must belong to `list`.
 
 * RETURN VALUE: 0 on success, error code on failure.
 
 * ERROR CODES:
 * GENC_ERR_INV_ARG: `list` or `node` is NULL.
 
-int <name>_rm_node(struct <name>* list, struct <name>_node* node);
+int <name>_rm(struct <name>* list, struct <name>_node* node);
 
-|----------------------------------------------------------|
+|-------------------------------------------------------- */
 
-*/
+/* ========================================================================== */
+/* LIST - GENERATOR MACROS */
+/* ========================================================================== */
 
 /* -------------------------------------------------------------------------- */
-/* LIST - GENERATOR MACRO */
+/* LIST - DECLARE */
 /* -------------------------------------------------------------------------- */
 
-#define GENC_LIST_GENERATE(name, type)                                         \
+#define GENC_LIST_DECLARE(NAME, TYPE, FN_PREFIX)                               \
                                                                                \
-struct name##_node;                                                            \
-                                                                               \
-struct name                                                                    \
+struct NAME                                                                    \
 {                                                                              \
-    struct genc_list _data;                                                    \
+    struct NAME##_node *head, *tail;                                           \
+    size_t size;                                                               \
 };                                                                             \
                                                                                \
-static inline struct name##_node *                                             \
-name##_head(const struct name * l)                                             \
+struct NAME##_node                                                             \
 {                                                                              \
-    return (struct name##_node *)(l ? l->_data.head : NULL);                   \
+    TYPE data;                                                                 \
+    struct NAME##_node *next, *prev;                                           \
+};                                                                             \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_deinit(struct NAME * l);                                                \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushb(struct NAME * l, TYPE data);                                      \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushf(struct NAME * l, TYPE data);                                      \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popf(struct NAME * l);                                                  \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popb(struct NAME * l);                                                  \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_empty(struct NAME * l);                                                 \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_ins_after(struct NAME * l, TYPE data, struct NAME##_node* n);           \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_ins_before(struct NAME * l, TYPE data, struct NAME##_node* n);          \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_rm(struct NAME * l, struct NAME##_node* n);                             \
+
+/* -------------------------------------------------------------------------- */
+/* LIST - DEFINE */
+/* -------------------------------------------------------------------------- */
+
+#define GENC_LIST_DEFINE(NAME, TYPE, FN_PREFIX)                                \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_deinit(struct NAME * l)                                                 \
+{                                                                              \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    struct NAME##_node* it = l->head;                                          \
+    struct NAME##_node* next;                                                  \
+    while(it)                                                                  \
+    {                                                                          \
+        next = it->next;                                                       \
+        free(it);                                                              \
+        it = next;                                                             \
+    }                                                                          \
+                                                                               \
+    l->size = 0;                                                               \
+    l->head = NULL;                                                            \
+    l->tail = NULL;                                                            \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline struct name##_node *                                             \
-name##_tail(const struct name * l)                                             \
+FN_PREFIX int                                                                  \
+NAME##_pushb(struct NAME * l, TYPE data)                                       \
 {                                                                              \
-    return (struct name##_node *)(l ? l->_data.tail : NULL);                   \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    struct NAME##_node* node = malloc(sizeof(struct NAME##_node));             \
+    if(node == NULL) return GENC_ERR_ALLOC_FAIL;                               \
+                                                                               \
+    node->data = data;                                                         \
+    node->next = NULL;                                                         \
+    node->prev = NULL;                                                         \
+                                                                               \
+    if(l->size == 0)                                                           \
+    {                                                                          \
+        l->head = node;                                                        \
+        l->tail = node;                                                        \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+        l->tail->next = node;                                                  \
+        node->prev = l->tail;                                                  \
+        l->tail = node;                                                        \
+    }                                                                          \
+                                                                               \
+    ++(l->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline size_t                                                           \
-name##_size(const struct name * l)                                             \
+FN_PREFIX int                                                                  \
+NAME##_pushf(struct NAME * l, TYPE data)                                       \
 {                                                                              \
-    return (l ? l->_data.size : 0);                                            \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    struct NAME##_node* node = malloc(sizeof(struct NAME##_node));             \
+    if(node == NULL) return GENC_ERR_ALLOC_FAIL;                               \
+                                                                               \
+    node->data = data;                                                         \
+    node->prev = NULL;                                                         \
+    node->next = NULL;                                                         \
+                                                                               \
+    if(l->size == 0)                                                           \
+    {                                                                          \
+        l->head = node;                                                        \
+        l->tail = node;                                                        \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+        l->head->prev = node;                                                  \
+        node->next = l->head;                                                  \
+        l->head = node;                                                        \
+    }                                                                          \
+                                                                               \
+    ++(l->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline type *                                                           \
-name##_node_data(const struct name##_node * n)                                 \
+FN_PREFIX int                                                                  \
+NAME##_popf(struct NAME * l)                                                   \
 {                                                                              \
-    const struct genc_list_node *node =                                        \
-            (const struct genc_list_node *)n;                                  \
-    return (type *)(node ? node->data : NULL);                                 \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+    if(l->size == 0) return GENC_ERR_NO_DATA;                                  \
+                                                                               \
+    if(l->size == 1)                                                           \
+    {                                                                          \
+        free(l->head);                                                         \
+        l->head = NULL;                                                        \
+        l->tail = NULL;                                                        \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+        struct NAME##_node* old_head = l->head;                                \
+        l->head = l->head->next;                                               \
+        l->head->prev = NULL;                                                  \
+        free(old_head);                                                        \
+    }                                                                          \
+                                                                               \
+    --(l->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline struct name##_node *                                             \
-name##_node_next(const struct name##_node * n)                                 \
+FN_PREFIX int                                                                  \
+NAME##_popb(struct NAME * l)                                                   \
 {                                                                              \
-    const struct genc_list_node *node =                                        \
-            (const struct genc_list_node *)n;                                  \
-    return (struct name##_node *)(node ? node->next : NULL);                   \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+    if(l->size == 0) return GENC_ERR_NO_DATA;                                  \
+                                                                               \
+    if(l->size == 1)                                                           \
+    {                                                                          \
+        free(l->head);                                                         \
+        l->head = NULL;                                                        \
+        l->tail = NULL;                                                        \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+        struct NAME##_node* old_tail = l->tail;                                \
+        l->tail = l->tail->prev;                                               \
+        l->tail->next = NULL;                                                  \
+        free(old_tail);                                                        \
+    }                                                                          \
+                                                                               \
+    --(l->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline struct name##_node *                                             \
-name##_node_prev(const struct name##_node * n)                                 \
+FN_PREFIX int                                                                  \
+NAME##_empty(struct NAME * l)                                                  \
 {                                                                              \
-    const struct genc_list_node *node =                                        \
-            (const struct genc_list_node *)n;                                  \
-    return (struct name##_node *)(node ? node->prev : NULL);                   \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    while(l->size > 0)                                                         \
+        NAME##_popf(l);                                                        \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline int                                                              \
-name##_deinit(struct name * l)                                                 \
+FN_PREFIX int                                                                  \
+NAME##_ins_after(struct NAME * l, TYPE data, struct NAME##_node* n)            \
 {                                                                              \
-    return genc_list_deinit(l ? &l->_data : NULL);                             \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    if((n == NULL) || (n == l->tail))                                          \
+    {                                                                          \
+        int err;                                                               \
+                                                                               \
+        if(n == NULL)                                                          \
+            err = NAME##_pushf(l, data);                                       \
+        else                                                                   \
+            err = NAME##_pushb(l, data);                                       \
+                                                                               \
+        switch(err)                                                            \
+        {                                                                      \
+            case 0:                                                            \
+                return 0;                                                      \
+            case GENC_ERR_ALLOC_FAIL:                                          \
+                return GENC_ERR_ALLOC_FAIL;                                    \
+            default:                                                           \
+                return GENC_ERR_UNEXPECTED;                                    \
+        }                                                                      \
+    }                                                                          \
+                                                                               \
+    struct NAME##_node* new_node = malloc(sizeof(struct NAME##_node));         \
+    if(new_node == NULL) return GENC_ERR_ALLOC_FAIL;                           \
+                                                                               \
+    new_node->data = data;                                                     \
+                                                                               \
+    struct NAME##_node* next = n->next;                                        \
+                                                                               \
+    n->next = new_node;                                                        \
+    new_node->prev = n;                                                        \
+    new_node->next = next;                                                     \
+    next->prev = new_node;                                                     \
+                                                                               \
+    ++(l->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
 }                                                                              \
                                                                                \
-static inline int                                                              \
-name##_pushb(struct name * l, type data)                                       \
+FN_PREFIX int                                                                  \
+NAME##_ins_before(struct NAME * l, TYPE data, struct NAME##_node* n)           \
 {                                                                              \
-    return genc_list_pushb(                                                    \
-            l ? &l->_data : NULL,                                              \
-            (const void *)&data,                                               \
-            sizeof(type));                                                     \
+    if(!l || !n) return GENC_ERR_INV_ARG;                                      \
+                                                                               \
+    int err = NAME##_ins_after(l, data, n->prev);                              \
+                                                                               \
+    switch(err)                                                                \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        case GENC_ERR_ALLOC_FAIL:                                              \
+            return GENC_ERR_ALLOC_FAIL;                                        \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
 }                                                                              \
                                                                                \
-static inline int                                                              \
-name##_pushf(struct name * l, type data)                                       \
+FN_PREFIX int                                                                  \
+NAME##_rm(struct NAME * l, struct NAME##_node* n)                              \
 {                                                                              \
-    return genc_list_pushf(                                                    \
-            l ? &l->_data : NULL,                                              \
-            (const void *)&data,                                               \
-            sizeof(type));                                                     \
-}                                                                              \
+    if(!l || !n) return GENC_ERR_INV_ARG;                                      \
                                                                                \
-static inline int                                                              \
-name##_popf(struct name * l)                                                   \
-{                                                                              \
-    return genc_list_popf(l ? &l->_data : NULL);                               \
-}                                                                              \
+    if((n == l->head) || (n == l->tail))                                       \
+    {                                                                          \
+        int err;                                                               \
                                                                                \
-static inline int                                                              \
-name##_popb(struct name * l)                                                   \
-{                                                                              \
-    return genc_list_popb(l ? &l->_data : NULL);                               \
-}                                                                              \
+        if(n == l->head)                                                       \
+            err = NAME##_popf(l);                                              \
+        else                                                                   \
+            err = NAME##_popb(l);                                              \
                                                                                \
-static inline int                                                              \
-name##_empty(struct name * l)                                                  \
-{                                                                              \
-    return genc_list_empty(l ? &l->_data : NULL);                              \
-}                                                                              \
+        switch(err)                                                            \
+        {                                                                      \
+            case 0:                                                            \
+                return 0;                                                      \
+            default:                                                           \
+                return GENC_ERR_UNEXPECTED;                                    \
+        }                                                                      \
+    }                                                                          \
                                                                                \
-static inline struct name##_node *                                             \
-name##_at(const struct name * l, size_t pos)                                   \
-{                                                                              \
-    return (struct name##_node *)                                              \
-            genc_list_at(l ? &l->_data : NULL, pos);                           \
-}                                                                              \
+    struct NAME##_node* prev = n->prev;                                        \
+    struct NAME##_node* next = n->next;                                        \
                                                                                \
-static inline int                                                              \
-name##_ins_after_node(struct name * l, type data, struct name##_node * node)   \
-{                                                                              \
-    return genc_list_ins_after_node(                                           \
-            l ? &l->_data : NULL,                                              \
-            (const void *)&data,                                               \
-            (struct genc_list_node *)node,                                     \
-            sizeof(type));                                                     \
-}                                                                              \
+    prev->next = next;                                                         \
+    next->prev = prev;                                                         \
                                                                                \
-static inline int                                                              \
-name##_ins_before_node(struct name * l, type data, struct name##_node * node)  \
-{                                                                              \
-    return genc_list_ins_before_node(                                          \
-            l ? &l->_data : NULL,                                              \
-            (const void *)&data,                                               \
-            (struct genc_list_node *)node,                                     \
-            sizeof(type));                                                     \
-}                                                                              \
+    free(n);                                                                   \
+    --(l->size);                                                               \
                                                                                \
-static inline int                                                              \
-name##_rm_node(struct name * l, struct name##_node * node)                     \
-{                                                                              \
-    return genc_list_rm_node(                                                  \
-            l ? &l->_data : NULL,                                              \
-            (struct genc_list_node *)node);                                    \
-}                                                                              \
-                                                                               \
-static inline int                                                              \
-name##_ins_at(struct name * l, type data, size_t pos)                          \
-{                                                                              \
-    return genc_list_ins_at(                                                   \
-            l ? &l->_data : NULL,                                              \
-            (const void *)&data,                                               \
-            pos,                                                               \
-            sizeof(type));                                                     \
+    return 0;                                                                  \
 }                                                                              \
 
+/* -------------------------------------------------------------------------- */
+/* LIST - INLINE */
+/* -------------------------------------------------------------------------- */
+
+#define GENC_LIST_INLINE(NAME, TYPE)                                           \
+    GENC_LIST_DECLARE(NAME, TYPE, static inline)                               \
+    GENC_LIST_DEFINE(NAME, TYPE, static inline)                                \
+
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* FWD LIST */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/*
+/* GENC_FWD_LIST_DECLARE() and GENC_FWD_LIST_DEFINE() generate a type-safe
+ * forward list API intended for stack or queue use. GENC_FWD_LIST_INLINE()
+ * generates both with `static inline`.
+ *
+ * The generated structure must be zero-initialized before its first use. */
 
-* GENC_FWD_LIST_GENERATE(name, type) generates a type-safe forward list
-* list API. This data structure is meant to be used for creating a stack
-* or queue.
+/* ========================================================================== */
+/* FWD LIST - PROTOTYPES */
+/* ========================================================================== */
 
-* The generated structure must be zero-initialized before its first use.
+/* --------------------------------------------------------|
+
+struct <name>_node
+{
+    <type> data;
+    struct <name>_node* next;
+};
 
 |----------------------------------------------------------|
-| Types |
-|----------------------------------------------------------|
-
-* If the built-in operations satisfy your program's needs, then you may treat
-* the generated types as opaque.
-
-* However, if you wish to implement your own operations, you may have to modify
-* the underlying `genc_fwd_list` directly.
 
 struct <name>
 {
-    struct genc_fwd_list _data;
+    struct <name>_node *head, *tail;
+    size_t size;
 };
 
-struct <name>_node;
-
-|----------------------------------------------------------|
-| Accessors |
-|----------------------------------------------------------|
-
-<name>_node* <name>_head(const struct <name>* list);
-<name>_node* <name>_tail(const struct <name>* list);
-size_t <name>_size(const struct <name>* list);
-
-|----------------------------------------------------------|
-
-<type>* <name>_node_data(const struct <name>_node* node);
-<name>_node* <name>_node_next(const struct <name>_node* node);
-
-|----------------------------------------------------------|
-| Operations |
 |----------------------------------------------------------|
 
 * Deinitializes the list and frees all nodes.
@@ -686,854 +925,155 @@ int <name>_popf(struct <name>* list);
 
 int <name>_empty(struct <name>* list);
 
-|----------------------------------------------------------|
+|-------------------------------------------------------- */
 
-*/
+/* ========================================================================== */
+/* FWD LIST - GENERATOR MACROS */
+/* ========================================================================== */
 
 /* -------------------------------------------------------------------------- */
-/* FWD LIST - GENERATOR MACRO */
+/* FWD LIST - DECLARE */
 /* -------------------------------------------------------------------------- */
 
-#define GENC_FWD_LIST_GENERATE(name, type)                                     \
+#define GENC_FWD_LIST_DECLARE(NAME, TYPE, FN_PREFIX)                           \
                                                                                \
-struct name##_node;                                                            \
-                                                                               \
-struct name                                                                    \
+struct NAME                                                                    \
 {                                                                              \
-    struct genc_fwd_list _data;                                                \
+    struct NAME##_node *head, *tail;                                           \
+    size_t size;                                                               \
 };                                                                             \
                                                                                \
-static inline struct name##_node *                                             \
-name##_head(const struct name * l)                                             \
+struct NAME##_node                                                             \
 {                                                                              \
-    return (struct name##_node *)(l ? l->_data.head : NULL);                   \
-}                                                                              \
+    TYPE data;                                                                 \
+    struct NAME##_node* next;                                                  \
+};                                                                             \
                                                                                \
-static inline struct name##_node *                                             \
-name##_tail(const struct name * l)                                             \
-{                                                                              \
-    return (struct name##_node *)(l ? l->_data.tail : NULL);                   \
-}                                                                              \
+FN_PREFIX int                                                                  \
+NAME##_deinit(struct NAME * l);                                                \
                                                                                \
-static inline size_t                                                           \
-name##_size(const struct name * l)                                             \
-{                                                                              \
-    return (l ? l->_data.size : 0);                                            \
-}                                                                              \
+FN_PREFIX int                                                                  \
+NAME##_pushb(struct NAME * l, TYPE data);                                      \
                                                                                \
-static inline type *                                                           \
-name##_node_data(const struct name##_node * n)                                 \
-{                                                                              \
-    const struct genc_fwd_list_node *node =                                    \
-            (const struct genc_fwd_list_node *)n;                              \
-    return (type *)(node ? node->data : NULL);                                 \
-}                                                                              \
+FN_PREFIX int                                                                  \
+NAME##_pushf(struct NAME * l, TYPE data);                                      \
                                                                                \
-static inline struct name##_node *                                             \
-name##_node_next(const struct name##_node * n)                                 \
-{                                                                              \
-    const struct genc_fwd_list_node *node =                                    \
-            (const struct genc_fwd_list_node *)n;                              \
-    return (struct name##_node *)(node ? node->next : NULL);                   \
-}                                                                              \
+FN_PREFIX int                                                                  \
+NAME##_popf(struct NAME * l);                                                  \
                                                                                \
-static inline int                                                              \
-name##_deinit(struct name * l)                                                 \
-{                                                                              \
-    return genc_fwd_list_deinit(l ? &l->_data : NULL);                         \
-}                                                                              \
-                                                                               \
-static inline int                                                              \
-name##_pushb(struct name * l, type data)                                       \
-{                                                                              \
-    return genc_fwd_list_pushb(                                                \
-            l ? &l->_data : NULL,                                              \
-            (const void *)&data,                                               \
-            sizeof(type));                                                     \
-}                                                                              \
-                                                                               \
-static inline int                                                              \
-name##_pushf(struct name * l, type data)                                       \
-{                                                                              \
-    return genc_fwd_list_pushf(                                                \
-            l ? &l->_data : NULL,                                              \
-            (const void *)&data,                                               \
-            sizeof(type));                                                     \
-}                                                                              \
-                                                                               \
-static inline int                                                              \
-name##_popf(struct name * l)                                                   \
-{                                                                              \
-    return genc_fwd_list_popf(l ? &l->_data : NULL);                           \
-}                                                                              \
-                                                                               \
-static inline int                                                              \
-name##_empty(struct name * l)                                                  \
-{                                                                              \
-    return genc_fwd_list_empty(l ? &l->_data : NULL);                          \
-}                                                                              \
+FN_PREFIX int                                                                  \
+NAME##_empty(struct NAME * l);                                                 \
 
-/* ========================================================================== */
 /* -------------------------------------------------------------------------- */
-/* HEADER - INTERNAL */
+/* FWD LIST - DEFINE */
 /* -------------------------------------------------------------------------- */
-/* ========================================================================== */
 
-/* ========================================================================== */
-/* VECTOR - INTERNAL */
-/* ========================================================================== */
+#define GENC_FWD_LIST_DEFINE(NAME, TYPE, FN_PREFIX)                            \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_deinit(struct NAME * l)                                                 \
+{                                                                              \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    struct NAME##_node* it = l->head;                                          \
+    struct NAME##_node* next;                                                  \
+    while(it)                                                                  \
+    {                                                                          \
+        next = it->next;                                                       \
+        free(it);                                                              \
+        it = next;                                                             \
+    }                                                                          \
+                                                                               \
+    l->size = 0;                                                               \
+    l->head = NULL;                                                            \
+    l->tail = NULL;                                                            \
+                                                                               \
+    return 0;                                                                  \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushb(struct NAME * l, TYPE data)                                       \
+{                                                                              \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    struct NAME##_node* node = malloc(sizeof(struct NAME##_node));             \
+    if(node == NULL) return GENC_ERR_ALLOC_FAIL;                               \
+                                                                               \
+    node->data = data;                                                         \
+    node->next = NULL;                                                         \
+                                                                               \
+    if(l->size == 0)                                                           \
+    {                                                                          \
+        l->head = node;                                                        \
+        l->tail = node;                                                        \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+        l->tail->next = node;                                                  \
+        l->tail = node;                                                        \
+    }                                                                          \
+                                                                               \
+    ++(l->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushf(struct NAME * l, TYPE data)                                       \
+{                                                                              \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    struct NAME##_node* node = malloc(sizeof(struct NAME##_node));             \
+    if(node == NULL) return GENC_ERR_ALLOC_FAIL;                               \
+                                                                               \
+    node->data = data;                                                         \
+    node->next = l->head;                                                      \
+                                                                               \
+    if(l->size == 0)                                                           \
+        l->tail = node;                                                        \
+                                                                               \
+    l->head = node;                                                            \
+    ++(l->size);                                                               \
+                                                                               \
+    return 0;                                                                  \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popf(struct NAME * l)                                                   \
+{                                                                              \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+    if(l->size == 0) return GENC_ERR_NO_DATA;                                  \
+                                                                               \
+    struct NAME##_node* old_head = l->head;                                    \
+                                                                               \
+    l->head = l->head->next;                                                   \
+    free(old_head);                                                            \
+                                                                               \
+    --(l->size);                                                               \
+                                                                               \
+    if(l->size == 0)                                                           \
+        l->tail = NULL;                                                        \
+                                                                               \
+    return 0;                                                                  \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_empty(struct NAME * l)                                                  \
+{                                                                              \
+    if(!l) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    while(l->size > 0)                                                         \
+        NAME##_popf(l);                                                        \
+                                                                               \
+    return 0;                                                                  \
+}                                                                              \
 
-struct genc_vector
-{
-    void* data;
-    size_t size;
-    size_t cap;
-};
+/* -------------------------------------------------------------------------- */
+/* FWD LIST - INLINE */
+/* -------------------------------------------------------------------------- */
 
-int genc_vector_deinit(struct genc_vector* v);
-
-int genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
-                    size_t _datasz, double _growf);
-
-int genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz);
-
-int genc_vector_empty(struct genc_vector* v);
-
-int genc_vector_fit(struct genc_vector* v, size_t _datasz);
-
-int genc_vector_prealloc(struct genc_vector* v, size_t size, size_t _datasz);
-
-int genc_vector_popb(struct genc_vector* v);
-
-int genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
-                      double _growf);
-
-/* ========================================================================== */
-/* LIST - INTERNAL */
-/* ========================================================================== */
-
-struct genc_list_node
-{
-    void* data;
-    struct genc_list_node *next, *prev;
-};
-
-struct genc_list
-{
-    struct genc_list_node *head, *tail;
-    size_t size;
-};
-
-int genc_list_deinit(struct genc_list* list);
-
-int genc_list_pushb(struct genc_list* list, const void* _data, size_t _datasz);
-int genc_list_pushf(struct genc_list* list, const void* _data, size_t _datasz);
-
-int genc_list_popf(struct genc_list* list);
-int genc_list_popb(struct genc_list* list);
-int genc_list_empty(struct genc_list* list);
-
-struct genc_list_node* genc_list_at(const struct genc_list* list, size_t pos);
-
-int genc_list_ins_after_node(struct genc_list* list, const void* _data,
-
-                              struct genc_list_node* node, size_t _datasz);
-int genc_list_ins_before_node(struct genc_list* list, const void* _data,
-                               struct genc_list_node* node, size_t _datasz);
-
-int genc_list_rm_node(struct genc_list* list, struct genc_list_node* node);
-
-int genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
-                      size_t _datasz);
-
-/* ========================================================================== */
-/* FWD LIST - INTERNAL */
-/* ========================================================================== */
-
-struct genc_fwd_list_node
-{
-    void* data;
-    struct genc_fwd_list_node* next;
-};
-
-struct genc_fwd_list
-{
-    size_t size;
-    struct genc_fwd_list_node *head, *tail;
-};
-
-int genc_fwd_list_deinit(struct genc_fwd_list* list);
-
-int genc_fwd_list_pushb(struct genc_fwd_list* list, const void* _data,
-                        size_t _datasz);
-
-int genc_fwd_list_pushf(struct genc_fwd_list* list, const void* _data,
-                        size_t _datasz);
-
-int genc_fwd_list_popf(struct genc_fwd_list* list);
-
-int genc_fwd_list_empty(struct genc_fwd_list* list);
-
-/* ========================================================================== */
+#define GENC_FWD_LIST_INLINE(NAME, TYPE)                                       \
+    GENC_FWD_LIST_DECLARE(NAME, TYPE, static inline)                           \
+    GENC_FWD_LIST_DEFINE(NAME, TYPE, static inline)                            \
 
 #endif // GENC_H
-
-/* ========================================================================== */
-/* -------------------------------------------------------------------------- */
-/* IMPLEMENTATION - INTERNAL */
-/* -------------------------------------------------------------------------- */
-/* ========================================================================== */
-
-#if defined(GENC_IMPLEMENTATION) && !defined(GENC_IMPLEMENTATION_INCLUDED)
-#define GENC_IMPLEMENTATION_INCLUDED
-
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdalign.h>
-
-#define GENC_NOT_NULL(ptr)                                                     \
-    do                                                                         \
-    {                                                                          \
-        if(!(ptr)) return GENC_ERR_INV_ARG;                                    \
-    } while(0)
-
-/* ========================================================================== */
-/* VECTOR */
-/* ========================================================================== */
-
-int genc_vector_deinit(struct genc_vector* v)
-{
-    GENC_NOT_NULL(v);
-
-    free(v->data);
-    v->data = NULL;
-    v->size = 0;
-    v->cap = 0;
-
-    return 0;
-}
-
-int genc_vector_ins(struct genc_vector* v, const void* _data, size_t pos,
-                     size_t _datasz, double _growf)
-{
-    GENC_NOT_NULL(v);
-    GENC_NOT_NULL(_data);
-
-    if(pos > v->size)
-        return GENC_ERR_OUT_OF_BOUNDS;
-
-    if(v->size >= v->cap) // grow
-    {
-        // Calculate new_cap
-        size_t new_cap = v->size * _growf;
-        if(new_cap <= v->cap)
-            new_cap = v->cap + 1;
-
-        void* new_data = realloc(v->data, new_cap * _datasz);
-        if(new_data == NULL)
-            return GENC_ERR_ALLOC_FAIL;
-
-        v->data = new_data;
-        v->cap = new_cap;
-    }
-
-    char* vector_data = (char*)v->data;
-
-    if(pos < v->size) // make space
-    {
-        memmove(vector_data + ((pos + 1) * _datasz),
-                vector_data + (pos * _datasz), 
-                (v->size - pos) * _datasz);
-    }
-
-    memcpy(vector_data + (pos * _datasz), _data, _datasz);
-    ++(v->size);
-
-    return 0;
-}
-
-int genc_vector_rm_at(struct genc_vector* v, size_t pos, size_t _datasz)
-{
-    GENC_NOT_NULL(v);
-
-    if(pos >= v->size)
-        return GENC_ERR_OUT_OF_BOUNDS;
-
-    // Pop back
-    if(pos == (v->size - 1))
-    {
-        int err = genc_vector_popb(v);
-        switch(err)
-        {
-            case 0:
-                return 0;
-            default:
-                return GENC_ERR_UNEXPECTED;
-        }
-    }
-
-    char* vector_data = (char*)v->data;
-
-    memmove(vector_data + (pos * _datasz),
-            vector_data + ((pos + 1) * _datasz),
-            (v->size - pos - 1) * _datasz);
-
-    --(v->size);
-
-    return 0;
-}
-
-int genc_vector_empty(struct genc_vector* v)
-{
-    GENC_NOT_NULL(v);
-
-    v->size = 0;
-
-    return 0;
-}
-
-int genc_vector_fit(struct genc_vector* v, size_t _datasz)
-{
-    GENC_NOT_NULL(v);
-
-    if(v->size == v->cap) return 0;
-
-    if(v->size == 0)
-    {
-        free(v->data);
-        v->data = NULL;
-        v->cap = 0;
-        return 0;
-    }
-
-    void* new_data = realloc(v->data, v->size * _datasz);
-    if(new_data == NULL)
-        return GENC_ERR_ALLOC_FAIL;
-    else
-    {
-        v->data = new_data;
-        v->cap = v->size;
-    }
-
-    return 0;
-}
-
-int genc_vector_prealloc(struct genc_vector* v, size_t size, size_t _datasz)
-{
-    GENC_NOT_NULL(v);
-
-    if(size == 0) return 0;
-
-    size_t new_cap = v->cap + size;
-
-    void* new_data = realloc(v->data, new_cap * _datasz);
-    if(!new_data)
-        return GENC_ERR_ALLOC_FAIL;
-
-    v->data = new_data;
-    v->cap = new_cap;
-
-    return 0;
-}
-
-int genc_vector_popb(struct genc_vector* v)
-{
-    GENC_NOT_NULL(v);
-
-    if(v->size == 0)
-        return GENC_ERR_NO_DATA;
-
-    (v->size)--;
-
-    return 0;
-}
-
-int genc_vector_pushb(struct genc_vector* v, const void* _data, size_t _datasz,
-                      double _growf)
-{
-    GENC_NOT_NULL(v);
-    GENC_NOT_NULL(_data);
-
-    int err = genc_vector_ins(v, _data, v->size, _datasz, _growf);
-
-    switch(err)
-    {
-        case 0:
-            return 0;
-        case GENC_ERR_ALLOC_FAIL:
-            return GENC_ERR_ALLOC_FAIL;
-        default:
-            return GENC_ERR_UNEXPECTED;
-    }
-
-    return 0;
-}
-
-/* ========================================================================== */
-/* LIST */
-/* ========================================================================== */
-
-static struct genc_list_node* 
-genc__list_node_create(const void* data, size_t data_size)
-{
-    size_t node_size = sizeof(struct genc_list_node);
-    struct genc_list_node* node = (struct genc_list_node*)malloc(node_size);
-
-    if(node == NULL) return NULL;
-
-    node->data = malloc(data_size);
-    if(node->data == NULL)
-    {
-        free(node);
-        return NULL;
-    }
-
-    memcpy(node->data, data, data_size);
-    node->next = NULL;
-    node->prev = NULL;
-
-    return node;
-}
-
-int genc_list_deinit(struct genc_list* list)
-{
-    GENC_NOT_NULL(list);
-
-    genc_list_empty(list);
-
-    list->size = 0;
-    list->head = NULL;
-    list->tail = NULL;
-
-    return 0;
-}
-
-int genc_list_pushb(struct genc_list* list, const void* _data, size_t _datasz)
-{
-    GENC_NOT_NULL(list);
-    GENC_NOT_NULL(_data);
-
-    struct genc_list_node* node = genc__list_node_create(_data, _datasz);
-    if(node == NULL)
-        return GENC_ERR_ALLOC_FAIL;
-
-    if(list->size == 0)
-    {
-        list->head = node;
-        list->tail = node;
-    }
-    else
-    {
-        list->tail->next = node;
-        node->prev = list->tail;
-
-        list->tail = node;
-    }
-
-    ++(list->size);
-
-    return 0;
-}
-
-int genc_list_pushf(struct genc_list* list, const void* _data, size_t _datasz)
-{
-    GENC_NOT_NULL(list);
-    GENC_NOT_NULL(_data);
-
-    struct genc_list_node* node = genc__list_node_create(_data, _datasz);
-    if(node == NULL)
-        return GENC_ERR_ALLOC_FAIL;
-
-    if(list->size == 0)
-    {
-        list->head = node;
-        list->tail = node;
-    }
-    else
-    {
-        list->head->prev = node;
-        node->next = list->head;
-
-        list->head = node;
-    }
-
-    ++(list->size);
-
-    return 0;
-}
-
-int genc_list_popf(struct genc_list* list)
-{
-    GENC_NOT_NULL(list);
-
-    if(list->size == 0)
-        return GENC_ERR_NO_DATA;
-
-    if(list->size == 1)
-    {
-        free(list->head->data);
-        free(list->head);
-        list->head = NULL;
-        list->tail = NULL;
-    }
-    else
-    {
-        struct genc_list_node* old_head = list->head;
-
-        list->head = list->head->next;
-        list->head->prev = NULL;
-
-        free(old_head->data);
-        free(old_head);
-    }
-
-    --(list->size);
-
-    return 0;
-}
-
-int genc_list_popb(struct genc_list* list)
-{
-    GENC_NOT_NULL(list);
-
-    if(list->size == 0)
-        return GENC_ERR_NO_DATA;
-
-    if(list->size == 1)
-    {
-        free(list->head->data);
-        free(list->head);
-        list->head = NULL;
-        list->tail = NULL;
-    }
-    else
-    {
-        struct genc_list_node* old_tail = list->tail;
-        list->tail = list->tail->prev;
-        list->tail->next = NULL;
-
-        free(old_tail->data);
-        free(old_tail);
-    }
-
-    --(list->size);
-
-    return 0;
-}
-
-int genc_list_empty(struct genc_list* list)
-{
-    GENC_NOT_NULL(list); 
-
-    while(list->size > 0)
-        genc_list_popf(list);
-
-    return 0;
-}
-
-struct genc_list_node*
-genc_list_at(const struct genc_list* list, size_t pos)
-{
-    if(!list) return NULL;
-    if(pos >= list->size) return NULL;
-
-    struct genc_list_node* it_node;
-    size_t i;
-    if(pos >= (list->size / 2))
-    {
-        it_node = list->tail;
-        for(i = list->size - 1; i > pos; i--)
-            it_node = it_node->prev;
-    }
-    else
-    {
-        it_node = list->head;
-        for(i = 0; i < pos; i++)
-            it_node = it_node->next;
-    }
-
-    return it_node;
-}
-
-int genc_list_ins_after_node(struct genc_list* list, const void* _data,
-                             struct genc_list_node* node, size_t _datasz)
-{
-    GENC_NOT_NULL(list);
-    GENC_NOT_NULL(_data);
-
-    if((node == NULL) || (node == list->tail))
-    {
-        int err;
-
-        if(node == NULL)
-            err = genc_list_pushf(list, _data, _datasz);
-        else if(node == list->tail)
-            err = genc_list_pushb(list, _data, _datasz);
-
-        switch(err)
-        {
-            case 0: 
-                return 0;
-            case GENC_ERR_ALLOC_FAIL:
-                return GENC_ERR_ALLOC_FAIL;
-            default:
-                return GENC_ERR_UNEXPECTED;
-        }
-    }
-    else
-    {
-        struct genc_list_node* new_node = genc__list_node_create(_data, _datasz);
-        if(new_node == NULL)
-            return GENC_ERR_ALLOC_FAIL;
-
-        struct genc_list_node* next = node->next;
-
-        node->next = new_node;
-
-        new_node->prev = node;
-        new_node->next = next;
-
-        next->prev = new_node;
-
-        ++(list->size);
-
-        return 0;
-    }
-}
-
-int genc_list_ins_before_node(struct genc_list* list, const void* _data,
-                              struct genc_list_node* node, size_t _datasz)
-{
-    GENC_NOT_NULL(list);
-    GENC_NOT_NULL(node);
-    GENC_NOT_NULL(_data);
-
-    int err = genc_list_ins_after_node(list, _data, node->prev, _datasz);
-
-    switch(err)
-    {
-        case 0:
-            return 0;
-        case GENC_ERR_ALLOC_FAIL:
-            return GENC_ERR_ALLOC_FAIL;
-        default:
-            return GENC_ERR_UNEXPECTED;
-    }
-}
-
-int genc_list_rm_node(struct genc_list* list, struct genc_list_node* node)
-{
-    GENC_NOT_NULL(list);
-    GENC_NOT_NULL(node);
-
-    if((node == list->head) || (node == list->tail))
-    {
-        int err;
-
-        if(node == list->head)
-            err = genc_list_popf(list);
-        else if(node == list->tail)
-            err = genc_list_popb(list);
-
-        switch(err)
-        {
-            case 0:
-                return 0;
-            default:
-                return GENC_ERR_UNEXPECTED;
-        }
-    }
-    else
-    {
-        struct genc_list_node* prev = node->prev;
-        struct genc_list_node* next = node->next;
-
-        prev->next = next;
-        next->prev = prev;
-
-        free(node->data);
-        free(node);
-
-        --(list->size);
-
-        return 0;
-    }
-}
-
-int genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
-                     size_t _datasz)
-{
-    GENC_NOT_NULL(list);
-    GENC_NOT_NULL(_data);
-
-    if(pos > list->size)
-        return GENC_ERR_OUT_OF_BOUNDS;
-
-    int err;
-
-    if(pos == list->size)
-    {
-        err = genc_list_pushb(list, _data, _datasz);
-        switch(err)
-        {
-            case 0:
-                return 0;
-            case GENC_ERR_ALLOC_FAIL:
-                return GENC_ERR_ALLOC_FAIL;
-            default:
-                return GENC_ERR_UNEXPECTED;
-        }
-    }
-    else
-    {
-        struct genc_list_node* node = genc_list_at(list, pos);
-        if(node == NULL)
-            return GENC_ERR_UNEXPECTED;
-
-        err = genc_list_ins_before_node(list, _data, node, _datasz);
-        switch(err)
-        {
-            case 0:
-                return 0;
-            case GENC_ERR_ALLOC_FAIL:
-                return GENC_ERR_ALLOC_FAIL;
-            default:
-                return GENC_ERR_UNEXPECTED;
-        }
-    }
-}
-
-/* ========================================================================== */
-/* FWD LIST */
-/* ========================================================================== */
-
-static struct genc_fwd_list_node*
-genc__fwd_list_node_create(const void* data, size_t data_size)
-{
-    size_t node_size = sizeof(struct genc_fwd_list_node);
-    struct genc_fwd_list_node* node = (struct genc_fwd_list_node*)
-        malloc(node_size);
-
-    if(node == NULL) return NULL;
-
-    node->data = malloc(data_size);
-    if(node->data == NULL)
-    {
-        free(node);
-        return NULL;
-    }
-
-    memcpy(node->data, data, data_size);
-    node->next = NULL;
-
-    return node;
-}
-
-int genc_fwd_list_deinit(struct genc_fwd_list* list)
-{
-    GENC_NOT_NULL(list);
-    
-    genc_fwd_list_empty(list);
-
-    list->size = 0;
-    list->head = NULL;
-    list->tail = NULL;
-
-    return 0;
-}
-
-int genc_fwd_list_pushb(struct genc_fwd_list* list, const void* _data,
-                        size_t _datasz)
-{
-    GENC_NOT_NULL(list);
-    GENC_NOT_NULL(_data);
-
-    struct genc_fwd_list_node* new_node;  
-    new_node = genc__fwd_list_node_create(_data, _datasz);
-    if(new_node == NULL)
-        return GENC_ERR_ALLOC_FAIL;
-
-    if(list->size == 0)
-    {
-        list->head = new_node;
-        list->tail = new_node;
-    }
-    else
-    {
-        list->tail->next = new_node;
-        list->tail = new_node;
-    }
-
-    ++(list->size);
-
-    return 0;
-}
-
-int genc_fwd_list_pushf(struct genc_fwd_list* list, const void* _data,
-                        size_t _datasz)
-{
-    GENC_NOT_NULL(list);
-    GENC_NOT_NULL(_data);
-    
-    struct genc_fwd_list_node*
-    new_node = genc__fwd_list_node_create(_data, _datasz);
-    if(new_node == NULL)
-        return GENC_ERR_ALLOC_FAIL;
-
-    if(list->size == 0)
-    {
-        list->head = new_node;
-        list->tail = new_node;
-    }
-    else
-    {
-        new_node->next = list->head;
-        list->head = new_node;
-    }
-
-    ++(list->size);
-
-    return 0;
-}
-
-int genc_fwd_list_popf(struct genc_fwd_list* list)
-{
-    GENC_NOT_NULL(list);
-    
-    if(list->size == 0)
-        return GENC_ERR_NO_DATA;
-
-    if(list->size == 1)
-    {
-        free(list->head->data);
-        free(list->head);
-        list->head = NULL;
-        list->tail = NULL;
-    }
-    else
-    {
-        struct genc_fwd_list_node* old_head = list->head;
-
-        list->head = list->head->next;
-
-        free(old_head->data);
-        free(old_head);
-    }
-
-    --(list->size);
-
-    return 0;
-}
-
-int genc_fwd_list_empty(struct genc_fwd_list* list)
-{
-    GENC_NOT_NULL(list);
-
-    while(list->size > 0)
-        genc_fwd_list_popf(list);
-
-    return 0;
-}
-
-#endif // GENC_IMPLEMENTATION && !GENC_IMPLEMENTATION_INCLUDED/*

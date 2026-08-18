@@ -19,7 +19,7 @@ struct ntg_task
     unsigned int priority;
 };
 
-GENC_LIST_GENERATE(ntg_task_list, struct ntg_task)
+GENC_LIST_INLINE(ntg_task_list, struct ntg_task)
 
 struct ntg_task_runner
 {
@@ -167,15 +167,15 @@ int ntg_task_runner_execute(
 
     pthread_mutex_lock(&runner->lock);
 
-    struct ntg_task_list_node* it = ntg_task_list_head(&runner->task_list);
+    struct ntg_task_list_node* it = runner->task_list.head;
     struct ntg_task* it_data;
     while(it != NULL)
     {
-        it_data = ntg_task_list_node_data(it);
+        it_data = &it->data;
 
         if(priority > it_data->priority)
         {
-            _status = ntg_task_list_ins_before_node(&runner->task_list, task, it);
+            _status = ntg_task_list_ins_before(&runner->task_list, task, it);
             if(_status)
             {
                 pthread_mutex_unlock(&runner->lock);
@@ -185,7 +185,7 @@ int ntg_task_runner_execute(
             break;
         }
 
-        it = ntg_task_list_node_next(it);
+        it = it->next;
     }
 
     if(it == NULL) /* If at the end, no insertion happened */
@@ -253,7 +253,7 @@ static void* worker_fn(void* _runner)
     {
         pthread_mutex_lock(&runner->lock);
 
-        while((ntg_task_list_size(&runner->task_list) < 1) && !runner->stopping)
+        while((runner->task_list.size < 1) && !runner->stopping)
         {
             pthread_cond_wait(&runner->cond, &runner->lock);
         }
@@ -266,7 +266,7 @@ static void* worker_fn(void* _runner)
 
         /* Retrieve & pop task */
 
-        struct ntg_task task = *ntg_task_list_node_data(ntg_task_list_head(&runner->task_list));
+        struct ntg_task task = runner->task_list.head->data;
         (void)ntg_task_list_popf(&runner->task_list);
 
         pthread_mutex_unlock(&runner->lock);

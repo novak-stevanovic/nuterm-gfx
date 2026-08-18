@@ -4,10 +4,12 @@
 #include "nt_event.h"
 #include "shared/ntg_shared.h"
 #include "core/object/ntg_object_drawing.h"
-#include "core/object/ntg_objptr_vec.h"
+#include "thirdparty/genc.h"
 
 #define NTG_OBJECT_MAX_CHILDREN 500
 #define NTG_OBJECT_MAX_ANCHORED 200
+
+GENC_VECTOR_DECLARE(ntg_objptr_vec, ntg_object*, 1.5, )
 
 /* ========================================================================== */
 /* PUBLIC */
@@ -399,8 +401,8 @@ static void fn_name(ntg_object* object, void* data)                            \
     if(object == NULL) return;                                                 \
     perform_fn(object, data);                                                  \
     const ntg_objptr_vec* children = &object->_children;                       \
-    ntg_object* const* children_data = ntg_objptr_vec_data(children);          \
-    size_t children_size = ntg_objptr_vec_size(children);                      \
+    ntg_object* const* children_data = children->data;                         \
+    size_t children_size = children->size;                                     \
     size_t i;                                                                  \
     for(i = 0; i < children_size; i++)                                         \
     {                                                                          \
@@ -413,8 +415,8 @@ static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
     const ntg_objptr_vec* children = &object->_children;                       \
-    ntg_object* const* children_data = ntg_objptr_vec_data(children);          \
-    size_t children_size = ntg_objptr_vec_size(children);                      \
+    ntg_object* const* children_data = children->data;                         \
+    size_t children_size = children->size;                                     \
     size_t i;                                                                  \
     for(i = 0; i < children_size; i++)                                         \
     {                                                                          \

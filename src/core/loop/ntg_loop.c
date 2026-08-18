@@ -18,7 +18,7 @@ struct ntg_task
     unsigned long long exec_time_ms;
 };
 
-GENC_LIST_GENERATE(ntg_task_list, struct ntg_task)
+GENC_LIST_INLINE(ntg_task_list, struct ntg_task)
 
 struct ntg_loop
 {
@@ -466,21 +466,21 @@ int ntg_loop_schedule(
         .exec_time_ms = now_ms + delay_ms
     };
 
-    struct ntg_task_list_node* it = ntg_task_list_head(&loop.task_list);
+    struct ntg_task_list_node* it = loop.task_list.head;
     struct ntg_task* it_data;
 
     while(it)
     {
-        it_data = ntg_task_list_node_data(it);
+        it_data = &it->data;
 
         if(task.exec_time_ms < it_data->exec_time_ms)
         {
-            _status = ntg_task_list_ins_before_node(&loop.task_list, task, it);
+            _status = ntg_task_list_ins_before(&loop.task_list, task, it);
 
             break;
         }
 
-        it = ntg_task_list_node_next(it);
+        it = it->next;
     }
 
     // Must be appended to tail
@@ -507,7 +507,7 @@ void ntg_loop_tasks_clear(void)
 
     pthread_mutex_lock(&loop.lock);
 
-    while(ntg_task_list_size(&loop.task_list) > 0)
+    while(loop.task_list.size > 0)
         (void)ntg_task_list_popf(&loop.task_list);
 
     pthread_mutex_unlock(&loop.lock);
@@ -522,7 +522,7 @@ bool ntg_loop_has_tasks(void)
 
     pthread_mutex_lock(&loop.lock);
 
-    running = (ntg_task_list_size(&loop.task_list) > 0); 
+    running = (loop.task_list.size > 0); 
 
     pthread_mutex_unlock(&loop.lock);
 
@@ -632,14 +632,14 @@ static void execute_ready_tasks(void)
     {
         pthread_mutex_lock(&loop.lock);
 
-        struct ntg_task_list_node* head = ntg_task_list_head(&loop.task_list);
-        if(!head || (now_ms < ntg_task_list_node_data(head)->exec_time_ms))
+        struct ntg_task_list_node* head = loop.task_list.head;
+        if(!head || (now_ms < head->data.exec_time_ms))
         {
             pthread_mutex_unlock(&loop.lock);
             break;
         }
 
-        struct ntg_task task = (*ntg_task_list_node_data(head));
+        struct ntg_task task = head->data;
         (void)ntg_task_list_popf(&loop.task_list);
 
         pthread_mutex_unlock(&loop.lock);

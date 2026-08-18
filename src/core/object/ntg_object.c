@@ -4,6 +4,24 @@
 #include <assert.h>
 #include "shared/ntg_shared_internal.h"
 
+GENC_VECTOR_DEFINE(ntg_objptr_vec, ntg_object*, 1.5, )
+
+static int
+objptr_vec_rm_value(ntg_objptr_vec* vec, const ntg_object* object)
+{
+    if(!vec)
+        return GENC_ERR_INV_ARG;
+
+    size_t i;
+    for(i = 0; i < vec->size; i++)
+    {
+        if(vec->data[i] == object)
+            return ntg_objptr_vec_rm_at(vec, i);
+    }
+
+    return GENC_ERR_NO_DATA;
+}
+
 /* ========================================================================== */
 /* STATIC */
 /* ========================================================================== */
@@ -340,21 +358,21 @@ size_t ntg_object_get_children_by_z(
     if(!object) return 0;
 
     const ntg_objptr_vec* children = &object->_children;
-    if(ntg_objptr_vec_size(children) == 0) return 0;
+    if(children->size == 0) return 0;
 
     if(out_buff)
     {
-        if(cap < ntg_objptr_vec_size(children)) return 0;
+        if(cap < children->size) return 0;
 
         size_t i, j;
 
-        for(i = 0; i < ntg_objptr_vec_size(children); i++)
-            out_buff[i] = ntg_objptr_vec_data(children)[i];
+        for(i = 0; i < children->size; i++)
+            out_buff[i] = children->data[i];
 
         ntg_object* tmp_obj;
-        for(i = 0; i < ntg_objptr_vec_size(children) - 1; i++)
+        for(i = 0; i < children->size - 1; i++)
         {
-            for(j = i + 1; j < ntg_objptr_vec_size(children); j++)
+            for(j = i + 1; j < children->size; j++)
             {
                 if((out_buff[j])->_layout_opts.z_index < (out_buff[i])->_layout_opts.z_index)
                 {
@@ -366,7 +384,7 @@ size_t ntg_object_get_children_by_z(
         }
     }
 
-    return ntg_objptr_vec_size(children);
+    return children->size;
 }
 
 ntg_object* ntg_object_hit_test(
@@ -423,9 +441,9 @@ ntg_object* ntg_object_hit_test(
     struct ntg_dxy it_adj_pos;
     ntg_object* it_child;
     ntg_object* it_hit;
-    for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
+    for(i = 0; i < object->_children.size; i++)
     {
-        it_child = ntg_objptr_vec_data(&object->_children)[i];
+        it_child = object->_children.data[i];
         it_adj_pos = ntg_dxy_sub(ntg_dxy_from_xy(pos), ntg_dxy_from_xy(it_child->_pos));
 
         if(ntg_dxy_is_in_rectangle(it_adj_pos, ntg_dxy(0, 0), ntg_dxy_from_xy(it_child->_size)))
@@ -454,7 +472,7 @@ void ntg_object_detach(ntg_object* object)
 
     ntg_scene* scene = ntg_object_get_scene_(object);
 
-    (void)ntg_objptr_vec_rm(&parent->_children, object);
+    (void)objptr_vec_rm_value(&parent->_children, object);
 
     object->_parent = NULL;
 
@@ -489,7 +507,7 @@ int ntg_object_anchor(
     if(!base || !root || !policy || (base == root))
         return NTG_ERR_INV_ARG;
 
-    if(ntg_objptr_vec_size(&base->_anchored) >= NTG_OBJECT_MAX_ANCHORED)
+    if(base->_anchored.size >= NTG_OBJECT_MAX_ANCHORED)
         return NTG_ERR_MAX_ANCHORED;
 
     if(root->_parent)
@@ -509,6 +527,8 @@ int ntg_object_anchor(
         {
             case GENC_ERR_ALLOC_FAIL:
                 return NTG_ERR_ALLOC_FAIL;
+            case GENC_ERR_OVERFLOW:
+                return NTG_ERR_OVERFLOW;
 
             default:
                 return NTG_ERR_UNEXPECTED;
@@ -550,7 +570,7 @@ void ntg_object_unanchor(ntg_object* root)
 
     ntg_scene* scene = ntg_object_get_scene_(root);
 
-    (void)ntg_objptr_vec_rm(&root->_base->_anchored, root);
+    (void)objptr_vec_rm_value(&root->_base->_anchored, root);
     root->_base = NULL;
     root->_anchor_policy = NULL;
 
@@ -888,14 +908,14 @@ void ntg_object_deinit(ntg_object* object)
         ntg_object_unanchor(object);
     }
 
-    while(ntg_objptr_vec_size(&object->_children) > 0)
+    while(object->_children.size > 0)
     {
-        ntg_object_detach(ntg_objptr_vec_data(&object->_children)[0]);
+        ntg_object_detach(object->_children.data[0]);
     }
 
-    while(ntg_objptr_vec_size(&object->_anchored) > 0)
+    while(object->_anchored.size > 0)
     {
-        ntg_object_unanchor(ntg_objptr_vec_data(&object->_anchored)[0]);
+        ntg_object_unanchor(object->_anchored.data[0]);
     }
 
     (void)ntg_objptr_vec_deinit(&object->_children);
@@ -915,7 +935,7 @@ int ntg_object_attach(ntg_object* parent, ntg_object* child)
     if(!parent || !child || (child == parent))
         return NTG_ERR_INV_ARG;
 
-    if(ntg_objptr_vec_size(&parent->_children) >= NTG_OBJECT_MAX_CHILDREN)
+    if(parent->_children.size >= NTG_OBJECT_MAX_CHILDREN)
         return NTG_ERR_MAX_CHILDREN;
 
     if(child->_parent != NULL)
@@ -936,6 +956,8 @@ int ntg_object_attach(ntg_object* parent, ntg_object* child)
         {
             case GENC_ERR_ALLOC_FAIL:
                 return NTG_ERR_ALLOC_FAIL;
+            case GENC_ERR_OVERFLOW:
+                return NTG_ERR_OVERFLOW;
 
             default:
                 return NTG_ERR_UNEXPECTED;
@@ -1075,7 +1097,7 @@ void ntg_object_zero_constrain(const ntg_object* object, ntg_object_size_map* ma
         return;
 
     size_t i;
-    for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
+    for(i = 0; i < object->_children.size; i++)
         ntg_object_size_map_set(map, object, 0);
 }
 
@@ -1124,7 +1146,7 @@ void ntg_object_zero_arrange(const ntg_object* object, ntg_object_pos_map* map)
         return;
 
     size_t i;
-    for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
+    for(i = 0; i < object->_children.size; i++)
         ntg_object_pos_map_set(map, object, ntg_xy(0, 0));
 }
 
@@ -1519,8 +1541,8 @@ int _ntg_object_hconstrain(
     _status = size_map_init(&map, &object->_children, arena);
     if(_status != 0)
     {
-        for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
-            set_hsize_helper(ntg_objptr_vec_data(&object->_children)[i], 0);
+        for(i = 0; i < object->_children.size; i++)
+            set_hsize_helper(object->_children.data[i], 0);
 
         return _status;
     }
@@ -1536,8 +1558,8 @@ int _ntg_object_hconstrain(
                 relayout);
         if(_status)
         {
-            for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
-                set_hsize_helper(ntg_objptr_vec_data(&object->_children)[i], 0);
+            for(i = 0; i < object->_children.size; i++)
+                set_hsize_helper(object->_children.data[i], 0);
 
             return _status;
         }
@@ -1642,8 +1664,8 @@ int _ntg_object_vconstrain(
     _status = size_map_init(&map, &object->_children, arena);
     if(_status)
     {
-        for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
-            set_vsize_helper(ntg_objptr_vec_data(&object->_children)[i], 0);
+        for(i = 0; i < object->_children.size; i++)
+            set_vsize_helper(object->_children.data[i], 0);
 
         return _status;
     }
@@ -1661,8 +1683,8 @@ int _ntg_object_vconstrain(
             (*relayout) |= NTG_OBJECT_DIRTY_HCONSTRAIN;
         if(_status)
         {
-            for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
-                set_vsize_helper(ntg_objptr_vec_data(&object->_children)[i], 0);
+            for(i = 0; i < object->_children.size; i++)
+                set_vsize_helper(object->_children.data[i], 0);
 
             return _status;
         }
@@ -1697,8 +1719,8 @@ int _ntg_object_arrange(
     _status = pos_map_init(&map, &object->_children, arena);
     if(_status)
     {
-        for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
-            set_pos_helper(ntg_objptr_vec_data(&object->_children)[i], ntg_xy(0, 0));
+        for(i = 0; i < object->_children.size; i++)
+            set_pos_helper(object->_children.data[i], ntg_xy(0, 0));
 
         return _status;
     }
@@ -1713,8 +1735,8 @@ int _ntg_object_arrange(
                 relayout);
         if(_status)
         {
-            for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
-                set_pos_helper(ntg_objptr_vec_data(&object->_children)[i], ntg_xy(0, 0));
+            for(i = 0; i < object->_children.size; i++)
+                set_pos_helper(object->_children.data[i], ntg_xy(0, 0));
 
             return _status;
         }
@@ -1914,7 +1936,7 @@ static int size_map_init(
         const ntg_objptr_vec* children,
         sarena* arena)
 {
-    if(ntg_objptr_vec_size(children) == 0)
+    if(children->size == 0)
     {
         map->keys = NULL;
         map->vals = NULL;
@@ -1922,15 +1944,15 @@ static int size_map_init(
         return 0;
     }
 
-    map->size = ntg_objptr_vec_size(children);
-    map->keys = sarena_malloc(arena, sizeof(ntg_object*) * ntg_objptr_vec_size(children));
+    map->size = children->size;
+    map->keys = sarena_malloc(arena, sizeof(ntg_object*) * children->size);
     if(!map->keys) return NTG_ERR_ALLOC_FAIL;
-    map->vals = sarena_malloc(arena, sizeof(size_t) * ntg_objptr_vec_size(children));
+    map->vals = sarena_malloc(arena, sizeof(size_t) * children->size);
     if(!map->vals) return NTG_ERR_ALLOC_FAIL;
     size_t i;
-    for(i = 0; i < ntg_objptr_vec_size(children); i++)
+    for(i = 0; i < children->size; i++)
     {
-        map->keys[i] = ntg_objptr_vec_data(children)[i];
+        map->keys[i] = children->data[i];
         map->vals[i] = 0;
     }
 
@@ -1942,7 +1964,7 @@ static int pos_map_init(
         const ntg_objptr_vec* children,
         sarena* arena)
 {
-    if(ntg_objptr_vec_size(children) == 0)
+    if(children->size == 0)
     {
         map->keys = NULL;
         map->vals = NULL;
@@ -1950,16 +1972,16 @@ static int pos_map_init(
         return 0;
     }
 
-    map->size = ntg_objptr_vec_size(children);
-    map->keys = sarena_malloc(arena, sizeof(ntg_object*) * ntg_objptr_vec_size(children));
+    map->size = children->size;
+    map->keys = sarena_malloc(arena, sizeof(ntg_object*) * children->size);
     if(!map->keys) return NTG_ERR_ALLOC_FAIL;
-    map->vals = sarena_malloc(arena, sizeof(struct ntg_xy) * ntg_objptr_vec_size(children));
+    map->vals = sarena_malloc(arena, sizeof(struct ntg_xy) * children->size);
     if(!map->vals) return NTG_ERR_ALLOC_FAIL;
 
     size_t i;
-    for(i = 0; i < ntg_objptr_vec_size(children); i++)
+    for(i = 0; i < children->size; i++)
     {
-        map->keys[i] = ntg_objptr_vec_data(children)[i];
+        map->keys[i] = children->data[i];
         map->vals[i] = ntg_xy(0, 0);
     }
 

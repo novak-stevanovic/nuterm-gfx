@@ -17,7 +17,7 @@ struct ntg_cleanup_data
     void (*free_fn)(void* object);
 };
 
-GENC_VECTOR_GENERATE(ntg_cleanup_data_vec, struct ntg_cleanup_data, 1.5)
+GENC_VECTOR_INLINE(ntg_cleanup_data_vec, struct ntg_cleanup_data, 1.5)
 
 struct ntg_cleanup_batch
 {
@@ -64,9 +64,9 @@ void ntg_cleanup_batch_finish(ntg_cleanup_batch* batch)
 
     size_t i;
     struct ntg_cleanup_data it_data;
-    for(i = 0; i < ntg_cleanup_data_vec_size(&batch->vec); i++)
+    for(i = 0; i < batch->vec.size; i++)
     {
-        it_data = ntg_cleanup_data_vec_data(&batch->vec)[i];
+        it_data = batch->vec.data[i];
 
         if(it_data.deinit_fn)
             it_data.deinit_fn(it_data.data);
@@ -104,6 +104,8 @@ int ntg_cleanup_batch_add(
         {
             case GENC_ERR_ALLOC_FAIL:
                 return NTG_ERR_ALLOC_FAIL;
+            case GENC_ERR_OVERFLOW:
+                return NTG_ERR_OVERFLOW;
             default:
                 return NTG_ERR_UNEXPECTED;
         }
