@@ -275,14 +275,14 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
 
     int _status = 0 ,_tmp_status;
 
-    unsigned int timeout = 1000 / loop.framerate;
+    unsigned long timeout = 1000 / loop.framerate;
     struct timespec ts_start, ts_end;
     unsigned long long process_elapsed_ms;
     const ntg_stage_drawing* drawing;
 
     struct nt_event event = {0};
     struct nt_resize_event resize_event;
-    unsigned int event_elapsed;
+    unsigned long event_elapsed;
 
     nt_get_term_size(&loop.app_size.x, &loop.app_size.y);
     loop.app_size.x = _clamp_size(0, loop.app_size.x, NTG_SIZE_MAX);
