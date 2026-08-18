@@ -1,6 +1,6 @@
 # Nuterm-GFX - Work in progress
 
-**Nuterm-GFX** is a retained-mode terminal GUI library written in C. It is built around a **multi-pass layout system** inspired by GTK, with arena-based memory management for **high performance** and predictable allocation behavior.
+**Nuterm-GFX** is a retained-mode terminal GUI library written in C. It is built around a **multi-pass layout system** inspired by GTK, with arena-based memory management for **high performance**.
 
 The library is designed with strong **modularity** and an **OOP-inspired architecture**, while avoiding heavy abstractions. This makes the codebase easier to extend and keeps the process of adding new widgets straightforward.
 
@@ -23,4 +23,4 @@ Default options are `PREFIX=/usr/local`, `PC_PREFIX=PREFIX/lib/pkgconfig`, `OPT=
 
 ## Usage instructions:
 
-Compile your project with flags: `$(pkgconf --cflags nutermgfx)` and link with flags: `$(pkgconf --libs nutermgfx)`. For this to work, make sure that pkg-config searches in the directory of the .pc file generated in the installation process.
+Compile your project with flags: `$(pkgconf --cflags nutermgfx)` and link with flags: `$(pkgconf --libs nutermgfx)`. For this to work, make sure that pkg-config searches in the directory of the .pc file generated in the installation process. See demo.c for usage examples.
