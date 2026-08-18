@@ -85,18 +85,26 @@ ntg_get_opts(void);
 NTG_API void
 ntg_disable(void);
 
-// IMPLEMENT:
-// ntg_input
-// ntg_list
-// ntg_dialogue
+/* TODO LIST
 
-// FINISH:
-// ntg_button: disable() ?
-// Error codes: change values
-// add some old useful comments that were deleted
-// add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
+IMPLEMENT:
+ntg_input
+ntg_list
+ntg_dialogue
+ntg_popup
 
-// AFTER RELEASE:
-// optimize layout_layer(): if scene is dirty all layer trees are traversed, even clean ones
+FINISH:
+ntg_button: disable() ?
+Error codes: change values
+add some old useful comments that were deleted
+add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
+
+TEST:
+frame times
+
+AFTER RELEASE:
+optimize layout_layer(): if scene is dirty all layer trees are traversed, even clean ones
+
+*/
 
 #endif // NTG_H
