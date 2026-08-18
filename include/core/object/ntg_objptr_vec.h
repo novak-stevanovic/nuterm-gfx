@@ -7,20 +7,10 @@
 GENC_VECTOR_GENERATE(ntg_objptr_vec, ntg_object*, 1.5)
 
 static inline int
-ntg_objptr_vec_init(ntg_objptr_vec* vec, size_t cap)
-{
-    if(!vec)
-        return GENC_ERR_INVALID_ARG;
-
-    (*vec) = (ntg_objptr_vec) {0};
-    return ntg_objptr_vec_prealloc(vec, cap);
-}
-
-static inline int
 ntg_objptr_vec_rm(ntg_objptr_vec* vec, const ntg_object* object)
 {
     if(!vec)
-        return GENC_ERR_INVALID_ARG;
+        return GENC_ERR_INV_ARG;
 
     ntg_object** data = ntg_objptr_vec_data(vec);
     size_t size = ntg_objptr_vec_size(vec);

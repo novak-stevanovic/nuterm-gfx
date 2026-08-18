@@ -109,22 +109,20 @@ ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts);
 /* TEXT */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_text_set_text_unsafe(
         ntg_text* text_obj,
         const char* text,
-        uint16_t flags,
-        int* out_status);
+        uint16_t flags);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_text_set_text(
         ntg_text* text_obj,
         const char* text,
         size_t len,
-        uint16_t flags,
-        int* out_status);
+        uint16_t flags);
 
 /* ------------------------------------------------------ */
 /* SCROLL */
@@ -140,35 +138,33 @@ ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff);
 /* INHERIT */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_text_init_inherit(
         ntg_text* text_obj,
         const struct ntg_object_vtable* object_vtable,
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status);
+        struct ntg_object_layout_dt* layout_dt);
 
 NTG_API void
 ntg_text_deinit(ntg_text* text_obj);
 
-NTG_API struct ntg_object_measure
+NTG_API int
 ntg_text_measure_fn(
         const ntg_object* _text_obj,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status);
+        struct ntg_object_measure* out_measure);
 
-NTG_API void
+NTG_API int
 ntg_text_draw_fn(
         const ntg_object* _text_obj,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 NTG_API void
 ntg_text_layout_finalize_fn(ntg_object* object, sarena* arena);

@@ -37,16 +37,13 @@ static void scope_stack_sync(ntg_focus_manager* fm);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void _ntg_focus_manager_init(
+int _ntg_focus_manager_init(
         ntg_focus_manager* fm,
         ntg_scene* scene,
-        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
-        int* out_status)
+        const struct ntg_focus_scope_keybinds* init_scope_keybinds)
 {
-    ntg_init_status(out_status);
-
     if(!fm || !scene)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     int _status;
 
@@ -54,7 +51,7 @@ void _ntg_focus_manager_init(
 
     fm->__scope_stack = malloc(sizeof(ntg_focus_scope_list));
     if(!fm->__scope_stack)
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
 
     *fm->__scope_stack = (ntg_focus_scope_list) {0};
 
@@ -62,35 +59,23 @@ void _ntg_focus_manager_init(
     fm->_focused = NULL;
 
     ntg_focus_scope scope;
-    ntg_focus_scope_init(
+    _status = ntg_focus_scope_init(
             &scope,
             NULL,
             init_scope_keybinds,
-            NULL,
-            &_status);
+            NULL);
 
-    switch(_status)
-    {
-        case 0: break;
+    if(_status != 0)
+        return _status;
 
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-    }
-
-    ntg_focus_manager_stack_push(fm, &scope, &_status);
+    _status = ntg_focus_manager_stack_push(fm, &scope, NULL);
     if(_status != 0)
     {
         _ntg_focus_manager_deinit(fm);
-
-        switch(_status)
-        {
-            case NTG_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
+        return _status;
     }
+
+    return 0;
 }
 
 void _ntg_focus_manager_deinit(ntg_focus_manager* fm)
@@ -188,15 +173,15 @@ bool ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object)
 /* SCOPES */
 /* ------------------------------------------------------ */
 
-ntg_focus_scope* ntg_focus_manager_stack_push(
+int ntg_focus_manager_stack_push(
         ntg_focus_manager* fm,
         const ntg_focus_scope* scope,
-        int* out_status)
+        ntg_focus_scope** out_scope)
 {
-    ntg_init_status(out_status);
-
     if(!fm || !scope)
-        ntg_return(NULL, out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
+
+    ntg_set_out(out_scope, NULL);
 
     int _status;
 
@@ -205,18 +190,18 @@ ntg_focus_scope* ntg_focus_manager_stack_push(
     if(head)
     {
         if(ntg_focus_scope_list_node_data(head)->scope->_opts.block_mode == NTG_FOCUS_SCOPE_BLOCK_TRUE)
-            return NULL;
+            return 0;
     }
 
     if(scope->_root) 
     {
         size_t layer_count = ntg_scene_collect_layers_by_z(fm->_scene, NULL, 0);
         if(layer_count == 0)
-            ntg_return(NULL, out_status, NTG_ERR_SCENE_EMPTY);
+            return NTG_ERR_SCENE_EMPTY;
 
         ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
         if(!layers)
-            ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+            return NTG_ERR_ALLOC_FAIL;
 
         ntg_scene_collect_layers_by_z(fm->_scene, layers, layer_count);
 
@@ -231,7 +216,7 @@ ntg_focus_scope* ntg_focus_manager_stack_push(
         free(layers);
 
         if(!desc_of_any_layer)
-            ntg_return(NULL, out_status, NTG_ERR_SCOPE_NOT_IN_SCENE);
+            return NTG_ERR_SCOPE_NOT_IN_SCENE;
     }
 
     if(head)
@@ -241,16 +226,14 @@ ntg_focus_scope* ntg_focus_manager_stack_push(
 
     ntg_focus_scope* new_scope = malloc(sizeof(ntg_focus_scope));
     if(!new_scope)
-        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
 
     struct ntg_focus_scope_data data = {0};
-    ntg_focus_scope_init_move(new_scope, scope, &_status);
-    switch(_status)
+    _status = ntg_focus_scope_init_move(new_scope, scope);
+    if(_status != 0)
     {
-        case 0: break;
-
-        default:
-            ntg_return(NULL, out_status, NTG_ERR_UNEXPECTED);
+        free(new_scope);
+        return _status;
     }
     data.scope = new_scope;
 
@@ -261,10 +244,10 @@ ntg_focus_scope* ntg_focus_manager_stack_push(
         switch(_status)
         {
             case GENC_ERR_ALLOC_FAIL:
-                ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+                return NTG_ERR_ALLOC_FAIL;
 
             default:
-                ntg_return(NULL, out_status, NTG_ERR_UNEXPECTED);
+                return NTG_ERR_UNEXPECTED;
         }
     }
     _ntg_focus_scope_attach(new_scope, fm);
@@ -273,8 +256,9 @@ ntg_focus_scope* ntg_focus_manager_stack_push(
 
     if(fm->hooks.on_scope_push_fn)
         fm->hooks.on_scope_push_fn(fm, new_scope);
-    
-    return new_scope;
+
+    ntg_set_out(out_scope, new_scope);
+    return 0;
 }
 
 void ntg_focus_manager_stack_pop(ntg_focus_manager* fm)
@@ -371,8 +355,8 @@ bool ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event m
     struct ntg_xy adj_pos = ntg_xy(0, 0);
 
     int _status;
-
-    ntg_object* hit = ntg_scene_hit_test(fm->_scene, pos, &adj_pos, NULL, &_status);
+    ntg_object* hit = NULL;
+    _status = ntg_scene_hit_test(fm->_scene, pos, &adj_pos, NULL, &hit);
     if(_status != 0)
         return false;
 

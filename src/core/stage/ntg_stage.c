@@ -34,9 +34,9 @@ static bool draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_stage_init(ntg_stage* stage, int* out_status)
+int ntg_stage_init(ntg_stage* stage)
 {
-    ntg_stage_init_override(stage, &NTG_STAGE_VTABLE_DEFAULT, out_status);
+    return ntg_stage_init_override(stage, &NTG_STAGE_VTABLE_DEFAULT);
 }
 
 void ntg_stage_deinit(ntg_stage* stage)
@@ -45,12 +45,12 @@ void ntg_stage_deinit(ntg_stage* stage)
 
     if(stage->_in_loop)
     {
-        ntg_loop_set_stage(NULL, NULL);
+        (void)ntg_loop_set_stage(NULL);
     }
 
     if(stage->_scene)
     {
-        ntg_stage_set_scene(stage, NULL, NULL);
+        (void)ntg_stage_set_scene(stage, NULL);
     }
 
     ntg_stage_drawing_deinit(&stage->_drawing);
@@ -79,7 +79,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     if(!ntg_xy_are_eql(ntg_stage_drawing_get_size(&stage->_drawing), size))
     {
         struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-        ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap, &_status);
+        _status = ntg_stage_drawing_set_size(&stage->_drawing, size, size_cap);
         if(_status)
             return true;
     }
@@ -118,14 +118,12 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
 }
 
 
-void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status)
+int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 {
-    ntg_init_status(out_status);
-
     if(!stage)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
-    if(stage->_scene == scene) return;
+    if(stage->_scene == scene) return 0;
 
     ntg_scene* old_scene = stage->_scene;
     ntg_stage* old_scene_stage = (old_scene ? old_scene->_stage : NULL);
@@ -136,20 +134,22 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status)
         _ntg_scene_set_stage(old_scene, NULL);
 
         /* Can only fail if size exceeds NTG_SIZE_MAX */
-        _ntg_scene_set_size(old_scene, ntg_xy(0, 0), NULL);
+        (void)_ntg_scene_set_size(old_scene, ntg_xy(0, 0));
     }
 
     if(scene)
     {
         if(old_stage)
         {
-            ntg_stage_set_scene(old_stage, NULL, NULL);
+            (void)ntg_stage_set_scene(old_stage, NULL);
         }
 
         _ntg_scene_set_stage(scene, stage);
 
         /* Can only fail if size exceeds NTG_SIZE_MAX */
-        _ntg_scene_set_size(scene, stage->_size, NULL);
+        int status = _ntg_scene_set_size(scene, stage->_size);
+        if(status != 0)
+            return status;
         ntg_scene_mark_dirty(scene);
     }
 
@@ -163,6 +163,8 @@ void ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status)
 
     if(scene)
         _ntg_scene_on_stage_enter(scene, stage);
+
+    return 0;
 }
 
 void ntg_stage_mark_dirty(ntg_stage* stage)
@@ -214,27 +216,25 @@ bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_stage_init_override(
+int ntg_stage_init_override(
         ntg_stage* stage,
-        const struct ntg_stage_vtable* vtable,
-        int* out_status)
+        const struct ntg_stage_vtable* vtable)
 {
-    ntg_init_status(out_status);
-
     if(!stage)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     init_default(stage);
     stage->__vtable = (vtable ? vtable : &VTABLE_EMPTY);
 
-    int _status;
-    ntg_stage_drawing_init(&stage->_drawing, &_status);
+    int _status = ntg_stage_drawing_init(&stage->_drawing);
 
     if(_status != 0)
     {
         init_default(stage);
-        ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+        return _status;
     }
+
+    return 0;
 }
 
 bool ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key_event key)
@@ -272,18 +272,16 @@ const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT = {
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size, int* out_status)
+int _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {
-    ntg_set_out(out_status, 0);
-
     if(!stage)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(ntg_xy_are_eql(stage->_size, size))
-        return;
+        return 0;
 
     struct ntg_xy old_size = stage->_size;
 
@@ -294,18 +292,15 @@ void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size, int* out_status)
 
     if(stage->_scene)
     {
-        _ntg_scene_set_size(stage->_scene, size, &_status);
-        switch(_status)
-        {
-            case 0: break;
-            default:
-                ntg_set_out(out_status, NTG_ERR_UNEXPECTED);
-                break;
-        }
+        _status = _ntg_scene_set_size(stage->_scene, size);
+        if(_status != 0)
+            return _status;
     }
 
     if(stage->hooks.on_size_chng_fn)
         stage->hooks.on_size_chng_fn(stage, old_size, size);
+
+    return 0;
 }
 
 void _ntg_stage_clean(ntg_stage* stage)
@@ -408,12 +403,10 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     if(object->_dirty & NTG_OBJECT_DIRTY_DRAW)
         return;
 
-    int _status;
-    ntg_object_drawing_place_(
+    (void)ntg_object_drawing_place_(
             &object->_drawing,
             &stage->_drawing,
-            abs_pos,
-            &_status);
+            abs_pos);
 
     _ntg_object_clean(object, NTG_OBJECT_DIRTY_RENDER);
 }

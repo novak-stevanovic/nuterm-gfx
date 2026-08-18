@@ -53,10 +53,9 @@ static const struct ntg_border_style_vtable VTABLE = {
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_border_9x_init_monochrome(
+int ntg_border_9x_init_monochrome(
         ntg_border_9x* style,
-        struct nt_color color,
-        int* out_status)
+        struct nt_color color)
 {
     struct nt_gfx gfx = {
         .fg = NT_COLOR_DEFAULT,
@@ -66,20 +65,18 @@ void ntg_border_9x_init_monochrome(
 
     struct ntg_border_9x_sym symbols = BORDER_9X_SYM_DEFAULT;
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_basic(
+int ntg_border_9x_init_basic(
         ntg_border_9x* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool overlay,
-        int* out_status)
+        bool overlay)
 {
     struct ntg_border_9x_sym symbols = {
         .top_left = cp,
@@ -93,20 +90,18 @@ void ntg_border_9x_init_basic(
         .padding = cp
     };
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_basic_edge(
+int ntg_border_9x_init_basic_edge(
         ntg_border_9x* style,
         struct nt_gfx gfx,
         uint32_t cp,
-        bool overlay,
-        int* out_status)
+        bool overlay)
 {
     struct ntg_border_9x_sym symbols = {
         .top_left = cp,
@@ -120,19 +115,17 @@ void ntg_border_9x_init_basic_edge(
         .padding = ' '
     };
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_single(
+int ntg_border_9x_init_single(
         ntg_border_9x* style,
         struct nt_gfx gfx,
-        bool overlay,
-        int* out_status)
+        bool overlay)
 {
     struct ntg_border_9x_sym symbols = {
         .top_left = 0x250C,
@@ -146,19 +139,17 @@ void ntg_border_9x_init_single(
         .padding = ' '
     };
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_double(
+int ntg_border_9x_init_double(
         ntg_border_9x* style,
         struct nt_gfx gfx,
-        bool overlay,
-        int* out_status)
+        bool overlay)
 {
     struct ntg_border_9x_sym symbols = {
         .top_left = 0x2554,
@@ -172,19 +163,17 @@ void ntg_border_9x_init_double(
         .padding = ' '
     };
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_rounded(
+int ntg_border_9x_init_rounded(
         ntg_border_9x* style,
         struct nt_gfx gfx,
-        bool overlay,
-        int* out_status)
+        bool overlay)
 {
     struct ntg_border_9x_sym symbols = {
         .top_left = 0x256D,
@@ -198,19 +187,17 @@ void ntg_border_9x_init_rounded(
         .padding = ' '
     };
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_heavy(
+int ntg_border_9x_init_heavy(
         ntg_border_9x* style,
         struct nt_gfx gfx,
-        bool overlay,
-        int* out_status)
+        bool overlay)
 {
     struct ntg_border_9x_sym symbols = {
         .top_left = 0x250F,
@@ -224,19 +211,17 @@ void ntg_border_9x_init_heavy(
         .padding = ' '
     };
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_dashed(
+int ntg_border_9x_init_dashed(
         ntg_border_9x* style,
         struct nt_gfx gfx,
-        bool overlay,
-        int* out_status)
+        bool overlay)
 {
     struct ntg_border_9x_sym symbols = {
         .top_left = 0x250C,
@@ -250,19 +235,17 @@ void ntg_border_9x_init_dashed(
         .padding = ' '
     };
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_ascii(
+int ntg_border_9x_init_ascii(
         ntg_border_9x* style,
         struct nt_gfx gfx,
-        bool overlay,
-        int* out_status)
+        bool overlay)
 {
     struct ntg_border_9x_sym symbols = {
         .top_left = '+',
@@ -276,51 +259,43 @@ void ntg_border_9x_init_ascii(
         .padding = ' '
     };
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_transparent(
-        ntg_border_9x* style,
-        int* out_status)
+int ntg_border_9x_init_transparent(
+        ntg_border_9x* style)
 {
     struct ntg_border_9x_sym symbols = BORDER_9X_SYM_DEFAULT;
 
-    ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom_9x(
             style,
             NTG_VCELL_TRANSPARENT,
             NT_GFX_DEFAULT,
-            &symbols,
-            out_status);
+            &symbols);
 }
 
-void ntg_border_9x_init_custom_9x(
+int ntg_border_9x_init_custom_9x(
         ntg_border_9x* style,
         enum ntg_vcell_type type,
         struct nt_gfx gfx,
-        const struct ntg_border_9x_sym* symbols,
-        int* out_status)
+        const struct ntg_border_9x_sym* symbols)
 {
-    ntg_init_status(out_status);
-
     if(!style)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
-    int _status;
-
-    ntg_border_style_init_inherit(&style->__base, &VTABLE, &_status);
+    int _status = ntg_border_style_init_inherit(&style->__base, &VTABLE);
     if(_status)
-        ntg_vreturn(out_status, _status);
+        return _status;
 
     struct border_9x_data* data = malloc(sizeof(*data));
     if(!data)
     {
         ntg_border_style_deinit(&style->__base);
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
     }
 
     (*data) = (struct border_9x_data) {
@@ -330,6 +305,7 @@ void ntg_border_9x_init_custom_9x(
 
     style->__base.data = data;
     style->_symbols = symbols ? (*symbols) : BORDER_9X_SYM_DEFAULT;
+    return 0;
 }
 
 void ntg_border_9x_deinit(ntg_border_9x* style)

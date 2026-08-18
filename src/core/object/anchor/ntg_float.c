@@ -50,23 +50,19 @@ struct ntg_float_opts ntg_float_opts_default(void)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_float_init(
+int ntg_float_init(
         ntg_float* float_ap,
-        const struct ntg_float_opts* opts,
-        int* out_status)
+        const struct ntg_float_opts* opts)
 {
-    ntg_init_status(out_status);
-
     if(!float_ap)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
-    int _status;
-
-    ntg_anchor_policy_init_inherit(&float_ap->__base, &VTABLE, &_status);
+    int _status = ntg_anchor_policy_init_inherit(&float_ap->__base, &VTABLE);
     if(_status)
-        ntg_vreturn(out_status, _status);
+        return _status;
 
     float_ap->_opts = opts ? (*opts) : ntg_float_opts_default();
+    return 0;
 }
 
 void ntg_float_deinit(ntg_float* float_ap)

@@ -55,11 +55,11 @@ ntg_focus_manager_request_focus(ntg_focus_manager* fm, ntg_object* object);
 /* SCOPES */
 /* ------------------------------------------------------ */
 
-NTG_API ntg_focus_scope*
+NTG_API int
 ntg_focus_manager_stack_push(
         ntg_focus_manager* fm,
         const ntg_focus_scope* scope,
-        int* out_status);
+        ntg_focus_scope** out_scope);
 
 /* ------------------------------------------------------ */
 
@@ -100,11 +100,10 @@ ntg_focus_manager_feed_mouse(ntg_focus_manager* fm, struct nt_mouse_event mouse)
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void _ntg_focus_manager_init(
+int _ntg_focus_manager_init(
         ntg_focus_manager* fm,
         ntg_scene* scene,
-        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
-        int* out_status);
+        const struct ntg_focus_scope_keybinds* init_scope_keybinds);
 
 /* ------------------------------------------------------ */
 

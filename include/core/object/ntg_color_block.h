@@ -39,11 +39,10 @@ struct ntg_color_block
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_color_block_init(
         ntg_color_block* color_block,
-        struct nt_color color,
-        int* out_status);
+        struct nt_color color);
 
 /* ------------------------------------------------------ */
 
@@ -76,37 +75,35 @@ ntg_color_block_set_color(
 /* -------------------------------------------------------------------------- */
 
 
-NTG_API void
+NTG_API int
 ntg_color_block_init_inherit(
         ntg_color_block* color_block,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status);
+        struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API struct ntg_object_measure
+NTG_API int
 ntg_color_block_measure_fn(
         const ntg_object* _color_block,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status);
+        struct ntg_object_measure* out_measure);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_color_block_draw_fn(
         const ntg_object* _color_block,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 /* ------------------------------------------------------ */
 

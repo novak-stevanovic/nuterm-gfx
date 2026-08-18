@@ -27,8 +27,8 @@ struct ntg_stage_drawing
 /* ------------------------------------------------------ */
 
 
-NTG_API void
-ntg_stage_drawing_init(ntg_stage_drawing* drawing, int* out_status);
+NTG_API int
+ntg_stage_drawing_init(ntg_stage_drawing* drawing);
 
 /* ------------------------------------------------------ */
 
@@ -47,12 +47,11 @@ ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing);
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_stage_drawing_set_size(
         ntg_stage_drawing* drawing,
         struct ntg_xy size,
-        struct ntg_xy size_cap,
-        int* out_status);
+        struct ntg_xy size_cap);
 
 /* ------------------------------------------------------ */
 /* CELLS */

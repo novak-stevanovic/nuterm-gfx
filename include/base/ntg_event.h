@@ -32,12 +32,12 @@ NTG_API void
 ntg_event_delegate_destroy(ntg_event_delegate* delegate);
 
 
-NTG_API ntg_event_binding*
+NTG_API int
 ntg_event_bind(
         ntg_event_delegate* delegate,
         void* subscriber,
         void (*handler_fn)(void* subscriber, struct ntg_event event),
-        int* out_status);
+        ntg_event_binding** out_binding);
 
 
 NTG_API void

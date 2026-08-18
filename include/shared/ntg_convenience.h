@@ -44,12 +44,11 @@ NTG_API void
 ntg_cleanup_batch_finish(ntg_cleanup_batch* batch);
 
 
-NTG_API void
+NTG_API int
 ntg_cleanup_batch_add(
         ntg_cleanup_batch* batch,
         void* data,
         void (*deinit_fn)(void* data),
-        void (*free_fn)(void* data),
-        int* out_status);
+        void (*free_fn)(void* data));
 
 #endif // NTG_CONVENIENCE_H

@@ -26,19 +26,19 @@ static inline bool is_equal_double(double x, double y)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-size_t ntg_sap_cap_round_robin(
+int ntg_sap_cap_round_robin(
         const size_t* caps,
         const size_t* grows,
-        size_t* out_size_map,
         size_t space_pool,
         size_t count,
-        sarena* arena,
-        int* out_status)
+        double* scratch_buffer,
+        size_t* out_sizes,
+        size_t* out_distributed)
 {
-    ntg_init_status(out_status);
+    if(!caps || !out_sizes || ((count > 0) && !scratch_buffer))
+        return NTG_ERR_INV_ARG;
 
-    if(!caps || !out_size_map)
-        ntg_return(SIZE_MAX, out_status, NTG_ERR_INVALID_ARG);
+    ntg_set_out(out_distributed, 0);
     
     if((space_pool == 0) || (count == 0)) return 0;
 
@@ -58,9 +58,7 @@ size_t ntg_sap_cap_round_robin(
 
     if(total_grow == 0) return 0;
 
-    double* distributed = (double*)sarena_malloc(arena, sizeof(double) * count);
-    if(!distributed)
-        ntg_return(SIZE_MAX, out_status, NTG_ERR_ALLOC_FAIL);
+    double* distributed = scratch_buffer;
     for(i = 0; i < count; i++)
         distributed[i] = 0;
 
@@ -81,12 +79,12 @@ size_t ntg_sap_cap_round_robin(
             
             if(is_equal_double(space_left, 0)) break;
             
-            if(out_size_map[i] + distributed[i] >= caps[i]) continue;
+            if(out_sizes[i] + distributed[i] >= caps[i]) continue;
 
             it_to_distribute = _min2_double(space_left, it_grow_factor);
             it_to_distribute = _min2_double(
                     it_to_distribute,
-                    caps[i] - out_size_map[i] - distributed[i]);
+                    caps[i] - out_sizes[i] - distributed[i]);
             if(is_equal_double(it_to_distribute, 0)) continue;
 
             distributed[i] += it_to_distribute;
@@ -104,7 +102,7 @@ size_t ntg_sap_cap_round_robin(
     {
         it_floored = floor(distributed[i]);
         distributed_actual += (size_t)it_floored;
-        out_size_map[i] += (size_t)it_floored;
+        out_sizes[i] += (size_t)it_floored;
     }
 
     space_pool -= distributed_actual;
@@ -114,15 +112,16 @@ size_t ntg_sap_cap_round_robin(
         it_grow = (grows != NULL) ? grows[i] : 1;
 
         if(it_grow == 0) continue;
-        if(out_size_map[i] > caps[i])
-            ntg_return(SIZE_MAX, out_status, NTG_ERR_UNEXPECTED);
-        if(out_size_map[i] == caps[i]) continue;
+        if(out_sizes[i] > caps[i])
+            return NTG_ERR_UNEXPECTED;
+        if(out_sizes[i] == caps[i]) continue;
         if(space_pool == 0) break;
 
-        out_size_map[i]++;
+        out_sizes[i]++;
         distributed_actual++;
         space_pool--;
     }
 
-    return distributed_actual;
+    ntg_set_out(out_distributed, distributed_actual);
+    return 0;
 }

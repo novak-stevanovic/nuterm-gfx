@@ -89,20 +89,18 @@ const struct ntg_focus_scope_keybinds NTG_FOCUS_SCOPE_KEYBINDS_DEFAULT = {
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_focus_scope_init(
+int ntg_focus_scope_init(
         ntg_focus_scope* scope,
         ntg_object* scope_root,
         const struct ntg_focus_scope_keybinds* keybinds,
-        const struct ntg_focus_scope_opts* opts,
-        int* out_status)
+        const struct ntg_focus_scope_opts* opts)
 {
-    ntg_focus_scope_init_override(
+    return ntg_focus_scope_init_override(
             scope,
             &NTG_FOCUS_SCOPE_VTABLE_DEFAULT,
             scope_root,
             keybinds,
-            opts,
-            out_status);
+            opts);
 }
 
 void ntg_focus_scope_deinit(ntg_focus_scope* scope)
@@ -112,17 +110,15 @@ void ntg_focus_scope_deinit(ntg_focus_scope* scope)
     init_default(scope);
 }
 
-void ntg_focus_scope_init_move(
+int ntg_focus_scope_init_move(
         ntg_focus_scope* dest,
-        const ntg_focus_scope* src,
-        int* out_status)
+        const ntg_focus_scope* src)
 {
-    ntg_init_status(out_status);
-
     if(!dest || !src)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     (*dest) = (*src);
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -200,18 +196,15 @@ bool ntg_focus_scope_feed_mouse(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_focus_scope_init_override(
+int ntg_focus_scope_init_override(
         ntg_focus_scope* scope,
         const struct ntg_focus_scope_vtable* vtable,
         ntg_object* scope_root,
         const struct ntg_focus_scope_keybinds* keybinds,
-        const struct ntg_focus_scope_opts* opts,
-        int* out_status)
+        const struct ntg_focus_scope_opts* opts)
 {
-    ntg_init_status(out_status);
-
     if(!scope)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     init_default(scope);
 
@@ -222,6 +215,7 @@ void ntg_focus_scope_init_override(
     ntg_focus_scope_set_opts(scope, opts);
 
     scope->__valid = true;
+    return 0;
 }
 
 bool ntg_focus_scope_dispatch_key_fn(

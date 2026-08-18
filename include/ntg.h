@@ -76,8 +76,8 @@ ntg_opts_default(void);
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
-ntg_enable(const struct ntg_opts* opts, const char* log_filepath, int* out_status);
+NTG_API int
+ntg_enable(const struct ntg_opts* opts, const char* log_filepath);
 
 NTG_API const struct ntg_opts*
 ntg_get_opts(void);

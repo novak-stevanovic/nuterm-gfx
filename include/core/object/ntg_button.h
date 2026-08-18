@@ -54,12 +54,11 @@ struct ntg_button
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_button_init(
         ntg_button* button,
         const struct ntg_button_opts* opts,
-        bool (*click_fn)(ntg_button* button),
-        int* out_status);
+        bool (*click_fn)(ntg_button* button));
 
 NTG_API void
 ntg_button_deinit(ntg_button* button);
@@ -91,22 +90,20 @@ ntg_button_set_click_fn(ntg_button* button, bool (*click_fn)(ntg_button* button)
 NTG_API struct ntg_str_view
 ntg_button_get_text(const struct ntg_button* button);
 
-NTG_API void
+NTG_API int
 ntg_button_set_text_unsafe(
         ntg_button* button,
         const char* text,
-        uint16_t flags,
-        int* out_status);
+        uint16_t flags);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_button_set_text(
         ntg_button* button,
         const char* text,
         size_t len,
-        uint16_t flags,
-        int* out_status);
+        uint16_t flags);
 
 /* ========================================================================== */
 /* PROTECTED */
@@ -116,32 +113,30 @@ ntg_button_set_text(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_button_init_inherit(
         ntg_button* button,
         const struct ntg_object_vtable* object_vtable,
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status);
+        struct ntg_object_layout_dt* layout_dt);
 
-NTG_API struct ntg_object_measure
+NTG_API int
 ntg_button_measure_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status);
+        struct ntg_object_measure* out_measure);
 
-NTG_API void
+NTG_API int
 ntg_button_draw_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 NTG_API void
 ntg_button_deinit_fn(ntg_object* _button);

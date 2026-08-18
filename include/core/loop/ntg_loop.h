@@ -60,17 +60,16 @@ ntg_loop_start_opts_default(void);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_loop_init(
         ntg_renderer* custom_renderer,
         bool (*on_event_fn)(const struct nt_event* event),
         ntg_stage* init_stage,
-        const struct ntg_loop_init_opts* opts,
-        int* out_status);
+        const struct ntg_loop_init_opts* opts);
 
 // What if there are active tasks?
-NTG_API void
-ntg_loop_deinit(int* out_status);
+NTG_API int
+ntg_loop_deinit(void);
 
 NTG_API enum ntg_loop_state
 ntg_loop_get_state(void);
@@ -89,8 +88,8 @@ ntg_loop_dispatch_event_fn_default(const struct nt_event* event);
 /* START/STOP */
 /* ------------------------------------------------------ */
 
-NTG_API void
-ntg_loop_start(const struct ntg_loop_start_opts* opts, int* out_status);
+NTG_API int
+ntg_loop_start(const struct ntg_loop_start_opts* opts);
 
 NTG_API void
 ntg_loop_stop(void);
@@ -103,12 +102,11 @@ ntg_loop_stop(void);
 
 /* If loop is NTG_LOOP_READY the tasks will be executed on next ntg_loop_start(). */
 
-NTG_API void
+NTG_API int
 ntg_loop_schedule(
         void (*task_fn)(void* data),
         void* data,
-        unsigned long delay_ms,
-        int* out_status);
+        unsigned long delay_ms);
 
 /* May be used before starting the loop or stopping the loop to discard any tasks
  * that were pushed while the loop was inactive. */
@@ -126,8 +124,8 @@ ntg_loop_has_tasks(void);
 NTG_API ntg_stage*
 ntg_loop_get_stage(void);
 
-NTG_API void
-ntg_loop_set_stage(ntg_stage* stage, int* out_status);
+NTG_API int
+ntg_loop_set_stage(ntg_stage* stage);
 
 NTG_API struct ntg_xy
 ntg_loop_get_app_size(void);

@@ -46,34 +46,31 @@ ntg_object_drawing_get_size(const ntg_object_drawing* drawing);
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_object_drawing_set_size(
         ntg_object_drawing* drawing,
         struct ntg_xy size,
-        struct ntg_xy size_cap,
-        int* out_status);
+        struct ntg_xy size_cap);
 
 /* ------------------------------------------------------ */
 /* PLACEMENT */
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_object_drawing_place(
         const ntg_object_drawing* src_drawing,
         ntg_object_drawing* dest_drawing,
-        struct ntg_xy dest_start_pos,
-        int* out_status);
+        struct ntg_xy dest_start_pos);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_object_drawing_place_(
         const ntg_object_drawing* src_drawing,
         ntg_stage_drawing* dest_drawing,
-        struct ntg_xy dest_start_pos,
-        int* out_status);
+        struct ntg_xy dest_start_pos);
 
 /* ------------------------------------------------------ */
 /* CELLS */

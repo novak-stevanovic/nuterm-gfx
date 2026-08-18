@@ -18,7 +18,7 @@ ntg_event_binding_vec_rm_value(
         const ntg_event_binding* binding)
 {
     if(!vec)
-        return GENC_ERR_INVALID_ARG;
+        return GENC_ERR_INV_ARG;
 
     ntg_event_binding** data = ntg_event_binding_vec_data(vec);
     size_t size = ntg_event_binding_vec_size(vec);
@@ -85,20 +85,20 @@ void ntg_event_delegate_destroy(ntg_event_delegate* delegate)
     free(delegate);
 }
 
-ntg_event_binding* ntg_event_bind(
+int ntg_event_bind(
         ntg_event_delegate* delegate,
         void* subscriber,
         void (*handler_fn)(void* subscriber, struct ntg_event event),
-        int* out_status)
+        ntg_event_binding** out_binding)
 {
-    ntg_init_status(out_status);
+    if(!delegate || !handler_fn || !out_binding)
+        return NTG_ERR_INV_ARG;
 
-    if(!delegate || !handler_fn)
-        ntg_return(NULL, out_status, NTG_ERR_INVALID_ARG);
+    *out_binding = NULL;
 
     ntg_event_binding* new = malloc(sizeof(ntg_event_binding));
     if(!new)
-        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
 
     new->delegate = delegate;
     new->subscriber = subscriber;
@@ -113,14 +113,15 @@ ntg_event_binding* ntg_event_bind(
         switch(_status)
         {
             case GENC_ERR_ALLOC_FAIL:
-                ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+                return NTG_ERR_ALLOC_FAIL;
 
             default:
-                ntg_return(NULL, out_status, NTG_ERR_UNEXPECTED);
+                return NTG_ERR_UNEXPECTED;
         }
     }
 
-    return new;
+    *out_binding = new;
+    return 0;
 }
 
 void ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)

@@ -57,8 +57,8 @@ struct ntg_stage
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-NTG_API void
-ntg_stage_init(ntg_stage* stage, int* out_status);
+NTG_API int
+ntg_stage_init(ntg_stage* stage);
 
 NTG_API void
 ntg_stage_deinit(ntg_stage* stage);
@@ -81,8 +81,8 @@ ntg_stage_mark_dirty(ntg_stage* stage);
 /* SCENE */
 /* ------------------------------------------------------ */
 
-NTG_API void
-ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene, int* out_status);
+NTG_API int
+ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -112,11 +112,10 @@ struct ntg_stage_vtable
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_stage_init_override(
         ntg_stage* stage,
-        const struct ntg_stage_vtable* vtable,
-        int* out_status);
+        const struct ntg_stage_vtable* vtable);
 
 NTG_API bool
 ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key_event key);
@@ -134,7 +133,7 @@ NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size, int* out_status);
+int _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
 void _ntg_stage_clean(ntg_stage* stage);
 void _ntg_stage_enter_loop(ntg_stage* stage);
 void _ntg_stage_leave_loop(ntg_stage* stage);

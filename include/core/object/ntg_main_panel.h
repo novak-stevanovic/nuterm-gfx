@@ -74,11 +74,10 @@ struct ntg_main_panel
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_main_panel_init(
         ntg_main_panel* panel,
-        const struct ntg_main_panel_opts* opts,
-        int* out_status);
+        const struct ntg_main_panel_opts* opts);
 
 /* ------------------------------------------------------ */
 
@@ -96,12 +95,11 @@ ntg_main_panel_deinit_void(void* _panel);
 /* CHILDREN */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_main_panel_set(
         ntg_main_panel* panel,
         ntg_object* object,
-        enum ntg_main_panel_pos pos,
-        int* out_status);
+        enum ntg_main_panel_pos pos);
 
 /* ------------------------------------------------------ */
 /* OPTS */
@@ -120,47 +118,44 @@ ntg_main_panel_set_opts(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status);
+        struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_object_measure
+NTG_API int
 ntg_main_panel_measure_fn(
         const ntg_object* _panel,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status);
+        struct ntg_object_measure* out_measure);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_main_panel_constrain_fn(
         const ntg_object* _panel,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_pos_map* out_pos_map,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 /* ------------------------------------------------------ */
 

@@ -84,11 +84,10 @@ struct ntg_prog_bar
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_prog_bar_init(
         ntg_prog_bar* prog_bar,
-        const struct ntg_prog_bar_opts* opts,
-        int* out_status);
+        const struct ntg_prog_bar_opts* opts);
 
 /* ------------------------------------------------------ */
 
@@ -129,37 +128,35 @@ ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress);
 /* -------------------------------------------------------------------------- */
 
 
-NTG_API void
+NTG_API int
 ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status);
+        struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API struct ntg_object_measure
+NTG_API int
 ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status);
+        struct ntg_object_measure* out_measure);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 /* ------------------------------------------------------ */
 

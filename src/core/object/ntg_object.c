@@ -69,30 +69,28 @@ static struct ntg_object_measure incorporate_user_measure(
         size_t user_max_size,
         size_t user_grow);
     
-static void get_dcr_size(
+static int get_dcr_size(
         enum ntg_object_dcr_enable enable,
         size_t we_pref_size[2],
         size_t size,
         struct ntg_object_measure inner_measure,
-        size_t we_out_size[2],
-        sarena* arena);
+        size_t we_out_size[2]);
 
-static bool vconstrain_border(ntg_object* object, sarena* arena);
-static bool vconstrain_padding(ntg_object* object, sarena* arena);
-static void calculate_border_hsize(ntg_object* object,
-        sarena* arena, size_t* out_n, size_t* out_s);
-static void calculate_border_vsize(ntg_object* object,
-        sarena* arena, size_t* out_w, size_t* out_e);
-static void calculate_padding_hsize(ntg_object* object,
-        sarena* arena, size_t* out_n, size_t* out_s);
-static void calculate_padding_vsize(ntg_object* object,
-        sarena* arena, size_t* out_w, size_t* out_e);
+static int vconstrain_border(ntg_object* object, bool* out_repeat);
+static int vconstrain_padding(ntg_object* object, bool* out_repeat);
+static int calculate_border_hsize(
+        ntg_object* object, size_t* out_w, size_t* out_e);
+static int calculate_border_vsize(
+        ntg_object* object, size_t* out_n, size_t* out_s);
+static int calculate_padding_hsize(
+        ntg_object* object, size_t* out_w, size_t* out_e);
+static int calculate_padding_vsize(
+        ntg_object* object, size_t* out_n, size_t* out_s);
 
-static void 
-draw_optimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out_status);
-static void 
-draw_unoptimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out_status);
-
+static int 
+draw_optimized(ntg_object* object, sarena* arena, uint32_t* relayout);
+static int 
+draw_unoptimized(ntg_object* object, sarena* arena, uint32_t* relayout);
 static void layout_reset(ntg_object* object);
 static bool set_hmeasure_helper(ntg_object* object, struct ntg_object_measure measure);
 static bool set_vmeasure_helper(ntg_object* object, struct ntg_object_measure measure);
@@ -481,21 +479,18 @@ void ntg_object_detach(ntg_object* object)
         _ntg_scene_unregister_tree(scene, object);
 }
 
-void ntg_object_anchor(
+int ntg_object_anchor(
         ntg_object* base,
         ntg_object* root,
-        const struct ntg_anchor_policy* policy,
-        int* out_status)
+        const struct ntg_anchor_policy* policy)
 {
-    ntg_init_status(out_status);
-
     int _status;
 
     if(!base || !root || !policy || (base == root))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(ntg_objptr_vec_size(&base->_anchored) >= NTG_OBJECT_MAX_ANCHORED)
-        ntg_vreturn(out_status, NTG_ERR_MAX_ANCHORED);
+        return NTG_ERR_MAX_ANCHORED;
 
     if(root->_parent)
     {
@@ -513,10 +508,10 @@ void ntg_object_anchor(
         switch(_status)
         {
             case GENC_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+                return NTG_ERR_ALLOC_FAIL;
 
             default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+                return NTG_ERR_UNEXPECTED;
         }
     }
 
@@ -542,6 +537,8 @@ void ntg_object_anchor(
 
     if(scene)
         _ntg_scene_register_tree(scene, root);
+
+    return 0;
 }
 
 void ntg_object_unanchor(ntg_object* root)
@@ -596,7 +593,7 @@ void ntg_object_remove_from_scene(ntg_object* object)
 
     if(ntg_object_is_true_root(object) && ntg_object_get_scene(object))
     {
-        ntg_scene_set_root(ntg_object_get_scene_(object), NULL, NULL);
+        (void)ntg_scene_set_root(ntg_object_get_scene_(object), NULL);
         return;
     }
 }
@@ -845,59 +842,29 @@ static void init_default(ntg_object* object)
     object->_focusable = NTG_OBJECT_UNFOCUSABLE;
 }
 
-void ntg_object_init_inherit(
+int ntg_object_init_inherit(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status)
+        struct ntg_object_layout_dt* layout_dt)
 {
-    ntg_init_status(out_status);
-
     if(!object)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(!ntg_type_instance_of(type, &NTG_TYPE_OBJECT))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+        return NTG_ERR_INV_TYPE;
 
     if(!vtable ||!vtable->deinit_fn)
-        ntg_vreturn(out_status, NTG_ERR_BAD_VTABLE);
+        return NTG_ERR_BAD_VTABLE;
 
     init_default(object);
-
-    int _status;
-
-    _status = ntg_objptr_vec_init(&object->_children, 2);
-    if(_status != 0)
-    {
-        switch(_status)
-        {
-            case GENC_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
-    }
-    _status = ntg_objptr_vec_init(&object->_anchored, 2);
-    if(_status != 0)
-    {
-        (void)ntg_objptr_vec_deinit(&object->_children);
-        switch(_status)
-        {
-            case GENC_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
-    }
 
     object->_type = type;
     object->__vtable = vtable;
     object->layout_dt = layout_dt;
 
     ntg_object_drawing_init(&object->_drawing);
+    return 0;
 }
 
 void ntg_object_deinit(ntg_object* object)
@@ -908,7 +875,7 @@ void ntg_object_deinit(ntg_object* object)
     
     if(ntg_object_is_true_root(object) && scene)
     {
-        ntg_scene_set_root(scene, NULL, NULL);
+        (void)ntg_scene_set_root(scene, NULL);
     }
 
     if(object->_parent)
@@ -941,23 +908,21 @@ void ntg_object_deinit(ntg_object* object)
     init_default(object);
 }
 
-void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
+int ntg_object_attach(ntg_object* parent, ntg_object* child)
 {
-    ntg_init_status(out_status);
-
     int _status;
 
     if(!parent || !child || (child == parent))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(ntg_objptr_vec_size(&parent->_children) >= NTG_OBJECT_MAX_CHILDREN)
-        ntg_vreturn(out_status, NTG_ERR_MAX_CHILDREN);
+        return NTG_ERR_MAX_CHILDREN;
 
     if(child->_parent != NULL)
         ntg_object_detach(child);
 
     if(child->__scene) 
-        ntg_scene_set_root(child->__scene, NULL, NULL);
+        (void)ntg_scene_set_root(child->__scene, NULL);
 
     if(child->_base)
         ntg_object_unanchor(child);
@@ -970,10 +935,10 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
         switch(_status)
         {
             case GENC_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+                return NTG_ERR_ALLOC_FAIL;
 
             default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+                return NTG_ERR_UNEXPECTED;
         }
     }
 
@@ -995,6 +960,7 @@ void ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status)
         _ntg_scene_register_tree(scene, child);
 
     ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
+    return 0;
 }
 
 void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
@@ -1443,33 +1409,31 @@ size_t ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orie
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_object_hmeasure(
+int _ntg_object_hmeasure(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
-    ntg_init_status(out_status);
-    ntg_init_status(relayout);
+    ntg_set_out(relayout, 0);
 
     if(!object || !arena)
-        return;
+        return NTG_ERR_INV_ARG;
 
     struct ntg_object_measure measure = {0};
     int _status = 0;
     if(object->__vtable->measure_fn)
     {
-        measure = object->__vtable->measure_fn(
+        _status = object->__vtable->measure_fn(
                 object,
                 object->layout_dt,
                 NTG_ORIENT_H,
                 arena,
                 relayout,
-                &_status);
+                &measure);
         if(_status)
         {
             set_hmeasure_helper(object, measure);
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
         }
 
         size_t extra = ntg_insets_hsum(object->_padding_opts.pref_size) +
@@ -1496,19 +1460,18 @@ void _ntg_object_hmeasure(
     }
 
     set_hmeasure_helper(object, measure);
+    return 0;
 }
 
-void _ntg_object_hconstrain(
+int _ntg_object_hconstrain(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
-    ntg_init_status(out_status);
-    ntg_init_status(relayout);
+    ntg_set_out(relayout, 0);
 
     if(!object || !arena)
-        return;
+        return NTG_ERR_INV_ARG;
 
     if(object->__skip_hborder)
     {
@@ -1518,7 +1481,9 @@ void _ntg_object_hconstrain(
     else
     {
         size_t w, e;
-        calculate_border_hsize(object, arena, &w, &e);
+        int status = calculate_border_hsize(object, &w, &e);
+        if(status != 0)
+            return status;
 
         object->_border_size.w = w;
         object->_border_size.e = e;
@@ -1531,7 +1496,9 @@ void _ntg_object_hconstrain(
     else
     {
         size_t w, e;
-        calculate_padding_hsize(object, arena, &w, &e);
+        int status = calculate_padding_hsize(object, &w, &e);
+        if(status != 0)
+            return status;
 
         object->_padding_size.w = w;
         object->_padding_size.e = e;
@@ -1555,25 +1522,24 @@ void _ntg_object_hconstrain(
         for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
             set_hsize_helper(ntg_objptr_vec_data(&object->_children)[i], 0);
 
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+        return _status;
     }
 
     if(object->__vtable->constrain_fn)
     {
-        object->__vtable->constrain_fn(
+        _status = object->__vtable->constrain_fn(
                 object,
                 object->layout_dt,
                 NTG_ORIENT_H,
                 &map,
                 arena,
-                relayout,
-                &_status);
+                relayout);
         if(_status)
         {
             for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
                 set_hsize_helper(ntg_objptr_vec_data(&object->_children)[i], 0);
 
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
         }
     }
 
@@ -1586,35 +1552,34 @@ void _ntg_object_hconstrain(
 
         set_hsize_helper(it_child, it_size);
     }
+    return 0;
 }
 
-void _ntg_object_vmeasure(
+int _ntg_object_vmeasure(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
-    ntg_init_status(out_status);
-    ntg_init_status(relayout);
+    ntg_set_out(relayout, 0);
 
     if(!object || !arena)
-        return;
+        return NTG_ERR_INV_ARG;
 
     struct ntg_object_measure measure = {0};
     int _status = 0;
     if(object->__vtable->measure_fn)
     {
-        measure = object->__vtable->measure_fn(
+        _status = object->__vtable->measure_fn(
                 object,
                 object->layout_dt,
                 NTG_ORIENT_V,
                 arena,
                 relayout,
-                &_status);
+                &measure);
         if(_status)
         {
             set_vmeasure_helper(object, measure);
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
         }
 
         size_t extra = ntg_insets_vsum(object->_padding_opts.pref_size) +
@@ -1641,31 +1606,34 @@ void _ntg_object_vmeasure(
     }
 
     set_vmeasure_helper(object, measure);
+    return 0;
 }
 
-void _ntg_object_vconstrain(
+int _ntg_object_vconstrain(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
-    ntg_init_status(out_status);
-    ntg_init_status(relayout);
+    ntg_set_out(relayout, 0);
 
     if(!object || !arena)
-        return;
+        return NTG_ERR_INV_ARG;
 
     ntg_object_mark_dirty(object,
             NTG_OBJECT_DIRTY_ARRANGE |
             NTG_OBJECT_DIRTY_DRAW |
             NTG_OBJECT_DIRTY_LAYOUT_FINALIZE);
 
-    bool repeat_border = vconstrain_border(object, arena);
-    bool repeat_padding = vconstrain_padding(object, arena);
+    bool repeat_border = false;
+    bool repeat_padding = false;
+    int _status = vconstrain_border(object, &repeat_border);
+    if(_status != 0)
+        return _status;
+    _status = vconstrain_padding(object, &repeat_padding);
+    if(_status != 0)
+        return _status;
     if(relayout && (repeat_border || repeat_padding))
         (*relayout) |= NTG_OBJECT_DIRTY_HCONSTRAIN;
-
-    int _status;
 
     size_t i;
     size_t content_size = ntg_object_get_size_1d_cont(object, NTG_ORIENT_V);
@@ -1677,19 +1645,18 @@ void _ntg_object_vconstrain(
         for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
             set_vsize_helper(ntg_objptr_vec_data(&object->_children)[i], 0);
 
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+        return _status;
     }
 
     if(object->__vtable->constrain_fn)
     {
-        object->__vtable->constrain_fn(
+        _status = object->__vtable->constrain_fn(
                 object,
                 object->layout_dt,
                 NTG_ORIENT_V,
                 &map,
                 arena,
-                relayout,
-                &_status);
+                relayout);
         if(relayout && (repeat_border || repeat_padding))
             (*relayout) |= NTG_OBJECT_DIRTY_HCONSTRAIN;
         if(_status)
@@ -1697,7 +1664,7 @@ void _ntg_object_vconstrain(
             for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
                 set_vsize_helper(ntg_objptr_vec_data(&object->_children)[i], 0);
 
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
         }
     }
 
@@ -1710,19 +1677,18 @@ void _ntg_object_vconstrain(
 
         set_vsize_helper(it_child, it_size);
     }
+    return 0;
 }
 
-void _ntg_object_arrange(
+int _ntg_object_arrange(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
-    ntg_init_status(out_status);
-    ntg_init_status(relayout);
+    ntg_set_out(relayout, 0);
 
     if(!object || !arena)
-        return;
+        return NTG_ERR_INV_ARG;
 
     int _status;
     size_t i;
@@ -1734,24 +1700,23 @@ void _ntg_object_arrange(
         for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
             set_pos_helper(ntg_objptr_vec_data(&object->_children)[i], ntg_xy(0, 0));
 
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+        return _status;
     }
 
     if(object->__vtable->arrange_fn)
     {
-        object->__vtable->arrange_fn(
+        _status = object->__vtable->arrange_fn(
                 object,
                 object->layout_dt,
                 &map,
                 arena,
-                relayout,
-                &_status);
+                relayout);
         if(_status)
         {
             for(i = 0; i < ntg_objptr_vec_size(&object->_children); i++)
                 set_pos_helper(ntg_objptr_vec_data(&object->_children)[i], ntg_xy(0, 0));
 
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
         }
     }
 
@@ -1770,26 +1735,27 @@ void _ntg_object_arrange(
 
         set_pos_helper(it_child, it_pos);
     }
+    return 0;
 }
 
-void _ntg_object_draw(
+int _ntg_object_draw(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
-    ntg_init_status(out_status);
-    ntg_init_status(relayout);
+    ntg_set_out(relayout, 0);
 
     if(!object || !arena)
-        return;
+        return NTG_ERR_INV_ARG;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_LAYOUT_FINALIZE | NTG_OBJECT_DIRTY_RENDER);
 
-    int _status;
-
     const ntg_scene* scene = ntg_object_get_scene_(object);
-    ntg_object_drawing_set_size(&object->_drawing, object->_size, scene->_size, &_status);
+    if(!scene)
+        return NTG_ERR_INV_ARG;
+
+    int _status = ntg_object_drawing_set_size(
+            &object->_drawing, object->_size, scene->_size);
     struct ntg_xy drawing_size = ntg_object_drawing_get_size(&object->_drawing);
 
     /* Even if the alloc fails, set the cells to defaults */
@@ -1805,16 +1771,15 @@ void _ntg_object_draw(
 
     /* Now return if alloc failed */
 
-    if(_status)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+    if(_status != 0)
+        return _status;
 
     if(ntg_insets_hsum(object->_border_size) || ntg_insets_vsum(object->_border_size))
-        draw_unoptimized(object, arena, relayout, &_status);
+        _status = draw_unoptimized(object, arena, relayout);
     else
-        draw_optimized(object, arena, relayout, &_status);
+        _status = draw_optimized(object, arena, relayout);
 
-    if(_status)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+    return _status;
 }
 
 void _ntg_object_layout_finalize(ntg_object* object, sarena* arena)
@@ -1989,7 +1954,7 @@ static int pos_map_init(
     map->keys = sarena_malloc(arena, sizeof(ntg_object*) * ntg_objptr_vec_size(children));
     if(!map->keys) return NTG_ERR_ALLOC_FAIL;
     map->vals = sarena_malloc(arena, sizeof(struct ntg_xy) * ntg_objptr_vec_size(children));
-    if(!map->keys) return NTG_ERR_ALLOC_FAIL;
+    if(!map->vals) return NTG_ERR_ALLOC_FAIL;
 
     size_t i;
     for(i = 0; i < ntg_objptr_vec_size(children); i++)
@@ -2008,7 +1973,7 @@ static int tmp_drawing_init(
         sarena* arena)
 {
     if(!drawing || !arena)
-        return NTG_ERR_INVALID_ARG;
+        return NTG_ERR_INV_ARG;
 
     drawing->data = NULL;
     drawing->size = ntg_xy(0, 0);
@@ -2046,8 +2011,8 @@ static void layout_reset(ntg_object* object)
     object->_border_size = ntg_insets(0, 0, 0, 0);
     object->_padding_size = ntg_insets(0, 0, 0, 0);
 
-    int _status;
-    ntg_object_drawing_set_size(&object->_drawing, ntg_xy(0, 0), ntg_xy(1, 1), &_status);
+    int _status = ntg_object_drawing_set_size(
+            &object->_drawing, ntg_xy(0, 0), ntg_xy(1, 1));
     assert(!_status);
 
     object->_old_layout_result = (struct ntg_object_layout_result) {0};
@@ -2207,13 +2172,12 @@ static struct ntg_object_measure incorporate_user_measure(
     return measure;
 }
 
-static void get_dcr_size(
+static int get_dcr_size(
         enum ntg_object_dcr_enable enable,
         size_t pref_size[2],
         size_t size,
         struct ntg_object_measure inner_measure,
-        size_t out_size[2],
-        sarena* arena)
+        size_t out_size[2])
 {
     size_t extra;
 
@@ -2225,30 +2189,34 @@ static void get_dcr_size(
 
     out_size[0] = 0;
     out_size[1] = 0;
-    ntg_sap_cap_round_robin(pref_size, NULL, out_size, extra, 2, arena, NULL);
+    double scratch_buffer[2];
+    return ntg_sap_cap_round_robin(
+            pref_size, NULL, extra, 2, scratch_buffer, out_size, NULL);
 }
 
-static void calculate_border_hsize(ntg_object* object,
-        sarena* arena, size_t* out_w, size_t* out_e)
+static int calculate_border_hsize(
+        ntg_object* object, size_t* out_w, size_t* out_e)
 {
     size_t we_pref_size[2];
     we_pref_size[0] = object->_border_opts.pref_size.w;
     we_pref_size[1] = object->_border_opts.pref_size.e;
     size_t _sizes[2] = {0, 0};
 
-    get_dcr_size(
+    int status = get_dcr_size(
             object->_border_opts.enable,
             we_pref_size,
             object->_size.x,
             ntg_object_get_measure_pad(object, NTG_ORIENT_H),
-            _sizes,
-            arena);
+            _sizes);
+    if(status != 0)
+        return status;
 
     (*out_w) = _sizes[0];
     (*out_e) = _sizes[1];
+    return 0;
 }
 
-static bool vconstrain_border(ntg_object* object, sarena* arena)
+static int vconstrain_border(ntg_object* object, bool* out_repeat)
 {
     struct ntg_insets pref_border_size = object->_border_opts.pref_size;
 
@@ -2256,8 +2224,14 @@ static bool vconstrain_border(ntg_object* object, sarena* arena)
             (ntg_insets_hsum(pref_border_size) > 0) &&
             (ntg_insets_hsum(object->_border_size) == 0);
 
+    if(!out_repeat)
+        return NTG_ERR_INV_ARG;
+    *out_repeat = false;
+
     size_t n = 0, s = 0;
-    calculate_border_vsize(object, arena, &n, &s);
+    int status = calculate_border_vsize(object, &n, &s);
+    if(status != 0)
+        return status;
 
     object->_border_size.n = n;
     object->_border_size.s = s;
@@ -2272,18 +2246,18 @@ static bool vconstrain_border(ntg_object* object, sarena* arena)
         {
             // object->__skip_hborder = false;
             if(vborder_missing) // Vborder missing
-                return false;
+                return 0;
             else // Vborder present
             {
                 object->_border_size.n = 0;
                 object->_border_size.s = 0;
-                return false;
+                return 0;
             }
         }
         else
         {
             if(vborder_missing) // Vborder missing
-                return false;
+                return 0;
             else // Vborder present
             {
                 object->_border_size.n = 0;
@@ -2291,10 +2265,11 @@ static bool vconstrain_border(ntg_object* object, sarena* arena)
                 if(object->__special_repeat)
                 {
                     object->__special_repeat = false;
-                    return true;
+                    *out_repeat = true;
+                    return 0;
                 }
                 else
-                    return false;
+                    return 0;
             }
         }
     }
@@ -2309,15 +2284,16 @@ static bool vconstrain_border(ntg_object* object, sarena* arena)
             if(vborder_missing)
             {
                 object->__skip_hborder = true;
-                return true;
+                *out_repeat = true;
+                    return 0;
             }
             else
-                return false;
+                return 0;
         }
     }
 }
 
-static bool vconstrain_padding(ntg_object* object, sarena* arena)
+static int vconstrain_padding(ntg_object* object, bool* out_repeat)
 {
     struct ntg_insets pref_padding_size = object->_padding_opts.pref_size;
 
@@ -2325,8 +2301,14 @@ static bool vconstrain_padding(ntg_object* object, sarena* arena)
             (ntg_insets_hsum(pref_padding_size) > 0) &&
             (ntg_insets_hsum(object->_padding_size) == 0);
 
+    if(!out_repeat)
+        return NTG_ERR_INV_ARG;
+    *out_repeat = false;
+
     size_t n = 0, s = 0;
-    calculate_padding_vsize(object, arena, &n, &s);
+    int status = calculate_padding_vsize(object, &n, &s);
+    if(status != 0)
+        return status;
 
     object->_padding_size.n = n;
     object->_padding_size.s = s;
@@ -2341,18 +2323,18 @@ static bool vconstrain_padding(ntg_object* object, sarena* arena)
         {
             // object->__skip_hpadding = false;
             if(vpadding_missing) // Vpadding missing
-                return false;
+                return 0;
             else // Vpadding present
             {
                 object->_padding_size.n = 0;
                 object->_padding_size.s = 0;
-                return false;
+                return 0;
             }
         }
         else
         {
             if(vpadding_missing) // Vpadding missing
-                return false;
+                return 0;
             else // Vpadding present
             {
                 object->_padding_size.n = 0;
@@ -2360,10 +2342,11 @@ static bool vconstrain_padding(ntg_object* object, sarena* arena)
                 if(object->__special_repeat)
                 {
                     object->__special_repeat = false;
-                    return true;
+                    *out_repeat = true;
+                    return 0;
                 }
                 else
-                    return false;
+                    return 0;
             }
         }
     }
@@ -2378,56 +2361,61 @@ static bool vconstrain_padding(ntg_object* object, sarena* arena)
             if(vpadding_missing)
             {
                 object->__skip_hpadding = true;
-                return true;
+                *out_repeat = true;
+                    return 0;
             }
             else
-                return false;
+                return 0;
         }
     }
 }
 
-static void calculate_border_vsize(ntg_object* object,
-        sarena* arena, size_t* out_n, size_t* out_s)
+static int calculate_border_vsize(
+        ntg_object* object, size_t* out_n, size_t* out_s)
 {
     size_t ns_pref_size[2];
     ns_pref_size[0] = object->_border_opts.pref_size.n;
     ns_pref_size[1] = object->_border_opts.pref_size.s;
     size_t _sizes[2] = {0, 0};
 
-    get_dcr_size(
+    int status = get_dcr_size(
             object->_border_opts.enable,
             ns_pref_size, 
             object->_size.y,
             ntg_object_get_measure_pad(object, NTG_ORIENT_V),
-            _sizes,
-            arena);
+            _sizes);
+    if(status != 0)
+        return status;
 
     (*out_n) = _sizes[0];
     (*out_s) = _sizes[1];
+    return 0;
 }
 
-static void calculate_padding_hsize(ntg_object* object,
-        sarena* arena, size_t* out_w, size_t* out_e)
+static int calculate_padding_hsize(
+        ntg_object* object, size_t* out_w, size_t* out_e)
 {
     size_t we_pref_size[2];
     we_pref_size[0] = object->_padding_opts.pref_size.w;
     we_pref_size[1] = object->_padding_opts.pref_size.e;
     size_t _sizes[2] = {0, 0};
 
-    get_dcr_size(
+    int status = get_dcr_size(
             object->_padding_opts.enable,
             we_pref_size,  
             ntg_object_get_size_pad(object).x,
             ntg_object_get_measure_cont(object, NTG_ORIENT_H),
-            _sizes,
-            arena);
+            _sizes);
+    if(status != 0)
+        return status;
 
     (*out_w) = _sizes[0];
     (*out_e) = _sizes[1];
+    return 0;
 }
 
-static void calculate_padding_vsize(ntg_object* object,
-        sarena* arena, size_t* out_n, size_t* out_s)
+static int calculate_padding_vsize(
+        ntg_object* object, size_t* out_n, size_t* out_s)
 {
     size_t ns_pref_size[2];
     ns_pref_size[0] = object->_padding_opts.pref_size.n;
@@ -2435,23 +2423,22 @@ static void calculate_padding_vsize(ntg_object* object,
 
     size_t _sizes[2] = {0, 0};
 
-     get_dcr_size(
+     int status = get_dcr_size(
              object->_padding_opts.enable,
              ns_pref_size,  
              ntg_object_get_size_pad(object).y,
              ntg_object_get_measure_cont(object, NTG_ORIENT_V),
-             _sizes,
-             arena);
+             _sizes);
+    if(status != 0)
+        return status;
 
     (*out_n) = _sizes[0];
     (*out_s) = _sizes[1];
+    return 0;
 }
-
-static void
-draw_optimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out_status)
+static int
+draw_optimized(ntg_object* object, sarena* arena, uint32_t* relayout)
 {
-    ntg_init_status(out_status);
-
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
     struct ntg_xy object_size = ntg_object_drawing_get_size(&object->_drawing);
 
@@ -2459,21 +2446,20 @@ draw_optimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out_s
     struct ntg_insets psize = object->_padding_size;
 
     struct ntg_object_tmp_drawing content_drawing;
-    if(tmp_drawing_init(&content_drawing, content_size, bg, arena) != 0)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+    int _status = tmp_drawing_init(&content_drawing, content_size, bg, arena);
+    if(_status != 0)
+        return _status;
 
-    int _status = 0;
     if(object->__vtable->draw_fn)
     {
-        object->__vtable->draw_fn(
+        _status = object->__vtable->draw_fn(
                 object,
                 object->layout_dt,
                 &content_drawing,
                 arena,
-                relayout,
-                &_status);
-        if(_status)
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+                relayout);
+        if(_status != 0)
+            return _status;
     }
 
     struct ntg_vcell it_src_cell;
@@ -2501,13 +2487,12 @@ draw_optimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out_s
             ntg_object_drawing_set(&object->_drawing, it_src_cell, ntg_xy_add(offset, ji));
         }
     }
+    return 0;
 }
 
-static void 
-draw_unoptimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out_status)
+static int 
+draw_unoptimized(ntg_object* object, sarena* arena, uint32_t* relayout)
 {
-    ntg_init_status(out_status);
-
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
     struct ntg_xy object_size = ntg_object_drawing_get_size(&object->_drawing);
 
@@ -2517,12 +2502,14 @@ draw_unoptimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out
     const struct ntg_border_style* border_style = object->_border_opts.style;
 
     struct ntg_object_tmp_drawing content_drawing;
-    if(tmp_drawing_init(&content_drawing, content_size, bg, arena) != 0)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+    int _status = tmp_drawing_init(&content_drawing, content_size, bg, arena);
+    if(_status != 0)
+        return _status;
 
     struct ntg_object_tmp_drawing object_drawing;
-    if(tmp_drawing_init(&object_drawing, object_size, bg, arena) != 0)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+    _status = tmp_drawing_init(&object_drawing, object_size, bg, arena);
+    if(_status != 0)
+        return _status;
 
     _ntg_border_style_draw(border_style, object_size, bsize, &object_drawing);
 
@@ -2536,18 +2523,16 @@ draw_unoptimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out
         }
     }
 
-    int _status = 0;
     if(object->__vtable->draw_fn)
     {
-        object->__vtable->draw_fn(
+        _status = object->__vtable->draw_fn(
                 object,
                 object->layout_dt,
                 &content_drawing,
                 arena,
-                relayout,
-                &_status);
+                relayout);
         if(_status != 0)
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
     }
 
     struct ntg_vcell it_src_cell;
@@ -2579,4 +2564,6 @@ draw_unoptimized(ntg_object* object, sarena* arena, uint32_t* relayout, int* out
             ntg_object_drawing_set(&object->_drawing, it_src_cell, ji);
         }
     }
+
+    return 0;
 }

@@ -269,41 +269,35 @@ ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orient);
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_object_hmeasure(
+int _ntg_object_hmeasure(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
-void _ntg_object_hconstrain(
+int _ntg_object_hconstrain(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
-void _ntg_object_vmeasure(
+int _ntg_object_vmeasure(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
-void _ntg_object_vconstrain(
+int _ntg_object_vconstrain(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
-void _ntg_object_arrange(
+int _ntg_object_arrange(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
-void _ntg_object_draw(
+int _ntg_object_draw(
         ntg_object* object,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 void _ntg_object_layout_finalize(ntg_object* object, sarena* arena);
 

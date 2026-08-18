@@ -42,23 +42,20 @@ void ntg_vecgrid_deinit(ntg_vecgrid* vecgrid)
 /* SIZE */
 /* ------------------------------------------------------ */
 
-void ntg_vecgrid_set_size(
+int ntg_vecgrid_set_size(
         ntg_vecgrid* vecgrid,
         struct ntg_xy size,
         double modifier,
         struct ntg_xy size_cap,
-        size_t data_size,
-        int* out_status)
+        size_t data_size)
 {
-    ntg_init_status(out_status);
-
     if((!vecgrid) || (data_size == 0))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX) ||
     (size_cap.x > NTG_SIZE_MAX) || (size_cap.y > NTG_SIZE_MAX))
     {
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
     }
 
     if(modifier < 1.1) modifier = 1.1;
@@ -67,13 +64,7 @@ void ntg_vecgrid_set_size(
 
     size = ntg_xy_size(size);
 
-    if(ntg_xy_are_eql(vecgrid->_size, size)) return;
-
-    if((size.x != 0) && (size.y > SIZE_MAX / size.x))
-        ntg_vreturn(out_status, NTG_ERR_OVERFLOW);
-
-    if((size_cap.x != 0) && (size_cap.y > SIZE_MAX / size_cap.x))
-        ntg_vreturn(out_status, NTG_ERR_OVERFLOW);
+    if(ntg_xy_are_eql(vecgrid->_size, size)) return 0;
 
     size_t size_prod = size.x * size.y;
     
@@ -104,7 +95,7 @@ void ntg_vecgrid_set_size(
             new_cap = _max2_size(new_cap, size_prod);
 
             if(new_cap > SIZE_MAX / data_size)
-                ntg_vreturn(out_status, NTG_ERR_OUT_OF_BOUNDS);
+                return NTG_ERR_OUT_OF_BOUNDS;
 
             void* new_data;
             if(old_cap > 0)
@@ -113,7 +104,7 @@ void ntg_vecgrid_set_size(
                 new_data = malloc(new_cap * data_size);
 
             if(!new_data)
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+                return NTG_ERR_ALLOC_FAIL;
 
             vecgrid->_data = new_data;
             vecgrid->_capacity = new_cap;
@@ -121,4 +112,6 @@ void ntg_vecgrid_set_size(
     }
 
     vecgrid->_size = size;
+
+    return 0;
 }

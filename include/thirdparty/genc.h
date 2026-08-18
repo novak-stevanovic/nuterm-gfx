@@ -24,20 +24,20 @@ THE SOFTWARE.
 
 */
 
-#ifndef GENC_H
-#define GENC_H
-
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* HEADER - PUBLIC */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
+#ifndef GENC_H
+#define GENC_H
+
 #include <stddef.h>
 #include <stdbool.h>
 
 #define GENC_ERR_BASE 1000
-#define GENC_ERR_INVALID_ARG (GENC_ERR_BASE + 1)
+#define GENC_ERR_INV_ARG (GENC_ERR_BASE + 1)
 #define GENC_ERR_ALLOC_FAIL (GENC_ERR_BASE + 2)
 #define GENC_ERR_OUT_OF_BOUNDS (GENC_ERR_BASE + 3)
 #define GENC_ERR_NO_DATA (GENC_ERR_BASE + 4)
@@ -49,17 +49,20 @@ THE SOFTWARE.
 
 /*
 
-GENC_VECTOR_GENERATE(name, type, growf) generates a type-safe dynamic vector API.
+* GENC_VECTOR_GENERATE(name, type, growf) generates a type-safe dynamic
+* vector API.
+
+* The generated structure must be zero-initialized before its first use.
 
 |----------------------------------------------------------|
 | Types |
 |----------------------------------------------------------|
 
-If the built-in operations satisfy your program's needs, then you may treat the
-generated types as opaque.
+* If the built-in operations satisfy your program's needs, then you may treat
+* the generated types as opaque.
 
-However, if you wish to implement your own operations, you may have to modify
-the underlying `genc_vector` directly.
+* However, if you wish to implement your own operations, you may have to modify
+* the underlying `genc_vector` directly.
 
 struct <name>
 {
@@ -78,33 +81,96 @@ size_t <name>_cap(const struct <name>* vec);
 | Operations |
 |----------------------------------------------------------|
 
+* Deinitializes the vector and frees allocated memory.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+
 int <name>_deinit(struct <name>* vec);
 
 |----------------------------------------------------------|
+
+* Appends an element to the vector.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
 
 int <name>_pushb(struct <name>* vec, <type> data);
 
 |----------------------------------------------------------|
 
+* Removes the last element from the vector.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_NO_DATA: The vector is empty.
+
 int <name>_popb(struct <name>* vec);
 
 |----------------------------------------------------------|
+
+* Inserts an element at `pos`.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_OUT_OF_BOUNDS: `pos` is greater than the vector size.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
 
 int <name>_ins(struct <name>* vec, <type> data, size_t pos);
 
 |----------------------------------------------------------|
 
+* Removes the element at `pos`.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_OUT_OF_BOUNDS: `pos` is outside the vector.
+
 int <name>_rm_at(struct <name>* vec, size_t pos);
 
 |----------------------------------------------------------|
+
+* Removes all elements while retaining allocated capacity.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
 
 int <name>_empty(struct <name>* vec);
 
 |----------------------------------------------------------|
 
-int <name>_fit(struct <name>* vec); 
+* Shrinks allocated capacity to the current vector size.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+
+int <name>_fit(struct <name>* vec);
 
 |----------------------------------------------------------|
+
+* Increases vector capacity by `size` elements.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
 
 int <name>_prealloc(struct <name>* vec, size_t size);
 
@@ -207,17 +273,19 @@ name##_prealloc(struct name * v, size_t size)                                  \
 
 /*
 
-GENC_LIST_GENERATE(name, type) generates a type-safe doubly-linked list API.
+* GENC_LIST_GENERATE(name, type) generates a type-safe doubly-linked list API.
+
+* The generated structure must be zero-initialized before its first use.
 
 |----------------------------------------------------------|
 | Types |
 |----------------------------------------------------------|
 
-If the built-in operations satisfy your program's needs, then you may treat the
-generated types as opaque.
+* If the built-in operations satisfy your program's needs, then you may treat
+* the generated types as opaque.
 
-However, if you wish to implement your own operations, you may have to modify
-the underlying `genc_list` directly.
+* However, if you wish to implement your own operations, you may have to modify
+* the underlying `genc_list` directly.
 
 struct <name>
 {
@@ -244,47 +312,129 @@ size_t <name>_size(const struct <name>* list);
 | Operations |
 |----------------------------------------------------------|
 
+* Deinitializes the list and frees all nodes.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+
 int <name>_deinit(struct <name>* list);
 
 |----------------------------------------------------------|
+
+* Appends an element to the list.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
 
 int <name>_pushb(struct <name>* list, <type> data);
 
 |----------------------------------------------------------|
 
+* Prepends an element to the list.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+
 int <name>_pushf(struct <name>* list, <type> data);
 
 |----------------------------------------------------------|
+
+* Removes the last element from the list.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_NO_DATA: The list is empty.
 
 int <name>_popb(struct <name>* list);
 
 |----------------------------------------------------------|
 
+* Removes the first element from the list.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_NO_DATA: The list is empty.
+
 int <name>_popf(struct <name>* list);
 
 |----------------------------------------------------------|
+
+* Removes all elements and frees all nodes.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
 
 int <name>_empty(struct <name>* list);
 
 |----------------------------------------------------------|
 
+* Returns the node at `pos`, or NULL if `pos` is invalid.
+
+* RETURN VALUE: Node at `pos`, or NULL on failure.
+
 struct <name>_node* <name>_at(const struct <name>* list, size_t pos);
 
 |----------------------------------------------------------|
+
+* Inserts an element after `node`, or at the front if `node` is NULL.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
 
 int <name>_ins_after_node(struct <name>* list, <type> data,
                           struct <name>_node* node);
 
 |----------------------------------------------------------|
 
+* Inserts an element before `node`.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` or `node` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+
 int <name>_ins_before_node(struct <name>* list, <type> data,
                            struct <name>_node* node);
 
 |----------------------------------------------------------|
 
+* Inserts an element at `pos`.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_OUT_OF_BOUNDS: `pos` is greater than the list size.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+
 int <name>_ins_at(struct <name>* list, <type> data, size_t pos);
 
 |----------------------------------------------------------|
+
+* Removes `node` from the list and frees it.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` or `node` is NULL.
 
 int <name>_rm_node(struct <name>* list, struct <name>_node* node);
 
@@ -440,19 +590,21 @@ name##_ins_at(struct name * l, type data, size_t pos)                          \
 
 /*
 
-GENC_FWD_LIST_GENERATE(name, type) generates a type-safe forward list
-list API. This data structure is meant to be used for creating a stack
-or queue.
+* GENC_FWD_LIST_GENERATE(name, type) generates a type-safe forward list
+* list API. This data structure is meant to be used for creating a stack
+* or queue.
+
+* The generated structure must be zero-initialized before its first use.
 
 |----------------------------------------------------------|
 | Types |
 |----------------------------------------------------------|
 
-If the built-in operations satisfy your program's needs, then you may treat the
-generated types as opaque.
+* If the built-in operations satisfy your program's needs, then you may treat
+* the generated types as opaque.
 
-However, if you wish to implement your own operations, you may have to modify
-the underlying `genc_fwd_list` directly.
+* However, if you wish to implement your own operations, you may have to modify
+* the underlying `genc_fwd_list` directly.
 
 struct <name>
 {
@@ -478,23 +630,59 @@ size_t <name>_size(const struct <name>* list);
 | Operations |
 |----------------------------------------------------------|
 
-|----------------------------------------------------------|
+* Deinitializes the list and frees all nodes.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
 
 int <name>_deinit(struct <name>* list);
 
 |----------------------------------------------------------|
 
+* Appends an element to the list.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
+
 int <name>_pushb(struct <name>* list, <type> data);
 
 |----------------------------------------------------------|
+
+* Prepends an element to the list.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
 
 int <name>_pushf(struct <name>* list, <type> data);
 
 |----------------------------------------------------------|
 
+* Removes the first element from the list.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
+* GENC_ERR_NO_DATA: The list is empty.
+
 int <name>_popf(struct <name>* list);
 
 |----------------------------------------------------------|
+
+* Removes all elements and frees all nodes.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `list` is NULL.
 
 int <name>_empty(struct <name>* list);
 
@@ -659,7 +847,7 @@ int genc_list_ins_at(struct genc_list* list, const void* _data, size_t pos,
                       size_t _datasz);
 
 /* ========================================================================== */
-/* FORWARD LIST - INTERNAL */
+/* FWD LIST - INTERNAL */
 /* ========================================================================== */
 
 struct genc_fwd_list_node
@@ -686,6 +874,8 @@ int genc_fwd_list_popf(struct genc_fwd_list* list);
 
 int genc_fwd_list_empty(struct genc_fwd_list* list);
 
+/* ========================================================================== */
+
 #endif // GENC_H
 
 /* ========================================================================== */
@@ -705,7 +895,7 @@ int genc_fwd_list_empty(struct genc_fwd_list* list);
 #define GENC_NOT_NULL(ptr)                                                     \
     do                                                                         \
     {                                                                          \
-        if(!(ptr)) return GENC_ERR_INVALID_ARG;                                \
+        if(!(ptr)) return GENC_ERR_INV_ARG;                                    \
     } while(0)
 
 /* ========================================================================== */
@@ -1346,4 +1536,4 @@ int genc_fwd_list_empty(struct genc_fwd_list* list)
     return 0;
 }
 
-#endif // GENC_IMPLEMENTATION && !GENC_IMPLEMENTATION_INCLUDED
+#endif // GENC_IMPLEMENTATION && !GENC_IMPLEMENTATION_INCLUDED/*

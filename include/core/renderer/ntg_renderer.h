@@ -35,12 +35,11 @@ struct ntg_renderer
 NTG_API void
 ntg_renderer_vdeinit(ntg_renderer* renderer);
 
-NTG_API void
+NTG_API int
 ntg_renderer_render(
         ntg_renderer* renderer,
         const ntg_stage_drawing* stage_drawing,
-        sarena* arena,
-        int* out_status);
+        sarena* arena);
 
 /* ========================================================================== */
 /* PROTECTED */
@@ -52,11 +51,10 @@ ntg_renderer_render(
 
 struct ntg_renderer_vtable
 {
-    void (*render_fn)(
+    int (*render_fn)(
             ntg_renderer* renderer,
             const ntg_stage_drawing* stage_drawing,
-            sarena* arena,
-            int* out_status);
+            sarena* arena);
 
     void (*loop_enter_fn)(ntg_renderer* renderer);
     void (*loop_leave_fn)(ntg_renderer* renderer);
@@ -68,11 +66,10 @@ struct ntg_renderer_vtable
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_renderer_init_inherit(
         ntg_renderer* renderer,
-        const struct ntg_renderer_vtable* vtable,
-        int* out_status);
+        const struct ntg_renderer_vtable* vtable);
 
 NTG_API void
 ntg_renderer_deinit(ntg_renderer* renderer);

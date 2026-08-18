@@ -54,24 +54,20 @@ bool ntg_main_panel_opts_are_eql(
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_main_panel_init(
+int ntg_main_panel_init(
         ntg_main_panel* panel,
-        const struct ntg_main_panel_opts* opts,
-        int* out_status)
+        const struct ntg_main_panel_opts* opts)
 {
-    int _status;
-
-    ntg_main_panel_init_inherit(
+    int _status = ntg_main_panel_init_inherit(
             panel,
             &NTG_MAIN_PANEL_VTABLE,
             &NTG_TYPE_MAIN_PANEL,
-            NULL,
-            &_status);
+            NULL);
 
-    if(_status)
+    if(!_status)
         ntg_main_panel_set_opts(panel, opts);
 
-    ntg_vreturn(out_status, _status);
+    return _status;
 }
 
 void ntg_main_panel_deinit(ntg_main_panel* panel)
@@ -94,20 +90,17 @@ void ntg_main_panel_deinit_void(void* _panel)
 /* CHILDREN */
 /* ------------------------------------------------------ */
 
-void ntg_main_panel_set(
+int ntg_main_panel_set(
         ntg_main_panel* panel,
         ntg_object* object,
-        enum ntg_main_panel_pos pos,
-        int* out_status)
+        enum ntg_main_panel_pos pos)
 {
-    ntg_init_status(out_status);
-
     if(!panel || (pos < NTG_MAIN_PANEL_NORTH) || (pos > NTG_MAIN_PANEL_CENTER))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     ntg_object* old_child = panel->_children[pos];
 
-    if(old_child == object) return;
+    if(old_child == object) return 0;
 
     if(old_child)
         ntg_object_detach(old_child);
@@ -116,19 +109,9 @@ void ntg_main_panel_set(
 
     if(object)
     {
-        int _status;
-        ntg_object_attach((ntg_object*)panel, object, &_status);
-        switch(_status)
-        {
-            case 0:
-                break;
-            case NTG_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-            case NTG_ERR_MAX_CHILDREN:
-                ntg_vreturn(out_status, NTG_ERR_MAX_CHILDREN);
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
+        int _status = ntg_object_attach((ntg_object*)panel, object);
+        if(_status != 0)
+            return _status;
 
         panel->_children[pos] = object;
     }
@@ -137,6 +120,8 @@ void ntg_main_panel_set(
 
     if(panel->hooks.on_child_chng_fn)
         panel->hooks.on_child_chng_fn(panel, old_child, object, pos);
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -172,54 +157,40 @@ void ntg_main_panel_set_opts(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_main_panel_init_inherit(
+int ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status)
+        struct ntg_object_layout_dt* layout_dt)
 {
-    ntg_init_status(out_status);
-
     if(!panel || !type)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(!ntg_type_instance_of(type, &NTG_TYPE_MAIN_PANEL))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+        return NTG_ERR_INV_TYPE;
 
-    int _status;
-
-    ntg_object_init_inherit(
-            (ntg_object*)panel, vtable, type, layout_dt, &_status);
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        
-    }
+    int _status = ntg_object_init_inherit(
+            (ntg_object*)panel, vtable, type, layout_dt);
+    if(_status != 0)
+        return _status;
 
     panel->_opts = ntg_main_panel_opts_default();
     memset(panel->_children, 0, sizeof(panel->_children));
     panel->hooks = (struct ntg_main_panel_hooks) {0};
+    return 0;
 }
 
-struct ntg_object_measure ntg_main_panel_measure_fn(
+int ntg_main_panel_measure_fn(
         const ntg_object* _panel,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status)
+        struct ntg_object_measure* out_measure)
 {
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    ntg_init_status(out_status);
-
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
 
     ntg_object *north, *east, *south, *west, *center;
@@ -273,36 +244,37 @@ struct ntg_object_measure ntg_main_panel_measure_fn(
                 north_msr.max_size + east_msr.max_size + south_msr.max_size);
     }
 
-    return (struct ntg_object_measure) {
+    if(!out_measure)
+        return NTG_ERR_INV_ARG;
+
+    *out_measure = (struct ntg_object_measure) {
         .min_size = min,
         .nat_size = nat,
         .max_size = max,
         .grow = 1
     };
+    return 0;
 }
 
-void ntg_main_panel_constrain_fn(
+int ntg_main_panel_constrain_fn(
         const ntg_object* _panel,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    ntg_init_status(out_status);
-
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
     size_t size = ntg_object_get_size_1d_cont(_panel, orient);
 
-    if(ntg_objptr_vec_size(&_panel->_children) == 0) return;
+    if(ntg_objptr_vec_size(&_panel->_children) == 0) return 0;
     if(size == 0)
     {
         ntg_object_zero_constrain(_panel, out_size_map);
-        return;
+        return 0;
     }
 
     ntg_object *north, *east, *south, *west, *center;
@@ -326,6 +298,7 @@ void ntg_main_panel_constrain_fn(
 
     size_t caps[3] = {0};
     size_t _sizes[3] = {0};
+    double scratch_buffer[3];
     size_t extra_size = 0;
 
     size_t north_size, east_size, south_size, west_size, center_size;
@@ -358,8 +331,8 @@ void ntg_main_panel_constrain_fn(
             grows[0] = west_msr.grow;
             grows[1] = center_msr.grow;
             grows[2] = east_msr.grow;
-
-            ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3, arena, &_status);
+            _status = ntg_sap_cap_round_robin(
+                    caps, grows, extra_size, 3, scratch_buffer, _sizes, NULL);
         }
         else if(size > wce_msr.min_size)
         {
@@ -370,8 +343,8 @@ void ntg_main_panel_constrain_fn(
             _sizes[1] = center_msr.min_size;
             _sizes[2] = east_msr.min_size;
             extra_size = size - wce_msr.min_size;
-
-            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena, &_status);
+            _status = ntg_sap_cap_round_robin(
+                    caps, NULL, extra_size, 3, scratch_buffer, _sizes, NULL);
         }
         else 
         {
@@ -382,12 +355,12 @@ void ntg_main_panel_constrain_fn(
             _sizes[1] = 0;
             _sizes[2] = 0;
             extra_size = size;
-
-            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena, &_status);
+            _status = ntg_sap_cap_round_robin(
+                    caps, NULL, extra_size, 3, scratch_buffer, _sizes, NULL);
         }
 
         if(_status != 0)
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size)
@@ -427,8 +400,8 @@ void ntg_main_panel_constrain_fn(
             grows[0] = north_msr.grow;
             grows[1] = wce_msr.grow;
             grows[2] = south_msr.grow;
-
-            ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, 3, arena, &_status);
+            _status = ntg_sap_cap_round_robin(
+                    caps, grows, extra_size, 3, scratch_buffer, _sizes, NULL);
 
         }
         else if(size >= total_msr.min_size)
@@ -440,8 +413,8 @@ void ntg_main_panel_constrain_fn(
             _sizes[1] = wce_msr.min_size;
             _sizes[2] = south_msr.min_size;
             extra_size = size - total_msr.min_size;
-
-            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena, &_status);
+            _status = ntg_sap_cap_round_robin(
+                    caps, NULL, extra_size, 3, scratch_buffer, _sizes, NULL);
         }
         else
         {
@@ -452,12 +425,12 @@ void ntg_main_panel_constrain_fn(
             _sizes[1] = 0;
             _sizes[2] = 0;
             extra_size = size;
-
-            ntg_sap_cap_round_robin(caps, NULL, _sizes, extra_size, 3, arena, &_status);
+            _status = ntg_sap_cap_round_robin(
+                    caps, NULL, extra_size, 3, scratch_buffer, _sizes, NULL);
         }
 
         if(_status != 0)
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
 
         size_t alloced_size = _sizes[0] + _sizes[1] + _sizes[2];
         if(alloced_size < size) 
@@ -481,32 +454,31 @@ void ntg_main_panel_constrain_fn(
         ntg_object_size_map_set(out_size_map, west, west_size);
     if(center)
         ntg_object_size_map_set(out_size_map, center, center_size);
+
+    return 0;
 }
 
-void ntg_main_panel_arrange_fn(
+int ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_pos_map* out_pos_map,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    ntg_init_status(out_status);
-
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
     struct ntg_xy size = ntg_object_get_size_cont(_panel);
 
     ntg_object *north, *east, *south, *west, *center;
     get_children(main_panel, &north, &east, &south, &west, &center);
 
-    if(ntg_objptr_vec_size(&_panel->_children) == 0) return;
+    if(ntg_objptr_vec_size(&_panel->_children) == 0) return 0;
     if(ntg_xy_size_is_zero(size))
     {
         ntg_object_zero_arrange(_panel, out_pos_map);
-        return;
+        return 0;
     }
 
     struct ntg_xy north_size = (north != NULL) ? north->_size : ntg_xy(0, 0);
@@ -536,6 +508,8 @@ void ntg_main_panel_arrange_fn(
         ntg_object_pos_map_set(out_pos_map, west, west_pos);
     if(center)
         ntg_object_pos_map_set(out_pos_map, center, center_pos);
+
+    return 0;
 }
 
 static void get_children(const ntg_main_panel* panel, ntg_object** out_north,

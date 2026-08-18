@@ -45,30 +45,24 @@ bool ntg_button_opts_are_eql(
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_button_init(
+int ntg_button_init(
         ntg_button* button,
         const struct ntg_button_opts* opts,
-        bool (*click_fn)(ntg_button* button),
-        int* out_status)
+        bool (*click_fn)(ntg_button* button))
 {
-    ntg_init_status(out_status);
-
-    int _status;
-
-    ntg_button_init_inherit(
+    int _status = ntg_button_init_inherit(
         button,
         &NTG_BUTTON_VTABLE_OBJECT,
         &NTG_BUTTON_VTABLE_TEXT,
         &NTG_TYPE_BUTTON,
-        NULL,
-        &_status);
+        NULL);
     if(!_status)
     {
         ntg_button_set_opts(button, opts);
         ntg_button_set_click_fn(button, click_fn);
     }
 
-    ntg_vreturn(out_status, _status);
+    return _status;
 }
 
 void ntg_button_deinit(ntg_button* button)
@@ -152,26 +146,24 @@ struct ntg_str_view ntg_button_get_text(const struct ntg_button* button)
     }
 }
 
-void ntg_button_set_text_unsafe(
+int ntg_button_set_text_unsafe(
         ntg_button* button,
         const char* text,
-        uint16_t flags,
-        int* out_status)
+        uint16_t flags)
 {
     if(!button)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
-    ntg_text_set_text_unsafe(ntg_txt(button), text, flags, out_status);
+    return ntg_text_set_text_unsafe(ntg_txt(button), text, flags);
 }
 
-void ntg_button_set_text(
+int ntg_button_set_text(
         ntg_button* button,
         const char* text,
         size_t len,
-        uint16_t flags,
-        int* out_status)
+        uint16_t flags)
 {
-    ntg_text_set_text(ntg_txt(button), text, len, flags, out_status);
+    return ntg_text_set_text(ntg_txt(button), text, len, flags);
 }
 
 /* ========================================================================== */
@@ -182,76 +174,59 @@ void ntg_button_set_text(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_button_init_inherit(
+int ntg_button_init_inherit(
         ntg_button* button,
         const struct ntg_object_vtable* object_vtable,
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status)
+        struct ntg_object_layout_dt* layout_dt)
 {
-    ntg_init_status(out_status);
-
-    int _status;
-
     if(!button || !type)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(!ntg_type_instance_of(type, &NTG_TYPE_BUTTON))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+        return NTG_ERR_INV_TYPE;
 
     button->hooks = (struct ntg_button_hooks) {0};
     button->__click_fn = NULL;
 
-    ntg_text_init_inherit(
-            ntg_txt(button), object_vtable, text_vtable, type,
-            layout_dt, &_status);
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        
-    }
+    int _status = ntg_text_init_inherit(
+            ntg_txt(button), object_vtable, text_vtable, type, layout_dt);
+    if(_status != 0)
+        return _status;
 
     ntg_button_set_opts(button, NULL);
-    ntg_button_set_text_unsafe(button, "", 0, NULL);
+    (void)ntg_button_set_text_unsafe(button, "", 0);
 
     ntg_object_set_focusable(ntg_obj(button), NTG_OBJECT_FOCUSABLE);
     ntg_object_set_clickable(ntg_obj(button), NTG_OBJECT_CLICKABLE_CONT);
+    return 0;
 }
 
-struct ntg_object_measure
+int
 ntg_button_measure_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status)
+        struct ntg_object_measure* out_measure)
 {
-    ntg_init_status(out_status);
-
     return ntg_text_measure_fn(
-            _button, layout_dt, orient, arena, relayout, out_status);
+            _button, layout_dt, orient, arena, relayout, out_measure);
 }
 
-void ntg_button_draw_fn(
+int ntg_button_draw_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
-    ntg_init_status(out_status);
+    if(ntg_xy_size_is_zero(ntg_object_get_size_cont(_button))) return 0;
 
-    if(ntg_xy_size_is_zero(ntg_object_get_size_cont(_button))) return;
-
-    ntg_text_draw_fn(_button, layout_dt, out_drawing, arena, relayout, out_status);
+    return ntg_text_draw_fn(
+            _button, layout_dt, out_drawing, arena, relayout);
 }
 
 void ntg_button_deinit_fn(ntg_object* _button)

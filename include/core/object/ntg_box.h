@@ -66,11 +66,10 @@ struct ntg_box
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_box_init(
         ntg_box* box,
-        const struct ntg_box_opts* opts,
-        int* out_status);
+        const struct ntg_box_opts* opts);
 
 /* ------------------------------------------------------ */
 
@@ -103,8 +102,8 @@ ntg_box_get_children(const ntg_box* box);
 /* ------------------------------------------------------ */
 
 
-NTG_API void
-ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status);
+NTG_API int
+ntg_box_add_child(ntg_box* box, ntg_object* child);
 
 /* ------------------------------------------------------ */
 
@@ -121,50 +120,47 @@ ntg_box_rm_child(ntg_box* box, ntg_object* child);
 /* -------------------------------------------------------------------------- */
 
 
-NTG_API void
+NTG_API int
 ntg_box_init_inherit(
         ntg_box* box,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status);
+        struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API struct ntg_object_measure
+NTG_API int
 ntg_box_measure_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status);
+        struct ntg_object_measure* out_measure);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_box_constrain_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_box_arrange_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_pos_map* out_pos_map,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 /* ------------------------------------------------------ */
 

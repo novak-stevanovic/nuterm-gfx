@@ -45,11 +45,10 @@ struct ntg_sidefloat
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_sidefloat_init(
         ntg_sidefloat* sidefloat_ap,
-        const struct ntg_sidefloat_opts* opts,
-        int* out_status);
+        const struct ntg_sidefloat_opts* opts);
 
 NTG_API void
 ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap);

@@ -55,12 +55,10 @@ static void _ntg_log_write_unlocked(const char* fmt, ...)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_log_init(const char* filepath, int* out_status)
+int ntg_log_init(const char* filepath)
 {
-    ntg_init_status(out_status);
-
     if(filepath == NULL)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     pthread_mutex_lock(&log_lock);
 
@@ -68,7 +66,7 @@ void ntg_log_init(const char* filepath, int* out_status)
     if(new_log_file == NULL)
     {
         pthread_mutex_unlock(&log_lock);
-        ntg_vreturn(out_status, NTG_ERR_LOG_INIT_FAIL);
+        return NTG_ERR_LOG_INIT_FAIL;
     }
 
     if(log_file != NULL)
@@ -81,6 +79,7 @@ void ntg_log_init(const char* filepath, int* out_status)
     _ntg_log_write_unlocked("NTG LOG BEGINNING");
 
     pthread_mutex_unlock(&log_lock);
+    return 0;
 }
 
 void ntg_log_deinit(void)

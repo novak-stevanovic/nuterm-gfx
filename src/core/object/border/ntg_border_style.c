@@ -53,23 +53,21 @@ void ntg_border_style_vdeinit(ntg_border_style* style)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_border_style_init_inherit(
+int ntg_border_style_init_inherit(
         ntg_border_style* style,
-        const struct ntg_border_style_vtable* vtable,
-        int* out_status)
+        const struct ntg_border_style_vtable* vtable)
 {
-    ntg_init_status(out_status);
-
     if(!style)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(!vtable || !vtable->deinit_fn)
-        ntg_vreturn(out_status, NTG_ERR_BAD_VTABLE);
+        return NTG_ERR_BAD_VTABLE;
 
     (*style) = (ntg_border_style) {
         .__vtable = vtable,
         .data = NULL
     };
+    return 0;
 }
 
 void ntg_border_style_deinit(ntg_border_style* style)

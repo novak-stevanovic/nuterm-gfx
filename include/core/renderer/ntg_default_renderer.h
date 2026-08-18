@@ -32,11 +32,10 @@ struct ntg_default_renderer
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_default_renderer_init(
         ntg_default_renderer* renderer,
-        size_t term_buff_size,
-        int* out_status);
+        size_t term_buff_size);
 
 NTG_API void
 ntg_default_renderer_deinit(ntg_default_renderer* renderer);
@@ -48,12 +47,11 @@ ntg_default_renderer_deinit_void(void* _renderer);
 /* PROTECTED */
 /* ========================================================================== */
 
-NTG_API void
+NTG_API int
 ntg_default_renderer_render_fn(
         ntg_renderer* _renderer,
         const ntg_stage_drawing* stage_drawing,
-        sarena* arena,
-        int* out_status);
+        sarena* arena);
 
 NTG_API void
 ntg_default_renderer_deinit_fn(ntg_renderer* _renderer);

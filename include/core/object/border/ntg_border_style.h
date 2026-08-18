@@ -34,11 +34,10 @@ struct ntg_border_style_vtable
     void (*deinit_fn)(ntg_border_style* style);
 };
 
-NTG_API void
+NTG_API int
 ntg_border_style_init_inherit(
         ntg_border_style* style,
-        const struct ntg_border_style_vtable* vtable,
-        int* out_status);
+        const struct ntg_border_style_vtable* vtable);
 
 NTG_API void
 ntg_border_style_deinit(ntg_border_style* style);

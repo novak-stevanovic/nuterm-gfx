@@ -41,11 +41,10 @@ struct ntg_float
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_float_init(
         ntg_float* float_ap,
-        const struct ntg_float_opts* opts,
-        int* out_status);
+        const struct ntg_float_opts* opts);
 
 NTG_API void
 ntg_float_deinit(ntg_float* float_ap);

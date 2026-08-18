@@ -114,22 +114,20 @@ struct ntg_focus_scope
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_focus_scope_init(
         ntg_focus_scope* scope,
         ntg_object* scope_root,
         const struct ntg_focus_scope_keybinds* keybinds,
-        const struct ntg_focus_scope_opts* opts,
-        int* out_status);
+        const struct ntg_focus_scope_opts* opts);
 
 NTG_API void
 ntg_focus_scope_deinit(ntg_focus_scope* scope);
 
-NTG_API void
+NTG_API int
 ntg_focus_scope_init_move(
         ntg_focus_scope* dest,
-        const ntg_focus_scope* src,
-        int* out_status);
+        const ntg_focus_scope* src);
 
 /* ------------------------------------------------------ */
 /* SETTERS */
@@ -182,14 +180,13 @@ struct ntg_focus_scope_vtable
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_focus_scope_init_override(
         ntg_focus_scope* scope,
         const struct ntg_focus_scope_vtable* vtable,
         ntg_object* scope_root,
         const struct ntg_focus_scope_keybinds* keybinds,
-        const struct ntg_focus_scope_opts* opts,
-        int* out_status);
+        const struct ntg_focus_scope_opts* opts);
 
 NTG_API bool
 ntg_focus_scope_dispatch_key_fn(ntg_focus_scope* scope, struct nt_key_event key);

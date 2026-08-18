@@ -58,22 +58,19 @@ static struct ntg_opts _opts = {0};
 /* ENABLE/DISABLE */
 /* ------------------------------------------------------ */
 
-void ntg_enable(
+int ntg_enable(
         const struct ntg_opts* opts,
-        const char* log_filepath,
-        int* out_status)
+        const char* log_filepath)
 {
-    ntg_init_status(out_status);
-
     int _status;
 
     _opts = (opts ? (*opts) : ntg_opts_default());
 
     if(log_filepath != NULL)
     {
-        ntg_log_init(log_filepath, &_status);
+        _status = ntg_log_init(log_filepath);
         if(_status)
-            ntg_vreturn(out_status, _status);
+            return _status;
     }
 
     _status = nt_init();
@@ -87,10 +84,10 @@ void ntg_enable(
                 break;
 
             ntg_log_deinit();
-            ntg_vreturn(out_status, NTG_ERR_UNSUPP_TERM);
+            return NTG_ERR_UNSUPP_TERM;
         default:
             ntg_log_deinit();
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+            return NTG_ERR_UNEXPECTED;
     }
 
     int alt_screen_err = 0;
@@ -104,6 +101,7 @@ void ntg_enable(
         _opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
 
     _enabled = true;
+    return 0;
 }
 
 const struct ntg_opts* ntg_get_opts(void)

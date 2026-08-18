@@ -50,23 +50,19 @@ struct ntg_sidefloat_opts ntg_sidefloat_opts_default(void)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_sidefloat_init(
+int ntg_sidefloat_init(
         ntg_sidefloat* sidefloat_ap,
-        const struct ntg_sidefloat_opts* opts,
-        int* out_status)
+        const struct ntg_sidefloat_opts* opts)
 {
-    ntg_init_status(out_status);
-
     if(!sidefloat_ap)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
-    int _status;
-
-    ntg_anchor_policy_init_inherit(&sidefloat_ap->__base, &VTABLE, &_status);
+    int _status = ntg_anchor_policy_init_inherit(&sidefloat_ap->__base, &VTABLE);
     if(_status)
-        ntg_vreturn(out_status, _status);
+        return _status;
 
     sidefloat_ap->_opts = opts ? (*opts) : ntg_sidefloat_opts_default();
+    return 0;
 }
 
 void ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap)

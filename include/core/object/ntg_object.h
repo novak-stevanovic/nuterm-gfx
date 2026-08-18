@@ -307,12 +307,11 @@ ntg_object_detach(ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_anchor(
         ntg_object* base,
         ntg_object* root,
-        const struct ntg_anchor_policy* policy,
-        int* out_status);
+        const struct ntg_anchor_policy* policy);
 
 /* ------------------------------------------------------ */
 
@@ -434,38 +433,35 @@ static void fn_name(ntg_object* object, void* data)                            \
 
 struct ntg_object_vtable
 {
-    struct ntg_object_measure (*measure_fn)(
+    int (*measure_fn)(
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
             enum ntg_orient orient,
             sarena* arena,
             uint32_t* relayout,
-            int* out_status);
+            struct ntg_object_measure* out_measure);
 
-    void (*constrain_fn)(
+    int (*constrain_fn)(
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
             enum ntg_orient orient,
             ntg_object_size_map* out_size_map,
             sarena* arena,
-            uint32_t* relayout,
-            int* out_status);
+            uint32_t* relayout);
 
-    void (*arrange_fn)(
+    int (*arrange_fn)(
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
             ntg_object_pos_map* out_pos_map,
             sarena* arena,
-            uint32_t* relayout,
-            int* out_status);
+            uint32_t* relayout);
 
-    void (*draw_fn)(
+    int (*draw_fn)(
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
             ntg_object_tmp_drawing* out_drawing,
             sarena* arena,
-            uint32_t* relayout,
-            int* out_status);
+            uint32_t* relayout);
 
     void (*layout_finalize_fn)(ntg_object* object, sarena* arena);
 
@@ -512,13 +508,12 @@ struct ntg_object_vtable
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_object_init_inherit(
         ntg_object* object,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status);
+        struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
 
@@ -527,8 +522,8 @@ ntg_object_deinit(ntg_object* object);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
-ntg_object_attach(ntg_object* parent, ntg_object* child, int* out_status);
+NTG_API int
+ntg_object_attach(ntg_object* parent, ntg_object* child);
 
 /* ------------------------------------------------------ */
 

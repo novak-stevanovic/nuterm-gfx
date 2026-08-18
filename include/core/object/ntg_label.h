@@ -53,8 +53,8 @@ struct ntg_label
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-NTG_API void
-ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts, int* out_status);
+NTG_API int
+ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts);
 
 NTG_API void
 ntg_label_deinit(ntg_label* label);
@@ -81,23 +81,21 @@ NTG_API struct ntg_str_view
 ntg_label_get_text(const struct ntg_label* label);
 
 
-NTG_API void
+NTG_API int
 ntg_label_set_text_unsafe(
         ntg_label* label,
         const char* text,
-        uint16_t flags,
-        int* out_status);
+        uint16_t flags);
 
 /* ------------------------------------------------------ */
 
 
-NTG_API void
+NTG_API int
 ntg_label_set_text(
         ntg_label* label,
         const char* text,
         size_t len,
-        uint16_t flags,
-        int* out_status);
+        uint16_t flags);
 
 /* ========================================================================== */
 /* PROTECTED */
@@ -107,32 +105,30 @@ ntg_label_set_text(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-NTG_API void
+NTG_API int
 ntg_label_init_inherit(
         ntg_label* label,
         const struct ntg_object_vtable* object_vtable,
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status);
+        struct ntg_object_layout_dt* layout_dt);
 
-NTG_API struct ntg_object_measure
+NTG_API int
 ntg_label_measure_fn(
         const ntg_object* _label,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status);
+        struct ntg_object_measure* out_measure);
 
-NTG_API void
+NTG_API int
 ntg_label_draw_fn(
         const ntg_object* _label,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status);
+        uint32_t* relayout);
 
 NTG_API void
 ntg_label_deinit_fn(ntg_object* _label);

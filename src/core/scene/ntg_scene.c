@@ -83,18 +83,16 @@ static void init_default(ntg_scene* scene)
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_scene_init(
+int ntg_scene_init(
         ntg_scene* scene,
         const struct ntg_focus_scope_keybinds* init_scope_keybinds,
-        unsigned int max_it,
-        int* out_status)
+        unsigned int max_it)
 {
-    ntg_scene_init_override(
+    return ntg_scene_init_override(
             scene,
             &NTG_SCENE_VTABLE_DEFAULT,
             init_scope_keybinds,
-            max_it,
-            out_status);
+            max_it);
 }
 
 void ntg_scene_deinit(ntg_scene* scene)
@@ -102,7 +100,7 @@ void ntg_scene_deinit(ntg_scene* scene)
     if(!scene) return;
 
     if(scene->_stage)
-        ntg_stage_set_scene(scene->_stage, NULL, NULL);
+        (void)ntg_stage_set_scene(scene->_stage, NULL);
 
     _ntg_focus_manager_deinit(scene->_fm);
     free(scene->_fm);
@@ -129,28 +127,28 @@ void ntg_scene_mark_dirty(ntg_scene* scene)
     }
 }
 
-ntg_object* ntg_scene_hit_test(
+int ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
         struct ntg_xy* out_object_pos,
         enum ntg_object_hit_result* out_hit,
-        int* out_status)
+        ntg_object** out_object)
 {
-    ntg_init_status(out_status);
-
     if(!scene)
-        ntg_return(NULL, out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
+
+    ntg_set_out(out_object, NULL);
 
     if(out_object_pos)
         (*out_object_pos) = ntg_xy(0, 0);
 
     size_t layer_count = ntg_scene_collect_layers_by_z(scene, NULL, 0);
     if(layer_count == 0)
-        return NULL;
+        return 0;
 
     ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
     if(!layers)
-        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
 
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
@@ -176,7 +174,8 @@ ntg_object* ntg_scene_hit_test(
 
     free(layers);
 
-    return hit;
+    ntg_set_out(out_object, hit);
+    return 0;
 }
 
 size_t ntg_scene_collect_layers_by_z(
@@ -198,12 +197,10 @@ size_t ntg_scene_collect_layers_by_z(
     return counter;
 }
 
-void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
+int ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
 {
-    ntg_init_status(out_status);
-
     if(!scene)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     ntg_object* old_root = scene->_root;
 
@@ -222,7 +219,7 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
             ntg_scene* scene = ntg_object_get_scene_(root);
             if(scene)
             {
-                ntg_scene_set_root(scene, NULL, NULL);
+                (void)ntg_scene_set_root(scene, NULL);
             }
         }
         else if(ntg_object_is_root(root)) 
@@ -244,6 +241,8 @@ void ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status)
 
     if(scene->hooks.on_root_chng_fn)
         scene->hooks.on_root_chng_fn(scene, old_root, root);
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -284,17 +283,14 @@ bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
 /* PROTECTED */
 /* ========================================================================== */
 
-void ntg_scene_init_override(
+int ntg_scene_init_override(
         ntg_scene* scene,
         const struct ntg_scene_vtable* vtable,
         const struct ntg_focus_scope_keybinds* init_scope_keybinds,
-        unsigned int max_it,
-        int* out_status)
+        unsigned int max_it)
 {
-    ntg_init_status(out_status); 
-
     if(!scene || !max_it)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     init_default(scene);
 
@@ -302,27 +298,20 @@ void ntg_scene_init_override(
 
     scene->_fm = malloc(sizeof(ntg_focus_manager));
     if(!scene->_fm)
-        ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
 
-    int _status;
-    _ntg_focus_manager_init(scene->_fm, scene, init_scope_keybinds, &_status);
+    int _status = _ntg_focus_manager_init(scene->_fm, scene, init_scope_keybinds);
 
     if(_status != 0)
     {
         free(scene->_fm); 
         scene->_fm = NULL;
 
-        switch(_status)
-        {
-            case NTG_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
-            default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        }
+        return _status;
     }
 
     scene->__max_it = max_it;
+    return 0;
 }
 
 bool ntg_scene_dispatch_key_fn(ntg_scene* scene, struct nt_key_event key)
@@ -356,26 +345,26 @@ const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT = {
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size, int* out_status)
+int _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
 {
-    ntg_set_out(out_status, 0);
-
     if(!scene)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     struct ntg_xy old_size = scene->_size;
 
     if(ntg_xy_are_eql(old_size, size))
-        return;
+        return 0;
 
     scene->_size = size;
     ntg_scene_mark_dirty(scene);
     
     if(scene->hooks.on_size_chng_fn)
         scene->hooks.on_size_chng_fn(scene, old_size, size);
+
+    return 0;
 }
 
 bool _ntg_scene_layout(ntg_scene* scene, sarena* arena)
@@ -773,9 +762,8 @@ static void hmeasure_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_SCENE | HM | %p", object);
 
-        int _status = 0;
         uint32_t _relayout = 0;
-        _ntg_object_hmeasure(object, arena, &_relayout, &_status);
+        int _status = _ntg_object_hmeasure(object, arena, &_relayout);
         if(_status)
             layout_data->stay_dirty = true;
         else
@@ -800,9 +788,8 @@ static void hconstrain_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_SCENE | HC | %p", object);
 
-        int _status = 0;
         uint32_t _relayout = 0;
-        _ntg_object_hconstrain(object, arena, &_relayout, &_status);
+        int _status = _ntg_object_hconstrain(object, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
@@ -827,9 +814,8 @@ static void vmeasure_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_SCENE | VM | %p", object);
 
-        int _status = 0;
         uint32_t _relayout = 0;
-        _ntg_object_vmeasure(object, arena, &_relayout, &_status);
+        int _status = _ntg_object_vmeasure(object, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
@@ -854,9 +840,8 @@ static void vconstrain_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_SCENE | VC | %p", object);
 
-        int _status = 0;
         uint32_t _relayout = 0;
-        _ntg_object_vconstrain(object, arena, &_relayout, &_status);
+        int _status = _ntg_object_vconstrain(object, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
@@ -881,9 +866,8 @@ static void arrange_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_SCENE | A | %p", object);
 
-        int _status = 0;
         uint32_t _relayout = 0;
-        _ntg_object_arrange(object, arena, &_relayout, &_status);
+        int _status = _ntg_object_arrange(object, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
@@ -908,9 +892,8 @@ static void draw_fn(ntg_object* object, void* _layout_data)
     {
         ntg_log_log("NTG_SCENE | D | %p", object);
 
-        int _status = 0;
         uint32_t _relayout = 0;
-        _ntg_object_draw(object, arena, &_relayout, &_status);
+        int _status = _ntg_object_draw(object, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else

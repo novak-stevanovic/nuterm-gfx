@@ -75,12 +75,11 @@ struct ntg_scene
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_scene_init(
         ntg_scene* scene,
         const struct ntg_focus_scope_keybinds* init_scope_keybinds,
-        unsigned int max_it,
-        int* out_status);
+        unsigned int max_it);
 
 /* ------------------------------------------------------ */
 
@@ -104,13 +103,13 @@ ntg_scene_mark_dirty(ntg_scene* scene);
 /* GENERAL */
 /* ------------------------------------------------------ */
 
-NTG_API ntg_object*
+NTG_API int
 ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
         struct ntg_xy* out_object_pos,
         enum ntg_object_hit_result* out_hit,
-        int* out_status);
+        ntg_object** out_object);
 
 /* ------------------------------------------------------ */
 
@@ -124,8 +123,8 @@ ntg_scene_collect_layers_by_z(
 /* ------------------------------------------------------ */
 
 
-NTG_API void
-ntg_scene_set_root(ntg_scene* scene, ntg_object* root, int* out_status);
+NTG_API int
+ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -156,13 +155,12 @@ struct ntg_scene_vtable
 };
 
 
-NTG_API void
+NTG_API int
 ntg_scene_init_override(
         ntg_scene* scene,
         const struct ntg_scene_vtable* vtable,
         const struct ntg_focus_scope_keybinds* init_scope_keybinds,
-        unsigned int max_it,
-        int* out_status);
+        unsigned int max_it);
 
 
 NTG_API bool
@@ -182,7 +180,7 @@ NTG_API extern const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size, int* out_status);
+int _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
 bool _ntg_scene_layout(ntg_scene* scene, sarena* arena);
 
 void _ntg_scene_clean(ntg_scene* scene);

@@ -54,16 +54,16 @@ static void* worker_fn(void* _runner);
 /* TASK RUNNER */
 /* ------------------------------------------------------ */
 
-ntg_task_runner* ntg_task_runner_new(unsigned int workers, int* out_status)
+int ntg_task_runner_new(unsigned int workers, ntg_task_runner** out_runner)
 {
-    ntg_set_out(out_status, 0);
+    if((workers == 0) || !out_runner)
+        return NTG_ERR_INV_ARG;
 
-    if(workers == 0)
-        ntg_return(NULL, out_status, NTG_ERR_INVALID_ARG);
+    *out_runner = NULL;
 
     ntg_task_runner* new = malloc(sizeof(struct ntg_task_runner));
     if(!new)
-        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
 
     int _status;
 
@@ -84,8 +84,8 @@ ntg_task_runner* ntg_task_runner_new(unsigned int workers, int* out_status)
     new->threads = malloc(sizeof(pthread_t) * workers);
     if(!new->threads)
     {
-        ntg_task_runner_destroy(new, NULL);
-        ntg_return(NULL, out_status, NTG_ERR_ALLOC_FAIL);
+        (void)ntg_task_runner_destroy(new);
+        return NTG_ERR_ALLOC_FAIL;
     } 
 
     /* Spawn worker threads */
@@ -102,8 +102,8 @@ ntg_task_runner* ntg_task_runner_new(unsigned int workers, int* out_status)
 
     if(_status)
     {
-        ntg_task_runner_destroy(new, NULL);
-        ntg_return(NULL, out_status, NTG_ERR_THREAD_SPAWN);
+        (void)ntg_task_runner_destroy(new);
+        return NTG_ERR_THREAD_SPAWN;
     }
 
     /* Init cancel token */
@@ -113,15 +113,14 @@ ntg_task_runner* ntg_task_runner_new(unsigned int workers, int* out_status)
         .runner = new
     };
 
-    return new;
+    *out_runner = new;
+    return 0;
 }
 
-void ntg_task_runner_destroy(ntg_task_runner* runner, int* out_status)
+int ntg_task_runner_destroy(ntg_task_runner* runner)
 {
-    ntg_set_out(out_status, 0);
-
     if(!runner)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     pthread_mutex_lock(&runner->lock);
     
@@ -144,19 +143,17 @@ void ntg_task_runner_destroy(ntg_task_runner* runner, int* out_status)
     pthread_cond_destroy(&runner->cond);
 
     free(runner);
+    return 0;
 }
 
-void ntg_task_runner_execute(
+int ntg_task_runner_execute(
         ntg_task_runner* runner,
         void (*task_fn)(void* data, ntg_task_cancel_token* cancel),
         void* data,
-        unsigned int priority,
-        int* out_status)
+        unsigned int priority)
 {
-    ntg_set_out(out_status, 0);
-
     if(!runner || !task_fn)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     int _status;
 
@@ -182,7 +179,7 @@ void ntg_task_runner_execute(
             if(_status)
             {
                 pthread_mutex_unlock(&runner->lock);
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+                return NTG_ERR_ALLOC_FAIL;
             }
 
             break;
@@ -197,7 +194,7 @@ void ntg_task_runner_execute(
         if(_status)
         {
             pthread_mutex_unlock(&runner->lock);
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
+            return NTG_ERR_ALLOC_FAIL;
         }
     }
 
@@ -210,6 +207,7 @@ void ntg_task_runner_execute(
     /* Unlock */
 
     pthread_mutex_unlock(&runner->lock);
+    return 0;
 }
 
 bool ntg_task_runner_is_active(ntg_task_runner* runner)

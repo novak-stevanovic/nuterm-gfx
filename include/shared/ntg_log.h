@@ -12,8 +12,8 @@
 /* -------------------------------------------------------------------------- */
 
 
-NTG_API void
-ntg_log_init(const char* filepath, int* out_status);
+NTG_API int
+ntg_log_init(const char* filepath);
 
 
 NTG_API void

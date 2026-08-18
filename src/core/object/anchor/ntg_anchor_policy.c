@@ -59,23 +59,21 @@ void ntg_anchor_policy_vdeinit(ntg_anchor_policy* ap)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_anchor_policy_init_inherit(
+int ntg_anchor_policy_init_inherit(
         ntg_anchor_policy* ap,
-        const struct ntg_anchor_policy_vtable* vtable,
-        int* out_status)
+        const struct ntg_anchor_policy_vtable* vtable)
 {
-    ntg_init_status(out_status);
-
     if(!ap)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(!vtable || !vtable->deinit_fn)
-        ntg_vreturn(out_status, NTG_ERR_BAD_VTABLE);
+        return NTG_ERR_BAD_VTABLE;
 
     (*ap) = (ntg_anchor_policy) {
         .__vtable = vtable,
         .data = NULL
     };
+    return 0;
 }
 
 void ntg_anchor_policy_deinit(ntg_anchor_policy* ap)

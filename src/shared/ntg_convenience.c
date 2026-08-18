@@ -80,17 +80,14 @@ void ntg_cleanup_batch_finish(ntg_cleanup_batch* batch)
     free(batch);
 }
 
-void ntg_cleanup_batch_add(
+int ntg_cleanup_batch_add(
         ntg_cleanup_batch* batch,
         void* data,
         void (*deinit_fn)(void* data),
-        void (*free_fn)(void* data),
-        int* out_status)
+        void (*free_fn)(void* data))
 {
-    ntg_init_status(out_status);
-
     if(!batch)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     struct ntg_cleanup_data cleanup_data = {
         .data = data,
@@ -106,10 +103,11 @@ void ntg_cleanup_batch_add(
         switch(_status)
         {
             case GENC_ERR_ALLOC_FAIL:
-                ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-
+                return NTG_ERR_ALLOC_FAIL;
             default:
-                ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
+                return NTG_ERR_UNEXPECTED;
         }
     }
+
+    return 0;
 }

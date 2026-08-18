@@ -69,24 +69,20 @@ bool ntg_prog_bar_opts_are_eql(
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_prog_bar_init(
+int ntg_prog_bar_init(
         ntg_prog_bar* prog_bar,
-        const struct ntg_prog_bar_opts* opts,
-        int* out_status)
+        const struct ntg_prog_bar_opts* opts)
 {
-    int _status;
-
-    ntg_prog_bar_init_inherit(
+    int _status = ntg_prog_bar_init_inherit(
             prog_bar,
             &NTG_PROG_BAR_VTABLE,
             &NTG_TYPE_PROG_BAR,
-            NULL,
-            &_status);
+            NULL);
 
     if(!_status)
         ntg_prog_bar_set_opts(prog_bar, opts);
 
-    ntg_vreturn(out_status, _status);
+    return _status;
 }
 
 void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
@@ -164,91 +160,69 @@ void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_prog_bar_init_inherit(
+int ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status)
+        struct ntg_object_layout_dt* layout_dt)
 {
-    ntg_init_status(out_status);
-
     if(!prog_bar || !type)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(!ntg_type_instance_of(type, &NTG_TYPE_PROG_BAR))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+        return NTG_ERR_INV_TYPE;
 
-    int _status;
-
-    ntg_object_init_inherit(
-            (ntg_object*)prog_bar, vtable, type, layout_dt, &_status);
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        
-    }
+    int _status = ntg_object_init_inherit(
+            (ntg_object*)prog_bar, vtable, type, layout_dt);
+    if(_status != 0)
+        return _status;
 
     prog_bar->_prog = 0.0;
     prog_bar->_opts = ntg_prog_bar_opts_default();
     prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
+    return 0;
 }
 
-struct ntg_object_measure ntg_prog_bar_measure_fn(
+int ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status)
+        struct ntg_object_measure* out_measure)
 {
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    ntg_init_status(out_status);
+
+    if(!_prog_bar || !out_measure)
+        return NTG_ERR_INV_ARG;
 
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
-
-    if(orient == prog_bar->_opts.orient)
-    {
-        return (struct ntg_object_measure) {
-            .min_size = 10,
-            .nat_size = 10,
-            .max_size = NTG_SIZE_MAX,
-            .grow = 1
-        };
-    }
-
-    return (struct ntg_object_measure) {
-        .min_size = 1,
-        .nat_size = 1,
+    size_t size = (orient == prog_bar->_opts.orient) ? 10 : 1;
+    *out_measure = (struct ntg_object_measure) {
+        .min_size = size,
+        .nat_size = size,
         .max_size = NTG_SIZE_MAX,
         .grow = 1
     };
+    return 0;
 }
 
-void ntg_prog_bar_draw_fn(
+int ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    ntg_init_status(out_status);
-
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
     struct ntg_xy size = ntg_object_get_size_cont(_prog_bar);
 
-    if(ntg_xy_size_is_zero(size)) return;
+    if(ntg_xy_size_is_zero(size)) return 0;
 
     struct ntg_oxy _size =
             ntg_oxy_from_xy(size, prog_bar->_opts.orient);
@@ -280,6 +254,8 @@ void ntg_prog_bar_draw_fn(
             ntg_object_tmp_drawing_set(out_drawing, it_cell, it_xy);
         }
     }
+
+    return 0;
 }
 
 void ntg_prog_bar_deinit_fn(ntg_object* _prog_bar)

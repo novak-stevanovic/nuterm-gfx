@@ -137,25 +137,6 @@ static inline size_t _sub3_size(size_t x, size_t y, size_t z)
     return ((x >= (y + z)) ? ((x - y) - z) : 0);
 }
 
-#define ntg_return(ret_val, out_status_param, out_status)                      \
-    do                                                                         \
-    {                                                                          \
-        if((out_status_param) != NULL)                                         \
-            (*out_status_param) = (out_status);                                \
-        return (ret_val);                                                      \
-    } while(0);
-
-#define ntg_vreturn(out_status_param, out_status)                              \
-    do                                                                         \
-    {                                                                          \
-        if((out_status_param) != NULL)                                         \
-            (*out_status_param) = (out_status);                                \
-        return;                                                                \
-    } while(0);
-
-#define ntg_init_status(out_status_param) \
-    if((out_status_param)) (*(out_status_param)) = 0;
-
 #define ntg_set_out(out_param, out_val) \
     if((out_param)) (*(out_param)) = (out_val);
 

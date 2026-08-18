@@ -55,24 +55,22 @@ bool ntg_box_opts_are_eql(
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_box_init(
+int ntg_box_init(
         ntg_box* box,
-        const struct ntg_box_opts* opts,
-        int* out_status)
+        const struct ntg_box_opts* opts)
 {
     int _status;
 
-    ntg_box_init_inherit(
+    _status = ntg_box_init_inherit(
             box,
             &NTG_BOX_VTABLE,
             &NTG_TYPE_BOX,
-            NULL,
-            &_status);
+            NULL);
 
     if(!_status)
         ntg_box_set_opts(box, opts);
 
-    ntg_vreturn(out_status, _status);
+    return _status;
 }
 
 void ntg_box_deinit(ntg_box* box)
@@ -114,33 +112,21 @@ const struct ntg_objptr_vec* ntg_box_get_children(const ntg_box* box)
     return &(((ntg_object*)box)->_children);
 }
 
-void ntg_box_add_child(ntg_box* box, ntg_object* child, int* out_status)
+int ntg_box_add_child(ntg_box* box, ntg_object* child)
 {
-    ntg_init_status(out_status);
-
     if(!box || !child)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
-    int _status;
-
-    ntg_object_attach((ntg_object*)box, child, &_status);
-
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-        case NTG_ERR_MAX_CHILDREN:
-            ntg_vreturn(out_status, NTG_ERR_MAX_CHILDREN);
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-    }
+    int _status = ntg_object_attach((ntg_object*)box, child);
+    if(_status != 0)
+        return _status;
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 
     if(box->hooks.on_child_add_fn)
         box->hooks.on_child_add_fn(box, child);
+
+    return 0;
 }
 
 void ntg_box_rm_child(ntg_box* box, ntg_object* child)
@@ -166,57 +152,50 @@ void ntg_box_rm_child(ntg_box* box, ntg_object* child)
 /* FUNCTIONS */
 /* -------------------------------------------------------------------------- */
 
-void ntg_box_init_inherit(
+int ntg_box_init_inherit(
         ntg_box* box,
         const struct ntg_object_vtable* vtable,
         const ntg_type* type,
-        struct ntg_object_layout_dt* layout_dt,
-        int* out_status)
+        struct ntg_object_layout_dt* layout_dt)
 {
-    ntg_init_status(out_status);
-
     if(!box || !type)
-        ntg_vreturn(out_status, NTG_ERR_INVALID_ARG);
+        return NTG_ERR_INV_ARG;
 
     if(!ntg_type_instance_of(type, &NTG_TYPE_BOX))
-        ntg_vreturn(out_status, NTG_ERR_INVALID_TYPE);
+        return NTG_ERR_INV_TYPE;
 
-    int _status;
-
-    ntg_object_init_inherit(
-            (ntg_object*)box, vtable, type, layout_dt, &_status);
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_vreturn(out_status, NTG_ERR_ALLOC_FAIL);
-        default:
-            ntg_vreturn(out_status, NTG_ERR_UNEXPECTED);
-        
-    }
+    int _status = ntg_object_init_inherit(
+            (ntg_object*)box, vtable, type, layout_dt);
+    if(_status != 0)
+        return _status;
 
     box->_opts = ntg_box_opts_default();
     box->hooks = (struct ntg_box_hooks) {0};
+    return 0;
 }
 
-struct ntg_object_measure ntg_box_measure_fn(
+int ntg_box_measure_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
         uint32_t* relayout,
-        int* out_status)
+        struct ntg_object_measure* out_measure)
 {
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    ntg_init_status(out_status);
-
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_objptr_vec* children = ntg_box_get_children(box);
 
-    if(ntg_objptr_vec_size(children) == 0) return (struct ntg_object_measure) {0};
+    if(!out_measure)
+        return NTG_ERR_INV_ARG;
+
+    if(ntg_objptr_vec_size(children) == 0)
+    {
+        *out_measure = (struct ntg_object_measure) {0};
+        return 0;
+    }
 
     size_t min_size = 0, nat_size = 0, max_size = 0;
 
@@ -255,32 +234,30 @@ struct ntg_object_measure ntg_box_measure_fn(
         .grow = 1
     };
 
-    return measure;
+    *out_measure = measure;
+    return 0;
 }
 
-void ntg_box_constrain_fn(
+int ntg_box_constrain_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
         ntg_object_size_map* out_size_map,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    ntg_init_status(out_status);
-
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_objptr_vec* children = ntg_box_get_children(box);
     size_t size = ntg_object_get_size_1d_cont(_box, orient);
 
-    if(ntg_objptr_vec_size(children) == 0) return;
+    if(ntg_objptr_vec_size(children) == 0) return 0;
     if(size == 0)
     {
         ntg_object_zero_constrain(_box, out_size_map);
-        return;
+        return 0;
     }
 
     int _status;
@@ -293,10 +270,14 @@ void ntg_box_constrain_fn(
     size_t array_size = ntg_objptr_vec_size(children) * sizeof(size_t);
     size_t* caps = (size_t*)sarena_malloc(arena, array_size);
     if(!caps)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
     size_t* _sizes = (size_t*)sarena_malloc(arena, array_size);
     if(!_sizes)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
+    double* scratch_buffer = (double*)sarena_malloc(
+            arena, ntg_objptr_vec_size(children) * sizeof(double));
+    if(!scratch_buffer)
+        return NTG_ERR_ALLOC_FAIL;
     size_t* grows = NULL;
 
     const ntg_object* it_child;
@@ -308,7 +289,7 @@ void ntg_box_constrain_fn(
         {
             grows = (size_t*)sarena_malloc(arena, array_size);
             if(!grows)
-                ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+                return NTG_ERR_ALLOC_FAIL;
             extra_size = size - nat_size; 
 
             for(i = 0; i < ntg_objptr_vec_size(children); i++)
@@ -352,9 +333,11 @@ void ntg_box_constrain_fn(
             }
         }
 
-        ntg_sap_cap_round_robin(caps, grows, _sizes, extra_size, ntg_objptr_vec_size(children), arena, &_status);
+        _status = ntg_sap_cap_round_robin(
+                caps, grows, extra_size, ntg_objptr_vec_size(children),
+                scratch_buffer, _sizes, NULL);
         if(_status != 0)
-            ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+            return _status;
 
         for(i = 0; i < ntg_objptr_vec_size(children); i++)
         {
@@ -381,30 +364,29 @@ void ntg_box_constrain_fn(
             ntg_object_size_map_set(out_size_map, it_child, it_size);
         }
     }
+
+    return 0;
 }
 
-void ntg_box_arrange_fn(
+int ntg_box_arrange_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_pos_map* out_pos_map,
         sarena* arena,
-        uint32_t* relayout,
-        int* out_status)
+        uint32_t* relayout)
 {
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    ntg_init_status(out_status);
-
     const ntg_box* box = (const ntg_box*)_box;
     const ntg_objptr_vec* children = ntg_box_get_children(box);
     struct ntg_xy size = ntg_object_get_size_cont(_box);
 
-    if(ntg_objptr_vec_size(children) == 0) return;
+    if(ntg_objptr_vec_size(children) == 0) return 0;
     if(ntg_xy_size_is_zero(size))
     {
         ntg_object_zero_arrange(_box, out_pos_map);
-        return;
+        return 0;
     }
 
     int _status;
@@ -439,18 +421,27 @@ void ntg_box_arrange_fn(
 
     size_t* spacing_caps = (size_t*)sarena_malloc(arena, array_size);
     if(!spacing_caps)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
     for(i = 0; i < (ntg_objptr_vec_size(children) - 1); i++)
         spacing_caps[i] = NTG_SIZE_MAX;
 
     size_t* _spacing_after = (size_t*)sarena_calloc(arena, array_size);
     if(!_spacing_after)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+        return NTG_ERR_ALLOC_FAIL;
+    size_t sap_count = ntg_objptr_vec_size(children) - 1;
+    double* scratch_buffer = NULL;
+    if(sap_count > 0)
+    {
+        scratch_buffer = (double*)sarena_malloc(
+                arena, sap_count * sizeof(double));
+        if(!scratch_buffer)
+            return NTG_ERR_ALLOC_FAIL;
+    }
 
-    ntg_sap_cap_round_robin(spacing_caps, NULL, _spacing_after,
-            total_spacing, ntg_objptr_vec_size(children) - 1, arena, &_status);
+    _status = ntg_sap_cap_round_robin(spacing_caps, NULL, total_spacing, sap_count,
+            scratch_buffer, _spacing_after, NULL);
     if(_status != 0)
-        ntg_vreturn(out_status, NTG_ERR_LAYOUT_FAIL);
+        return _status;
     
     struct ntg_oxy _cont_size = ntg_oxy(
             _children_size.prim_val + total_spacing,
@@ -486,6 +477,8 @@ void ntg_box_arrange_fn(
         
         _it_extra_offset.prim_val += (_it_size.prim_val + _spacing_after[i]);
     }
+
+    return 0;
 }
 
 void ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child)

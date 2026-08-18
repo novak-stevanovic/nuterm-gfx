@@ -51,11 +51,10 @@ struct ntg_anchor_policy_vtable
 };
 
 
-NTG_API void
+NTG_API int
 ntg_anchor_policy_init_inherit(
         ntg_anchor_policy* ap,
-        const struct ntg_anchor_policy_vtable* vtable,
-        int* out_status);
+        const struct ntg_anchor_policy_vtable* vtable);
 
 NTG_API void
 ntg_anchor_policy_deinit(ntg_anchor_policy* ap);
