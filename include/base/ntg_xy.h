@@ -2,16 +2,19 @@
 #define NTG_XY_H
 
 #include "shared/ntg_shared.h"
+#include "shared/ntg_error.h"
 
 #define NTG_SIZE_MAX 10000
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_xy
 {
@@ -69,14 +72,13 @@ struct ntg_insets
     size_t n, e, s, w;
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* NTG_XY */
 /* ------------------------------------------------------ */
-
 
 static inline struct ntg_xy
 ntg_xy(size_t x, size_t y)
@@ -84,35 +86,20 @@ ntg_xy(size_t x, size_t y)
     return (struct ntg_xy) { .x = x, .y = y };
 }
 
-
-static inline void
-ntg_xy_size_(struct ntg_xy* xy)
+static inline struct ntg_xy
+ntg_xy_size(struct ntg_xy xy)
 {
-    if(xy == NULL) return;
-
-    if((xy->x == 0) || (xy->y == 0))
-    {
-        xy->x = 0;
-        xy->y = 0;
-    }
+    if(!xy.x || !xy.y)
+        return (struct ntg_xy) {0};
+    else
+        return xy;
 }
 
-
-static inline struct 
-ntg_xy ntg_xy_size(struct ntg_xy xy)
-{
-    ntg_xy_size_(&xy);
-
-    return xy;
-}
-
-
-static inline struct 
-ntg_xy ntg_xy_add(struct ntg_xy a, struct ntg_xy b)
+static inline struct ntg_xy
+ntg_xy_add(struct ntg_xy a, struct ntg_xy b)
 {
     return (struct ntg_xy) { .x = a.x + b.x, .y = a.y + b.y };
 }
-
 
 static inline struct ntg_xy
 ntg_xy_sub(struct ntg_xy a, struct ntg_xy b)
@@ -138,13 +125,11 @@ ntg_xy_is_greater(struct ntg_xy a, struct ntg_xy b)
     return ((a.x > b.x) && (a.y > b.y));
 }
 
-
 static inline bool
 ntg_xy_is_lesser(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x < b.x) && (a.y < b.y));
 }
-
 
 static inline bool
 ntg_xy_is_lesser_eq(struct ntg_xy a, struct ntg_xy b)
@@ -152,13 +137,11 @@ ntg_xy_is_lesser_eq(struct ntg_xy a, struct ntg_xy b)
     return ((a.x <= b.x) && (a.y <= b.y));
 }
 
-
 static inline bool
 ntg_xy_is_greater_eq(struct ntg_xy a, struct ntg_xy b)
 {
     return ((a.x >= b.x) && (a.y >= b.y));
 }
-
 
 static inline bool
 ntg_xy_are_eql(struct ntg_xy a, struct ntg_xy b)
@@ -166,9 +149,8 @@ ntg_xy_are_eql(struct ntg_xy a, struct ntg_xy b)
     return ((a.x == b.x) && (a.y == b.y));
 }
 
-
-static inline struct
-ntg_xy ntg_xy_clamp(struct ntg_xy min, struct ntg_xy val, struct ntg_xy max)
+static inline struct ntg_xy
+ntg_xy_clamp(struct ntg_xy min, struct ntg_xy val, struct ntg_xy max)
 {
     if(val.x < min.x) val.x = min.x;
     else if(val.x > max.x) val.x = max.x;
@@ -179,20 +161,17 @@ ntg_xy ntg_xy_clamp(struct ntg_xy min, struct ntg_xy val, struct ntg_xy max)
     return val;
 }
 
-
 static inline bool
-ntg_xy_is_zero(struct ntg_xy size)
+ntg_xy_is_zero_both(struct ntg_xy size)
 {
     return ((size.x == 0) && (size.y == 0));
 }
 
-
 static inline bool
-ntg_xy_size_is_zero(struct ntg_xy size)
+ntg_xy_is_zero_any(struct ntg_xy size)
 {
     return ((size.x == 0) || (size.y == 0));
 }
-
 
 static inline struct ntg_xy
 ntg_xy_transpose(struct ntg_xy xy)
@@ -203,13 +182,11 @@ ntg_xy_transpose(struct ntg_xy xy)
     };
 }
 
-
 static inline size_t
 ntg_xy_get(struct ntg_xy xy, enum ntg_orient orient)
 {
     return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
 }
-
 
 static inline struct ntg_xy
 ntg_xy_set(struct ntg_xy xy, size_t val, enum ntg_orient orient)
@@ -222,13 +199,11 @@ ntg_xy_set(struct ntg_xy xy, size_t val, enum ntg_orient orient)
     return xy;
 }
 
-
 static inline bool
 ntg_xy_in_size(struct ntg_xy p, struct ntg_xy size)
 {
     return (p.x < size.x) && (p.y < size.y);
 }
-
 
 static inline struct ntg_xy
 ntg_xy_pos_clamp(struct ntg_xy pos, struct ntg_xy size, struct ntg_xy parent_size)
@@ -256,13 +231,11 @@ ntg_xy_pos_clamp(struct ntg_xy pos, struct ntg_xy size, struct ntg_xy parent_siz
 /* NTG_DXY */
 /* ------------------------------------------------------ */
 
-
 static inline struct ntg_dxy
 ntg_dxy(ssize_t x, ssize_t y)
 {
     return (struct ntg_dxy) { .x = x, .y = y };
 }
-
 
 static inline struct ntg_dxy
 ntg_dxy_from_xy(struct ntg_xy xy)
@@ -270,20 +243,17 @@ ntg_dxy_from_xy(struct ntg_xy xy)
     return (struct ntg_dxy) { .x = (ssize_t)xy.x, .y = (ssize_t)xy.y };
 }
 
-
 static inline struct ntg_dxy
 ntg_dxy_add(struct ntg_dxy a, struct ntg_dxy b)
 {
     return (struct ntg_dxy) { .x = a.x + b.x, .y = a.y + b.y };
 }
 
-
 static inline struct ntg_dxy
 ntg_dxy_sub(struct ntg_dxy a, struct ntg_dxy b)
 {
     return (struct ntg_dxy) { .x = a.x - b.x, .y = a.y - b.y };
 }
-
 
 static inline struct ntg_dxy
 ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy val, struct ntg_dxy max)
@@ -297,13 +267,11 @@ ntg_dxy_clamp(struct ntg_dxy min, struct ntg_dxy val, struct ntg_dxy max)
     return val;
 }
 
-
 static inline size_t
 ntg_dxy_get(struct ntg_dxy xy, enum ntg_orient orient)
 {
     return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
 }
-
 
 static inline bool ntg_xy_is_in_rectangle(
         struct ntg_xy pos,
@@ -311,9 +279,8 @@ static inline bool ntg_xy_is_in_rectangle(
         struct ntg_xy rec_end)
 {
     return ((pos.x >= rec_start.x) && (pos.y >= rec_start.y) &&
-    (pos.x < rec_end.x) && (pos.y < rec_end.y));
+            (pos.x < rec_end.x) && (pos.y < rec_end.y));
 }
-
 
 static inline struct ntg_xy
 ntg_xy_from_oxy(struct ntg_oxy orient_xy)
@@ -323,7 +290,6 @@ ntg_xy_from_oxy(struct ntg_oxy orient_xy)
     else
         return ntg_xy(orient_xy.sec_val, orient_xy.prim_val);
 }
-
 
 static inline bool ntg_dxy_is_in_rectangle(
         struct ntg_dxy pos,
@@ -338,7 +304,6 @@ static inline bool ntg_dxy_is_in_rectangle(
 /* NTG_ORIENT */
 /* ------------------------------------------------------ */
 
-
 static inline enum ntg_orient
 ntg_orient_get_other(enum ntg_orient ort)
 {
@@ -348,7 +313,6 @@ ntg_orient_get_other(enum ntg_orient ort)
 /* ------------------------------------------------------ */
 /* NTG_OXY */
 /* ------------------------------------------------------ */
-
 
 static inline struct ntg_oxy
 ntg_oxy(size_t prim_val, size_t sec_val, enum ntg_orient orient)
@@ -385,30 +349,26 @@ ntg_oxy_from_xy(struct ntg_xy xy, enum ntg_orient orient)
 /* ------------------------------------------------------ */
 
 
-static inline struct ntg_insets ntg_insets(size_t n, size_t e, size_t s, size_t w)
+static inline struct ntg_insets
+ntg_insets(size_t n, size_t e, size_t s, size_t w)
 {
-    return (struct ntg_insets) {
-        .n = n,
-        .e = e,
-        .s = s,
-        .w = w
-    };
+    return (struct ntg_insets) { .n = n, .e = e, .s = s, .w = w };
 }
 
-
-static inline size_t ntg_insets_hsum(struct ntg_insets insets)
+static inline size_t
+ntg_insets_hsum(struct ntg_insets insets)
 {
     return insets.e + insets.w;
 }
 
-
-static inline size_t ntg_insets_vsum(struct ntg_insets insets)
+static inline size_t
+ntg_insets_vsum(struct ntg_insets insets)
 {
     return insets.n + insets.s;
 }
 
-
-static inline size_t ntg_insets_sum(struct ntg_insets insets, enum ntg_orient orient)
+static inline size_t
+ntg_insets_sum(struct ntg_insets insets, enum ntg_orient orient)
 {
     if(orient == NTG_ORIENT_H)
         return ntg_insets_hsum(insets);
@@ -429,21 +389,15 @@ ntg_insets_add(struct ntg_insets i1, struct ntg_insets i2)
 }
 
 
-static inline bool ntg_insets_is_zero(struct ntg_insets insets)
+static inline bool
+ntg_insets_is_zero(struct ntg_insets insets)
 {
     return ((insets.n == 0) && (insets.s == 0) &&
             (insets.e == 0) && (insets.w == 0));
 }
 
-
-static inline struct ntg_insets ntg_insets_zero(struct ntg_insets insets)
-{
-    (void)insets;
-    return (struct ntg_insets) {0};
-}
-
-
-static inline bool ntg_insets_are_eql(struct ntg_insets insets1, struct ntg_insets insets2)
+static inline bool
+ntg_insets_are_eql(struct ntg_insets insets1, struct ntg_insets insets2)
 {
     return ((insets1.n == insets2.n) &&
             (insets1.e == insets2.e) &&
@@ -455,8 +409,8 @@ static inline bool ntg_insets_are_eql(struct ntg_insets insets1, struct ntg_inse
 /* NTG_SIDE */
 /* ------------------------------------------------------ */
 
-
-static inline enum ntg_orient ntg_side_get_orient(enum ntg_side side)
+static inline enum ntg_orient
+ntg_side_get_orient(enum ntg_side side)
 {
     if((side == NTG_SIDE_N) || (side == NTG_SIDE_S))
         return NTG_ORIENT_V;
@@ -467,7 +421,6 @@ static inline enum ntg_orient ntg_side_get_orient(enum ntg_side side)
 /* ------------------------------------------------------ */
 /* NTG_ALIGN */
 /* ------------------------------------------------------ */
-
 
 static inline size_t
 ntg_align_offset(size_t inner_size, size_t outer_size, enum ntg_align align)

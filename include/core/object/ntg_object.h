@@ -3,8 +3,15 @@
 
 #include "nt_event.h"
 #include "shared/ntg_shared.h"
+#include "base/ntg_event.h"
 #include "core/object/ntg_object_drawing.h"
 #include "thirdparty/genc.h"
+
+/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* PUBLIC */
+/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 #define NTG_OBJECT_MAX_CHILDREN 500
 #define NTG_OBJECT_MAX_ANCHORED 200
@@ -12,12 +19,8 @@
 GENC_VECTOR_DECLARE(ntg_objptr_vec, ntg_object*, 1.5, )
 
 /* ========================================================================== */
-/* PUBLIC */
-/* ========================================================================== */
-
-/* -------------------------------------------------------------------------- */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* BORDER/PADDING */
@@ -37,10 +40,13 @@ struct ntg_border_opts
     const struct ntg_border_style* style;
 };
 
-NTG_API struct ntg_border_opts ntg_border_opts_default(void);
+NTG_API struct ntg_border_opts
+ntg_border_opts_default(void);
 
 NTG_API bool
-ntg_border_opts_are_eql(const struct ntg_border_opts* o1, const struct ntg_border_opts* o2);
+ntg_border_opts_are_eql(
+        const struct ntg_border_opts* o1,
+        const struct ntg_border_opts* o2);
 
 struct ntg_padding_opts
 {
@@ -51,7 +57,9 @@ struct ntg_padding_opts
 NTG_API struct ntg_padding_opts ntg_padding_opts_default(void);
 
 NTG_API bool
-ntg_padding_opts_are_eql(const struct ntg_padding_opts* o1, const struct ntg_padding_opts* o2);
+ntg_padding_opts_are_eql(
+        const struct ntg_padding_opts* o1,
+        const struct ntg_padding_opts* o2);
 
 /* ------------------------------------------------------ */
 /* LAYOUT */
@@ -85,13 +93,13 @@ struct ntg_object_layout_result
 
 struct ntg_object_key
 {
-    struct nt_key_event key;
+    struct nt_key key;
     ntg_object* target;
 };
 
 struct ntg_object_mouse
 {
-    struct nt_mouse_event mouse;
+    struct nt_mouse mouse;
     ntg_object* target;
     bool from_keybind;
 };
@@ -100,13 +108,13 @@ struct ntg_object_mouse
 /* FOCUSABLE/CLICKABLE */
 /* ------------------------------------------------------ */
 
-enum ntg_object_focusable_mode
+enum ntg_object_focus_mode
 {
     NTG_OBJECT_UNFOCUSABLE,
     NTG_OBJECT_FOCUSABLE
 };
 
-enum ntg_object_clickable_mode
+enum ntg_object_click_mode
 {
     NTG_OBJECT_UNCLICKABLE,
     NTG_OBJECT_CLICKABLE_CONT,
@@ -118,51 +126,6 @@ enum ntg_object_hit_result
     NTG_OBJECT_HIT_CONT,
     NTG_OBJECT_HIT_PADDING,
     NTG_OBJECT_HIT_BORDER
-};
-
-/* ------------------------------------------------------ */
-/* HOOKS */
-/* ------------------------------------------------------ */
-
-struct ntg_object_hooks
-{
-    void (*on_key_fn)(ntg_object* object, const struct ntg_object_key* event);
-    void (*on_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
-    
-    void (*on_focus_fn)(ntg_object* object, ntg_object* old_focused);
-    void (*on_unfocus_fn)(ntg_object* object, ntg_object* new_focused);
-
-    void (*on_child_rm_fn)(ntg_object* object, ntg_object* child);
-    void (*on_child_add_fn)(ntg_object* object, ntg_object* child);
-
-    void (*on_anchored_add_fn)(ntg_object* object, ntg_object* anchored);
-    void (*on_anchored_rm_fn)(ntg_object* object, ntg_object* anchored);
-
-    void (*on_parent_set_fn)(ntg_object* object, ntg_object* new_parent);
-    void (*on_parent_rm_fn)(ntg_object* object, ntg_object* old_parent);
-
-    void (*on_scene_set_fn)(ntg_object* object, ntg_scene* new_scene);
-    void (*on_scene_rm_fn)(ntg_object* object, ntg_scene* old_scene);
-
-    void (*on_base_set_fn)(ntg_object* object, ntg_object* new_base);
-    void (*on_base_rm_fn)(ntg_object* object, ntg_object* old_base);
-
-    void (*on_border_opts_chng_fn)(
-            ntg_object* object,
-            const struct ntg_border_opts* old_opts,
-            const struct ntg_border_opts* new_opts);
-
-    void (*on_padding_opts_chng_fn)(
-            ntg_object* object,
-            const struct ntg_padding_opts* old_opts,
-            const struct ntg_padding_opts* new_opts);
-
-    void (*on_layout_opts_chng_fn)(
-            ntg_object* object,
-            const struct ntg_layout_opts* old_opts,
-            const struct ntg_layout_opts* new_opts);
-
-    void (*on_layout_finalize_fn)(ntg_object* object);
 };
 
 /* ------------------------------------------------------ */
@@ -194,7 +157,6 @@ struct ntg_object
     uint8_t _dirty, __repeat;
 
     const struct ntg_object_vtable* __vtable;
-    struct ntg_object_hooks hooks;
 
     struct ntg_border_opts _border_opts;
     struct ntg_insets _border_size;
@@ -202,15 +164,17 @@ struct ntg_object
     struct ntg_padding_opts _padding_opts;
     struct ntg_insets _padding_size;
 
-    enum ntg_object_clickable_mode _clickable;
-    enum ntg_object_focusable_mode _focusable;
+    enum ntg_object_click_mode _clickable;
+    enum ntg_object_focus_mode _focusable;
 
-    struct ntg_object_layout_result _old_layout_result;
+    struct ntg_object_layout_result _old_layout;
+
+    ntg_event_delegate _event_del;
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 void ntg_object_vdeinit(ntg_object* object);
 
@@ -304,7 +268,7 @@ ntg_object_hit_test(
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_detach(ntg_object* object);
 
 /* ------------------------------------------------------ */
@@ -317,33 +281,33 @@ ntg_object_anchor(
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_unanchor(ntg_object* root);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_remove_from_scene(ntg_object* object);
 
 /* ------------------------------------------------------ */
 /* CONTROL */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_set_layout_opts(
         ntg_object* object,
         const struct ntg_layout_opts* opts);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_set_border_opts(
         ntg_object* object,
         const struct ntg_border_opts* opts);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_set_padding_opts(
         ntg_object* object,
         const struct ntg_padding_opts* opts);
@@ -426,12 +390,14 @@ static void fn_name(ntg_object* object, void* data)                            \
 }                                                                              \
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_object_vtable
 {
@@ -465,11 +431,11 @@ struct ntg_object_vtable
             sarena* arena,
             uint32_t* relayout);
 
+    void (*layout_prepare_fn)(ntg_object* object, sarena* arena);
     void (*layout_finalize_fn)(ntg_object* object, sarena* arena);
 
     void (*deinit_fn)(ntg_object* object);
 
-    // Child add is non-virtual
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
 
     void (*add_anchored_fn)(ntg_object* object, ntg_object* anchored);
@@ -481,14 +447,14 @@ struct ntg_object_vtable
     void (*set_parent_fn)(ntg_object* object, ntg_object* new_parent);
     void (*rm_parent_fn)(ntg_object* object, ntg_object* old_parent);
 
-    void (*set_scene_fn)(ntg_object* object, ntg_scene* new_scene);
+    void (*enter_scene_fn)(ntg_object* object, ntg_scene* new_scene);
     void (*rm_scene_fn)(ntg_object* object, ntg_scene* old_scene);
 
     bool (*process_key_fn)(ntg_object* object, const struct ntg_object_key* event);
     bool (*process_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
 
-    void (*focus_fn)(ntg_object* object, ntg_object* old_focused);
-    void (*unfocus_fn)(ntg_object* object, ntg_object* new_focused);
+    void (*focus_fn)(ntg_object* object);
+    void (*unfocus_fn)(ntg_object* object);
 
     void (*chng_border_opts_fn)(
             ntg_object* object,
@@ -506,9 +472,9 @@ struct ntg_object_vtable
             const struct ntg_layout_opts* new_opts);
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 NTG_API int
 ntg_object_init_inherit(
@@ -519,7 +485,7 @@ ntg_object_init_inherit(
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_deinit(ntg_object* object);
 
 /* ------------------------------------------------------ */
@@ -529,38 +495,39 @@ ntg_object_attach(ntg_object* parent, ntg_object* child);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
-ntg_object_set_focusable(ntg_object* object, enum ntg_object_focusable_mode mode);
+NTG_API int
+ntg_object_set_focusable(ntg_object* object, enum ntg_object_focus_mode mode);
 
 /* ------------------------------------------------------ */
 
-NTG_API void
-ntg_object_set_clickable(ntg_object* object, enum ntg_object_clickable_mode mode);
+NTG_API int
+ntg_object_set_clickable(ntg_object* object, enum ntg_object_click_mode mode);
 
 /* ------------------------------------------------------ */
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* INTERNAL */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
 
-void _ntg_object_on_scene_change(ntg_object* object, ntg_scene* scene);
 void _ntg_object_scene_enter(ntg_object* object, ntg_scene* scene);
 void _ntg_object_on_scene_enter(ntg_object* object, ntg_scene* scene);
 void _ntg_object_scene_leave(ntg_object* object, ntg_scene* scene);
 void _ntg_object_on_scene_leave(ntg_object* object, ntg_scene* scene);
 
-void _ntg_object_focus(ntg_object* object, ntg_object* old_focused);
-void _ntg_object_unfocus(ntg_object* object, ntg_object* new_focused);
+void _ntg_object_focus(ntg_object* object);
+void _ntg_object_unfocus(ntg_object* object);
 
 #endif // NTG_OBJECT_H

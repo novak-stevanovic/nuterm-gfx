@@ -29,13 +29,13 @@
 #include "core/object/ntg_text.h"
 #include "core/object/ntg_label.h"
 #include "core/object/ntg_button.h"
-#include "core/object/ntg_color_block.h"
+#include "core/object/ntg_clr_block.h"
 #include "core/object/ntg_main_panel.h"
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_object_drawing.h"
 #include "core/scene/ntg_scene.h"
-#include "core/scene/ntg_focus_manager.h"
-#include "core/scene/ntg_focus_scope.h"
+#include "core/scene/ntg_fcs_manager.h"
+#include "core/scene/ntg_fcs_scope.h"
 #include "core/object/anchor/ntg_anchor_policy.h"
 #include "core/object/anchor/ntg_float.h"
 #include "core/object/anchor/ntg_sidefloat.h"
@@ -44,12 +44,14 @@
 #include "core/task/ntg_task_runner.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 enum ntg_alt_screen_mode
 { 
@@ -72,9 +74,9 @@ struct ntg_opts
 NTG_API struct ntg_opts
 ntg_opts_default(void);
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 NTG_API int
 ntg_enable(const struct ntg_opts* opts, const char* log_filepath);
@@ -88,9 +90,6 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-more noticeable separators in big header files
-refactor names to follow ISO C (_ntg_foo => ntg__foo for private fns), (obj.__a => obj._a for private, obj._b => obj.ro_b for read-only ???)
-rethink hooks
 add layout_prepare vtable fn for text to set_text
 
 IMPLEMENT:

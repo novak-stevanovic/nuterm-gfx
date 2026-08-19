@@ -37,7 +37,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef GENC_ERR_BASE
 #define GENC_ERR_BASE 1000
+#endif // GENC_ERR_BASE
+
 #define GENC_ERR_INV_ARG (GENC_ERR_BASE + 1)
 #define GENC_ERR_ALLOC_FAIL (GENC_ERR_BASE + 2)
 #define GENC_ERR_OUT_OF_BOUNDS (GENC_ERR_BASE + 3)

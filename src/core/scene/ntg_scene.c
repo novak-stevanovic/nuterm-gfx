@@ -1,18 +1,20 @@
 #include <stdlib.h>
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
-#include "core/scene/ntg_focus_manager.h"
+#include "core/scene/ntg_fcs_manager.h"
 #include <string.h>
 
 #define DEBUG 0
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_scene_layout_data
 {
@@ -21,9 +23,9 @@ struct ntg_scene_layout_data
     bool new_it, stay_dirty;
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* LAYOUT */
@@ -56,15 +58,11 @@ NTG_OBJECT_DEF_TRAVERSE_POSTORDER(arrange_tree, arrange_fn)
 NTG_OBJECT_DEF_TRAVERSE_POSTORDER(draw_tree, draw_fn)
 NTG_OBJECT_DEF_TRAVERSE_POSTORDER(finalize_tree, finalize_fn)
 
-/* ========================================================================== */
-/* STATIC */
-/* ========================================================================== */
-
 static const struct ntg_scene_vtable VTABLE_EMPTY = {0};
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 static void init_default(ntg_scene* scene)
 {
@@ -72,12 +70,14 @@ static void init_default(ntg_scene* scene)
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -85,27 +85,31 @@ static void init_default(ntg_scene* scene)
 
 int ntg_scene_init(
         ntg_scene* scene,
-        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        const struct ntg_fcs_scope_keys* init_scope_keybinds,
         unsigned int max_it)
 {
-    return ntg_scene_init_override(
+    return ntg_scene_init_inherit(
             scene,
             &NTG_SCENE_VTABLE_DEFAULT,
             init_scope_keybinds,
             max_it);
 }
 
-void ntg_scene_deinit(ntg_scene* scene)
+int ntg_scene_deinit(ntg_scene* scene)
 {
-    if(!scene) return;
+    if(!scene) return NTG_ERR_INV_ARG;
 
     if(scene->_stage)
-        (void)ntg_stage_set_scene(scene->_stage, NULL);
+        ntg_stage_set_scene(scene->_stage, NULL);
 
-    _ntg_focus_manager_deinit(scene->_fm);
+    _ntg_fcs_manager_deinit(scene->_fm);
     free(scene->_fm);
 
+    ntg_event_delegate_deinit(&scene->_event_del);
+
     init_default(scene);
+
+    return 0;
 }
 
 void ntg_scene_deinit_void(void* _scene)
@@ -115,9 +119,9 @@ void ntg_scene_deinit_void(void* _scene)
     ntg_scene_deinit(_scene);
 }
 
-void ntg_scene_mark_dirty(ntg_scene* scene)
+int ntg_scene_mark_dirty(ntg_scene* scene)
 {
-    if(!scene) return;
+    if(!scene) return NTG_ERR_INV_ARG;
 
     scene->_dirty = true;
 
@@ -125,6 +129,8 @@ void ntg_scene_mark_dirty(ntg_scene* scene)
     {
         ntg_stage_mark_dirty(scene->_stage);
     }
+
+    return 0;
 }
 
 int ntg_scene_hit_test(
@@ -219,7 +225,7 @@ int ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
             ntg_scene* scene = ntg_object_get_scene_(root);
             if(scene)
             {
-                (void)ntg_scene_set_root(scene, NULL);
+                ntg_scene_set_root(scene, NULL);
             }
         }
         else if(ntg_object_is_root(root)) 
@@ -239,8 +245,13 @@ int ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
     if(root)
         _ntg_scene_register_tree(scene, root);
 
-    if(scene->hooks.on_root_chng_fn)
-        scene->hooks.on_root_chng_fn(scene, old_root, root);
+    struct ntg_event_scene_rtchg_dt event_dt = {
+        .old_root = old_root,
+        .new_root = root
+    };
+    ntg_event_raise(
+            &scene->_event_del,
+            ntg_event_new(NTG_EVENT_SCENE_RTCHG, scene, &event_dt));
 
     return 0;
 }
@@ -249,7 +260,7 @@ int ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key_event key)
+bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key key)
 {
     if(!scene) return false;
 
@@ -258,13 +269,15 @@ bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key_event key)
     if(scene->__vtable && scene->__vtable->handle_key_fn)
         handled = scene->__vtable->handle_key_fn(scene, key);
 
-    if(scene->hooks.on_key_fn)
-        scene->hooks.on_key_fn(scene, key);
+    struct ntg_event_scene_key_dt event_dt = { .key = key };
+    ntg_event_raise(
+            &scene->_event_del,
+            ntg_event_new(NTG_EVENT_SCENE_KEY, scene, &event_dt));
 
     return handled;
 }
 
-bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
+bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse mouse)
 {
     if(!scene) return false;
 
@@ -273,20 +286,28 @@ bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse_event mouse)
     if(scene->__vtable && scene->__vtable->handle_mouse_fn)
         handled = scene->__vtable->handle_mouse_fn(scene, mouse);
 
-    if(scene->hooks.on_mouse_fn)
-        scene->hooks.on_mouse_fn(scene, mouse);
+    struct ntg_event_scene_mouse_dt event_dt = { .mouse = mouse };
+    ntg_event_raise(
+            &scene->_event_del,
+            ntg_event_new(NTG_EVENT_SCENE_MOUSE, scene, &event_dt));
 
     return handled;
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-int ntg_scene_init_override(
+/* ========================================================================== */
+/* FUNCTIONS */
+/* ========================================================================== */
+
+int ntg_scene_init_inherit(
         ntg_scene* scene,
         const struct ntg_scene_vtable* vtable,
-        const struct ntg_focus_scope_keybinds* init_scope_keybinds,
+        const struct ntg_fcs_scope_keys* init_scope_keybinds,
         unsigned int max_it)
 {
     if(!scene || !max_it)
@@ -294,14 +315,11 @@ int ntg_scene_init_override(
 
     init_default(scene);
 
-    scene->__vtable = (vtable ? vtable : &VTABLE_EMPTY);
-
-    scene->_fm = malloc(sizeof(ntg_focus_manager));
+    scene->_fm = malloc(sizeof(ntg_fcs_manager));
     if(!scene->_fm)
         return NTG_ERR_ALLOC_FAIL;
 
-    int _status = _ntg_focus_manager_init(scene->_fm, scene, init_scope_keybinds);
-
+    int _status = _ntg_fcs_manager_init(scene->_fm, scene, init_scope_keybinds);
     if(_status != 0)
     {
         free(scene->_fm); 
@@ -310,22 +328,27 @@ int ntg_scene_init_override(
         return _status;
     }
 
+    scene->__vtable = (vtable ? vtable : &VTABLE_EMPTY);
+
     scene->__max_it = max_it;
+
+    ntg_event_delegate_init(&scene->_event_del);
+
     return 0;
 }
 
-bool ntg_scene_dispatch_key_fn(ntg_scene* scene, struct nt_key_event key)
+bool ntg_scene_dispatch_key_fn(ntg_scene* scene, struct nt_key key)
 {
     if(!scene) return false;
 
-    return ntg_focus_manager_feed_key(scene->_fm, key);
+    return ntg_fcs_manager_feed_key(scene->_fm, key);
 }
 
-bool ntg_scene_dispatch_mouse_fn(ntg_scene* scene, struct nt_mouse_event mouse)
+bool ntg_scene_dispatch_mouse_fn(ntg_scene* scene, struct nt_mouse mouse)
 {
     if(!scene) return false;
 
-    return ntg_focus_manager_feed_mouse(scene->_fm, mouse);
+    return ntg_fcs_manager_feed_mouse(scene->_fm, mouse);
 }
 
 const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT = {
@@ -334,12 +357,14 @@ const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT = {
 };
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* INTERNAL */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* LAYOUT */
@@ -361,8 +386,15 @@ int _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size)
     scene->_size = size;
     ntg_scene_mark_dirty(scene);
     
-    if(scene->hooks.on_size_chng_fn)
-        scene->hooks.on_size_chng_fn(scene, old_size, size);
+    struct ntg_event_scene_szchg_dt event_dt = {
+        .old_x = old_size.x,
+        .old_y = old_size.y,
+        .new_x = size.x,
+        .new_y = size.y
+    };
+    ntg_event_raise(
+            &scene->_event_del,
+            ntg_event_new(NTG_EVENT_SCENE_SZCHG, scene, &event_dt));
 
     return 0;
 }
@@ -395,6 +427,7 @@ void _ntg_scene_clean(ntg_scene* scene)
     if(!scene) return;
 
     scene->_dirty = false;
+
 }
 
 void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
@@ -406,22 +439,29 @@ void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage)
     scene->_stage = stage;
     if(stage)
         ntg_scene_mark_dirty(scene);
+
 }
 
 void _ntg_scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage)
 {
     if(!scene) return;
 
-    if(scene->hooks.on_stage_enter_fn)
-        scene->hooks.on_stage_enter_fn(scene, stage);
+    struct ntg_event_scene_enter_dt event_dt = { .stage = stage };
+    ntg_event_raise(
+            &scene->_event_del,
+            ntg_event_new(NTG_EVENT_SCENE_ENTER, scene, &event_dt));
+
 }
 
 void _ntg_scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage)
 {
     if(!scene) return;
 
-    if(scene->hooks.on_stage_leave_fn)
-        scene->hooks.on_stage_leave_fn(scene, stage);
+    struct ntg_event_scene_leave_dt event_dt = { .stage = stage };
+    ntg_event_raise(
+            &scene->_event_del,
+            ntg_event_new(NTG_EVENT_SCENE_LEAVE, scene, &event_dt));
+
 }
 
 void _ntg_scene_add(ntg_scene* scene, ntg_object* object)
@@ -429,7 +469,8 @@ void _ntg_scene_add(ntg_scene* scene, ntg_object* object)
     if(!scene || !object) return;
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
-    ntg_scene_mark_dirty(scene); 
+    ntg_scene_mark_dirty(scene);
+
 }
 
 void _ntg_scene_rm(ntg_scene* scene, ntg_object* object)
@@ -438,7 +479,8 @@ void _ntg_scene_rm(ntg_scene* scene, ntg_object* object)
 
     ntg_scene_mark_dirty(scene);
 
-    _ntg_focus_manager_on_scene_object_rm(scene->_fm, object);
+    _ntg_fcs_manager_on_scene_object_rm(scene->_fm, object);
+
 }
 
 void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
@@ -449,8 +491,10 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
 
     _ntg_object_scene_enter(object, scene);
 
-    if(scene->hooks.on_object_register_fn)
-        scene->hooks.on_object_register_fn(scene, object);
+    struct ntg_event_scene_objadd_dt object_event_dt = { .object = object };
+    ntg_event_raise(
+            &scene->_event_del,
+            ntg_event_new(NTG_EVENT_SCENE_OBJADD, scene, &object_event_dt));
 
     if(ntg_object_is_only_layer_root(object))
     {
@@ -458,12 +502,18 @@ void _ntg_scene_register(ntg_scene* scene, ntg_object* object)
 
         if(scene)
         {
-            if(scene->hooks.on_layer_add_fn)
-                scene->hooks.on_layer_add_fn(scene, object);
+            struct ntg_event_scene_lyradd_dt layer_event_dt = {
+                .layer = object
+            };
+            ntg_event_raise(
+                    &scene->_event_del,
+                    ntg_event_new(
+                        NTG_EVENT_SCENE_LYRADD, scene, &layer_event_dt));
         }
     }
 
     _ntg_object_on_scene_enter(object, scene);
+
 }
 
 void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
@@ -472,19 +522,27 @@ void _ntg_scene_unregister(ntg_scene* scene, ntg_object* object)
 
     _ntg_object_scene_leave(object, scene);
 
-    if(scene->hooks.on_object_unregister_fn)
-        scene->hooks.on_object_unregister_fn(scene, object);
+    struct ntg_event_scene_objrm_dt object_event_dt = { .object = object };
+    ntg_event_raise(
+            &scene->_event_del,
+            ntg_event_new(NTG_EVENT_SCENE_OBJRM, scene, &object_event_dt));
 
     if(ntg_object_is_only_layer_root(object))
     {
         if(scene)
         {
-            if(scene->hooks.on_layer_rm_fn)
-                scene->hooks.on_layer_rm_fn(scene, object);
+            struct ntg_event_scene_lyrrm_dt layer_event_dt = {
+                .layer = object
+            };
+            ntg_event_raise(
+                    &scene->_event_del,
+                    ntg_event_new(
+                        NTG_EVENT_SCENE_LYRRM, scene, &layer_event_dt));
         }
     }
 
     _ntg_object_on_scene_leave(object, scene);
+
 }
 
 void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root)
@@ -505,6 +563,7 @@ void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root)
         ntg_object* layer = root->_anchored.data[i];
         _ntg_scene_add_object_tree(scene, layer);
     }
+
 }
 
 void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
@@ -525,6 +584,7 @@ void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
         ntg_object* layer = root->_anchored.data[i];
         _ntg_scene_rm_object_tree(scene, layer);
     }
+
 }
 
 void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
@@ -545,6 +605,7 @@ void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root)
         ntg_object* layer = root->_anchored.data[i];
         _ntg_scene_register_tree(scene, layer);
     }
+
 }
 
 void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
@@ -565,15 +626,18 @@ void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root)
         ntg_object* layer = root->_anchored.data[i];
         _ntg_scene_unregister_tree(scene, layer);
     }
+
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* LAYOUT */

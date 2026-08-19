@@ -2,12 +2,14 @@
 #define NTG_ERROR_H
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* ERROR CODES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 #ifndef NTG_ERROR_BASE
 #define NTG_ERROR_BASE 4000
@@ -22,11 +24,13 @@
 #define NTG_ERR_UNSUPP_TERM (NTG_ERROR_BASE + 9)
 #define NTG_ERR_OVERFLOW (NTG_ERROR_BASE + 11)
 #define NTG_ERR_LOG_INIT_FAIL (NTG_ERROR_BASE + 12)
+#define NTG_ERR_ALR_BOUND (NTG_ERROR_BASE + 13)
+#define NTG_ERR_MUTEX_INIT_FAIL (NTG_ERROR_BASE + 14)
+#define NTG_ERR_COND_INIT_FAIL (NTG_ERROR_BASE + 15)
 
 #define NTG_ERR_THREAD_SPAWN (NTG_ERROR_BASE + 101)
 
-// #define NTG_ERR_LOOP_RUNNING (NTG_ERROR_BASE + 102)
-#define NTG_ERR_LOOP_INV_STATE (NTG_ERROR_BASE + 102)
+#define NTG_ERR_INV_STATE (NTG_ERROR_BASE + 102)
 
 #define NTG_ERR_MAX_ANCHORED (NTG_ERROR_BASE + 103)
 #define NTG_ERR_MAX_CHILDREN (NTG_ERROR_BASE + 104)

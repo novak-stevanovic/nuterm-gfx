@@ -3,12 +3,14 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_prog_bar_style ntg_prog_bar_style_default(void)
 {
@@ -61,9 +63,9 @@ bool ntg_prog_bar_opts_are_eql(
             (opts1->orient == opts2->orient));
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -85,15 +87,16 @@ int ntg_prog_bar_init(
     return _status;
 }
 
-void ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
+int ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 {
-    if(!prog_bar) return;
+    if(!prog_bar) return NTG_ERR_INV_ARG;
 
     prog_bar->_prog = 0.0;
     prog_bar->_opts = ntg_prog_bar_opts_default();
-    prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
 
     ntg_object_deinit((ntg_object*)prog_bar);
+
+    return 0;
 }
 
 void ntg_prog_bar_deinit_void(void* _prog_bar)
@@ -105,60 +108,73 @@ void ntg_prog_bar_deinit_void(void* _prog_bar)
 /* OPTS */
 /* ------------------------------------------------------ */
 
-void ntg_prog_bar_set_opts(
+int ntg_prog_bar_set_opts(
         ntg_prog_bar* prog_bar,
         const struct ntg_prog_bar_opts* opts)
 {
-    if(!prog_bar) return;
+    if(!prog_bar) return NTG_ERR_INV_ARG;
 
     struct ntg_prog_bar_opts old_opts = prog_bar->_opts;
     struct ntg_prog_bar_opts new_opts =
             (opts ? (*opts) : ntg_prog_bar_opts_default());
 
     if(ntg_prog_bar_opts_are_eql(&old_opts, &new_opts))
-        return;
+        return 0;
 
     prog_bar->_opts = new_opts;
 
     ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_FULL);
 
-    if(prog_bar->hooks.on_opts_chng_fn)
-        prog_bar->hooks.on_opts_chng_fn(prog_bar, &old_opts, &new_opts);
+    struct ntg_event_prog_bar_optchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &new_opts
+    };
+    ntg_event_raise(
+            &ntg_obj(prog_bar)->_event_del,
+            ntg_event_new(NTG_EVENT_PROG_BAR_OPTCHG, prog_bar, &event_dt));
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
 /* PROGRESS */
 /* ------------------------------------------------------ */
 
-void ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
+int ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
 {
-    if(!prog_bar) return;
+    if(!prog_bar) return NTG_ERR_INV_ARG;
 
     progress = _max2_double(0.0, _min2_double(1.0, progress));
 
     double old_progress = prog_bar->_prog;
 
     if(_double_are_eql(old_progress, progress))
-        return;
+        return 0;
 
     prog_bar->_prog = progress;
 
     ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_DRAW);
 
-    if(prog_bar->hooks.on_prog_chng_fn)
-        prog_bar->hooks.on_prog_chng_fn(
-                prog_bar,
-                old_progress,
-                progress);
+    struct ntg_event_prog_bar_progchg_dt event_dt = {
+        .old_prog = old_progress,
+        .new_prog = progress
+    };
+    ntg_event_raise(
+            &ntg_obj(prog_bar)->_event_del,
+            ntg_event_new(NTG_EVENT_PROG_BAR_PROGCHG, prog_bar, &event_dt));
+
+    return 0;
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
@@ -179,7 +195,6 @@ int ntg_prog_bar_init_inherit(
 
     prog_bar->_prog = 0.0;
     prog_bar->_opts = ntg_prog_bar_opts_default();
-    prog_bar->hooks = (struct ntg_prog_bar_hooks) {0};
     return 0;
 }
 
@@ -222,7 +237,7 @@ int ntg_prog_bar_draw_fn(
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
     struct ntg_xy size = ntg_object_get_size_cont(_prog_bar);
 
-    if(ntg_xy_size_is_zero(size)) return 0;
+    if(ntg_xy_is_zero_any(size)) return 0;
 
     struct ntg_oxy _size =
             ntg_oxy_from_xy(size, prog_bar->_opts.orient);

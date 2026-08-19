@@ -14,17 +14,19 @@
 #endif
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FORWARD DECLARATIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_event;
 struct nt_event;
-struct nt_mouse_event;
-struct nt_key_event;
+struct nt_mouse;
+struct nt_key;
 struct ntg_xy;
 struct ntg_insets;
 struct ntg_object_measure;
@@ -60,9 +62,9 @@ typedef struct ntg_stage ntg_stage;
 typedef struct ntg_stage_drawing ntg_stage_drawing;
 
 typedef struct ntg_scene ntg_scene;
-typedef struct ntg_focus_manager ntg_focus_manager;
-typedef struct ntg_focus_scope_list ntg_focus_scope_list;
-typedef struct ntg_focus_scope ntg_focus_scope;
+typedef struct ntg_fcs_manager ntg_fcs_manager;
+typedef struct ntg_fcs_scope_list ntg_fcs_scope_list;
+typedef struct ntg_fcs_scope ntg_fcs_scope;
 typedef struct ntg_object ntg_object;
 typedef struct ntg_border_style ntg_border_style;
 typedef struct ntg_anchor_policy ntg_anchor_policy;
@@ -82,7 +84,7 @@ typedef struct ntg_widget_vec ntg_widget_vec;
 typedef struct ntg_text ntg_text;
 typedef struct ntg_label ntg_label;
 typedef struct ntg_button ntg_button;
-typedef struct ntg_color_block ntg_color_block;
+typedef struct ntg_clr_block ntg_clr_block;
 typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
 typedef struct ntg_main_panel ntg_main_panel;

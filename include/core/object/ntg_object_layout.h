@@ -2,17 +2,20 @@
 #define NTG_OBJECT_LAYOUT_H
 
 #include "shared/ntg_shared.h"
+#include "shared/ntg_error.h"
 #include "base/ntg_xy.h"
 #include "base/ntg_cell.h"
 #include <stdint.h>
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_object_layout_dt
 {
@@ -20,11 +23,8 @@ struct ntg_object_layout_dt
     void (*reset_fn)(struct ntg_object_layout_dt* data);
 
     /* Called on object deinit */
-    void (*free_fn)(struct ntg_object_layout_dt* data);
+    void (*free_fn)(void* data);
 };
-
-NTG_API void
-ntg_object_layout_dt_free_fn(struct ntg_object_layout_dt* data);
 
 /* ------------------------------------------------------ */
 /* DIRTY */
@@ -42,15 +42,20 @@ enum ntg_object_dirty_flag
     NTG_OBJECT_DIRTY_DRAW = (1u << 5),
 
     /* Set by ntg_object internally. Cleaned by the scene. */
-    NTG_OBJECT_DIRTY_LAYOUT_FINALIZE = (1u << 6),
+    NTG_OBJECT_DIRTY_LAYOUT_PREPARE = (1u << 6),
+    NTG_OBJECT_DIRTY_LAYOUT_FINALIZE = (1u << 7),
 
     /* Set in draw phase automatically. It is cleaned by the stage. */
-    NTG_OBJECT_DIRTY_RENDER = (1u << 7)
+    NTG_OBJECT_DIRTY_RENDER = (1u << 8)
 };
 
-#define NTG_OBJECT_DIRTY_MEASURE (NTG_OBJECT_DIRTY_HMEASURE | NTG_OBJECT_DIRTY_VMEASURE)
+#define NTG_OBJECT_DIRTY_MEASURE (                                             \
+    NTG_OBJECT_DIRTY_HMEASURE |                                                \
+    NTG_OBJECT_DIRTY_VMEASURE )
 
-#define NTG_OBJECT_DIRTY_CONSTRAIN (NTG_OBJECT_DIRTY_HCONSTRAIN | NTG_OBJECT_DIRTY_VCONSTRAIN)
+#define NTG_OBJECT_DIRTY_CONSTRAIN (                                           \
+    NTG_OBJECT_DIRTY_HCONSTRAIN |                                              \
+    NTG_OBJECT_DIRTY_VCONSTRAIN)
 
 #define NTG_OBJECT_DIRTY_FULL (                                                \
     NTG_OBJECT_DIRTY_HMEASURE |                                                \
@@ -58,8 +63,9 @@ enum ntg_object_dirty_flag
     NTG_OBJECT_DIRTY_VMEASURE |                                                \
     NTG_OBJECT_DIRTY_VCONSTRAIN |                                              \
     NTG_OBJECT_DIRTY_ARRANGE |                                                 \
-    NTG_OBJECT_DIRTY_DRAW    |                                                 \
-    NTG_OBJECT_DIRTY_LAYOUT_FINALIZE )
+    NTG_OBJECT_DIRTY_DRAW |                                                    \
+    NTG_OBJECT_DIRTY_LAYOUT_FINALIZE |                                         \
+    NTG_OBJECT_DIRTY_LAYOUT_PREPARE )
 
 /* ------------------------------------------------------ */
 /* MEASURE PHASE */
@@ -90,7 +96,7 @@ ntg_object_size_map_get(
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_size_map_set(
         ntg_object_size_map* map,
         const ntg_object* object,
@@ -98,7 +104,7 @@ ntg_object_size_map_set(
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_zero_constrain(const ntg_object* object, ntg_object_size_map* map);
 
 /* ------------------------------------------------------ */
@@ -113,7 +119,7 @@ ntg_object_pos_map_get(
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_pos_map_set(
         ntg_object_pos_map* map,
         const ntg_object* object,
@@ -121,7 +127,7 @@ ntg_object_pos_map_set(
 
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_object_zero_arrange(const ntg_object* object, ntg_object_pos_map* map);
 
 /* ------------------------------------------------------ */
@@ -145,23 +151,25 @@ ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy 
         return ntg_vcell_new_default();
 }
 
-static inline void
+static inline int
 ntg_object_tmp_drawing_set(
         ntg_object_tmp_drawing* drawing,
         struct ntg_vcell cell,
         struct ntg_xy pos)
 {
-    if(!drawing) return;
+    if(!drawing) return NTG_ERR_INV_ARG;
 
     if(ntg_xy_is_lesser(pos, drawing->size))
         drawing->data[drawing->size.x * pos.y + pos.x] = cell;
+
+    return 0;
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
-NTG_API void
+NTG_API int
 ntg_object_mark_dirty(ntg_object* object, uint32_t dirty);
 
 /* ------------------------------------------------------ */
@@ -262,12 +270,14 @@ NTG_API size_t
 ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orient);
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* INTERNAL */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int _ntg_object_hmeasure(
         ntg_object* object,

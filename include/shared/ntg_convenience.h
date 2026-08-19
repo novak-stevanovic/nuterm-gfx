@@ -4,18 +4,20 @@
 #include "shared/ntg_shared.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* MACROS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 #define ntg_obj(object_ptr) ((ntg_object*)(object_ptr))
 #define ntg_mp(main_panel_ptr) ((ntg_main_panel*)(main_panel_ptr))
 #define ntg_box(box_ptr) ((ntg_box*)(box_ptr))
 #define ntg_pb(prog_bar_ptr) ((ntg_prog_bar*)(prog_bar_ptr))
-#define ntg_cb(color_block_ptr) ((ntg_color_block*)(color_block_ptr))
+#define ntg_cb(clr_block_ptr) ((ntg_clr_block*)(clr_block_ptr))
 #define ntg_txt(text_ptr) ((ntg_text*)(text_ptr))
 #define ntg_lbl(label_ptr) ((ntg_label*)(label_ptr))
 #define ntg_btn(button_ptr) ((ntg_button*)(button_ptr))
@@ -32,17 +34,15 @@ static void fn_name(void* data)                                                \
     callee_fn(data);                                                           \
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
+/* ========================================================================== */
 
 NTG_API ntg_cleanup_batch*
 ntg_cleanup_batch_new(void);
 
-NTG_API void
+NTG_API int
 ntg_cleanup_batch_finish(ntg_cleanup_batch* batch);
-
 
 NTG_API int
 ntg_cleanup_batch_add(

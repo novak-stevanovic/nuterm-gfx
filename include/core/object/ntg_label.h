@@ -5,12 +5,14 @@
 #include "core/object/ntg_text.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_label_opts
 {
@@ -25,29 +27,14 @@ ntg_label_opts_are_eql(
         const struct ntg_label_opts* opts1,
         const struct ntg_label_opts* opts2);
 
-struct ntg_label_hooks
-{
-    void (*on_text_chng_fn)(
-        ntg_label* label,
-        struct ntg_str_view old_text,
-        struct ntg_str_view new_text);
-
-    void (*on_opts_chng_fn)(
-        ntg_label* label,
-        const struct ntg_label_opts* old_opts,
-        const struct ntg_label_opts* new_opts);
-};
-
 struct ntg_label
 {
     ntg_text __base;
-
-    struct ntg_label_hooks hooks;
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -56,7 +43,7 @@ struct ntg_label
 NTG_API int
 ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts);
 
-NTG_API void
+NTG_API int
 ntg_label_deinit(ntg_label* label);
 
 NTG_API void
@@ -66,11 +53,11 @@ ntg_label_deinit_void(void* _label);
 /* OPTS */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts);
 
 
-NTG_API void
+NTG_API int
 ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
 
 /* ------------------------------------------------------ */
@@ -98,12 +85,14 @@ ntg_label_set_text(
         uint16_t flags);
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 NTG_API int
 ntg_label_init_inherit(
@@ -134,10 +123,10 @@ NTG_API void
 ntg_label_deinit_fn(ntg_object* _label);
 
 NTG_API void
-ntg_label_focus_fn(ntg_object* _label, ntg_object* old_focused);
+ntg_label_focus_fn(ntg_object* _label);
 
 NTG_API void
-ntg_label_unfocus_fn(ntg_object* _label, ntg_object* new_focused);
+ntg_label_unfocus_fn(ntg_object* _label);
 
 NTG_API extern const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT;
 

@@ -3,33 +3,17 @@
 
 #include "shared/ntg_shared.h"
 #include "core/stage/ntg_stage_drawing.h"
+#include "base/ntg_event.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
-
-struct ntg_stage_hooks
-{
-    void (*on_key_fn)(ntg_stage* stage, struct nt_key_event key);
-    void (*on_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse);
-
-    void (*on_scene_chng_fn)(
-            ntg_stage* stage,
-            ntg_scene* old_scene,
-            ntg_scene* new_scene);
-
-    void (*on_size_chng_fn)(
-            ntg_stage* stage,
-            struct ntg_xy old_size,
-            struct ntg_xy new_size);
-
-    void (*on_loop_enter_fn)(ntg_stage* stage);
-    void (*on_loop_leave_fn)(ntg_stage* stage);
-};
+/* ========================================================================== */
 
 struct ntg_stage
 {
@@ -44,14 +28,14 @@ struct ntg_stage
 
     bool _dirty;
 
-    struct ntg_stage_hooks hooks;
+    ntg_event_delegate _event_del;
 
     void* data;
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -60,7 +44,7 @@ struct ntg_stage
 NTG_API int
 ntg_stage_init(ntg_stage* stage);
 
-NTG_API void
+NTG_API int
 ntg_stage_deinit(ntg_stage* stage);
 
 NTG_API void
@@ -74,7 +58,7 @@ ntg_stage_deinit_void(void* _stage);
 NTG_API bool
 ntg_stage_compose(ntg_stage* stage, sarena* arena);
 
-NTG_API void
+NTG_API int
 ntg_stage_mark_dirty(ntg_stage* stage);
 
 /* ------------------------------------------------------ */
@@ -89,49 +73,53 @@ ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 /* ------------------------------------------------------ */
 
 NTG_API bool
-ntg_stage_feed_key(ntg_stage* stage, struct nt_key_event key);
+ntg_stage_feed_key(ntg_stage* stage, struct nt_key key);
 
 NTG_API bool
-ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse);
+ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse mouse);
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_stage_vtable
 {
-    bool (*handle_key_fn)(ntg_stage* stage, struct nt_key_event key);
-    bool (*handle_mouse_fn)(ntg_stage* stage, struct nt_mouse_event mouse);
+    bool (*handle_key_fn)(ntg_stage* stage, struct nt_key key);
+    bool (*handle_mouse_fn)(ntg_stage* stage, struct nt_mouse mouse);
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 NTG_API int
-ntg_stage_init_override(
+ntg_stage_init_inherit(
         ntg_stage* stage,
         const struct ntg_stage_vtable* vtable);
 
 NTG_API bool
-ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key_event key);
+ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key key);
 
 NTG_API bool
-ntg_stage_dispatch_mouse_fn(ntg_stage* stage, struct nt_mouse_event mouse);
+ntg_stage_dispatch_mouse_fn(ntg_stage* stage, struct nt_mouse mouse);
 
 NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* INTERNAL */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
 void _ntg_stage_clean(ntg_stage* stage);

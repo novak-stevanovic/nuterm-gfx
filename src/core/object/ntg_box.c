@@ -3,12 +3,14 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 {
@@ -16,12 +18,14 @@ static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_box_opts ntg_box_opts_default(void)
 {
@@ -51,9 +55,9 @@ bool ntg_box_opts_are_eql(
             ntg_vcell_are_eql(opts1->bg, opts2->bg));
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int ntg_box_init(
         ntg_box* box,
@@ -73,14 +77,15 @@ int ntg_box_init(
     return _status;
 }
 
-void ntg_box_deinit(ntg_box* box)
+int ntg_box_deinit(ntg_box* box)
 {
-    if(!box) return;
+    if(!box) return NTG_ERR_INV_ARG;
 
     box->_opts = ntg_box_opts_default();
-    box->hooks = (struct ntg_box_hooks) {0};
 
     ntg_object_deinit((ntg_object*)box);
+
+    return 0;
 }
 
 void ntg_box_deinit_void(void* _box)
@@ -88,21 +93,23 @@ void ntg_box_deinit_void(void* _box)
     ntg_box_deinit(_box);
 }
 
-void ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
+int ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
 {
-    if(!box) return;
+    if(!box) return NTG_ERR_INV_ARG;
 
     struct ntg_box_opts old_opts = box->_opts;
     struct ntg_box_opts new_opts = (opts ? (*opts) : ntg_box_opts_default());
 
     if(ntg_box_opts_are_eql(&old_opts, &new_opts))
-        return;
+        return 0;
 
     box->_opts = new_opts;
 
     ntg_object_set_base_bg(ntg_obj(box), new_opts.bg);
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
+
+    return 0;
 }
 
 const struct ntg_objptr_vec* ntg_box_get_children(const ntg_box* box)
@@ -123,34 +130,42 @@ int ntg_box_add_child(ntg_box* box, ntg_object* child)
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 
-    if(box->hooks.on_child_add_fn)
-        box->hooks.on_child_add_fn(box, child);
+    struct ntg_event_box_chldadd_dt event_dt = { .child = child };
+    ntg_event_raise(
+            &ntg_obj(box)->_event_del,
+            ntg_event_new(NTG_EVENT_BOX_CHLDADD, box, &event_dt));
 
     return 0;
 }
 
-void ntg_box_rm_child(ntg_box* box, ntg_object* child)
+int ntg_box_rm_child(ntg_box* box, ntg_object* child)
 {
-    if(!box || !child) return;
+    if(!box || !child) return NTG_ERR_INV_ARG;
 
     if(child->_parent != ntg_obj(box))
-        return;
+        return 0;
 
     ntg_object_detach(child);
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 
-    if(box->hooks.on_child_rm_fn)
-        box->hooks.on_child_rm_fn(box, child);
+    struct ntg_event_box_chldrm_dt event_dt = { .child = child };
+    ntg_event_raise(
+            &ntg_obj(box)->_event_del,
+            ntg_event_new(NTG_EVENT_BOX_CHLDRM, box, &event_dt));
+
+    return 0;
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int ntg_box_init_inherit(
         ntg_box* box,
@@ -170,7 +185,6 @@ int ntg_box_init_inherit(
         return _status;
 
     box->_opts = ntg_box_opts_default();
-    box->hooks = (struct ntg_box_hooks) {0};
     return 0;
 }
 
@@ -385,7 +399,7 @@ int ntg_box_arrange_fn(
     struct ntg_xy size = ntg_object_get_size_cont(_box);
 
     if(children->size == 0) return 0;
-    if(ntg_xy_size_is_zero(size))
+    if(ntg_xy_is_zero_any(size))
     {
         ntg_object_zero_arrange(_box, out_pos_map);
         return 0;

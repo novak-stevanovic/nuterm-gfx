@@ -1,155 +1,161 @@
 #include "ntg.h"
-#include "shared/ntg_shared_internal.h"
-#include <stdlib.h>
+#include "thirdparty/genc.h"
 
-/* ========================================================================== */
-/* INTERNAL */
-/* ========================================================================== */
-
-/* -------------------------------------------------------------------------- */
-/* TYPES */
-/* -------------------------------------------------------------------------- */
-
-GENC_VECTOR_INLINE(ntg_event_binding_vec, ntg_event_binding*, 1.3)
-
-static int
-ntg_event_binding_vec_rm_value(
-        struct ntg_event_binding_vec* vec,
-        const ntg_event_binding* binding)
+struct ntg__event_sub
 {
-    if(!vec)
-        return GENC_ERR_INV_ARG;
-
-    ntg_event_binding** data = vec->data;
-    size_t size = vec->size;
-
-    size_t i;
-    for(i = 0; i < size; i++)
-    {
-        if(data[i] == binding)
-            return ntg_event_binding_vec_rm_at(vec, i);
-    }
-
-    return GENC_ERR_NO_DATA;
-}
-
-struct ntg_event_delegate
-{
-    struct ntg_event_binding_vec bindings;
-};
-
-struct ntg_event_binding
-{
-    ntg_event_delegate* delegate;
+    ntg_event_binding* binding;
     void* subscriber;
     void (*handler_fn)(void* subscriber, struct ntg_event event);
+
+    bool removed;
 };
 
-/* ========================================================================== */
-/* PUBLIC */
-/* ========================================================================== */
+GENC_VECTOR_DEFINE(ntg__event_sub_vec, struct ntg__event_sub, 1.5, )
 
-/* -------------------------------------------------------------------------- */
-/* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-ntg_event_delegate* ntg_event_delegate_new(void)
+int ntg_event_delegate_init(ntg_event_delegate* delegate)
 {
-    ntg_event_delegate* new = malloc(sizeof(ntg_event_delegate));
-    if(!new)
-        return NULL;
+    if(!delegate) return NTG_ERR_INV_ARG;
 
-    new->bindings = (struct ntg_event_binding_vec) {0};
-    int status = ntg_event_binding_vec_prealloc(&new->bindings, 3);
-    if(status != 0)
-    {
-        free(new);
-        return NULL;
-    }
+    (*delegate) = (struct ntg_event_delegate) {0};
 
-    return new;
+    return 0;
 }
 
-void ntg_event_delegate_destroy(ntg_event_delegate* delegate)
+int ntg_event_delegate_deinit(ntg_event_delegate* delegate)
 {
-    if(!delegate)
-        return;
+    if(!delegate) return NTG_ERR_INV_ARG;
+    if(delegate->__raise) return NTG_ERR_INV_STATE;
+
+    struct ntg__event_sub_vec* subs = &delegate->__subs;
 
     size_t i;
-    for(i = 0; i < delegate->bindings.size; i++)
+    for(i = 0; i < subs->size; i++)
     {
-        delegate->bindings.data[i]->delegate = NULL;
+        if(subs->data[i].binding)
+            subs->data[i].binding->__delegate = NULL;
     }
 
-    (void)ntg_event_binding_vec_deinit(&delegate->bindings);
-    free(delegate);
+    ntg__event_sub_vec_deinit(subs);
+
+    (*delegate) = (struct ntg_event_delegate) {0};
+
+    return 0;
 }
 
 int ntg_event_bind(
         ntg_event_delegate* delegate,
-        void* subscriber,
+        void* subscriber, 
         void (*handler_fn)(void* subscriber, struct ntg_event event),
-        ntg_event_binding** out_binding)
+        ntg_event_binding* out_binding)
 {
-    if(!delegate || !handler_fn || !out_binding)
-        return NTG_ERR_INV_ARG;
+    if(!delegate || !handler_fn) return NTG_ERR_INV_ARG;
+    if(out_binding && out_binding->__delegate) return NTG_ERR_INV_ARG;
 
-    *out_binding = NULL;
+    struct ntg__event_sub sub = {
+        .binding = out_binding,
+        .subscriber = subscriber,
+        .handler_fn = handler_fn
+    };
 
-    ntg_event_binding* new = malloc(sizeof(ntg_event_binding));
-    if(!new)
-        return NTG_ERR_ALLOC_FAIL;
-
-    new->delegate = delegate;
-    new->subscriber = subscriber;
-    new->handler_fn = handler_fn;
-
-    int _status;
-    _status = ntg_event_binding_vec_pushb(&delegate->bindings, new);
-    if(_status != 0)
+    int status = ntg__event_sub_vec_pushb(&delegate->__subs, sub);
+    switch(status)
     {
-        free(new);
+        case 0:
+            if(out_binding) out_binding->__delegate = delegate;
+            return 0;
+        case GENC_ERR_ALLOC_FAIL:
+            if(out_binding) out_binding->__delegate = NULL;
+            return NTG_ERR_ALLOC_FAIL;
+        case GENC_ERR_OVERFLOW:
+            if(out_binding) out_binding->__delegate = NULL;
+            return NTG_ERR_OVERFLOW;
+        default:
+            if(out_binding) out_binding->__delegate = NULL;
+            return NTG_ERR_UNEXPECTED;
+    }
+}
 
-        switch(_status)
+int ntg_event_unbind(ntg_event_binding* binding)
+{
+    if(!binding) return NTG_ERR_INV_ARG;
+
+    ntg_event_delegate* delegate = binding->__delegate;
+    if(!delegate) return 0;
+
+    struct ntg__event_sub_vec* subs = &delegate->__subs;
+
+    size_t i;
+    int status;
+    for(i = 0; i < subs->size; i++)
+    {
+        if(subs->data[i].binding == binding)
         {
-            case GENC_ERR_ALLOC_FAIL:
-                return NTG_ERR_ALLOC_FAIL;
-            case GENC_ERR_OVERFLOW:
-                return NTG_ERR_OVERFLOW;
-
-            default:
-                return NTG_ERR_UNEXPECTED;
+            if(delegate->__raise) // Defer if inside `ntg_event_raise()`
+            {
+                subs->data[i].removed = true;
+                return 0;
+            }
+            else
+            {
+                status = ntg__event_sub_vec_rm_at(subs, i);
+                switch(status)
+                {
+                    case 0:
+                        binding->__delegate = NULL;
+                        return 0;
+                    default:
+                        return NTG_ERR_UNEXPECTED;
+                }
+            }
         }
     }
 
-    *out_binding = new;
+    if(i >= subs->size)
+        return NTG_ERR_UNEXPECTED;
+
     return 0;
 }
 
-void ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
+int ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
 {
-    if(!delegate)
-        return;
-    
+    if(!delegate || event.type == NTG_EVENT_INVALID) return NTG_ERR_INV_ARG;
+    if(delegate->__raise) return NTG_ERR_INV_STATE;
+
+    struct ntg__event_sub_vec* subs = &delegate->__subs;
+    struct ntg__event_sub* it_sub;
+
+    delegate->__raise = true;
+
+    /* Save size in case any handlers use `ntg_event_bind()` and increase the
+     * vector size. */
+    size_t size = subs->size;
+
     size_t i;
-    ntg_event_binding* it_binding;
-    for(i = 0; i < delegate->bindings.size; i++)
+    for(i = 0; i < size; i++)
     {
-        it_binding = delegate->bindings.data[i];
-        it_binding->handler_fn(it_binding->subscriber, event);
-    }
-}
+        it_sub = &subs->data[i];
 
-void ntg_event_unbind(ntg_event_binding* binding)
-{
-    if(!binding)
-        return;
-
-    if(binding->delegate)
-    {
-        (void)ntg_event_binding_vec_rm_value(
-                &binding->delegate->bindings, binding);
+        if(it_sub->handler_fn && !it_sub->removed)
+            it_sub->handler_fn(it_sub->subscriber, event);
     }
 
-    free(binding);
+    delegate->__raise = false;
+
+    i = subs->size;
+    while(i > 0)
+    {
+        i--;
+
+        it_sub = &subs->data[i];
+
+        if(it_sub->removed)
+        {
+            it_sub->binding->__delegate = NULL; 
+
+            /* Must not fail */
+            ntg__event_sub_vec_rm_at(subs, i);
+        }
+    }
+
+    return 0;
 }

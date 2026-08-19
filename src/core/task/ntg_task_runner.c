@@ -3,7 +3,13 @@
 #include <stdlib.h>
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+
+/* ========================================================================== */
+/* TYPES */
 /* ========================================================================== */
 
 struct ntg_task_cancel_token
@@ -43,12 +49,14 @@ struct ntg_task_runner
 static void* worker_fn(void* _runner);
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* TASK RUNNER */
@@ -73,18 +81,28 @@ int ntg_task_runner_new(unsigned int workers, ntg_task_runner** out_runner)
 
     /* Task list */
 
-
     /* Mutex & cond */
 
-    pthread_mutex_init(&new->lock, NULL);
-    pthread_cond_init(&new->cond, NULL);
+    if(pthread_mutex_init(&new->lock, NULL))
+    {
+        free(new);
+        return NTG_ERR_MUTEX_INIT_FAIL;
+    }
+
+    if(pthread_cond_init(&new->cond, NULL))
+    {
+        pthread_mutex_destroy(&new->lock);
+        free(new);
+        return NTG_ERR_COND_INIT_FAIL;
+    }
 
     /* Threads */
 
     new->threads = malloc(sizeof(pthread_t) * workers);
     if(!new->threads)
     {
-        (void)ntg_task_runner_destroy(new);
+        ntg_task_runner_destroy(new);
+        free(new);
         return NTG_ERR_ALLOC_FAIL;
     } 
 
@@ -102,7 +120,7 @@ int ntg_task_runner_new(unsigned int workers, ntg_task_runner** out_runner)
 
     if(_status)
     {
-        (void)ntg_task_runner_destroy(new);
+        ntg_task_runner_destroy(new);
         return NTG_ERR_THREAD_SPAWN;
     }
 
@@ -138,7 +156,7 @@ int ntg_task_runner_destroy(ntg_task_runner* runner)
 
     if(runner->threads) free(runner->threads);
 
-    (void)ntg_task_list_deinit(&runner->task_list);
+    ntg_task_list_deinit(&runner->task_list);
     pthread_mutex_destroy(&runner->lock);
     pthread_cond_destroy(&runner->cond);
 
@@ -242,7 +260,9 @@ bool ntg_task_cancel_token_stopped(ntg_task_cancel_token* cancel)
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
 static void* worker_fn(void* _runner)
@@ -267,7 +287,7 @@ static void* worker_fn(void* _runner)
         /* Retrieve & pop task */
 
         struct ntg_task task = runner->task_list.head->data;
-        (void)ntg_task_list_popf(&runner->task_list);
+        ntg_task_list_popf(&runner->task_list);
 
         pthread_mutex_unlock(&runner->lock);
 
@@ -285,3 +305,7 @@ static void* worker_fn(void* _runner)
 
     return NULL;
 }
+
+/* ========================================================================== */
+/* FUNCTIONS */
+/* ========================================================================== */

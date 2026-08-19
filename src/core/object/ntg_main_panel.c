@@ -3,12 +3,14 @@
 #include <string.h>
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 static void get_children(
         const ntg_main_panel* panel,
@@ -19,12 +21,14 @@ static void get_children(
         ntg_object** out_center);
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_main_panel_opts ntg_main_panel_opts_default(void)
 {
@@ -46,9 +50,9 @@ bool ntg_main_panel_opts_are_eql(
     return ntg_vcell_are_eql(opts1->bg, opts2->bg);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -70,15 +74,16 @@ int ntg_main_panel_init(
     return _status;
 }
 
-void ntg_main_panel_deinit(ntg_main_panel* panel)
+int ntg_main_panel_deinit(ntg_main_panel* panel)
 {
-    if(!panel) return;
+    if(!panel) return NTG_ERR_INV_ARG;
 
     panel->_opts = ntg_main_panel_opts_default();
     memset(panel->_children, 0, sizeof(panel->_children));
-    panel->hooks = (struct ntg_main_panel_hooks) {0};
 
     ntg_object_deinit((ntg_object*)panel);
+
+    return 0;
 }
 
 void ntg_main_panel_deinit_void(void* _panel)
@@ -118,8 +123,14 @@ int ntg_main_panel_set(
 
     ntg_object_mark_dirty((ntg_object*)panel, NTG_OBJECT_DIRTY_FULL);
 
-    if(panel->hooks.on_child_chng_fn)
-        panel->hooks.on_child_chng_fn(panel, old_child, object, pos);
+    struct ntg_event_main_panel_chldchg_dt event_dt = {
+        .old_child = old_child,
+        .new_child = object,
+        .pos = pos
+    };
+    ntg_event_raise(
+            &ntg_obj(panel)->_event_del,
+            ntg_event_new(NTG_EVENT_MAIN_PANEL_CHLDCHG, panel, &event_dt));
 
     return 0;
 }
@@ -128,34 +139,43 @@ int ntg_main_panel_set(
 /* OPTS */
 /* ------------------------------------------------------ */
 
-void ntg_main_panel_set_opts(
+int ntg_main_panel_set_opts(
         ntg_main_panel* panel,
         const struct ntg_main_panel_opts* opts)
 {
-    if(!panel) return;
+    if(!panel) return NTG_ERR_INV_ARG;
 
     struct ntg_main_panel_opts old_opts = panel->_opts;
     struct ntg_main_panel_opts new_opts =
             (opts ? (*opts) : ntg_main_panel_opts_default());
 
     if(ntg_main_panel_opts_are_eql(&old_opts, &new_opts))
-        return;
+        return 0;
 
     panel->_opts = new_opts;
 
     ntg_object_set_base_bg(ntg_obj(panel), new_opts.bg);
 
-    if(panel->hooks.on_opts_chng_fn)
-        panel->hooks.on_opts_chng_fn(panel, &old_opts, &new_opts);
+    struct ntg_event_main_panel_optchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &new_opts
+    };
+    ntg_event_raise(
+            &ntg_obj(panel)->_event_del,
+            ntg_event_new(NTG_EVENT_MAIN_PANEL_OPTCHG, panel, &event_dt));
+
+    return 0;
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
@@ -176,7 +196,6 @@ int ntg_main_panel_init_inherit(
 
     panel->_opts = ntg_main_panel_opts_default();
     memset(panel->_children, 0, sizeof(panel->_children));
-    panel->hooks = (struct ntg_main_panel_hooks) {0};
     return 0;
 }
 
@@ -475,7 +494,7 @@ int ntg_main_panel_arrange_fn(
     get_children(main_panel, &north, &east, &south, &west, &center);
 
     if(_panel->_children.size == 0) return 0;
-    if(ntg_xy_size_is_zero(size))
+    if(ntg_xy_is_zero_any(size))
     {
         ntg_object_zero_arrange(_panel, out_pos_map);
         return 0;

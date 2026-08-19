@@ -4,12 +4,14 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -20,15 +22,21 @@ int ntg_stage_drawing_init(ntg_stage_drawing* drawing)
     if(drawing == NULL)
         return NTG_ERR_INV_ARG;
 
-    ntg_cell_vecgrid_init(&drawing->__data);
+    if(ntg_cell_vecgrid_init(&drawing->__data))
+        return NTG_ERR_UNEXPECTED;
+
     return 0;
 }
 
-void ntg_stage_drawing_deinit(ntg_stage_drawing* drawing)
+int ntg_stage_drawing_deinit(ntg_stage_drawing* drawing)
 {
-    if(drawing == NULL) return;
+    if(drawing == NULL)
+        return NTG_ERR_INV_ARG;
 
-    ntg_cell_vecgrid_deinit(&drawing->__data);
+    if(ntg_cell_vecgrid_deinit(&drawing->__data))
+        return NTG_ERR_UNEXPECTED;
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */

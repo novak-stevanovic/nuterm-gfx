@@ -8,12 +8,14 @@
 #include "shared/ntg_str.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 enum ntg_text_wrap
 {
@@ -94,15 +96,15 @@ struct ntg_text
     struct ntg_str32_view* __utf32_rows;
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */ 
 /* OPTS */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts);
 
 /* ------------------------------------------------------ */
@@ -128,10 +130,10 @@ ntg_text_set_text(
 /* SCROLL */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll);
 
-NTG_API void
+NTG_API int
 ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff);
 
 /* ------------------------------------------------------ */
@@ -146,8 +148,11 @@ ntg_text_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
-NTG_API void
+NTG_API int
 ntg_text_deinit(ntg_text* text_obj);
+
+NTG_API void
+ntg_text_deinit_void(void* _text);
 
 NTG_API int
 ntg_text_measure_fn(
@@ -173,10 +178,10 @@ NTG_API void
 ntg_text_deinit_fn(ntg_object* _text_obj);
 
 NTG_API void
-ntg_text_focus_fn(ntg_object* _text_obj, ntg_object* old_focused);
+ntg_text_focus_fn(ntg_object* _text_obj);
 
 NTG_API void
-ntg_text_unfocus_fn(ntg_object* _text_obj, ntg_object* new_focused);
+ntg_text_unfocus_fn(ntg_object* _text_obj);
 
 NTG_API extern const struct ntg_object_vtable NTG_TEXT_VTABLE;
 

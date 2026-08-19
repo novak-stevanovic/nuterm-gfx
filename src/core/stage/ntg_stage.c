@@ -2,12 +2,14 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 static const struct ntg_stage_vtable VTABLE_EMPTY = {0};
 
@@ -23,12 +25,14 @@ static void draw_object(ntg_stage* stage, ntg_object* object);
 static bool draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -36,26 +40,30 @@ static bool draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 
 int ntg_stage_init(ntg_stage* stage)
 {
-    return ntg_stage_init_override(stage, &NTG_STAGE_VTABLE_DEFAULT);
+    return ntg_stage_init_inherit(stage, &NTG_STAGE_VTABLE_DEFAULT);
 }
 
-void ntg_stage_deinit(ntg_stage* stage)
+int ntg_stage_deinit(ntg_stage* stage)
 {
-    if(!stage) return;
+    if(!stage) return NTG_ERR_INV_ARG;
 
     if(stage->_in_loop)
     {
-        (void)ntg_loop_set_stage(NULL);
+        ntg_loop_set_stage(NULL);
     }
 
     if(stage->_scene)
     {
-        (void)ntg_stage_set_scene(stage, NULL);
+        ntg_stage_set_scene(stage, NULL);
     }
 
     ntg_stage_drawing_deinit(&stage->_drawing);
 
+    ntg_event_delegate_deinit(&stage->_event_del);
+
     init_default(stage);
+
+    return 0;
 }
 
 void ntg_stage_deinit_void(void* _stage)
@@ -90,7 +98,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
             _ntg_scene_clean(stage->_scene);
     }
 
-    if(ntg_xy_size_is_zero(size)) return false;
+    if(ntg_xy_is_zero_any(size)) return false;
 
     if(!stage->_scene) return false;
     if(!stage->_scene->_root) return false;
@@ -134,14 +142,14 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         _ntg_scene_set_stage(old_scene, NULL);
 
         /* Can only fail if size exceeds NTG_SIZE_MAX */
-        (void)_ntg_scene_set_size(old_scene, ntg_xy(0, 0));
+        _ntg_scene_set_size(old_scene, ntg_xy(0, 0));
     }
 
     if(scene)
     {
         if(old_stage)
         {
-            (void)ntg_stage_set_scene(old_stage, NULL);
+            ntg_stage_set_scene(old_stage, NULL);
         }
 
         _ntg_scene_set_stage(scene, stage);
@@ -155,8 +163,13 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 
     stage->_scene = scene;
 
-    if(stage->hooks.on_scene_chng_fn)
-        stage->hooks.on_scene_chng_fn(stage, old_scene, scene);
+    struct ntg_event_stage_scnchg_dt event_dt = {
+        .old_scene = old_scene,
+        .new_scene = scene
+    };
+    ntg_event_raise(
+            &stage->_event_del,
+            ntg_event_new(NTG_EVENT_STAGE_SCNCHG, stage, &event_dt));
 
     if(old_scene)
         _ntg_scene_on_stage_leave(old_scene, old_scene_stage);
@@ -167,18 +180,20 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     return 0;
 }
 
-void ntg_stage_mark_dirty(ntg_stage* stage)
+int ntg_stage_mark_dirty(ntg_stage* stage)
 {
-    if(!stage) return;
+    if(!stage) return NTG_ERR_INV_ARG;
 
     stage->_dirty = true;
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key_event key)
+bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key key)
 {
     if(!stage) return false;
 
@@ -187,13 +202,15 @@ bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key_event key)
     if(stage->__vtable && stage->__vtable->handle_key_fn)
         handled = stage->__vtable->handle_key_fn(stage, key);
 
-    if(stage->hooks.on_key_fn)
-        stage->hooks.on_key_fn(stage, key);
+    struct ntg_event_stage_key_dt event_dt = { .key = key };
+    ntg_event_raise(
+            &stage->_event_del,
+            ntg_event_new(NTG_EVENT_STAGE_KEY, stage, &event_dt));
 
     return handled;
 }
 
-bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
+bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse mouse)
 {
     if(!stage) return false;
 
@@ -202,21 +219,25 @@ bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse_event mouse)
     if(stage->__vtable && stage->__vtable->handle_mouse_fn)
         handled = stage->__vtable->handle_mouse_fn(stage, mouse);
 
-    if(stage->hooks.on_mouse_fn)
-        stage->hooks.on_mouse_fn(stage, mouse);
+    struct ntg_event_stage_mouse_dt event_dt = { .mouse = mouse };
+    ntg_event_raise(
+            &stage->_event_del,
+            ntg_event_new(NTG_EVENT_STAGE_MOUSE, stage, &event_dt));
 
     return handled;
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
-int ntg_stage_init_override(
+int ntg_stage_init_inherit(
         ntg_stage* stage,
         const struct ntg_stage_vtable* vtable)
 {
@@ -224,6 +245,7 @@ int ntg_stage_init_override(
         return NTG_ERR_INV_ARG;
 
     init_default(stage);
+
     stage->__vtable = (vtable ? vtable : &VTABLE_EMPTY);
 
     int _status = ntg_stage_drawing_init(&stage->_drawing);
@@ -234,10 +256,12 @@ int ntg_stage_init_override(
         return _status;
     }
 
+    ntg_event_delegate_init(&stage->_event_del);
+
     return 0;
 }
 
-bool ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key_event key)
+bool ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key key)
 {
     if(!stage) return false;
 
@@ -249,7 +273,7 @@ bool ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key_event key)
 
 bool ntg_stage_dispatch_mouse_fn(
         ntg_stage* stage,
-        struct nt_mouse_event mouse)
+        struct nt_mouse mouse)
 {
     if(!stage) return false;
 
@@ -265,12 +289,14 @@ const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT = {
 };
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* INTERNAL */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
 {
@@ -297,8 +323,15 @@ int _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size)
             return _status;
     }
 
-    if(stage->hooks.on_size_chng_fn)
-        stage->hooks.on_size_chng_fn(stage, old_size, size);
+    struct ntg_event_stage_szchg_dt event_dt = {
+        .old_x = old_size.x,
+        .old_y = old_size.y,
+        .new_x = size.x,
+        .new_y = size.y
+    };
+    ntg_event_raise(
+            &stage->_event_del,
+            ntg_event_new(NTG_EVENT_STAGE_SZCHG, stage, &event_dt));
 
     return 0;
 }
@@ -308,6 +341,7 @@ void _ntg_stage_clean(ntg_stage* stage)
     if(!stage) return;
 
     stage->_dirty = false;
+
 }
 
 void _ntg_stage_enter_loop(ntg_stage* stage)
@@ -317,8 +351,10 @@ void _ntg_stage_enter_loop(ntg_stage* stage)
     stage->_in_loop = true;
     ntg_stage_mark_dirty(stage);
 
-    if(stage->hooks.on_loop_enter_fn)
-        stage->hooks.on_loop_enter_fn(stage);
+    ntg_event_raise(
+            &stage->_event_del,
+            ntg_event_new(NTG_EVENT_STAGE_ENTER, stage, NULL));
+
 }
 
 void _ntg_stage_leave_loop(ntg_stage* stage)
@@ -327,17 +363,21 @@ void _ntg_stage_leave_loop(ntg_stage* stage)
 
     stage->_in_loop = false;
 
-    if(stage->hooks.on_loop_leave_fn)
-        stage->hooks.on_loop_leave_fn(stage);
+    ntg_event_raise(
+            &stage->_event_del,
+            ntg_event_new(NTG_EVENT_STAGE_LEAVE, stage, NULL));
+
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 static void init_default(ntg_stage* stage)
 {
@@ -403,7 +443,7 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     if(object->_dirty & NTG_OBJECT_DIRTY_DRAW)
         return;
 
-    (void)ntg_object_drawing_place_(
+    ntg_object_drawing_place_(
             &object->_drawing,
             &stage->_drawing,
             abs_pos);

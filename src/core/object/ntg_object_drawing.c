@@ -3,29 +3,37 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_object_drawing_init(ntg_object_drawing* drawing)
+int ntg_object_drawing_init(ntg_object_drawing* drawing)
 {
-    if(!drawing) return;
+    if(!drawing) return NTG_ERR_INV_ARG;
 
-    ntg_vcell_vecgrid_init(&drawing->__data);
+    if(ntg_vcell_vecgrid_init(&drawing->__data))
+        return NTG_ERR_UNEXPECTED;
+
+    return 0;
 }
 
-void ntg_object_drawing_deinit(ntg_object_drawing* drawing)
+int ntg_object_drawing_deinit(ntg_object_drawing* drawing)
 {
-    if(!drawing) return;
+    if(!drawing) return NTG_ERR_INV_ARG;
 
-    ntg_vcell_vecgrid_deinit(&drawing->__data);
+    if(ntg_vcell_vecgrid_deinit(&drawing->__data))
+        return NTG_ERR_UNEXPECTED;
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -73,7 +81,7 @@ int ntg_object_drawing_place(
     struct ntg_xy dest_size = ntg_object_drawing_get_size(dest_drawing);
     struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
-    if(ntg_xy_size_is_zero(src_size)) return 0; 
+    if(ntg_xy_is_zero_any(src_size)) return 0; 
 
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
@@ -113,7 +121,7 @@ int ntg_object_drawing_place_(
     struct ntg_xy dest_size = ntg_stage_drawing_get_size(dest_drawing);
     struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
 
-    if(ntg_xy_size_is_zero(src_size)) return 0; 
+    if(ntg_xy_is_zero_any(src_size)) return 0; 
 
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 

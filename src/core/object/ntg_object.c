@@ -4,6 +4,12 @@
 #include <assert.h>
 #include "shared/ntg_shared_internal.h"
 
+/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* STATIC */
+/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+
 GENC_VECTOR_DEFINE(ntg_objptr_vec, ntg_object*, 1.5, )
 
 static int
@@ -21,14 +27,6 @@ objptr_vec_rm_value(ntg_objptr_vec* vec, const ntg_object* object)
 
     return GENC_ERR_NO_DATA;
 }
-
-/* ========================================================================== */
-/* STATIC */
-/* ========================================================================== */
-
-/* -------------------------------------------------------------------------- */
-/* TYPES */
-/* -------------------------------------------------------------------------- */
 
 struct ntg_object_size_map
 {
@@ -53,9 +51,9 @@ enum ntg_object_repeat_flag
     NTG_OBJECT_SPECIAL_REPEAT = (1u << 2)
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* LAYOUT OBJECT INIT */
@@ -117,12 +115,14 @@ static bool set_vsize_helper(ntg_object* object, size_t size);
 static inline bool set_pos_helper(ntg_object* object, struct ntg_xy pos);
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_border_opts ntg_border_opts_default(void)
 {
@@ -200,9 +200,9 @@ bool ntg_layout_opts_are_eql(
             opts1->z_index == opts2->z_index);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 void ntg_object_vdeinit(ntg_object* object)
 {
@@ -210,6 +210,7 @@ void ntg_object_vdeinit(ntg_object* object)
 
     if(object->__vtable->deinit_fn)
         object->__vtable->deinit_fn(object);
+
 }
 
 /* ------------------------------------------------------ */
@@ -463,16 +464,16 @@ ntg_object* ntg_object_hit_test(
     return best_obj;
 }
 
-void ntg_object_detach(ntg_object* object)
+int ntg_object_detach(ntg_object* object)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     ntg_object* parent = object->_parent;
-    if(parent == NULL) return;
+    if(parent == NULL) return 0;
 
     ntg_scene* scene = ntg_object_get_scene_(object);
 
-    (void)objptr_vec_rm_value(&parent->_children, object);
+    objptr_vec_rm_value(&parent->_children, object);
 
     object->_parent = NULL;
 
@@ -484,17 +485,24 @@ void ntg_object_detach(ntg_object* object)
 
     ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
 
-    if(parent->hooks.on_child_rm_fn)
-        parent->hooks.on_child_rm_fn(parent, object);
-
     if(object->__vtable->rm_parent_fn)
         object->__vtable->rm_parent_fn(object, parent);
 
-    if(object->hooks.on_parent_rm_fn)
-        object->hooks.on_parent_rm_fn(object, parent);
+    struct ntg_event_object_chldrm_dt chldrm_dt = { .child = object };
+    struct ntg_event_object_prntrm_dt prntrm_dt = { .parent = parent };
+
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_PRNTRM, object, &prntrm_dt));
+            
+    ntg_event_raise(
+            &parent->_event_del,
+           ntg_event_new(NTG_EVENT_OBJECT_CHLDRM, parent, &chldrm_dt));
 
     if(scene)
         _ntg_scene_unregister_tree(scene, object);
+
+    return 0;
 }
 
 int ntg_object_anchor(
@@ -546,14 +554,18 @@ int ntg_object_anchor(
     if(base->__vtable->add_anchored_fn)
         base->__vtable->add_anchored_fn(base, root);
 
-    if(base->hooks.on_anchored_add_fn)
-        base->hooks.on_anchored_add_fn(base, root);
+    struct ntg_event_object_anchadd_dt anchadd_dt = { .anchored = root };
+    ntg_event_raise(
+            &base->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_ANCHADD, base, &anchadd_dt));
 
     if(root->__vtable->set_base_fn)
         root->__vtable->set_base_fn(root, base);
 
-    if(root->hooks.on_base_set_fn)
-        root->hooks.on_base_set_fn(root, base);
+    struct ntg_event_object_bsset_dt bsset_dt = { .base = base };
+    ntg_event_raise(
+            &root->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_BSSET, root, &bsset_dt));
 
     if(scene)
         _ntg_scene_register_tree(scene, root);
@@ -561,24 +573,26 @@ int ntg_object_anchor(
     return 0;
 }
 
-void ntg_object_unanchor(ntg_object* root)
+int ntg_object_unanchor(ntg_object* root)
 {
-    if(!root || !root->_base)
-        return;
+    if(!root) return NTG_ERR_INV_ARG;
+    if(!root->_base) return 0;
 
     ntg_object* base = root->_base;
 
     ntg_scene* scene = ntg_object_get_scene_(root);
 
-    (void)objptr_vec_rm_value(&root->_base->_anchored, root);
+    objptr_vec_rm_value(&root->_base->_anchored, root);
     root->_base = NULL;
     root->_anchor_policy = NULL;
 
     if(base->__vtable->rm_anchored_fn)
         base->__vtable->rm_anchored_fn(base, root);
 
-    if(base->hooks.on_anchored_rm_fn)
-        base->hooks.on_anchored_rm_fn(base, root);
+    struct ntg_event_object_anchrm_dt anchrm_dt = { .anchored = root };
+    ntg_event_raise(
+            &base->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_ANCHRM, base, &anchrm_dt));
 
     if(scene)
         _ntg_scene_rm_object_tree(scene, root);
@@ -586,53 +600,59 @@ void ntg_object_unanchor(ntg_object* root)
     if(root->__vtable->rm_base_fn)
         root->__vtable->rm_base_fn(root, base);
 
-    if(root->hooks.on_base_rm_fn)
-        root->hooks.on_base_rm_fn(root, base);
+    struct ntg_event_object_bsrm_dt bsrm_dt = { .base = base };
+    ntg_event_raise(
+            &root->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_BSRM, root, &bsrm_dt));
 
     if(scene)
         _ntg_scene_unregister_tree(scene, root);
+
+    return 0;
 }
 
-void ntg_object_remove_from_scene(ntg_object* object)
+int ntg_object_remove_from_scene(ntg_object* object)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     ntg_object* parent = object->_parent;
     if(parent)
     {
         ntg_object_detach(object);
-        return;
+        return 0;
     }
 
     ntg_object* base = object->_base;
     if(base)
     {
         ntg_object_unanchor(object);
-        return;
+        return 0;
     }
 
     if(ntg_object_is_true_root(object) && ntg_object_get_scene(object))
     {
-        (void)ntg_scene_set_root(ntg_object_get_scene_(object), NULL);
-        return;
+        ntg_scene_set_root(ntg_object_get_scene_(object), NULL);
+        return 0;
     }
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
 /* CONTROL */
 /* ------------------------------------------------------ */
 
-void ntg_object_set_layout_opts(
+int ntg_object_set_layout_opts(
         ntg_object* object,
         const struct ntg_layout_opts* opts)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     struct ntg_layout_opts old_opts = object->_layout_opts;
     struct ntg_layout_opts new_opts = (opts ? (*opts) : ntg_layout_opts_default());
 
     if(ntg_layout_opts_are_eql(&old_opts, &new_opts))
-        return;
+        return 0;
 
     object->_layout_opts = new_opts;
 
@@ -646,21 +666,28 @@ void ntg_object_set_layout_opts(
                 &object->_layout_opts);
     }
 
-    if(object->hooks.on_layout_opts_chng_fn)
-        object->hooks.on_layout_opts_chng_fn(object, &old_opts, &object->_layout_opts);
+    struct ntg_event_object_layoptchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &object->_layout_opts
+    };
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_LAYOPTCHG, object, &event_dt));
+
+    return 0;
 }
 
-void ntg_object_set_border_opts(
+int ntg_object_set_border_opts(
         ntg_object* object,
         const struct ntg_border_opts* opts)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     struct ntg_border_opts old_opts = object->_border_opts;
     struct ntg_border_opts new_opts = (opts ? (*opts) : ntg_border_opts_default());
 
     if(ntg_border_opts_are_eql(&old_opts, &new_opts))
-        return;
+        return 0;
 
     object->_border_opts = new_opts;
     if(!object->_border_opts.style)
@@ -676,21 +703,28 @@ void ntg_object_set_border_opts(
                 &object->_border_opts);
     }
 
-    if(object->hooks.on_border_opts_chng_fn)
-        object->hooks.on_border_opts_chng_fn(object, &old_opts, &object->_border_opts);
+    struct ntg_event_object_bdroptchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &object->_border_opts
+    };
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_BDROPTCHG, object, &event_dt));
+
+    return 0;
 }
 
-void ntg_object_set_padding_opts(
+int ntg_object_set_padding_opts(
         ntg_object* object,
         const struct ntg_padding_opts* opts)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     struct ntg_padding_opts old_opts = object->_padding_opts;
     struct ntg_padding_opts new_opts = (opts ? (*opts) : ntg_padding_opts_default());
 
     if(ntg_padding_opts_are_eql(&old_opts, &new_opts))
-        return;
+        return 0;
 
     object->_padding_opts = new_opts;
 
@@ -704,8 +738,15 @@ void ntg_object_set_padding_opts(
                 &object->_padding_opts);
     }
 
-    if(object->hooks.on_padding_opts_chng_fn)
-        object->hooks.on_padding_opts_chng_fn(object, &old_opts, &object->_padding_opts);
+    struct ntg_event_object_padoptchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &object->_padding_opts
+    };
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_PADOPTCHG, object, &event_dt));
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -794,10 +835,10 @@ bool ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event)
         consumed = object->__vtable->process_key_fn(object, event);
     }
 
-    if(object->hooks.on_key_fn)
-    {
-        object->hooks.on_key_fn(object, event);
-    }
+    struct ntg_event_object_key_dt event_dt = { .key = event };
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_KEY, object, &event_dt));
 
     return consumed;
 }
@@ -830,21 +871,23 @@ bool ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* ev
         consumed = object->__vtable->process_mouse_fn(object, event);
     }
 
-    if(object->hooks.on_mouse_fn)
-    {
-        object->hooks.on_mouse_fn(object, event);
-    }
+    struct ntg_event_object_mouse_dt event_dt = { .mouse = event };
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_MOUSE, object, &event_dt));
 
     return consumed;
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 static void init_default(ntg_object* object)
 {
@@ -884,18 +927,21 @@ int ntg_object_init_inherit(
     object->layout_dt = layout_dt;
 
     ntg_object_drawing_init(&object->_drawing);
+
+    ntg_event_delegate_init(&object->_event_del);
+
     return 0;
 }
 
-void ntg_object_deinit(ntg_object* object)
+int ntg_object_deinit(ntg_object* object)
 {
-    if(!object) return;
+    ntg_not_null(object);
 
     ntg_scene* scene = ntg_object_get_scene_(object);
     
     if(ntg_object_is_true_root(object) && scene)
     {
-        (void)ntg_scene_set_root(scene, NULL);
+        ntg_scene_set_root(scene, NULL);
     }
 
     if(object->_parent)
@@ -918,14 +964,20 @@ void ntg_object_deinit(ntg_object* object)
         ntg_object_unanchor(object->_anchored.data[0]);
     }
 
-    (void)ntg_objptr_vec_deinit(&object->_children);
-    (void)ntg_objptr_vec_deinit(&object->_anchored);
+    ntg_objptr_vec_deinit(&object->_children);
+
+    ntg_objptr_vec_deinit(&object->_anchored);
+
     ntg_object_drawing_deinit(&object->_drawing);
+
+    ntg_event_delegate_deinit(&object->_event_del);
 
     if(object->layout_dt && object->layout_dt->free_fn)
         object->layout_dt->free_fn(object->layout_dt);
 
     init_default(object);
+
+    return 0;
 }
 
 int ntg_object_attach(ntg_object* parent, ntg_object* child)
@@ -942,7 +994,7 @@ int ntg_object_attach(ntg_object* parent, ntg_object* child)
         ntg_object_detach(child);
 
     if(child->__scene) 
-        (void)ntg_scene_set_root(child->__scene, NULL);
+        ntg_scene_set_root(child->__scene, NULL);
 
     if(child->_base)
         ntg_object_unanchor(child);
@@ -972,11 +1024,16 @@ int ntg_object_attach(ntg_object* parent, ntg_object* child)
     if(child->__vtable->set_parent_fn)
         child->__vtable->set_parent_fn(child, parent);
 
-    if(parent->hooks.on_child_add_fn)
-        parent->hooks.on_child_add_fn(parent, child);
+    struct ntg_event_object_chldadd_dt chldadd_dt = { .child = child };
+    struct ntg_event_object_prntset_dt prntset_dt = { .parent = parent };
 
-    if(child->hooks.on_parent_set_fn)
-        child->hooks.on_parent_set_fn(child, parent);
+    ntg_event_raise(
+            &parent->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_CHLDADD, parent, &chldadd_dt));
+
+    ntg_event_raise(
+            &child->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_PRNTSET, child, &prntset_dt));
 
     if(scene)
         _ntg_scene_register_tree(scene, child);
@@ -985,68 +1042,74 @@ int ntg_object_attach(ntg_object* parent, ntg_object* child)
     return 0;
 }
 
-void ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
+int ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     object->__base_bg = base_bg;
 
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_LAYOUT_PREPARE | NTG_OBJECT_DIRTY_DRAW);
+
+    return 0;
 }
 
-void ntg_object_set_focusable(ntg_object* object, enum ntg_object_focusable_mode mode)
+int ntg_object_set_focusable(ntg_object* object, enum ntg_object_focus_mode mode)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     if(object->_focusable == NTG_OBJECT_FOCUSABLE)
     {
         const ntg_scene* scene = ntg_object_get_scene(object);
         if(scene)
         {
-            ntg_focus_manager* fm = scene->_fm;
+            ntg_fcs_manager* fm = scene->_fm;
             if(fm && (fm->_focused == object))
-                ntg_focus_manager_request_focus(fm, NULL);
+                ntg_fcs_manager_request_focus(fm, NULL);
         }
     }
 
     object->_focusable = mode;
+
+    return 0;
 }
 
-void ntg_object_set_clickable(ntg_object* object, enum ntg_object_clickable_mode mode)
+int ntg_object_set_clickable(ntg_object* object, enum ntg_object_click_mode mode)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     object->_clickable = mode;
+
+    return 0;
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* INTERNAL */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene)
 {
-    if(!object || object->_parent || object->_base)
-        return;
+    if(!object) return;
+    if(object->_parent || object->_base) return;
 
     object->__scene = scene;
+
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
-
-void ntg_object_layout_dt_free_fn(struct ntg_object_layout_dt* data)
-{
-    if(data) free(data);
-}
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* MEASURE PHASE */
@@ -1073,12 +1136,12 @@ size_t ntg_object_size_map_get(
     return NTG_SIZE_MAX;
 }
 
-void ntg_object_size_map_set(
+int ntg_object_size_map_set(
         ntg_object_size_map* map,
         const ntg_object* object,
         size_t size)
 {
-    if(!map || !object) return;
+    if(!map || !object) return NTG_ERR_INV_ARG;
 
     size_t i;
     for(i = 0; i < map->size; i++)
@@ -1089,16 +1152,20 @@ void ntg_object_size_map_set(
             break;
         }
     }
+
+    return 0;
 }
 
-void ntg_object_zero_constrain(const ntg_object* object, ntg_object_size_map* map)
+int ntg_object_zero_constrain(const ntg_object* object, ntg_object_size_map* map)
 {
     if(!object || !map)
-        return;
+        return NTG_ERR_INV_ARG;
 
     size_t i;
     for(i = 0; i < object->_children.size; i++)
         ntg_object_size_map_set(map, object, 0);
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -1122,12 +1189,12 @@ struct ntg_xy ntg_object_pos_map_get(
     return NTG_XY_MAX;
 }
 
-void ntg_object_pos_map_set(
+int ntg_object_pos_map_set(
         ntg_object_pos_map* map,
         const ntg_object* object,
         struct ntg_xy pos)
 {
-    if(!map || !object) return;
+    if(!map || !object) return NTG_ERR_INV_ARG;
 
     size_t i;
     for(i = 0; i < map->size; i++)
@@ -1138,16 +1205,20 @@ void ntg_object_pos_map_set(
             break;
         }
     }
+
+    return 0;
 }
 
-void ntg_object_zero_arrange(const ntg_object* object, ntg_object_pos_map* map)
+int ntg_object_zero_arrange(const ntg_object* object, ntg_object_pos_map* map)
 {
     if(!object || !map)
-        return;
+        return NTG_ERR_INV_ARG;
 
     size_t i;
     for(i = 0; i < object->_children.size; i++)
         ntg_object_pos_map_set(map, object, ntg_xy(0, 0));
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -1155,22 +1226,26 @@ void ntg_object_zero_arrange(const ntg_object* object, ntg_object_pos_map* map)
 /* ------------------------------------------------------ */
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
-void ntg_object_mark_dirty(ntg_object* object, uint32_t dirty)
+int ntg_object_mark_dirty(ntg_object* object, uint32_t dirty)
 {
-    if(!object) return;
+    if(!object) return NTG_ERR_INV_ARG;
 
     object->_dirty |= dirty;
 
     ntg_scene* scene = ntg_object_get_scene_(object);
     if(scene)
         ntg_scene_mark_dirty(scene);
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -1424,12 +1499,14 @@ size_t ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orie
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* INTERNAL */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int _ntg_object_hmeasure(
         ntg_object* object,
@@ -1811,10 +1888,11 @@ void _ntg_object_layout_finalize(ntg_object* object, sarena* arena)
     if(object->__vtable && object->__vtable->layout_finalize_fn)
         object->__vtable->layout_finalize_fn(object, arena);
 
-    if(object->hooks.on_layout_finalize_fn)
-        object->hooks.on_layout_finalize_fn(object);
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_LAYFINAL, object, NULL));
 
-    object->_old_layout_result = (struct ntg_object_layout_result) {
+    object->_old_layout = (struct ntg_object_layout_result) {
         .min_size = object->_min_size,
         .nat_size = object->_nat_size,
         .max_size = object->_max_size,
@@ -1826,30 +1904,34 @@ void _ntg_object_layout_finalize(ntg_object* object, sarena* arena)
         .abs_pos = ntg_object_get_abs_pos(object),
         .first_layout = false
     };
+
 }
 
 void _ntg_object_root_set_hsize(ntg_object* object, size_t size)
 {
-    if(!object || object->_parent)
-        return;
+    if(!object) return;
+    if(object->_parent) return;
 
     set_hsize_helper(object, size);
+
 }
 
 void _ntg_object_root_set_vsize(ntg_object* object, size_t size)
 {
-    if(!object || object->_parent)
-        return;
+    if(!object) return;
+    if(object->_parent) return;
 
     set_vsize_helper(object, size);
+
 }
 
 void _ntg_object_root_set_pos(ntg_object* object, struct ntg_xy pos)
 {
-    if(!object || object->_parent)
-        return;
+    if(!object) return;
+    if(object->_parent) return;
 
     set_pos_helper(object, pos);
+
 }
 
 void _ntg_object_clean(ntg_object* object, uint32_t clean)
@@ -1857,6 +1939,7 @@ void _ntg_object_clean(ntg_object* object, uint32_t clean)
     if(!object) return;
 
     object->_dirty &= (~clean);
+
 }
 
 void _ntg_object_scene_enter(ntg_object* object, ntg_scene* scene)
@@ -1865,18 +1948,22 @@ void _ntg_object_scene_enter(ntg_object* object, ntg_scene* scene)
 
     layout_reset(object);
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
-    object->_old_layout_result.first_layout = true;
+    object->_old_layout.first_layout = true;
 
-    if(object->__vtable->set_scene_fn)
-        object->__vtable->set_scene_fn(object, scene);
+    if(object->__vtable->enter_scene_fn)
+        object->__vtable->enter_scene_fn(object, scene);
+
 }
 
 void _ntg_object_on_scene_enter(ntg_object* object, ntg_scene* scene)
 {
     if(!object) return;
 
-    if(object->hooks.on_scene_set_fn)
-        object->hooks.on_scene_set_fn(object, scene);
+    struct ntg_event_object_scnset_dt event_dt = { .scene = scene };
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_SCNSET, object, &event_dt));
+
 }
 
 void _ntg_object_scene_leave(ntg_object* object, ntg_scene* scene)
@@ -1887,45 +1974,55 @@ void _ntg_object_scene_leave(ntg_object* object, ntg_scene* scene)
 
     if(object->__vtable->rm_scene_fn)
         object->__vtable->rm_scene_fn(object, scene);
+
 }
 
 void _ntg_object_on_scene_leave(ntg_object* object, ntg_scene* scene)
 {
     if(!object) return;
 
-    if(object->hooks.on_scene_rm_fn)
-        object->hooks.on_scene_rm_fn(object, scene);
+    struct ntg_event_object_scnrm_dt event_dt = { .scene = scene };
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_SCNRM, object, &event_dt));
+
 }
 
-void _ntg_object_focus(ntg_object* object, ntg_object* old_focused)
+void _ntg_object_focus(ntg_object* object)
 {
     if(!object) return;
 
     if(object->__vtable->focus_fn)
-        object->__vtable->focus_fn(object, old_focused);
+        object->__vtable->focus_fn(object);
 
-    if(object->hooks.on_focus_fn)
-        object->hooks.on_focus_fn(object, old_focused);
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_FCS, object, NULL));
+
 }
 
-void _ntg_object_unfocus(ntg_object* object, ntg_object* new_focused)
+void _ntg_object_unfocus(ntg_object* object)
 {
     if(!object) return;
 
     if(object->__vtable->unfocus_fn)
-        object->__vtable->unfocus_fn(object, new_focused);
+        object->__vtable->unfocus_fn(object);
 
-    if(object->hooks.on_unfocus_fn)
-        object->hooks.on_unfocus_fn(object, new_focused);
+    ntg_event_raise(
+            &object->_event_del,
+            ntg_event_new(NTG_EVENT_OBJECT_UNFCS, object, NULL));
+
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* LAYOUT OBJECT INIT */
@@ -2037,7 +2134,7 @@ static void layout_reset(ntg_object* object)
             &object->_drawing, ntg_xy(0, 0), ntg_xy(1, 1));
     assert(!_status);
 
-    object->_old_layout_result = (struct ntg_object_layout_result) {0};
+    object->_old_layout = (struct ntg_object_layout_result) {0};
 
     if(object->layout_dt && object->layout_dt->reset_fn)
         object->layout_dt->reset_fn(object->layout_dt);

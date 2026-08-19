@@ -7,7 +7,13 @@
 #include <time.h>
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+
+/* ========================================================================== */
+/* TYPES */
 /* ========================================================================== */
 
 struct ntg_task
@@ -68,12 +74,14 @@ static int update_stage(void);
 static void execute_ready_tasks(void);
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_loop_init_opts ntg_loop_init_opts_default(void)
 {
@@ -90,9 +98,9 @@ struct ntg_loop_start_opts ntg_loop_start_opts_default(void)
     };
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -117,7 +125,7 @@ static void deinit(void)
     }
 
     pthread_mutex_destroy(&loop.lock);
-    (void)ntg_task_list_deinit(&loop.task_list);
+    ntg_task_list_deinit(&loop.task_list);
 
     if(loop.arena)
         sarena_destroy(loop.arena);
@@ -132,7 +140,9 @@ int ntg_loop_init(
         const struct ntg_loop_init_opts* opts)
 {
     if(loop.state != NTG_LOOP_DEINIT)
-        return NTG_ERR_LOOP_INV_STATE;
+        return NTG_ERR_INV_STATE;
+
+    int status;
 
     /* Opts */
 
@@ -150,7 +160,8 @@ int ntg_loop_init(
     }
 
     loop.task_list = (struct ntg_task_list) {0}; /* Can't fail */
-    pthread_mutex_init(&loop.lock, NULL); /* Can't fail */
+    if(pthread_mutex_init(&loop.lock, NULL))
+        return NTG_ERR_MUTEX_INIT_FAIL;
 
     /* Arena */
 
@@ -177,13 +188,13 @@ int ntg_loop_init(
             return NTG_ERR_ALLOC_FAIL; 
         }
 
-        int _status = ntg_default_renderer_init(
+        status = ntg_default_renderer_init(
                 (ntg_default_renderer*)loop.renderer,
                 NTG_DEFAULT_RENDERER_TERM_SIZE_AUTO);
-        if(_status != 0)
+        if(status != 0)
         {
             deinit();
-            return _status;
+            return status;
         }
 
         loop._init_renderer = true;
@@ -205,7 +216,7 @@ int ntg_loop_init(
 int ntg_loop_deinit(void)
 {
     if(ntg_loop_is_running())
-        return NTG_ERR_LOOP_INV_STATE;
+        return NTG_ERR_INV_STATE;
 
     deinit();
     return 0;
@@ -234,13 +245,13 @@ bool ntg_loop_dispatch_event_fn_default(const struct nt_event* event)
     {
         if(event->type == NT_EVENT_KEY)
         {
-            struct nt_key_event key;
+            struct nt_key key;
             NT_EVENT_FILL_DATA((*event), &key);
             return ntg_stage_feed_key(stage, key);
         }
         else if(event->type == NT_EVENT_MOUSE)
         {
-            struct nt_mouse_event mouse;
+            struct nt_mouse mouse;
             NT_EVENT_FILL_DATA((*event), &mouse);
             return ntg_stage_feed_mouse(stage, mouse);
         }
@@ -256,7 +267,7 @@ bool ntg_loop_dispatch_event_fn_default(const struct nt_event* event)
 int ntg_loop_start(const struct ntg_loop_start_opts* opts)
 {
     if(loop.state != NTG_LOOP_READY)
-        return NTG_ERR_LOOP_INV_STATE;
+        return NTG_ERR_INV_STATE;
 
     struct ntg_loop_start_opts opts_final;
     if(opts)
@@ -281,7 +292,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     const ntg_stage_drawing* drawing;
 
     struct nt_event event = {0};
-    struct nt_resize_event resize_event;
+    struct nt_resize resize_event;
     unsigned long event_elapsed;
 
     nt_get_term_size(&loop.app_size.x, &loop.app_size.y);
@@ -289,7 +300,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     loop.app_size.y = _clamp_size(0, loop.app_size.y, NTG_SIZE_MAX);;
 
     if(opts_final.mouse_mode == NTG_LOOP_MOUSE_ENABLE)
-        (void)nt_mouse_mode_enable();
+        nt_mouse_mode_enable();
 
     bool drain_events = true;
 
@@ -413,7 +424,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     sarena_rewind(loop.arena);
 
     if(opts_final.mouse_mode == NTG_LOOP_MOUSE_ENABLE)
-        (void)nt_mouse_mode_disable();
+        nt_mouse_mode_disable();
 
     loop.pending_stage = loop.stage;
     loop.framerate = 0;
@@ -431,6 +442,7 @@ void ntg_loop_stop(void)
         return;
 
     loop.state = NTG_LOOP_STOPPING;
+
 }
 
 /* ------------------------------------------------------ */
@@ -449,7 +461,7 @@ int ntg_loop_schedule(
         return NTG_ERR_INV_ARG;
 
     if(loop.state == NTG_LOOP_DEINIT)
-        return NTG_ERR_LOOP_INV_STATE;
+        return NTG_ERR_INV_STATE;
 
     int _status;
 
@@ -508,9 +520,10 @@ void ntg_loop_tasks_clear(void)
     pthread_mutex_lock(&loop.lock);
 
     while(loop.task_list.size > 0)
-        (void)ntg_task_list_popf(&loop.task_list);
+        ntg_task_list_popf(&loop.task_list);
 
     pthread_mutex_unlock(&loop.lock);
+
 }
 
 bool ntg_loop_has_tasks(void)
@@ -544,7 +557,7 @@ ntg_stage* ntg_loop_get_stage(void)
 int ntg_loop_set_stage(ntg_stage* stage)
 {
     if(loop.state == NTG_LOOP_DEINIT)
-        return NTG_ERR_LOOP_INV_STATE;
+        return NTG_ERR_INV_STATE;
 
     if((loop.state == NTG_LOOP_RUNNING) || (loop.state == NTG_LOOP_STOPPING))
     {
@@ -640,7 +653,7 @@ static void execute_ready_tasks(void)
         }
 
         struct ntg_task task = head->data;
-        (void)ntg_task_list_popf(&loop.task_list);
+        ntg_task_list_popf(&loop.task_list);
 
         pthread_mutex_unlock(&loop.lock);
 

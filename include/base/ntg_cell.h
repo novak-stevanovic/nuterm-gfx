@@ -3,16 +3,19 @@
 
 #include <stdint.h>
 #include "shared/ntg_shared.h"
+#include "shared/ntg_error.h"
 #include "base/ntg_vecgrid.h"
 #include "nt_gfx.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* CELL */
@@ -78,9 +81,9 @@ struct ntg_vcell_vecgrid
     struct ntg_vecgrid __base; 
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* CELL */
@@ -107,13 +110,11 @@ ntg_cell_are_eql(struct ntg_cell c1, struct ntg_cell c2)
 /* CELL VECGRID */
 /* ------------------------------------------------------ */
 
-
-NTG_API void
+NTG_API int
 ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid);
 
-NTG_API void
+NTG_API int
 ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid);
-
 
 NTG_API int
 ntg_cell_vecgrid_set_size(
@@ -143,17 +144,18 @@ ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
 }
 
 
-static inline void
+static inline int
 ntg_cell_vecgrid_set(ntg_cell_vecgrid* vecgrid, struct ntg_cell cell, struct ntg_xy pos)
 {
-    if(!vecgrid)
-        return;
+    if(!vecgrid) return NTG_ERR_INV_ARG;
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
         size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
         ((struct ntg_cell*)vecgrid->__base._data)[idx] = cell;
     }
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -285,10 +287,10 @@ ntg_vcell_overwrite(struct ntg_vcell overwriting, struct ntg_cell overwritten)
 /* VCELL VECGRID */
 /* ------------------------------------------------------ */
 
-NTG_API void
+NTG_API int
 ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid);
 
-NTG_API void
+NTG_API int
 ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid);
 
 NTG_API int
@@ -317,16 +319,18 @@ ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
     }
 }
 
-static inline void
+static inline int
 ntg_vcell_vecgrid_set(ntg_vcell_vecgrid* vecgrid, struct ntg_vcell cell, struct ntg_xy pos)
 {
-    if(!vecgrid) return;
+    if(!vecgrid) return NTG_ERR_INV_ARG;
 
     if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
     {
         size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
         ((struct ntg_vcell*)vecgrid->__base._data)[idx] = cell;
     }
+
+    return 0;
 }
 
 #endif // NTG_CELL_H

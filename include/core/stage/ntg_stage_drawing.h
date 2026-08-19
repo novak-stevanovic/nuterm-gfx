@@ -2,50 +2,49 @@
 #define NTG_STAGE_DRAWING_H
 
 #include "shared/ntg_shared.h"
+#include "shared/ntg_error.h"
 #include "base/ntg_cell.h"
 #include "base/ntg_xy.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_stage_drawing
 {
     ntg_cell_vecgrid __data;
 };
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
-
 
 NTG_API int
 ntg_stage_drawing_init(ntg_stage_drawing* drawing);
 
 /* ------------------------------------------------------ */
 
-
-NTG_API void
+NTG_API int
 ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
 
 /* ------------------------------------------------------ */
 /* SIZE */
 /* ------------------------------------------------------ */
 
-
 NTG_API struct ntg_xy
 ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API int
 ntg_stage_drawing_set_size(
@@ -67,12 +66,14 @@ ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
 }
 
 
-static inline void
+static inline int
 ntg_stage_drawing_set(ntg_stage_drawing* drawing, struct ntg_cell cell, struct ntg_xy pos)
 {
-    if(!drawing) return;
+    if(!drawing) return NTG_ERR_INV_ARG;
 
-    ntg_cell_vecgrid_set(&drawing->__data, cell, pos);
+    (void)ntg_cell_vecgrid_set(&drawing->__data, cell, pos);
+
+    return 0;
 }
 
 #endif // NTG_STAGE_DRAWING_H

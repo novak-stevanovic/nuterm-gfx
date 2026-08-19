@@ -8,14 +8,16 @@
 #include <assert.h>
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
 static const struct ntg_text_vtable TEXT_VTABLE_EMPTY = {0};
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 #define DEFAULT_SIZE 1
 
@@ -73,6 +75,11 @@ static int trim_text(struct ntg_str* text);
 
 static void update_object_bg(ntg_text* text_obj);
 
+static void raise_text_chng_event(
+        ntg_text* text_obj,
+        const char* old_text,
+        size_t old_text_len);
+
 /* ------------------------------------------------------ */
 
 static void init_default(ntg_text* text_obj)
@@ -93,12 +100,14 @@ static void init_default(ntg_text* text_obj)
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_text_opts ntg_text_opts_default(void)
 {
@@ -140,13 +149,13 @@ bool ntg_text_opts_are_eql(
            (opts1->indent == opts2->indent));
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
-void ntg_text_deinit(ntg_text* text_obj)
+int ntg_text_deinit(ntg_text* text_obj)
 {
-    if(!text_obj) return;
+    if(!text_obj) return NTG_ERR_INV_ARG;
 
     if(text_obj->_text)
         free(text_obj->_text);
@@ -158,22 +167,24 @@ void ntg_text_deinit(ntg_text* text_obj)
     init_default(text_obj);
 
     ntg_object_deinit((ntg_object*)text_obj);
+
+    return 0;
 }
 
-void ntg_text_deinit_(void* _text)
+void ntg_text_deinit_void(void* _text)
 {
     ntg_text_deinit(_text);
 }
 
-void ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
+int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 {
-    if(!text_obj) return;
+    if(!text_obj) return NTG_ERR_INV_ARG;
 
     struct ntg_text_opts old_opts = text_obj->_opts;
     struct ntg_text_opts new_opts = (opts ? (*opts) : ntg_text_opts_default());
 
     if(ntg_text_opts_are_eql(&old_opts, &new_opts))
-        return;
+        return 0;
 
     text_obj->_opts = new_opts;
 
@@ -187,6 +198,8 @@ void ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
     update_object_bg(text_obj);
 
     ntg_object_mark_dirty((ntg_object*)text_obj, NTG_OBJECT_DIRTY_FULL);
+
+    return 0;
 }
 
 int ntg_text_set_text_unsafe(
@@ -215,10 +228,10 @@ int ntg_text_set_text(
             ((len == 0) || (memcmp(text_obj->_text, text, len) == 0)))
         return 0;
 
-    bool raise_hook = (text_obj->_text != NULL);
+    bool raise_event = (text_obj->_text != NULL);
     size_t old_text_len = text_obj->_text_len;
     char* old_text = NULL;
-    if(raise_hook)
+    if(raise_event)
     {
         old_text = malloc(old_text_len + 1);
         if(!old_text)
@@ -270,6 +283,9 @@ int ntg_text_set_text(
 
         ntg_object_mark_dirty((ntg_object*)text_obj,
             NTG_OBJECT_DIRTY_FULL);
+
+        if(raise_event)
+            raise_text_chng_event(text_obj, old_text, old_text_len);
 
         free(old_text);
         return 0;
@@ -338,6 +354,9 @@ int ntg_text_set_text(
     ntg_object_mark_dirty((ntg_object*)text_obj,
             NTG_OBJECT_DIRTY_FULL);
 
+    if(raise_event)
+        raise_text_chng_event(text_obj, old_text, old_text_len);
+
     free(old_text);
     return 0;
 }
@@ -346,22 +365,24 @@ int ntg_text_set_text(
 /* SCROLL */
 /* ------------------------------------------------------ */
 
-void ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll)
+int ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll)
 {
-    if(!text_obj) return;
+    if(!text_obj) return NTG_ERR_INV_ARG;
 
     text_obj->_scroll = scroll;
 
     text_obj->_scroll = calculate_effective_scroll(text_obj);
 
     ntg_object_mark_dirty(ntg_obj(text_obj), NTG_OBJECT_DIRTY_DRAW);
+
+    return 0;
 }
 
-void ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff)
+int ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff)
 {
-    if(!text_obj) return;
+    if(!text_obj) return NTG_ERR_INV_ARG;
     if((scroll_diff.x == 0) && (scroll_diff.y == 0))
-        return;
+        return 0;
 
     struct ntg_dxy curr_scroll_dxy = ntg_dxy_from_xy(text_obj->_scroll);
 
@@ -370,15 +391,19 @@ void ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff)
     struct ntg_xy scroll = ntg_xy_from_dxy(scroll_dxy);
 
     ntg_text_set_scroll(text_obj, scroll);
+
+    return 0;
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int ntg_text_init_inherit(
         ntg_text* text_obj,
@@ -463,7 +488,7 @@ int ntg_text_draw_fn(
     (void)layout_dt;
     (void)relayout;
     struct ntg_xy cont_size = ntg_object_get_size_cont(_text_obj);
-    if(ntg_xy_size_is_zero(cont_size)) return 0;
+    if(ntg_xy_is_zero_any(cont_size)) return 0;
 
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
     if((text_obj->_text_len == 0) || (text_obj->_text == NULL)) return 0;
@@ -493,7 +518,7 @@ int ntg_text_draw_fn(
             full_size = ntg_xy(cont_nat_size.x, cont_size.y);
     }
 
-    if(ntg_xy_size_is_zero(full_size)) return 0;
+    if(ntg_xy_is_zero_any(full_size)) return 0;
 
     struct ntg_xy full_size_adj =
         (opts.orient == NTG_ORIENT_H) ?
@@ -656,10 +681,8 @@ void ntg_text_deinit_fn(ntg_object* _text_obj)
     ntg_text_deinit((ntg_text*)_text_obj);
 }
 
-void ntg_text_focus_fn(ntg_object* object, ntg_object* old_focused)
+void ntg_text_focus_fn(ntg_object* object)
 {
-    (void)old_focused;
-
     if(!object) return;
 
     ntg_text* text = (ntg_text*)object;
@@ -671,10 +694,8 @@ void ntg_text_focus_fn(ntg_object* object, ntg_object* old_focused)
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
 }
 
-void ntg_text_unfocus_fn(ntg_object* object, ntg_object* new_focused)
+void ntg_text_unfocus_fn(ntg_object* object)
 {
-    (void)new_focused;
-
     if(!object) return;
 
     ntg_text* text = (ntg_text*)object;
@@ -705,12 +726,14 @@ const struct ntg_object_vtable NTG_TEXT_VTABLE = {
 };
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 static int measure_nowrap_fn(
         const ntg_text* text_obj,
@@ -1154,6 +1177,48 @@ static int trim_text(struct ntg_str* text)
     free(words);
 
     return 0;
+}
+
+static void raise_text_chng_event(
+        ntg_text* text_obj,
+        const char* old_text,
+        size_t old_text_len)
+{
+    if(!text_obj || !old_text) return;
+
+    struct ntg_str_view old_view = {
+        .data = old_text,
+        .len = old_text_len
+    };
+    struct ntg_str_view new_view = {
+        .data = text_obj->_text,
+        .len = text_obj->_text_len
+    };
+
+    ntg_object* object = ntg_obj(text_obj);
+
+    if(ntg_type_instance_of(object->_type, &NTG_TYPE_BUTTON))
+    {
+        struct ntg_event_button_txtchg_dt event_dt = {
+            .old_text = old_view,
+            .new_text = new_view
+        };
+        ntg_event_raise(
+                &object->_event_del,
+                ntg_event_new(
+                    NTG_EVENT_BUTTON_TXTCHG, text_obj, &event_dt));
+    }
+    else if(ntg_type_instance_of(object->_type, &NTG_TYPE_LABEL))
+    {
+        struct ntg_event_label_txtchg_dt event_dt = {
+            .old_text = old_view,
+            .new_text = new_view
+        };
+        ntg_event_raise(
+                &object->_event_del,
+                ntg_event_new(
+                    NTG_EVENT_LABEL_TXTCHG, text_obj, &event_dt));
+    }
 }
 
 static void update_object_bg(ntg_text* text_obj)

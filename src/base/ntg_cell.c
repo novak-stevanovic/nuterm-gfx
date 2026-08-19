@@ -2,29 +2,37 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* CELL VECGRID */
 /* ------------------------------------------------------ */
 
-void ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid)
+int ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid)
 {
-    if(!vecgrid) return;
+    if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    ntg_vecgrid_init(&vecgrid->__base);
+    if(ntg_vecgrid_init(&vecgrid->__base))
+        return NTG_ERR_UNEXPECTED;
+
+    return 0;
 }
 
-void ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
+int ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
 {
-    if(!vecgrid) return;
+    if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    ntg_vecgrid_deinit(&vecgrid->__base);
+    if(ntg_vecgrid_deinit(&vecgrid->__base))
+        return NTG_ERR_UNEXPECTED;
+
+    return 0;
 }
 
 int ntg_cell_vecgrid_set_size(
@@ -92,18 +100,24 @@ struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid)
 /* VCELL VECGRID */
 /* ------------------------------------------------------ */
 
-void ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid)
+int ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid)
 {
-    if(!vecgrid) return;
+    if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    ntg_vecgrid_init(&vecgrid->__base);
+    if(ntg_vecgrid_init(&vecgrid->__base))
+        return NTG_ERR_UNEXPECTED;
+
+    return 0;
 }
 
-void ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
+int ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
 {
-    if(!vecgrid) return;
+    if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    ntg_vecgrid_deinit(&vecgrid->__base);
+    if(ntg_vecgrid_deinit(&vecgrid->__base))
+        return NTG_ERR_UNEXPECTED;
+
+    return 0;
 }
 
 int ntg_vcell_vecgrid_set_size(

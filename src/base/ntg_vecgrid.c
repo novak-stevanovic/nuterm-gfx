@@ -6,29 +6,33 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-void ntg_vecgrid_init(ntg_vecgrid* vecgrid)
+int ntg_vecgrid_init(ntg_vecgrid* vecgrid)
 {
-    if(!vecgrid) return;
+    if(!vecgrid) return NTG_ERR_INV_ARG;
 
     vecgrid->_data = NULL;
     vecgrid->_size = ntg_xy(0, 0);
     vecgrid->_capacity = 0;
+
+    return 0;
 }
 
-void ntg_vecgrid_deinit(ntg_vecgrid* vecgrid)
+int ntg_vecgrid_deinit(ntg_vecgrid* vecgrid)
 {
-    if(!vecgrid) return;
+    if(!vecgrid) return NTG_ERR_INV_ARG;
 
     if(vecgrid->_data != NULL)
         free(vecgrid->_data);
@@ -36,6 +40,8 @@ void ntg_vecgrid_deinit(ntg_vecgrid* vecgrid)
     vecgrid->_data = NULL;
     vecgrid->_size = ntg_xy(0, 0);
     vecgrid->_capacity = 0;
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */

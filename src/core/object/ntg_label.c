@@ -2,26 +2,24 @@
 #include "shared/ntg_shared_internal.h"
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* STATIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
-
-static void init_default(ntg_label* label)
-{
-    label->hooks = (struct ntg_label_hooks) {0};
-}
-
+/* ========================================================================== */
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PUBLIC */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* TYPES */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 struct ntg_label_opts ntg_label_opts_default(void)
 {
@@ -43,9 +41,9 @@ bool ntg_label_opts_are_eql(
     return ntg_text_opts_are_eql(&opts1->text_opts, &opts2->text_opts);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
@@ -64,19 +62,19 @@ int ntg_label_init(
     if(!_status)
     {
         ntg_label_set_opts(label, opts);
-        (void)ntg_label_set_text_unsafe(label, "", 0);
+        ntg_label_set_text_unsafe(label, "", 0);
     }
 
     return _status;
 }
 
-void ntg_label_deinit(ntg_label* label)
+int ntg_label_deinit(ntg_label* label)
 {
-    if(!label) return;
+    if(!label) return NTG_ERR_INV_ARG;
 
     ntg_text_deinit(ntg_txt(label));
 
-    init_default(label);
+    return 0;
 }
 
 void ntg_label_deinit_void(void* _label)
@@ -88,33 +86,37 @@ void ntg_label_deinit_void(void* _label)
 /* OPTS */
 /* ------------------------------------------------------ */
 
-void ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts)
+int ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts)
 {
-    if(!out_opts) return;
+    if(!label || !out_opts) return NTG_ERR_INV_ARG;
 
-    if(!label)
-        (*out_opts) = ntg_label_opts_default();
-    else
-        out_opts->text_opts = (ntg_txt(label))->_opts;
+    out_opts->text_opts = (ntg_txt(label))->_opts;
+
+    return 0;
 }
 
-void ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
+int ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 {
-    if(!label) return;
+    if(!label) return NTG_ERR_INV_ARG;
 
     struct ntg_label_opts new_opts = (opts ? (*opts) : ntg_label_opts_default());
     struct ntg_label_opts old_opts = {0};
     ntg_label_get_opts(label, &old_opts);
 
     if(ntg_label_opts_are_eql(&new_opts, &old_opts))
-        return;
+        return 0;
 
     ntg_text_set_opts(ntg_txt(label), &new_opts.text_opts);
 
-    if(label->hooks.on_opts_chng_fn)
-    {
-        label->hooks.on_opts_chng_fn(label, &old_opts, &new_opts);
-    }
+    struct ntg_event_label_optchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &new_opts
+    };
+    ntg_event_raise(
+            &ntg_obj(label)->_event_del,
+            ntg_event_new(NTG_EVENT_LABEL_OPTCHG, label, &event_dt));
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -160,12 +162,14 @@ int ntg_label_set_text(
 }
 
 /* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* PROTECTED */
+/* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 /* FUNCTIONS */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
 
 int ntg_label_init_inherit(
         ntg_label* label,
@@ -185,7 +189,6 @@ int ntg_label_init_inherit(
     if(_status != 0)
         return _status;
 
-    init_default(label);
 
     // TODO:
     ntg_object_set_focusable(ntg_obj(label), NTG_OBJECT_FOCUSABLE);
@@ -213,7 +216,7 @@ int ntg_label_draw_fn(
         sarena* arena,
         uint32_t* relayout)
 {
-    if(ntg_xy_size_is_zero(ntg_object_get_size_cont(_label))) return 0;
+    if(ntg_xy_is_zero_any(ntg_object_get_size_cont(_label))) return 0;
 
     return ntg_text_draw_fn(
             _label, layout_dt, out_drawing, arena, relayout);
@@ -224,14 +227,14 @@ void ntg_label_deinit_fn(ntg_object* _label)
     ntg_label_deinit(ntg_lbl(_label));
 }
 
-void ntg_label_focus_fn(ntg_object* _label, ntg_object* old_focused)
+void ntg_label_focus_fn(ntg_object* _label)
 {
-    ntg_text_focus_fn(_label, old_focused);
+    ntg_text_focus_fn(_label);
 }
 
-void ntg_label_unfocus_fn(ntg_object* _label, ntg_object* new_focused)
+void ntg_label_unfocus_fn(ntg_object* _label)
 {
-    ntg_text_unfocus_fn(_label, new_focused);
+    ntg_text_unfocus_fn(_label);
 }
 
 const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT = {
