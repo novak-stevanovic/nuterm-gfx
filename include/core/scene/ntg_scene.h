@@ -4,6 +4,7 @@
 #include "ntg_fcs_scope.h"
 #include "shared/ntg_shared.h"
 #include "core/object/ntg_object.h"
+#include "core/object/ntg_objptr_vec.h"
 #include "base/ntg_xy.h"
 
 #define NTG_SCENE_MAX_IT_AUTO 20
@@ -20,6 +21,11 @@
 
 struct ntg_attach_policy;
 
+struct ntg_scene_hit_res
+{
+    struct ntg_object_hit_res res;
+};
+
 /* ------------------------------------------------------ */
 /* SCENE */
 /* ------------------------------------------------------ */
@@ -28,20 +34,30 @@ struct ntg_scene_layer_node;
 
 struct ntg_scene
 {
-    const struct ntg_scene_vtable* __vtable;
+    struct
+    {
+        void* data;
+    } pub;
 
-    ntg_stage* _stage;
-    ntg_object* _root;
-    struct ntg_xy _size;
-    ntg_fcs_manager* _fm;
+    struct
+    {
+        struct ntg_objptr_vec roots;
+        size_t tree_count, object_count; // Cached
 
-    unsigned int __max_it;
+        ntg_stage* stage;
+        struct ntg_xy size;
+        ntg_fcs_manager* fm;
 
-    bool _dirty;
+        bool dirty;
 
-    void* data;
+        ntg_event_delegate event_dlgt;
+    } ro;
 
-    ntg_event_delegate _event_del;
+    struct
+    {
+        const struct ntg_scene_vtable* vtable;
+        unsigned int max_it;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -58,20 +74,11 @@ ntg_scene_init(
         const struct ntg_fcs_scope_keys* init_scope_keys,
         unsigned int max_it);
 
-/* ------------------------------------------------------ */
-
-
 NTG_API int
 ntg_scene_deinit(ntg_scene* scene);
 
-/* ------------------------------------------------------ */
-
-
 NTG_API void
 ntg_scene_deinit_void(void* _scene);
-
-/* ------------------------------------------------------ */
-
 
 NTG_API int
 ntg_scene_mark_dirty(ntg_scene* scene);
@@ -80,39 +87,33 @@ ntg_scene_mark_dirty(ntg_scene* scene);
 /* GENERAL */
 /* ------------------------------------------------------ */
 
+NTG_API size_t
+ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_object** out_buff, size_t cap);
+
+/* ------------------------------------------------------ */
+
 NTG_API int
 ntg_scene_hit_test(
         ntg_scene* scene,
         struct ntg_xy pos,
-        struct ntg_xy* out_object_pos,
-        enum ntg_object_hit_result* out_hit,
-        ntg_object** out_object);
+        struct ntg_scene_hit_res* out_res);
 
 /* ------------------------------------------------------ */
-
-
-NTG_API size_t
-ntg_scene_collect_layers_by_z(
-        ntg_scene* scene,
-        ntg_object** out_layers,
-        size_t cap);
-
-/* ------------------------------------------------------ */
-
 
 NTG_API int
-ntg_scene_set_root(ntg_scene* scene, ntg_object* root);
+ntg_scene_add_root(ntg_scene* scene, ntg_object* object);
+
+NTG_API int
+ntg_scene_rm_root(ntg_scene* scene, ntg_object* object);
 
 /* ------------------------------------------------------ */
 /* EVENT */
 /* ------------------------------------------------------ */
 
-
 NTG_API bool
 ntg_scene_feed_key(ntg_scene* scene, struct nt_key key);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse mouse);
@@ -158,22 +159,19 @@ NTG_API extern const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int _ntg_scene_set_size(ntg_scene* scene, struct ntg_xy size);
-bool _ntg_scene_layout(ntg_scene* scene, sarena* arena);
+int ntg__scene_set_size(ntg_scene* scene, struct ntg_xy size);
+bool ntg__scene_layout(ntg_scene* scene, sarena* arena);
 
-void _ntg_scene_clean(ntg_scene* scene);
+void ntg__scene_clean(ntg_scene* scene);
 
-void _ntg_scene_set_stage(ntg_scene* scene, ntg_stage* stage);
-void _ntg_scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage);
-void _ntg_scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage);
+void ntg__scene_set_stage(ntg_scene* scene, ntg_stage* stage);
+void ntg__scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage);
+void ntg__scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage);
 
-void _ntg_scene_add_object_tree(ntg_scene* scene, ntg_object* root);
-void _ntg_scene_rm_object_tree(ntg_scene* scene, ntg_object* root);
+void ntg__scene_add_object_tree(ntg_scene* scene, ntg_object* root);
+void ntg__scene_rm_object_tree(ntg_scene* scene, ntg_object* root);
 
-void _ntg_scene_register(ntg_scene* scene, ntg_object* root);
-void _ntg_scene_unregister(ntg_scene* scene, ntg_object* root);
-
-void _ntg_scene_register_tree(ntg_scene* scene, ntg_object* root);
-void _ntg_scene_unregister_tree(ntg_scene* scene, ntg_object* root);
+void ntg__scene_on_add_object_tree(ntg_scene* scene, ntg_object* root);
+void ntg__scene_on_rm_object_tree(ntg_scene* scene, ntg_object* root);
 
 #endif // NTG_SCENE_H

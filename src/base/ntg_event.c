@@ -24,15 +24,15 @@ int ntg_event_delegate_init(ntg_event_delegate* delegate)
 int ntg_event_delegate_deinit(ntg_event_delegate* delegate)
 {
     if(!delegate) return NTG_ERR_INV_ARG;
-    if(delegate->__raise) return NTG_ERR_INV_STATE;
+    if(delegate->priv.raise) return NTG_ERR_INV_STATE;
 
-    struct ntg__event_sub_vec* subs = &delegate->__subs;
+    struct ntg__event_sub_vec* subs = &delegate->priv.subs;
 
     size_t i;
     for(i = 0; i < subs->size; i++)
     {
         if(subs->data[i].binding)
-            subs->data[i].binding->__delegate = NULL;
+            subs->data[i].binding->priv.delegate = NULL;
     }
 
     ntg__event_sub_vec_deinit(subs);
@@ -49,7 +49,7 @@ int ntg_event_bind(
         ntg_event_binding* out_binding)
 {
     if(!delegate || !handler_fn) return NTG_ERR_INV_ARG;
-    if(out_binding && out_binding->__delegate) return NTG_ERR_INV_ARG;
+    if(out_binding && out_binding->priv.delegate) return NTG_ERR_INV_ARG;
 
     struct ntg__event_sub sub = {
         .binding = out_binding,
@@ -57,20 +57,20 @@ int ntg_event_bind(
         .handler_fn = handler_fn
     };
 
-    int status = ntg__event_sub_vec_pushb(&delegate->__subs, sub);
+    int status = ntg__event_sub_vec_pushb(&delegate->priv.subs, sub);
     switch(status)
     {
         case 0:
-            if(out_binding) out_binding->__delegate = delegate;
+            if(out_binding) out_binding->priv.delegate = delegate;
             return 0;
         case GENC_ERR_ALLOC_FAIL:
-            if(out_binding) out_binding->__delegate = NULL;
+            if(out_binding) out_binding->priv.delegate = NULL;
             return NTG_ERR_ALLOC_FAIL;
         case GENC_ERR_OVERFLOW:
-            if(out_binding) out_binding->__delegate = NULL;
+            if(out_binding) out_binding->priv.delegate = NULL;
             return NTG_ERR_OVERFLOW;
         default:
-            if(out_binding) out_binding->__delegate = NULL;
+            if(out_binding) out_binding->priv.delegate = NULL;
             return NTG_ERR_UNEXPECTED;
     }
 }
@@ -79,10 +79,10 @@ int ntg_event_unbind(ntg_event_binding* binding)
 {
     if(!binding) return NTG_ERR_INV_ARG;
 
-    ntg_event_delegate* delegate = binding->__delegate;
+    ntg_event_delegate* delegate = binding->priv.delegate;
     if(!delegate) return 0;
 
-    struct ntg__event_sub_vec* subs = &delegate->__subs;
+    struct ntg__event_sub_vec* subs = &delegate->priv.subs;
 
     size_t i;
     int status;
@@ -90,7 +90,7 @@ int ntg_event_unbind(ntg_event_binding* binding)
     {
         if(subs->data[i].binding == binding)
         {
-            if(delegate->__raise) // Defer if inside `ntg_event_raise()`
+            if(delegate->priv.raise) // Defer if inside `ntg_event_raise()`
             {
                 subs->data[i].removed = true;
                 return 0;
@@ -101,7 +101,7 @@ int ntg_event_unbind(ntg_event_binding* binding)
                 switch(status)
                 {
                     case 0:
-                        binding->__delegate = NULL;
+                        binding->priv.delegate = NULL;
                         return 0;
                     default:
                         return NTG_ERR_UNEXPECTED;
@@ -119,12 +119,12 @@ int ntg_event_unbind(ntg_event_binding* binding)
 int ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
 {
     if(!delegate || event.type == NTG_EVENT_INVALID) return NTG_ERR_INV_ARG;
-    if(delegate->__raise) return NTG_ERR_INV_STATE;
+    if(delegate->priv.raise) return NTG_ERR_INV_STATE;
 
-    struct ntg__event_sub_vec* subs = &delegate->__subs;
+    struct ntg__event_sub_vec* subs = &delegate->priv.subs;
     struct ntg__event_sub* it_sub;
 
-    delegate->__raise = true;
+    delegate->priv.raise = true;
 
     /* Save size in case any handlers use `ntg_event_bind()` and increase the
      * vector size. */
@@ -139,7 +139,7 @@ int ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
             it_sub->handler_fn(it_sub->subscriber, event);
     }
 
-    delegate->__raise = false;
+    delegate->priv.raise = false;
 
     i = subs->size;
     while(i > 0)
@@ -150,7 +150,7 @@ int ntg_event_raise(ntg_event_delegate* delegate, struct ntg_event event)
 
         if(it_sub->removed)
         {
-            it_sub->binding->__delegate = NULL; 
+            it_sub->binding->priv.delegate = NULL; 
 
             /* Must not fail */
             ntg__event_sub_vec_rm_at(subs, i);

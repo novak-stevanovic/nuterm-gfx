@@ -33,6 +33,7 @@
 #include "core/object/ntg_main_panel.h"
 #include "core/object/ntg_box.h"
 #include "core/object/ntg_object_drawing.h"
+#include "core/object/ntg_objptr_vec.h"
 #include "core/scene/ntg_scene.h"
 #include "core/scene/ntg_fcs_manager.h"
 #include "core/scene/ntg_fcs_scope.h"
@@ -91,6 +92,11 @@ ntg_disable(void);
 
 FIX:
 add layout_prepare vtable fn for text to set_text
+pos -> NTG_SIZE_MAX for no draw
+arena align???????????
+redo coordinate map functions
+
+// TODO: assert
 
 IMPLEMENT:
 ntg_input

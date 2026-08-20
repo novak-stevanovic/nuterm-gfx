@@ -5,6 +5,7 @@
 #include "shared/ntg_shared.h"
 #include "base/ntg_event.h"
 #include "core/object/ntg_object_drawing.h"
+#include "core/object/ntg_objptr_vec.h"
 #include "thirdparty/genc.h"
 
 /* ========================================================================== */
@@ -13,10 +14,8 @@
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-#define NTG_OBJECT_MAX_CHILDREN 500
-#define NTG_OBJECT_MAX_ANCHORED 200
-
-GENC_VECTOR_DECLARE(ntg_objptr_vec, ntg_object*, 1.5, )
+#define NTG_OBJECT_MAX_CHILDREN 1000
+#define NTG_OBJECT_MAX_ANCHORED 100
 
 /* ========================================================================== */
 /* TYPES */
@@ -33,33 +32,29 @@ enum ntg_object_dcr_enable
     NTG_OBJECT_DCR_ENABLE_ALWAYS
 };
 
-struct ntg_border_opts
+struct ntg_bdr_opts
 {
     enum ntg_object_dcr_enable enable;
     struct ntg_insets pref_size;
     const struct ntg_border_style* style;
 };
 
-NTG_API struct ntg_border_opts
-ntg_border_opts_default(void);
+NTG_API struct ntg_bdr_opts
+ntg_bdr_opts_default(void);
 
 NTG_API bool
-ntg_border_opts_are_eql(
-        const struct ntg_border_opts* o1,
-        const struct ntg_border_opts* o2);
+ntg_bdr_opts_are_eql(const struct ntg_bdr_opts* o1, const struct ntg_bdr_opts* o2);
 
-struct ntg_padding_opts
+struct ntg_pad_opts
 {
     enum ntg_object_dcr_enable enable;
     struct ntg_insets pref_size;
 };
 
-NTG_API struct ntg_padding_opts ntg_padding_opts_default(void);
+NTG_API struct ntg_pad_opts ntg_padding_opts_default(void);
 
 NTG_API bool
-ntg_padding_opts_are_eql(
-        const struct ntg_padding_opts* o1,
-        const struct ntg_padding_opts* o2);
+ntg_pad_opts_are_eql(const struct ntg_pad_opts* o1, const struct ntg_pad_opts* o2);
 
 /* ------------------------------------------------------ */
 /* LAYOUT */
@@ -70,22 +65,14 @@ ntg_padding_opts_are_eql(
 #define NTG_OBJECT_GROW_UNSET NTG_SIZE_MAX
 #define NTG_OBJECT_Z_INDEX_UNSET 0
 
-struct ntg_layout_opts
+struct ntg_lay_opts
 {
     struct ntg_xy min_cont_size, max_cont_size, grow;
     int z_index;
 };
 
-NTG_API struct ntg_layout_opts ntg_layout_opts_default(void);
-
-struct ntg_object_layout_result
-{
-    struct ntg_xy min_size, nat_size, max_size, grow;
-    struct ntg_xy size, cont_size;
-    struct ntg_insets border_size, padding_size;
-    struct ntg_xy abs_pos;
-    bool first_layout; // True if this is the first layout after scene enter
-};
+NTG_API struct ntg_lay_opts
+ntg_lay_opts_default(void);
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -118,99 +105,165 @@ enum ntg_object_click_mode
 {
     NTG_OBJECT_UNCLICKABLE,
     NTG_OBJECT_CLICKABLE_CONT,
-    NTG_OBJECT_CLICKABLE_BORDER
+    NTG_OBJECT_CLICKABLE_BDR
 };
 
-enum ntg_object_hit_result
+/* ------------------------------------------------------ */
+/* HIT TEST */
+/* ------------------------------------------------------ */
+
+enum ntg_object_part
 {
     NTG_OBJECT_HIT_CONT,
-    NTG_OBJECT_HIT_PADDING,
-    NTG_OBJECT_HIT_BORDER
+    NTG_OBJECT_HIT_PAD,
+    NTG_OBJECT_HIT_BDR
 };
 
 /* ------------------------------------------------------ */
 /* NTG_OBJECT */
 /* ------------------------------------------------------ */
 
+struct ntg_object_hit_res
+{
+    ntg_object* object;
+    struct ntg_xy local_pos;
+    enum ntg_object_part part;
+};
+
 struct ntg_object
 {
-    const ntg_type* _type;
+    struct
+    {
+        void* data;
+        struct ntg_object_layout_dt* layout_dt;
+    } pub;
 
-    ntg_scene* __scene;
-    ntg_object* _parent;
-    ntg_objptr_vec _children;
+    struct
+    {
+        const ntg_type* type;
 
-    ntg_objptr_vec _anchored;
-    ntg_object* _base;
-    const struct ntg_anchor_policy* _anchor_policy;
+        ntg_object* parent;
+        struct ntg_objptr_vec children;
 
-    struct ntg_layout_opts _layout_opts;
-    struct ntg_vcell __base_bg;
+        struct ntg_objptr_vec anchored;
+        ntg_object* base;
+        const struct ntg_anchor_policy* anchor_policy;
 
-    struct ntg_object_layout_dt* layout_dt;
-    struct ntg_xy _min_size, _nat_size, _max_size, _grow;
-    struct ntg_xy _size;
-    struct ntg_xy _pos;
-    ntg_object_drawing _drawing;
-    bool __skip_hborder, __skip_hpadding;
-    bool __special_repeat;
-    uint8_t _dirty, __repeat;
+        struct ntg_lay_opts layout_opts;
 
-    const struct ntg_object_vtable* __vtable;
+        struct ntg_xy min_size, nat_size, max_size, grow;
+        struct ntg_xy size;
+        struct ntg_xy pos;
+        ntg_object_drawing drawing;
+        uint8_t dirty;
 
-    struct ntg_border_opts _border_opts;
-    struct ntg_insets _border_size;
+        struct ntg_bdr_opts border_opts;
+        struct ntg_insets border_size;
 
-    struct ntg_padding_opts _padding_opts;
-    struct ntg_insets _padding_size;
+        struct ntg_pad_opts padding_opts;
+        struct ntg_insets padding_size;
 
-    enum ntg_object_click_mode _clickable;
-    enum ntg_object_focus_mode _focusable;
+        enum ntg_object_click_mode clickable;
+        enum ntg_object_focus_mode focusable;
 
-    struct ntg_object_layout_result _old_layout;
+        ntg_event_delegate event_dlgt;
+    } ro;
 
-    ntg_event_delegate _event_del;
+    struct
+    {
+        ntg_scene* scene;
+        struct ntg_vcell base_bg;
+
+        bool skip_hborder, skip_hpadding;
+        bool special_repeat;
+        uint8_t repeat;
+
+        struct ntg_xy old_pos, old_size, old_cont_size;
+
+        const struct ntg_object_vtable* vtable;
+    } priv;
 };
 
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
+/* ------------------------------------------------------ */
+/* GENERAL */
+/* ------------------------------------------------------ */
+
 void ntg_object_vdeinit(ntg_object* object);
 
 /* ------------------------------------------------------ */
-/* OBJECT TREE */
+
+NTG_API bool
+ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event);
+
+NTG_API bool
+ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* event);
+
 /* ------------------------------------------------------ */
 
-NTG_API size_t
-ntg_object_get_tree_size(const ntg_object* root);
+NTG_API int
+ntg_object_set_lay_opts(ntg_object* object, const struct ntg_lay_opts* opts_cp);
+
+NTG_API int
+ntg_object_set_bdr_opts(ntg_object* object, const struct ntg_bdr_opts* opts_cp);
+
+NTG_API int
+ntg_object_set_pad_opts(ntg_object* object, const struct ntg_pad_opts* opts_cp);
+
+NTG_API int
+ntg_object_set_anchor_policy(ntg_object* object, const ntg_anchor_policy* policy);
+
+/* ------------------------------------------------------ */
+
+NTG_API struct ntg_object_hit_res
+ntg_object_hit_test(ntg_object* object, struct ntg_xy pos);
+
+/* ------------------------------------------------------ */
+
+NTG_API bool
+ntg_object_is_focused(const ntg_object* object);
+
+/* ------------------------------------------------------ */
+/* OBJECT GRAPH OPERATIONS */
+/* ------------------------------------------------------ */
+
+NTG_API int
+ntg_object_detach(ntg_object* object);
+
+NTG_API int
+ntg_object_anchor(ntg_object* base, ntg_object* root);
+
+NTG_API int
+ntg_object_unanchor(ntg_object* root);
+
+NTG_API int
+ntg_object_remove_from_scene(ntg_object* object);
+
+/* ------------------------------------------------------ */
+/* OBJECT GRAPH QUERY */
+/* ------------------------------------------------------ */
+
+NTG_API const ntg_object*
+ntg_object_get_graph_root(const ntg_object* object);
+
+NTG_API ntg_object*
+ntg_object_get_graph_root_(ntg_object* object);
 
 /* ------------------------------------------------------ */
 
 NTG_API const ntg_object*
-ntg_object_get_root(const ntg_object* object);
-
-/* ------------------------------------------------------ */
+ntg_object_get_tree_root(const ntg_object* object);
 
 NTG_API ntg_object*
-ntg_object_get_root_(ntg_object* object);
-
-/* ------------------------------------------------------ */
-
-NTG_API const ntg_object*
-ntg_object_get_layer_root(const ntg_object* object);
-
-/* ------------------------------------------------------ */
-
-NTG_API ntg_object*
-ntg_object_get_layer_root_(ntg_object* object);
+ntg_object_get_tree_root_(ntg_object* object);
 
 /* ------------------------------------------------------ */
 
 NTG_API ntg_scene*
 ntg_object_get_scene_(ntg_object* object);
-
-/* ------------------------------------------------------ */
 
 NTG_API const ntg_scene*
 ntg_object_get_scene(const ntg_object* object);
@@ -220,174 +273,159 @@ ntg_object_get_scene(const ntg_object* object);
 NTG_API bool
 ntg_object_is_true_root(const ntg_object* object);
 
-/* ------------------------------------------------------ */
+NTG_API bool
+ntg_object_is_graph_root(const ntg_object* object);
 
 NTG_API bool
-ntg_object_is_root(const ntg_object* object);
-
-/* ------------------------------------------------------ */
-
-NTG_API bool
-ntg_object_is_only_layer_root(const ntg_object* object);
+ntg_object_is_tree_root(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 
 NTG_API bool
-ntg_object_is_focused(const ntg_object* object);
-
-/* ------------------------------------------------------ */
+ntg_object_is_in_tree(const ntg_object* tree_root, const ntg_object* desc);
 
 NTG_API bool
-ntg_object_is_descendant(
-        const ntg_object* object,
-        const ntg_object* descendant);
+ntg_object_is_in_graph(const ntg_object* graph_root, const ntg_object* desc);
 
-/* ------------------------------------------------------ */
-
-NTG_API bool
-ntg_object_is_descendant_eq(
-        const ntg_object* object,
-        const ntg_object* descendant);
-
-/* ------------------------------------------------------ */
-
-NTG_API size_t
-ntg_object_get_children_by_z(
-        const ntg_object* object,
-        ntg_object** out_buff,
-        size_t cap);
-
-/* ------------------------------------------------------ */
-
-NTG_API ntg_object*
-ntg_object_hit_test(
-        ntg_object* object,
-        struct ntg_xy pos,
-        struct ntg_xy* out_local_pos,
-        enum ntg_object_hit_result* out_hit);
-
-/* ------------------------------------------------------ */
-
-NTG_API int
-ntg_object_detach(ntg_object* object);
-
-/* ------------------------------------------------------ */
-
-NTG_API int
-ntg_object_anchor(
-        ntg_object* base,
-        ntg_object* root,
-        const struct ntg_anchor_policy* policy);
-
-/* ------------------------------------------------------ */
-
-NTG_API int
-ntg_object_unanchor(ntg_object* root);
-
-/* ------------------------------------------------------ */
-
-NTG_API int
-ntg_object_remove_from_scene(ntg_object* object);
-
-/* ------------------------------------------------------ */
-/* CONTROL */
-/* ------------------------------------------------------ */
-
-NTG_API int
-ntg_object_set_layout_opts(
-        ntg_object* object,
-        const struct ntg_layout_opts* opts);
-
-/* ------------------------------------------------------ */
-
-NTG_API int
-ntg_object_set_border_opts(
-        ntg_object* object,
-        const struct ntg_border_opts* opts);
-
-/* ------------------------------------------------------ */
-
-NTG_API int
-ntg_object_set_padding_opts(
-        ntg_object* object,
-        const struct ntg_padding_opts* opts);
+// TODO: move to ntg_object_layout.h?
 
 /* ------------------------------------------------------ */
 /* SPACE MAPPING */
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_xy
-ntg_object_get_abs_pos(const ntg_object* object);
+// NTG_API struct ntg_xy
+// ntg_object_get_abs_pos(const ntg_object* object);
+// 
+// /* ------------------------------------------------------ */
+// 
+// NTG_API struct ntg_dxy
+// ntg_object_map_to_ancs_tree(
+//         const ntg_object* object,
+//         const ntg_object* ancestor,
+//         struct ntg_dxy point);
+// 
+// NTG_API struct ntg_dxy
+// ntg_object_map_to_desc_tree(
+//         const ntg_object* object,
+//         const ntg_object* descendant,
+//         struct ntg_dxy point);
+// 
+// /* ------------------------------------------------------ */
+// 
+// NTG_API struct ntg_dxy
+// ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
+// 
+// NTG_API struct ntg_dxy
+// ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 
-NTG_API struct ntg_dxy
-ntg_object_map_to_ancestor(
+struct ntg_xy ntg_object_get_abs_pos(const ntg_object* object);
+
+struct ntg_dxy ntg_object_map_to_ancestor(
         const ntg_object* object,
         const ntg_object* ancestor,
         struct ntg_dxy point);
 
-/* ------------------------------------------------------ */
-
-NTG_API struct ntg_dxy
-ntg_object_map_to_descendant(
+struct ntg_dxy ntg_object_map_to_descendant(
         const ntg_object* object,
         const ntg_object* descendant,
         struct ntg_dxy point);
 
-/* ------------------------------------------------------ */
-
-NTG_API struct ntg_dxy
+struct ntg_dxy 
 ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
 
-/* ------------------------------------------------------ */
-
-NTG_API struct ntg_dxy
+struct ntg_dxy 
 ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 
 /* ------------------------------------------------------ */
-/* EVENT */
+/* COLLECT */
 /* ------------------------------------------------------ */
 
-NTG_API bool
-ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event);
+NTG_API size_t
+ntg_object_tree_collect_pre(ntg_object* root, ntg_object** out, size_t cap);
+
+NTG_API size_t
+ntg_object_tree_collect_post(ntg_object* root, ntg_object** out, size_t cap);
+
+NTG_API size_t
+ntg_object_graph_collect_pre(ntg_object* root, ntg_object** out, size_t cap);
+
+NTG_API size_t
+ntg_object_graph_collect_post(ntg_object* root, ntg_object** out, size_t cap);
+
+NTG_API size_t
+ntg_object_graph_collect_roots_pre(ntg_object* root, ntg_object** out, size_t cap);
+
+NTG_API size_t
+ntg_object_graph_collect_roots_post(ntg_object* root, ntg_object** out, size_t cap);
 
 /* ------------------------------------------------------ */
-
-NTG_API bool
-ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* event);
-
-/* ------------------------------------------------------ */
-/* TRAVERSE HELPERS */
+/* CONVENIENCE */
 /* ------------------------------------------------------ */
 
-#define NTG_OBJECT_DEF_TRAVERSE_PREORDER(fn_name, perform_fn)                  \
+#define NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(fn_name, perform_fn)                  \
 static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
     perform_fn(object, data);                                                  \
-    const ntg_objptr_vec* children = &object->_children;                       \
-    ntg_object* const* children_data = children->data;                         \
-    size_t children_size = children->size;                                     \
+    const struct ntg_objptr_vec* children = &object->ro.children;              \
     size_t i;                                                                  \
-    for(i = 0; i < children_size; i++)                                         \
+    for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
-        fn_name(children_data[i], data);                                       \
+        fn_name(children->data[i], data);                                      \
     }                                                                          \
 }                                                                              \
 
-#define NTG_OBJECT_DEF_TRAVERSE_POSTORDER(fn_name, perform_fn)                 \
+#define NTG_OBJECT_TREE_DEF_TRAVERSE_POST(fn_name, perform_fn)                 \
 static void fn_name(ntg_object* object, void* data)                            \
 {                                                                              \
     if(object == NULL) return;                                                 \
-    const ntg_objptr_vec* children = &object->_children;                       \
-    ntg_object* const* children_data = children->data;                         \
-    size_t children_size = children->size;                                     \
+    const struct ntg_objptr_vec* children = &object->ro.children;              \
     size_t i;                                                                  \
-    for(i = 0; i < children_size; i++)                                         \
+    for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
-        fn_name(children_data[i], data);                                       \
+        fn_name(children->data[i], data);                                      \
     }                                                                          \
     perform_fn(object, data);                                                  \
-}                                                                              \
+}
+
+#define NTG_OBJECT_GRAPH_DEF_TRAVERSE_PRE(fn_name, perform_fn)                 \
+static void fn_name(ntg_object* object, void* data)                            \
+{                                                                              \
+    if(object == NULL) return;                                                 \
+    perform_fn(object, data);                                                  \
+    const struct ntg_objptr_vec* children = &object->ro.children;              \
+    const struct ntg_objptr_vec* anchored = &object->ro.anchored;              \
+    size_t i;                                                                  \
+    for(i = 0; i < children->size; i++)                                        \
+    {                                                                          \
+        fn_name(children->data[i], data);                                      \
+    }                                                                          \
+    for(i = 0; i < anchored->size; i++)                                        \
+    {                                                                          \
+        fn_name(anchored->data[i], data);                                      \
+    }                                                                          \
+}
+
+#define NTG_OBJECT_GRAPH_DEF_TRAVERSE_POST(fn_name, perform_fn)                \
+static void fn_name(ntg_object* object, void* data)                            \
+{                                                                              \
+    if(object == NULL) return;                                                 \
+    const struct ntg_objptr_vec* children = &object->ro.children;              \
+    const struct ntg_objptr_vec* anchored = &object->ro.anchored;              \
+    size_t i;                                                                  \
+    for(i = 0; i < children->size; i++)                                        \
+    {                                                                          \
+        fn_name(children->data[i], data);                                      \
+    }                                                                          \
+    for(i = 0; i < anchored->size; i++)                                        \
+    {                                                                          \
+        fn_name(anchored->data[i], data);                                      \
+    }                                                                          \
+    perform_fn(object, data);                                                  \
+}
+
+NTG_API int
+ntg_object_sort_by_z(ntg_object** objects, size_t size);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -401,6 +439,8 @@ static void fn_name(ntg_object* object, void* data)                            \
 
 struct ntg_object_vtable
 {
+    void (*layout_prepare_fn)(ntg_object* object, sarena* arena);
+
     int (*measure_fn)(
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
@@ -428,13 +468,13 @@ struct ntg_object_vtable
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
             ntg_object_tmp_drawing* out_drawing,
-            sarena* arena,
-            uint32_t* relayout);
-
-    void (*layout_prepare_fn)(ntg_object* object, sarena* arena);
-    void (*layout_finalize_fn)(ntg_object* object, sarena* arena);
+            sarena* arena);
 
     void (*deinit_fn)(ntg_object* object);
+
+    void (*cont_resize_fn)(ntg_object* object, sarena* arena);
+    void (*resize_fn)(ntg_object* object, sarena* arena);
+    void (*pos_chng_fn)(ntg_object* object, sarena* arena);
 
     void (*rm_child_fn)(ntg_object* object, ntg_object* child);
 
@@ -450,26 +490,26 @@ struct ntg_object_vtable
     void (*enter_scene_fn)(ntg_object* object, ntg_scene* new_scene);
     void (*rm_scene_fn)(ntg_object* object, ntg_scene* old_scene);
 
-    bool (*process_key_fn)(ntg_object* object, const struct ntg_object_key* event);
-    bool (*process_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
+    bool (*handle_key_fn)(ntg_object* object, const struct ntg_object_key* event);
+    bool (*handle_mouse_fn)(ntg_object* object, const struct ntg_object_mouse* event);
 
     void (*focus_fn)(ntg_object* object);
     void (*unfocus_fn)(ntg_object* object);
 
-    void (*chng_border_opts_fn)(
+    void (*chng_bdr_opts_fn)(
             ntg_object* object,
-            const struct ntg_border_opts* old_opts,
-            const struct ntg_border_opts* new_opts);
+            const struct ntg_bdr_opts* old_opts,
+            const struct ntg_bdr_opts* new_opts);
 
-    void (*chng_padding_opts_fn)(
+    void (*chng_pad_opts_fn)(
             ntg_object* object,
-            const struct ntg_padding_opts* old_opts,
-            const struct ntg_padding_opts* new_opts);
+            const struct ntg_pad_opts* old_opts,
+            const struct ntg_pad_opts* new_opts);
 
-    void (*chng_layout_opts_fn)(
+    void (*chng_lay_opts_fn)(
             ntg_object* object,
-            const struct ntg_layout_opts* old_opts,
-            const struct ntg_layout_opts* new_opts);
+            const struct ntg_lay_opts* old_opts,
+            const struct ntg_lay_opts* new_opts);
 };
 
 /* ========================================================================== */
@@ -520,14 +560,15 @@ ntg_object_set_clickable(ntg_object* object, enum ntg_object_click_mode mode);
 /* FUNCTIONS */
 /* ========================================================================== */
 
-void _ntg_object_root_set_scene(ntg_object* object, ntg_scene* scene);
+void ntg__object_root_set_scene(ntg_object* object, ntg_scene* scene);
 
-void _ntg_object_scene_enter(ntg_object* object, ntg_scene* scene);
-void _ntg_object_on_scene_enter(ntg_object* object, ntg_scene* scene);
-void _ntg_object_scene_leave(ntg_object* object, ntg_scene* scene);
-void _ntg_object_on_scene_leave(ntg_object* object, ntg_scene* scene);
+/* Called by scene when adding object tree in ntg__scene_add_object_tree() */
+void ntg__object_scene_enter(ntg_object* object, ntg_scene* scene);
 
-void _ntg_object_focus(ntg_object* object);
-void _ntg_object_unfocus(ntg_object* object);
+/* Called by scene when removing object tree in ntg__scene_rm_object_tree() */
+void ntg__object_scene_leave(ntg_object* object, ntg_scene* scene);
+
+void ntg__object_focus(ntg_object* object);
+void ntg__object_unfocus(ntg_object* object);
 
 #endif // NTG_OBJECT_H

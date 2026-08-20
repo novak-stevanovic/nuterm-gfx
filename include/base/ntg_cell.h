@@ -33,7 +33,10 @@ struct ntg_cell
 
 struct ntg_cell_vecgrid
 {
-    struct ntg_vecgrid __base; 
+    struct
+    {
+        struct ntg_vecgrid base;
+    } priv;
 };
 
 /* ------------------------------------------------------ */
@@ -78,7 +81,10 @@ struct ntg_vcell
 
 struct ntg_vcell_vecgrid
 {
-    struct ntg_vecgrid __base; 
+    struct
+    {
+        struct ntg_vecgrid base;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -132,10 +138,10 @@ ntg_cell_vecgrid_get(const ntg_cell_vecgrid* vecgrid, struct ntg_xy pos)
     if(!vecgrid)
         return ntg_cell_default();
 
-    if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
+    if(ntg_xy_is_lesser(pos, vecgrid->priv.base.ro.size))
     {
-        size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        return (((const struct ntg_cell*)vecgrid->__base._data))[idx];
+        size_t idx = vecgrid->priv.base.ro.size.x * pos.y + pos.x;
+        return (((const struct ntg_cell*)vecgrid->priv.base.ro.data))[idx];
     }
     else
     {
@@ -149,10 +155,10 @@ ntg_cell_vecgrid_set(ntg_cell_vecgrid* vecgrid, struct ntg_cell cell, struct ntg
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
+    if(ntg_xy_is_lesser(pos, vecgrid->priv.base.ro.size))
     {
-        size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        ((struct ntg_cell*)vecgrid->__base._data)[idx] = cell;
+        size_t idx = vecgrid->priv.base.ro.size.x * pos.y + pos.x;
+        ((struct ntg_cell*)vecgrid->priv.base.ro.data)[idx] = cell;
     }
 
     return 0;
@@ -308,10 +314,10 @@ ntg_vcell_vecgrid_get(const ntg_vcell_vecgrid* vecgrid, struct ntg_xy pos)
     if(!vecgrid)
         return ntg_vcell_new_default();
 
-    if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
+    if(ntg_xy_is_lesser(pos, vecgrid->priv.base.ro.size))
     {
-        size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        return (((const struct ntg_vcell*)vecgrid->__base._data))[idx];
+        size_t idx = vecgrid->priv.base.ro.size.x * pos.y + pos.x;
+        return (((const struct ntg_vcell*)vecgrid->priv.base.ro.data))[idx];
     }
     else
     {
@@ -324,10 +330,10 @@ ntg_vcell_vecgrid_set(ntg_vcell_vecgrid* vecgrid, struct ntg_vcell cell, struct 
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(ntg_xy_is_lesser(pos, vecgrid->__base._size))
+    if(ntg_xy_is_lesser(pos, vecgrid->priv.base.ro.size))
     {
-        size_t idx = vecgrid->__base._size.x * pos.y + pos.x;
-        ((struct ntg_vcell*)vecgrid->__base._data)[idx] = cell;
+        size_t idx = vecgrid->priv.base.ro.size.x * pos.y + pos.x;
+        ((struct ntg_vcell*)vecgrid->priv.base.ro.data)[idx] = cell;
     }
 
     return 0;

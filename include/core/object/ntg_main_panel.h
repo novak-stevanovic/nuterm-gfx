@@ -44,10 +44,16 @@ enum ntg_main_panel_pos
 
 struct ntg_main_panel
 {
-    ntg_object __base;
+    struct
+    {
+        ntg_object base;
+    } priv;
 
-    struct ntg_main_panel_opts _opts;
-    ntg_object* _children[5];
+    struct
+    {
+        struct ntg_main_panel_opts opts;
+        ntg_object* children[5];
+    } ro;
 };
 
 /* ========================================================================== */

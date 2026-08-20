@@ -149,6 +149,12 @@ ntg_xy_are_eql(struct ntg_xy a, struct ntg_xy b)
     return ((a.x == b.x) && (a.y == b.y));
 }
 
+static inline bool
+ntg_xy_size_are_eql(struct ntg_xy a, struct ntg_xy b)
+{
+    return ntg_xy_are_eql(ntg_xy_size(a), ntg_xy_size(b));
+}
+
 static inline struct ntg_xy
 ntg_xy_clamp(struct ntg_xy min, struct ntg_xy val, struct ntg_xy max)
 {

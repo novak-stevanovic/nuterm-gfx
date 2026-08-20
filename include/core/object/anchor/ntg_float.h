@@ -16,7 +16,7 @@
 
 enum ntg_float_enable
 {
-    NTG_FLOAT_ENABLE_MIN,
+    NTG_FLOAT_ENABLE_MIN = 0,
     NTG_FLOAT_ENABLE_BASE_MIN,
     NTG_FLOAT_ENABLE_NAT,
     NTG_FLOAT_ENABLE_BASE_NAT,
@@ -35,8 +35,15 @@ ntg_float_opts_default(void);
 
 struct ntg_float
 {
-    ntg_anchor_policy __base;
-    struct ntg_float_opts _opts;
+    struct
+    {
+        ntg_anchor_policy base;
+    } priv;
+
+    struct
+    {
+        struct ntg_float_opts opts;
+    } ro;
 };
 
 /* ========================================================================== */
@@ -44,9 +51,7 @@ struct ntg_float
 /* ========================================================================== */
 
 NTG_API int
-ntg_float_init(
-        ntg_float* float_ap,
-        const struct ntg_float_opts* opts);
+ntg_float_init(ntg_float* float_ap, const struct ntg_float_opts* opts);
 
 NTG_API int
 ntg_float_deinit(ntg_float* float_ap);

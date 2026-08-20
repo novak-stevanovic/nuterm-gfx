@@ -55,10 +55,16 @@ ntg_prog_bar_opts_are_eql(
 
 struct ntg_prog_bar
 {
-    ntg_object __base;
+    struct
+    {
+        ntg_object base;
+    } priv;
 
-    double _prog; 
-    struct ntg_prog_bar_opts _opts;
+    struct
+    {
+        double prog;
+        struct ntg_prog_bar_opts opts;
+    } ro;
 };
 
 /* ========================================================================== */
@@ -143,8 +149,7 @@ ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout);
+        sarena* arena);
 
 /* ------------------------------------------------------ */
 

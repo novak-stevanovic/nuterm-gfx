@@ -16,9 +16,15 @@
 
 struct ntg_clr_block
 {
-    ntg_object __base;
+    struct
+    {
+        ntg_object base;
+    } priv;
 
-    struct nt_color _color;
+    struct
+    {
+        struct nt_color color;
+    } ro;
 };
 
 /* ========================================================================== */
@@ -95,8 +101,7 @@ ntg_clr_block_draw_fn(
         const ntg_object* _clr_block,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout);
+        sarena* arena);
 
 /* ------------------------------------------------------ */
 

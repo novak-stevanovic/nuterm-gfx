@@ -20,19 +20,19 @@
 
 enum ntg_fcs_scope_input_mode
 {
-    NTG_FCS_SCOPE_INPUT_MODELESS,
+    NTG_FCS_SCOPE_INPUT_MODELESS = 0,
     NTG_FCS_SCOPE_INPUT_MODAL
 };
 
 enum ntg_fcs_scope_out_click_mode
 {
-    NTG_FCS_SCOPE_OUT_CLICK_CLR,
+    NTG_FCS_SCOPE_OUT_CLICK_CLR = 0,
     NTG_FCS_SCOPE_OUT_CLICK_KEEP
 };
 
 enum ntg_fcs_scope_block_mode
 {
-    NTG_FCS_SCOPE_BLOCK_FALSE,
+    NTG_FCS_SCOPE_BLOCK_FALSE = 0,
     NTG_FCS_SCOPE_BLOCK_TRUE
 };
 
@@ -72,14 +72,14 @@ ntg_fcs_scope_key_new(struct nt_key key);
 struct ntg_fcs_scope_keys
 {
     struct ntg_fcs_scope_key left_click,
-            right_click, middle_click,
-            scroll_up, scroll_down,
-            cancel;
+           right_click, middle_click,
+           scroll_up, scroll_down,
+           cancel;
 };
 
 // Left click is bound to enter, cancel to escape
 NTG_API extern const struct ntg_fcs_scope_keys
-NTG_FCS_SCOPE_KEYS_DEFAULT;
+NTG_FCS_SCOPE_KEYS_AUTO;
 
 /* ------------------------------------------------------ */
 /* FOCUS SCOPE */
@@ -87,18 +87,27 @@ NTG_FCS_SCOPE_KEYS_DEFAULT;
 
 struct ntg_fcs_scope
 {
-    const struct ntg_fcs_scope_vtable* __vtable;
+    struct
+    {
+        void* data;
+    } pub;
 
-    ntg_object* _root;
-    ntg_fcs_manager* _fm;
+    struct
+    {
+        ntg_object* root;
+        ntg_fcs_manager* fm;
 
-    struct ntg_fcs_scope_keys _keys;
-    struct ntg_fcs_scope_opts _opts;
+        struct ntg_fcs_scope_keys keys;
+        struct ntg_fcs_scope_opts opts;
 
-    ntg_object* _last_focused;
-    bool __valid;
+        ntg_object* last_focused;
+    } ro;
 
-    void* data;
+    struct
+    {
+        const struct ntg_fcs_scope_vtable* vtable;
+        bool valid;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -118,11 +127,6 @@ ntg_fcs_scope_init(
 
 NTG_API int
 ntg_fcs_scope_deinit(ntg_fcs_scope* scope);
-
-NTG_API int
-ntg_fcs_scope_init_move(
-        ntg_fcs_scope* dest,
-        const ntg_fcs_scope* src);
 
 /* ------------------------------------------------------ */
 /* SETTERS */
@@ -172,13 +176,12 @@ struct ntg_fcs_scope_vtable
             ntg_object* clicked);
 };
 
-
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
 NTG_API int
-ntg_fcs_scope_init_override(
+ntg_fcs_scope_init_inherit(
         ntg_fcs_scope* scope,
         const struct ntg_fcs_scope_vtable* vtable,
         ntg_object* scope_root,
@@ -218,10 +221,10 @@ NTG_FCS_SCOPE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* ========================================================================== */
 
-void _ntg_fcs_scope_attach(ntg_fcs_scope* scope, ntg_fcs_manager* fm);
+void ntg__fcs_scope_attach(ntg_fcs_scope* scope, ntg_fcs_manager* fm);
 
-void _ntg_fcs_scope_set_last_focused(ntg_fcs_scope* scope, ntg_object* object);
+void ntg__fcs_scope_set_last_focused(ntg_fcs_scope* scope, ntg_object* object);
 
-void _ntg_fcs_scope_invalidate(ntg_fcs_scope* scope);
+void ntg__fcs_scope_invalidate(ntg_fcs_scope* scope);
 
 #endif // NTG_FCS_SCOPE_H

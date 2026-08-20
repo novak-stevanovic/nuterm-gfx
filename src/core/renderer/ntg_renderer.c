@@ -22,8 +22,8 @@ int ntg_renderer_vdeinit(ntg_renderer* renderer)
     if(!renderer)
         return NTG_ERR_INV_ARG;
 
-    if(renderer->__vtable->deinit_fn)
-        renderer->__vtable->deinit_fn(renderer);
+    if(renderer->priv.vtable->deinit_fn)
+        renderer->priv.vtable->deinit_fn(renderer);
 
     return 0;
 }
@@ -36,9 +36,9 @@ int ntg_renderer_render(
     if(!renderer)
         return NTG_ERR_INV_ARG;
 
-    if(renderer->__vtable && renderer->__vtable->render_fn)
+    if(renderer->priv.vtable && renderer->priv.vtable->render_fn)
     {
-        int status = renderer->__vtable->render_fn(renderer, stage_drawing, arena);
+        int status = renderer->priv.vtable->render_fn(renderer, stage_drawing, arena);
         if(status != 0)
             return status;
     }
@@ -48,7 +48,7 @@ int ntg_renderer_render(
         .arena = arena
     };
     ntg_event_raise(
-            &renderer->event_delegate,
+            &renderer->pub.event_delegate,
             ntg_event_new(NTG_EVENT_RENDERER_ONRNDR, renderer, &event_dt));
 
     return 0;
@@ -76,9 +76,9 @@ int ntg_renderer_init_inherit(
 
     (*renderer) = (ntg_renderer) {0};
 
-    renderer->__vtable = vtable;
+    renderer->priv.vtable = vtable;
 
-    ntg_event_delegate_init(&renderer->event_delegate);
+    ntg_event_delegate_init(&renderer->pub.event_delegate);
 
     return 0;
 }
@@ -87,7 +87,7 @@ int ntg_renderer_deinit(ntg_renderer* renderer)
 {
     if(!renderer) return NTG_ERR_INV_ARG;
 
-    ntg_event_delegate_deinit(&renderer->event_delegate);
+    ntg_event_delegate_deinit(&renderer->pub.event_delegate);
 
     (*renderer) = (ntg_renderer) {0};
 

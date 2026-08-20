@@ -69,7 +69,7 @@ int ntg_border_9x_init_monochrome(
 
     struct ntg_border_9x_sym symbols = BORDER_9X_SYM_DEFAULT;
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             NTG_VCELL_FULL,
             gfx,
@@ -94,7 +94,7 @@ int ntg_border_9x_init_basic(
         .padding = cp
     };
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
@@ -119,7 +119,7 @@ int ntg_border_9x_init_basic_edge(
         .padding = ' '
     };
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
@@ -143,7 +143,7 @@ int ntg_border_9x_init_single(
         .padding = ' '
     };
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
@@ -167,7 +167,7 @@ int ntg_border_9x_init_double(
         .padding = ' '
     };
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
@@ -191,7 +191,7 @@ int ntg_border_9x_init_rounded(
         .padding = ' '
     };
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
@@ -215,7 +215,7 @@ int ntg_border_9x_init_heavy(
         .padding = ' '
     };
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
@@ -239,7 +239,7 @@ int ntg_border_9x_init_dashed(
         .padding = ' '
     };
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
@@ -263,7 +263,7 @@ int ntg_border_9x_init_ascii(
         .padding = ' '
     };
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             overlay ? NTG_VCELL_OVERLAY : NTG_VCELL_FULL,
             gfx,
@@ -275,14 +275,14 @@ int ntg_border_9x_init_transparent(
 {
     struct ntg_border_9x_sym symbols = BORDER_9X_SYM_DEFAULT;
 
-    return ntg_border_9x_init_custom_9x(
+    return ntg_border_9x_init_custom(
             style,
             NTG_VCELL_TRANSPARENT,
             NT_GFX_DEFAULT,
             &symbols);
 }
 
-int ntg_border_9x_init_custom_9x(
+int ntg_border_9x_init_custom(
         ntg_border_9x* style,
         enum ntg_vcell_type type,
         struct nt_gfx gfx,
@@ -291,14 +291,14 @@ int ntg_border_9x_init_custom_9x(
     if(!style)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_border_style_init_inherit(&style->__base, &VTABLE);
+    int _status = ntg_border_style_init_inherit(&style->priv.base, &VTABLE);
     if(_status)
         return _status;
 
     struct border_9x_data* data = malloc(sizeof(*data));
     if(!data)
     {
-        ntg_border_style_deinit(&style->__base);
+        ntg_border_style_deinit(&style->priv.base);
         return NTG_ERR_ALLOC_FAIL;
     }
 
@@ -307,8 +307,8 @@ int ntg_border_9x_init_custom_9x(
         .gfx = gfx
     };
 
-    style->__base.data = data;
-    style->_symbols = symbols ? (*symbols) : BORDER_9X_SYM_DEFAULT;
+    style->priv.base.pub.data = data;
+    style->ro.symbols = symbols ? (*symbols) : BORDER_9X_SYM_DEFAULT;
     return 0;
 }
 
@@ -316,11 +316,11 @@ int ntg_border_9x_deinit(ntg_border_9x* style)
 {
     if(!style) return NTG_ERR_INV_ARG;
 
-    free(style->__base.data);
-    style->__base.data = NULL;
-    style->_symbols = BORDER_9X_SYM_DEFAULT;
+    free(style->priv.base.pub.data);
+    style->priv.base.pub.data = NULL;
+    style->ro.symbols = BORDER_9X_SYM_DEFAULT;
 
-    ntg_border_style_deinit(&style->__base);
+    ntg_border_style_deinit(&style->priv.base);
 
     return 0;
 }
@@ -350,7 +350,7 @@ static void border_9x_draw_fn(
     if(ntg_insets_is_zero(border_size)) return;
 
     const ntg_border_9x* style = (const ntg_border_9x*)base;
-    const struct border_9x_data* data = base->data;
+    const struct border_9x_data* data = base->pub.data;
     if(!data) return;
 
     size_t i, j;
@@ -363,24 +363,24 @@ static void border_9x_draw_fn(
     top_left = ntg_vcell_new(
             data->type,
             data->gfx,
-            style->_symbols.top_left);
-    top = ntg_vcell_new(data->type, data->gfx, style->_symbols.top);
+            style->ro.symbols.top_left);
+    top = ntg_vcell_new(data->type, data->gfx, style->ro.symbols.top);
     top_right = ntg_vcell_new(
             data->type,
             data->gfx,
-            style->_symbols.top_right);
-    right = ntg_vcell_new(data->type, data->gfx, style->_symbols.right);
+            style->ro.symbols.top_right);
+    right = ntg_vcell_new(data->type, data->gfx, style->ro.symbols.right);
     bottom_right = ntg_vcell_new(
             data->type,
             data->gfx,
-            style->_symbols.bottom_right);
-    bottom = ntg_vcell_new(data->type, data->gfx, style->_symbols.bottom);
+            style->ro.symbols.bottom_right);
+    bottom = ntg_vcell_new(data->type, data->gfx, style->ro.symbols.bottom);
     bottom_left = ntg_vcell_new(
             data->type,
             data->gfx,
-            style->_symbols.bottom_left);
-    left = ntg_vcell_new(data->type, data->gfx, style->_symbols.left);
-    padding = ntg_vcell_new(data->type, data->gfx, style->_symbols.padding);
+            style->ro.symbols.bottom_left);
+    left = ntg_vcell_new(data->type, data->gfx, style->ro.symbols.left);
+    padding = ntg_vcell_new(data->type, data->gfx, style->ro.symbols.padding);
 
     for(i = 0; i < size.y; i++)
     {

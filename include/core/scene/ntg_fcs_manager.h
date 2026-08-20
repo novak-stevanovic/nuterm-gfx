@@ -19,15 +19,24 @@ struct ntg_fcs_scope;
 
 struct ntg_fcs_manager
 {
-    ntg_scene* _scene;
+    struct
+    {
+        void* data;
+    } pub;
+    struct
+    {
+        ntg_scene* scene;
+        ntg_object* focused;
 
-    ntg_object* _focused;
+        struct ntg_fcs_scope_keys default_keybinds;
 
-    ntg_fcs_scope_list* __scope_stack;
+        ntg_event_delegate event_dlgt;
+    } ro;
 
-    struct ntg_fcs_scope_keys _default_keybinds;
-
-    ntg_event_delegate _event_del;
+    struct
+    {
+        ntg_fcs_scope_list* scope_stack;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -46,10 +55,7 @@ ntg_fcs_manager_request_focus(ntg_fcs_manager* fm, ntg_object* object);
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_fcs_manager_stack_push(
-        ntg_fcs_manager* fm,
-        const ntg_fcs_scope* scope,
-        ntg_fcs_scope** out_scope);
+ntg_fcs_manager_stack_push(ntg_fcs_manager* fm, ntg_fcs_scope* scope_own);
 
 /* ------------------------------------------------------ */
 
@@ -92,19 +98,19 @@ ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, struct nt_mouse mouse);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int _ntg_fcs_manager_init(
+int ntg__fcs_manager_init(
         ntg_fcs_manager* fm,
         ntg_scene* scene,
         const struct ntg_fcs_scope_keys* init_scope_keybinds);
 
 /* ------------------------------------------------------ */
 
-void _ntg_fcs_manager_deinit(ntg_fcs_manager* fm);
+void ntg__fcs_manager_deinit(ntg_fcs_manager* fm);
 
 /* ------------------------------------------------------ */
 /* INVALIDATE */
 /* ------------------------------------------------------ */
 
-void _ntg_fcs_manager_on_scene_object_rm(ntg_fcs_manager* fm, ntg_object* removed);
+void ntg__fcs_manager_on_scene_object_rm(ntg_fcs_manager* fm, ntg_object* removed);
 
 #endif // NTG_FCS_MANAGER_H

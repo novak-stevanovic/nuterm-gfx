@@ -37,7 +37,7 @@ int ntg_clr_block_deinit(ntg_clr_block* clr_block)
 {
     if(!clr_block) return NTG_ERR_INV_ARG;
 
-    clr_block->_color = NT_COLOR_DEFAULT;
+    clr_block->ro.color = NT_COLOR_DEFAULT;
 
     ntg_object_deinit((ntg_object*)clr_block);
 
@@ -59,12 +59,12 @@ int ntg_clr_block_set_color(
 {
     if(!clr_block) return NTG_ERR_INV_ARG;
 
-    struct nt_color old_color = clr_block->_color;
+    struct nt_color old_color = clr_block->ro.color;
 
     if(nt_color_are_eql(old_color, color))
         return 0;
 
-    clr_block->_color = color;
+    clr_block->ro.color = color;
 
     ntg_object_mark_dirty((ntg_object*)clr_block, NTG_OBJECT_DIRTY_DRAW);
 
@@ -73,7 +73,7 @@ int ntg_clr_block_set_color(
         .new_color = color
     };
     ntg_event_raise(
-            &ntg_obj(clr_block)->_event_del,
+            &ntg_obj(clr_block)->ro.event_dlgt,
             ntg_event_new(NTG_EVENT_CLR_BLOCK_CLRCHG, clr_block, &event_dt));
 
     return 0;
@@ -106,7 +106,7 @@ int ntg_clr_block_init_inherit(
     if(_status != 0)
         return _status;
 
-    clr_block->_color = NT_COLOR_DEFAULT;
+    clr_block->ro.color = NT_COLOR_DEFAULT;
     return 0;
 }
 
@@ -139,12 +139,10 @@ int ntg_clr_block_draw_fn(
         const ntg_object* _clr_block,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout)
+        sarena* arena)
 {
     (void)layout_dt;
     (void)arena;
-    (void)relayout;
     const ntg_clr_block* clr_block = ntg_cb(_clr_block);
     struct ntg_xy size = ntg_object_get_size_cont(_clr_block);
 
@@ -157,7 +155,7 @@ int ntg_clr_block_draw_fn(
         {
             ntg_object_tmp_drawing_set(
                     out_drawing,
-                    ntg_vcell_new_full_bg(clr_block->_color),
+                    ntg_vcell_new_full_bg(clr_block->ro.color),
                     ntg_xy(j, i));
         }
     }

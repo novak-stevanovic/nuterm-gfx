@@ -17,7 +17,10 @@
 
 struct ntg_object_drawing
 {
-    ntg_vcell_vecgrid __data;
+    struct
+    {
+        ntg_vcell_vecgrid data;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -82,7 +85,7 @@ ntg_object_drawing_get(const ntg_object_drawing* drawing, struct ntg_xy pos)
     if(!drawing)
         return ntg_vcell_new_default();
 
-    return ntg_vcell_vecgrid_get(&drawing->__data, pos);
+    return ntg_vcell_vecgrid_get(&drawing->priv.data, pos);
 }
 
 
@@ -91,7 +94,7 @@ ntg_object_drawing_set(ntg_object_drawing* drawing, struct ntg_vcell cell, struc
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
-    (void)ntg_vcell_vecgrid_set(&drawing->__data, cell, pos);
+    (void)ntg_vcell_vecgrid_set(&drawing->priv.data, cell, pos);
 
     return 0;
 }

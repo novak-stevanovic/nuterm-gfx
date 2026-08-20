@@ -55,24 +55,24 @@ int ntg_default_renderer_init(
     if(_status != 0)
         return _status;
 
-    _status = ntg_stage_drawing_init(&renderer->__backbuff);
+    _status = ntg_stage_drawing_init(&renderer->priv.backbuff);
     if(_status != 0)
     {
         ntg_renderer_deinit(ntg_rnd(renderer));
         return _status;
     }
 
-    renderer->__term_buff = malloc(term_buff_size);
-    if(!renderer->__term_buff)
+    renderer->priv.term_buff = malloc(term_buff_size);
+    if(!renderer->priv.term_buff)
     {
-        ntg_stage_drawing_deinit(&renderer->__backbuff);
+        ntg_stage_drawing_deinit(&renderer->priv.backbuff);
         ntg_renderer_deinit(ntg_rnd(renderer));
         return NTG_ERR_ALLOC_FAIL;
     }
 
-    renderer->__old_size = ntg_xy(0, 0);
-    renderer->__force_full_render = false;
-    renderer->__term_buff_size = term_buff_size;
+    renderer->priv.old_size = ntg_xy(0, 0);
+    renderer->priv.force_full_render = false;
+    renderer->priv.term_buff_size = term_buff_size;
     return 0;
 }
 
@@ -80,14 +80,14 @@ int ntg_default_renderer_deinit(ntg_default_renderer* renderer)
 {
     if(!renderer) return NTG_ERR_INV_ARG;
 
-    ntg_stage_drawing_deinit(&renderer->__backbuff);
-    free(renderer->__term_buff);
+    ntg_stage_drawing_deinit(&renderer->priv.backbuff);
+    free(renderer->priv.term_buff);
 
-    renderer->__backbuff = (ntg_stage_drawing) {0};
-    renderer->__old_size = ntg_xy(0, 0);
-    renderer->__force_full_render = false;
-    renderer->__term_buff = NULL;
-    renderer->__term_buff_size = 0;
+    renderer->priv.backbuff = (ntg_stage_drawing) {0};
+    renderer->priv.old_size = ntg_xy(0, 0);
+    renderer->priv.force_full_render = false;
+    renderer->priv.term_buff = NULL;
+    renderer->priv.term_buff_size = 0;
 
     ntg_renderer_deinit(ntg_rnd(renderer));
 
@@ -125,23 +125,23 @@ int ntg_default_renderer_render_fn(
     struct ntg_xy size = (stage_drawing ?
             ntg_stage_drawing_get_size(stage_drawing) :
             ntg_xy(0, 0));
-    bool resize = !(ntg_xy_are_eql(renderer->__old_size, size));
-    bool full_render_req = resize || renderer->__force_full_render;
+    bool resize = !(ntg_xy_are_eql(renderer->priv.old_size, size));
+    bool full_render_req = resize || renderer->priv.force_full_render;
 
     struct ntg_xy old_size;
-    old_size = ntg_stage_drawing_get_size(&renderer->__backbuff);
+    old_size = ntg_stage_drawing_get_size(&renderer->priv.backbuff);
     struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-    _status = ntg_stage_drawing_set_size(&renderer->__backbuff, size, size_cap);
+    _status = ntg_stage_drawing_set_size(&renderer->priv.backbuff, size, size_cap);
     if(_status)
     {
-        renderer->__force_full_render = true;
+        renderer->priv.force_full_render = true;
         return _status;
     }
 
-    _status = nt_buffer_enable(renderer->__term_buff, renderer->__term_buff_size);
+    _status = nt_buffer_enable(renderer->priv.term_buff, renderer->priv.term_buff_size);
     if(_status)
     {
-        renderer->__force_full_render = true;
+        renderer->priv.force_full_render = true;
         return _status;
     }
 
@@ -167,12 +167,12 @@ int ntg_default_renderer_render_fn(
         rval = optimized_render(renderer, stage_drawing, size, old_size, arena);
     }
 
-    renderer->__old_size = size;
+    renderer->priv.old_size = size;
 
     _status = nt_buffer_disable(NT_BUFF_FLUSH, NULL);
     if(_status && !rval) rval = _status;
 
-    renderer->__force_full_render = (rval != 0);
+    renderer->priv.force_full_render = (rval != 0);
 
     return rval;
 }
@@ -205,7 +205,7 @@ static int full_empty_render(ntg_default_renderer* renderer, struct ntg_xy size)
         for(j = 0; j < size.x; j++)
         {
             ntg_stage_drawing_set(
-                    &renderer->__backbuff,
+                    &renderer->priv.backbuff,
                     ntg_cell_default(),
                     ntg_xy(j, i));
         }
@@ -267,7 +267,7 @@ static int optimized_render(
 
             if((i < old_size.y) && (j < old_size.x))
             {
-                it_bb_cell = ntg_stage_drawing_get(&renderer->__backbuff, ntg_xy(j, i));
+                it_bb_cell = ntg_stage_drawing_get(&renderer->priv.backbuff, ntg_xy(j, i));
                 if(ntg_cell_are_eql(it_bb_cell, it_draw_cell))
                 {
                     j++;
@@ -282,7 +282,7 @@ static int optimized_render(
                 it_draw_cell = ntg_stage_drawing_get(drawing, ntg_xy(j + k, i));
                 row32_buff[k] = it_draw_cell.cp;
 
-                ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j + k, i));
+                ntg_stage_drawing_set(&renderer->priv.backbuff, it_draw_cell, ntg_xy(j + k, i));
             }
             _status = uc_utf32_to_utf8(
                     row32_buff, k, row_buff, row_buff_cap, 0, NULL, &_uc_len);
@@ -324,7 +324,7 @@ static int full_render(
         {
             it_draw_cell = ntg_stage_drawing_get(drawing, ntg_xy(j, i));
 
-            ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j, i));
+            ntg_stage_drawing_set(&renderer->priv.backbuff, it_draw_cell, ntg_xy(j, i));
 
             it_opt = fwd_equal_gfx_search(drawing, it_draw_cell.gfx, ntg_xy(j, i), size.x);
 
@@ -333,7 +333,7 @@ static int full_render(
                 it_draw_cell = ntg_stage_drawing_get(drawing, ntg_xy(j + k, i));
                 row32_buff[k] = it_draw_cell.cp;
 
-                ntg_stage_drawing_set(&renderer->__backbuff, it_draw_cell, ntg_xy(j + k, i));
+                ntg_stage_drawing_set(&renderer->priv.backbuff, it_draw_cell, ntg_xy(j + k, i));
             }
 
             _status = uc_utf32_to_utf8(

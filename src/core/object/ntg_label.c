@@ -90,7 +90,7 @@ int ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts)
 {
     if(!label || !out_opts) return NTG_ERR_INV_ARG;
 
-    out_opts->text_opts = (ntg_txt(label))->_opts;
+    out_opts->text_opts = (ntg_txt(label))->ro.opts;
 
     return 0;
 }
@@ -113,7 +113,7 @@ int ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
         .new_opts = &new_opts
     };
     ntg_event_raise(
-            &ntg_obj(label)->_event_del,
+            &ntg_obj(label)->ro.event_dlgt,
             ntg_event_new(NTG_EVENT_LABEL_OPTCHG, label, &event_dt));
 
     return 0;
@@ -135,8 +135,8 @@ struct ntg_str_view ntg_label_get_text(const struct ntg_label* label)
     else
     {
         return (struct ntg_str_view) {
-            .data = (ntg_txt(label))->_text,
-            .len = (ntg_txt(label))->_text_len,
+            .data = (ntg_txt(label))->ro.text,
+            .len = (ntg_txt(label))->ro.text_len,
         };
     }
 }
@@ -213,13 +213,11 @@ int ntg_label_draw_fn(
         const ntg_object* _label,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout)
+        sarena* arena)
 {
     if(ntg_xy_is_zero_any(ntg_object_get_size_cont(_label))) return 0;
 
-    return ntg_text_draw_fn(
-            _label, layout_dt, out_drawing, arena, relayout);
+    return ntg_text_draw_fn(_label, layout_dt, out_drawing, arena);
 }
 
 void ntg_label_deinit_fn(ntg_object* _label)

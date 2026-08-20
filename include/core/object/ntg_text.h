@@ -78,22 +78,26 @@ struct ntg_text_vtable
 
 struct ntg_text
 {
-    ntg_object __base;
+    struct
+    {
+        ntg_object base;
+        const struct ntg_text_vtable* vtable;
 
-    const struct ntg_text_vtable* __vtable;
+        struct ntg_str32 utf32_text;
+        size_t utf32_row_count;
+        struct ntg_str32_view* utf32_rows;
+    } priv;
 
-    struct ntg_text_opts _opts;
-    
-    struct nt_gfx _gfx;
+    struct
+    {
+        struct ntg_text_opts opts;
+        struct nt_gfx gfx;
 
-    char* _text;
-    size_t _text_len;
+        char* text;
+        size_t text_len;
 
-    struct ntg_xy _scroll;
-
-    struct ntg_str32 __utf32_text;
-    size_t __utf32_row_count;
-    struct ntg_str32_view* __utf32_rows;
+        struct ntg_xy scroll;
+    } ro;
 };
 
 /* ========================================================================== */
@@ -168,11 +172,10 @@ ntg_text_draw_fn(
         const ntg_object* _text_obj,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout);
+        sarena* arena);
 
 NTG_API void
-ntg_text_layout_finalize_fn(ntg_object* object, sarena* arena);
+ntg_text_cont_resize_fn(ntg_object* object, sarena* arena);
 
 NTG_API void
 ntg_text_deinit_fn(ntg_object* _text_obj);

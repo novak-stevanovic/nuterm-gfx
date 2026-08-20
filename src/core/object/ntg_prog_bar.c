@@ -91,8 +91,8 @@ int ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 {
     if(!prog_bar) return NTG_ERR_INV_ARG;
 
-    prog_bar->_prog = 0.0;
-    prog_bar->_opts = ntg_prog_bar_opts_default();
+    prog_bar->ro.prog = 0.0;
+    prog_bar->ro.opts = ntg_prog_bar_opts_default();
 
     ntg_object_deinit((ntg_object*)prog_bar);
 
@@ -114,14 +114,14 @@ int ntg_prog_bar_set_opts(
 {
     if(!prog_bar) return NTG_ERR_INV_ARG;
 
-    struct ntg_prog_bar_opts old_opts = prog_bar->_opts;
+    struct ntg_prog_bar_opts old_opts = prog_bar->ro.opts;
     struct ntg_prog_bar_opts new_opts =
             (opts ? (*opts) : ntg_prog_bar_opts_default());
 
     if(ntg_prog_bar_opts_are_eql(&old_opts, &new_opts))
         return 0;
 
-    prog_bar->_opts = new_opts;
+    prog_bar->ro.opts = new_opts;
 
     ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_FULL);
 
@@ -130,7 +130,7 @@ int ntg_prog_bar_set_opts(
         .new_opts = &new_opts
     };
     ntg_event_raise(
-            &ntg_obj(prog_bar)->_event_del,
+            &ntg_obj(prog_bar)->ro.event_dlgt,
             ntg_event_new(NTG_EVENT_PROG_BAR_OPTCHG, prog_bar, &event_dt));
 
     return 0;
@@ -146,12 +146,12 @@ int ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
 
     progress = _max2_double(0.0, _min2_double(1.0, progress));
 
-    double old_progress = prog_bar->_prog;
+    double old_progress = prog_bar->ro.prog;
 
     if(_double_are_eql(old_progress, progress))
         return 0;
 
-    prog_bar->_prog = progress;
+    prog_bar->ro.prog = progress;
 
     ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_DRAW);
 
@@ -160,7 +160,7 @@ int ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
         .new_prog = progress
     };
     ntg_event_raise(
-            &ntg_obj(prog_bar)->_event_del,
+            &ntg_obj(prog_bar)->ro.event_dlgt,
             ntg_event_new(NTG_EVENT_PROG_BAR_PROGCHG, prog_bar, &event_dt));
 
     return 0;
@@ -193,8 +193,8 @@ int ntg_prog_bar_init_inherit(
     if(_status != 0)
         return _status;
 
-    prog_bar->_prog = 0.0;
-    prog_bar->_opts = ntg_prog_bar_opts_default();
+    prog_bar->ro.prog = 0.0;
+    prog_bar->ro.opts = ntg_prog_bar_opts_default();
     return 0;
 }
 
@@ -214,7 +214,7 @@ int ntg_prog_bar_measure_fn(
         return NTG_ERR_INV_ARG;
 
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
-    size_t size = (orient == prog_bar->_opts.orient) ? 10 : 1;
+    size_t size = (orient == prog_bar->ro.opts.orient) ? 10 : 1;
     *out_measure = (struct ntg_object_measure) {
         .min_size = size,
         .nat_size = size,
@@ -228,21 +228,19 @@ int ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout)
+        sarena* arena)
 {
     (void)layout_dt;
     (void)arena;
-    (void)relayout;
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
     struct ntg_xy size = ntg_object_get_size_cont(_prog_bar);
 
     if(ntg_xy_is_zero_any(size)) return 0;
 
     struct ntg_oxy _size =
-            ntg_oxy_from_xy(size, prog_bar->_opts.orient);
+            ntg_oxy_from_xy(size, prog_bar->ro.opts.orient);
 
-    size_t complete_count = round(_size.prim_val * prog_bar->_prog);
+    size_t complete_count = round(_size.prim_val * prog_bar->ro.prog);
 
     size_t i, j;
     struct ntg_oxy _it_xy;
@@ -252,19 +250,19 @@ int ntg_prog_bar_draw_fn(
     {
         for(j = 0; j < _size.sec_val; j++)
         {
-            _it_xy = ntg_oxy(i, j, prog_bar->_opts.orient);
+            _it_xy = ntg_oxy(i, j, prog_bar->ro.opts.orient);
             it_xy = ntg_xy_from_oxy(_it_xy);
 
             if(complete_count == _size.prim_val)
-                it_cell = prog_bar->_opts.style.complete;
+                it_cell = prog_bar->ro.opts.style.complete;
             else if(complete_count == 0)
-                it_cell = prog_bar->_opts.style.uncomplete;
+                it_cell = prog_bar->ro.opts.style.uncomplete;
             else if(i < (complete_count - 1))
-                it_cell = prog_bar->_opts.style.complete;
+                it_cell = prog_bar->ro.opts.style.complete;
             else if(i == (complete_count - 1))
-                it_cell = prog_bar->_opts.style.threshold;
+                it_cell = prog_bar->ro.opts.style.threshold;
             else
-                it_cell = prog_bar->_opts.style.uncomplete;
+                it_cell = prog_bar->ro.opts.style.uncomplete;
 
             ntg_object_tmp_drawing_set(out_drawing, it_cell, it_xy);
         }

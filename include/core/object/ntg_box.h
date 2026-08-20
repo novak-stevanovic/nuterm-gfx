@@ -42,9 +42,15 @@ ntg_box_opts_are_eql(
 
 struct ntg_box
 {
-    ntg_object __base;
+    struct
+    {
+        ntg_object base;
+    } priv;
 
-    struct ntg_box_opts _opts;
+    struct
+    {
+        struct ntg_box_opts opts;
+    } ro;
 };
 
 /* ========================================================================== */
@@ -84,7 +90,6 @@ ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
 /* ------------------------------------------------------ */
 /* CHILDREN */
 /* ------------------------------------------------------ */
-
 
 NTG_API const struct ntg_objptr_vec*
 ntg_box_get_children(const ntg_box* box);

@@ -31,7 +31,7 @@ struct ntg_loop
     enum ntg_loop_state state;
 
     ntg_renderer* renderer;
-    bool _init_renderer, _owns_renderer;
+    bool init_renderer, owns_renderer;
     bool (*on_event_fn)(const struct nt_event* event);
     sarena* arena;
 
@@ -116,9 +116,9 @@ static void init_default(void)
 
 static void deinit(void)
 {
-    if(loop.renderer && loop._owns_renderer)
+    if(loop.renderer && loop.owns_renderer)
     {
-        if(loop._init_renderer)
+        if(loop.init_renderer)
             ntg_renderer_vdeinit(loop.renderer);
 
         free(loop.renderer);
@@ -177,7 +177,7 @@ int ntg_loop_init(
     if(renderer) // CUSTOM RENDERER
     {
         loop.renderer = renderer;
-        loop._owns_renderer = false;
+        loop.owns_renderer = false;
     }
     else
     {
@@ -197,8 +197,8 @@ int ntg_loop_init(
             return status;
         }
 
-        loop._init_renderer = true;
-        loop._owns_renderer = true;
+        loop.init_renderer = true;
+        loop.owns_renderer = true;
     }
 
     loop.on_event_fn = (
@@ -307,7 +307,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     loop.state = NTG_LOOP_RUNNING;
     if(loop.stage)
     {
-        _tmp_status = _ntg_stage_set_size(loop.stage, loop.app_size);
+        _tmp_status = ntg__stage_set_size(loop.stage, loop.app_size);
         if(_tmp_status != 0)
             _status = _tmp_status;
     }
@@ -343,7 +343,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
 
             if(loop.stage)
             {
-                _tmp_status = _ntg_stage_set_size(loop.stage, loop.app_size);
+                _tmp_status = ntg__stage_set_size(loop.stage, loop.app_size);
                 if(_tmp_status != 0)
                 {
                     _status = _tmp_status;
@@ -368,14 +368,14 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
 
             if(loop.stage)
             {
-                if(loop.stage->_dirty)
+                if(loop.stage->ro.dirty)
                 {
                     if(!ntg_stage_compose(loop.stage, loop.arena))
                     {
-                        _ntg_stage_clean(loop.stage);
+                        ntg__stage_clean(loop.stage);
                     }
                 }
-                drawing = &(loop.stage->_drawing);
+                drawing = &(loop.stage->ro.drawing);
             }
             else drawing = NULL;
 
@@ -571,14 +571,14 @@ int ntg_loop_set_stage(ntg_stage* stage)
 
         if(old_stage)
         {
-            _ntg_stage_leave_loop(old_stage);
-            // _ntg_stage_set_size(old_stage, ntg_xy(0, 0));
+            ntg__stage_leave_loop(old_stage);
+            // ntg__stage_set_size(old_stage, ntg_xy(0, 0));
         }
         if(stage)
         {
-            _ntg_stage_enter_loop(stage);
+            ntg__stage_enter_loop(stage);
 
-            int _status = _ntg_stage_set_size(stage, loop.app_size);
+            int _status = ntg__stage_set_size(stage, loop.app_size);
             if(_status != 0)
                 return _status;
         }
@@ -615,15 +615,15 @@ static int update_stage(void)
 
     if(old)
     {
-        _ntg_stage_leave_loop(old);
-        int status = _ntg_stage_set_size(old, ntg_xy(0, 0));
+        ntg__stage_leave_loop(old);
+        int status = ntg__stage_set_size(old, ntg_xy(0, 0));
         if(status != 0)
             return status;
     }
     if(new)
     {
-        _ntg_stage_enter_loop(new);
-        int status = _ntg_stage_set_size(new, loop.app_size);
+        ntg__stage_enter_loop(new);
+        int status = ntg__stage_set_size(new, loop.app_size);
         if(status != 0)
             return status;
         ntg_stage_mark_dirty(new);

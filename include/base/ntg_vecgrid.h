@@ -16,9 +16,12 @@
 
 struct ntg_vecgrid
 {
-    void* _data;
-    struct ntg_xy _size;
-    size_t _capacity;
+    struct
+    {
+        void* data;
+        struct ntg_xy size;
+        size_t capacity;
+    } ro;
 };
 
 /* ========================================================================== */

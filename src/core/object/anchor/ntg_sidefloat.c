@@ -61,11 +61,11 @@ int ntg_sidefloat_init(
     if(!sidefloat_ap)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_anchor_policy_init_inherit(&sidefloat_ap->__base, &VTABLE);
+    int _status = ntg_anchor_policy_init_inherit(&sidefloat_ap->priv.base, &VTABLE);
     if(_status)
         return _status;
 
-    sidefloat_ap->_opts = opts ? (*opts) : ntg_sidefloat_opts_default();
+    sidefloat_ap->ro.opts = opts ? (*opts) : ntg_sidefloat_opts_default();
     return 0;
 }
 
@@ -73,8 +73,8 @@ int ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap)
 {
     if(!sidefloat_ap) return NTG_ERR_INV_ARG;
 
-    sidefloat_ap->_opts = ntg_sidefloat_opts_default();
-    ntg_anchor_policy_deinit(&sidefloat_ap->__base);
+    sidefloat_ap->ro.opts = ntg_sidefloat_opts_default();
+    ntg_anchor_policy_deinit(&sidefloat_ap->priv.base);
 
     return 0;
 }
@@ -102,24 +102,21 @@ static size_t sidefloat_constrain_fn(
 {
     (void)arena;
 
-    if(!ctx || !ctx->root || !ctx->base) return 0;
+    if(!ctx || !ctx->root) return 0;
 
     const ntg_sidefloat* sidefloat_ap = (const ntg_sidefloat*)ap;
-    const struct ntg_sidefloat_opts* opts = &sidefloat_ap->_opts;
+    const struct ntg_sidefloat_opts* opts = &sidefloat_ap->ro.opts;
     const ntg_object* root = ctx->root;
-    const ntg_object* base = ctx->base;
 
-    struct ntg_xy base_pos_xy = ntg_xy_from_dxy(
-            ntg_object_map_to_scene(base, ntg_dxy(0, 0)));
-    size_t base_pos = ntg_xy_get(base_pos_xy, orient);
+    size_t base_pos = ctx->base_pos;
 
     struct ntg_object_measure root_measure;
     root_measure = ntg_object_get_measure(root, orient);
 
     const ntg_scene* scene = ntg_object_get_scene(root);
-    size_t scene_size = scene ? ntg_xy_get(scene->_size, orient) : 0;
+    size_t scene_size = scene ? ntg_xy_get(scene->ro.size, orient) : 0;
 
-    size_t base_size = ntg_xy_get(base->_size, orient);
+    size_t base_size = ctx->base_size;
     if(base_size == 0) return 0;
 
     bool capped = opts->size_cap == NTG_SIDEFLOAT_SIZE_CAP_ANCHOR;
@@ -178,54 +175,52 @@ static struct ntg_xy sidefloat_arrange_fn(
 {
     (void)arena;
 
-    if(!ctx || !ctx->root || !ctx->base) return ntg_xy(0, 0);
+    if(!ctx) return ntg_xy(0, 0);
 
     const ntg_sidefloat* sidefloat_ap = (const ntg_sidefloat*)ap;
-    const struct ntg_sidefloat_opts* opts = &sidefloat_ap->_opts;
-    const ntg_object* root = ctx->root;
-    const ntg_object* base = ctx->base;
+    const struct ntg_sidefloat_opts* opts = &sidefloat_ap->ro.opts;
 
     struct ntg_xy pos = ntg_xy(0, 0);
     struct ntg_dxy size_diff = ntg_dxy(
-            (ssize_t)root->_size.x - (ssize_t)base->_size.x,
-            (ssize_t)root->_size.y - (ssize_t)base->_size.y);
+            (ssize_t)ctx->size.x - (ssize_t)ctx->base_size.x,
+            (ssize_t)ctx->size.y - (ssize_t)ctx->base_size.y);
 
     switch(opts->side)
     {
         case NTG_SIDE_N:
             pos.x = (size_diff.x > 0) ?
-                    _sub2_size(base->_pos.x, size_diff.x) :
-                    base->_pos.x + ntg_align_offset_d(
-                            root->_size.x,
-                            base->_size.x,
+                    _sub2_size(ctx->base_pos.x, size_diff.x) :
+                    ctx->base_pos.x + ntg_align_offset_d(
+                            ctx->size.x,
+                            ctx->base_size.x,
                             opts->align);
-            pos.y = _sub2_size(base->_pos.y, root->_size.y);
+            pos.y = _sub2_size(ctx->base_pos.y, ctx->size.y);
             break;
         case NTG_SIDE_E:
-            pos.x = base->_pos.x + base->_size.x;
+            pos.x = ctx->base_pos.x + ctx->base_size.x;
             pos.y = (size_diff.y > 0) ?
-                    _sub2_size(base->_pos.y, size_diff.y) :
-                    base->_pos.y + ntg_align_offset_d(
-                            root->_size.y,
-                            base->_size.y,
+                    _sub2_size(ctx->base_pos.y, size_diff.y) :
+                    ctx->base_pos.y + ntg_align_offset_d(
+                            ctx->size.y,
+                            ctx->base_size.y,
                             opts->align);
             break;
         case NTG_SIDE_S:
             pos.x = (size_diff.x > 0) ?
-                    _sub2_size(base->_pos.x, size_diff.x) :
-                    base->_pos.x + ntg_align_offset_d(
-                            root->_size.x,
-                            base->_size.x,
+                    _sub2_size(ctx->base_pos.x, size_diff.x) :
+                    ctx->base_pos.x + ntg_align_offset_d(
+                            ctx->size.x,
+                            ctx->base_size.x,
                             opts->align);
-            pos.y = base->_pos.y + base->_size.y;
+            pos.y = ctx->base_pos.y + ctx->base_size.y;
             break;
         case NTG_SIDE_W:
-            pos.x = _sub2_size(base->_pos.x, root->_size.x);
+            pos.x = _sub2_size(ctx->base_pos.x, ctx->size.x);
             pos.y = (size_diff.y > 0) ?
-                    _sub2_size(base->_pos.y, size_diff.y) :
-                    base->_pos.y + ntg_align_offset_d(
-                            root->_size.y,
-                            base->_size.y,
+                    _sub2_size(ctx->base_pos.y, size_diff.y) :
+                    ctx->base_pos.y + ntg_align_offset_d(
+                            ctx->size.y,
+                            ctx->base_size.y,
                             opts->align);
             break;
         default:

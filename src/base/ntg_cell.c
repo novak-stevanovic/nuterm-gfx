@@ -19,7 +19,7 @@ int ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(ntg_vecgrid_init(&vecgrid->__base))
+    if(ntg_vecgrid_init(&vecgrid->priv.base))
         return NTG_ERR_UNEXPECTED;
 
     return 0;
@@ -29,7 +29,7 @@ int ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(ntg_vecgrid_deinit(&vecgrid->__base))
+    if(ntg_vecgrid_deinit(&vecgrid->priv.base))
         return NTG_ERR_UNEXPECTED;
 
     return 0;
@@ -49,10 +49,10 @@ int ntg_cell_vecgrid_set_size(
         return NTG_ERR_INV_ARG;
     }
 
-    struct ntg_xy old = vecgrid->__base._size;
+    struct ntg_xy old = vecgrid->priv.base.ro.size;
 
     int _status = ntg_vecgrid_set_size(
-            &vecgrid->__base,
+            &vecgrid->priv.base,
             size,
             2.5,
             size_cap,
@@ -93,7 +93,7 @@ struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid)
     if(!vecgrid)
         return ntg_xy(0, 0);
 
-    return vecgrid->__base._size;
+    return vecgrid->priv.base.ro.size;
 }
 
 /* ------------------------------------------------------ */
@@ -104,7 +104,7 @@ int ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(ntg_vecgrid_init(&vecgrid->__base))
+    if(ntg_vecgrid_init(&vecgrid->priv.base))
         return NTG_ERR_UNEXPECTED;
 
     return 0;
@@ -114,7 +114,7 @@ int ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(ntg_vecgrid_deinit(&vecgrid->__base))
+    if(ntg_vecgrid_deinit(&vecgrid->priv.base))
         return NTG_ERR_UNEXPECTED;
 
     return 0;
@@ -134,10 +134,10 @@ int ntg_vcell_vecgrid_set_size(
         return NTG_ERR_INV_ARG;
     }
 
-    struct ntg_xy old = vecgrid->__base._size;
+    struct ntg_xy old = vecgrid->priv.base.ro.size;
 
     int _status = ntg_vecgrid_set_size(
-            &vecgrid->__base,
+            &vecgrid->priv.base,
             size,
             2.5,
             size_cap,
@@ -181,5 +181,5 @@ struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid)
     if(!vecgrid)
         return ntg_xy(0, 0);
 
-    return vecgrid->__base._size;
+    return vecgrid->priv.base.ro.size;
 }

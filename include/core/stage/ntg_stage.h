@@ -17,20 +17,28 @@
 
 struct ntg_stage
 {
-    const struct ntg_stage_vtable* __vtable;
+    struct
+    {
+        void* data;
+    } pub;
 
-    ntg_scene* _scene;
+    struct
+    {
+        ntg_scene* scene;
 
-    struct ntg_xy _size;
-    ntg_stage_drawing _drawing;
+        struct ntg_xy size;
+        ntg_stage_drawing drawing;
 
-    bool _in_loop;
+        bool in_loop;
+        bool dirty;
 
-    bool _dirty;
+        ntg_event_delegate event_dlgt;
+    } ro;
 
-    ntg_event_delegate _event_del;
-
-    void* data;
+    struct
+    {
+        const struct ntg_stage_vtable* vtable;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -121,9 +129,9 @@ NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int _ntg_stage_set_size(ntg_stage* stage, struct ntg_xy size);
-void _ntg_stage_clean(ntg_stage* stage);
-void _ntg_stage_enter_loop(ntg_stage* stage);
-void _ntg_stage_leave_loop(ntg_stage* stage);
+int ntg__stage_set_size(ntg_stage* stage, struct ntg_xy size);
+void ntg__stage_clean(ntg_stage* stage);
+void ntg__stage_enter_loop(ntg_stage* stage);
+void ntg__stage_leave_loop(ntg_stage* stage);
 
 #endif // NTG_STAGE_H

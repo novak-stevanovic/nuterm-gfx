@@ -13,43 +13,43 @@
 /* ========================================================================== */
 
 const ntg_type NTG_TYPE_OBJECT = {
-    .__parent = NULL,
-    ._size = sizeof(ntg_object)
+    .priv.parent = NULL,
+    .ro.size = sizeof(ntg_object)
 };
 
 const ntg_type NTG_TYPE_BOX = {
-    .__parent = &NTG_TYPE_OBJECT,
-    ._size = sizeof(ntg_box)
+    .priv.parent = &NTG_TYPE_OBJECT,
+    .ro.size = sizeof(ntg_box)
 };
 
 const ntg_type NTG_TYPE_MAIN_PANEL = {
-    .__parent = &NTG_TYPE_OBJECT,
-    ._size = sizeof(ntg_main_panel)
+    .priv.parent = &NTG_TYPE_OBJECT,
+    .ro.size = sizeof(ntg_main_panel)
 };
 
 const ntg_type NTG_TYPE_TEXT = {
-    .__parent = &NTG_TYPE_OBJECT,
-    ._size = sizeof(ntg_text)
+    .priv.parent = &NTG_TYPE_OBJECT,
+    .ro.size = sizeof(ntg_text)
 };
 
 const ntg_type NTG_TYPE_LABEL = {
-    .__parent = &NTG_TYPE_TEXT,
-    ._size = sizeof(ntg_label)
+    .priv.parent = &NTG_TYPE_TEXT,
+    .ro.size = sizeof(ntg_label)
 };
 
 const ntg_type NTG_TYPE_BUTTON = {
-    .__parent = &NTG_TYPE_TEXT,
-    ._size = sizeof(ntg_button)
+    .priv.parent = &NTG_TYPE_TEXT,
+    .ro.size = sizeof(ntg_button)
 };
 
 const ntg_type NTG_TYPE_CLR_BLOCK = {
-    .__parent = &NTG_TYPE_OBJECT,
-    ._size = sizeof(ntg_clr_block)
+    .priv.parent = &NTG_TYPE_OBJECT,
+    .ro.size = sizeof(ntg_clr_block)
 };
 
 const ntg_type NTG_TYPE_PROG_BAR = {
-    .__parent = &NTG_TYPE_OBJECT,
-    ._size = sizeof(ntg_prog_bar)
+    .priv.parent = &NTG_TYPE_OBJECT,
+    .ro.size = sizeof(ntg_prog_bar)
 };
 
 /* ========================================================================== */
@@ -71,7 +71,7 @@ bool ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor)
         if(it == ancestor)
             return true;
 
-        it = it->__parent;
+        it = it->priv.parent;
     }
 
     return false;

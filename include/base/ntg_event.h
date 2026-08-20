@@ -40,13 +40,19 @@ struct ntg_event
 
 struct ntg_event_binding
 {
-    ntg_event_delegate* __delegate;
+    struct
+    {
+        ntg_event_delegate* delegate;
+    } priv;
 };
 
 struct ntg_event_delegate
 {
-    struct ntg__event_sub_vec __subs;
-    bool __raise;
+    struct
+    {
+        struct ntg__event_sub_vec subs;
+        bool raise;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -174,8 +180,8 @@ struct ntg_event_object_bsrm_dt
 #define NTG_EVENT_OBJECT_BDROPTCHG 16
 struct ntg_event_object_bdroptchg_dt
 {
-    const struct ntg_border_opts* old_opts;
-    const struct ntg_border_opts* new_opts;
+    const struct ntg_bdr_opts* old_opts;
+    const struct ntg_bdr_opts* new_opts;
 };
 
 /* ---------------------------------- */
@@ -183,8 +189,8 @@ struct ntg_event_object_bdroptchg_dt
 #define NTG_EVENT_OBJECT_PADOPTCHG 17
 struct ntg_event_object_padoptchg_dt
 {
-    const struct ntg_padding_opts* old_opts;
-    const struct ntg_padding_opts* new_opts;
+    const struct ntg_pad_opts* old_opts;
+    const struct ntg_pad_opts* new_opts;
 };
 
 /* ---------------------------------- */
@@ -192,12 +198,30 @@ struct ntg_event_object_padoptchg_dt
 #define NTG_EVENT_OBJECT_LAYOPTCHG 18
 struct ntg_event_object_layoptchg_dt
 {
-    const struct ntg_layout_opts* old_opts;
-    const struct ntg_layout_opts* new_opts;
+    const struct ntg_lay_opts* old_opts;
+    const struct ntg_lay_opts* new_opts;
 };
 
-#define NTG_EVENT_OBJECT_LAYFINAL 19
-/* No payload */
+#define NTG_EVENT_OBJECT_SZCHG 19
+struct ntg_event_object_szchg_dt
+{
+    const struct ntg_xy* old_size;
+    const struct ntg_xy* new_size;
+};
+
+#define NTG_EVENT_OBJECT_CONTSZCHG 20
+struct ntg_event_object_contszchg_dt
+{
+    const struct ntg_xy* old_size;
+    const struct ntg_xy* new_size;
+};
+
+#define NTG_EVENT_OBJECT_POSCHG 21
+struct ntg_event_object_poschg_dt
+{
+    const struct ntg_xy* old_pos;
+    const struct ntg_xy* new_pos;
+};
 
 /* ------------------------------------------------------ */
 /* ntg_label */
@@ -322,55 +346,38 @@ struct ntg_event_scene_mouse_dt
     struct nt_mouse mouse;
 };
 
-#define NTG_EVENT_SCENE_RTCHG 202
-struct ntg_event_scene_rtchg_dt
-{
-    ntg_object* old_root;
-    ntg_object* new_root;
-};
-
-#define NTG_EVENT_SCENE_SZCHG 203
+#define NTG_EVENT_SCENE_SZCHG 202
 struct ntg_event_scene_szchg_dt
 {
     size_t old_x, old_y;
     size_t new_x, new_y;
 };
 
-#define NTG_EVENT_SCENE_ENTER 204
+#define NTG_EVENT_SCENE_ENTER 203
 struct ntg_event_scene_enter_dt
 {
     ntg_stage* stage;
 };
 
-#define NTG_EVENT_SCENE_LEAVE 205
+#define NTG_EVENT_SCENE_LEAVE 204
 struct ntg_event_scene_leave_dt
 {
     ntg_stage* stage;
 };
 
-#define NTG_EVENT_SCENE_OBJADD 206
+#define NTG_EVENT_SCENE_OBJADD 205
 struct ntg_event_scene_objadd_dt
 {
     ntg_object* object;
 };
 
-#define NTG_EVENT_SCENE_OBJRM 207
+#define NTG_EVENT_SCENE_OBJRM 206
 struct ntg_event_scene_objrm_dt
 {
     ntg_object* object;
 };
 
-#define NTG_EVENT_SCENE_LYRADD 208
-struct ntg_event_scene_lyradd_dt
-{
-    ntg_object* layer;
-};
-
-#define NTG_EVENT_SCENE_LYRRM 209
-struct ntg_event_scene_lyrrm_dt
-{
-    ntg_object* layer;
-};
+// TODO layout
 
 /* ------------------------------------------------------ */
 /* ntg_stage */
@@ -407,6 +414,8 @@ struct ntg_event_stage_szchg_dt
 
 #define NTG_EVENT_STAGE_LEAVE 305
 /* No payload */
+
+// TODO compose
 
 /* ------------------------------------------------------ */
 /* ntg_fcs_manager */

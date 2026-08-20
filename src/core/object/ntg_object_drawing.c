@@ -20,7 +20,7 @@ int ntg_object_drawing_init(ntg_object_drawing* drawing)
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
-    if(ntg_vcell_vecgrid_init(&drawing->__data))
+    if(ntg_vcell_vecgrid_init(&drawing->priv.data))
         return NTG_ERR_UNEXPECTED;
 
     return 0;
@@ -30,7 +30,7 @@ int ntg_object_drawing_deinit(ntg_object_drawing* drawing)
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
-    if(ntg_vcell_vecgrid_deinit(&drawing->__data))
+    if(ntg_vcell_vecgrid_deinit(&drawing->priv.data))
         return NTG_ERR_UNEXPECTED;
 
     return 0;
@@ -43,7 +43,7 @@ int ntg_object_drawing_deinit(ntg_object_drawing* drawing)
 struct ntg_xy ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
 {
     return (drawing != NULL) ?
-        ntg_vcell_vecgrid_get_size(&drawing->__data) :
+        ntg_vcell_vecgrid_get_size(&drawing->priv.data) :
         NTG_XY_UNSET;
 }
 
@@ -61,7 +61,7 @@ int ntg_object_drawing_set_size(
         return NTG_ERR_INV_ARG;
     }
 
-    return ntg_vcell_vecgrid_set_size(&drawing->__data, size, size_cap);
+    return ntg_vcell_vecgrid_set_size(&drawing->priv.data, size, size_cap);
 }
 
 /* ------------------------------------------------------ */

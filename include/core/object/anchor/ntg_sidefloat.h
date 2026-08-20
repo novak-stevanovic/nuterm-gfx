@@ -39,8 +39,15 @@ NTG_API struct ntg_sidefloat_opts ntg_sidefloat_opts_default(void);
 
 struct ntg_sidefloat
 {
-    ntg_anchor_policy __base;
-    struct ntg_sidefloat_opts _opts;
+    struct
+    {
+        ntg_anchor_policy base;
+    } priv;
+
+    struct
+    {
+        struct ntg_sidefloat_opts opts;
+    } ro;
 };
 
 /* ========================================================================== */
@@ -48,9 +55,7 @@ struct ntg_sidefloat
 /* ========================================================================== */
 
 NTG_API int
-ntg_sidefloat_init(
-        ntg_sidefloat* sidefloat_ap,
-        const struct ntg_sidefloat_opts* opts);
+ntg_sidefloat_init(ntg_sidefloat* sidefloat_ap, const struct ntg_sidefloat_opts* opts);
 
 NTG_API int
 ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap);

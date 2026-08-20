@@ -41,8 +41,8 @@ static const struct ntg_anchor_policy_vtable ROOT_VTABLE = {
 /* ========================================================================== */
 
 const ntg_anchor_policy NTG_ANCHOR_POLICY_ROOT = {
-    .__vtable = &ROOT_VTABLE,
-    .data = NULL
+    .priv.vtable = &ROOT_VTABLE,
+    .pub.data = NULL
 };
 
 /* ========================================================================== */
@@ -52,10 +52,10 @@ const ntg_anchor_policy NTG_ANCHOR_POLICY_ROOT = {
 int ntg_anchor_policy_vdeinit(ntg_anchor_policy* ap)
 {
     if(!ap) return NTG_ERR_INV_ARG;
-    if(!ap->__vtable) return 0;
+    if(!ap->priv.vtable) return 0;
 
-    if(ap->__vtable->deinit_fn)
-        ap->__vtable->deinit_fn(ap);
+    if(ap->priv.vtable->deinit_fn)
+        ap->priv.vtable->deinit_fn(ap);
 
     return 0;
 }
@@ -81,8 +81,8 @@ int ntg_anchor_policy_init_inherit(
         return NTG_ERR_BAD_VTABLE;
 
     (*ap) = (ntg_anchor_policy) {
-        .__vtable = vtable,
-        .data = NULL
+        .priv.vtable = vtable,
+        .pub.data = NULL
     };
     return 0;
 }
@@ -106,27 +106,37 @@ int ntg_anchor_policy_deinit(ntg_anchor_policy* ap)
 /* FUNCTIONS */
 /* ========================================================================== */
 
-size_t _ntg_anchor_policy_constrain(
+size_t ntg__anchor_policy_hconstrain(
         const ntg_anchor_policy* ap,
-        enum ntg_orient orient,
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena)
 {
-    if(!ap || !ap->__vtable || !ap->__vtable->constrain_fn)
+    if(!ap || !ap->priv.vtable || !ap->priv.vtable->constrain_fn)
         return 0;
 
-    return ap->__vtable->constrain_fn(ap, orient, ctx, arena);
+    return ap->priv.vtable->constrain_fn(ap, NTG_ORIENT_H, ctx, arena);
 }
 
-struct ntg_xy _ntg_anchor_policy_arrange(
+size_t ntg__anchor_policy_vconstrain(
+        const ntg_anchor_policy* ap,
+        const struct ntg_anchor_constrain_ctx* ctx,
+        sarena* arena)
+{
+    if(!ap || !ap->priv.vtable || !ap->priv.vtable->constrain_fn)
+        return 0;
+
+    return ap->priv.vtable->constrain_fn(ap, NTG_ORIENT_V, ctx, arena);
+}
+
+struct ntg_xy ntg__anchor_policy_arrange(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena)
 {
-    if(!ap || !ap->__vtable || !ap->__vtable->arrange_fn)
+    if(!ap || !ap->priv.vtable || !ap->priv.vtable->arrange_fn)
         return ntg_xy(0, 0);
 
-    return ap->__vtable->arrange_fn(ap, ctx, arena);
+    return ap->priv.vtable->arrange_fn(ap, ctx, arena);
 }
 
 /* ========================================================================== */
@@ -152,13 +162,14 @@ static size_t root_constrain_fn(
 {
     (void)ap;
     (void)arena;
+    (void)orient;
 
     if(!ctx || !ctx->root) return 0;
 
     const ntg_scene* scene = ntg_object_get_scene(ctx->root);
     if(!scene) return 0;
 
-    return ntg_xy_get(scene->_size, orient);
+    return ctx->base_size;
 }
 
 static struct ntg_xy root_arrange_fn(
@@ -170,5 +181,5 @@ static struct ntg_xy root_arrange_fn(
     (void)ctx;
     (void)arena;
 
-    return ntg_xy(0, 0);
+    return ctx->base_pos;
 }

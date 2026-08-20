@@ -15,8 +15,15 @@
 
 struct ntg_type
 {
-    const ntg_type* __parent;
-    size_t _size;
+    struct
+    {
+        size_t size;
+    } ro;
+
+    struct
+    {
+        const ntg_type* parent;
+    } priv;
 };
 
 

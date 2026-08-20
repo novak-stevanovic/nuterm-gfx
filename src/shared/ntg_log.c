@@ -24,7 +24,7 @@ static pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER;
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static void _ntg_log_vwrite_unlocked(const char* fmt, va_list args)
+static void ntg__log_vwrite_unlocked(const char* fmt, va_list args)
 {
     char timebuf[64] = "unknown-time";
     time_t now = time(NULL);
@@ -39,12 +39,12 @@ static void _ntg_log_vwrite_unlocked(const char* fmt, va_list args)
     fflush(log_file);
 }
 
-static void _ntg_log_write_unlocked(const char* fmt, ...)
+static void ntg__log_write_unlocked(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
 
-    _ntg_log_vwrite_unlocked(fmt, args);
+    ntg__log_vwrite_unlocked(fmt, args);
 
     va_end(args);
 }
@@ -75,12 +75,12 @@ int ntg_log_init(const char* filepath)
 
     if(log_file != NULL)
     {
-        _ntg_log_write_unlocked("NTG LOG END");
+        ntg__log_write_unlocked("NTG LOG END");
         fclose(log_file);
     }
 
     log_file = new_log_file;
-    _ntg_log_write_unlocked("NTG LOG BEGINNING");
+    ntg__log_write_unlocked("NTG LOG BEGINNING");
 
     pthread_mutex_unlock(&log_lock);
     return 0;
@@ -92,7 +92,7 @@ void ntg_log_deinit(void)
 
     if(log_file != NULL)
     {
-        _ntg_log_write_unlocked("NTG LOG END");
+        ntg__log_write_unlocked("NTG LOG END");
         fclose(log_file);
         log_file = NULL;
     }
@@ -112,7 +112,7 @@ int ntg_log_log(const char* fmt, ...)
         va_list args;
         va_start(args, fmt);
 
-        _ntg_log_vwrite_unlocked(fmt, args);
+        ntg__log_vwrite_unlocked(fmt, args);
 
         va_end(args);
     }

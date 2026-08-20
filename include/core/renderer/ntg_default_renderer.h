@@ -19,15 +19,18 @@
 
 struct ntg_default_renderer
 {
-    ntg_renderer __base;
+    struct
+    {
+        ntg_renderer base;
 
-    ntg_stage_drawing __backbuff;
+        ntg_stage_drawing backbuff;
 
-    struct ntg_xy __old_size;
-    bool __force_full_render;
+        struct ntg_xy old_size;
+        bool force_full_render;
 
-    char* __term_buff;
-    size_t __term_buff_size;
+        char* term_buff;
+        size_t term_buff_size;
+    } priv;
 };
 
 /* ========================================================================== */

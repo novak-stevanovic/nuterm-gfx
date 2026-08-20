@@ -16,8 +16,15 @@
 
 struct ntg_anchor_policy
 {
-    const struct ntg_anchor_policy_vtable* __vtable;
-    void* data;
+    struct
+    {
+        void* data;
+    } pub;
+
+    struct
+    {
+        const struct ntg_anchor_policy_vtable* vtable;
+    } priv;
 };
 
 NTG_API extern const ntg_anchor_policy NTG_ANCHOR_POLICY_ROOT;
@@ -42,14 +49,18 @@ ntg_anchor_policy_vdeinit(ntg_anchor_policy* ap);
 struct ntg_anchor_constrain_ctx
 {
     const ntg_object* root;
-    const ntg_object* base;
+
+    size_t base_size, base_pos;
+    size_t base_min_size, base_nat_size, base_max_size;
 };
 
 struct ntg_anchor_arrange_ctx
 {
-    const ntg_object* root;
-    const ntg_object* base;
     struct ntg_xy size;
+    const ntg_object* root;
+
+    struct ntg_xy base_size, base_pos;
+    struct ntg_xy base_min_size, base_nat_size, base_max_size;
 };
 
 struct ntg_anchor_policy_vtable
@@ -88,13 +99,17 @@ ntg_anchor_policy_deinit(ntg_anchor_policy* ap);
 /* FUNCTIONS */
 /* ========================================================================== */
 
-size_t _ntg_anchor_policy_constrain(
+size_t ntg__anchor_policy_hconstrain(
         const ntg_anchor_policy* ap,
-        enum ntg_orient orient,
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena);
 
-struct ntg_xy _ntg_anchor_policy_arrange(
+size_t ntg__anchor_policy_vconstrain(
+        const ntg_anchor_policy* ap,
+        const struct ntg_anchor_constrain_ctx* ctx,
+        sarena* arena);
+
+struct ntg_xy ntg__anchor_policy_arrange(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena);

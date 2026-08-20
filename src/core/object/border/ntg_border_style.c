@@ -35,8 +35,8 @@ static const struct ntg_border_style_vtable VTABLE_DEFAULT = {
 /* ========================================================================== */
 
 const ntg_border_style NTG_BORDER_STYLE_DEFAULT = {
-    .__vtable = &VTABLE_DEFAULT,
-    .data = NULL
+    .priv.vtable = &VTABLE_DEFAULT,
+    .pub.data = NULL
 };
 
 /* ========================================================================== */
@@ -46,10 +46,10 @@ const ntg_border_style NTG_BORDER_STYLE_DEFAULT = {
 void ntg_border_style_vdeinit(ntg_border_style* style)
 {
     if(!style) return;
-    if(!style->__vtable) return;
+    if(!style->priv.vtable) return;
 
-    if(style->__vtable->deinit_fn)
-        style->__vtable->deinit_fn(style);
+    if(style->priv.vtable->deinit_fn)
+        style->priv.vtable->deinit_fn(style);
 
 }
 
@@ -74,8 +74,8 @@ int ntg_border_style_init_inherit(
         return NTG_ERR_BAD_VTABLE;
 
     (*style) = (ntg_border_style) {
-        .__vtable = vtable,
-        .data = NULL
+        .priv.vtable = vtable,
+        .pub.data = NULL
     };
     return 0;
 }
@@ -99,16 +99,16 @@ int ntg_border_style_deinit(ntg_border_style* style)
 /* FUNCTIONS */
 /* ========================================================================== */
 
-void _ntg_border_style_draw(
+void ntg__border_style_draw(
         const ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
         ntg_object_tmp_drawing* out_drawing)
 {
     if(!style || !out_drawing) return;
-    if(!style->__vtable || !style->__vtable->draw_fn) return;
+    if(!style->priv.vtable || !style->priv.vtable->draw_fn) return;
 
-    style->__vtable->draw_fn(style, size, border_size, out_drawing);
+    style->priv.vtable->draw_fn(style, size, border_size, out_drawing);
 
 }
 

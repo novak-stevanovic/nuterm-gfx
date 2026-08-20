@@ -17,8 +17,15 @@
 
 struct ntg_border_style
 {
-    const struct ntg_border_style_vtable* __vtable;
-    void* data;
+    struct
+    {
+        void* data;
+    } pub;
+
+    struct
+    {
+        const struct ntg_border_style_vtable* vtable;
+    } priv;
 };
 
 NTG_API extern const struct ntg_border_style NTG_BORDER_STYLE_DEFAULT;
@@ -72,7 +79,7 @@ ntg_border_style_deinit(ntg_border_style* style);
 /* FUNCTIONS */
 /* ========================================================================== */
 
-void _ntg_border_style_draw(
+void ntg__border_style_draw(
         const ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,

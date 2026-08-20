@@ -71,7 +71,6 @@ typedef struct ntg_anchor_policy ntg_anchor_policy;
 typedef struct ntg_float ntg_float;
 typedef struct ntg_sidefloat ntg_sidefloat;
 typedef struct ntg_border_9x ntg_border_9x;
-typedef struct ntg_objptr_vec ntg_objptr_vec;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_pos_map ntg_object_pos_map;
 typedef struct ntg_object_drawing ntg_object_drawing;

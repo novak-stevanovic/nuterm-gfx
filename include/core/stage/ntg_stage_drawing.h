@@ -18,7 +18,10 @@
 
 struct ntg_stage_drawing
 {
-    ntg_cell_vecgrid __data;
+    struct
+    {
+        ntg_cell_vecgrid data;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -62,7 +65,7 @@ ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
 {
     if(!drawing) return ntg_cell_default();
 
-    return ntg_cell_vecgrid_get(&drawing->__data, pos);
+    return ntg_cell_vecgrid_get(&drawing->priv.data, pos);
 }
 
 
@@ -71,7 +74,7 @@ ntg_stage_drawing_set(ntg_stage_drawing* drawing, struct ntg_cell cell, struct n
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
-    (void)ntg_cell_vecgrid_set(&drawing->__data, cell, pos);
+    (void)ntg_cell_vecgrid_set(&drawing->priv.data, cell, pos);
 
     return 0;
 }

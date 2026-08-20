@@ -28,6 +28,9 @@
 
 #define ntg_rnd(renderer_ptr) ((ntg_renderer*)(renderer_ptr))
 
+#define ntg_bs(border_style_ptr) ((ntg_border_style*)(border_style_ptr))
+#define ntg_ap(anchor_policy_ptr) ((ntg_anchor_policy*)(anchor_policy_ptr))
+
 #define NTG_CLEANUP_GEN_FN(fn_name, callee_fn)                                 \
 static void fn_name(void* data)                                                \
 {                                                                              \

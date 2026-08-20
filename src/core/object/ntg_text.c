@@ -84,19 +84,19 @@ static void raise_text_chng_event(
 
 static void init_default(ntg_text* text_obj)
 {
-    text_obj->_opts = ntg_text_opts_default();
-    text_obj->__vtable = NULL;
+    text_obj->ro.opts = ntg_text_opts_default();
+    text_obj->priv.vtable = NULL;
 
-    text_obj->_gfx = NT_GFX_DEFAULT;
+    text_obj->ro.gfx = NT_GFX_DEFAULT;
 
-    text_obj->_text_len = 0;
-    text_obj->_text = NULL;
+    text_obj->ro.text_len = 0;
+    text_obj->ro.text = NULL;
 
-    text_obj->_scroll = ntg_xy(0, 0);
+    text_obj->ro.scroll = ntg_xy(0, 0);
 
-    text_obj->__utf32_text = (struct ntg_str32) {0};
-    text_obj->__utf32_rows = NULL;
-    text_obj->__utf32_row_count = 0;
+    text_obj->priv.utf32_text = (struct ntg_str32) {0};
+    text_obj->priv.utf32_rows = NULL;
+    text_obj->priv.utf32_row_count = 0;
 }
 
 /* ========================================================================== */
@@ -157,12 +157,12 @@ int ntg_text_deinit(ntg_text* text_obj)
 {
     if(!text_obj) return NTG_ERR_INV_ARG;
 
-    if(text_obj->_text)
-        free(text_obj->_text);
-    if(text_obj->__utf32_text.data)
-        free(text_obj->__utf32_text.data);
-    if(text_obj->__utf32_rows)
-        free(text_obj->__utf32_rows);
+    if(text_obj->ro.text)
+        free(text_obj->ro.text);
+    if(text_obj->priv.utf32_text.data)
+        free(text_obj->priv.utf32_text.data);
+    if(text_obj->priv.utf32_rows)
+        free(text_obj->priv.utf32_rows);
 
     init_default(text_obj);
 
@@ -180,20 +180,20 @@ int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 {
     if(!text_obj) return NTG_ERR_INV_ARG;
 
-    struct ntg_text_opts old_opts = text_obj->_opts;
+    struct ntg_text_opts old_opts = text_obj->ro.opts;
     struct ntg_text_opts new_opts = (opts ? (*opts) : ntg_text_opts_default());
 
     if(ntg_text_opts_are_eql(&old_opts, &new_opts))
         return 0;
 
-    text_obj->_opts = new_opts;
+    text_obj->ro.opts = new_opts;
 
     struct nt_gfx gfx =
         (ntg_object_is_focused(ntg_obj(text_obj)) ?
         new_opts.focused_gfx :
         new_opts.gfx);
 
-    text_obj->_gfx = gfx;
+    text_obj->ro.gfx = gfx;
 
     update_object_bg(text_obj);
 
@@ -224,12 +224,12 @@ int ntg_text_set_text(
 
     len = _min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
 
-    if((text_obj->_text_len == len) &&
-            ((len == 0) || (memcmp(text_obj->_text, text, len) == 0)))
+    if((text_obj->ro.text_len == len) &&
+            ((len == 0) || (memcmp(text_obj->ro.text, text, len) == 0)))
         return 0;
 
-    bool raise_event = (text_obj->_text != NULL);
-    size_t old_text_len = text_obj->_text_len;
+    bool raise_event = (text_obj->ro.text != NULL);
+    size_t old_text_len = text_obj->ro.text_len;
     char* old_text = NULL;
     if(raise_event)
     {
@@ -238,7 +238,7 @@ int ntg_text_set_text(
             return NTG_ERR_ALLOC_FAIL;
 
         if(old_text_len > 0)
-            memmove(old_text, text_obj->_text, old_text_len);
+            memmove(old_text, text_obj->ro.text, old_text_len);
         old_text[old_text_len] = '\0';
     }
 
@@ -271,15 +271,15 @@ int ntg_text_set_text(
 
     if(text_text.len == 0)
     {
-        free(text_obj->_text);
-        free(text_obj->__utf32_text.data);
-        free(text_obj->__utf32_rows);
+        free(text_obj->ro.text);
+        free(text_obj->priv.utf32_text.data);
+        free(text_obj->priv.utf32_rows);
 
-        text_obj->_text = text_text.data;
-        text_obj->_text_len = text_text.len;
-        text_obj->__utf32_text = (struct ntg_str32) {0};
-        text_obj->__utf32_rows = NULL;
-        text_obj->__utf32_row_count = 0;
+        text_obj->ro.text = text_text.data;
+        text_obj->ro.text_len = text_text.len;
+        text_obj->priv.utf32_text = (struct ntg_str32) {0};
+        text_obj->priv.utf32_rows = NULL;
+        text_obj->priv.utf32_row_count = 0;
 
         ntg_object_mark_dirty((ntg_object*)text_obj,
             NTG_OBJECT_DIRTY_FULL);
@@ -341,15 +341,15 @@ int ntg_text_set_text(
 
     ntg_str32_split(ntg_str32_get_view(utf32_text, 0), '\n', new_rows, row_count);
 
-    free(text_obj->_text);
-    free(text_obj->__utf32_text.data);
-    free(text_obj->__utf32_rows);
+    free(text_obj->ro.text);
+    free(text_obj->priv.utf32_text.data);
+    free(text_obj->priv.utf32_rows);
 
-    text_obj->_text = text_text.data;
-    text_obj->_text_len = text_text.len;
-    text_obj->__utf32_text = utf32_text;
-    text_obj->__utf32_rows = new_rows;
-    text_obj->__utf32_row_count = row_count;
+    text_obj->ro.text = text_text.data;
+    text_obj->ro.text_len = text_text.len;
+    text_obj->priv.utf32_text = utf32_text;
+    text_obj->priv.utf32_rows = new_rows;
+    text_obj->priv.utf32_row_count = row_count;
 
     ntg_object_mark_dirty((ntg_object*)text_obj,
             NTG_OBJECT_DIRTY_FULL);
@@ -369,9 +369,9 @@ int ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll)
 {
     if(!text_obj) return NTG_ERR_INV_ARG;
 
-    text_obj->_scroll = scroll;
+    text_obj->ro.scroll = scroll;
 
-    text_obj->_scroll = calculate_effective_scroll(text_obj);
+    text_obj->ro.scroll = calculate_effective_scroll(text_obj);
 
     ntg_object_mark_dirty(ntg_obj(text_obj), NTG_OBJECT_DIRTY_DRAW);
 
@@ -384,7 +384,7 @@ int ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff)
     if((scroll_diff.x == 0) && (scroll_diff.y == 0))
         return 0;
 
-    struct ntg_dxy curr_scroll_dxy = ntg_dxy_from_xy(text_obj->_scroll);
+    struct ntg_dxy curr_scroll_dxy = ntg_dxy_from_xy(text_obj->ro.scroll);
 
     struct ntg_dxy scroll_dxy = ntg_dxy_add(curr_scroll_dxy, scroll_diff);
 
@@ -432,7 +432,7 @@ int ntg_text_init_inherit(
         return _status;
     }
 
-    text_obj->__vtable = (text_vtable ? text_vtable : &TEXT_VTABLE_EMPTY);
+    text_obj->priv.vtable = (text_vtable ? text_vtable : &TEXT_VTABLE_EMPTY);
     return 0;
 }
 
@@ -454,15 +454,15 @@ int ntg_text_measure_fn(
 
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
     size_t for_size = ntg_object_get_for_size_cont(_text_obj, orient);
-    if((for_size == 0) || (text_obj->_text_len == 0))
+    if((for_size == 0) || (text_obj->ro.text_len == 0))
         return 0;
 
-    size_t row_count = text_obj->__utf32_row_count;
-    const struct ntg_str32_view* rows = text_obj->__utf32_rows;
+    size_t row_count = text_obj->priv.utf32_row_count;
+    const struct ntg_str32_view* rows = text_obj->priv.utf32_rows;
     if(row_count == 0)
         return 0;
 
-    switch(text_obj->_opts.wrap)
+    switch(text_obj->ro.opts.wrap)
     {
         case NTG_TEXT_WRAP_NONE:
             return measure_nowrap_fn(text_obj, rows, row_count, orient,
@@ -482,18 +482,16 @@ int ntg_text_draw_fn(
         const ntg_object* _text_obj,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout)
+        sarena* arena)
 {
     (void)layout_dt;
-    (void)relayout;
     struct ntg_xy cont_size = ntg_object_get_size_cont(_text_obj);
     if(ntg_xy_is_zero_any(cont_size)) return 0;
 
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
-    if((text_obj->_text_len == 0) || (text_obj->_text == NULL)) return 0;
+    if((text_obj->ro.text_len == 0) || (text_obj->ro.text == NULL)) return 0;
 
-    struct ntg_text_opts opts = text_obj->_opts;
+    struct ntg_text_opts opts = text_obj->ro.opts;
 
     struct ntg_xy cont_nat_size = ntg_object_get_nat_size_cont(_text_obj);
 
@@ -533,8 +531,8 @@ int ntg_text_draw_fn(
 
     for(i = 0; i < full_size_prod; i++) full_buff[i] = ' ';
 
-    size_t row_count = text_obj->__utf32_row_count;
-    const struct ntg_str32_view* rows = text_obj->__utf32_rows;
+    size_t row_count = text_obj->priv.utf32_row_count;
+    const struct ntg_str32_view* rows = text_obj->priv.utf32_rows;
 
     size_t capped_indent = _min2_size(opts.indent, _sub2_size(full_size_adj.x, 1));
     
@@ -654,13 +652,13 @@ int ntg_text_draw_fn(
                 it_cont = full_buff[full_size_adj.x * src_xy.y + src_xy.x];
 
                 it_cell = (opts.bg_mode == NTG_TEXT_BG_FULL) ?
-                    ntg_vcell_new_full(it_cont, text_obj->_gfx) :
-                    ntg_vcell_new_overlay(it_cont, text_obj->_gfx.fg, text_obj->_gfx.style);
+                    ntg_vcell_new_full(it_cont, text_obj->ro.gfx) :
+                    ntg_vcell_new_overlay(it_cont, text_obj->ro.gfx.fg, text_obj->ro.gfx.style);
             }
             else
             {
                 it_cell = (opts.bg_mode == NTG_TEXT_BG_FULL) ?
-                    ntg_vcell_new_full(' ' , text_obj->_gfx) :
+                    ntg_vcell_new_full(' ' , text_obj->ro.gfx) :
                     ntg_vcell_new_transparent();
             }
 
@@ -670,8 +668,8 @@ int ntg_text_draw_fn(
         }
     }
 
-    if(text_obj->__vtable && text_obj->__vtable->post_draw_fn)
-        text_obj->__vtable->post_draw_fn(text_obj, out_drawing, arena);
+    if(text_obj->priv.vtable && text_obj->priv.vtable->post_draw_fn)
+        text_obj->priv.vtable->post_draw_fn(text_obj, out_drawing, arena);
 
     return 0;
 }
@@ -687,7 +685,7 @@ void ntg_text_focus_fn(ntg_object* object)
 
     ntg_text* text = (ntg_text*)object;
 
-    text->_gfx = text->_opts.focused_gfx;
+    text->ro.gfx = text->ro.opts.focused_gfx;
 
     update_object_bg(text);
 
@@ -700,26 +698,26 @@ void ntg_text_unfocus_fn(ntg_object* object)
 
     ntg_text* text = (ntg_text*)object;
 
-    text->_gfx = text->_opts.gfx;
+    text->ro.gfx = text->ro.opts.gfx;
 
     update_object_bg(text);
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
 }
 
-void ntg_text_layout_finalize_fn(ntg_object* object, sarena* arena)
+void ntg_text_cont_resize_fn(ntg_object* object, sarena* arena)
 {
     (void)arena;
 
     ntg_text* text = ntg_txt(object);
 
-    text->_scroll = calculate_effective_scroll(text);
+    text->ro.scroll = calculate_effective_scroll(text);
 }
 
 const struct ntg_object_vtable NTG_TEXT_VTABLE = {
     .measure_fn = ntg_text_measure_fn,
     .draw_fn = ntg_text_draw_fn,
-    .layout_finalize_fn = ntg_text_layout_finalize_fn,
+    .cont_resize_fn = ntg_text_cont_resize_fn,
     .deinit_fn = ntg_text_deinit_fn,
     .focus_fn = ntg_text_focus_fn,
     .unfocus_fn = ntg_text_unfocus_fn
@@ -750,8 +748,8 @@ static int measure_nowrap_fn(
     if(!out_measure)
         return NTG_ERR_INV_ARG;
 
-    size_t indent = text_obj->_opts.indent;
-    size_t text_orient = text_obj->_opts.orient;
+    size_t indent = text_obj->ro.opts.indent;
+    size_t text_orient = text_obj->ro.opts.orient;
 
     if(text_orient == orient)
     {
@@ -795,8 +793,8 @@ static int measure_wrap_fn(
     if(!out_measure)
         return NTG_ERR_INV_ARG;
 
-    size_t indent = text_obj->_opts.indent;
-    size_t text_orient = text_obj->_opts.orient;
+    size_t indent = text_obj->ro.opts.indent;
+    size_t text_orient = text_obj->ro.opts.orient;
     size_t i;
 
     if(text_orient == orient)
@@ -851,8 +849,8 @@ static int measure_wwrap_fn(
     if(!out_measure)
         return NTG_ERR_INV_ARG;
 
-    size_t indent = text_obj->_opts.indent;
-    size_t text_orient = text_obj->_opts.orient;
+    size_t indent = text_obj->ro.opts.indent;
+    size_t text_orient = text_obj->ro.opts.orient;
     size_t i, j;
     struct ntg_str32_view* it_words;
     size_t it_word_count;
@@ -1096,18 +1094,18 @@ static int get_wrows_wwrap(
 
 static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
 {
-    struct ntg_xy opts_scroll = text_obj->_scroll;
+    struct ntg_xy opts_scroll = text_obj->ro.scroll;
     struct ntg_xy cont_size = ntg_object_get_size_cont(ntg_obj(text_obj));
     struct ntg_xy cont_nat_size = ntg_object_get_nat_size_cont(ntg_obj(text_obj));
     struct ntg_xy full_size;
 
-    if(text_obj->_opts.wrap == NTG_TEXT_WRAP_NONE)
+    if(text_obj->ro.opts.wrap == NTG_TEXT_WRAP_NONE)
     {
         full_size = ntg_xy(cont_nat_size.x, cont_nat_size.y);
     }
     else
     {
-        if(text_obj->_opts.orient == NTG_ORIENT_H)
+        if(text_obj->ro.opts.orient == NTG_ORIENT_H)
             full_size = ntg_xy(cont_size.x, cont_nat_size.y);
         else
             full_size = ntg_xy(cont_nat_size.x, cont_size.y);
@@ -1118,7 +1116,7 @@ static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
         _min2_size(opts_scroll.y, _sub2_size(full_size.y, cont_size.y))
     );
 
-    if(text_obj->_opts.wrap != NTG_TEXT_WRAP_NONE)
+    if(text_obj->ro.opts.wrap != NTG_TEXT_WRAP_NONE)
         scroll.x = 0;
 
     return scroll;
@@ -1191,31 +1189,31 @@ static void raise_text_chng_event(
         .len = old_text_len
     };
     struct ntg_str_view new_view = {
-        .data = text_obj->_text,
-        .len = text_obj->_text_len
+        .data = text_obj->ro.text,
+        .len = text_obj->ro.text_len
     };
 
     ntg_object* object = ntg_obj(text_obj);
 
-    if(ntg_type_instance_of(object->_type, &NTG_TYPE_BUTTON))
+    if(ntg_type_instance_of(object->ro.type, &NTG_TYPE_BUTTON))
     {
         struct ntg_event_button_txtchg_dt event_dt = {
             .old_text = old_view,
             .new_text = new_view
         };
         ntg_event_raise(
-                &object->_event_del,
+                &object->ro.event_dlgt,
                 ntg_event_new(
                     NTG_EVENT_BUTTON_TXTCHG, text_obj, &event_dt));
     }
-    else if(ntg_type_instance_of(object->_type, &NTG_TYPE_LABEL))
+    else if(ntg_type_instance_of(object->ro.type, &NTG_TYPE_LABEL))
     {
         struct ntg_event_label_txtchg_dt event_dt = {
             .old_text = old_view,
             .new_text = new_view
         };
         ntg_event_raise(
-                &object->_event_del,
+                &object->ro.event_dlgt,
                 ntg_event_new(
                     NTG_EVENT_LABEL_TXTCHG, text_obj, &event_dt));
     }
@@ -1226,8 +1224,8 @@ static void update_object_bg(ntg_text* text_obj)
     if(!text_obj) return;
 
     struct ntg_vcell cell =
-            (text_obj->_opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_new_full(' ', text_obj->_gfx) :
+            (text_obj->ro.opts.bg_mode == NTG_TEXT_BG_FULL) ?
+            ntg_vcell_new_full(' ', text_obj->ro.gfx) :
             ntg_vcell_new_transparent();
 
     ntg_object_set_base_bg(ntg_obj(text_obj), cell);

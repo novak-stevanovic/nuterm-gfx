@@ -78,8 +78,8 @@ int ntg_main_panel_deinit(ntg_main_panel* panel)
 {
     if(!panel) return NTG_ERR_INV_ARG;
 
-    panel->_opts = ntg_main_panel_opts_default();
-    memset(panel->_children, 0, sizeof(panel->_children));
+    panel->ro.opts = ntg_main_panel_opts_default();
+    memset(panel->ro.children, 0, sizeof(panel->ro.children));
 
     ntg_object_deinit((ntg_object*)panel);
 
@@ -103,14 +103,14 @@ int ntg_main_panel_set(
     if(!panel || (pos < NTG_MAIN_PANEL_NORTH) || (pos > NTG_MAIN_PANEL_CENTER))
         return NTG_ERR_INV_ARG;
 
-    ntg_object* old_child = panel->_children[pos];
+    ntg_object* old_child = panel->ro.children[pos];
 
     if(old_child == object) return 0;
 
     if(old_child)
         ntg_object_detach(old_child);
 
-    panel->_children[pos] = NULL;
+    panel->ro.children[pos] = NULL;
 
     if(object)
     {
@@ -118,7 +118,7 @@ int ntg_main_panel_set(
         if(_status != 0)
             return _status;
 
-        panel->_children[pos] = object;
+        panel->ro.children[pos] = object;
     }
 
     ntg_object_mark_dirty((ntg_object*)panel, NTG_OBJECT_DIRTY_FULL);
@@ -129,7 +129,7 @@ int ntg_main_panel_set(
         .pos = pos
     };
     ntg_event_raise(
-            &ntg_obj(panel)->_event_del,
+            &ntg_obj(panel)->ro.event_dlgt,
             ntg_event_new(NTG_EVENT_MAIN_PANEL_CHLDCHG, panel, &event_dt));
 
     return 0;
@@ -145,14 +145,14 @@ int ntg_main_panel_set_opts(
 {
     if(!panel) return NTG_ERR_INV_ARG;
 
-    struct ntg_main_panel_opts old_opts = panel->_opts;
+    struct ntg_main_panel_opts old_opts = panel->ro.opts;
     struct ntg_main_panel_opts new_opts =
             (opts ? (*opts) : ntg_main_panel_opts_default());
 
     if(ntg_main_panel_opts_are_eql(&old_opts, &new_opts))
         return 0;
 
-    panel->_opts = new_opts;
+    panel->ro.opts = new_opts;
 
     ntg_object_set_base_bg(ntg_obj(panel), new_opts.bg);
 
@@ -161,7 +161,7 @@ int ntg_main_panel_set_opts(
         .new_opts = &new_opts
     };
     ntg_event_raise(
-            &ntg_obj(panel)->_event_del,
+            &ntg_obj(panel)->ro.event_dlgt,
             ntg_event_new(NTG_EVENT_MAIN_PANEL_OPTCHG, panel, &event_dt));
 
     return 0;
@@ -194,8 +194,8 @@ int ntg_main_panel_init_inherit(
     if(_status != 0)
         return _status;
 
-    panel->_opts = ntg_main_panel_opts_default();
-    memset(panel->_children, 0, sizeof(panel->_children));
+    panel->ro.opts = ntg_main_panel_opts_default();
+    memset(panel->ro.children, 0, sizeof(panel->ro.children));
     return 0;
 }
 
@@ -289,7 +289,7 @@ int ntg_main_panel_constrain_fn(
     const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
     size_t size = ntg_object_get_size_1d_cont(_panel, orient);
 
-    if(_panel->_children.size == 0) return 0;
+    if(_panel->ro.children.size == 0) return 0;
     if(size == 0)
     {
         ntg_object_zero_constrain(_panel, out_size_map);
@@ -493,17 +493,17 @@ int ntg_main_panel_arrange_fn(
     ntg_object *north, *east, *south, *west, *center;
     get_children(main_panel, &north, &east, &south, &west, &center);
 
-    if(_panel->_children.size == 0) return 0;
+    if(_panel->ro.children.size == 0) return 0;
     if(ntg_xy_is_zero_any(size))
     {
         ntg_object_zero_arrange(_panel, out_pos_map);
         return 0;
     }
 
-    struct ntg_xy north_size = (north != NULL) ? north->_size : ntg_xy(0, 0);
-    struct ntg_xy east_size = (east != NULL) ? east->_size : ntg_xy(0, 0);
-    struct ntg_xy south_size = (south != NULL) ? south->_size : ntg_xy(0, 0);
-    struct ntg_xy west_size = (west != NULL) ? west->_size : ntg_xy(0, 0);
+    struct ntg_xy north_size = (north != NULL) ? north->ro.size : ntg_xy(0, 0);
+    struct ntg_xy east_size = (east != NULL) ? east->ro.size : ntg_xy(0, 0);
+    struct ntg_xy south_size = (south != NULL) ? south->ro.size : ntg_xy(0, 0);
+    struct ntg_xy west_size = (west != NULL) ? west->ro.size : ntg_xy(0, 0);
 
     size_t west_east_width = west_size.x + east_size.x;
     size_t north_south_height = north_size.y + south_size.y;
@@ -535,11 +535,11 @@ static void get_children(const ntg_main_panel* panel, ntg_object** out_north,
         ntg_object** out_east, ntg_object** out_south, ntg_object** out_west,
         ntg_object** out_center)
 {
-    (*out_north) = panel->_children[NTG_MAIN_PANEL_NORTH];
-    (*out_east) = panel->_children[NTG_MAIN_PANEL_EAST];
-    (*out_south) = panel->_children[NTG_MAIN_PANEL_SOUTH];
-    (*out_west) = panel->_children[NTG_MAIN_PANEL_WEST];
-    (*out_center) = panel->_children[NTG_MAIN_PANEL_CENTER];
+    (*out_north) = panel->ro.children[NTG_MAIN_PANEL_NORTH];
+    (*out_east) = panel->ro.children[NTG_MAIN_PANEL_EAST];
+    (*out_south) = panel->ro.children[NTG_MAIN_PANEL_SOUTH];
+    (*out_west) = panel->ro.children[NTG_MAIN_PANEL_WEST];
+    (*out_center) = panel->ro.children[NTG_MAIN_PANEL_CENTER];
 }
 
 void ntg_main_panel_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
@@ -549,8 +549,8 @@ void ntg_main_panel_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
     size_t i;
     for(i = 0; i < 5; i++)
     {
-        if(main_panel->_children[i] == child)
-            main_panel->_children[i] = NULL;
+        if(main_panel->ro.children[i] == child)
+            main_panel->ro.children[i] = NULL;
     }
 
     ntg_object_mark_dirty(_main_panel, NTG_OBJECT_DIRTY_FULL);

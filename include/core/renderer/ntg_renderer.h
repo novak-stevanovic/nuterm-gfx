@@ -16,11 +16,16 @@
 
 struct ntg_renderer
 {
-    const struct ntg_renderer_vtable* __vtable;
+    struct
+    {
+        ntg_event_delegate event_delegate;
+        void* data;
+    } pub;
 
-    ntg_event_delegate event_delegate;
-
-    void* data;
+    struct
+    {
+        const struct ntg_renderer_vtable* vtable;
+    } priv;
 };
 
 /* ========================================================================== */

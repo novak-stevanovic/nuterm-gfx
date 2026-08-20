@@ -29,7 +29,10 @@ ntg_label_opts_are_eql(
 
 struct ntg_label
 {
-    ntg_text __base;
+    struct
+    {
+        ntg_text base;
+    } priv;
 };
 
 /* ========================================================================== */
@@ -116,8 +119,7 @@ ntg_label_draw_fn(
         const ntg_object* _label,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout);
+        sarena* arena);
 
 NTG_API void
 ntg_label_deinit_fn(ntg_object* _label);

@@ -4,6 +4,7 @@
 #include "shared/ntg_shared.h"
 #include "core/object/border/ntg_border_style.h"
 #include "nt_gfx.h"
+#include "base/ntg_cell.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -18,14 +19,21 @@
 struct ntg_border_9x_sym
 {
     uint32_t top_left, top, top_right, right,
-            bottom_right, bottom, bottom_left,
-            left, padding;
+             bottom_right, bottom, bottom_left,
+             left, padding;
 };
 
 struct ntg_border_9x
 {
-    ntg_border_style __base; 
-    struct ntg_border_9x_sym _symbols;
+    struct
+    {
+        ntg_border_style base;
+    } priv;
+
+    struct
+    {
+        struct ntg_border_9x_sym symbols;
+    } ro;
 };
 
 /* ========================================================================== */
@@ -106,13 +114,12 @@ ntg_border_9x_init_ascii(
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_transparent(
-        struct ntg_border_9x* style);
+ntg_border_9x_init_transparent(struct ntg_border_9x* style);
 
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_custom_9x(
+ntg_border_9x_init_custom(
         struct ntg_border_9x* style,
         enum ntg_vcell_type type,
         struct nt_gfx gfx,

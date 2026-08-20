@@ -29,9 +29,11 @@ ntg_button_opts_are_eql(
 
 struct ntg_button
 {
-    ntg_text __base;
-
-    bool (*__click_fn)(ntg_button* button);
+    struct
+    {
+        ntg_text base;
+        bool (*click_fn)(ntg_button* button);
+    } priv;
 };
 
 /* ========================================================================== */
@@ -125,8 +127,7 @@ ntg_button_draw_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout);
+        sarena* arena);
 
 NTG_API void
 ntg_button_deinit_fn(ntg_object* _button);

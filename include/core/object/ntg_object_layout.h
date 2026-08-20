@@ -32,21 +32,21 @@ struct ntg_object_layout_dt
 
 enum ntg_object_dirty_flag
 {
+    /* Must be set by user explicitly. Calls user-defined layout_prepare()
+     * fn before scene starts the layout process. */
+    NTG_OBJECT_DIRTY_PREPARE = (1u << 0),
+
     /* These flags can be set by the user or in the layout process.
      * They are cleaned by the scene. */
-    NTG_OBJECT_DIRTY_HMEASURE = (1u << 0),
-    NTG_OBJECT_DIRTY_HCONSTRAIN = (1u << 1),
-    NTG_OBJECT_DIRTY_VMEASURE = (1u << 2),
-    NTG_OBJECT_DIRTY_VCONSTRAIN = (1u << 3),
-    NTG_OBJECT_DIRTY_ARRANGE = (1u << 4),
-    NTG_OBJECT_DIRTY_DRAW = (1u << 5),
-
-    /* Set by ntg_object internally. Cleaned by the scene. */
-    NTG_OBJECT_DIRTY_LAYOUT_PREPARE = (1u << 6),
-    NTG_OBJECT_DIRTY_LAYOUT_FINALIZE = (1u << 7),
+    NTG_OBJECT_DIRTY_HMEASURE = (1u << 1),
+    NTG_OBJECT_DIRTY_HCONSTRAIN = (1u << 2),
+    NTG_OBJECT_DIRTY_VMEASURE = (1u << 3),
+    NTG_OBJECT_DIRTY_VCONSTRAIN = (1u << 4),
+    NTG_OBJECT_DIRTY_ARRANGE = (1u << 5),
+    NTG_OBJECT_DIRTY_DRAW = (1u << 6),
 
     /* Set in draw phase automatically. It is cleaned by the stage. */
-    NTG_OBJECT_DIRTY_RENDER = (1u << 8)
+    NTG__OBJECT_DIRTY_RENDER = (1u << 8)
 };
 
 #define NTG_OBJECT_DIRTY_MEASURE (                                             \
@@ -63,9 +63,7 @@ enum ntg_object_dirty_flag
     NTG_OBJECT_DIRTY_VMEASURE |                                                \
     NTG_OBJECT_DIRTY_VCONSTRAIN |                                              \
     NTG_OBJECT_DIRTY_ARRANGE |                                                 \
-    NTG_OBJECT_DIRTY_DRAW |                                                    \
-    NTG_OBJECT_DIRTY_LAYOUT_FINALIZE |                                         \
-    NTG_OBJECT_DIRTY_LAYOUT_PREPARE )
+    NTG_OBJECT_DIRTY_DRAW )
 
 /* ------------------------------------------------------ */
 /* MEASURE PHASE */
@@ -110,7 +108,6 @@ ntg_object_zero_constrain(const ntg_object* object, ntg_object_size_map* map);
 /* ------------------------------------------------------ */
 /* ARRANGE PHASE */
 /* ------------------------------------------------------ */
-
 
 NTG_API struct ntg_xy
 ntg_object_pos_map_get(
@@ -279,42 +276,40 @@ ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orient);
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int _ntg_object_hmeasure(
+void ntg__object_layout_prepare(ntg_object* object, sarena* arena);
+
+int ntg__object_hmeasure(
         ntg_object* object,
         sarena* arena,
         uint32_t* relayout);
 
-int _ntg_object_hconstrain(
+int ntg__object_hconstrain(
         ntg_object* object,
         sarena* arena,
         uint32_t* relayout);
 
-int _ntg_object_vmeasure(
+int ntg__object_vmeasure(
         ntg_object* object,
         sarena* arena,
         uint32_t* relayout);
 
-int _ntg_object_vconstrain(
+int ntg__object_vconstrain(
         ntg_object* object,
         sarena* arena,
         uint32_t* relayout);
 
-int _ntg_object_arrange(
+int ntg__object_arrange(
         ntg_object* object,
         sarena* arena,
         uint32_t* relayout);
 
-int _ntg_object_draw(
-        ntg_object* object,
-        sarena* arena,
-        uint32_t* relayout);
+int ntg__object_draw(ntg_object* object, sarena* arena);
+void ntg__object_layout_finalize(ntg_object* object, sarena* arena);
 
-void _ntg_object_layout_finalize(ntg_object* object, sarena* arena);
+void ntg__object_root_set_hsize(ntg_object* object, size_t size);
+void ntg__object_root_set_vsize(ntg_object* object, size_t size);
+void ntg__object_root_set_pos(ntg_object* object, struct ntg_xy pos);
 
-void _ntg_object_root_set_hsize(ntg_object* object, size_t size);
-void _ntg_object_root_set_vsize(ntg_object* object, size_t size);
-void _ntg_object_root_set_pos(ntg_object* object, struct ntg_xy pos);
-
-void _ntg_object_clean(ntg_object* object, uint32_t clean);
+void ntg__object_clean(ntg_object* object, uint32_t clean);
 
 #endif // NTG_OBJECT_LAYOUT_H

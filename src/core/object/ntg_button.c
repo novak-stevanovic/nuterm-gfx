@@ -75,7 +75,7 @@ int ntg_button_deinit(ntg_button* button)
 
     ntg_text_deinit(ntg_txt(button));
 
-    button->__click_fn = NULL;
+    button->priv.click_fn = NULL;
 
     return 0;
 }
@@ -93,7 +93,7 @@ int ntg_button_get_opts(const ntg_button* button, struct ntg_button_opts* out_op
 {
     if(!button || !out_opts) return NTG_ERR_INV_ARG;
 
-    out_opts->text_opts = (ntg_txt(button))->_opts;
+    out_opts->text_opts = (ntg_txt(button))->ro.opts;
 
     return 0;
 }
@@ -116,7 +116,7 @@ int ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
         .new_opts = &new_opts
     };
     ntg_event_raise(
-            &ntg_obj(button)->_event_del,
+            &ntg_obj(button)->ro.event_dlgt,
             ntg_event_new(NTG_EVENT_BUTTON_OPTCHG, button, &event_dt));
 
     return 0;
@@ -130,7 +130,7 @@ int ntg_button_set_click_fn(ntg_button* button, bool (*click_fn)(ntg_button* but
 {
     if(!button) return NTG_ERR_INV_ARG; 
 
-    button->__click_fn = click_fn;
+    button->priv.click_fn = click_fn;
 
     return 0;
 }
@@ -151,8 +151,8 @@ struct ntg_str_view ntg_button_get_text(const struct ntg_button* button)
     else
     {
         return (struct ntg_str_view) {
-            .data = (ntg_txt(button))->_text,
-            .len = (ntg_txt(button))->_text_len,
+            .data = (ntg_txt(button))->ro.text,
+            .len = (ntg_txt(button))->ro.text_len,
         };
     }
 }
@@ -200,7 +200,7 @@ int ntg_button_init_inherit(
     if(!ntg_type_instance_of(type, &NTG_TYPE_BUTTON))
         return NTG_ERR_INV_TYPE;
 
-    button->__click_fn = NULL;
+    button->priv.click_fn = NULL;
 
     int _status = ntg_text_init_inherit(
             ntg_txt(button), object_vtable, text_vtable, type, layout_dt);
@@ -232,13 +232,11 @@ int ntg_button_draw_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
         ntg_object_tmp_drawing* out_drawing,
-        sarena* arena,
-        uint32_t* relayout)
+        sarena* arena)
 {
     if(ntg_xy_is_zero_any(ntg_object_get_size_cont(_button))) return 0;
 
-    return ntg_text_draw_fn(
-            _button, layout_dt, out_drawing, arena, relayout);
+    return ntg_text_draw_fn(_button, layout_dt, out_drawing, arena);
 }
 
 void ntg_button_deinit_fn(ntg_object* _button)
@@ -252,8 +250,8 @@ bool ntg_button_process_mouse_fn(ntg_object* _button, const struct ntg_object_mo
 
     ntg_button* button = ntg_btn(_button);
 
-    if(button->__click_fn && (event->mouse.type == NT_MOUSE_CLICK_LEFT))
-        return button->__click_fn(button);
+    if(button->priv.click_fn && (event->mouse.type == NT_MOUSE_CLICK_LEFT))
+        return button->priv.click_fn(button);
     else
         return false;
 }
@@ -272,7 +270,7 @@ const struct ntg_object_vtable NTG_BUTTON_VTABLE_OBJECT = {
     .measure_fn = ntg_button_measure_fn,
     .draw_fn = ntg_button_draw_fn,
     .deinit_fn = ntg_button_deinit_fn,
-    .process_mouse_fn = ntg_button_process_mouse_fn,
+    .handle_mouse_fn = ntg_button_process_mouse_fn,
     .focus_fn = ntg_button_focus_fn,
     .unfocus_fn = ntg_button_unfocus_fn
 };
