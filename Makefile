@@ -25,7 +25,7 @@ NUTERM_LIBS := $(shell pkgconf --with-path=$(PC_WITH_PATH) --silence-errors --li
 # RELEASE BUILD
 # ---------------------------------------------------------
 
-SRC_CFLAGS_REL := $(NUTERM_CFLAGS) -Iinclude -std=c11 -O3 -flto -Wall -Wfatal-errors -pthread
+SRC_CFLAGS_REL := $(NUTERM_CFLAGS) -Iinclude -std=c11 -O3 -flto -Wall -Wfatal-errors -pthread -MMD -MP
 SRC_CFLAGS_SO_REL := -DNTG_EXPORT -fvisibility=hidden -fPIC
 SRC_CFLAGS_AR_REL :=
 
@@ -38,7 +38,7 @@ AR_FLAGS_REL := rcs
 # DEBUG BUILD
 # ---------------------------------------------------------
 
-SRC_CFLAGS_DEB := $(NUTERM_CFLAGS) -Iinclude -std=c99 -O0 -Wall -Wextra -Wpedantic -g -pthread # -fsanitize=address
+SRC_CFLAGS_DEB := $(NUTERM_CFLAGS) -Iinclude -std=c99 -O0 -Wall -Wextra -Wpedantic -g -pthread -MMD -MP # -fsanitize=address
 SRC_CFLAGS_SO_DEB := -DNTG_EXPORT -fvisibility=hidden -fPIC
 SRC_CFLAGS_AR_DEB :=
 
@@ -81,6 +81,10 @@ endif
 C_SRC := $(shell find src -name "*.c")
 SO_OBJ := $(patsubst src/%.c,build/so/%.o,$(C_SRC))
 AR_OBJ := $(patsubst src/%.c,build/ar/%.o,$(C_SRC))
+
+SO_DEP := $(SO_OBJ:.o=.d)
+AR_DEP := $(AR_OBJ:.o=.d)
+C_DEP := $(SO_DEP) $(AR_DEP)
 
 LIB_SO := lib$(LIB).so
 LIB_AR := lib$(LIB).a
