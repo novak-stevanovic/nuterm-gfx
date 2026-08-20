@@ -46,26 +46,9 @@ struct ntg_loop
 
 static struct ntg_loop loop = {0};
 
-// prerequisite: (tv_sec * 1 000) + (tv_nsec / 1 000 000) <= ULLONG_MAX
-// valid, non-negative, normalized ts timespec
 static inline unsigned long long
 timespec_to_ms(struct timespec ts)
 {
-    /*
-    unsigned long long sec_ull = ts.tv_sec;
-    unsigned long long nsec_ull = ts.tv_nsec;
-
-    if((ULLONG_MAX / 1000) < sec_ull)
-        sec_ull = ULLONG_MAX / 1000;
-
-    unsigned long long sec_ull_ms = sec_ull * 1000;
-    unsigned long long nsec_ull_ms = nsec_ull / 1000000;
-
-    if((ULLONG_MAX - nsec_ull_ms) < sec_ull_ms)
-        sec_ull_ms = (ULLONG_MAX - nsec_ull_ms);
-
-    return sec_ull_ms + nsec_ull_ms; */
-
     return ((unsigned long long)ts.tv_sec * 1000) +
            ((unsigned long long)ts.tv_nsec / 1000000);
 }
@@ -286,14 +269,14 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
 
     int _status = 0 ,_tmp_status;
 
-    unsigned long timeout = 1000 / loop.framerate;
+    unsigned int timeout = 1000 / loop.framerate;
     struct timespec ts_start, ts_end;
     unsigned long long process_elapsed_ms;
     const ntg_stage_drawing* drawing;
 
     struct nt_event event = {0};
     struct nt_resize resize_event;
-    unsigned long event_elapsed;
+    unsigned int event_elapsed;
 
     nt_get_term_size(&loop.app_size.x, &loop.app_size.y);
     loop.app_size.x = _clamp_size(0, loop.app_size.x, NTG_SIZE_MAX);

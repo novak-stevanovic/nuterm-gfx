@@ -131,7 +131,7 @@ bool loop_on_event_fn(const struct nt_event* event)
     {
         struct nt_key key;
         NT_EVENT_FILL_DATA((*event), &key);
-        if(nt_key_utf32_check_alt(key, 'q', false))
+        if(nt_key_utf32_match_alt(key, 'q', false))
         {
             ntg_loop_stop();
             return true;
@@ -143,27 +143,27 @@ bool loop_on_event_fn(const struct nt_event* event)
 
 bool fs1_dispatch_key_fn(ntg_fcs_scope* scope, struct nt_key key)
 {
-    if(nt_key_esc_check(key, NT_ESC_KEY_ARR_UP))
+    if(nt_key_esc_match(key, NT_ESC_KEY_ARR_UP))
     {
         ntg_text_scroll(ntg_txt(&north), ntg_dxy(0, -1));
         return true;
     }
-    else if(nt_key_esc_check(key, NT_ESC_KEY_ARR_RIGHT))
+    else if(nt_key_esc_match(key, NT_ESC_KEY_ARR_RIGHT))
     {
         ntg_text_scroll(ntg_txt(&north), ntg_dxy(1, 0));
         return true;
     }
-    else if(nt_key_esc_check(key, NT_ESC_KEY_ARR_DOWN))
+    else if(nt_key_esc_match(key, NT_ESC_KEY_ARR_DOWN))
     {
         ntg_text_scroll(ntg_txt(&north), ntg_dxy(0, 1));
         return true;
     }
-    else if(nt_key_esc_check(key, NT_ESC_KEY_ARR_LEFT))
+    else if(nt_key_esc_match(key, NT_ESC_KEY_ARR_LEFT))
     {
         ntg_text_scroll(ntg_txt(&north), ntg_dxy(-1, 0));
         return true;
     }
-    else if(nt_key_utf32_check(key, 'w'))
+    else if(nt_key_utf32_match(key, 'w'))
     {
         struct ntg_label_opts north_opts;
         ntg_label_get_opts(&north, &north_opts);

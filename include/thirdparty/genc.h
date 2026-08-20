@@ -31,6 +31,10 @@
 #ifndef GENC_H
 #define GENC_H
 
+#if !defined(__STDC_VERSION__) || (__STDC_VERSION__ < 199901L)
+#error "C99 or newer is required"
+#endif /* C99 check */
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
