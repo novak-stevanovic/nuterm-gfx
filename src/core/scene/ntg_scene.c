@@ -5,8 +5,6 @@
 #include <string.h>
 #include <assert.h>
 
-#define DEBUG 0
-
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* STATIC */
@@ -17,7 +15,7 @@ struct layout_data
 {
     ntg_scene* scene;
     sarena* arena;
-    bool new_it, stay_dirty;
+    bool new_it, stay_dirty, prepare_failed;
 
     /* Inited in prepare_phase */
     size_t tree_size;
@@ -116,6 +114,10 @@ int ntg_scene_mark_dirty(ntg_scene* scene)
     return 0;
 }
 
+/* ------------------------------------------------------ */
+/* GENERAL */
+/* ------------------------------------------------------ */
+
 size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_object** out_buff, size_t cap)
 {
     if(!scene) return 0;
@@ -148,6 +150,8 @@ size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_object** out_buff, si
 
     return sum;
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_scene_hit_test(
         ntg_scene* scene,
@@ -243,6 +247,8 @@ int ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
 }
 */
 
+/* ------------------------------------------------------ */
+
 int ntg_scene_add_root(ntg_scene* scene, ntg_object* object)
 {
     if(!scene || !object)
@@ -325,6 +331,8 @@ bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key key)
 
     return handled;
 }
+
+/* ------------------------------------------------------ */
 
 bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse mouse)
 {
@@ -413,10 +421,6 @@ const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT = {
 /* FUNCTIONS */
 /* ========================================================================== */
 
-/* ------------------------------------------------------ */
-/* LAYOUT */
-/* ------------------------------------------------------ */
-
 int ntg__scene_set_size(ntg_scene* scene, struct ntg_xy size)
 {
     if(!scene)
@@ -449,30 +453,45 @@ int ntg__scene_set_size(ntg_scene* scene, struct ntg_xy size)
 bool ntg__scene_layout(ntg_scene* scene, sarena* arena)
 {
     if(!scene) return false;
-    if(scene->ro.tree_count == 0) return false;
 
-    /* Total tree count will suffice (it is >= each graph tree count) */
-    size_t cap = scene->ro.tree_count;
-    ntg_object** buff = sarena_calloc(arena, sizeof(ntg_object*) * cap);
-    if(!buff) return true;
+    ntg_event_raise(
+            &scene->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_SCENE_LAYPRE, scene, NULL));
 
     bool relayout = false;
 
-    size_t i, j;
-    ntg_object* it_root;
-    size_t it_count;
-    for(i = 0; i < scene->ro.roots.size; i++)
+    if(scene->ro.tree_count != 0)
     {
-        it_root = scene->ro.roots.data[i];
-
-        it_count = ntg_object_graph_collect_roots_pre(it_root, buff, cap);
-
-        for(j = 0; j < it_count; j++)
+        /* Total tree count will suffice (it is >= each graph tree count) */
+        size_t cap = scene->ro.tree_count;
+        ntg_object** buff = sarena_calloc(arena, sizeof(ntg_object*) * cap);
+        if(!buff)
         {
-            bool layer_relayout = layout_layer(scene, buff[j], arena);
-            relayout = relayout || layer_relayout;
+            relayout = true;
+        }
+        else
+        {
+            size_t i, j;
+            ntg_object* it_root;
+            size_t it_count;
+            for(i = 0; i < scene->ro.roots.size; i++)
+            {
+                it_root = scene->ro.roots.data[i];
+
+                it_count = ntg_object_graph_collect_roots_pre(it_root, buff, cap);
+
+                for(j = 0; j < it_count; j++)
+                {
+                    bool layer_relayout = layout_layer(scene, buff[j], arena);
+                    relayout = relayout || layer_relayout;
+                }
+            }
         }
     }
+
+    ntg_event_raise(
+            &scene->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_SCENE_LAYPOST, scene, NULL));
 
     return relayout;
 }
@@ -781,6 +800,7 @@ static inline void init_layout_data(
     lay_data->scene = scene;
     lay_data->new_it = false;
     lay_data->stay_dirty = false;
+    lay_data->prepare_failed = false;
     lay_data->tree_size = ntg_object_tree_collect_pre(root, NULL, SIZE_MAX);
 
     lay_data->tree_pre = sarena_malloc(arena, lay_data->tree_size * sizeof(ntg_object*));
@@ -948,10 +968,13 @@ layout_layer(ntg_scene* scene, ntg_object* root, sarena* arena)
     }
     while((layout_data.new_it) && (it_counter < scene->priv.max_it));
 
+    ntg_log_log("IT: %d", it_counter);
+
     draw_phase(root, &layout_data);
     finalize_phase(root, &layout_data);
 
-    return (layout_data.new_it || layout_data.stay_dirty);
+    return (layout_data.prepare_failed || layout_data.new_it ||
+            layout_data.stay_dirty);
 }
 
 static uint32_t masks[] = {
@@ -979,14 +1002,17 @@ static inline void prepare_object(ntg_object* object, void* _layout_data)
 
     if(object->ro.dirty & NTG_OBJECT_DIRTY_PREPARE)
     {
-        ntg_log_log("NTG_SCENE | P | %p", object);
+        // ntg_log_log("NTG_SCENE | P | %p", object);
 
-        ntg__object_layout_prepare(object, arena);
-        ntg__object_clean(object, NTG_OBJECT_DIRTY_PREPARE);
+        int _status = ntg__object_layout_prepare(object, arena);
+        if(_status)
+            layout_data->prepare_failed = true;
+        else
+            ntg__object_clean(object, NTG_OBJECT_DIRTY_PREPARE);
     }
     else
     {
-        ntg_log_log("NTG_SCENE | P SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | P SKIPPED | %p", object);
     }
 }
 
@@ -999,7 +1025,7 @@ static inline void hmeasure_object(ntg_object* object, void* _layout_data)
 
     if(object->ro.dirty & NTG_OBJECT_DIRTY_HMEASURE)
     {
-        ntg_log_log("NTG_SCENE | HM | %p", object);
+        // ntg_log_log("NTG_SCENE | HM | %p", object);
 
         uint32_t _relayout = 0;
         int _status = ntg__object_hmeasure(object, arena, &_relayout);
@@ -1014,7 +1040,7 @@ static inline void hmeasure_object(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("NTG_SCENE | HM SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | HM SKIPPED | %p", object);
     }
 }
 
@@ -1027,7 +1053,7 @@ static inline void hconstrain_object(ntg_object* object, void* _layout_data)
 
     if(object->ro.dirty & NTG_OBJECT_DIRTY_HCONSTRAIN)
     {
-        ntg_log_log("NTG_SCENE | HC | %p", object);
+        // ntg_log_log("NTG_SCENE | HC | %p", object);
 
         uint32_t _relayout = 0;
         int _status = ntg__object_hconstrain(object, arena, &_relayout);
@@ -1042,7 +1068,7 @@ static inline void hconstrain_object(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("NTG_SCENE | HC SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | HC SKIPPED | %p", object);
     }
 }
 
@@ -1055,7 +1081,7 @@ static inline void vmeasure_object(ntg_object* object, void* _layout_data)
 
     if(object->ro.dirty & NTG_OBJECT_DIRTY_VMEASURE)
     {
-        ntg_log_log("NTG_SCENE | VM | %p", object);
+        // ntg_log_log("NTG_SCENE | VM | %p", object);
 
         uint32_t _relayout = 0;
         int _status = ntg__object_vmeasure(object, arena, &_relayout);
@@ -1070,7 +1096,7 @@ static inline void vmeasure_object(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("NTG_SCENE | VM SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | VM SKIPPED | %p", object);
     }
 }
 
@@ -1083,7 +1109,7 @@ static inline void vconstrain_object(ntg_object* object, void* _layout_data)
 
     if(object->ro.dirty & NTG_OBJECT_DIRTY_VCONSTRAIN)
     {
-        ntg_log_log("NTG_SCENE | VC | %p", object);
+        // ntg_log_log("NTG_SCENE | VC | %p", object);
 
         uint32_t _relayout = 0;
         int _status = ntg__object_vconstrain(object, arena, &_relayout);
@@ -1098,7 +1124,7 @@ static inline void vconstrain_object(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("NTG_SCENE | VC SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | VC SKIPPED | %p", object);
     }
 }
 
@@ -1111,7 +1137,7 @@ static inline void arrange_object(ntg_object* object, void* _layout_data)
 
     if(object->ro.dirty & NTG_OBJECT_DIRTY_ARRANGE)
     {
-        ntg_log_log("NTG_SCENE | A | %p", object);
+        // ntg_log_log("NTG_SCENE | A | %p", object);
 
         uint32_t _relayout = 0;
         int _status = ntg__object_arrange(object, arena, &_relayout);
@@ -1126,7 +1152,7 @@ static inline void arrange_object(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("NTG_SCENE | A SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | A SKIPPED | %p", object);
     }
 }
 
@@ -1139,7 +1165,7 @@ static inline void draw_object(ntg_object* object, void* _layout_data)
 
     if(object->ro.dirty & NTG_OBJECT_DIRTY_DRAW)
     {
-        ntg_log_log("NTG_SCENE | D | %p", object);
+        // ntg_log_log("NTG_SCENE | D | %p", object);
 
         int _status = ntg__object_draw(object, arena);
         if(_status != 0)
@@ -1149,7 +1175,7 @@ static inline void draw_object(ntg_object* object, void* _layout_data)
     }
     else
     {
-        ntg_log_log("NTG_SCENE | D SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | D SKIPPED | %p", object);
     }
 }
 

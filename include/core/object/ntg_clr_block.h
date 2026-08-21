@@ -100,7 +100,7 @@ NTG_API int
 ntg_clr_block_draw_fn(
         const ntg_object* _clr_block,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
 /* ------------------------------------------------------ */

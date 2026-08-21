@@ -18,7 +18,7 @@
 #include "base/ntg_event.h"
 #include "base/ntg_vecgrid.h"
 #include "base/ntg_type.h"
-#include "core/renderer/ntg_default_renderer.h"
+#include "core/renderer/ntg_db_renderer.h"
 #include "core/renderer/ntg_renderer.h"
 #include "core/loop/ntg_loop.h"
 #include "core/object/ntg_object_layout.h"
@@ -92,7 +92,6 @@ FIX:
 add layout_prepare vtable fn for text to set_text
 pos -> NTG_SIZE_MAX for no draw
 redo coordinate map functions
-click bug
 
 IMPLEMENT:
 ntg_input

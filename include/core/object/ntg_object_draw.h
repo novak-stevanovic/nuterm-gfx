@@ -1,10 +1,9 @@
-#ifndef NTG_STAGE_DRAWING_H
-#define NTG_STAGE_DRAWING_H
+#ifndef NTG_OBJECT_DRAW_H
+#define NTG_OBJECT_DRAW_H
 
 #include "shared/ntg_shared.h"
 #include "shared/ntg_error.h"
 #include "base/ntg_cell.h"
-#include "base/ntg_xy.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -16,11 +15,11 @@
 /* TYPES */
 /* ========================================================================== */
 
-struct ntg_stage_drawing
+struct ntg_object_draw
 {
     struct
     {
-        ntg_cell_vecgrid data;
+        ntg_vcell_vecgrid data;
     } priv;
 };
 
@@ -33,45 +32,64 @@ struct ntg_stage_drawing
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_stage_drawing_init(ntg_stage_drawing* drawing);
+ntg_object_draw_init(ntg_object_draw* drawing);
 
 NTG_API int
-ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
+ntg_object_draw_deinit(ntg_object_draw* drawing);
 
 /* ------------------------------------------------------ */
 /* SIZE */
 /* ------------------------------------------------------ */
 
 static inline struct ntg_xy
-ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing)
+ntg_object_draw_get_size(const ntg_object_draw* drawing)
 {
     return (drawing != NULL) ?
-        ntg_cell_vecgrid_get_size(&drawing->priv.data) :
+        ntg_vcell_vecgrid_get_size(&drawing->priv.data) :
         NTG_XY_UNSET;
 }
 
 NTG_API int
-ntg_stage_drawing_set_size(ntg_stage_drawing* drawing, struct ntg_xy size);
+ntg_object_draw_set_size(ntg_object_draw* drawing, struct ntg_xy size);
+
+/* ------------------------------------------------------ */
+/* PLACEMENT */
+/* ------------------------------------------------------ */
+
+
+NTG_API int
+ntg_object_draw_place(
+        const ntg_object_draw* src_drawing,
+        ntg_object_draw* dest_drawing,
+        struct ntg_xy dest_start_pos);
+
+/* ------------------------------------------------------ */
+
+
+NTG_API int
+ntg_object_draw_place_(
+        const ntg_object_draw* src_drawing,
+        ntg_stage_draw* dest_drawing,
+        struct ntg_xy dest_start_pos);
 
 /* ------------------------------------------------------ */
 /* CELLS */
 /* ------------------------------------------------------ */
 
-static inline struct ntg_cell
-ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
+static inline struct ntg_vcell
+ntg_object_draw_get(const ntg_object_draw* drawing, struct ntg_xy pos)
 {
-    if(!drawing) return ntg_cell_default();
+    if(!drawing) return ntg_vcell_new_default();
 
-    return ntg_cell_vecgrid_get(&drawing->priv.data, pos);
+    return ntg_vcell_vecgrid_get(&drawing->priv.data, pos);
 }
 
 
 static inline void
-ntg_stage_drawing_set(ntg_stage_drawing* drawing, struct ntg_cell cell, struct ntg_xy pos)
+ntg_object_draw_set(ntg_object_draw* drawing, struct ntg_vcell cell, struct ntg_xy pos)
 {
     if(!drawing) return;
-
-    ntg_cell_vecgrid_set(&drawing->priv.data, cell, pos);
+    ntg_vcell_vecgrid_set(&drawing->priv.data, cell, pos);
 }
 
-#endif // NTG_STAGE_DRAWING_H
+#endif // NTG_OBJECT_DRAW_H

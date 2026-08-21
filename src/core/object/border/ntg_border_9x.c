@@ -38,7 +38,7 @@ static void border_9x_draw_fn(
         const ntg_border_style* base,
         struct ntg_xy size,
         struct ntg_insets border_size,
-        ntg_object_tmp_drawing* out_drawing);
+        ntg_object_tmp_draw* out_drawing);
 
 static void border_9x_deinit_fn(ntg_border_style* base);
 
@@ -76,6 +76,8 @@ int ntg_border_9x_init_monochrome(
             &symbols);
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_border_9x_init_basic(
         ntg_border_9x* style,
         struct nt_gfx gfx,
@@ -100,6 +102,8 @@ int ntg_border_9x_init_basic(
             gfx,
             &symbols);
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_border_9x_init_basic_edge(
         ntg_border_9x* style,
@@ -126,6 +130,8 @@ int ntg_border_9x_init_basic_edge(
             &symbols);
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_border_9x_init_single(
         ntg_border_9x* style,
         struct nt_gfx gfx,
@@ -149,6 +155,8 @@ int ntg_border_9x_init_single(
             gfx,
             &symbols);
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_border_9x_init_double(
         ntg_border_9x* style,
@@ -174,6 +182,8 @@ int ntg_border_9x_init_double(
             &symbols);
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_border_9x_init_rounded(
         ntg_border_9x* style,
         struct nt_gfx gfx,
@@ -197,6 +207,8 @@ int ntg_border_9x_init_rounded(
             gfx,
             &symbols);
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_border_9x_init_heavy(
         ntg_border_9x* style,
@@ -222,6 +234,8 @@ int ntg_border_9x_init_heavy(
             &symbols);
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_border_9x_init_dashed(
         ntg_border_9x* style,
         struct nt_gfx gfx,
@@ -245,6 +259,8 @@ int ntg_border_9x_init_dashed(
             gfx,
             &symbols);
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_border_9x_init_ascii(
         ntg_border_9x* style,
@@ -270,6 +286,8 @@ int ntg_border_9x_init_ascii(
             &symbols);
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_border_9x_init_transparent(
         ntg_border_9x* style)
 {
@@ -281,6 +299,8 @@ int ntg_border_9x_init_transparent(
             NT_GFX_DEFAULT,
             &symbols);
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_border_9x_init_custom(
         ntg_border_9x* style,
@@ -311,6 +331,8 @@ int ntg_border_9x_init_custom(
     style->ro.symbols = symbols ? (*symbols) : BORDER_9X_SYM_DEFAULT;
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_border_9x_deinit(ntg_border_9x* style)
 {
@@ -344,7 +366,7 @@ static void border_9x_draw_fn(
         const ntg_border_style* base,
         struct ntg_xy size,
         struct ntg_insets border_size,
-        ntg_object_tmp_drawing* out_drawing)
+        ntg_object_tmp_draw* out_drawing)
 {
     if(ntg_xy_is_zero_any(size)) return;
     if(ntg_insets_is_zero(border_size)) return;
@@ -385,7 +407,7 @@ static void border_9x_draw_fn(
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
-            ntg_object_tmp_drawing_set(out_drawing, padding, ntg_xy(j, i));
+            ntg_object_tmp_draw_set(out_drawing, padding, ntg_xy(j, i));
     }
 
     if(size.y >= 1)
@@ -393,14 +415,14 @@ static void border_9x_draw_fn(
         if(border_size.w > 0)
         {
             for(i = 0; i < size.y; i++)
-                ntg_object_tmp_drawing_set(out_drawing, left, ntg_xy(0, i));
+                ntg_object_tmp_draw_set(out_drawing, left, ntg_xy(0, i));
         }
 
         if(border_size.e > 0)
         {
             for(i = 0; i < size.y; i++)
             {
-                ntg_object_tmp_drawing_set(
+                ntg_object_tmp_draw_set(
                         out_drawing,
                         right,
                         ntg_xy(x_end, i));
@@ -412,10 +434,10 @@ static void border_9x_draw_fn(
     {
         if(border_size.n > 0)
         {
-            ntg_object_tmp_drawing_set(out_drawing, top_left, ntg_xy(0, 0));
+            ntg_object_tmp_draw_set(out_drawing, top_left, ntg_xy(0, 0));
             for(j = 1; j < x_end; j++)
-                ntg_object_tmp_drawing_set(out_drawing, top, ntg_xy(j, 0));
-            ntg_object_tmp_drawing_set(
+                ntg_object_tmp_draw_set(out_drawing, top, ntg_xy(j, 0));
+            ntg_object_tmp_draw_set(
                     out_drawing,
                     top_right,
                     ntg_xy(x_end, 0));
@@ -423,18 +445,18 @@ static void border_9x_draw_fn(
 
         if(border_size.s > 0)
         {
-            ntg_object_tmp_drawing_set(
+            ntg_object_tmp_draw_set(
                     out_drawing,
                     bottom_left,
                     ntg_xy(0, y_end));
             for(j = 1; j < x_end; j++)
             {
-                ntg_object_tmp_drawing_set(
+                ntg_object_tmp_draw_set(
                         out_drawing,
                         bottom,
                         ntg_xy(j, y_end));
             }
-            ntg_object_tmp_drawing_set(
+            ntg_object_tmp_draw_set(
                     out_drawing,
                     bottom_right,
                     ntg_xy(x_end, y_end));
@@ -445,14 +467,14 @@ static void border_9x_draw_fn(
         if(border_size.n > 0)
         {
             for(j = 0; j < size.x; j++)
-                ntg_object_tmp_drawing_set(out_drawing, top, ntg_xy(j, 0));
+                ntg_object_tmp_draw_set(out_drawing, top, ntg_xy(j, 0));
         }
 
         if(border_size.s > 0)
         {
             for(j = 0; j < size.x; j++)
             {
-                ntg_object_tmp_drawing_set(
+                ntg_object_tmp_draw_set(
                         out_drawing,
                         bottom,
                         ntg_xy(j, y_end));

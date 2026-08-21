@@ -70,7 +70,7 @@ struct ntg_text_vtable
 {
     void (*post_draw_fn)(
         const ntg_text* text,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 };
 
@@ -171,7 +171,7 @@ NTG_API int
 ntg_text_draw_fn(
         const ntg_object* _text_obj,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
 NTG_API void

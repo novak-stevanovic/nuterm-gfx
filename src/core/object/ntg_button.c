@@ -168,6 +168,8 @@ int ntg_button_set_text_unsafe(
     return ntg_text_set_text_unsafe(ntg_txt(button), text, flags);
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_button_set_text(
         ntg_button* button,
         const char* text,
@@ -231,7 +233,7 @@ ntg_button_measure_fn(
 int ntg_button_draw_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena)
 {
     if(ntg_xy_is_zero_any(ntg_object_get_size_cont(_button))) return 0;
@@ -277,7 +279,7 @@ const struct ntg_object_vtable NTG_BUTTON_VTABLE_OBJECT = {
 
 void ntg_button_post_draw_fn(
         const ntg_text* _button,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena)
 {
     (void)_button;

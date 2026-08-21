@@ -16,7 +16,7 @@
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_object_drawing_init(ntg_object_drawing* drawing)
+int ntg_object_draw_init(ntg_object_draw* drawing)
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
@@ -26,7 +26,7 @@ int ntg_object_drawing_init(ntg_object_drawing* drawing)
     return 0;
 }
 
-int ntg_object_drawing_deinit(ntg_object_drawing* drawing)
+int ntg_object_draw_deinit(ntg_object_draw* drawing)
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
@@ -40,7 +40,7 @@ int ntg_object_drawing_deinit(ntg_object_drawing* drawing)
 /* SIZE */
 /* ------------------------------------------------------ */
 
-int ntg_object_drawing_set_size(ntg_object_drawing* drawing, struct ntg_xy size)
+int ntg_object_draw_set_size(ntg_object_draw* drawing, struct ntg_xy size)
 {
     if(!drawing)
         return NTG_ERR_INV_ARG;
@@ -55,9 +55,9 @@ int ntg_object_drawing_set_size(ntg_object_drawing* drawing, struct ntg_xy size)
 /* PLACEMENT */
 /* ------------------------------------------------------ */
 
-int ntg_object_drawing_place(
-        const ntg_object_drawing* src_drawing,
-        ntg_object_drawing* dest_drawing,
+int ntg_object_draw_place(
+        const ntg_object_draw* src_drawing,
+        ntg_object_draw* dest_drawing,
         struct ntg_xy dest_start_pos)
 {
     if(!src_drawing || !dest_drawing || (src_drawing == dest_drawing))
@@ -65,8 +65,8 @@ int ntg_object_drawing_place(
         return NTG_ERR_INV_ARG;
     }
 
-    struct ntg_xy dest_size = ntg_object_drawing_get_size(dest_drawing);
-    struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
+    struct ntg_xy dest_size = ntg_object_draw_get_size(dest_drawing);
+    struct ntg_xy src_size = ntg_object_draw_get_size(src_drawing);
 
     if(ntg_xy_is_zero_any(src_size)) return 0; 
 
@@ -87,17 +87,19 @@ int ntg_object_drawing_place(
             it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
             it_src_pos = ntg_xy(j, i);
 
-            it_src_cell = ntg_object_drawing_get(src_drawing, it_src_pos);
-            ntg_object_drawing_set(dest_drawing, it_src_cell, it_dest_pos);
+            it_src_cell = ntg_object_draw_get(src_drawing, it_src_pos);
+            ntg_object_draw_set(dest_drawing, it_src_cell, it_dest_pos);
         }
     }
 
     return 0;
 }
 
-int ntg_object_drawing_place_(
-        const ntg_object_drawing* src_drawing,
-        ntg_stage_drawing* dest_drawing,
+/* ------------------------------------------------------ */
+
+int ntg_object_draw_place_(
+        const ntg_object_draw* src_drawing,
+        ntg_stage_draw* dest_drawing,
         struct ntg_xy dest_start_pos)
 {
     if(!src_drawing || !dest_drawing)
@@ -105,8 +107,8 @@ int ntg_object_drawing_place_(
         return NTG_ERR_INV_ARG;
     }
 
-    struct ntg_xy dest_size = ntg_stage_drawing_get_size(dest_drawing);
-    struct ntg_xy src_size = ntg_object_drawing_get_size(src_drawing);
+    struct ntg_xy dest_size = ntg_stage_draw_get_size(dest_drawing);
+    struct ntg_xy src_size = ntg_object_draw_get_size(src_drawing);
 
     if(ntg_xy_is_zero_any(src_size)) return 0; 
 
@@ -129,10 +131,10 @@ int ntg_object_drawing_place_(
             it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
             it_src_pos = ntg_xy(j, i);
 
-            it_src_cell = ntg_object_drawing_get(src_drawing, it_src_pos);
-            it_base_cell = ntg_stage_drawing_get(dest_drawing, it_dest_pos);
+            it_src_cell = ntg_object_draw_get(src_drawing, it_src_pos);
+            it_base_cell = ntg_stage_draw_get(dest_drawing, it_dest_pos);
             it_overwritten = ntg_vcell_overwrite(it_src_cell, it_base_cell);
-            ntg_stage_drawing_set(dest_drawing, it_overwritten, it_dest_pos);
+            ntg_stage_draw_set(dest_drawing, it_overwritten, it_dest_pos);
         }
     }
     return 0;

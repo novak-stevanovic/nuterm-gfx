@@ -17,7 +17,7 @@
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_stage_drawing_init(ntg_stage_drawing* drawing)
+int ntg_stage_draw_init(ntg_stage_draw* drawing)
 {
     if(drawing == NULL)
         return NTG_ERR_INV_ARG;
@@ -28,7 +28,7 @@ int ntg_stage_drawing_init(ntg_stage_drawing* drawing)
     return 0;
 }
 
-int ntg_stage_drawing_deinit(ntg_stage_drawing* drawing)
+int ntg_stage_draw_deinit(ntg_stage_draw* drawing)
 {
     if(drawing == NULL)
         return NTG_ERR_INV_ARG;
@@ -43,7 +43,7 @@ int ntg_stage_drawing_deinit(ntg_stage_drawing* drawing)
 /* SIZE */
 /* ------------------------------------------------------ */
 
-int ntg_stage_drawing_set_size(ntg_stage_drawing* drawing, struct ntg_xy size)
+int ntg_stage_draw_set_size(ntg_stage_draw* drawing, struct ntg_xy size)
 {
     if(drawing == NULL)
         return NTG_ERR_INV_ARG;

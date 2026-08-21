@@ -33,6 +33,8 @@ int ntg_clr_block_init(
     return _status;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_clr_block_deinit(ntg_clr_block* clr_block)
 {
     if(!clr_block) return NTG_ERR_INV_ARG;
@@ -43,6 +45,8 @@ int ntg_clr_block_deinit(ntg_clr_block* clr_block)
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 void ntg_clr_block_deinit_void(void* _clr_block)
 {
@@ -110,6 +114,8 @@ int ntg_clr_block_init_inherit(
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_clr_block_measure_fn(
         const ntg_object* _clr_block,
         struct ntg_object_layout_dt* layout_dt,
@@ -135,10 +141,12 @@ int ntg_clr_block_measure_fn(
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_clr_block_draw_fn(
         const ntg_object* _clr_block,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena)
 {
     (void)layout_dt;
@@ -153,7 +161,7 @@ int ntg_clr_block_draw_fn(
     {
         for(j = 0; j < size.x; j++)
         {
-            ntg_object_tmp_drawing_set(
+            ntg_object_tmp_draw_set(
                     out_drawing,
                     ntg_vcell_new_full_bg(clr_block->ro.color),
                     ntg_xy(j, i));
@@ -162,6 +170,8 @@ int ntg_clr_block_draw_fn(
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 void ntg_clr_block_deinit_fn(ntg_object* _clr_block)
 {

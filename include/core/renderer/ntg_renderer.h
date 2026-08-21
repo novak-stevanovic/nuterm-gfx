@@ -38,7 +38,7 @@ ntg_renderer_vdeinit(ntg_renderer* renderer);
 NTG_API int
 ntg_renderer_render(
         ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing,
+        const ntg_stage_draw* stage_drawing,
         sarena* arena);
 
 /* ========================================================================== */
@@ -55,7 +55,7 @@ struct ntg_renderer_vtable
 {
     int (*render_fn)(
             ntg_renderer* renderer,
-            const ntg_stage_drawing* stage_drawing,
+            const ntg_stage_draw* stage_drawing,
             sarena* arena);
 
     void (*loop_enter_fn)(ntg_renderer* renderer);

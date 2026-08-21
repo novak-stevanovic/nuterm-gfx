@@ -52,7 +52,7 @@ int ntg_stage_deinit(ntg_stage* stage)
         ntg_stage_set_scene(stage, NULL);
     }
 
-    ntg_stage_drawing_deinit(&stage->ro.drawing);
+    ntg_stage_draw_deinit(&stage->ro.drawing);
 
     ntg_event_delegate_deinit(&stage->ro.event_dlgt);
 
@@ -76,14 +76,22 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
 {
     if(!stage || !arena) return false;
 
+    ntg_event_raise(
+            &stage->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_STAGE_CMPSPRE, stage, NULL));
+
+    bool rval = false;
     struct ntg_xy size = stage->ro.size;
 
     int _status;
-    if(!ntg_xy_are_eql(ntg_stage_drawing_get_size(&stage->ro.drawing), size))
+    if(!ntg_xy_are_eql(ntg_stage_draw_get_size(&stage->ro.drawing), size))
     {
-        _status = ntg_stage_drawing_set_size(&stage->ro.drawing, size);
+        _status = ntg_stage_draw_set_size(&stage->ro.drawing, size);
         if(_status)
-            return true;
+        {
+            rval = true;
+            goto done;
+        }
     }
 
     if(stage->ro.scene && stage->ro.scene->ro.dirty)
@@ -92,20 +100,23 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
             ntg__scene_clean(stage->ro.scene);
     }
 
-    if(ntg_xy_is_zero_any(size)) return false;
-    if(!stage->ro.scene) return false;
+    if(ntg_xy_is_zero_any(size)) goto done;
+    if(!stage->ro.scene) goto done;
 
     size_t layer_count = ntg_scene_collect_layers_by_z(stage->ro.scene, NULL, SIZE_MAX);
-    if(layer_count == 0) return false;
+    if(layer_count == 0) goto done;
     ntg_object** layers = sarena_malloc(arena, sizeof(ntg_object*) * layer_count);
-    if(!layers) return true;
+    if(!layers)
+    {
+        rval = true;
+        goto done;
+    }
 
     ntg_scene_collect_layers_by_z(stage->ro.scene, layers, layer_count);
 
     /* Drawing is happening so default init cells */
     init_default_drawing(stage);
 
-    bool rval = false;
     size_t i;
     for(i = 0; i < layer_count; i++)
     {
@@ -113,9 +124,26 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
         rval = rval || layer_redraw;
     }
 
+done:
+    ntg_event_raise(
+            &stage->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_STAGE_CMPSPOST, stage, NULL));
+
     return rval;
 }
 
+int ntg_stage_mark_dirty(ntg_stage* stage)
+{
+    if(!stage) return NTG_ERR_INV_ARG;
+
+    stage->ro.dirty = true;
+
+    return 0;
+}
+
+/* ------------------------------------------------------ */
+/* SCENE */
+/* ------------------------------------------------------ */
 
 int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 {
@@ -167,15 +195,6 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 
     if(scene)
         ntg__scene_on_stage_enter(scene, stage);
-
-    return 0;
-}
-
-int ntg_stage_mark_dirty(ntg_stage* stage)
-{
-    if(!stage) return NTG_ERR_INV_ARG;
-
-    stage->ro.dirty = true;
 
     return 0;
 }
@@ -239,7 +258,7 @@ int ntg_stage_init_inherit(
 
     stage->priv.vtable = (vtable ? vtable : &VTABLE_EMPTY);
 
-    int _status = ntg_stage_drawing_init(&stage->ro.drawing);
+    int _status = ntg_stage_draw_init(&stage->ro.drawing);
 
     if(_status != 0)
     {
@@ -381,14 +400,14 @@ static void init_default_drawing(ntg_stage* stage)
 {
     if(!stage) return;
 
-    struct ntg_xy size = ntg_stage_drawing_get_size(&stage->ro.drawing);
+    struct ntg_xy size = ntg_stage_draw_get_size(&stage->ro.drawing);
 
     size_t i, j;
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
         {
-            ntg_stage_drawing_set(
+            ntg_stage_draw_set(
                     &stage->ro.drawing,
                     ntg_cell_default(),
                     ntg_xy(j, i));
@@ -403,12 +422,12 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     struct ntg_xy abs_pos;
     abs_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
 
-    struct ntg_xy draw_size = ntg_object_drawing_get_size(&object->ro.drawing);
+    struct ntg_xy draw_size = ntg_object_draw_get_size(&object->ro.drawing);
 
     // If size is equal, use the drawing, even if last draw failed.
     if(ntg_xy_size_are_eql(object->ro.size, draw_size))
     {
-        ntg_object_drawing_place_(
+        ntg_object_draw_place_(
                 &object->ro.drawing,
                 &stage->ro.drawing,
                 abs_pos);

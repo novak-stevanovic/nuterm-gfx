@@ -55,10 +55,10 @@ typedef struct ntg_task_runner ntg_task_runner;
 typedef struct ntg_task_cancel_token ntg_task_cancel_token;
 
 typedef struct ntg_renderer ntg_renderer;
-typedef struct ntg_default_renderer ntg_default_renderer;
+typedef struct ntg_db_renderer ntg_db_renderer;
 
 typedef struct ntg_stage ntg_stage;
-typedef struct ntg_stage_drawing ntg_stage_drawing;
+typedef struct ntg_stage_draw ntg_stage_draw;
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_fcs_manager ntg_fcs_manager;
@@ -72,9 +72,9 @@ typedef struct ntg_sidefloat ntg_sidefloat;
 typedef struct ntg_border_9x ntg_border_9x;
 typedef struct ntg_object_size_map ntg_object_size_map;
 typedef struct ntg_object_pos_map ntg_object_pos_map;
-typedef struct ntg_object_drawing ntg_object_drawing;
-typedef struct ntg_tmp_object_drawing ntg_tmp_object_drawing;
-typedef struct ntg_object_tmp_drawing ntg_object_tmp_drawing;
+typedef struct ntg_object_draw ntg_object_draw;
+typedef struct ntg_tmp_object_draw ntg_tmp_object_draw;
+typedef struct ntg_object_tmp_draw ntg_object_tmp_draw;
 
 typedef struct ntg_widget ntg_widget;
 typedef struct ntg_widget_vec ntg_widget_vec;

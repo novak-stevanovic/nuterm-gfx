@@ -30,28 +30,29 @@ int ntg_renderer_vdeinit(ntg_renderer* renderer)
 
 int ntg_renderer_render(
         ntg_renderer* renderer,
-        const ntg_stage_drawing* stage_drawing,
+        const ntg_stage_draw* stage_drawing,
         sarena* arena)
 {
     if(!renderer)
         return NTG_ERR_INV_ARG;
 
-    if(renderer->priv.vtable && renderer->priv.vtable->render_fn)
-    {
-        int status = renderer->priv.vtable->render_fn(renderer, stage_drawing, arena);
-        if(status != 0)
-            return status;
-    }
-
-    struct ntg_event_renderer_onrndr_dt event_dt = {
+    struct ntg_event_renderer_rndr_dt event_dt = {
         .drawing = stage_drawing,
         .arena = arena
     };
     ntg_event_raise(
             &renderer->pub.event_delegate,
-            ntg_event_new(NTG_EVENT_RENDERER_ONRNDR, renderer, &event_dt));
+            ntg_event_new(NTG_EVENT_RENDERER_RNDRPRE, renderer, &event_dt));
 
-    return 0;
+    int status = 0;
+    if(renderer->priv.vtable && renderer->priv.vtable->render_fn)
+        status = renderer->priv.vtable->render_fn(renderer, stage_drawing, arena);
+
+    ntg_event_raise(
+            &renderer->pub.event_delegate,
+            ntg_event_new(NTG_EVENT_RENDERER_RNDRPOST, renderer, &event_dt));
+
+    return status;
 }
 
 /* ========================================================================== */

@@ -73,6 +73,8 @@ struct ntg_loop_init_opts ntg_loop_init_opts_default(void)
     };
 }
 
+/* ------------------------------------------------------ */
+
 struct ntg_loop_start_opts ntg_loop_start_opts_default(void)
 {
     return (struct ntg_loop_start_opts) {
@@ -164,16 +166,16 @@ int ntg_loop_init(
     }
     else
     {
-        loop.renderer = malloc(sizeof(ntg_default_renderer));
+        loop.renderer = malloc(sizeof(ntg_db_renderer));
         if(!loop.renderer)
         {
             deinit();
             return NTG_ERR_ALLOC_FAIL; 
         }
 
-        status = ntg_default_renderer_init(
-                (ntg_default_renderer*)loop.renderer,
-                NTG_DEFAULT_RENDERER_TERM_SIZE_AUTO);
+        status = ntg_db_renderer_init(
+                (ntg_db_renderer*)loop.renderer,
+                NTG_DB_RENDERER_TBUFF_SIZE_AUTO);
         if(status != 0)
         {
             deinit();
@@ -272,7 +274,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     unsigned int timeout = 1000 / loop.framerate;
     struct timespec ts_start, ts_end;
     unsigned long long process_elapsed_ms;
-    const ntg_stage_drawing* drawing;
+    const ntg_stage_draw* drawing;
 
     struct nt_event event = {0};
     struct nt_resize resize_event;
@@ -429,7 +431,7 @@ void ntg_loop_stop(void)
 }
 
 /* ------------------------------------------------------ */
-/* EXECUTE*/
+/* EXECUTE */
 /* ------------------------------------------------------ */
 
 int ntg_loop_schedule(

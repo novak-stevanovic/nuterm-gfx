@@ -4,7 +4,7 @@
 #include "nt_event.h"
 #include "shared/ntg_shared.h"
 #include "base/ntg_event.h"
-#include "core/object/ntg_object_drawing.h"
+#include "core/object/ntg_object_draw.h"
 #include "core/object/ntg_objptr_vec.h"
 #include "thirdparty/genc.h"
 
@@ -154,7 +154,7 @@ struct ntg_object
         struct ntg_xy min_size, nat_size, max_size, grow;
         struct ntg_xy size;
         struct ntg_xy pos;
-        ntg_object_drawing drawing;
+        ntg_object_draw drawing;
         uint8_t dirty;
 
         struct ntg_bdr_opts border_opts;
@@ -450,7 +450,10 @@ ntg_object_sort_by_z(ntg_object** objects, size_t size);
 
 struct ntg_object_vtable
 {
-    void (*layout_prepare_fn)(ntg_object* object, sarena* arena);
+    int (*layout_prepare_fn)(
+            ntg_object* object,
+            struct ntg_object_layout_dt* layout_dt,
+            sarena* arena);
 
     int (*measure_fn)(
             const ntg_object* object,
@@ -478,7 +481,7 @@ struct ntg_object_vtable
     int (*draw_fn)(
             const ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
-            ntg_object_tmp_drawing* out_drawing,
+            ntg_object_tmp_draw* out_drawing,
             sarena* arena);
 
     void (*deinit_fn)(ntg_object* object);

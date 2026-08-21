@@ -10,10 +10,6 @@
 /* FUNCTIONS */
 /* ========================================================================== */
 
-/* ------------------------------------------------------ */
-/* COUNT */
-/* ------------------------------------------------------ */
-
 size_t ntg_str_count(struct ntg_str_view str, char sep)
 {
     size_t count = 0;
@@ -37,10 +33,6 @@ size_t ntg_str32_count(struct ntg_str32_view str, uint32_t sep)
 
     return count;
 }
-
-/* ------------------------------------------------------ */
-/* SPLIT */
-/* ------------------------------------------------------ */
 
 size_t ntg_str_split(struct ntg_str_view str, char sep,
         struct ntg_str_view* out_views, size_t cap)

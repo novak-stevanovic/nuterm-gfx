@@ -2,7 +2,7 @@
 #define NTG_STAGE_H
 
 #include "shared/ntg_shared.h"
-#include "core/stage/ntg_stage_drawing.h"
+#include "core/stage/ntg_stage_draw.h"
 #include "base/ntg_event.h"
 
 /* ========================================================================== */
@@ -27,7 +27,7 @@ struct ntg_stage
         ntg_scene* scene;
 
         struct ntg_xy size;
-        ntg_stage_drawing drawing;
+        ntg_stage_draw drawing;
 
         bool in_loop;
         bool dirty;

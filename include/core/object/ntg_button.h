@@ -126,7 +126,7 @@ NTG_API int
 ntg_button_draw_fn(
         const ntg_object* _button,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
 NTG_API void
@@ -146,7 +146,7 @@ NTG_API extern const struct ntg_object_vtable NTG_BUTTON_VTABLE_OBJECT;
 NTG_API void
 ntg_button_post_draw_fn(
         const ntg_text* _button,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
 NTG_API extern const struct ntg_text_vtable NTG_BUTTON_VTABLE_TEXT;

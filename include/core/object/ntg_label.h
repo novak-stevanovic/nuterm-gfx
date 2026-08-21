@@ -118,7 +118,7 @@ NTG_API int
 ntg_label_draw_fn(
         const ntg_object* _label,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
 NTG_API void
@@ -135,7 +135,7 @@ NTG_API extern const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT;
 NTG_API void
 ntg_label_post_draw_fn(
         const ntg_text* _label,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
 NTG_API extern const struct ntg_text_vtable NTG_LABEL_VTABLE_TEXT;

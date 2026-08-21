@@ -15,7 +15,7 @@ static void border_style_draw_fn(
         const ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
-        ntg_object_tmp_drawing* out_drawing);
+        ntg_object_tmp_draw* out_drawing);
 
 static void border_style_deinit_fn(ntg_border_style* style);
 
@@ -103,7 +103,7 @@ void ntg__border_style_draw(
         const ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
-        ntg_object_tmp_drawing* out_drawing)
+        ntg_object_tmp_draw* out_drawing)
 {
     if(!style || !out_drawing) return;
     if(!style->priv.vtable || !style->priv.vtable->draw_fn) return;
@@ -131,7 +131,7 @@ static void border_style_draw_fn(
         const ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
-        ntg_object_tmp_drawing* out_drawing)
+        ntg_object_tmp_draw* out_drawing)
 {
     (void)style;
 
@@ -143,7 +143,7 @@ static void border_style_draw_fn(
     {
         for(j = 0; j < size.x; j++)
         {
-            ntg_object_tmp_drawing_set(
+            ntg_object_tmp_draw_set(
                     out_drawing,
                     ntg_vcell_new_default(),
                     ntg_xy(j, i));

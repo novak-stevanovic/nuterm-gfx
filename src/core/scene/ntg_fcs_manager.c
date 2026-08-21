@@ -29,107 +29,6 @@ static void scope_stack_sync(ntg_fcs_manager* fm);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
-/* INTERNAL */
-/* -------------------------------------------------------------------------- */
-/* ========================================================================== */
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
-int ntg__fcs_manager_init(
-        ntg_fcs_manager* fm,
-        ntg_scene* scene,
-        const struct ntg_fcs_scope_keys* init_scope_keybinds)
-{
-    if(!fm || !scene)
-        return NTG_ERR_INV_ARG;
-
-    int _status;
-
-    (*fm) = (ntg_fcs_manager) {0};
-
-    fm->priv.scope_stack = malloc(sizeof(ntg_fcs_scope_list));
-    if(!fm->priv.scope_stack)
-        return NTG_ERR_ALLOC_FAIL;
-
-    *fm->priv.scope_stack = (ntg_fcs_scope_list) {0};
-
-    fm->ro.scene = scene;
-    fm->ro.focused = NULL;
-
-    ntg_fcs_scope* scope = malloc(sizeof(ntg_fcs_scope));
-    if(!scope)
-    {
-        ntg__fcs_manager_deinit(fm);
-        return NTG_ERR_ALLOC_FAIL;
-    }
-
-    _status = ntg_fcs_scope_init(scope, NULL, init_scope_keybinds, NULL);
-
-    if(_status != 0)
-        return _status;
-
-    _status = ntg_fcs_manager_stack_push(fm, scope);
-    switch(_status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg__fcs_manager_deinit(fm);
-            return NTG_ERR_ALLOC_FAIL;
-        default:
-            ntg__fcs_manager_deinit(fm);
-            return NTG_ERR_UNEXPECTED;
-    }
-
-    ntg_event_delegate_init(&fm->ro.event_dlgt);
-
-    return 0;
-}
-
-void ntg__fcs_manager_deinit(ntg_fcs_manager* fm)
-{
-    if(!fm) return;
-
-    if(fm->priv.scope_stack)
-    {
-        while(fm->priv.scope_stack->size > 1)
-            ntg_fcs_manager_stack_pop(fm);
-
-        ntg_fcs_scope* head = ntg_fcs_manager_stack_get_active(fm);
-        if(head)
-        {
-            ntg_fcs_scope_deinit(head);
-            free(head);
-        }
-
-        ntg_fcs_scope_list_deinit(fm->priv.scope_stack);
-
-        free(fm->priv.scope_stack);
-    }
-
-    fm->priv.scope_stack = NULL;
-    fm->ro.scene = NULL;
-    fm->ro.focused = NULL;
-
-    ntg_event_delegate_deinit(&fm->ro.event_dlgt);
-
-}
-
-void ntg_fcs_manager_deinit_void(void* _fm)
-{
-    if(!_fm) return;
-
-    ntg__fcs_manager_deinit(_fm);
-}
-
-/* ========================================================================== */
-/* -------------------------------------------------------------------------- */
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
@@ -271,6 +170,8 @@ int ntg_fcs_manager_stack_push(ntg_fcs_manager* fm, ntg_fcs_scope* scope)
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_fcs_manager_stack_pop(ntg_fcs_manager* fm)
 {
     if(!fm) return NTG_ERR_INV_ARG;
@@ -285,6 +186,8 @@ int ntg_fcs_manager_stack_pop(ntg_fcs_manager* fm)
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 ntg_fcs_scope* ntg_fcs_manager_stack_get_active(ntg_fcs_manager* fm)
 {
     if(!fm) return NULL;
@@ -293,60 +196,14 @@ ntg_fcs_scope* ntg_fcs_manager_stack_get_active(ntg_fcs_manager* fm)
             fm->priv.scope_stack->head->data.scope : NULL);
 }
 
+/* ------------------------------------------------------ */
+
 size_t ntg_fcs_manager_stack_get_size(const ntg_fcs_manager* fm)
 {
     if(!fm) return 0;
 
     return (fm->priv.scope_stack ? fm->priv.scope_stack->size : 0);
 }
-
-/* ========================================================================== */
-/* -------------------------------------------------------------------------- */
-/* INTERNAL */
-/* -------------------------------------------------------------------------- */
-/* ========================================================================== */
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
-/* ------------------------------------------------------ */
-/* INVALIDATE */
-/* ------------------------------------------------------ */
-
-void ntg__fcs_manager_on_scene_object_rm(ntg_fcs_manager* fm, ntg_object* removed)
-{
-    if(!fm) return;
-
-    if(removed && (fm->ro.focused == removed))
-        ntg_fcs_manager_request_focus(fm, NULL);
-
-    struct ntg_fcs_scope_list_node* it_node = fm->priv.scope_stack->head;
-    struct ntg_fcs_scope_data* it_data;
-
-    while(it_node)
-    {
-        it_data = &it_node->data;
-
-        if(it_data->scope->ro.root && ntg_object_is_in_tree(it_data->scope->ro.root, removed))
-            ntg__fcs_scope_invalidate(it_data->scope);
-
-        it_node = it_node->next;
-    }
-
-    scope_stack_sync(fm);
-
-}
-
-/* ========================================================================== */
-/* -------------------------------------------------------------------------- */
-/* PUBLIC */
-/* -------------------------------------------------------------------------- */
-/* ========================================================================== */
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -361,6 +218,8 @@ bool ntg_fcs_manager_feed_key(ntg_fcs_manager* fm, struct nt_key key)
 
     return ntg_fcs_scope_feed_key(scope, key);
 }
+
+/* ------------------------------------------------------ */
 
 bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, struct nt_mouse mouse)
 {
@@ -419,6 +278,137 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, struct nt_mouse mouse)
         else
             return false;
     }
+}
+
+/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* INTERNAL */
+/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+
+/* ========================================================================== */
+/* FUNCTIONS */
+/* ========================================================================== */
+
+/* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
+
+int ntg__fcs_manager_init(
+        ntg_fcs_manager* fm,
+        ntg_scene* scene,
+        const struct ntg_fcs_scope_keys* init_scope_keybinds)
+{
+    if(!fm || !scene)
+        return NTG_ERR_INV_ARG;
+
+    int _status;
+
+    (*fm) = (ntg_fcs_manager) {0};
+
+    fm->priv.scope_stack = malloc(sizeof(ntg_fcs_scope_list));
+    if(!fm->priv.scope_stack)
+        return NTG_ERR_ALLOC_FAIL;
+
+    *fm->priv.scope_stack = (ntg_fcs_scope_list) {0};
+
+    fm->ro.scene = scene;
+    fm->ro.focused = NULL;
+
+    ntg_fcs_scope* scope = malloc(sizeof(ntg_fcs_scope));
+    if(!scope)
+    {
+        ntg__fcs_manager_deinit(fm);
+        return NTG_ERR_ALLOC_FAIL;
+    }
+
+    _status = ntg_fcs_scope_init(scope, NULL, init_scope_keybinds, NULL);
+
+    if(_status != 0)
+        return _status;
+
+    _status = ntg_fcs_manager_stack_push(fm, scope);
+    switch(_status)
+    {
+        case 0:
+            break;
+        case NTG_ERR_ALLOC_FAIL:
+            ntg__fcs_manager_deinit(fm);
+            return NTG_ERR_ALLOC_FAIL;
+        default:
+            ntg__fcs_manager_deinit(fm);
+            return NTG_ERR_UNEXPECTED;
+    }
+
+    ntg_event_delegate_init(&fm->ro.event_dlgt);
+
+    return 0;
+}
+
+/* ------------------------------------------------------ */
+
+void ntg__fcs_manager_deinit(ntg_fcs_manager* fm)
+{
+    if(!fm) return;
+
+    if(fm->priv.scope_stack)
+    {
+        while(fm->priv.scope_stack->size > 1)
+            ntg_fcs_manager_stack_pop(fm);
+
+        ntg_fcs_scope* head = ntg_fcs_manager_stack_get_active(fm);
+        if(head)
+        {
+            ntg_fcs_scope_deinit(head);
+            free(head);
+        }
+
+        ntg_fcs_scope_list_deinit(fm->priv.scope_stack);
+
+        free(fm->priv.scope_stack);
+    }
+
+    fm->priv.scope_stack = NULL;
+    fm->ro.scene = NULL;
+    fm->ro.focused = NULL;
+
+    ntg_event_delegate_deinit(&fm->ro.event_dlgt);
+
+}
+
+void ntg_fcs_manager_deinit_void(void* _fm)
+{
+    if(!_fm) return;
+
+    ntg__fcs_manager_deinit(_fm);
+}
+
+/* ------------------------------------------------------ */
+/* INVALIDATE */
+/* ------------------------------------------------------ */
+
+void ntg__fcs_manager_on_scene_object_rm(ntg_fcs_manager* fm, ntg_object* removed)
+{
+    if(!fm) return;
+
+    if(removed && (fm->ro.focused == removed))
+        ntg_fcs_manager_request_focus(fm, NULL);
+
+    struct ntg_fcs_scope_list_node* it_node = fm->priv.scope_stack->head;
+    struct ntg_fcs_scope_data* it_data;
+
+    while(it_node)
+    {
+        it_data = &it_node->data;
+
+        if(it_data->scope->ro.root && ntg_object_is_in_tree(it_data->scope->ro.root, removed))
+            ntg__fcs_scope_invalidate(it_data->scope);
+
+        it_node = it_node->next;
+    }
+
+    scope_stack_sync(fm);
+
 }
 
 /* ========================================================================== */

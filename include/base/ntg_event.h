@@ -377,7 +377,11 @@ struct ntg_event_scene_objrm_dt
     ntg_object* object;
 };
 
-// TODO layout
+#define NTG_EVENT_SCENE_LAYPRE 207
+/* No payload */
+
+#define NTG_EVENT_SCENE_LAYPOST 208
+/* No payload */
 
 /* ------------------------------------------------------ */
 /* ntg_stage */
@@ -415,7 +419,11 @@ struct ntg_event_stage_szchg_dt
 #define NTG_EVENT_STAGE_LEAVE 305
 /* No payload */
 
-// TODO compose
+#define NTG_EVENT_STAGE_CMPSPRE 309
+/* No payload */
+
+#define NTG_EVENT_STAGE_CMPSPOST 310
+/* No payload */
 
 /* ------------------------------------------------------ */
 /* ntg_fcs_manager */
@@ -444,10 +452,11 @@ struct ntg_event_fcs_manager_scpop_dt
 /* ntg_renderer */
 /* ------------------------------------------------------ */
 
-#define NTG_EVENT_RENDERER_ONRNDR 400
-struct ntg_event_renderer_onrndr_dt
+#define NTG_EVENT_RENDERER_RNDRPRE 400
+#define NTG_EVENT_RENDERER_RNDRPOST 401
+struct ntg_event_renderer_rndr_dt
 {
-    const ntg_stage_drawing* drawing;
+    const ntg_stage_draw* drawing;
     sarena* arena;
 };
 

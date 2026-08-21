@@ -98,7 +98,7 @@ static void init_default(ntg_text* text_obj)
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
-/* PUBLIC */
+/* PROTECTED */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
@@ -150,28 +150,9 @@ bool ntg_text_opts_are_eql(
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int ntg_text_deinit(ntg_text* text_obj)
-{
-    if(!text_obj) return NTG_ERR_INV_ARG;
-
-    if(text_obj->ro.text)
-        free(text_obj->ro.text);
-    if(text_obj->priv.utf32_text.data)
-        free(text_obj->priv.utf32_text.data);
-    if(text_obj->priv.utf32_rows)
-        free(text_obj->priv.utf32_rows);
-
-    init_default(text_obj);
-
-    ntg_object_deinit((ntg_object*)text_obj);
-
-    return 0;
-}
-
-void ntg_text_deinit_void(void* _text)
-{
-    ntg_text_deinit(_text);
-}
+/* ------------------------------------------------------ */
+/* OPTS */
+/* ------------------------------------------------------ */
 
 int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 {
@@ -199,6 +180,10 @@ int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
     return 0;
 }
 
+/* ------------------------------------------------------ */
+/* TEXT */
+/* ------------------------------------------------------ */
+
 int ntg_text_set_text_unsafe(
         ntg_text* text_obj,
         const char* text,
@@ -209,6 +194,8 @@ int ntg_text_set_text_unsafe(
 
     return ntg_text_set_text(text_obj, text, strlen(text), flags);
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_text_set_text(
         ntg_text* text_obj,
@@ -392,15 +379,9 @@ int ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff)
     return 0;
 }
 
-/* ========================================================================== */
-/* -------------------------------------------------------------------------- */
-/* PROTECTED */
-/* -------------------------------------------------------------------------- */
-/* ========================================================================== */
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
+/* ------------------------------------------------------ */
+/* INHERIT */
+/* ------------------------------------------------------ */
 
 int ntg_text_init_inherit(
         ntg_text* text_obj,
@@ -431,6 +412,29 @@ int ntg_text_init_inherit(
 
     text_obj->priv.vtable = (text_vtable ? text_vtable : &TEXT_VTABLE_EMPTY);
     return 0;
+}
+
+int ntg_text_deinit(ntg_text* text_obj)
+{
+    if(!text_obj) return NTG_ERR_INV_ARG;
+
+    if(text_obj->ro.text)
+        free(text_obj->ro.text);
+    if(text_obj->priv.utf32_text.data)
+        free(text_obj->priv.utf32_text.data);
+    if(text_obj->priv.utf32_rows)
+        free(text_obj->priv.utf32_rows);
+
+    init_default(text_obj);
+
+    ntg_object_deinit((ntg_object*)text_obj);
+
+    return 0;
+}
+
+void ntg_text_deinit_void(void* _text)
+{
+    ntg_text_deinit(_text);
 }
 
 int ntg_text_measure_fn(
@@ -478,7 +482,7 @@ int ntg_text_measure_fn(
 int ntg_text_draw_fn(
         const ntg_object* _text_obj,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena)
 {
     (void)layout_dt;
@@ -661,7 +665,7 @@ int ntg_text_draw_fn(
 
             dst_xy = (opts.orient == NTG_ORIENT_H) ? ntg_xy(j, i) : ntg_xy(i, j);
 
-            ntg_object_tmp_drawing_set(out_drawing, it_cell, dst_xy);
+            ntg_object_tmp_draw_set(out_drawing, it_cell, dst_xy);
         }
     }
 
@@ -669,6 +673,15 @@ int ntg_text_draw_fn(
         text_obj->priv.vtable->post_draw_fn(text_obj, out_drawing, arena);
 
     return 0;
+}
+
+void ntg_text_cont_resize_fn(ntg_object* object, sarena* arena)
+{
+    (void)arena;
+
+    ntg_text* text = ntg_txt(object);
+
+    text->ro.scroll = calculate_effective_scroll(text);
 }
 
 void ntg_text_deinit_fn(ntg_object* _text_obj)
@@ -700,15 +713,6 @@ void ntg_text_unfocus_fn(ntg_object* object)
     update_object_bg(text);
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
-}
-
-void ntg_text_cont_resize_fn(ntg_object* object, sarena* arena)
-{
-    (void)arena;
-
-    ntg_text* text = ntg_txt(object);
-
-    text->ro.scroll = calculate_effective_scroll(text);
 }
 
 const struct ntg_object_vtable NTG_TEXT_VTABLE = {

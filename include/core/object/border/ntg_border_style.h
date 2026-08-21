@@ -52,7 +52,7 @@ struct ntg_border_style_vtable
             const ntg_border_style* style,
             struct ntg_xy size,
             struct ntg_insets border_size,
-            ntg_object_tmp_drawing* out_drawing);
+            ntg_object_tmp_draw* out_drawing);
 
     void (*deinit_fn)(ntg_border_style* style);
 };
@@ -83,6 +83,6 @@ void ntg__border_style_draw(
         const ntg_border_style* style,
         struct ntg_xy size,
         struct ntg_insets border_size,
-        ntg_object_tmp_drawing* out_drawing);
+        ntg_object_tmp_draw* out_drawing);
 
 #endif // NTG_BORDER_STYLE_H

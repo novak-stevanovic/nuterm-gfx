@@ -38,6 +38,8 @@ struct ntg_box_opts ntg_box_opts_default(void)
     };
 }
 
+/* ------------------------------------------------------ */
+
 bool ntg_box_opts_are_eql(
         const struct ntg_box_opts* opts1,
         const struct ntg_box_opts* opts2)
@@ -59,6 +61,10 @@ bool ntg_box_opts_are_eql(
 /* FUNCTIONS */
 /* ========================================================================== */
 
+/* ------------------------------------------------------ */
+/* INIT/DEINIT */
+/* ------------------------------------------------------ */
+
 int ntg_box_init(
         ntg_box* box,
         const struct ntg_box_opts* opts)
@@ -77,6 +83,8 @@ int ntg_box_init(
     return _status;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_box_deinit(ntg_box* box)
 {
     if(!box) return NTG_ERR_INV_ARG;
@@ -88,10 +96,16 @@ int ntg_box_deinit(ntg_box* box)
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 void ntg_box_deinit_void(void* _box)
 {
     ntg_box_deinit(_box);
 }
+
+/* ------------------------------------------------------ */
+/* OPTS */
+/* ------------------------------------------------------ */
 
 int ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
 {
@@ -112,12 +126,18 @@ int ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
     return 0;
 }
 
+/* ------------------------------------------------------ */
+/* CHILDREN */
+/* ------------------------------------------------------ */
+
 const struct ntg_objptr_vec* ntg_box_get_children(const ntg_box* box)
 {
     if(!box) return NULL;
 
     return &(((ntg_object*)box)->ro.children);
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_box_add_child(ntg_box* box, ntg_object* child)
 {
@@ -137,6 +157,8 @@ int ntg_box_add_child(ntg_box* box, ntg_object* child)
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_box_rm_child(ntg_box* box, ntg_object* child)
 {
@@ -187,6 +209,8 @@ int ntg_box_init_inherit(
     box->ro.opts = ntg_box_opts_default();
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_box_measure_fn(
         const ntg_object* _box,
@@ -252,6 +276,8 @@ int ntg_box_measure_fn(
     *out_measure = measure;
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_box_constrain_fn(
         const ntg_object* _box,
@@ -384,6 +410,8 @@ int ntg_box_constrain_fn(
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_box_arrange_fn(
         const ntg_object* _box,
         struct ntg_object_layout_dt* layout_dt,
@@ -498,6 +526,8 @@ int ntg_box_arrange_fn(
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 void ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child)
 {
     (void)child;
@@ -506,6 +536,8 @@ void ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child)
 
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
+
+/* ------------------------------------------------------ */
 
 void ntg_box_deinit_fn(ntg_object* _box)
 {

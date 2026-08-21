@@ -51,8 +51,8 @@ static int pos_map_init(
         const struct ntg_objptr_vec* children,
         sarena* arena);
 
-static int tmp_drawing_init(
-        struct ntg_object_tmp_drawing* drawing,
+static int tmp_draw_init(
+        struct ntg_object_tmp_draw* drawing,
         struct ntg_xy size,
         struct ntg_vcell base_bg,
         sarena* arena);
@@ -184,6 +184,10 @@ bool ntg_layout_opts_are_eql(
 /* FUNCTIONS */
 /* ========================================================================== */
 
+/* ------------------------------------------------------ */
+/* GENERAL */
+/* ------------------------------------------------------ */
+
 void ntg_object_vdeinit(ntg_object* object)
 {
     if(!object) return;
@@ -193,163 +197,179 @@ void ntg_object_vdeinit(ntg_object* object)
 }
 
 /* ------------------------------------------------------ */
-/* OBJECT TREE */
+
+bool ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event)
+{
+    if(!object) return false;
+    if(!event) return false;
+    if(!event->target) return false;
+
+    bool consumed = false;
+
+    if(object->priv.vtable->handle_key_fn)
+    {
+        consumed = object->priv.vtable->handle_key_fn(object, event);
+    }
+
+    struct ntg_event_object_key_dt event_dt = { .key = event };
+    ntg_event_raise(
+            &object->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_OBJECT_KEY, object, &event_dt));
+
+    return consumed;
+}
+
+bool ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* event)
+{
+    if(!object) return false;
+    if(!object->ro.clickable) return false;
+    if(!event) return false;
+    if(!event->target) return false;
+
+    struct ntg_xy size = ntg_object_get_size(object);
+    if((event->mouse.x >= size.x) || (event->mouse.y >= size.y))
+        return false;
+
+    struct ntg_xy pos = ntg_xy(event->mouse.x, event->mouse.y);
+    struct ntg_object_hit_res res;
+    res = ntg_object_hit_test(object, pos);
+
+    if(!(object->ro.clickable == NTG_OBJECT_CLICKABLE_BDR) &&
+        (res.part == NTG_OBJECT_HIT_BDR))
+    {
+        return false;
+    }
+
+    bool consumed = false;
+
+    if(object->priv.vtable->handle_mouse_fn)
+    {
+        consumed = object->priv.vtable->handle_mouse_fn(object, event);
+    }
+
+    struct ntg_event_object_mouse_dt event_dt = { .mouse = event };
+    ntg_event_raise(
+            &object->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_OBJECT_MOUSE, object, &event_dt));
+
+    return consumed;
+}
+
 /* ------------------------------------------------------ */
 
-const ntg_object* ntg_object_get_graph_root(const ntg_object* object)
+int ntg_object_set_lay_opts(ntg_object* object, const struct ntg_lay_opts* opts_cp)
 {
-    if(!object) return NULL;
+    if(!object) return NTG_ERR_INV_ARG;
 
-    const ntg_object *it_obj = object, *it_root, *it_base;
-    while(true)
+    struct ntg_lay_opts old_opts = object->ro.layout_opts;
+    struct ntg_lay_opts new_opts = (opts_cp ? (*opts_cp) : ntg_lay_opts_default());
+
+    if(ntg_layout_opts_are_eql(&old_opts, &new_opts))
+        return 0;
+
+    object->ro.layout_opts = new_opts;
+
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+
+    if(object->priv.vtable->chng_lay_opts_fn)
     {
-        it_root = ntg_object_get_tree_root(it_obj);
-        it_base = it_root->ro.base;
-        it_obj = it_base;
-
-        if(!it_base) break;
+        object->priv.vtable->chng_lay_opts_fn(
+                object,
+                &old_opts,
+                &object->ro.layout_opts);
     }
 
-    return it_root;
+    struct ntg_event_object_layoptchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &object->ro.layout_opts
+    };
+    ntg_event_raise(
+            &object->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_OBJECT_LAYOPTCHG, object, &event_dt));
+
+    return 0;
 }
 
-ntg_object* ntg_object_get_graph_root_(ntg_object* object)
+int ntg_object_set_bdr_opts(ntg_object* object, const struct ntg_bdr_opts* opts_cp)
 {
-    if(!object) return NULL;
+    if(!object) return NTG_ERR_INV_ARG;
 
-    return (ntg_object*)ntg_object_get_graph_root(object);
-}
+    struct ntg_bdr_opts old_opts = object->ro.border_opts;
+    struct ntg_bdr_opts new_opts = (opts_cp ? (*opts_cp) : ntg_bdr_opts_default());
 
-const ntg_object* ntg_object_get_tree_root(const ntg_object* object)
-{
-    if(!object) return NULL;
+    if(ntg_bdr_opts_are_eql(&old_opts, &new_opts))
+        return 0;
 
-    while(object->ro.parent) object = object->ro.parent;
-    return object;
-}
+    object->ro.border_opts = new_opts;
+    if(!object->ro.border_opts.style)
+        object->ro.border_opts.style = &NTG_BORDER_STYLE_DEFAULT;
 
-ntg_object* ntg_object_get_tree_root_(ntg_object* object)
-{
-    if(!object) return NULL;
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
-    return (ntg_object*)ntg_object_get_tree_root(object);
-}
-
-ntg_scene* ntg_object_get_scene_(ntg_object* object)
-{
-    if(!object) return NULL;
-
-    ntg_object* root = ntg_object_get_graph_root_(object);
-
-    return root->priv.scene;
-}
-
-const ntg_scene* ntg_object_get_scene(const ntg_object* object)
-{
-    if(!object) return NULL;
-
-    const ntg_object* root = ntg_object_get_graph_root(object);
-
-    return root->priv.scene;
-}
-
-bool ntg_object_is_true_root(const ntg_object* object)
-{
-    if(!object) return false;
-    
-    return (ntg_object_is_graph_root(object) && ntg_object_get_scene(object));
-}
-
-bool ntg_object_is_graph_root(const ntg_object* object)
-{
-    if(!object) return false;
-
-    return ((!object->ro.parent) && (!object->ro.base));
-}
-
-bool ntg_object_is_tree_root(const ntg_object* object)
-{
-    if(!object) return false;
-
-    return (!object->ro.parent);
-}
-
-bool ntg_object_is_focused(const ntg_object* object)
-{
-    if(!object) return false;
-
-    const ntg_scene* scene = ntg_object_get_scene(object);
-    if(!scene) return false;
-
-    return (scene->ro.fm->ro.focused == object);
-}
-
-bool ntg_object_is_in_tree(const ntg_object* tree_root, const ntg_object* desc)
-{
-    if(!tree_root || !desc) return false;
-
-    const ntg_object* it = desc;
-    while(it)
+    if(object->priv.vtable->chng_bdr_opts_fn)
     {
-        if(it == tree_root) return true;
-        it = it->ro.parent;
+        object->priv.vtable->chng_bdr_opts_fn(
+                object,
+                &old_opts,
+                &object->ro.border_opts);
     }
 
-    return false;
+    struct ntg_event_object_bdroptchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &object->ro.border_opts
+    };
+    ntg_event_raise(
+            &object->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_OBJECT_BDROPTCHG, object, &event_dt));
+
+    return 0;
 }
 
-bool ntg_object_is_in_graph(const ntg_object* graph_root, const ntg_object* desc)
+int ntg_object_set_pad_opts(ntg_object* object, const struct ntg_pad_opts* opts_cp)
 {
-    if(!graph_root || !desc) return false;
+    if(!object) return NTG_ERR_INV_ARG;
 
-    const ntg_object* it = desc;
-    while(it)
+    struct ntg_pad_opts old_opts = object->ro.padding_opts;
+    struct ntg_pad_opts new_opts = (opts_cp ? (*opts_cp) : ntg_padding_opts_default());
+
+    if(ntg_pad_opts_are_eql(&old_opts, &new_opts))
+        return 0;
+
+    object->ro.padding_opts = new_opts;
+
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+
+    if(object->priv.vtable->chng_pad_opts_fn)
     {
-        if(it == graph_root) return true;
-
-        if(it->ro.parent) // If has parent keep advancing
-            it = it->ro.parent;
-        else // Else traverse graph (process next tree)
-            it = it->ro.base;
+        object->priv.vtable->chng_pad_opts_fn(
+                object,
+                &old_opts,
+                &object->ro.padding_opts);
     }
 
-    return false;
+    struct ntg_event_object_padoptchg_dt event_dt = {
+        .old_opts = &old_opts,
+        .new_opts = &object->ro.padding_opts
+    };
+    ntg_event_raise(
+            &object->ro.event_dlgt,
+            ntg_event_new(NTG_EVENT_OBJECT_PADOPTCHG, object, &event_dt));
+
+    return 0;
 }
 
-struct ntg_xy ntg_object_get_size(const ntg_object* object)
+int ntg_object_set_anchor_policy(ntg_object* object, const ntg_anchor_policy* policy)
 {
-    if(!object)
-        return ntg_xy(0, 0);
+    ntg_not_null(object);
 
-    return object->ro.size;
+    object->ro.anchor_policy = policy;
+
+    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+
+    return 0;
 }
 
-struct ntg_xy ntg_object_get_size_cont(const ntg_object* object)
-{
-    if(!object) return ntg_xy(0, 0);
-
-    struct ntg_insets border_size = object->ro.border_size;
-    struct ntg_insets padding_size = object->ro.padding_size;
-
-    struct ntg_xy sub = ntg_xy(
-        ntg_insets_hsum(border_size) + ntg_insets_hsum(padding_size),
-        ntg_insets_vsum(border_size) + ntg_insets_vsum(padding_size)
-    );
-    return ntg_xy_sub(object->ro.size, sub);
-}
-
-struct ntg_xy ntg_object_get_size_pad(const ntg_object* object)
-{
-    if(!object) return ntg_xy(0, 0);
-
-    struct ntg_insets border_size = object->ro.border_size;
-
-    struct ntg_xy sub = ntg_xy(
-            ntg_insets_hsum(border_size),
-            ntg_insets_vsum(border_size)
-    );
-    return ntg_xy_sub(object->ro.size, sub);
-}
+/* ------------------------------------------------------ */
 
 NTG_API struct ntg_object_hit_res
 ntg_object_hit_test(ntg_object* object, struct ntg_xy pos)
@@ -414,6 +434,22 @@ ntg_object_hit_test(ntg_object* object, struct ntg_xy pos)
 
     return out;
 }
+
+/* ------------------------------------------------------ */
+
+bool ntg_object_is_focused(const ntg_object* object)
+{
+    if(!object) return false;
+
+    const ntg_scene* scene = ntg_object_get_scene(object);
+    if(!scene) return false;
+
+    return (scene->ro.fm->ro.focused == object);
+}
+
+/* ------------------------------------------------------ */
+/* OBJECT GRAPH OPERATIONS */
+/* ------------------------------------------------------ */
 
 int ntg_object_detach(ntg_object* object)
 {
@@ -558,17 +594,6 @@ int ntg_object_unanchor(ntg_object* root)
     return 0;
 }
 
-int ntg_object_set_anchor_policy(ntg_object* object, const ntg_anchor_policy* policy)
-{
-    ntg_not_null(object);
-
-    object->ro.anchor_policy = policy;
-
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
-
-    return 0;
-}
-
 int ntg_object_remove_from_scene(ntg_object* object)
 {
     if(!object) return NTG_ERR_INV_ARG;
@@ -597,108 +622,171 @@ int ntg_object_remove_from_scene(ntg_object* object)
 }
 
 /* ------------------------------------------------------ */
-/* CONTROL */
+/* OBJECT GRAPH QUERY */
 /* ------------------------------------------------------ */
 
-int ntg_object_set_lay_opts(ntg_object* object, const struct ntg_lay_opts* opts_cp)
+const ntg_object* ntg_object_get_graph_root(const ntg_object* object)
 {
-    if(!object) return NTG_ERR_INV_ARG;
+    if(!object) return NULL;
 
-    struct ntg_lay_opts old_opts = object->ro.layout_opts;
-    struct ntg_lay_opts new_opts = (opts_cp ? (*opts_cp) : ntg_lay_opts_default());
-
-    if(ntg_layout_opts_are_eql(&old_opts, &new_opts))
-        return 0;
-
-    object->ro.layout_opts = new_opts;
-
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
-
-    if(object->priv.vtable->chng_lay_opts_fn)
+    const ntg_object *it_obj = object, *it_root, *it_base;
+    while(true)
     {
-        object->priv.vtable->chng_lay_opts_fn(
-                object,
-                &old_opts,
-                &object->ro.layout_opts);
+        it_root = ntg_object_get_tree_root(it_obj);
+        it_base = it_root->ro.base;
+        it_obj = it_base;
+
+        if(!it_base) break;
     }
 
-    struct ntg_event_object_layoptchg_dt event_dt = {
-        .old_opts = &old_opts,
-        .new_opts = &object->ro.layout_opts
-    };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_LAYOPTCHG, object, &event_dt));
-
-    return 0;
+    return it_root;
 }
 
-int ntg_object_set_bdr_opts(ntg_object* object, const struct ntg_bdr_opts* opts_cp)
+ntg_object* ntg_object_get_graph_root_(ntg_object* object)
 {
-    if(!object) return NTG_ERR_INV_ARG;
+    if(!object) return NULL;
 
-    struct ntg_bdr_opts old_opts = object->ro.border_opts;
-    struct ntg_bdr_opts new_opts = (opts_cp ? (*opts_cp) : ntg_bdr_opts_default());
-
-    if(ntg_bdr_opts_are_eql(&old_opts, &new_opts))
-        return 0;
-
-    object->ro.border_opts = new_opts;
-    if(!object->ro.border_opts.style)
-        object->ro.border_opts.style = &NTG_BORDER_STYLE_DEFAULT;
-
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
-
-    if(object->priv.vtable->chng_bdr_opts_fn)
-    {
-        object->priv.vtable->chng_bdr_opts_fn(
-                object,
-                &old_opts,
-                &object->ro.border_opts);
-    }
-
-    struct ntg_event_object_bdroptchg_dt event_dt = {
-        .old_opts = &old_opts,
-        .new_opts = &object->ro.border_opts
-    };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_BDROPTCHG, object, &event_dt));
-
-    return 0;
+    return (ntg_object*)ntg_object_get_graph_root(object);
 }
 
-int ntg_object_set_pad_opts(ntg_object* object, const struct ntg_pad_opts* opts_cp)
+/* ------------------------------------------------------ */
+
+const ntg_object* ntg_object_get_tree_root(const ntg_object* object)
 {
-    if(!object) return NTG_ERR_INV_ARG;
+    if(!object) return NULL;
 
-    struct ntg_pad_opts old_opts = object->ro.padding_opts;
-    struct ntg_pad_opts new_opts = (opts_cp ? (*opts_cp) : ntg_padding_opts_default());
+    while(object->ro.parent) object = object->ro.parent;
+    return object;
+}
 
-    if(ntg_pad_opts_are_eql(&old_opts, &new_opts))
-        return 0;
+ntg_object* ntg_object_get_tree_root_(ntg_object* object)
+{
+    if(!object) return NULL;
 
-    object->ro.padding_opts = new_opts;
+    return (ntg_object*)ntg_object_get_tree_root(object);
+}
 
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+/* ------------------------------------------------------ */
 
-    if(object->priv.vtable->chng_pad_opts_fn)
+ntg_scene* ntg_object_get_scene_(ntg_object* object)
+{
+    if(!object) return NULL;
+
+    ntg_object* root = ntg_object_get_graph_root_(object);
+
+    return root->priv.scene;
+}
+
+const ntg_scene* ntg_object_get_scene(const ntg_object* object)
+{
+    if(!object) return NULL;
+
+    const ntg_object* root = ntg_object_get_graph_root(object);
+
+    return root->priv.scene;
+}
+
+/* ------------------------------------------------------ */
+
+bool ntg_object_is_true_root(const ntg_object* object)
+{
+    if(!object) return false;
+    
+    return (ntg_object_is_graph_root(object) && ntg_object_get_scene(object));
+}
+
+bool ntg_object_is_graph_root(const ntg_object* object)
+{
+    if(!object) return false;
+
+    return ((!object->ro.parent) && (!object->ro.base));
+}
+
+bool ntg_object_is_tree_root(const ntg_object* object)
+{
+    if(!object) return false;
+
+    return (!object->ro.parent);
+}
+
+/* ------------------------------------------------------ */
+
+bool ntg_object_is_in_tree(const ntg_object* tree_root, const ntg_object* desc)
+{
+    if(!tree_root || !desc) return false;
+
+    const ntg_object* it = desc;
+    while(it)
     {
-        object->priv.vtable->chng_pad_opts_fn(
-                object,
-                &old_opts,
-                &object->ro.padding_opts);
+        if(it == tree_root) return true;
+        it = it->ro.parent;
     }
 
-    struct ntg_event_object_padoptchg_dt event_dt = {
-        .old_opts = &old_opts,
-        .new_opts = &object->ro.padding_opts
-    };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_PADOPTCHG, object, &event_dt));
+    return false;
+}
 
-    return 0;
+bool ntg_object_is_in_graph(const ntg_object* graph_root, const ntg_object* desc)
+{
+    if(!graph_root || !desc) return false;
+
+    const ntg_object* it = desc;
+    while(it)
+    {
+        if(it == graph_root) return true;
+
+        if(it->ro.parent) // If has parent keep advancing
+            it = it->ro.parent;
+        else // Else traverse graph (process next tree)
+            it = it->ro.base;
+    }
+
+    return false;
+}
+
+/* ------------------------------------------------------ */
+/* SIZE & POS */
+/* ------------------------------------------------------ */
+
+struct ntg_xy ntg_object_get_size(const ntg_object* object)
+{
+    if(!object)
+        return ntg_xy(0, 0);
+
+    return object->ro.size;
+}
+
+struct ntg_xy ntg_object_get_size_cont(const ntg_object* object)
+{
+    if(!object) return ntg_xy(0, 0);
+
+    struct ntg_insets border_size = object->ro.border_size;
+    struct ntg_insets padding_size = object->ro.padding_size;
+
+    struct ntg_xy sub = ntg_xy(
+        ntg_insets_hsum(border_size) + ntg_insets_hsum(padding_size),
+        ntg_insets_vsum(border_size) + ntg_insets_vsum(padding_size)
+    );
+    return ntg_xy_sub(object->ro.size, sub);
+}
+
+struct ntg_xy ntg_object_get_size_pad(const ntg_object* object)
+{
+    if(!object) return ntg_xy(0, 0);
+
+    struct ntg_insets border_size = object->ro.border_size;
+
+    struct ntg_xy sub = ntg_xy(
+            ntg_insets_hsum(border_size),
+            ntg_insets_vsum(border_size)
+    );
+    return ntg_xy_sub(object->ro.size, sub);
+}
+
+struct ntg_xy ntg_object_get_abs_pos(const ntg_object* object)
+{
+    if(!object) return ntg_xy(0, 0);
+
+    return ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
 }
 
 /* ------------------------------------------------------ */
@@ -778,13 +866,6 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point)
 }
 */
 
-struct ntg_xy ntg_object_get_abs_pos(const ntg_object* object)
-{
-    if(!object) return ntg_xy(0, 0);
-
-    return ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
-}
-
 struct ntg_dxy ntg_object_map_to_ancestor(
         const ntg_object* object,
         const ntg_object* ancestor,
@@ -841,67 +922,6 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point)
         return NTG_DXY_MAX;
 
     return ntg_object_map_to_descendant(NULL, object, point);
-}
-
-/* ------------------------------------------------------ */
-/* EVENT */
-/* ------------------------------------------------------ */
-
-bool ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event)
-{
-    if(!object) return false;
-    if(!event) return false;
-    if(!event->target) return false;
-
-    bool consumed = false;
-
-    if(object->priv.vtable->handle_key_fn)
-    {
-        consumed = object->priv.vtable->handle_key_fn(object, event);
-    }
-
-    struct ntg_event_object_key_dt event_dt = { .key = event };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_KEY, object, &event_dt));
-
-    return consumed;
-}
-
-bool ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* event)
-{
-    if(!object) return false;
-    if(!object->ro.clickable) return false;
-    if(!event) return false;
-    if(!event->target) return false;
-
-    struct ntg_xy size = ntg_object_get_size(object);
-    if((event->mouse.x >= size.x) || (event->mouse.y >= size.y))
-        return false;
-
-    struct ntg_xy pos = ntg_xy(event->mouse.x, event->mouse.y);
-    struct ntg_object_hit_res res;
-    res = ntg_object_hit_test(object, pos);
-
-    if(!(object->ro.clickable == NTG_OBJECT_CLICKABLE_BDR) &&
-        (res.part == NTG_OBJECT_HIT_BDR))
-    {
-        return false;
-    }
-
-    bool consumed = false;
-
-    if(object->priv.vtable->handle_mouse_fn)
-    {
-        consumed = object->priv.vtable->handle_mouse_fn(object, event);
-    }
-
-    struct ntg_event_object_mouse_dt event_dt = { .mouse = event };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_MOUSE, object, &event_dt));
-
-    return consumed;
 }
 
 /* ------------------------------------------------------ */
@@ -1113,7 +1133,7 @@ int ntg_object_init_inherit(
     object->priv.vtable = vtable;
     object->pub.layout_dt = layout_dt;
 
-    ntg_object_drawing_init(&object->ro.drawing);
+    ntg_object_draw_init(&object->ro.drawing);
 
     ntg_event_delegate_init(&object->ro.event_dlgt);
 
@@ -1155,7 +1175,7 @@ int ntg_object_deinit(ntg_object* object)
 
     ntg_objptr_vec_deinit(&object->ro.anchored);
 
-    ntg_object_drawing_deinit(&object->ro.drawing);
+    ntg_object_draw_deinit(&object->ro.drawing);
 
     ntg_event_delegate_deinit(&object->ro.event_dlgt);
 
@@ -1166,6 +1186,8 @@ int ntg_object_deinit(ntg_object* object)
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_object_attach(ntg_object* parent, ntg_object* child)
 {
@@ -1228,6 +1250,8 @@ int ntg_object_attach(ntg_object* parent, ntg_object* child)
     ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg)
 {
@@ -1660,12 +1684,18 @@ size_t ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orie
 /* FUNCTIONS */
 /* ========================================================================== */
 
-void ntg__object_layout_prepare(ntg_object* object, sarena* arena)
+int ntg__object_layout_prepare(ntg_object* object, sarena* arena)
 {
-    if(!object) return;
+    if(!object || !arena)
+        return NTG_ERR_INV_ARG;
 
     if(object->priv.vtable->layout_prepare_fn)
-        object->priv.vtable->layout_prepare_fn(object, arena);
+    {
+        return object->priv.vtable->layout_prepare_fn(
+                object, object->pub.layout_dt, arena);
+    }
+
+    return 0;
 }
 
 int ntg__object_hmeasure(ntg_object* object, sarena* arena, uint32_t* relayout)
@@ -2049,9 +2079,9 @@ int ntg__object_draw(ntg_object* object, sarena* arena)
     if(!scene)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_object_drawing_set_size(
+    int _status = ntg_object_draw_set_size(
             &object->ro.drawing, object->ro.size);
-    struct ntg_xy drawing_size = ntg_object_drawing_get_size(&object->ro.drawing);
+    struct ntg_xy drawing_size = ntg_object_draw_get_size(&object->ro.drawing);
 
     /* Even if the alloc fails, set the cells to defaults */
 
@@ -2060,7 +2090,7 @@ int ntg__object_draw(ntg_object* object, sarena* arena)
     {
         for(j = 0; j < drawing_size.x; j++)
         {
-            ntg_object_drawing_set(&object->ro.drawing, ntg_vcell_new_default(), ntg_xy(j, i));
+            ntg_object_draw_set(&object->ro.drawing, ntg_vcell_new_default(), ntg_xy(j, i));
         }
     }
 
@@ -2247,8 +2277,8 @@ static int pos_map_init(
     return 0;
 }
 
-static int tmp_drawing_init(
-        struct ntg_object_tmp_drawing* drawing,
+static int tmp_draw_init(
+        struct ntg_object_tmp_draw* drawing,
         struct ntg_xy size,
         struct ntg_vcell base_bg,
         sarena* arena)
@@ -2269,7 +2299,7 @@ static int tmp_drawing_init(
     {
         for(j = 0; j < size.x; j++)
         {
-            ntg_object_tmp_drawing_set(drawing, base_bg, ntg_xy(j, i));
+            ntg_object_tmp_draw_set(drawing, base_bg, ntg_xy(j, i));
         }
     }
 
@@ -2295,7 +2325,7 @@ static void layout_reset(ntg_object* object)
     object->priv.old_pos = ntg_xy(0, 0);
     object->priv.old_cont_size = ntg_xy(0, 0);
 
-    ntg_object_drawing_set_size(&object->ro.drawing, ntg_xy(0, 0));
+    ntg_object_draw_set_size(&object->ro.drawing, ntg_xy(0, 0));
 
     if(object->pub.layout_dt && object->pub.layout_dt->reset_fn)
         object->pub.layout_dt->reset_fn(object->pub.layout_dt);
@@ -2687,13 +2717,13 @@ static int calculate_padding_vsize(ntg_object* object, size_t* out_n, size_t* ou
 static int draw_optimized(ntg_object* object, sarena* arena)
 {
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
-    struct ntg_xy object_size = ntg_object_drawing_get_size(&object->ro.drawing);
+    struct ntg_xy object_size = ntg_object_draw_get_size(&object->ro.drawing);
 
     struct ntg_vcell bg = object->priv.base_bg;
     struct ntg_insets psize = object->ro.padding_size;
 
-    struct ntg_object_tmp_drawing content_drawing;
-    int _status = tmp_drawing_init(&content_drawing, content_size, bg, arena);
+    struct ntg_object_tmp_draw content_drawing;
+    int _status = tmp_draw_init(&content_drawing, content_size, bg, arena);
     if(_status != 0)
         return _status;
 
@@ -2718,7 +2748,7 @@ static int draw_optimized(ntg_object* object, sarena* arena)
         for(j = 0; j < object_size.x; j++)
         {
             ji = ntg_xy(j, i);
-            ntg_object_drawing_set(&object->ro.drawing, bg, ji);
+            ntg_object_draw_set(&object->ro.drawing, bg, ji);
         }
     }
 
@@ -2728,8 +2758,8 @@ static int draw_optimized(ntg_object* object, sarena* arena)
         {
             ji = ntg_xy(j, i);
 
-            it_src_cell = ntg_object_tmp_drawing_get(&content_drawing, ji);
-            ntg_object_drawing_set(&object->ro.drawing, it_src_cell, ntg_xy_add(offset, ji));
+            it_src_cell = ntg_object_tmp_draw_get(&content_drawing, ji);
+            ntg_object_draw_set(&object->ro.drawing, it_src_cell, ntg_xy_add(offset, ji));
         }
     }
     return 0;
@@ -2739,20 +2769,20 @@ static int
 draw_unoptimized(ntg_object* object, sarena* arena)
 {
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
-    struct ntg_xy object_size = ntg_object_drawing_get_size(&object->ro.drawing);
+    struct ntg_xy object_size = ntg_object_draw_get_size(&object->ro.drawing);
 
     struct ntg_vcell bg = object->priv.base_bg;
     struct ntg_insets bsize = object->ro.border_size;
     struct ntg_insets psize = object->ro.padding_size;
     const struct ntg_border_style* border_style = object->ro.border_opts.style;
 
-    struct ntg_object_tmp_drawing content_drawing;
-    int _status = tmp_drawing_init(&content_drawing, content_size, bg, arena);
+    struct ntg_object_tmp_draw content_drawing;
+    int _status = tmp_draw_init(&content_drawing, content_size, bg, arena);
     if(_status != 0)
         return _status;
 
-    struct ntg_object_tmp_drawing object_drawing;
-    _status = tmp_drawing_init(&object_drawing, object_size, bg, arena);
+    struct ntg_object_tmp_draw object_drawing;
+    _status = tmp_draw_init(&object_drawing, object_size, bg, arena);
     if(_status != 0)
         return _status;
 
@@ -2764,7 +2794,7 @@ draw_unoptimized(ntg_object* object, sarena* arena)
     {
         for(j = bsize.w; j < (object_size.x - bsize.e); j++)
         {
-            ntg_object_tmp_drawing_set(&object_drawing, bg, ntg_xy(j, i));
+            ntg_object_tmp_draw_set(&object_drawing, bg, ntg_xy(j, i));
         }
     }
 
@@ -2790,9 +2820,9 @@ draw_unoptimized(ntg_object* object, sarena* arena)
         {
             ji = ntg_xy(j, i);
 
-            it_src_cell = ntg_object_tmp_drawing_get(&content_drawing, ji);
+            it_src_cell = ntg_object_tmp_draw_get(&content_drawing, ji);
 
-            ntg_object_tmp_drawing_set(
+            ntg_object_tmp_draw_set(
                     &object_drawing,
                     it_src_cell,
                     ntg_xy_add(offset, ji));
@@ -2805,8 +2835,8 @@ draw_unoptimized(ntg_object* object, sarena* arena)
         {
             ji = ntg_xy(j, i);
 
-            it_src_cell = ntg_object_tmp_drawing_get(&object_drawing, ji);
-            ntg_object_drawing_set(&object->ro.drawing, it_src_cell, ji);
+            it_src_cell = ntg_object_tmp_draw_get(&object_drawing, ji);
+            ntg_object_draw_set(&object->ro.drawing, it_src_cell, ji);
         }
     }
 

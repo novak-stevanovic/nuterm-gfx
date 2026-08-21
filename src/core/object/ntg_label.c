@@ -152,6 +152,8 @@ int ntg_label_set_text_unsafe(
     return ntg_text_set_text_unsafe(ntg_txt(label), text, flags);
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_label_set_text(
         ntg_label* label,
         const char* text,
@@ -212,7 +214,7 @@ ntg_label_measure_fn(
 int ntg_label_draw_fn(
         const ntg_object* _label,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena)
 {
     if(ntg_xy_is_zero_any(ntg_object_get_size_cont(_label))) return 0;
@@ -245,7 +247,7 @@ const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT = {
 
 void ntg_label_post_draw_fn(
         const ntg_text* _label,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena)
 {
     (void)_label;

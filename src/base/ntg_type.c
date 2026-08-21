@@ -77,6 +77,8 @@ bool ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor)
     return false;
 }
 
+/* ------------------------------------------------------ */
+
 bool ntg_type_are_eql(const ntg_type* type1, const ntg_type* type2)
 {
     return (type1 == type2);

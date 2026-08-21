@@ -148,7 +148,7 @@ NTG_API int
 ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
 /* ------------------------------------------------------ */

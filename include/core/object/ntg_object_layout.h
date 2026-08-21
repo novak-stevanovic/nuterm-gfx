@@ -129,14 +129,14 @@ ntg_object_zero_arrange(const ntg_object* object, ntg_object_pos_map* map);
 /* DRAW PHASE */
 /* ------------------------------------------------------ */
 
-struct ntg_object_tmp_drawing
+struct ntg_object_tmp_draw
 {
     struct ntg_vcell* data;
     struct ntg_xy size;
 };
 
 static inline struct ntg_vcell
-ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy pos)
+ntg_object_tmp_draw_get(const ntg_object_tmp_draw* drawing, struct ntg_xy pos)
 {
     if(!drawing) return ntg_vcell_new_default();
 
@@ -147,8 +147,8 @@ ntg_object_tmp_drawing_get(const ntg_object_tmp_drawing* drawing, struct ntg_xy 
 }
 
 static inline int
-ntg_object_tmp_drawing_set(
-        ntg_object_tmp_drawing* drawing,
+ntg_object_tmp_draw_set(
+        ntg_object_tmp_draw* drawing,
         struct ntg_vcell cell,
         struct ntg_xy pos)
 {
@@ -233,7 +233,7 @@ ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orient);
 /* FUNCTIONS */
 /* ========================================================================== */
 
-void ntg__object_layout_prepare(ntg_object* object, sarena* arena);
+int ntg__object_layout_prepare(ntg_object* object, sarena* arena);
 int ntg__object_hmeasure(ntg_object* object, sarena* arena, uint32_t* relayout);
 int ntg__object_hconstrain(ntg_object* object, sarena* arena, uint32_t* relayout);
 int ntg__object_vmeasure(ntg_object* object, sarena* arena, uint32_t* relayout);

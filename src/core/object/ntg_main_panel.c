@@ -37,6 +37,8 @@ struct ntg_main_panel_opts ntg_main_panel_opts_default(void)
     };
 }
 
+/* ------------------------------------------------------ */
+
 bool ntg_main_panel_opts_are_eql(
         const struct ntg_main_panel_opts* opts1,
         const struct ntg_main_panel_opts* opts2)
@@ -74,6 +76,8 @@ int ntg_main_panel_init(
     return _status;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_main_panel_deinit(ntg_main_panel* panel)
 {
     if(!panel) return NTG_ERR_INV_ARG;
@@ -85,6 +89,8 @@ int ntg_main_panel_deinit(ntg_main_panel* panel)
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 void ntg_main_panel_deinit_void(void* _panel)
 {
@@ -199,6 +205,8 @@ int ntg_main_panel_init_inherit(
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_main_panel_measure_fn(
         const ntg_object* _panel,
         struct ntg_object_layout_dt* layout_dt,
@@ -274,6 +282,8 @@ int ntg_main_panel_measure_fn(
     };
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 int ntg_main_panel_constrain_fn(
         const ntg_object* _panel,
@@ -477,6 +487,8 @@ int ntg_main_panel_constrain_fn(
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
         struct ntg_object_layout_dt* layout_dt,
@@ -542,6 +554,8 @@ static void get_children(const ntg_main_panel* panel, ntg_object** out_north,
     (*out_center) = panel->ro.children[NTG_MAIN_PANEL_CENTER];
 }
 
+/* ------------------------------------------------------ */
+
 void ntg_main_panel_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
 {
     ntg_main_panel* main_panel = (ntg_main_panel*)_main_panel;
@@ -555,6 +569,8 @@ void ntg_main_panel_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
 
     ntg_object_mark_dirty(_main_panel, NTG_OBJECT_DIRTY_FULL);
 }
+
+/* ------------------------------------------------------ */
 
 void ntg_main_panel_deinit_fn(ntg_object* _panel)
 {

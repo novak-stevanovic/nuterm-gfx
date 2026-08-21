@@ -15,10 +15,6 @@
 /* FUNCTIONS */
 /* ========================================================================== */
 
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
 int ntg_vecgrid_init(struct ntg_vecgrid* vecgrid, double cap_factor)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
@@ -43,10 +39,6 @@ int ntg_vecgrid_deinit(struct ntg_vecgrid* vecgrid)
 
     return 0;
 }
-
-/* ------------------------------------------------------ */
-/* SIZE */
-/* ------------------------------------------------------ */
 
 int ntg_vecgrid_set_size(struct ntg_vecgrid* vecgrid, struct ntg_xy size, size_t data_size)
 {

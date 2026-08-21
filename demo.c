@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
     struct ntg_opts opts = ntg_opts_default();
     // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
     // opts.cursor_mode = NTG_CURSOR_SHOW;
-    _status = ntg_enable(&opts, "/home/novak/Desktop/ntg_log.txt");
+    _status = ntg_enable(&opts, NULL);
     assert(!_status);
 
     batch = ntg_cleanup_batch_new();

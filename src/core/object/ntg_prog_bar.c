@@ -21,6 +21,8 @@ struct ntg_prog_bar_style ntg_prog_bar_style_default(void)
     };
 }
 
+/* ------------------------------------------------------ */
+
 bool ntg_prog_bar_style_are_eql(
         const struct ntg_prog_bar_style* style1,
         const struct ntg_prog_bar_style* style2)
@@ -48,6 +50,8 @@ struct ntg_prog_bar_opts ntg_prog_bar_opts_default(void)
         .style = ntg_prog_bar_style_default()
     };
 }
+
+/* ------------------------------------------------------ */
 
 bool ntg_prog_bar_opts_are_eql(
         const struct ntg_prog_bar_opts* opts1,
@@ -87,6 +91,8 @@ int ntg_prog_bar_init(
     return _status;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 {
     if(!prog_bar) return NTG_ERR_INV_ARG;
@@ -98,6 +104,8 @@ int ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 void ntg_prog_bar_deinit_void(void* _prog_bar)
 {
@@ -198,6 +206,8 @@ int ntg_prog_bar_init_inherit(
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
@@ -224,10 +234,12 @@ int ntg_prog_bar_measure_fn(
     return 0;
 }
 
+/* ------------------------------------------------------ */
+
 int ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
         struct ntg_object_layout_dt* layout_dt,
-        ntg_object_tmp_drawing* out_drawing,
+        ntg_object_tmp_draw* out_drawing,
         sarena* arena)
 {
     (void)layout_dt;
@@ -264,12 +276,14 @@ int ntg_prog_bar_draw_fn(
             else
                 it_cell = prog_bar->ro.opts.style.uncomplete;
 
-            ntg_object_tmp_drawing_set(out_drawing, it_cell, it_xy);
+            ntg_object_tmp_draw_set(out_drawing, it_cell, it_xy);
         }
     }
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
 
 void ntg_prog_bar_deinit_fn(ntg_object* _prog_bar)
 {
