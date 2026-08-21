@@ -175,7 +175,7 @@ int ntg_loop_init(
 
         status = ntg_db_renderer_init(
                 (ntg_db_renderer*)loop.renderer,
-                NTG_DB_RENDERER_TBUFF_SIZE_AUTO);
+                NULL);
         if(status != 0)
         {
             deinit();

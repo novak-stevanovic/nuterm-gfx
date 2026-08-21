@@ -5,13 +5,26 @@
 #include "core/renderer/ntg_renderer.h"
 #include "core/stage/ntg_stage_draw.h"
 
-#define NTG_DB_RENDERER_TBUFF_SIZE_AUTO 50000
+#define NTG_DB_RENDERER_TERM_SIZE_AUTO 50000
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
+
+enum ntg_db_renderer_erase_mode
+{
+    NTG_DB_RENDERER_ERASE_SCROLL = 0,
+    NTG_DB_RENDERER_ERASE_ALL,
+    NTG_DB_RENDERER_ERASE_NONE
+};
+
+struct ntg_db_renderer_opts
+{
+    enum ntg_db_renderer_erase_mode erase_mode; 
+    size_t term_buff_size;
+};
 
 NTG_API struct ntg_db_renderer_opts
 ntg_db_renderer_opts_default(void);
@@ -32,9 +45,12 @@ struct ntg_db_renderer
         bool force_full_render;
 
         char* term_buff;
-        size_t term_buff_size;
     } priv;
 
+    struct
+    {
+        struct ntg_db_renderer_opts opts;
+    } ro;
 };
 
 /* ========================================================================== */
@@ -42,7 +58,9 @@ struct ntg_db_renderer
 /* ========================================================================== */
 
 NTG_API int
-ntg_db_renderer_init(ntg_db_renderer* renderer, size_t term_buff_size);
+ntg_db_renderer_init(
+        ntg_db_renderer* renderer,
+        const struct ntg_db_renderer_opts* opts);
 
 NTG_API int
 ntg_db_renderer_deinit(ntg_db_renderer* renderer);
