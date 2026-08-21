@@ -81,8 +81,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     int _status;
     if(!ntg_xy_are_eql(ntg_stage_drawing_get_size(&stage->ro.drawing), size))
     {
-        struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-        _status = ntg_stage_drawing_set_size(&stage->ro.drawing, size, size_cap);
+        _status = ntg_stage_drawing_set_size(&stage->ro.drawing, size);
         if(_status)
             return true;
     }

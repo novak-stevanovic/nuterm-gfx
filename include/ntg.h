@@ -32,7 +32,6 @@
 #include "core/object/ntg_clr_block.h"
 #include "core/object/ntg_main_panel.h"
 #include "core/object/ntg_box.h"
-#include "core/object/ntg_object_drawing.h"
 #include "core/object/ntg_objptr_vec.h"
 #include "core/scene/ntg_scene.h"
 #include "core/scene/ntg_fcs_manager.h"
@@ -40,7 +39,6 @@
 #include "core/object/anchor/ntg_anchor_policy.h"
 #include "core/object/anchor/ntg_float.h"
 #include "core/object/anchor/ntg_sidefloat.h"
-#include "core/stage/ntg_stage_drawing.h"
 #include "core/stage/ntg_stage.h"
 #include "core/task/ntg_task_runner.h"
 
@@ -93,10 +91,8 @@ ntg_disable(void);
 FIX:
 add layout_prepare vtable fn for text to set_text
 pos -> NTG_SIZE_MAX for no draw
-arena align???????????
 redo coordinate map functions
-
-// TODO: assert
+click bug
 
 IMPLEMENT:
 ntg_input

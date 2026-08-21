@@ -35,8 +35,6 @@ struct ntg_stage_drawing
 NTG_API int
 ntg_stage_drawing_init(ntg_stage_drawing* drawing);
 
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
 
@@ -44,21 +42,20 @@ ntg_stage_drawing_deinit(ntg_stage_drawing* drawing);
 /* SIZE */
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_xy
-ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing);
-
-/* ------------------------------------------------------ */
+static inline struct ntg_xy
+ntg_stage_drawing_get_size(const ntg_stage_drawing* drawing)
+{
+    return (drawing != NULL) ?
+        ntg_cell_vecgrid_get_size(&drawing->priv.data) :
+        NTG_XY_UNSET;
+}
 
 NTG_API int
-ntg_stage_drawing_set_size(
-        ntg_stage_drawing* drawing,
-        struct ntg_xy size,
-        struct ntg_xy size_cap);
+ntg_stage_drawing_set_size(ntg_stage_drawing* drawing, struct ntg_xy size);
 
 /* ------------------------------------------------------ */
 /* CELLS */
 /* ------------------------------------------------------ */
-
 
 static inline struct ntg_cell
 ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
@@ -69,14 +66,12 @@ ntg_stage_drawing_get(const ntg_stage_drawing* drawing, struct ntg_xy pos)
 }
 
 
-static inline int
+static inline void
 ntg_stage_drawing_set(ntg_stage_drawing* drawing, struct ntg_cell cell, struct ntg_xy pos)
 {
-    if(!drawing) return NTG_ERR_INV_ARG;
+    if(!drawing) return;
 
-    (void)ntg_cell_vecgrid_set(&drawing->priv.data, cell, pos);
-
-    return 0;
+    ntg_cell_vecgrid_set(&drawing->priv.data, cell, pos);
 }
 
 #endif // NTG_STAGE_DRAWING_H

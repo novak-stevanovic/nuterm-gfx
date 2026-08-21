@@ -34,8 +34,6 @@ struct ntg_object_drawing
 NTG_API int
 ntg_object_drawing_init(ntg_object_drawing* drawing);
 
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_object_drawing_deinit(ntg_object_drawing* drawing);
 
@@ -43,16 +41,16 @@ ntg_object_drawing_deinit(ntg_object_drawing* drawing);
 /* SIZE */
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_xy
-ntg_object_drawing_get_size(const ntg_object_drawing* drawing);
-
-/* ------------------------------------------------------ */
+static inline struct ntg_xy
+ntg_object_drawing_get_size(const ntg_object_drawing* drawing)
+{
+    return (drawing != NULL) ?
+        ntg_vcell_vecgrid_get_size(&drawing->priv.data) :
+        NTG_XY_UNSET;
+}
 
 NTG_API int
-ntg_object_drawing_set_size(
-        ntg_object_drawing* drawing,
-        struct ntg_xy size,
-        struct ntg_xy size_cap);
+ntg_object_drawing_set_size(ntg_object_drawing* drawing, struct ntg_xy size);
 
 /* ------------------------------------------------------ */
 /* PLACEMENT */
@@ -78,25 +76,20 @@ ntg_object_drawing_place_(
 /* CELLS */
 /* ------------------------------------------------------ */
 
-
 static inline struct ntg_vcell
 ntg_object_drawing_get(const ntg_object_drawing* drawing, struct ntg_xy pos)
 {
-    if(!drawing)
-        return ntg_vcell_new_default();
+    if(!drawing) return ntg_vcell_new_default();
 
     return ntg_vcell_vecgrid_get(&drawing->priv.data, pos);
 }
 
 
-static inline int
+static inline void
 ntg_object_drawing_set(ntg_object_drawing* drawing, struct ntg_vcell cell, struct ntg_xy pos)
 {
-    if(!drawing) return NTG_ERR_INV_ARG;
-
-    (void)ntg_vcell_vecgrid_set(&drawing->priv.data, cell, pos);
-
-    return 0;
+    if(!drawing) return;
+    ntg_vcell_vecgrid_set(&drawing->priv.data, cell, pos);
 }
 
 #endif // NTG_OBJECT_DRAWING_H

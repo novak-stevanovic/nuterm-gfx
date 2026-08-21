@@ -1176,40 +1176,112 @@ NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(finalize_tree, finalize_object)
 
 static inline void prepare_phase(ntg_object* root, struct layout_data* lay_data)
 {
-    prepare_tree(root, lay_data);
+    if(lay_data->tree_pre)
+    {
+        size_t i;
+        for(i = 0; i < lay_data->tree_size; i++)
+            prepare_object(lay_data->tree_pre[i], lay_data);
+    }
+    else
+    {
+        prepare_tree(root, lay_data);
+    }
 }
 
 static inline void hmeasure_phase(ntg_object* root, struct layout_data* lay_data)
 {
-    hmeasure_tree(root, lay_data);
+    if(lay_data->tree_post)
+    {
+        size_t i;
+        for(i = 0; i < lay_data->tree_size; i++)
+            hmeasure_object(lay_data->tree_post[i], lay_data);
+    }
+    else
+    {
+        hmeasure_tree(root, lay_data);
+    }
 }
 
 static inline void hconstrain_phase(ntg_object* root, struct layout_data* lay_data)
 {
-    hconstrain_tree(root, lay_data);
+    if(lay_data->tree_pre)
+    {
+        size_t i;
+        for(i = 0; i < lay_data->tree_size; i++)
+            hconstrain_object(lay_data->tree_pre[i], lay_data);
+    }
+    else
+    {
+        hconstrain_tree(root, lay_data);
+    }
 }
 
 static inline void vmeasure_phase(ntg_object* root, struct layout_data* lay_data)
 {
-    vmeasure_tree(root, lay_data);
+    if(lay_data->tree_post)
+    {
+        size_t i;
+        for(i = 0; i < lay_data->tree_size; i++)
+            vmeasure_object(lay_data->tree_post[i], lay_data);
+    }
+    else
+    {
+        vmeasure_tree(root, lay_data);
+    }
 }
 
 static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_data)
 {
-    vconstrain_tree(root, lay_data);
+    if(lay_data->tree_pre)
+    {
+        size_t i;
+        for(i = 0; i < lay_data->tree_size; i++)
+            vconstrain_object(lay_data->tree_pre[i], lay_data);
+    }
+    else
+    {
+        vconstrain_tree(root, lay_data);
+    }
 }
 
 static inline void arrange_phase(ntg_object* root, struct layout_data* lay_data)
 {
-    arrange_tree(root, lay_data);
+    if(lay_data->tree_pre)
+    {
+        size_t i;
+        for(i = 0; i < lay_data->tree_size; i++)
+            arrange_object(lay_data->tree_pre[i], lay_data);
+    }
+    else
+    {
+        arrange_tree(root, lay_data);
+    }
 }
 
 static inline void draw_phase(ntg_object* root, struct layout_data* lay_data)
 {
-    draw_tree(root, lay_data);
+    if(lay_data->tree_pre)
+    {
+        size_t i;
+        for(i = 0; i < lay_data->tree_size; i++)
+            draw_object(lay_data->tree_pre[i], lay_data);
+    }
+    else
+    {
+        draw_tree(root, lay_data);
+    }
 }
 
 static inline void finalize_phase(ntg_object* root, struct layout_data* lay_data)
 {
-    finalize_tree(root, lay_data);
+    if(lay_data->tree_pre)
+    {
+        size_t i;
+        for(i = 0; i < lay_data->tree_size; i++)
+            finalize_object(lay_data->tree_pre[i], lay_data);
+    }
+    else
+    {
+        finalize_tree(root, lay_data);
+    }
 }

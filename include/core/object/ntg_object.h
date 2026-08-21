@@ -287,7 +287,20 @@ ntg_object_is_in_tree(const ntg_object* tree_root, const ntg_object* desc);
 NTG_API bool
 ntg_object_is_in_graph(const ntg_object* graph_root, const ntg_object* desc);
 
-// TODO: move to ntg_object_layout.h?
+/* ------------------------------------------------------ */
+/* SIZE & POS */
+/* ------------------------------------------------------ */
+
+NTG_API struct ntg_xy
+ntg_object_get_size(const ntg_object* object);
+
+NTG_API struct ntg_xy
+ntg_object_get_size_cont(const ntg_object* object);
+
+NTG_API struct ntg_xy
+ntg_object_get_size_pad(const ntg_object* object);
+
+struct ntg_xy ntg_object_get_abs_pos(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 /* SPACE MAPPING */
@@ -317,8 +330,6 @@ ntg_object_is_in_graph(const ntg_object* graph_root, const ntg_object* desc);
 // 
 // NTG_API struct ntg_dxy
 // ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
-
-struct ntg_xy ntg_object_get_abs_pos(const ntg_object* object);
 
 struct ntg_dxy ntg_object_map_to_ancestor(
         const ntg_object* object,
@@ -523,8 +534,6 @@ ntg_object_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_object_deinit(ntg_object* object);
 
@@ -538,17 +547,11 @@ ntg_object_attach(ntg_object* parent, ntg_object* child);
 NTG_API int
 ntg_object_set_base_bg(ntg_object* object, struct ntg_vcell base_bg);
 
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_object_set_focusable(ntg_object* object, enum ntg_object_focus_mode mode);
 
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_object_set_clickable(ntg_object* object, enum ntg_object_click_mode mode);
-
-/* ------------------------------------------------------ */
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

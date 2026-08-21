@@ -77,10 +77,8 @@ struct ntg_object_measure
 static inline bool
 ntg_object_measure_are_eql(struct ntg_object_measure m1, struct ntg_object_measure m2)
 {
-    return ((m1.min_size == m2.min_size) &&
-            (m1.nat_size == m2.nat_size) &&
-            (m1.max_size == m2.max_size) &&
-            (m1.grow == m2.grow));
+    return ((m1.min_size == m2.min_size) && (m1.nat_size == m2.nat_size) &&
+            (m1.max_size == m2.max_size) && (m1.grow == m2.grow));
 }
 
 /* ------------------------------------------------------ */
@@ -176,27 +174,14 @@ ntg_object_mark_dirty(ntg_object* object, uint32_t dirty);
 NTG_API struct ntg_xy
 ntg_object_get_min_size(const ntg_object* object);
 
-/* ------------------------------------------------------ */
-
 NTG_API struct ntg_xy
 ntg_object_get_nat_size(const ntg_object* object);
-
-/* ------------------------------------------------------ */
 
 NTG_API struct ntg_xy
 ntg_object_get_max_size(const ntg_object* object);
 
-/* ------------------------------------------------------ */
-
-NTG_API struct ntg_xy
-ntg_object_get_size(const ntg_object* object);
-
-/* ------------------------------------------------------ */
-
 NTG_API struct ntg_object_measure
 ntg_object_get_measure(const ntg_object* object, enum ntg_orient orient);
-
-/* ------------------------------------------------------ */
 
 NTG_API size_t
 ntg_object_get_size_1d(const ntg_object* object, enum ntg_orient orient);
@@ -206,32 +191,17 @@ ntg_object_get_size_1d(const ntg_object* object, enum ntg_orient orient);
 NTG_API struct ntg_xy
 ntg_object_get_min_size_cont(const ntg_object* object);
 
-/* ------------------------------------------------------ */
-
 NTG_API struct ntg_xy
 ntg_object_get_nat_size_cont(const ntg_object* object);
-
-/* ------------------------------------------------------ */
 
 NTG_API struct ntg_xy
 ntg_object_get_max_size_cont(const ntg_object* object);
 
-/* ------------------------------------------------------ */
-
-NTG_API struct ntg_xy
-ntg_object_get_size_cont(const ntg_object* object);
-
-/* ------------------------------------------------------ */
-
 NTG_API struct ntg_object_measure
 ntg_object_get_measure_cont(const ntg_object* object, enum ntg_orient orient);
 
-/* ------------------------------------------------------ */
-
 NTG_API size_t
 ntg_object_get_size_1d_cont(const ntg_object* object, enum ntg_orient orient);
-
-/* ------------------------------------------------------ */
 
 NTG_API size_t
 ntg_object_get_for_size_cont(const ntg_object* object, enum ntg_orient orient);
@@ -241,27 +211,14 @@ ntg_object_get_for_size_cont(const ntg_object* object, enum ntg_orient orient);
 NTG_API struct ntg_xy
 ntg_object_get_min_size_pad(const ntg_object* object);
 
-/* ------------------------------------------------------ */
-
 NTG_API struct ntg_xy
 ntg_object_get_nat_size_pad(const ntg_object* object);
-
-/* ------------------------------------------------------ */
 
 NTG_API struct ntg_xy
 ntg_object_get_max_size_pad(const ntg_object* object);
 
-/* ------------------------------------------------------ */
-
-NTG_API struct ntg_xy
-ntg_object_get_size_pad(const ntg_object* object);
-
-/* ------------------------------------------------------ */
-
 NTG_API struct ntg_object_measure
 ntg_object_get_measure_pad(const ntg_object* object, enum ntg_orient orient);
-
-/* ------------------------------------------------------ */
 
 NTG_API size_t
 ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orient);
@@ -277,34 +234,13 @@ ntg_object_get_size_1d_pad(const ntg_object* object, enum ntg_orient orient);
 /* ========================================================================== */
 
 void ntg__object_layout_prepare(ntg_object* object, sarena* arena);
-
-int ntg__object_hmeasure(
-        ntg_object* object,
-        sarena* arena,
-        uint32_t* relayout);
-
-int ntg__object_hconstrain(
-        ntg_object* object,
-        sarena* arena,
-        uint32_t* relayout);
-
-int ntg__object_vmeasure(
-        ntg_object* object,
-        sarena* arena,
-        uint32_t* relayout);
-
-int ntg__object_vconstrain(
-        ntg_object* object,
-        sarena* arena,
-        uint32_t* relayout);
-
-int ntg__object_arrange(
-        ntg_object* object,
-        sarena* arena,
-        uint32_t* relayout);
-
-int ntg__object_draw(ntg_object* object, sarena* arena);
+int ntg__object_hmeasure(ntg_object* object, sarena* arena, uint32_t* relayout);
+int ntg__object_hconstrain(ntg_object* object, sarena* arena, uint32_t* relayout);
+int ntg__object_vmeasure(ntg_object* object, sarena* arena, uint32_t* relayout);
+int ntg__object_vconstrain(ntg_object* object, sarena* arena, uint32_t* relayout);
+int ntg__object_arrange(ntg_object* object, sarena* arena, uint32_t* relayout);
 void ntg__object_layout_finalize(ntg_object* object, sarena* arena);
+int ntg__object_draw(ntg_object* object, sarena* arena);
 
 void ntg__object_root_set_hsize(ntg_object* object, size_t size);
 void ntg__object_root_set_vsize(ntg_object* object, size_t size);

@@ -1,6 +1,9 @@
 #include "ntg.h"
 #include "shared/ntg_shared_internal.h"
 
+#define CELL_VECGRID_CAP_FACTOR 1.4
+#define VCELL_VECGRID_CAP_FACTOR 1.4
+
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
@@ -19,7 +22,7 @@ int ntg_cell_vecgrid_init(ntg_cell_vecgrid* vecgrid)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(ntg_vecgrid_init(&vecgrid->priv.base))
+    if(ntg_vecgrid_init(&vecgrid->priv.base, CELL_VECGRID_CAP_FACTOR))
         return NTG_ERR_UNEXPECTED;
 
     return 0;
@@ -35,27 +38,21 @@ int ntg_cell_vecgrid_deinit(ntg_cell_vecgrid* vecgrid)
     return 0;
 }
 
-int ntg_cell_vecgrid_set_size(
-        ntg_cell_vecgrid* vecgrid,
-        struct ntg_xy size,
-        struct ntg_xy size_cap)
+int ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid, struct ntg_xy size)
 {
     if(!vecgrid)
         return NTG_ERR_INV_ARG;
 
-    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX) ||
-    (size_cap.x > NTG_SIZE_MAX) || (size_cap.y > NTG_SIZE_MAX))
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
     {
         return NTG_ERR_INV_ARG;
     }
 
-    struct ntg_xy old = vecgrid->priv.base.ro.size;
+    struct ntg_xy old = vecgrid->priv.base.size;
 
     int _status = ntg_vecgrid_set_size(
             &vecgrid->priv.base,
             size,
-            2.5,
-            size_cap,
             sizeof(struct ntg_cell));
 
     switch(_status)
@@ -88,14 +85,6 @@ int ntg_cell_vecgrid_set_size(
     return 0;
 }
 
-struct ntg_xy ntg_cell_vecgrid_get_size(const ntg_cell_vecgrid* vecgrid)
-{
-    if(!vecgrid)
-        return ntg_xy(0, 0);
-
-    return vecgrid->priv.base.ro.size;
-}
-
 /* ------------------------------------------------------ */
 /* VCELL VECGRID */
 /* ------------------------------------------------------ */
@@ -104,7 +93,7 @@ int ntg_vcell_vecgrid_init(ntg_vcell_vecgrid* vecgrid)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(ntg_vecgrid_init(&vecgrid->priv.base))
+    if(ntg_vecgrid_init(&vecgrid->priv.base, VCELL_VECGRID_CAP_FACTOR))
         return NTG_ERR_UNEXPECTED;
 
     return 0;
@@ -120,27 +109,19 @@ int ntg_vcell_vecgrid_deinit(ntg_vcell_vecgrid* vecgrid)
     return 0;
 }
 
-int ntg_vcell_vecgrid_set_size(
-        ntg_vcell_vecgrid* vecgrid,
-        struct ntg_xy size,
-        struct ntg_xy size_cap)
+int ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid, struct ntg_xy size)
 {
     if(!vecgrid)
         return NTG_ERR_INV_ARG;
 
-    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX) ||
-    (size_cap.x > NTG_SIZE_MAX) || (size_cap.y > NTG_SIZE_MAX))
-    {
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
         return NTG_ERR_INV_ARG;
-    }
 
-    struct ntg_xy old = vecgrid->priv.base.ro.size;
+    struct ntg_xy old = vecgrid->priv.base.size;
 
     int _status = ntg_vecgrid_set_size(
             &vecgrid->priv.base,
             size,
-            2.5,
-            size_cap,
             sizeof(struct ntg_vcell));
     if(_status != 0)
     {
@@ -174,12 +155,4 @@ int ntg_vcell_vecgrid_set_size(
     }
 
     return 0;
-}
-
-struct ntg_xy ntg_vcell_vecgrid_get_size(const ntg_vcell_vecgrid* vecgrid)
-{
-    if(!vecgrid)
-        return ntg_xy(0, 0);
-
-    return vecgrid->priv.base.ro.size;
 }

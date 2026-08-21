@@ -39,7 +39,6 @@ typedef struct ntg_cell_grid ntg_cell_grid;
 typedef struct ntg_vcell_grid ntg_vcell_grid;
 typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;
 typedef struct ntg_vcell_vecgrid ntg_vcell_vecgrid;
-typedef struct ntg_vecgrid ntg_vecgrid;
 typedef struct ntg_type ntg_type;
 typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_binding ntg_event_binding;

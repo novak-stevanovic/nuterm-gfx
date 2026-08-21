@@ -19,27 +19,27 @@
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_vecgrid_init(ntg_vecgrid* vecgrid)
+int ntg_vecgrid_init(struct ntg_vecgrid* vecgrid, double cap_factor)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    vecgrid->ro.data = NULL;
-    vecgrid->ro.size = ntg_xy(0, 0);
-    vecgrid->ro.capacity = 0;
+    if(cap_factor < NTG_VECGRID_CAP_FACTOR_MIN)
+        return NTG_ERR_INV_ARG;
+
+    (*vecgrid) = (struct ntg_vecgrid) {0};
+    vecgrid->cap_factor = cap_factor;
 
     return 0;
 }
 
-int ntg_vecgrid_deinit(ntg_vecgrid* vecgrid)
+int ntg_vecgrid_deinit(struct ntg_vecgrid* vecgrid)
 {
     if(!vecgrid) return NTG_ERR_INV_ARG;
 
-    if(vecgrid->ro.data != NULL)
-        free(vecgrid->ro.data);
+    if(vecgrid->data != NULL)
+        free(vecgrid->data);
 
-    vecgrid->ro.data = NULL;
-    vecgrid->ro.size = ntg_xy(0, 0);
-    vecgrid->ro.capacity = 0;
+    (*vecgrid) = (struct ntg_vecgrid) {0};
 
     return 0;
 }
@@ -48,76 +48,64 @@ int ntg_vecgrid_deinit(ntg_vecgrid* vecgrid)
 /* SIZE */
 /* ------------------------------------------------------ */
 
-int ntg_vecgrid_set_size(
-        ntg_vecgrid* vecgrid,
-        struct ntg_xy size,
-        double modifier,
-        struct ntg_xy size_cap,
-        size_t data_size)
+int ntg_vecgrid_set_size(struct ntg_vecgrid* vecgrid, struct ntg_xy size, size_t data_size)
 {
     if((!vecgrid) || (data_size == 0))
         return NTG_ERR_INV_ARG;
 
-    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX) ||
-    (size_cap.x > NTG_SIZE_MAX) || (size_cap.y > NTG_SIZE_MAX))
-    {
+    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
         return NTG_ERR_INV_ARG;
-    }
-
-    if(modifier < 1.1) modifier = 1.1;
-    size_cap.x = _max2_size(size_cap.x, 1);
-    size_cap.y = _max2_size(size_cap.y, 1);
 
     size = ntg_xy_size(size);
-
-    if(ntg_xy_are_eql(vecgrid->ro.size, size)) return 0;
-
     size_t size_prod = size.x * size.y;
-    
-    size_t size_cap_prod = size_cap.x * size_cap.y;
-    size_t shrink_threshold = vecgrid->ro.capacity / modifier;
 
-    if((size_prod > vecgrid->ro.capacity) || (size_prod <= shrink_threshold))
+    if(ntg_xy_are_eql(vecgrid->size, size)) return 0;
+
+    if(size_prod > vecgrid->cap) // grow
     {
-        size_t old_cap = vecgrid->ro.capacity;
-        size_t new_cap;
+        /* new_cap must be greater than size_prod */
+        size_t new_cap = size_prod * vecgrid->cap_factor;
 
-        if(size_prod == 0)
+        void* new_data = realloc(vecgrid->data, new_cap * data_size);
+        if(!new_data)
+            return NTG_ERR_ALLOC_FAIL;
+
+        vecgrid->cap = new_cap;
+        vecgrid->size = size;
+        vecgrid->data = new_data;
+    }
+    else // don't grow
+    {
+        size_t low_thresh = vecgrid->cap / vecgrid->cap_factor / vecgrid->cap_factor;
+        if(low_thresh == 0) low_thresh = 1;
+    
+        if(size_prod < low_thresh) // shrink
         {
-            new_cap = 0;
-            free(vecgrid->ro.data);
+            if(size_prod == 0) // free
+            {
+                if(vecgrid->data) free(vecgrid->data);
 
-            vecgrid->ro.data = NULL;
-            vecgrid->ro.capacity = new_cap;
+                vecgrid->data = NULL;
+                vecgrid->cap = 0;
+                vecgrid->size = ntg_xy(0, 0);
+
+                return 0;
+            }
+
+            size_t new_cap = size_prod * vecgrid->cap_factor;
+
+            void* new_data = realloc(vecgrid->data, new_cap * data_size);
+            if(!new_data) return NTG_ERR_ALLOC_FAIL;
+
+            vecgrid->cap = new_cap;
+            vecgrid->size = size;
+            vecgrid->data = new_data;
         }
         else
         {
-            double grown_cap = (double)size_prod * modifier;
-            if(grown_cap >= (double)size_cap_prod)
-                new_cap = size_cap_prod;
-            else
-                new_cap = (size_t)grown_cap;
-
-            new_cap = _max2_size(new_cap, size_prod);
-
-            if(new_cap > SIZE_MAX / data_size)
-                return NTG_ERR_OUT_OF_BOUNDS;
-
-            void* new_data;
-            if(old_cap > 0)
-                new_data = realloc(vecgrid->ro.data, new_cap * data_size);
-            else
-                new_data = malloc(new_cap * data_size);
-
-            if(!new_data)
-                return NTG_ERR_ALLOC_FAIL;
-
-            vecgrid->ro.data = new_data;
-            vecgrid->ro.capacity = new_cap;
+            vecgrid->size = size;
         }
     }
-
-    vecgrid->ro.size = size;
 
     return 0;
 }

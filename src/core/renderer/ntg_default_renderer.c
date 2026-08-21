@@ -130,8 +130,7 @@ int ntg_default_renderer_render_fn(
 
     struct ntg_xy old_size;
     old_size = ntg_stage_drawing_get_size(&renderer->priv.backbuff);
-    struct ntg_xy size_cap = ntg_xy(size.x + 20, size.y + 20);
-    _status = ntg_stage_drawing_set_size(&renderer->priv.backbuff, size, size_cap);
+    _status = ntg_stage_drawing_set_size(&renderer->priv.backbuff, size);
     if(_status)
     {
         renderer->priv.force_full_render = true;
