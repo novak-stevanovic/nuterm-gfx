@@ -135,7 +135,6 @@ struct ntg_object
     struct
     {
         void* data;
-        struct ntg_object_layout_dt* layout_dt;
     } pub;
 
     struct
@@ -155,7 +154,7 @@ struct ntg_object
         struct ntg_xy size;
         struct ntg_xy pos;
         ntg_object_draw drawing;
-        uint8_t dirty;
+        uint32_t dirty;
 
         struct ntg_bdr_opts border_opts;
         struct ntg_insets border_size;
@@ -171,6 +170,8 @@ struct ntg_object
 
     struct
     {
+        struct ntg_object_layout_dt* layout_dt;
+
         ntg_scene* scene;
         struct ntg_vcell base_bg;
 
@@ -300,51 +301,29 @@ ntg_object_get_size_cont(const ntg_object* object);
 NTG_API struct ntg_xy
 ntg_object_get_size_pad(const ntg_object* object);
 
-struct ntg_xy ntg_object_get_abs_pos(const ntg_object* object);
+NTG_API struct ntg_xy
+ntg_object_get_abs_pos(const ntg_object* object);
 
 /* ------------------------------------------------------ */
 /* SPACE MAPPING */
 /* ------------------------------------------------------ */
 
-// NTG_API struct ntg_xy
-// ntg_object_get_abs_pos(const ntg_object* object);
-// 
-// /* ------------------------------------------------------ */
-// 
-// NTG_API struct ntg_dxy
-// ntg_object_map_to_ancs_tree(
-//         const ntg_object* object,
-//         const ntg_object* ancestor,
-//         struct ntg_dxy point);
-// 
-// NTG_API struct ntg_dxy
-// ntg_object_map_to_desc_tree(
-//         const ntg_object* object,
-//         const ntg_object* descendant,
-//         struct ntg_dxy point);
-// 
-// /* ------------------------------------------------------ */
-// 
-// NTG_API struct ntg_dxy
-// ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
-// 
-// NTG_API struct ntg_dxy
-// ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
-
-struct ntg_dxy ntg_object_map_to_ancestor(
+NTG_API struct ntg_dxy
+ntg_object_map_to_ancs(
         const ntg_object* object,
-        const ntg_object* ancestor,
+        const ntg_object* ancs,
         struct ntg_dxy point);
 
-struct ntg_dxy ntg_object_map_to_descendant(
+NTG_API struct ntg_dxy
+ntg_object_map_to_desc(
         const ntg_object* object,
-        const ntg_object* descendant,
+        const ntg_object* desc,
         struct ntg_dxy point);
 
-struct ntg_dxy 
+NTG_API struct ntg_dxy
 ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point);
 
-struct ntg_dxy 
+NTG_API struct ntg_dxy
 ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point);
 
 /* ------------------------------------------------------ */

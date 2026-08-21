@@ -519,9 +519,6 @@ int ntg_object_anchor(ntg_object* base, ntg_object* root)
         {
             case GENC_ERR_ALLOC_FAIL:
                 return NTG_ERR_ALLOC_FAIL;
-            case GENC_ERR_OVERFLOW:
-                return NTG_ERR_OVERFLOW;
-
             default:
                 return NTG_ERR_UNEXPECTED;
         }
@@ -793,32 +790,20 @@ struct ntg_xy ntg_object_get_abs_pos(const ntg_object* object)
 /* SPACE MAPPING */
 /* ------------------------------------------------------ */
 
-/*
-struct ntg_xy ntg_object_get_abs_pos(const ntg_object* object)
-{
-    if(!object) return ntg_xy(0, 0);
-
-    return ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy_from_xy(object->ro.pos)));
-}
-
-struct ntg_dxy ntg_object_map_to_ancs_tree(
+struct ntg_dxy ntg_object_map_to_ancs(
         const ntg_object* object,
-        const ntg_object* ancestor,
+        const ntg_object* ancs,
         struct ntg_dxy point)
 {
-    if(!object)
-        return NTG_DXY_MAX;
+    if(!object) return NTG_DXY_MAX;
 
-    if(ancestor && !ntg_object_is_in_tree(ancestor, object))
-        return NTG_DXY_MAX;
-
-    if(object == ancestor)
+    if(object == ancs)
         return point;
 
     struct ntg_dxy out = point;
 
     const ntg_object* it = object;
-    while(it != NULL && it != ancestor)
+    while(it && (it != ancs))
     {
         out = ntg_dxy_add(out, ntg_dxy_from_xy(it->ro.pos));
         it = it->ro.parent;
@@ -827,22 +812,15 @@ struct ntg_dxy ntg_object_map_to_ancs_tree(
     return out;
 }
 
-struct ntg_dxy ntg_object_map_to_desc_tree(
+struct ntg_dxy ntg_object_map_to_desc(
         const ntg_object* object,
-        const ntg_object* descendant,
+        const ntg_object* desc,
         struct ntg_dxy point)
 {
-    if(!descendant)
-        return NTG_DXY_MAX;
+    if(!desc) return NTG_DXY_MAX;
 
-    if(object && !ntg_object_is_in_tree(object, descendant))
-        return NTG_DXY_MAX;
-
-    if(object == descendant)
-        return point;
-
-    struct ntg_dxy desc_pos = ntg_object_map_to_ancs_tree(
-            descendant, object, ntg_dxy(0, 0));
+    struct ntg_dxy desc_pos = ntg_object_map_to_ancs(
+            desc, object, ntg_dxy(0, 0));
 
     return ntg_dxy_sub(point, desc_pos);
 }
@@ -850,10 +828,7 @@ struct ntg_dxy ntg_object_map_to_desc_tree(
 struct ntg_dxy 
 ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point)
 {
-    if(!object)
-        return NTG_DXY_MAX;
-
-    return ntg_object_map_to_ancs_tree(object, NULL, point);
+    return ntg_object_map_to_ancs(object, NULL, point);
 }
 
 struct ntg_dxy 
@@ -862,66 +837,7 @@ ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point)
     if(!object)
         return NTG_DXY_MAX;
 
-    return ntg_object_map_to_desc_tree(NULL, object, point);
-}
-*/
-
-struct ntg_dxy ntg_object_map_to_ancestor(
-        const ntg_object* object,
-        const ntg_object* ancestor,
-        struct ntg_dxy point)
-{
-    if(!object)
-        return NTG_DXY_MAX;
-
-    if(object == ancestor)
-        return point;
-
-    struct ntg_dxy out = point;
-
-    const ntg_object* it = object;
-    while(it != NULL && it != ancestor)
-    {
-        out = ntg_dxy_add(out, ntg_dxy_from_xy(it->ro.pos));
-        it = it->ro.parent;
-    }
-
-    return out;
-}
-
-struct ntg_dxy ntg_object_map_to_descendant(
-        const ntg_object* object,
-        const ntg_object* descendant,
-        struct ntg_dxy point)
-{
-    if(!descendant)
-        return NTG_DXY_MAX;
-
-    if(object == descendant)
-        return point;
-
-    struct ntg_dxy desc_pos = ntg_object_map_to_ancestor(
-            descendant, object, ntg_dxy(0, 0));
-
-    return ntg_dxy_sub(point, desc_pos);
-}
-
-struct ntg_dxy 
-ntg_object_map_to_scene(const ntg_object* object, struct ntg_dxy point)
-{
-    if(!object)
-        return NTG_DXY_MAX;
-
-    return ntg_object_map_to_ancestor(object, NULL, point);
-}
-
-struct ntg_dxy 
-ntg_object_map_from_scene(const ntg_object* object, struct ntg_dxy point)
-{
-    if(!object)
-        return NTG_DXY_MAX;
-
-    return ntg_object_map_to_descendant(NULL, object, point);
+    return ntg_object_map_to_desc(NULL, object, point);
 }
 
 /* ------------------------------------------------------ */
@@ -1131,7 +1047,7 @@ int ntg_object_init_inherit(
 
     object->ro.type = type;
     object->priv.vtable = vtable;
-    object->pub.layout_dt = layout_dt;
+    object->priv.layout_dt = layout_dt;
 
     ntg_object_draw_init(&object->ro.drawing);
 
@@ -1179,8 +1095,8 @@ int ntg_object_deinit(ntg_object* object)
 
     ntg_event_delegate_deinit(&object->ro.event_dlgt);
 
-    if(object->pub.layout_dt && object->pub.layout_dt->free_fn)
-        object->pub.layout_dt->free_fn(object->pub.layout_dt);
+    if(object->priv.layout_dt && object->priv.layout_dt->free_fn)
+        object->priv.layout_dt->free_fn(object->priv.layout_dt);
 
     init_default(object);
 
@@ -1217,9 +1133,6 @@ int ntg_object_attach(ntg_object* parent, ntg_object* child)
         {
             case GENC_ERR_ALLOC_FAIL:
                 return NTG_ERR_ALLOC_FAIL;
-            case GENC_ERR_OVERFLOW:
-                return NTG_ERR_OVERFLOW;
-
             default:
                 return NTG_ERR_UNEXPECTED;
         }
@@ -1692,7 +1605,7 @@ int ntg__object_layout_prepare(ntg_object* object, sarena* arena)
     if(object->priv.vtable->layout_prepare_fn)
     {
         return object->priv.vtable->layout_prepare_fn(
-                object, object->pub.layout_dt, arena);
+                object, object->priv.layout_dt, arena);
     }
 
     return 0;
@@ -1711,7 +1624,7 @@ int ntg__object_hmeasure(ntg_object* object, sarena* arena, uint32_t* relayout)
     {
         _status = object->priv.vtable->measure_fn(
                 object,
-                object->pub.layout_dt,
+                object->priv.layout_dt,
                 NTG_ORIENT_H,
                 arena,
                 relayout,
@@ -1811,7 +1724,7 @@ int ntg__object_hconstrain(ntg_object* object, sarena* arena, uint32_t* relayout
     {
         _status = object->priv.vtable->constrain_fn(
                 object,
-                object->pub.layout_dt,
+                object->priv.layout_dt,
                 NTG_ORIENT_H,
                 &map,
                 arena,
@@ -1850,7 +1763,7 @@ int ntg__object_vmeasure(ntg_object* object, sarena* arena, uint32_t* relayout)
     {
         _status = object->priv.vtable->measure_fn(
                 object,
-                object->pub.layout_dt,
+                object->priv.layout_dt,
                 NTG_ORIENT_V,
                 arena,
                 relayout,
@@ -1927,7 +1840,7 @@ int ntg__object_vconstrain(ntg_object* object, sarena* arena, uint32_t* relayout
     {
         _status = object->priv.vtable->constrain_fn(
                 object,
-                object->pub.layout_dt,
+                object->priv.layout_dt,
                 NTG_ORIENT_V,
                 &map,
                 arena,
@@ -1979,7 +1892,7 @@ int ntg__object_arrange(ntg_object* object, sarena* arena, uint32_t* relayout)
     {
         _status = object->priv.vtable->arrange_fn(
                 object,
-                object->pub.layout_dt,
+                object->priv.layout_dt,
                 &map,
                 arena,
                 relayout);
@@ -2314,8 +2227,8 @@ static void layout_reset(ntg_object* object)
     object->ro.nat_size = ntg_xy(0, 0);
     object->ro.max_size = ntg_xy(0, 0);
     object->ro.grow = ntg_xy(0, 0);
-    object->ro.dirty = 0;
     object->priv.skip_hborder = false;
+    ntg__object_clean(object, NTG_OBJECT_DIRTY_FULL | NTG__OBJECT_DIRTY_RENDER);
     object->priv.skip_hpadding = false;
     object->priv.special_repeat = false;
     object->ro.size = ntg_xy(0, 0);
@@ -2327,8 +2240,8 @@ static void layout_reset(ntg_object* object)
 
     ntg_object_draw_set_size(&object->ro.drawing, ntg_xy(0, 0));
 
-    if(object->pub.layout_dt && object->pub.layout_dt->reset_fn)
-        object->pub.layout_dt->reset_fn(object->pub.layout_dt);
+    if(object->priv.layout_dt && object->priv.layout_dt->reset_fn)
+        object->priv.layout_dt->reset_fn(object->priv.layout_dt);
 }
 
 static bool set_hmeasure_helper(ntg_object* object, struct ntg_object_measure measure)
@@ -2731,7 +2644,7 @@ static int draw_optimized(ntg_object* object, sarena* arena)
     {
         _status = object->priv.vtable->draw_fn(
                 object,
-                object->pub.layout_dt,
+                object->priv.layout_dt,
                 &content_drawing,
                 arena);
         if(_status != 0) return _status;
@@ -2802,7 +2715,7 @@ draw_unoptimized(ntg_object* object, sarena* arena)
     {
         _status = object->priv.vtable->draw_fn(
                 object,
-                object->pub.layout_dt,
+                object->priv.layout_dt,
                 &content_drawing,
                 arena);
 

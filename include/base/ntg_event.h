@@ -27,7 +27,7 @@
 /* ========================================================================== */
 
 struct ntg__event_sub;
-GENC_VECTOR_DECLARE(ntg__event_sub_vec, struct ntg__event_sub, 1.5, )
+GENC_VECTOR_DECLARE(ntg__event_sub_vec, struct ntg__event_sub, )
 
 #define NTG_EVENT_INVALID 0
 

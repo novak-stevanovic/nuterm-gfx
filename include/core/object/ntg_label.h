@@ -70,22 +70,11 @@ ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
 NTG_API struct ntg_str_view
 ntg_label_get_text(const struct ntg_label* label);
 
+NTG_API int
+ntg_label_set_text(ntg_label* label, const char* text, size_t len);
 
 NTG_API int
-ntg_label_set_text_unsafe(
-        ntg_label* label,
-        const char* text,
-        uint16_t flags);
-
-/* ------------------------------------------------------ */
-
-
-NTG_API int
-ntg_label_set_text(
-        ntg_label* label,
-        const char* text,
-        size_t len,
-        uint16_t flags);
+ntg_label_set_text_unsafe(ntg_label* label, const char* text);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -104,6 +93,12 @@ ntg_label_init_inherit(
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
+
+NTG_API int
+ntg_label_layout_prepare_fn(
+        ntg_object* object, 
+        struct ntg_object_layout_dt* layout_dt,
+        sarena* arena);
 
 NTG_API int
 ntg_label_measure_fn(

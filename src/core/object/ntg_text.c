@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "shared/ntg_shared_internal.h"
 #include <string.h>
+#include <assert.h>
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -68,32 +69,24 @@ static int measure_wwrap_fn(
 
 static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj);
 
-static int trim_text(struct ntg_str* text);
-
 static void update_object_bg(ntg_text* text_obj);
 
-static void raise_text_chng_event(
-        ntg_text* text_obj,
-        const char* old_text,
-        size_t old_text_len);
+// static int trim_text(struct ntg_str* text);
 
 /* ------------------------------------------------------ */
 
 static void init_default(ntg_text* text_obj)
 {
-    text_obj->ro.opts = ntg_text_opts_default();
     text_obj->priv.vtable = NULL;
-
-    text_obj->ro.gfx = NT_GFX_DEFAULT;
-
-    text_obj->ro.text_len = 0;
-    text_obj->ro.text = NULL;
-
-    text_obj->ro.scroll = ntg_xy(0, 0);
-
     text_obj->priv.utf32_text = (struct ntg_str32) {0};
     text_obj->priv.utf32_rows = NULL;
     text_obj->priv.utf32_row_count = 0;
+    text_obj->priv.utf8_text = (struct ntg_charvec) {0};
+    
+    text_obj->ro.opts = ntg_text_opts_default();
+    text_obj->ro.gfx = NT_GFX_DEFAULT;
+
+    text_obj->ro.scroll = ntg_xy(0, 0);
 }
 
 /* ========================================================================== */
@@ -184,36 +177,96 @@ int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 /* TEXT */
 /* ------------------------------------------------------ */
 
-int ntg_text_set_text_unsafe(
-        ntg_text* text_obj,
-        const char* text,
-        uint16_t flags)
+struct ntg_str_view ntg_text_get_text(const ntg_text* text_obj)
+{
+    if(!text_obj) return (struct ntg_str_view) {0};
+    else
+    {
+        return (struct ntg_str_view) {
+            .data = text_obj->priv.utf8_text.data,
+            .len = text_obj->priv.utf8_text.size - 1 // account for \0
+        };
+    }
+}
+
+int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
+{
+    if(!text_obj) return NTG_ERR_INV_ARG;
+    if(!text && len) return NTG_ERR_INV_ARG;
+    if(len > (NTG_SIZE_MAX * NTG_SIZE_MAX)) return NTG_ERR_INV_ARG;
+
+    if(!text) text = "";  
+
+    len = _min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
+
+    int status;
+
+    struct ntg_str_view curr_text = ntg_text_get_text(text_obj);
+
+    /* Assume it's worth comparing because if text is different the len is probably different */
+    if((curr_text.len == len) && ((len == 0) || (memcmp(curr_text.data, text, len) == 0)))
+    {
+        return 0; /* Same text */
+    }
+
+    struct ntg_charvec* pending_text = &text_obj->priv.utf8_text;
+
+    if(len > curr_text.len) // needs more space
+    {
+        status = ntg_charvec_prealloc(pending_text, len - curr_text.len);
+        switch(status)
+        {
+            case 0: break;
+            case GENC_ERR_ALLOC_FAIL:
+                return NTG_ERR_ALLOC_FAIL;
+            default:
+                return NTG_ERR_UNEXPECTED;
+        }
+    }
+
+    /* Empty but don't shrink, O(1) */
+    ntg_charvec_empty(pending_text);
+
+    /* These must not failed because we already alloced/had enough space */
+    status = ntg_charvec_pushb_many(pending_text, text, len);
+    if(status) assert(0);
+    status = ntg_charvec_pushb(pending_text, '\0');
+    if(status) assert(0);
+
+    /* Save space if needed */
+    ntg_charvec_shrink(pending_text);
+
+    ntg_object_mark_dirty(ntg_obj(text_obj),
+    NTG_OBJECT_DIRTY_PREPARE | NTG_OBJECT_DIRTY_FULL);
+
+    return 0;
+}
+
+
+int ntg_text_set_text_unsafe(ntg_text* text_obj, const char* text)
 {
     if(!text_obj || !text)
         return NTG_ERR_INV_ARG;
 
-    return ntg_text_set_text(text_obj, text, strlen(text), flags);
+    return ntg_text_set_text(text_obj, text, strlen(text));
 }
 
 /* ------------------------------------------------------ */
 
-int ntg_text_set_text(
-        ntg_text* text_obj,
-        const char* text,
-        size_t len,
-        uint16_t flags)
+/*
+int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len, uint16_t flags)
 {
     if(!text_obj || !text)
         return NTG_ERR_INV_ARG;
 
     len = _min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
 
-    if((text_obj->ro.text_len == len) &&
-            ((len == 0) || (memcmp(text_obj->ro.text, text, len) == 0)))
+    if((text_obj->ro.pending_text.len == len) &&
+            ((len == 0) || (memcmp(text_obj->ro.pending_text.data, text, len) == 0)))
         return 0;
 
-    bool raise_event = (text_obj->ro.text != NULL);
-    size_t old_text_len = text_obj->ro.text_len;
+    bool raise_event = (text_obj->ro.pending_text.data != NULL);
+    size_t old_text_len = text_obj->ro.pending_text.len;
     char* old_text = NULL;
     if(raise_event)
     {
@@ -222,7 +275,7 @@ int ntg_text_set_text(
             return NTG_ERR_ALLOC_FAIL;
 
         if(old_text_len > 0)
-            memmove(old_text, text_obj->ro.text, old_text_len);
+            memmove(old_text, text_obj->ro.pending_text.data, old_text_len);
         old_text[old_text_len] = '\0';
     }
 
@@ -255,12 +308,12 @@ int ntg_text_set_text(
 
     if(text_text.len == 0)
     {
-        free(text_obj->ro.text);
+        free(text_obj->ro.pending_text.data);
         free(text_obj->priv.utf32_text.data);
         free(text_obj->priv.utf32_rows);
 
-        text_obj->ro.text = text_text.data;
-        text_obj->ro.text_len = text_text.len;
+        text_obj->ro.pending_text.data = text_text.data;
+        text_obj->ro.pending_text.len = text_text.len;
         text_obj->priv.utf32_text = (struct ntg_str32) {0};
         text_obj->priv.utf32_rows = NULL;
         text_obj->priv.utf32_row_count = 0;
@@ -325,12 +378,12 @@ int ntg_text_set_text(
 
     ntg_str32_split(ntg_str32_get_view(utf32_text, 0), '\n', new_rows, row_count);
 
-    free(text_obj->ro.text);
+    free(text_obj->ro.pending_text.data);
     free(text_obj->priv.utf32_text.data);
     free(text_obj->priv.utf32_rows);
 
-    text_obj->ro.text = text_text.data;
-    text_obj->ro.text_len = text_text.len;
+    text_obj->ro.pending_text.data = text_text.data;
+    text_obj->ro.pending_text.len = text_text.len;
     text_obj->priv.utf32_text = utf32_text;
     text_obj->priv.utf32_rows = new_rows;
     text_obj->priv.utf32_row_count = row_count;
@@ -344,6 +397,7 @@ int ntg_text_set_text(
     free(old_text);
     return 0;
 }
+*/
 
 /* ------------------------------------------------------ */
 /* SCROLL */
@@ -396,14 +450,14 @@ int ntg_text_init_inherit(
     if(!ntg_type_instance_of(type, &NTG_TYPE_TEXT))
         return NTG_ERR_INV_TYPE;
 
-    int _status = ntg_object_init_inherit(
-            (ntg_object*)text_obj, object_vtable, type, layout_dt);
-    if(_status != 0)
+    int _status = ntg_object_init_inherit((ntg_object*)text_obj,
+            object_vtable, type, layout_dt);
+    if(_status)
         return _status;
 
     init_default(text_obj);
 
-    _status = ntg_text_set_text_unsafe(text_obj, "", 0);
+    _status = ntg_text_set_text_unsafe(text_obj, "");
     if(_status != 0)
     {
         ntg_object_deinit((ntg_object*)text_obj);
@@ -418,8 +472,7 @@ int ntg_text_deinit(ntg_text* text_obj)
 {
     if(!text_obj) return NTG_ERR_INV_ARG;
 
-    if(text_obj->ro.text)
-        free(text_obj->ro.text);
+    ntg_charvec_deinit(&text_obj->priv.utf8_text);
     if(text_obj->priv.utf32_text.data)
         free(text_obj->priv.utf32_text.data);
     if(text_obj->priv.utf32_rows)
@@ -435,6 +488,80 @@ int ntg_text_deinit(ntg_text* text_obj)
 void ntg_text_deinit_void(void* _text)
 {
     ntg_text_deinit(_text);
+}
+
+int ntg_text_layout_prepare_fn(
+        ntg_object* object, 
+        struct ntg_object_layout_dt* layout_dt,
+        sarena* arena)
+{
+    (void)layout_dt;
+    (void)arena;
+
+    ntg_text* text_obj = ntg_txt(object);
+
+    struct ntg_str_view curr_text = ntg_text_get_text(text_obj);
+    if(curr_text.len == 0)
+    {
+        free(text_obj->priv.utf32_text.data);
+        text_obj->priv.utf32_text = (struct ntg_str32) {0};
+        text_obj->priv.utf32_row_count = 0;
+        text_obj->priv.utf32_rows = NULL;
+
+        return 0;
+    }
+
+    /* Determine UTF32 string width first, to conserve memory */
+
+    size_t width = 0;
+    int status = uc_utf8_to_utf32((uint8_t*)curr_text.data,
+            curr_text.len, NULL, 0, 0, &width);
+    if(status != 0) return NTG_ERR_UTF_CONV_FAIL;
+
+    /* UTF8 len is not 0 but this is 0? */
+    if(width == 0) return NTG_ERR_UNEXPECTED;
+
+    uint32_t* new_utf32_text = malloc(sizeof(uint32_t) * width);
+    if(!new_utf32_text) return NTG_ERR_ALLOC_FAIL;
+
+    /* Convert to UTF32 */
+
+    status = uc_utf8_to_utf32(
+            (uint8_t*)curr_text.data, curr_text.len,
+            new_utf32_text, width, 0, NULL);
+    if(status != 0)
+    {
+        free(new_utf32_text);
+        return NTG_ERR_UNEXPECTED;
+    }
+
+    struct ntg_str32 utf32_text = {
+        .data = new_utf32_text,
+        .len = width
+    };
+
+    size_t row_count = ntg_str32_count(ntg_str32_get_view(utf32_text, 0), '\n') + 1;
+    struct ntg_str32_view* new_rows = malloc(sizeof(struct ntg_str32_view) * row_count);
+    if(!new_rows)
+    {
+        free(new_utf32_text);
+        return NTG_ERR_ALLOC_FAIL;
+    }
+
+    ntg_str32_split(ntg_str32_get_view(utf32_text, 0), '\n', new_rows, row_count);
+
+    /* Free old UTF32 data */
+
+    free(text_obj->priv.utf32_text.data);
+    free(text_obj->priv.utf32_rows);
+
+    /* Update UTF32 data */
+
+    text_obj->priv.utf32_text = utf32_text;
+    text_obj->priv.utf32_rows = new_rows;
+    text_obj->priv.utf32_row_count = row_count;
+
+    return 0;
 }
 
 int ntg_text_measure_fn(
@@ -454,13 +581,11 @@ int ntg_text_measure_fn(
     *out_measure = (struct ntg_object_measure) {0};
 
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
-    size_t for_size = ntg_object_get_for_size_cont(_text_obj, orient);
-    if((for_size == 0) || (text_obj->ro.text_len == 0))
-        return 0;
 
+    size_t for_size = ntg_object_get_for_size_cont(_text_obj, orient);
     size_t row_count = text_obj->priv.utf32_row_count;
     const struct ntg_str32_view* rows = text_obj->priv.utf32_rows;
-    if(row_count == 0)
+    if((row_count == 0) || (row_count == 0))
         return 0;
 
     switch(text_obj->ro.opts.wrap)
@@ -490,7 +615,6 @@ int ntg_text_draw_fn(
     if(ntg_xy_is_zero_any(cont_size)) return 0;
 
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
-    if((text_obj->ro.text_len == 0) || (text_obj->ro.text == NULL)) return 0;
 
     struct ntg_text_opts opts = text_obj->ro.opts;
 
@@ -716,6 +840,7 @@ void ntg_text_unfocus_fn(ntg_object* object)
 }
 
 const struct ntg_object_vtable NTG_TEXT_VTABLE = {
+    .layout_prepare_fn = ntg_text_layout_prepare_fn,
     .measure_fn = ntg_text_measure_fn,
     .draw_fn = ntg_text_draw_fn,
     .cont_resize_fn = ntg_text_cont_resize_fn,
@@ -1123,7 +1248,19 @@ static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
     return scroll;
 }
 
+static void update_object_bg(ntg_text* text_obj)
+{
+    if(!text_obj) return;
 
+    struct ntg_vcell cell =
+            (text_obj->ro.opts.bg_mode == NTG_TEXT_BG_FULL) ?
+            ntg_vcell_new_full(' ', text_obj->ro.gfx) :
+            ntg_vcell_new_transparent();
+
+    ntg_object_set_base_bg(ntg_obj(text_obj), cell);
+}
+
+/*
 static int trim_text(struct ntg_str* text)
 {
     if((text->len == 0) || (text->data == NULL))
@@ -1177,57 +1314,4 @@ static int trim_text(struct ntg_str* text)
 
     return 0;
 }
-
-static void raise_text_chng_event(
-        ntg_text* text_obj,
-        const char* old_text,
-        size_t old_text_len)
-{
-    if(!text_obj || !old_text) return;
-
-    struct ntg_str_view old_view = {
-        .data = old_text,
-        .len = old_text_len
-    };
-    struct ntg_str_view new_view = {
-        .data = text_obj->ro.text,
-        .len = text_obj->ro.text_len
-    };
-
-    ntg_object* object = ntg_obj(text_obj);
-
-    if(ntg_type_instance_of(object->ro.type, &NTG_TYPE_BUTTON))
-    {
-        struct ntg_event_button_txtchg_dt event_dt = {
-            .old_text = old_view,
-            .new_text = new_view
-        };
-        ntg_event_raise(
-                &object->ro.event_dlgt,
-                ntg_event_new(
-                    NTG_EVENT_BUTTON_TXTCHG, text_obj, &event_dt));
-    }
-    else if(ntg_type_instance_of(object->ro.type, &NTG_TYPE_LABEL))
-    {
-        struct ntg_event_label_txtchg_dt event_dt = {
-            .old_text = old_view,
-            .new_text = new_view
-        };
-        ntg_event_raise(
-                &object->ro.event_dlgt,
-                ntg_event_new(
-                    NTG_EVENT_LABEL_TXTCHG, text_obj, &event_dt));
-    }
-}
-
-static void update_object_bg(ntg_text* text_obj)
-{
-    if(!text_obj) return;
-
-    struct ntg_vcell cell =
-            (text_obj->ro.opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_new_full(' ', text_obj->ro.gfx) :
-            ntg_vcell_new_transparent();
-
-    ntg_object_set_base_bg(ntg_obj(text_obj), cell);
-}
+*/

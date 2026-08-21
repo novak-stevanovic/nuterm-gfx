@@ -95,17 +95,17 @@ void task_loop_stop(void* _)
 
 void task_change_text_1(void* _)
 {
-    ntg_button_set_text_unsafe(&flt_button, "1", NTG_TEXT_SET_RM_WS);
+    ntg_button_set_text_unsafe(&flt_button, "1");
 }
 
 void task_change_text_2a(void* _)
 {
-    ntg_button_set_text_unsafe(&flt_button, "2a", NTG_TEXT_SET_RM_WS);
+    ntg_button_set_text_unsafe(&flt_button, "2a");
 }
 
 void task_change_text_2b(void* _)
 {
-    ntg_button_set_text_unsafe(&flt_button, "2b", NTG_TEXT_SET_RM_WS);
+    ntg_button_set_text_unsafe(&flt_button, "2b");
 }
 
 bool flt_button_mouse_fn(ntg_button* button)
@@ -228,7 +228,7 @@ void sflt_on_mouse_fn(void* subscriber, struct ntg_event event)
         char buff[50];
         sprintf(buff, "Broj klikova: %d", sflt_counter);
 
-        ntg_label_set_text_unsafe(label, buff, 0);
+        ntg_label_set_text_unsafe(label, buff);
     }
 }
 
@@ -329,7 +329,8 @@ void init_north()
 
     _status = ntg_label_init(&north, &north_label_opts);
     _status = ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_void, NULL);
-    _status = ntg_label_set_text_unsafe(&north, lorem, 0);
+    _status = ntg_label_set_text_unsafe(&north, lorem);
+    assert(!_status);
 }
 
 void init_center()
@@ -389,7 +390,7 @@ void init_south()
     };
     _status = ntg_label_init(&sb_label1, &sb_label1_opts);
     _status = ntg_cleanup_batch_add(batch, &sb_label1, ntg_label_deinit_void, NULL);
-    _status = ntg_label_set_text_unsafe(&sb_label1, "Test1", 0);
+    _status = ntg_label_set_text_unsafe(&sb_label1, "Test1");
 
     ntg_object_set_pad_opts(ntg_obj(&sb_label1), &pad_opts);
 
@@ -404,7 +405,7 @@ void init_south()
     _status = ntg_label_init(&sb_label2, &sb_label2_opts);
     _status = ntg_cleanup_batch_add(batch, &sb_label2, ntg_label_deinit_void, NULL);
 
-    _status = ntg_label_set_text_unsafe(&sb_label2, "Test2", 0);
+    _status = ntg_label_set_text_unsafe(&sb_label2, "Test2");
     ntg_object_set_pad_opts(ntg_obj(&sb_label2), &pad_opts);
 
     // SOUTH BOX LABEL3
@@ -420,7 +421,7 @@ void init_south()
     _status = ntg_label_init(&sb_label3, &sb_label3_opts);
     _status = ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_void, NULL);
 
-    _status = ntg_label_set_text_unsafe(&sb_label3, lorem, 0);
+    _status = ntg_label_set_text_unsafe(&sb_label3, lorem);
     ntg_object_set_pad_opts(ntg_obj(&sb_label3), &pad_opts);
     
     // CONNECT
@@ -444,7 +445,7 @@ void init_south()
 
     _status = ntg_cleanup_batch_add(batch, &s_label, ntg_label_deinit_void, NULL);
 
-    _status = ntg_label_set_text_unsafe(&s_label, "ABCD", 0);
+    _status = ntg_label_set_text_unsafe(&s_label, "ABCD");
 
     ntg_object_set_bdr_opts(ntg_obj(&s_label), &border_opts);
 
@@ -476,9 +477,10 @@ void init_flt_button()
     };
 
     _status = ntg_button_init(&flt_button, &opts, flt_button_mouse_fn);
+    assert(!_status);
     _status = ntg_cleanup_batch_add(batch, &flt_button, ntg_button_deinit_void, NULL);
 
-    _status = ntg_button_set_text_unsafe(&flt_button, "Floating button example", 0);
+    _status = ntg_button_set_text_unsafe(&flt_button, "Floating button example");
 
     struct ntg_lay_opts flt_button_layout_opts = (ntg_obj(&flt_button))->ro.layout_opts;
     flt_button_layout_opts.z_index = 1;
@@ -526,7 +528,7 @@ void init_sflt_label()
     sflt_label_layout_opts.z_index = 2;
     ntg_object_set_lay_opts(ntg_obj(&sflt_label), &sflt_label_layout_opts);
 
-    _status = ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat", 0);
+    _status = ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat");
 
     _status = ntg_cleanup_batch_add(batch, &sflt_label, ntg_label_deinit_void, NULL);
 

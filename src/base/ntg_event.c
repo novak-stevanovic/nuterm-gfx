@@ -76,9 +76,6 @@ int ntg_event_bind(
         case GENC_ERR_ALLOC_FAIL:
             if(out_binding) out_binding->priv.delegate = NULL;
             return NTG_ERR_ALLOC_FAIL;
-        case GENC_ERR_OVERFLOW:
-            if(out_binding) out_binding->priv.delegate = NULL;
-            return NTG_ERR_OVERFLOW;
         default:
             if(out_binding) out_binding->priv.delegate = NULL;
             return NTG_ERR_UNEXPECTED;

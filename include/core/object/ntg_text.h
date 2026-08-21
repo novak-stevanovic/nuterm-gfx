@@ -36,11 +36,6 @@ enum ntg_text_bg_mode
     NTG_TEXT_BG_FLT
 };
 
-enum ntg_text_set_flags
-{
-    NTG_TEXT_SET_RM_WS = (1 << 0)
-};
-
 /* ------------------------------------------------------ */
 
 struct ntg_text_opts
@@ -83,6 +78,8 @@ struct ntg_text
         ntg_object base;
         const struct ntg_text_vtable* vtable;
 
+        struct ntg_charvec utf8_text;
+        
         struct ntg_str32 utf32_text;
         size_t utf32_row_count;
         struct ntg_str32_view* utf32_rows;
@@ -92,9 +89,6 @@ struct ntg_text
     {
         struct ntg_text_opts opts;
         struct nt_gfx gfx;
-
-        char* text;
-        size_t text_len;
 
         struct ntg_xy scroll;
     } ro;
@@ -115,20 +109,14 @@ ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts);
 /* TEXT */
 /* ------------------------------------------------------ */
 
-NTG_API int
-ntg_text_set_text_unsafe(
-        ntg_text* text_obj,
-        const char* text,
-        uint16_t flags);
-
-/* ------------------------------------------------------ */
+NTG_API struct ntg_str_view
+ntg_text_get_text(const ntg_text* text_obj);
 
 NTG_API int
-ntg_text_set_text(
-        ntg_text* text_obj,
-        const char* text,
-        size_t len,
-        uint16_t flags);
+ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len);
+
+NTG_API int
+ntg_text_set_text_unsafe(ntg_text* text_obj, const char* text);
 
 /* ------------------------------------------------------ */
 /* SCROLL */
@@ -157,6 +145,12 @@ ntg_text_deinit(ntg_text* text_obj);
 
 NTG_API void
 ntg_text_deinit_void(void* _text);
+
+NTG_API int
+ntg_text_layout_prepare_fn(
+        ntg_object* object, 
+        struct ntg_object_layout_dt* layout_dt,
+        sarena* arena);
 
 NTG_API int
 ntg_text_measure_fn(

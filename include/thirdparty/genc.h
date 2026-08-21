@@ -49,7 +49,6 @@
 #define GENC_ERR_ALLOC_FAIL (GENC_ERR_BASE + 2)
 #define GENC_ERR_OUT_OF_BOUNDS (GENC_ERR_BASE + 3)
 #define GENC_ERR_NO_DATA (GENC_ERR_BASE + 4)
-#define GENC_ERR_OVERFLOW (GENC_ERR_BASE + 5)
 #define GENC_ERR_UNEXPECTED (GENC_ERR_BASE + 100)
 
 /* ========================================================================== */
@@ -61,7 +60,10 @@
 /* GENC_VECTOR_DECLARE() and GENC_VECTOR_DEFINE() generate a type-safe dynamic
  * vector API. GENC_VECTOR_INLINE() generates both with `static inline`.
  *
- * The generated structure must be zero-initialized before its first use. */
+ * The generated structure must be zero-initialized before its first use.
+ *
+ * GROWF controls automatic growth and shrink behavior. Values less than 1.1
+ * are treated as 1.1 by operations that grow or shrink automatically. */
 
 /* ========================================================================== */
 /* VECTOR - PROTOTYPES */
@@ -89,42 +91,126 @@ int <name>_deinit(struct <name>* vec);
 
 |----------------------------------------------------------|
 
-* Appends an element to the vector.
+* Inserts `count` elements from `data` at `pos`.
+* `pos` may equal the vector size to append the elements.
 
 * RETURN VALUE: 0 on success, error code on failure.
 
 * ERROR CODES:
-* GENC_ERR_INV_ARG: `vec` is NULL.
-* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
-* GENC_ERR_OVERFLOW: The required capacity cannot be represented.
+* GENC_ERR_INV_ARG: `vec` is NULL, or `data` is NULL when `count` is nonzero.
+* GENC_ERR_OUT_OF_BOUNDS: `pos` is greater than the vector size.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed or the required capacity
+* cannot be represented.
 
-int <name>_pushb(struct <name>* vec, <type> data);
+int <name>_ins_many(struct <name>* vec, <type> const * data,
+                    size_t count, size_t pos);
 
 |----------------------------------------------------------|
 
-* Removes the last element from the vector.
+* Appends `count` elements from `data` to the vector.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL, or `data` is NULL when `count` is nonzero.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed or the required capacity
+* cannot be represented.
+
+int <name>_pushb_many(struct <name>* vec, <type> const* data, size_t count);
+
+|----------------------------------------------------------|
+
+* Removes `count` elements starting at `pos`.
 
 * RETURN VALUE: 0 on success, error code on failure.
 
 * ERROR CODES:
 * GENC_ERR_INV_ARG: `vec` is NULL.
-* GENC_ERR_NO_DATA: The vector is empty.
+* GENC_ERR_OUT_OF_BOUNDS: The range [`pos`, `pos + count`) is outside the
+* vector.
 
-int <name>_popb(struct <name>* vec);
+int <name>_rm_at_many(struct <name>* vec, size_t pos, size_t count);
+
+|----------------------------------------------------------|
+
+* Removes `count` elements from the back of the vector.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_OUT_OF_BOUNDS: `count` is greater than the vector size.
+
+int <name>_popb_many(struct <name>* vec, size_t count);
+
+|----------------------------------------------------------|
+
+* Shrinks allocated capacity when the vector is sufficiently sparse.
+* The shrink threshold and resulting capacity are derived from GROWF.
+* If the vector is empty, all allocated storage is freed.
+* Shrinking is best-effort: failure to reduce capacity is not an error.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+
+int <name>_shrink(struct <name>* vec);
+
+|----------------------------------------------------------|
+
+* Removes `count` elements starting at `pos`. Then, a call to
+* <name>_shrink() is performed.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_OUT_OF_BOUNDS: The range [`pos`, `pos + count`) is outside the
+* vector.
+
+int <name>_rm_at_many_shrink(struct <name>* vec, size_t pos, size_t count);
+
+|----------------------------------------------------------|
+
+* Removes `count` elements from the back of the vector. Then,
+* a call to <name>_shrink() is performed.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_OUT_OF_BOUNDS: `count` is greater than the vector size.
+
+int <name>_popb_many_shrink(struct <name>* vec, size_t count);
 
 |----------------------------------------------------------|
 
 * Inserts an element at `pos`.
+* `pos` may equal the vector size to append the element.
 
 * RETURN VALUE: 0 on success, error code on failure.
 
 * ERROR CODES:
 * GENC_ERR_INV_ARG: `vec` is NULL.
 * GENC_ERR_OUT_OF_BOUNDS: `pos` is greater than the vector size.
-* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
-* GENC_ERR_OVERFLOW: The required capacity cannot be represented.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed or the required capacity
+* cannot be represented.
 
 int <name>_ins(struct <name>* vec, <type> data, size_t pos);
+
+|----------------------------------------------------------|
+
+* Appends an element to the vector.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed or the required capacity
+* cannot be represented.
+
+int <name>_pushb(struct <name>* vec, <type> data);
 
 |----------------------------------------------------------|
 
@@ -140,6 +226,44 @@ int <name>_rm_at(struct <name>* vec, size_t pos);
 
 |----------------------------------------------------------|
 
+* Removes the last element from the vector.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_NO_DATA: The vector is empty.
+
+int <name>_popb(struct <name>* vec);
+
+|----------------------------------------------------------|
+
+* Removes the element at `pos` and may shrink allocated capacity.
+* Shrinking is best-effort. If the vector becomes empty, its storage is freed.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_OUT_OF_BOUNDS: `pos` is outside the vector.
+
+int <name>_rm_at_shrink(struct <name>* vec, size_t pos);
+
+|----------------------------------------------------------|
+
+* Removes the last element and may shrink allocated capacity.
+* Shrinking is best-effort. If the vector becomes empty, its storage is freed.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+* GENC_ERR_NO_DATA: The vector is empty.
+
+int <name>_popb_shrink(struct <name>* vec);
+
+|----------------------------------------------------------|
+
 * Removes all elements while retaining allocated capacity.
 
 * RETURN VALUE: 0 on success, error code on failure.
@@ -151,6 +275,17 @@ int <name>_empty(struct <name>* vec);
 
 |----------------------------------------------------------|
 
+* Removes all elements and frees allocated capacity.
+
+* RETURN VALUE: 0 on success, error code on failure.
+
+* ERROR CODES:
+* GENC_ERR_INV_ARG: `vec` is NULL.
+
+int <name>_empty_shrink(struct <name>* vec);
+
+|----------------------------------------------------------|
+
 * Shrinks allocated capacity to the current vector size.
 
 * RETURN VALUE: 0 on success, error code on failure.
@@ -158,7 +293,6 @@ int <name>_empty(struct <name>* vec);
 * ERROR CODES:
 * GENC_ERR_INV_ARG: `vec` is NULL.
 * GENC_ERR_ALLOC_FAIL: Memory allocation failed.
-* GENC_ERR_OVERFLOW: The vector size in bytes cannot be represented.
 
 int <name>_fit(struct <name>* vec);
 
@@ -170,8 +304,8 @@ int <name>_fit(struct <name>* vec);
 
 * ERROR CODES:
 * GENC_ERR_INV_ARG: `vec` is NULL.
-* GENC_ERR_ALLOC_FAIL: Memory allocation failed.
-* GENC_ERR_OVERFLOW: The requested capacity cannot be represented.
+* GENC_ERR_ALLOC_FAIL: Memory allocation failed or the requested capacity
+* cannot be represented.
 
 int <name>_prealloc(struct <name>* vec, size_t size);
 
@@ -185,8 +319,7 @@ int <name>_prealloc(struct <name>* vec, size_t size);
 /* VECTOR - DECLARE */
 /* -------------------------------------------------------------------------- */
 
-#define GENC_VECTOR_DECLARE(NAME, TYPE, GROWF, FN_PREFIX)                      \
-                                                                               \
+#define GENC_VECTOR_DECLARE(NAME, TYPE, FN_PREFIX)                             \
 struct NAME                                                                    \
 {                                                                              \
     TYPE * data;                                                               \
@@ -198,32 +331,61 @@ FN_PREFIX int                                                                  \
 NAME##_deinit(struct NAME * v);                                                \
                                                                                \
 FN_PREFIX int                                                                  \
+NAME##_ins_many(struct NAME * v, TYPE const * data, size_t count, size_t pos); \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushb_many(struct NAME * v, TYPE const * data, size_t count);           \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_rm_at_many(struct NAME * v, size_t pos, size_t count);                  \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popb_many(struct NAME * v, size_t count);                               \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_shrink(struct NAME * v);                                                \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_rm_at_many_shrink(struct NAME * v, size_t pos, size_t count);           \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popb_many_shrink(struct NAME * v, size_t count);                        \
+                                                                               \
+FN_PREFIX int                                                                  \
 NAME##_ins(struct NAME * v, TYPE data, size_t pos);                            \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushb(struct NAME * v, TYPE data);                                      \
                                                                                \
 FN_PREFIX int                                                                  \
 NAME##_rm_at(struct NAME * v, size_t pos);                                     \
                                                                                \
 FN_PREFIX int                                                                  \
+NAME##_popb(struct NAME * v);                                                  \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_rm_at_shrink(struct NAME * v, size_t pos);                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popb_shrink(struct NAME * v);                                           \
+                                                                               \
+FN_PREFIX int                                                                  \
 NAME##_empty(struct NAME * v);                                                 \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_empty_shrink(struct NAME * v);                                          \
                                                                                \
 FN_PREFIX int                                                                  \
 NAME##_fit(struct NAME * v);                                                   \
                                                                                \
 FN_PREFIX int                                                                  \
-NAME##_prealloc(struct NAME * v, size_t size);                                 \
-                                                                               \
-FN_PREFIX int                                                                  \
-NAME##_popb(struct NAME * v);                                                  \
-                                                                               \
-FN_PREFIX int                                                                  \
-NAME##_pushb(struct NAME * v, TYPE data);                                      \
+NAME##_prealloc(struct NAME * v, size_t size);
 
 /* -------------------------------------------------------------------------- */
 /* VECTOR - DEFINE */
 /* -------------------------------------------------------------------------- */
 
 #define GENC_VECTOR_DEFINE(NAME, TYPE, GROWF, FN_PREFIX)                       \
-                                                                               \
 FN_PREFIX int                                                                  \
 NAME##_deinit(struct NAME * v)                                                 \
 {                                                                              \
@@ -238,45 +400,218 @@ NAME##_deinit(struct NAME * v)                                                 \
 }                                                                              \
                                                                                \
 FN_PREFIX int                                                                  \
-NAME##_ins(struct NAME * v, TYPE data, size_t pos)                             \
+NAME##_ins_many(struct NAME * v, TYPE const * data, size_t count, size_t pos)  \
 {                                                                              \
-    if(!v) return GENC_ERR_INV_ARG;                                            \
-    if(pos > v->size) return GENC_ERR_OUT_OF_BOUNDS;                           \
+    if(!v || (!data && count > 0))                                             \
+        return GENC_ERR_INV_ARG;                                               \
+    if(pos > v->size)                                                          \
+        return GENC_ERR_OUT_OF_BOUNDS;                                         \
                                                                                \
-    if(v->size >= v->cap) /* grow */                                           \
+    if(count == 0) return 0;                                                   \
+                                                                               \
+    double growf_adj = ((GROWF) > 1.1 ? (GROWF) : 1.1);                        \
+                                                                               \
+    if(count > SIZE_MAX - v->size)                                             \
+        return GENC_ERR_ALLOC_FAIL;                                            \
+                                                                               \
+    size_t req_cap = v->size + count;                                          \
+                                                                               \
+    if(req_cap > v->cap)                                                       \
     {                                                                          \
-        /* Calculate new_cap */                                                \
-        size_t new_cap = v->size * GROWF;                                      \
-        if(new_cap <= v->cap)                                                  \
-        {                                                                      \
-            if(v->cap == SIZE_MAX) return GENC_ERR_OVERFLOW;                   \
-            new_cap = v->cap + 1;                                              \
-        }                                                                      \
+        size_t new_cap = (size_t)((double)v->cap * growf_adj);                 \
                                                                                \
-        if(new_cap > (SIZE_MAX / sizeof(TYPE)))                                \
-            return GENC_ERR_OVERFLOW;                                          \
+        if(new_cap < req_cap)                                                  \
+            new_cap = req_cap;                                                 \
+                                                                               \
+        if(new_cap > SIZE_MAX / sizeof(TYPE))                                  \
+            return GENC_ERR_ALLOC_FAIL;                                        \
                                                                                \
         void* new_data = realloc(v->data, new_cap * sizeof(TYPE));             \
-        if(new_data == NULL)                                                   \
-            return GENC_ERR_ALLOC_FAIL;                                        \
+        if(!new_data) return GENC_ERR_ALLOC_FAIL;                              \
                                                                                \
         v->data = new_data;                                                    \
         v->cap = new_cap;                                                      \
     }                                                                          \
                                                                                \
-    char* vector_data = (char*)v->data;                                        \
+    char* v_data = (char*)v->data;                                             \
                                                                                \
-    if(pos < v->size) /* make space */                                         \
+    if(pos != v->size)                                                         \
     {                                                                          \
-        memmove(vector_data + ((pos + 1) * sizeof(TYPE)),                      \
-                vector_data + (pos * sizeof(TYPE)),                            \
+        memmove(v_data + ((pos + count) * sizeof(TYPE)),                       \
+                v_data + (pos * sizeof(TYPE)),                                 \
                 (v->size - pos) * sizeof(TYPE));                               \
     }                                                                          \
                                                                                \
-    v->data[pos] = data;                                                       \
-    ++(v->size);                                                               \
+    memmove(v_data + (pos * sizeof(TYPE)), data, count * sizeof(TYPE));        \
+                                                                               \
+    v->size += count;                                                          \
                                                                                \
     return 0;                                                                  \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushb_many(struct NAME * v, TYPE const * data, size_t count)            \
+{                                                                              \
+    if(!v || (!data && count > 0))                                             \
+        return GENC_ERR_INV_ARG;                                               \
+                                                                               \
+    int status = NAME##_ins_many(v, data, count, v->size);                     \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        case GENC_ERR_ALLOC_FAIL:                                              \
+            return GENC_ERR_ALLOC_FAIL;                                        \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_rm_at_many(struct NAME * v, size_t pos, size_t count)                   \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if((pos > v->size) || (count > v->size - pos))                             \
+        return GENC_ERR_OUT_OF_BOUNDS;                                         \
+                                                                               \
+    if(count == 0) return 0;                                                   \
+                                                                               \
+    char* v_data = (char*)v->data;                                             \
+                                                                               \
+    memmove(v_data + (pos * sizeof(TYPE)),                                     \
+            v_data + ((pos + count) * sizeof(TYPE)),                           \
+            (v->size - pos - count) * sizeof(TYPE));                           \
+                                                                               \
+    v->size -= count;                                                          \
+                                                                               \
+    return 0;                                                                  \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_shrink(struct NAME * v)                                                 \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    if(v->size == 0)                                                           \
+    {                                                                          \
+        free(v->data);                                                         \
+        v->data = NULL;                                                        \
+        v->cap = 0;                                                            \
+                                                                               \
+        return 0;                                                              \
+    }                                                                          \
+                                                                               \
+    double growf_adj = ((GROWF) > 1.1 ? (GROWF) : 1.1);                        \
+    size_t threshold = (size_t)((double)v->cap / growf_adj / growf_adj);       \
+                                                                               \
+    if(v->size < threshold)                                                    \
+    {                                                                          \
+        size_t new_cap = (size_t)((double)v->size * growf_adj);                \
+        if(new_cap < v->size) new_cap = v->size;                               \
+                                                                               \
+        void* new_data = realloc(v->data, new_cap * sizeof(TYPE));             \
+        if(!new_data) return 0;                                                \
+                                                                               \
+        v->data = new_data;                                                    \
+        v->cap = new_cap;                                                      \
+    }                                                                          \
+    return 0;                                                                  \
+                                                                               \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popb_many(struct NAME * v, size_t count)                                \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if(count > v->size) return GENC_ERR_OUT_OF_BOUNDS;                         \
+                                                                               \
+    if(count == 0) return 0;                                                   \
+                                                                               \
+    int status = NAME##_rm_at_many(v, v->size - count, count);                 \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_rm_at_many_shrink(struct NAME * v, size_t pos, size_t count)            \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if((pos > v->size) || (count > v->size - pos))                             \
+        return GENC_ERR_OUT_OF_BOUNDS;                                         \
+                                                                               \
+    if(count == 0) return 0;                                                   \
+                                                                               \
+    int status = NAME##_rm_at_many(v, pos, count);                             \
+    if(status != 0) return GENC_ERR_UNEXPECTED;                                \
+                                                                               \
+    status = NAME##_shrink(v);                                                 \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
+                                                                               \
+    return 0;                                                                  \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popb_many_shrink(struct NAME * v, size_t count)                         \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if(count > v->size) return GENC_ERR_OUT_OF_BOUNDS;                         \
+                                                                               \
+    if(count == 0) return 0;                                                   \
+                                                                               \
+    int status = NAME##_rm_at_many_shrink(v, v->size - count, count);          \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_ins(struct NAME * v, TYPE data, size_t pos)                             \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if(pos > v->size) return GENC_ERR_OUT_OF_BOUNDS;                           \
+                                                                               \
+    int status = NAME##_ins_many(v, &data, 1, pos);                            \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        case GENC_ERR_ALLOC_FAIL:                                              \
+            return GENC_ERR_ALLOC_FAIL;                                        \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_pushb(struct NAME * v, TYPE data)                                       \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    int status = NAME##_pushb_many(v, &data, 1);                               \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        case GENC_ERR_ALLOC_FAIL:                                              \
+            return GENC_ERR_ALLOC_FAIL;                                        \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
 }                                                                              \
                                                                                \
 FN_PREFIX int                                                                  \
@@ -285,18 +620,62 @@ NAME##_rm_at(struct NAME * v, size_t pos)                                      \
     if(!v) return GENC_ERR_INV_ARG;                                            \
     if(pos >= v->size) return GENC_ERR_OUT_OF_BOUNDS;                          \
                                                                                \
-    if(pos == (v->size - 1))                                                   \
-        return NAME##_popb(v);                                                 \
+    int status = NAME##_rm_at_many(v, pos, 1);                                 \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
+}                                                                              \
                                                                                \
-    char* vector_data = (char*)v->data;                                        \
+FN_PREFIX int                                                                  \
+NAME##_popb(struct NAME * v)                                                   \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if(v->size == 0) return GENC_ERR_NO_DATA;                                  \
                                                                                \
-    memmove(vector_data + (pos * sizeof(TYPE)),                                \
-            vector_data + ((pos + 1) * sizeof(TYPE)),                          \
-            (v->size - pos - 1) * sizeof(TYPE));                               \
+    int status = NAME##_popb_many(v, 1);                                       \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
+}                                                                              \
                                                                                \
-    --(v->size);                                                               \
+FN_PREFIX int                                                                  \
+NAME##_rm_at_shrink(struct NAME * v, size_t pos)                               \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if(pos >= v->size) return GENC_ERR_OUT_OF_BOUNDS;                          \
                                                                                \
-    return 0;                                                                  \
+    int status = NAME##_rm_at_many_shrink(v, pos, 1);                          \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_popb_shrink(struct NAME * v)                                            \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+    if(v->size == 0) return GENC_ERR_NO_DATA;                                  \
+                                                                               \
+    int status = NAME##_popb_many_shrink(v, 1);                                \
+    switch(status)                                                             \
+    {                                                                          \
+        case 0:                                                                \
+            return 0;                                                          \
+        default:                                                               \
+            return GENC_ERR_UNEXPECTED;                                        \
+    }                                                                          \
 }                                                                              \
                                                                                \
 FN_PREFIX int                                                                  \
@@ -304,6 +683,19 @@ NAME##_empty(struct NAME * v)                                                  \
 {                                                                              \
     if(!v) return GENC_ERR_INV_ARG;                                            \
                                                                                \
+    v->size = 0;                                                               \
+                                                                               \
+    return 0;                                                                  \
+}                                                                              \
+                                                                               \
+FN_PREFIX int                                                                  \
+NAME##_empty_shrink(struct NAME * v)                                           \
+{                                                                              \
+    if(!v) return GENC_ERR_INV_ARG;                                            \
+                                                                               \
+    free(v->data);                                                             \
+    v->data = NULL;                                                            \
+    v->cap = 0;                                                                \
     v->size = 0;                                                               \
                                                                                \
     return 0;                                                                  \
@@ -324,12 +716,8 @@ NAME##_fit(struct NAME * v)                                                    \
         return 0;                                                              \
     }                                                                          \
                                                                                \
-    if(v->size > (SIZE_MAX / sizeof(TYPE)))                                    \
-        return GENC_ERR_OVERFLOW;                                              \
-                                                                               \
     void* new_data = realloc(v->data, v->size * sizeof(TYPE));                 \
-    if(new_data == NULL)                                                       \
-        return GENC_ERR_ALLOC_FAIL;                                            \
+    if(!new_data) return GENC_ERR_ALLOC_FAIL;                                  \
                                                                                \
     v->data = new_data;                                                        \
     v->cap = v->size;                                                          \
@@ -344,64 +732,29 @@ NAME##_prealloc(struct NAME * v, size_t size)                                  \
                                                                                \
     if(size == 0) return 0;                                                    \
                                                                                \
-    if(size > (SIZE_MAX - v->cap))                                             \
-        return GENC_ERR_OVERFLOW;                                              \
+    if(size > SIZE_MAX - v->cap)                                               \
+        return GENC_ERR_ALLOC_FAIL;                                            \
                                                                                \
     size_t new_cap = v->cap + size;                                            \
-                                                                               \
-    if(new_cap > (SIZE_MAX / sizeof(TYPE)))                                    \
-        return GENC_ERR_OVERFLOW;                                              \
+    if(new_cap > SIZE_MAX / sizeof(TYPE))                                      \
+        return GENC_ERR_ALLOC_FAIL;                                            \
                                                                                \
     void* new_data = realloc(v->data, new_cap * sizeof(TYPE));                 \
-    if(new_data == NULL)                                                       \
-        return GENC_ERR_ALLOC_FAIL;                                            \
+    if(!new_data) return GENC_ERR_ALLOC_FAIL;                                  \
                                                                                \
     v->data = new_data;                                                        \
     v->cap = new_cap;                                                          \
                                                                                \
     return 0;                                                                  \
-}                                                                              \
-                                                                               \
-FN_PREFIX int                                                                  \
-NAME##_popb(struct NAME * v)                                                   \
-{                                                                              \
-    if(!v) return GENC_ERR_INV_ARG;                                            \
-                                                                               \
-    if(v->size == 0)                                                           \
-        return GENC_ERR_NO_DATA;                                               \
-                                                                               \
-    --(v->size);                                                               \
-                                                                               \
-    return 0;                                                                  \
-}                                                                              \
-                                                                               \
-FN_PREFIX int                                                                  \
-NAME##_pushb(struct NAME * v, TYPE data)                                       \
-{                                                                              \
-    if(!v) return GENC_ERR_INV_ARG;                                            \
-                                                                               \
-    int err = NAME##_ins(v, data, v->size);                                    \
-                                                                               \
-    switch(err)                                                                \
-    {                                                                          \
-        case 0:                                                                \
-            return 0;                                                          \
-        case GENC_ERR_ALLOC_FAIL:                                              \
-            return GENC_ERR_ALLOC_FAIL;                                        \
-        case GENC_ERR_OVERFLOW:                                                \
-            return GENC_ERR_OVERFLOW;                                          \
-        default:                                                               \
-            return GENC_ERR_UNEXPECTED;                                        \
-    }                                                                          \
-}                                                                              \
+}
 
 /* -------------------------------------------------------------------------- */
 /* VECTOR - INLINE */
 /* -------------------------------------------------------------------------- */
 
 #define GENC_VECTOR_INLINE(NAME, TYPE, GROWF)                                  \
-    GENC_VECTOR_DECLARE(NAME, TYPE, GROWF, static inline)                      \
-    GENC_VECTOR_DEFINE(NAME, TYPE, GROWF, static inline)                       \
+    GENC_VECTOR_DECLARE(NAME, TYPE, static inline)                             \
+    GENC_VECTOR_DEFINE(NAME, TYPE, GROWF, static inline)
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

@@ -49,9 +49,7 @@ bool ntg_label_opts_are_eql(
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_label_init(
-        ntg_label* label,
-        const struct ntg_label_opts* opts)
+int ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts)
 {
     int _status = ntg_label_init_inherit(
             label,
@@ -59,10 +57,10 @@ int ntg_label_init(
             &NTG_LABEL_VTABLE_TEXT,
             &NTG_TYPE_LABEL,
             NULL);
+
     if(!_status)
     {
         ntg_label_set_opts(label, opts);
-        ntg_label_set_text_unsafe(label, "", 0);
     }
 
     return _status;
@@ -125,42 +123,20 @@ int ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 
 struct ntg_str_view ntg_label_get_text(const struct ntg_label* label)
 {
-    if(!label)
-    {
-        return (struct ntg_str_view) {
-            .data = "",
-            .len = 0
-        };
-    }
-    else
-    {
-        return (struct ntg_str_view) {
-            .data = (ntg_txt(label))->ro.text,
-            .len = (ntg_txt(label))->ro.text_len,
-        };
-    }
+    return ntg_text_get_text(ntg_txt(label));
 }
 
-int ntg_label_set_text_unsafe(
-        ntg_label* label,
-        const char* text,
-        uint16_t flags)
+int ntg_label_set_text(ntg_label* label, const char* text, size_t len)
+{
+    return ntg_text_set_text(ntg_txt(label), text, len);
+}
+
+int ntg_label_set_text_unsafe(ntg_label* label, const char* text)
 {
     if(!label)
         return NTG_ERR_INV_ARG;
 
-    return ntg_text_set_text_unsafe(ntg_txt(label), text, flags);
-}
-
-/* ------------------------------------------------------ */
-
-int ntg_label_set_text(
-        ntg_label* label,
-        const char* text,
-        size_t len,
-        uint16_t flags)
-{
-    return ntg_text_set_text(ntg_txt(label), text, len, flags);
+    return ntg_text_set_text_unsafe(ntg_txt(label), text);
 }
 
 /* ========================================================================== */
@@ -186,11 +162,10 @@ int ntg_label_init_inherit(
     if(!ntg_type_instance_of(type, &NTG_TYPE_LABEL))
         return NTG_ERR_INV_TYPE;
 
-    int _status = ntg_text_init_inherit(
-            ntg_txt(label), object_vtable, text_vtable, type, layout_dt);
+    int _status = ntg_text_init_inherit(ntg_txt(label), object_vtable,
+            text_vtable, type, layout_dt);
     if(_status != 0)
         return _status;
-
 
     // TODO:
     ntg_object_set_focusable(ntg_obj(label), NTG_OBJECT_FOCUSABLE);
@@ -198,8 +173,15 @@ int ntg_label_init_inherit(
     return 0;
 }
 
-int
-ntg_label_measure_fn(
+int ntg_label_layout_prepare_fn(
+        ntg_object* object, 
+        struct ntg_object_layout_dt* layout_dt,
+        sarena* arena)
+{
+    return ntg_text_layout_prepare_fn(object, layout_dt, arena);
+}
+
+int ntg_label_measure_fn(
         const ntg_object* _label,
         struct ntg_object_layout_dt* layout_dt,
         enum ntg_orient orient,
@@ -238,6 +220,7 @@ void ntg_label_unfocus_fn(ntg_object* _label)
 }
 
 const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT = {
+    .layout_prepare_fn = ntg_button_layout_prepare_fn,
     .measure_fn = ntg_label_measure_fn,
     .draw_fn = ntg_label_draw_fn,
     .deinit_fn = ntg_label_deinit_fn,

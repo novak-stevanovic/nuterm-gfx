@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "shared/ntg_shared.h"
 #include "shared/ntg_error.h"
+#include "thirdparty/genc.h"
 #include "base/ntg_vecgrid.h"
 #include "nt_gfx.h"
 
@@ -26,6 +27,8 @@ struct ntg_cell
     uint32_t cp;
     struct nt_gfx gfx;
 };
+
+// GENC_VECTOR_INLINE(ntg_cell_vec, struct ntg_cell, 1.4)
 
 struct ntg_cell_vecgrid
 {
@@ -70,6 +73,8 @@ struct ntg_vcell
         } transparent;
     } data;
 };
+
+// GENC_VECTOR_INLINE(ntg_vcell_vec, struct ntg_vcell, 1.4)
 
 struct ntg_vcell_vecgrid
 {

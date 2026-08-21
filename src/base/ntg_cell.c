@@ -64,23 +64,16 @@ int ntg_cell_vecgrid_set_size(ntg_cell_vecgrid* vecgrid, struct ntg_xy size)
             return NTG_ERR_UNEXPECTED;
     }
 
+    /*
     size_t i, j;
-    for (i = old.y; i < size.y; i++)
+    for (i = 0; i < size.y; i++)
     {
         for (j = 0; j < size.x; j++)
         {
             ntg_cell_vecgrid_set(vecgrid, ntg_cell_default(), ntg_xy(j, i));
         }
     }
-
-    size_t common_y = (old.y < size.y) ? old.y : size.y;
-    for (i = 0; i < common_y; i++)
-    {
-        for (j = old.x; j < size.x; j++)
-        {
-            ntg_cell_vecgrid_set(vecgrid, ntg_cell_default(), ntg_xy(j, i));
-        }
-    }
+    */
 
     return 0;
 }
@@ -136,6 +129,16 @@ int ntg_vcell_vecgrid_set_size(ntg_vcell_vecgrid* vecgrid, struct ntg_xy size)
     }
 
     size_t i, j;
+
+    /*
+    for (i = 0; i < size.y; i++)
+    {
+        for (j = 0; j < size.x; j++)
+        {
+            ntg_vcell_vecgrid_set(vecgrid, ntg_vcell_new_default(), ntg_xy(j, i));
+        }
+    }
+    */
 
     for (i = old.y; i < size.y; i++)
     {

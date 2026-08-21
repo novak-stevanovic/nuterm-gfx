@@ -16,7 +16,6 @@
 #include "base/ntg_xy.h"
 #include "base/ntg_sap.h"
 #include "base/ntg_event.h"
-#include "base/ntg_vecgrid.h"
 #include "base/ntg_type.h"
 #include "core/renderer/ntg_db_renderer.h"
 #include "core/renderer/ntg_renderer.h"
@@ -89,9 +88,10 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-add layout_prepare vtable fn for text to set_text
 pos -> NTG_SIZE_MAX for no draw
-redo coordinate map functions
+ntg_button: disable() or ntg_object: disable()?
+add_text, rm_text optimization fns for ntg_text() for ntg_input
+remove ntg_vecgrid?
 
 IMPLEMENT:
 ntg_input
@@ -100,10 +100,10 @@ ntg_dialogue
 ntg_popup
 
 FINISH:
-ntg_button: disable() ?
 Error codes: change values
 add some old useful comments that were deleted
 add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
+ntg_log()
 
 TEST:
 frame times

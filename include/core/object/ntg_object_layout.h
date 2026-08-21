@@ -23,7 +23,7 @@ struct ntg_object_layout_dt
     void (*reset_fn)(struct ntg_object_layout_dt* data);
 
     /* Called on object deinit */
-    void (*free_fn)(void* data);
+    void (*free_fn)(void* layout_dt);
 };
 
 /* ------------------------------------------------------ */

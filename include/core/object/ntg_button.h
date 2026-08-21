@@ -81,19 +81,10 @@ NTG_API struct ntg_str_view
 ntg_button_get_text(const struct ntg_button* button);
 
 NTG_API int
-ntg_button_set_text_unsafe(
-        ntg_button* button,
-        const char* text,
-        uint16_t flags);
-
-/* ------------------------------------------------------ */
+ntg_button_set_text(ntg_button* button, const char* text, size_t len);
 
 NTG_API int
-ntg_button_set_text(
-        ntg_button* button,
-        const char* text,
-        size_t len,
-        uint16_t flags);
+ntg_button_set_text_unsafe(ntg_button* button, const char* text);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -112,6 +103,12 @@ ntg_button_init_inherit(
         const struct ntg_text_vtable* text_vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
+
+NTG_API int
+ntg_button_layout_prepare_fn(
+        ntg_object* object, 
+        struct ntg_object_layout_dt* layout_dt,
+        sarena* arena);
 
 NTG_API int
 ntg_button_measure_fn(

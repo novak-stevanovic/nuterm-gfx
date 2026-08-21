@@ -106,8 +106,6 @@ int ntg_cleanup_batch_add(
         {
             case GENC_ERR_ALLOC_FAIL:
                 return NTG_ERR_ALLOC_FAIL;
-            case GENC_ERR_OVERFLOW:
-                return NTG_ERR_OVERFLOW;
             default:
                 return NTG_ERR_UNEXPECTED;
         }
