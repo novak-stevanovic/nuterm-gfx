@@ -229,13 +229,12 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, struct nt_mouse mouse)
     if(!scope) return false;
 
     struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
-    struct ntg_xy adj_pos = ntg_xy(0, 0);
 
     int _status;
     struct ntg_scene_hit_res res;
     _status = ntg_scene_hit_test(fm->ro.scene, pos, &res);
-    if(_status != 0)
-        return false;
+    if(_status != 0) /* Click failed, tell the callers not to consume */
+        return true;
 
     ntg_object* hit = res.res.object;
 
@@ -247,11 +246,11 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, struct nt_mouse mouse)
         return false;
     }
     
+    mouse.x = res.res.local_pos.x;
+    mouse.y = res.res.local_pos.y;
+
     if((!scope->ro.root) || ntg_object_is_in_tree(scope->ro.root, hit))
     {
-        mouse.x = adj_pos.x;
-        mouse.y = adj_pos.y;
-
         return ntg_fcs_scope_feed_mouse(scope, mouse, hit);
     }
     else 
@@ -261,9 +260,6 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, struct nt_mouse mouse)
 
         if(scope->ro.opts.input_mode == NTG_FCS_SCOPE_INPUT_MODELESS)
         {
-            mouse.x = adj_pos.x;
-            mouse.y = adj_pos.y;
-
             struct ntg_object_mouse event = {
                 .mouse = mouse,
                 .target = hit,

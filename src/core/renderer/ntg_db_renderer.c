@@ -15,7 +15,6 @@
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static int erase(ntg_db_renderer* renderer);
 static int full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size);
 
 static int optimized_render(
@@ -44,8 +43,7 @@ static int full_render(
 struct ntg_db_renderer_opts ntg_db_renderer_opts_default(void)
 {
     return (struct ntg_db_renderer_opts) {
-        .erase_mode = NTG_DB_RENDERER_ERASE_SCROLL,
-        .term_buff_size = NTG_DB_RENDERER_TERM_SIZE_AUTO
+        .term_buff_size = NTG_DB_RENDERER_TBUFF_SIZE_AUTO
     };
 }
 
@@ -58,11 +56,6 @@ int ntg_db_renderer_init(
 
     struct ntg_db_renderer_opts opts_final =
             (opts ? (*opts) : ntg_db_renderer_opts_default());
-
-    if((opts_final.erase_mode < NTG_DB_RENDERER_ERASE_SCROLL) ||
-            (opts_final.erase_mode > NTG_DB_RENDERER_ERASE_NONE) ||
-            (opts_final.term_buff_size == 0))
-        return NTG_ERR_INV_ARG;
 
     int _status;
 
@@ -156,10 +149,7 @@ int ntg_db_renderer_render_fn(
 
     _status = nt_buffer_enable(renderer->priv.term_buff, renderer->ro.opts.term_buff_size);
     if(_status)
-    {
-        renderer->priv.force_full_render = true;
         return _status;
-    }
 
     int rval = 0;
 
@@ -169,15 +159,13 @@ int ntg_db_renderer_render_fn(
     }
     else if(full_render_req)
     {
-        _status = erase(renderer);
-        if(_status && !rval) rval = _status;
-
         _status = full_render(renderer, stage_drawing, size, arena);
         if(_status && !rval) rval = _status;
     }
     else
     {
         rval = optimized_render(renderer, stage_drawing, size, old_size, arena);
+        if(_status && !rval) rval = _status;
     }
 
     renderer->priv.old_size = size;
@@ -209,21 +197,6 @@ const struct ntg_renderer_vtable NTG_DB_RENDERER_VTABLE = {
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static int erase(ntg_db_renderer* renderer)
-{
-    if(renderer->ro.opts.erase_mode == NTG_DB_RENDERER_ERASE_NONE)
-        return 0;
-
-    if(renderer->ro.opts.erase_mode == NTG_DB_RENDERER_ERASE_ALL)
-    {
-        int status = nt_erase_screen();
-        if(status != 0)
-            return status;
-    }
-
-    return nt_erase_scrollback();
-}
-
 static int full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size)
 {
     ntg_log_log("RENDER: FULL EMPTY");
@@ -239,7 +212,10 @@ static int full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size)
         }
     }
 
-    return erase(renderer);
+    nt_erase_screen();
+    nt_erase_scrollback();
+
+    return 0;
 }
 
 static inline size_t fwd_equal_gfx_search(
@@ -278,6 +254,8 @@ static int optimized_render(
     size_t row_buff_cap = size.x * 4;
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
     if(!row_buff) return NTG_ERR_ALLOC_FAIL;
+
+    nt_erase_scrollback();
 
     size_t i, j, k;
     size_t it_opt;
@@ -336,6 +314,8 @@ static int full_render(
     size_t row_buff_cap = size.x * 4;
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
     if(!row_buff) return NTG_ERR_ALLOC_FAIL;
+
+    nt_erase_scrollback();
 
     size_t i, j, k;
     size_t it_opt;

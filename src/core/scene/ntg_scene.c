@@ -17,7 +17,6 @@ struct layout_data
     sarena* arena;
     bool new_it, stay_dirty, prepare_failed;
 
-    /* Inited in prepare_phase */
     size_t tree_size;
     ntg_object** tree_pre; // May be NULL if alloc fails
     ntg_object** tree_post; // May be NULL if alloc fails
@@ -683,113 +682,6 @@ void ntg__scene_on_rm_object_tree(ntg_scene* scene, ntg_object* root)
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-/*
-static bool 
-layout_layer(ntg_scene* scene, ntg_object* root, unsigned int it, sarena* arena)
-{
-    if(!root) return false;
-
-    const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
-    ntg_object* base = root->ro.base;
-
-    if(it == 0)
-    {
-        // TODO
-        assert(0);
-    }
-
-    struct ntg_scene_layout_data layout_data = {
-        .scene = scene,
-        .arena = arena,
-        .new_it = false,
-        .stay_dirty = false
-    };
-
-    if(it == 0)
-        prepare_phase(root, &layout_data);
-
-    hmeasure_phase(root, &layout_data);
-    
-    struct ntg_anchor_constrain_ctx constrain_ctx = {
-        .root = root,
-        .base = base
-    };
-
-    size_t hsize = 0;
-    if(policy)
-    {
-        hsize = ntg__anchor_policy_constrain(policy, NTG_ORIENT_H, &constrain_ctx, arena);
-        hsize = _clamp_size(0, hsize, scene->ro.size.x);
-    }
-
-    if(root->ro.size.x != hsize)
-    {
-        ntg__object_root_set_hsize(root, hsize);
-    }
-
-    hconstrain_phase(root, &layout_data);
-
-    vmeasure_phase(root, &layout_data);
-
-    size_t vsize = 0;
-    if(policy)
-    {
-        vsize = ntg__anchor_policy_constrain(policy, NTG_ORIENT_V, &constrain_ctx, arena);
-        vsize = _clamp_size(0, vsize, scene->ro.size.y);
-    }
-
-    if(root->ro.size.y != vsize)
-    {
-        ntg__object_root_set_vsize(root, vsize);
-    }
-
-    vconstrain_phase(root, &layout_data);
-
-    struct ntg_xy size = ntg_xy(hsize, vsize);
-    
-    struct ntg_anchor_arrange_ctx arrange_ctx = {
-        .base = base,
-        .root = root,
-        .size = size,
-    };
-
-    struct ntg_xy pos = ntg_xy(0, 0);
-    if(policy)
-    {
-        pos = ntg__anchor_policy_arrange(policy, &arrange_ctx, arena);
-        pos = ntg_xy_pos_clamp(pos, size, scene->ro.size);
-    }
-
-    pos.x -= _sub2_size(pos.x + size.x, scene->ro.size.x);
-    pos.y -= _sub2_size(pos.y + size.y, scene->ro.size.y);
-
-    if(!ntg_xy_are_eql(root->ro.pos, pos))
-    {
-        ntg__object_root_set_pos(root, pos);
-    }
-
-    arrange_phase(root, &layout_data);
-    draw_phase(root, &layout_data);
-
-    bool stay_dirty = false;
-
-    if(layout_data.new_it)
-    {
-        if((it + 1) < scene->priv.max_it)
-            stay_dirty = layout_layer(scene, root, it + 1, arena);
-        else
-            stay_dirty = true;
-    }
-    else
-        stay_dirty = layout_data.stay_dirty;
-    
-    if(it == 0)
-        finalize_phase(root, &layout_data);
-
-    return stay_dirty;
-}
-*/
-
 static inline void init_layout_data(
         ntg_scene* scene,
         ntg_object* root,
@@ -887,91 +779,29 @@ layout_layer(ntg_scene* scene, ntg_object* root, sarena* arena)
     struct layout_data layout_data = {0};
     init_layout_data(scene, root, arena, &layout_data);
 
-    const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
-
     prepare_phase(root, &layout_data);
 
     size_t it_counter = 0;
 
-    struct ntg_anchor_constrain_ctx it_constrain_ctx;
-    size_t it_hsize, it_vsize;
-    struct ntg_xy it_size, it_pos;
-    struct ntg_anchor_arrange_ctx it_arrange_ctx;
     do
     {
         layout_data.stay_dirty = false;
-
-        /* HMEASURE */
+        layout_data.new_it = false;
 
         hmeasure_phase(root, &layout_data);
-
-        /* HCONSTRAIN */
-
-        it_hsize = 0;
-        get_root_constrain_ctx(scene, root, &it_constrain_ctx, NTG_ORIENT_H);
-        if(policy)
-        {
-            it_hsize = ntg__anchor_policy_hconstrain(policy, &it_constrain_ctx, arena);
-            it_hsize = _clamp_size(0, it_hsize, scene->ro.size.x);
-        }
-        else
-            it_hsize = it_constrain_ctx.base_size;
-
-        if(root->ro.size.x != it_hsize)
-            ntg__object_root_set_hsize(root, it_hsize);
-
         hconstrain_phase(root, &layout_data);
-
-        /* VMEASURE */
-
         vmeasure_phase(root, &layout_data);
-
-        /* VCONSTRAIN */
-
-        it_vsize = 0;
-        get_root_constrain_ctx(scene, root, &it_constrain_ctx, NTG_ORIENT_V);
-        if(policy)
-        {
-            it_vsize = ntg__anchor_policy_vconstrain(policy, &it_constrain_ctx, arena);
-            it_vsize = _clamp_size(0, it_vsize, scene->ro.size.y);
-        }
-        else
-            it_vsize = it_constrain_ctx.base_size;
-
-        if(root->ro.size.y != it_vsize)
-            ntg__object_root_set_vsize(root, it_vsize);
-
         vconstrain_phase(root, &layout_data);
-
-        it_size = ntg_xy(it_hsize, it_vsize);
-
-        /* ARRANGE */
-
-        it_pos = ntg_xy(0, 0);
-        get_root_arrange_ctx(scene, root, &it_arrange_ctx);
-        if(policy)
-        {
-            it_pos = ntg__anchor_policy_arrange(policy, &it_arrange_ctx, arena);
-            it_pos = ntg_xy_pos_clamp(it_pos, it_size, scene->ro.size);
-        }
-        else
-            it_pos = it_arrange_ctx.base_pos;
-
-        it_pos.x -= _sub2_size(it_pos.x + it_size.x, scene->ro.size.x);
-        it_pos.y -= _sub2_size(it_pos.y + it_size.y, scene->ro.size.y);
-
-        if(!ntg_xy_are_eql(root->ro.pos, it_pos))
-            ntg__object_root_set_pos(root, it_pos);
-
         arrange_phase(root, &layout_data);
+
         ++it_counter;
     }
     while((layout_data.new_it) && (it_counter < scene->priv.max_it));
 
-    ntg_log_log("IT: %d", it_counter);
-
     draw_phase(root, &layout_data);
     finalize_phase(root, &layout_data);
+
+    ntg_log_log("IT: %d", it_counter);
 
     return (layout_data.prepare_failed || layout_data.new_it ||
             layout_data.stay_dirty);
@@ -985,6 +815,7 @@ static uint32_t masks[] = {
         0x1F, // A
 };
 
+/* Don't require new iteration if set dirty phase is going to happen in this it. */
 static inline bool new_it(uint32_t dirty_flags, unsigned int curr_phase)
 {
     if(curr_phase > (sizeof(masks) / sizeof(uint32_t)))
@@ -995,8 +826,6 @@ static inline bool new_it(uint32_t dirty_flags, unsigned int curr_phase)
 
 static inline void prepare_object(ntg_object* object, void* _layout_data)
 {
-    if(!object) return;
-
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
@@ -1018,8 +847,6 @@ static inline void prepare_object(ntg_object* object, void* _layout_data)
 
 static inline void hmeasure_object(ntg_object* object, void* _layout_data)
 {
-    if(!object) return;
-
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
@@ -1046,8 +873,6 @@ static inline void hmeasure_object(ntg_object* object, void* _layout_data)
 
 static inline void hconstrain_object(ntg_object* object, void* _layout_data)
 {
-    if(!object) return;
-
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
@@ -1074,8 +899,6 @@ static inline void hconstrain_object(ntg_object* object, void* _layout_data)
 
 static inline void vmeasure_object(ntg_object* object, void* _layout_data)
 {
-    if(!object) return;
-
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
@@ -1102,8 +925,6 @@ static inline void vmeasure_object(ntg_object* object, void* _layout_data)
 
 static inline void vconstrain_object(ntg_object* object, void* _layout_data)
 {
-    if(!object) return;
-
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
@@ -1130,8 +951,6 @@ static inline void vconstrain_object(ntg_object* object, void* _layout_data)
 
 static inline void arrange_object(ntg_object* object, void* _layout_data)
 {
-    if(!object) return;
-
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
@@ -1158,8 +977,6 @@ static inline void arrange_object(ntg_object* object, void* _layout_data)
 
 static inline void draw_object(ntg_object* object, void* _layout_data)
 {
-    if(!object) return;
-
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
@@ -1181,8 +998,6 @@ static inline void draw_object(ntg_object* object, void* _layout_data)
 
 static inline void finalize_object(ntg_object* object, void* _layout_data)
 {
-    if(!object) return;
-
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
@@ -1197,8 +1012,6 @@ NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(vconstrain_tree, vconstrain_object)
 NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(arrange_tree, arrange_object)
 NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(draw_tree, draw_object)
 NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(finalize_tree, finalize_object)
-
-// TODO: use buffers form layout data instead of recursion
 
 static inline void prepare_phase(ntg_object* root, struct layout_data* lay_data)
 {
@@ -1230,6 +1043,29 @@ static inline void hmeasure_phase(ntg_object* root, struct layout_data* lay_data
 
 static inline void hconstrain_phase(ntg_object* root, struct layout_data* lay_data)
 {
+    const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
+    ntg_scene* scene = lay_data->scene;
+    sarena* arena = lay_data->arena;
+
+    /* Anchor */
+
+    struct ntg_anchor_constrain_ctx ctx;
+    get_root_constrain_ctx(scene, root, &ctx, NTG_ORIENT_H);
+
+    size_t it_hsize = 0;
+    if(policy)
+    {
+        it_hsize = ntg__anchor_policy_hconstrain(policy, &ctx, arena);
+        it_hsize = _clamp_size(0, it_hsize, scene->ro.size.x);
+    }
+    else
+        it_hsize = ctx.base_size;
+
+    if(root->ro.size.x != it_hsize)
+        ntg__object_root_set_hsize(root, it_hsize);
+
+    /* Tree */
+
     if(lay_data->tree_pre)
     {
         size_t i;
@@ -1258,6 +1094,30 @@ static inline void vmeasure_phase(ntg_object* root, struct layout_data* lay_data
 
 static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_data)
 {
+    const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
+    ntg_scene* scene = lay_data->scene;
+    sarena* arena = lay_data->arena;
+
+    /* Anchor */
+
+    struct ntg_anchor_constrain_ctx ctx;
+    get_root_constrain_ctx(scene, root, &ctx, NTG_ORIENT_V);
+
+    size_t it_vsize = 0;
+    get_root_constrain_ctx(scene, root, &ctx, NTG_ORIENT_V);
+    if(policy)
+    {
+        it_vsize = ntg__anchor_policy_vconstrain(policy, &ctx, arena);
+        it_vsize = _clamp_size(0, it_vsize, scene->ro.size.y);
+    }
+    else
+        it_vsize = ctx.base_size;
+
+    if(root->ro.size.y != it_vsize)
+        ntg__object_root_set_vsize(root, it_vsize);
+
+    /* Tree */
+
     if(lay_data->tree_pre)
     {
         size_t i;
@@ -1272,6 +1132,30 @@ static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_da
 
 static inline void arrange_phase(ntg_object* root, struct layout_data* lay_data)
 {
+    const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
+    ntg_scene* scene = lay_data->scene;
+    sarena* arena = lay_data->arena;
+    struct ntg_xy size = root->ro.size;
+
+    /* Anchor */
+
+    struct ntg_anchor_arrange_ctx ctx;
+    get_root_arrange_ctx(scene, root, &ctx);
+    struct ntg_xy pos;
+    if(policy)
+    {
+        pos = ntg__anchor_policy_arrange(policy, &ctx, arena);
+        pos = ntg_xy_pos_clamp(pos, size, scene->ro.size);
+    }
+    else
+        pos = ctx.base_pos;
+
+    pos.x -= _sub2_size(pos.x + size.x, scene->ro.size.x);
+    pos.y -= _sub2_size(pos.y + size.y, scene->ro.size.y);
+
+    if(!ntg_xy_are_eql(root->ro.pos, pos))
+        ntg__object_root_set_pos(root, pos);
+
     if(lay_data->tree_pre)
     {
         size_t i;
