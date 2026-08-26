@@ -203,6 +203,7 @@ bool ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event)
     if(!object) return false;
     if(!event) return false;
     if(!event->target) return false;
+    if(nt_key_are_eql(event->key, NT_KEY_ZERO)) return false;
 
     bool consumed = false;
 
@@ -225,6 +226,7 @@ bool ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* ev
     if(!object->ro.clickable) return false;
     if(!event) return false;
     if(!event->target) return false;
+    if(nt_mouse_are_eql(event->mouse, NT_MOUSE_ZERO)) return false;
 
     struct ntg_xy size = ntg_object_get_size(object);
     if((event->mouse.x >= size.x) || (event->mouse.y >= size.y))
@@ -1037,7 +1039,7 @@ int ntg_object_init_inherit(
     if(!object)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instance_of(type, &NTG_TYPE_OBJECT))
+    if(!ntg_type_instanceof(type, &NTG_TYPE_OBJECT))
         return NTG_ERR_INV_TYPE;
 
     if(!vtable ||!vtable->deinit_fn)

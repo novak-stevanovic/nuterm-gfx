@@ -83,14 +83,22 @@ ntg_label_set_text_unsafe(ntg_label* label, const char* text);
 /* ========================================================================== */
 
 /* ========================================================================== */
+/* TYPES */
+/* ========================================================================== */
+
+struct ntg_label_vtable
+{
+    struct ntg_text_vtable text;
+};
+
+/* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
 NTG_API int
 ntg_label_init_inherit(
         ntg_label* label,
-        const struct ntg_object_vtable* object_vtable,
-        const struct ntg_text_vtable* text_vtable,
+        const struct ntg_label_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
@@ -125,14 +133,12 @@ ntg_label_focus_fn(ntg_object* _label);
 NTG_API void
 ntg_label_unfocus_fn(ntg_object* _label);
 
-NTG_API extern const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT;
-
 NTG_API void
 ntg_label_post_draw_fn(
         const ntg_text* _label,
         ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
-NTG_API extern const struct ntg_text_vtable NTG_LABEL_VTABLE_TEXT;
+NTG_API extern const struct ntg_text_vtable NTG_LABEL_TEXT_IMPL;
 
 #endif // NTG_LABEL_H

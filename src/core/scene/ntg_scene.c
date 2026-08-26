@@ -314,9 +314,10 @@ int ntg_scene_rm_root(ntg_scene* scene, ntg_object* object)
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key key)
+bool ntg_scene_feed_key(ntg_scene* scene, nt_key key)
 {
     if(!scene) return false;
+    if(nt_key_are_eql(key, NT_KEY_ZERO)) return false;
 
     bool handled = false;
 
@@ -333,9 +334,10 @@ bool ntg_scene_feed_key(ntg_scene* scene, struct nt_key key)
 
 /* ------------------------------------------------------ */
 
-bool ntg_scene_feed_mouse(ntg_scene* scene, struct nt_mouse mouse)
+bool ntg_scene_feed_mouse(ntg_scene* scene, nt_mouse mouse)
 {
     if(!scene) return false;
+    if(nt_mouse_are_eql(mouse, NT_MOUSE_ZERO)) return false;
 
     bool handled = false;
 
@@ -391,14 +393,14 @@ int ntg_scene_init_inherit(
     return 0;
 }
 
-bool ntg_scene_dispatch_key_fn(ntg_scene* scene, struct nt_key key)
+bool ntg_scene_dispatch_key_fn(ntg_scene* scene, nt_key key)
 {
     if(!scene) return false;
 
     return ntg_fcs_manager_feed_key(scene->ro.fm, key);
 }
 
-bool ntg_scene_dispatch_mouse_fn(ntg_scene* scene, struct nt_mouse mouse)
+bool ntg_scene_dispatch_mouse_fn(ntg_scene* scene, nt_mouse mouse)
 {
     if(!scene) return false;
 

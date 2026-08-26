@@ -15,8 +15,9 @@
 #include "base/ntg_cell.h"
 #include "base/ntg_xy.h"
 #include "base/ntg_sap.h"
-#include "base/ntg_event.h"
-#include "base/ntg_type.h"
+#include "base/entity/ntg_event.h"
+#include "base/entity/ntg_type.h"
+#include "base/entity/ntg_entity.h"
 #include "core/renderer/ntg_db_renderer.h"
 #include "core/renderer/ntg_renderer.h"
 #include "core/loop/ntg_loop.h"
@@ -88,10 +89,11 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
+remove ntg_vecgrid?
+ntg_fcs_scope default/auto values
 pos -> NTG_SIZE_MAX for no draw
 ntg_button: disable() or ntg_object: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input
-remove ntg_vecgrid?
 
 IMPLEMENT:
 ntg_input

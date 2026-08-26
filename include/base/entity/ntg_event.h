@@ -34,7 +34,7 @@ GENC_VECTOR_DECLARE(ntg__event_sub_vec, struct ntg__event_sub, )
 struct ntg_event
 {
     unsigned int type;
-    void* source;
+    ntg_entity* source;
     void* data;
 };
 
@@ -60,7 +60,7 @@ struct ntg_event_delegate
 /* ========================================================================== */
 
 static inline struct ntg_event
-ntg_event_new(unsigned int type, void* source, void* data)
+ntg_event_new(unsigned int type, ntg_entity* source, void* data)
 {
     if(type == NTG_EVENT_INVALID)
         return (struct ntg_event) {0};
@@ -81,8 +81,8 @@ ntg_event_delegate_deinit(ntg_event_delegate* delegate);
 NTG_API int
 ntg_event_bind(
         ntg_event_delegate* delegate,
-        void* subscriber,
-        void (*handler_fn)(void* subscriber, struct ntg_event event),
+        ntg_entity* subscriber,
+        void (*handler_fn)(ntg_entity* subscriber, struct ntg_event event),
         ntg_event_binding* out_binding);
 
 NTG_API int
@@ -308,8 +308,8 @@ struct ntg_event_main_panel_chldchg_dt
 #define NTG_EVENT_CLR_BLOCK_CLRCHG 140
 struct ntg_event_clr_block_clrchg_dt
 {
-    struct nt_color old_color;
-    struct nt_color new_color;
+    nt_color old_color;
+    nt_color new_color;
 };
 
 /* ------------------------------------------------------ */
@@ -337,13 +337,13 @@ struct ntg_event_prog_bar_optchg_dt
 #define NTG_EVENT_SCENE_KEY 200
 struct ntg_event_scene_key_dt
 {
-    struct nt_key key;
+    nt_key key;
 };
 
 #define NTG_EVENT_SCENE_MOUSE 201
 struct ntg_event_scene_mouse_dt
 {
-    struct nt_mouse mouse;
+    nt_mouse mouse;
 };
 
 #define NTG_EVENT_SCENE_SZCHG 202
@@ -390,13 +390,13 @@ struct ntg_event_scene_objrm_dt
 #define NTG_EVENT_STAGE_KEY 300
 struct ntg_event_stage_key_dt
 {
-    struct nt_key key;
+    nt_key key;
 };
 
 #define NTG_EVENT_STAGE_MOUSE 301
 struct ntg_event_stage_mouse_dt
 {
-    struct nt_mouse mouse;
+    nt_mouse mouse;
 };
 
 #define NTG_EVENT_STAGE_SCNCHG 302
@@ -439,13 +439,13 @@ struct ntg_event_fcs_manager_fcschg_dt
 #define NTG_EVENT_FCS_MANAGER_SCPSH 307
 struct ntg_event_fcs_manager_scpsh_dt
 {
-    ntg_fcs_scope* scope;
+    const struct ntg_fcs_scope* scope;
 };
 
 #define NTG_EVENT_FCS_MANAGER_SCPOP 308
 struct ntg_event_fcs_manager_scpop_dt
 {
-    ntg_fcs_scope* scope;
+    const struct ntg_fcs_scope* scope;
 };
 
 /* ------------------------------------------------------ */

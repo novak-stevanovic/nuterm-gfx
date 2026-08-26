@@ -11,8 +11,6 @@
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-static const struct ntg_text_vtable TEXT_VTABLE_EMPTY = {0};
-
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
@@ -439,19 +437,21 @@ int ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff)
 
 int ntg_text_init_inherit(
         ntg_text* text_obj,
-        const struct ntg_object_vtable* object_vtable,
-        const struct ntg_text_vtable* text_vtable,
+        const struct ntg_text_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
     if(!text_obj || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instance_of(type, &NTG_TYPE_TEXT))
+    if(!vtable)
+        return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_TEXT))
         return NTG_ERR_INV_TYPE;
 
     int _status = ntg_object_init_inherit((ntg_object*)text_obj,
-            object_vtable, type, layout_dt);
+            &vtable->object, type, layout_dt);
     if(_status)
         return _status;
 
@@ -464,7 +464,7 @@ int ntg_text_init_inherit(
         return _status;
     }
 
-    text_obj->priv.vtable = (text_vtable ? text_vtable : &TEXT_VTABLE_EMPTY);
+    text_obj->priv.vtable = vtable;
     return 0;
 }
 
@@ -839,7 +839,7 @@ void ntg_text_unfocus_fn(ntg_object* object)
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
 }
 
-const struct ntg_object_vtable NTG_TEXT_VTABLE = {
+const struct ntg_object_vtable NTG_TEXT_OBJECT_IMPL = {
     .layout_prepare_fn = ntg_text_layout_prepare_fn,
     .measure_fn = ntg_text_measure_fn,
     .draw_fn = ntg_text_draw_fn,

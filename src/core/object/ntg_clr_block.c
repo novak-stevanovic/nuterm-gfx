@@ -17,20 +17,19 @@
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_clr_block_init(
-        ntg_clr_block* clr_block,
-        struct nt_color color)
+int ntg_clr_block_init(ntg_clr_block* clr_block, nt_color color)
 {
-    int _status = ntg_clr_block_init_inherit(
-            clr_block,
-            &NTG_CLR_BLOCK_VTABLE,
+    int _status = ntg_object_init_inherit(
+            (ntg_object*)clr_block,
+            &NTG_CLR_BLOCK_OBJECT_IMPL,
             &NTG_TYPE_CLR_BLOCK,
             NULL);
+    if(_status != 0)
+        return _status;
 
-    if(!_status)
-        ntg_clr_block_set_color(clr_block, color);
-
-    return _status;
+    clr_block->ro.color = NT_COLOR_ZERO;
+    ntg_clr_block_set_color(clr_block, color);
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -39,7 +38,7 @@ int ntg_clr_block_deinit(ntg_clr_block* clr_block)
 {
     if(!clr_block) return NTG_ERR_INV_ARG;
 
-    clr_block->ro.color = NT_COLOR_DEFAULT;
+    clr_block->ro.color = NT_COLOR_ZERO;
 
     ntg_object_deinit((ntg_object*)clr_block);
 
@@ -57,13 +56,11 @@ void ntg_clr_block_deinit_void(void* _clr_block)
 /* COLOR */
 /* ------------------------------------------------------ */
 
-int ntg_clr_block_set_color(
-        ntg_clr_block* clr_block,
-        struct nt_color color)
+int ntg_clr_block_set_color(ntg_clr_block* clr_block, nt_color color)
 {
     if(!clr_block) return NTG_ERR_INV_ARG;
 
-    struct nt_color old_color = clr_block->ro.color;
+    nt_color old_color = clr_block->ro.color;
 
     if(nt_color_are_eql(old_color, color))
         return 0;
@@ -95,22 +92,25 @@ int ntg_clr_block_set_color(
 
 int ntg_clr_block_init_inherit(
         ntg_clr_block* clr_block,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_clr_block_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
     if(!clr_block || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instance_of(type, &NTG_TYPE_CLR_BLOCK))
-        return NTG_ERR_INV_TYPE;
+    if(!vtable)
+        return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_CLR_BLOCK))
+        return NTG_ERR_BAD_TYPE;
 
     int _status = ntg_object_init_inherit(
-            (ntg_object*)clr_block, vtable, type, layout_dt);
+            (ntg_object*)clr_block, &vtable->object, type, layout_dt);
     if(_status != 0)
         return _status;
 
-    clr_block->ro.color = NT_COLOR_DEFAULT;
+    clr_block->ro.color = NT_COLOR_ZERO;
     return 0;
 }
 
@@ -178,7 +178,7 @@ void ntg_clr_block_deinit_fn(ntg_object* _clr_block)
     ntg_clr_block_deinit((ntg_clr_block*)_clr_block);
 }
 
-NTG_API const struct ntg_object_vtable NTG_CLR_BLOCK_VTABLE = {
+NTG_API const struct ntg_object_vtable NTG_CLR_BLOCK_OBJECT_IMPL = {
     .measure_fn = ntg_clr_block_measure_fn,
     .draw_fn = ntg_clr_block_draw_fn,
     .deinit_fn = ntg_clr_block_deinit_fn

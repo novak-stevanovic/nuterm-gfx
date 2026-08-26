@@ -230,13 +230,13 @@ bool ntg_loop_dispatch_event_fn_default(const struct nt_event* event)
     {
         if(event->type == NT_EVENT_KEY)
         {
-            struct nt_key key;
+            nt_key key;
             NT_EVENT_FILL_DATA((*event), &key);
             return ntg_stage_feed_key(stage, key);
         }
         else if(event->type == NT_EVENT_MOUSE)
         {
-            struct nt_mouse mouse;
+            nt_mouse mouse;
             NT_EVENT_FILL_DATA((*event), &mouse);
             return ntg_stage_feed_mouse(stage, mouse);
         }

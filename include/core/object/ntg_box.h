@@ -113,6 +113,15 @@ ntg_box_rm_child(ntg_box* box, ntg_object* child);
 /* ========================================================================== */
 
 /* ========================================================================== */
+/* TYPES */
+/* ========================================================================== */
+
+struct ntg_box_vtable
+{
+    struct ntg_object_vtable object;
+};
+
+/* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
@@ -120,7 +129,7 @@ ntg_box_rm_child(ntg_box* box, ntg_object* child);
 NTG_API int
 ntg_box_init_inherit(
         ntg_box* box,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_box_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
@@ -169,6 +178,6 @@ ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child);
 NTG_API void
 ntg_box_deinit_fn(ntg_object* _box);
 
-NTG_API extern const struct ntg_object_vtable NTG_BOX_VTABLE;
+NTG_API extern const struct ntg_object_vtable NTG_BOX_OBJECT_IMPL;
 
 #endif // NTG_BOX_H

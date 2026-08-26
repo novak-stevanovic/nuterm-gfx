@@ -59,12 +59,12 @@ static const struct ntg_border_style_vtable VTABLE = {
 
 int ntg_border_9x_init_monochrome(
         ntg_border_9x* style,
-        struct nt_color color)
+        nt_color color)
 {
     struct nt_gfx gfx = {
-        .fg = NT_COLOR_DEFAULT,
+        .fg = NT_COLOR_ZERO,
         .bg = color,
-        .style = NT_STYLE_DEFAULT
+        .style = 0
     };
 
     struct ntg_border_9x_sym symbols = BORDER_9X_SYM_DEFAULT;
@@ -296,7 +296,7 @@ int ntg_border_9x_init_transparent(
     return ntg_border_9x_init_custom(
             style,
             NTG_VCELL_TRANSPARENT,
-            NT_GFX_DEFAULT,
+            NT_GFX_ZERO,
             &symbols);
 }
 

@@ -203,9 +203,10 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 /* EVENT */
 /* ------------------------------------------------------ */
 
-bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key key)
+bool ntg_stage_feed_key(ntg_stage* stage, nt_key key)
 {
     if(!stage) return false;
+    if(nt_key_are_eql(key, NT_KEY_ZERO)) return false;
 
     bool handled = false;
 
@@ -220,9 +221,10 @@ bool ntg_stage_feed_key(ntg_stage* stage, struct nt_key key)
     return handled;
 }
 
-bool ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse mouse)
+bool ntg_stage_feed_mouse(ntg_stage* stage, nt_mouse mouse)
 {
     if(!stage) return false;
+    if(nt_mouse_are_eql(mouse, NT_MOUSE_ZERO)) return false;
 
     bool handled = false;
 
@@ -271,7 +273,7 @@ int ntg_stage_init_inherit(
     return 0;
 }
 
-bool ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key key)
+bool ntg_stage_dispatch_key_fn(ntg_stage* stage, nt_key key)
 {
     if(!stage) return false;
 
@@ -283,7 +285,7 @@ bool ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key key)
 
 bool ntg_stage_dispatch_mouse_fn(
         ntg_stage* stage,
-        struct nt_mouse mouse)
+        nt_mouse mouse)
 {
     if(!stage) return false;
 

@@ -71,16 +71,17 @@ int ntg_box_init(
 {
     int _status;
 
-    _status = ntg_box_init_inherit(
-            box,
-            &NTG_BOX_VTABLE,
+    _status = ntg_object_init_inherit(
+            (ntg_object*)box,
+            &NTG_BOX_OBJECT_IMPL,
             &NTG_TYPE_BOX,
             NULL);
+    if(_status != 0)
+        return _status;
 
-    if(!_status)
-        ntg_box_set_opts(box, opts);
-
-    return _status;
+    box->ro.opts = ntg_box_opts_default();
+    ntg_box_set_opts(box, opts);
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -191,18 +192,21 @@ int ntg_box_rm_child(ntg_box* box, ntg_object* child)
 
 int ntg_box_init_inherit(
         ntg_box* box,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_box_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
     if(!box || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instance_of(type, &NTG_TYPE_BOX))
+    if(!vtable)
+        return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_BOX))
         return NTG_ERR_INV_TYPE;
 
     int _status = ntg_object_init_inherit(
-            (ntg_object*)box, vtable, type, layout_dt);
+            (ntg_object*)box, &vtable->object, type, layout_dt);
     if(_status != 0)
         return _status;
 
@@ -544,7 +548,7 @@ void ntg_box_deinit_fn(ntg_object* _box)
     ntg_box_deinit(ntg_box(_box));
 }
 
-NTG_API const struct ntg_object_vtable NTG_BOX_VTABLE = {
+NTG_API const struct ntg_object_vtable NTG_BOX_OBJECT_IMPL = {
     .measure_fn = ntg_box_measure_fn,
     .constrain_fn = ntg_box_constrain_fn,
     .arrange_fn = ntg_box_arrange_fn,

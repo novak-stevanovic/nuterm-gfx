@@ -23,7 +23,7 @@ struct ntg_clr_block
 
     struct
     {
-        struct nt_color color;
+        nt_color color;
     } ro;
 };
 
@@ -35,20 +35,15 @@ struct ntg_clr_block
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-
 NTG_API int
-ntg_clr_block_init(
-        ntg_clr_block* clr_block,
-        struct nt_color color);
+ntg_clr_block_init(ntg_clr_block* clr_block, nt_color color);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API int
 ntg_clr_block_deinit(ntg_clr_block* clr_block);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API void
 ntg_clr_block_deinit_void(void* _clr_block);
@@ -57,11 +52,8 @@ ntg_clr_block_deinit_void(void* _clr_block);
 /* COLOR */
 /* ------------------------------------------------------ */
 
-
 NTG_API int
-ntg_clr_block_set_color(
-        ntg_clr_block* clr_block,
-        struct nt_color color);
+ntg_clr_block_set_color(ntg_clr_block* clr_block, nt_color color);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -70,14 +62,22 @@ ntg_clr_block_set_color(
 /* ========================================================================== */
 
 /* ========================================================================== */
-/* FUNCTIONS */
+/* TYPES */
 /* ========================================================================== */
 
+struct ntg_clr_block_vtable
+{
+    struct ntg_object_vtable object;
+};
+
+/* ========================================================================== */
+/* FUNCTIONS */
+/* ========================================================================== */
 
 NTG_API int
 ntg_clr_block_init_inherit(
         ntg_clr_block* clr_block,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_clr_block_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
@@ -95,7 +95,6 @@ ntg_clr_block_measure_fn(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API int
 ntg_clr_block_draw_fn(
         const ntg_object* _clr_block,
@@ -105,11 +104,9 @@ ntg_clr_block_draw_fn(
 
 /* ------------------------------------------------------ */
 
-
 NTG_API void
 ntg_clr_block_deinit_fn(ntg_object* _clr_block);
 
-
-NTG_API extern const struct ntg_object_vtable NTG_CLR_BLOCK_VTABLE;
+NTG_API extern const struct ntg_object_vtable NTG_CLR_BLOCK_OBJECT_IMPL;
 
 #endif // NTG_CLR_BLOCK_H

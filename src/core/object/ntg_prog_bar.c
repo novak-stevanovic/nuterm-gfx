@@ -79,16 +79,18 @@ int ntg_prog_bar_init(
         ntg_prog_bar* prog_bar,
         const struct ntg_prog_bar_opts* opts)
 {
-    int _status = ntg_prog_bar_init_inherit(
-            prog_bar,
-            &NTG_PROG_BAR_VTABLE,
+    int _status = ntg_object_init_inherit(
+            (ntg_object*)prog_bar,
+            &NTG_PROG_BAR_OBJECT_IMPL,
             &NTG_TYPE_PROG_BAR,
             NULL);
+    if(_status != 0)
+        return _status;
 
-    if(!_status)
-        ntg_prog_bar_set_opts(prog_bar, opts);
-
-    return _status;
+    prog_bar->ro.prog = 0.0;
+    prog_bar->ro.opts = ntg_prog_bar_opts_default();
+    ntg_prog_bar_set_opts(prog_bar, opts);
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -186,18 +188,21 @@ int ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
 
 int ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_prog_bar_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
     if(!prog_bar || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instance_of(type, &NTG_TYPE_PROG_BAR))
+    if(!vtable)
+        return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_PROG_BAR))
         return NTG_ERR_INV_TYPE;
 
     int _status = ntg_object_init_inherit(
-            (ntg_object*)prog_bar, vtable, type, layout_dt);
+            (ntg_object*)prog_bar, &vtable->object, type, layout_dt);
     if(_status != 0)
         return _status;
 
@@ -290,7 +295,7 @@ void ntg_prog_bar_deinit_fn(ntg_object* _prog_bar)
     ntg_prog_bar_deinit((ntg_prog_bar*)_prog_bar);
 }
 
-const struct ntg_object_vtable NTG_PROG_BAR_VTABLE = {
+const struct ntg_object_vtable NTG_PROG_BAR_OBJECT_IMPL = {
     .measure_fn = ntg_prog_bar_measure_fn,
     .draw_fn = ntg_prog_bar_draw_fn,
     .deinit_fn = ntg_prog_bar_deinit_fn

@@ -2,7 +2,7 @@
 #define NTG_RENDERER_H
 
 #include "shared/ntg_shared.h"
-#include "base/ntg_event.h"
+#include "base/entity/ntg_entity.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -16,24 +16,16 @@
 
 struct ntg_renderer
 {
+    ntg_entity _base;
     struct
     {
-        ntg_event_delegate event_delegate;
         void* data;
     } pub;
-
-    struct
-    {
-        const struct ntg_renderer_vtable* vtable;
-    } priv;
 };
 
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
-
-NTG_API int
-ntg_renderer_vdeinit(ntg_renderer* renderer);
 
 NTG_API int
 ntg_renderer_render(
@@ -53,6 +45,8 @@ ntg_renderer_render(
 
 struct ntg_renderer_vtable
 {
+    struct ntg_entity_vtable base;
+
     int (*render_fn)(
             ntg_renderer* renderer,
             const ntg_stage_draw* stage_drawing,
@@ -60,8 +54,6 @@ struct ntg_renderer_vtable
 
     void (*loop_enter_fn)(ntg_renderer* renderer);
     void (*loop_leave_fn)(ntg_renderer* renderer);
-
-    void (*deinit_fn)(ntg_renderer* renderer);
 };
 
 /* ========================================================================== */
@@ -71,7 +63,8 @@ struct ntg_renderer_vtable
 NTG_API int
 ntg_renderer_init_inherit(
         ntg_renderer* renderer,
-        const struct ntg_renderer_vtable* vtable);
+        const struct ntg_renderer_vtable* vtable,
+        const ntg_type* type);
 
 NTG_API int
 ntg_renderer_deinit(ntg_renderer* renderer);

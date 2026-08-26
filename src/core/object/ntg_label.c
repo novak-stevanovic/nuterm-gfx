@@ -51,19 +51,20 @@ bool ntg_label_opts_are_eql(
 
 int ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts)
 {
-    int _status = ntg_label_init_inherit(
-            label,
-            &NTG_LABEL_VTABLE_OBJECT,
-            &NTG_LABEL_VTABLE_TEXT,
-            &NTG_TYPE_LABEL,
-            NULL);
+    if(!label)
+        return NTG_ERR_INV_ARG;
 
-    if(!_status)
-    {
-        ntg_label_set_opts(label, opts);
-    }
+    int _status = ntg_text_init_inherit(
+            ntg_txt(label), &NTG_LABEL_TEXT_IMPL, &NTG_TYPE_LABEL, NULL);
+    if(_status != 0)
+        return _status;
 
-    return _status;
+    // TODO:
+    ntg_object_set_focusable(ntg_obj(label), NTG_OBJECT_FOCUSABLE);
+    ntg_object_set_clickable(ntg_obj(label), NTG_OBJECT_CLICKABLE_CONT);
+
+    ntg_label_set_opts(label, opts);
+    return 0;
 }
 
 int ntg_label_deinit(ntg_label* label)
@@ -151,19 +152,21 @@ int ntg_label_set_text_unsafe(ntg_label* label, const char* text)
 
 int ntg_label_init_inherit(
         ntg_label* label,
-        const struct ntg_object_vtable* object_vtable,
-        const struct ntg_text_vtable* text_vtable,
+        const struct ntg_label_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
     if(!label || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instance_of(type, &NTG_TYPE_LABEL))
+    if(!vtable)
+        return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_LABEL))
         return NTG_ERR_INV_TYPE;
 
-    int _status = ntg_text_init_inherit(ntg_txt(label), object_vtable,
-            text_vtable, type, layout_dt);
+    int _status = ntg_text_init_inherit(
+            ntg_txt(label), &vtable->text, type, layout_dt);
     if(_status != 0)
         return _status;
 
@@ -219,15 +222,6 @@ void ntg_label_unfocus_fn(ntg_object* _label)
     ntg_text_unfocus_fn(_label);
 }
 
-const struct ntg_object_vtable NTG_LABEL_VTABLE_OBJECT = {
-    .layout_prepare_fn = ntg_button_layout_prepare_fn,
-    .measure_fn = ntg_label_measure_fn,
-    .draw_fn = ntg_label_draw_fn,
-    .deinit_fn = ntg_label_deinit_fn,
-    .focus_fn = ntg_label_focus_fn,
-    .unfocus_fn = ntg_label_unfocus_fn
-};
-
 void ntg_label_post_draw_fn(
         const ntg_text* _label,
         ntg_object_tmp_draw* out_drawing,
@@ -238,6 +232,15 @@ void ntg_label_post_draw_fn(
     (void)arena;
 }
 
-const struct ntg_text_vtable NTG_LABEL_VTABLE_TEXT = {
-    .post_draw_fn = ntg_label_post_draw_fn,
+const struct ntg_text_vtable NTG_LABEL_TEXT_IMPL = {
+    .object = {
+        .layout_prepare_fn = ntg_button_layout_prepare_fn,
+        .measure_fn = ntg_label_measure_fn,
+        .draw_fn = ntg_label_draw_fn,
+        .deinit_fn = ntg_label_deinit_fn,
+        .cont_resize_fn = ntg_text_cont_resize_fn,
+        .focus_fn = ntg_label_focus_fn,
+        .unfocus_fn = ntg_label_unfocus_fn
+    },
+    .post_draw_fn = ntg_label_post_draw_fn
 };

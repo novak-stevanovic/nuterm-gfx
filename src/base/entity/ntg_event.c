@@ -4,8 +4,8 @@
 struct ntg__event_sub
 {
     ntg_event_binding* binding;
-    void* subscriber;
-    void (*handler_fn)(void* subscriber, struct ntg_event event);
+    ntg_entity* subscriber;
+    void (*handler_fn)(ntg_entity* subscriber, struct ntg_event event);
 
     bool removed;
 };
@@ -54,8 +54,8 @@ int ntg_event_delegate_deinit(ntg_event_delegate* delegate)
 
 int ntg_event_bind(
         ntg_event_delegate* delegate,
-        void* subscriber, 
-        void (*handler_fn)(void* subscriber, struct ntg_event event),
+        ntg_entity* subscriber, 
+        void (*handler_fn)(ntg_entity* subscriber, struct ntg_event event),
         ntg_event_binding* out_binding)
 {
     if(!delegate || !handler_fn) return NTG_ERR_INV_ARG;

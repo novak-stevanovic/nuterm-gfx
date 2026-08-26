@@ -41,9 +41,7 @@ struct ntg_border_9x
 /* ========================================================================== */
 
 NTG_API int
-ntg_border_9x_init_monochrome(
-        struct ntg_border_9x* style,
-        struct nt_color color);
+ntg_border_9x_init_monochrome(struct ntg_border_9x* style, nt_color color);
 
 /* ------------------------------------------------------ */
 

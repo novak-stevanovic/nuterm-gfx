@@ -64,16 +64,18 @@ int ntg_main_panel_init(
         ntg_main_panel* panel,
         const struct ntg_main_panel_opts* opts)
 {
-    int _status = ntg_main_panel_init_inherit(
-            panel,
-            &NTG_MAIN_PANEL_VTABLE,
+    int _status = ntg_object_init_inherit(
+            (ntg_object*)panel,
+            &NTG_MAIN_PANEL_OBJECT_IMPL,
             &NTG_TYPE_MAIN_PANEL,
             NULL);
+    if(_status != 0)
+        return _status;
 
-    if(!_status)
-        ntg_main_panel_set_opts(panel, opts);
-
-    return _status;
+    panel->ro.opts = ntg_main_panel_opts_default();
+    memset(panel->ro.children, 0, sizeof(panel->ro.children));
+    ntg_main_panel_set_opts(panel, opts);
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -185,18 +187,21 @@ int ntg_main_panel_set_opts(
 
 int ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_main_panel_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
     if(!panel || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instance_of(type, &NTG_TYPE_MAIN_PANEL))
+    if(!vtable)
+        return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_MAIN_PANEL))
         return NTG_ERR_INV_TYPE;
 
     int _status = ntg_object_init_inherit(
-            (ntg_object*)panel, vtable, type, layout_dt);
+            (ntg_object*)panel, &vtable->object, type, layout_dt);
     if(_status != 0)
         return _status;
 
@@ -577,7 +582,7 @@ void ntg_main_panel_deinit_fn(ntg_object* _panel)
     ntg_main_panel_deinit((ntg_main_panel*)_panel);
 }
 
-const struct ntg_object_vtable NTG_MAIN_PANEL_VTABLE = {
+const struct ntg_object_vtable NTG_MAIN_PANEL_OBJECT_IMPL = {
     .measure_fn = ntg_main_panel_measure_fn,
     .constrain_fn = ntg_main_panel_constrain_fn,
     .arrange_fn = ntg_main_panel_arrange_fn,

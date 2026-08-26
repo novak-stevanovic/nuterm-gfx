@@ -63,6 +63,8 @@ ntg_text_opts_are_eql(
 
 struct ntg_text_vtable
 {
+    struct ntg_object_vtable object;
+
     void (*post_draw_fn)(
         const ntg_text* text,
         ntg_object_tmp_draw* out_drawing,
@@ -135,8 +137,7 @@ ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff);
 NTG_API int
 ntg_text_init_inherit(
         ntg_text* text_obj,
-        const struct ntg_object_vtable* object_vtable,
-        const struct ntg_text_vtable* text_vtable,
+        const struct ntg_text_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
@@ -180,6 +181,6 @@ ntg_text_focus_fn(ntg_object* _text_obj);
 NTG_API void
 ntg_text_unfocus_fn(ntg_object* _text_obj);
 
-NTG_API extern const struct ntg_object_vtable NTG_TEXT_VTABLE;
+NTG_API extern const struct ntg_object_vtable NTG_TEXT_OBJECT_IMPL;
 
 #endif // NTG_TEXT_H

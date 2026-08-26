@@ -118,6 +118,15 @@ ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress);
 /* ========================================================================== */
 
 /* ========================================================================== */
+/* TYPES */
+/* ========================================================================== */
+
+struct ntg_prog_bar_vtable
+{
+    struct ntg_object_vtable object;
+};
+
+/* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
@@ -125,7 +134,7 @@ ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress);
 NTG_API int
 ntg_prog_bar_init_inherit(
         ntg_prog_bar* prog_bar,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_prog_bar_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
@@ -156,6 +165,6 @@ ntg_prog_bar_draw_fn(
 NTG_API void
 ntg_prog_bar_deinit_fn(ntg_object* _prog_bar);
 
-NTG_API extern const struct ntg_object_vtable NTG_PROG_BAR_VTABLE;
+NTG_API extern const struct ntg_object_vtable NTG_PROG_BAR_OBJECT_IMPL;
 
 #endif // NTG_PROG_BAR_H

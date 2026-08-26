@@ -18,39 +18,42 @@ struct ntg_type
     struct
     {
         size_t size;
-    } ro;
-
-    struct
-    {
         const ntg_type* parent;
-    } priv;
+    } ro;
 };
 
+/* ------------------------------------------------------ */
 
-NTG_API extern const ntg_type
-        NTG_TYPE_OBJECT,
-        NTG_TYPE_PROG_BAR,
-        NTG_TYPE_CLR_BLOCK,
-        NTG_TYPE_TEXT,
-        NTG_TYPE_LABEL,
-        NTG_TYPE_BUTTON,
-        NTG_TYPE_BOX,
-        NTG_TYPE_MAIN_PANEL;
+NTG_API extern const ntg_type NTG_TYPE_ENTITY;
+
+NTG_API extern const ntg_type NTG_TYPE_OBJECT;
+
+NTG_API extern const ntg_type NTG_TYPE_BOX;
+NTG_API extern const ntg_type NTG_TYPE_MAIN_PANEL;
+NTG_API extern const ntg_type NTG_TYPE_TEXT;
+NTG_API extern const ntg_type NTG_TYPE_LABEL;
+NTG_API extern const ntg_type NTG_TYPE_BUTTON;
+NTG_API extern const ntg_type NTG_TYPE_CLR_BLOCK;
+NTG_API extern const ntg_type NTG_TYPE_PROG_BAR;
 
 NTG_API extern const ntg_type NTG_TYPE_SCENE;
 
 NTG_API extern const ntg_type NTG_TYPE_STAGE;
 
+NTG_API extern const ntg_type NTG_TYPE_RENDERER;
+NTG_API extern const ntg_type NTG_TYPE_DB_RENDERER;
+
+NTG_API extern const ntg_type NTG_TYPE_ANCHOR_POLICY;
+NTG_API extern const ntg_type NTG_TYPE_BORDER_STYLE;
+
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
-
 NTG_API bool
-ntg_type_instance_of(const ntg_type* type, const ntg_type* ancestor);
+ntg_type_instanceof(const ntg_type* type, const ntg_type* ancestor);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API bool
 ntg_type_are_eql(const ntg_type* type1, const ntg_type* type2);

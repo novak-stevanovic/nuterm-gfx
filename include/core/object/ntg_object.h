@@ -80,13 +80,13 @@ ntg_lay_opts_default(void);
 
 struct ntg_object_key
 {
-    struct nt_key key;
+    nt_key key;
     ntg_object* target;
 };
 
 struct ntg_object_mouse
 {
-    struct nt_mouse mouse;
+    nt_mouse mouse;
     ntg_object* target;
     bool from_keybind;
 };

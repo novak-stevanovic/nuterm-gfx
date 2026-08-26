@@ -81,10 +81,10 @@ ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene);
 /* ------------------------------------------------------ */
 
 NTG_API bool
-ntg_stage_feed_key(ntg_stage* stage, struct nt_key key);
+ntg_stage_feed_key(ntg_stage* stage, nt_key key);
 
 NTG_API bool
-ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse mouse);
+ntg_stage_feed_mouse(ntg_stage* stage, nt_mouse mouse);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -98,8 +98,8 @@ ntg_stage_feed_mouse(ntg_stage* stage, struct nt_mouse mouse);
 
 struct ntg_stage_vtable
 {
-    bool (*handle_key_fn)(ntg_stage* stage, struct nt_key key);
-    bool (*handle_mouse_fn)(ntg_stage* stage, struct nt_mouse mouse);
+    bool (*handle_key_fn)(ntg_stage* stage, nt_key key);
+    bool (*handle_mouse_fn)(ntg_stage* stage, nt_mouse mouse);
 };
 
 /* ========================================================================== */
@@ -112,10 +112,10 @@ ntg_stage_init_inherit(
         const struct ntg_stage_vtable* vtable);
 
 NTG_API bool
-ntg_stage_dispatch_key_fn(ntg_stage* stage, struct nt_key key);
+ntg_stage_dispatch_key_fn(ntg_stage* stage, nt_key key);
 
 NTG_API bool
-ntg_stage_dispatch_mouse_fn(ntg_stage* stage, struct nt_mouse mouse);
+ntg_stage_dispatch_mouse_fn(ntg_stage* stage, nt_mouse mouse);
 
 NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 

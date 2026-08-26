@@ -108,13 +108,22 @@ ntg_main_panel_set_opts(
 /* ========================================================================== */
 
 /* ========================================================================== */
+/* TYPES */
+/* ========================================================================== */
+
+struct ntg_main_panel_vtable
+{
+    struct ntg_object_vtable object;
+};
+
+/* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
 NTG_API int
 ntg_main_panel_init_inherit(
         ntg_main_panel* panel,
-        const struct ntg_object_vtable* vtable,
+        const struct ntg_main_panel_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
@@ -160,6 +169,6 @@ ntg_main_panel_child_rm_fn(ntg_object* _panel, ntg_object* child);
 NTG_API void
 ntg_main_panel_deinit_fn(ntg_object* _panel);
 
-NTG_API extern const struct ntg_object_vtable NTG_MAIN_PANEL_VTABLE;
+NTG_API extern const struct ntg_object_vtable NTG_MAIN_PANEL_OBJECT_IMPL;
 
 #endif // NTG_MAIN_PANEL_H

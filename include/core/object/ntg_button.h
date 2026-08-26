@@ -93,14 +93,22 @@ ntg_button_set_text_unsafe(ntg_button* button, const char* text);
 /* ========================================================================== */
 
 /* ========================================================================== */
+/* TYPES */
+/* ========================================================================== */
+
+struct ntg_button_vtable
+{
+    struct ntg_text_vtable text;
+};
+
+/* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
 NTG_API int
 ntg_button_init_inherit(
         ntg_button* button,
-        const struct ntg_object_vtable* object_vtable,
-        const struct ntg_text_vtable* text_vtable,
+        const struct ntg_button_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
 
@@ -138,14 +146,12 @@ ntg_button_focus_fn(ntg_object* _button);
 NTG_API void
 ntg_button_unfocus_fn(ntg_object* _button);
 
-NTG_API extern const struct ntg_object_vtable NTG_BUTTON_VTABLE_OBJECT;
-
 NTG_API void
 ntg_button_post_draw_fn(
         const ntg_text* _button,
         ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
-NTG_API extern const struct ntg_text_vtable NTG_BUTTON_VTABLE_TEXT;
+NTG_API extern const struct ntg_text_vtable NTG_BUTTON_TEXT_IMPL;
 
 #endif // NTG_BUTTON_H

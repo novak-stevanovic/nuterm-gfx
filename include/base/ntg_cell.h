@@ -63,8 +63,8 @@ struct ntg_vcell
         struct
         {
             uint32_t cp;
-            struct nt_color fg;
-            struct nt_style style;
+            nt_color fg;
+            uint8_t style;
         } overlay;
 
         struct 
@@ -97,7 +97,7 @@ ntg_cell_default(void)
 {
     return (struct ntg_cell) {
         .cp = ' ',
-        .gfx = NT_GFX_DEFAULT
+        .gfx = NT_GFX_ZERO
     };
 }
 
@@ -183,7 +183,7 @@ ntg_vcell_new_default(void)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
-        .data.full = { .cp = ' ', .gfx = NT_GFX_DEFAULT }
+        .data.full = { .cp = ' ', .gfx = NT_GFX_ZERO }
     };
 }
 
@@ -197,7 +197,7 @@ ntg_vcell_new_full(uint32_t cp, struct nt_gfx gfx)
 }
 
 static inline struct ntg_vcell 
-ntg_vcell_new_overlay(uint32_t cp, struct nt_color fg, struct nt_style style)
+ntg_vcell_new_overlay(uint32_t cp, nt_color fg, uint8_t style)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_OVERLAY,
@@ -212,7 +212,7 @@ ntg_vcell_new_transparent(void)
 }
 
 static inline struct ntg_vcell 
-ntg_vcell_new_full_bg(struct nt_color color)
+ntg_vcell_new_full_bg(nt_color color)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_FULL,
@@ -220,8 +220,8 @@ ntg_vcell_new_full_bg(struct nt_color color)
             .cp = ' ',
             .gfx = {
                 .bg = color,
-                .fg = NT_COLOR_DEFAULT,
-                .style = NT_STYLE_DEFAULT
+                .fg = {0},
+                .style = 0
             }
         }
     };
@@ -241,7 +241,7 @@ ntg_vcell_are_eql(struct ntg_vcell c1, struct ntg_vcell c2)
     {
         return ((c1.data.overlay.cp == c2.data.overlay.cp) &&
             nt_color_are_eql(c1.data.overlay.fg, c2.data.overlay.fg) &&
-            nt_style_are_eql(c1.data.overlay.style, c2.data.overlay.style));
+            (c1.data.overlay.style == c2.data.overlay.style));
     }
     else return true;
 }
