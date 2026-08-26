@@ -58,7 +58,7 @@ struct ntg_vcell
 
         struct 
         {
-            uint8_t placeholder;
+            uint8_t _placeholder;
         } transparent;
     } data;
 };

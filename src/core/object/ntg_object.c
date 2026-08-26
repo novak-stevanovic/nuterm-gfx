@@ -1966,25 +1966,9 @@ int ntg__object_draw(ntg_object* object, sarena* arena)
     if(!scene)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_object_draw_set_size(
-            &object->ro.drawing, object->ro.size);
+    int _status = ntg_object_draw_set_size(&object->ro.drawing, object->ro.size);
+    if(_status != 0) return _status;
     struct ntg_xy drawing_size = object->ro.drawing.ro.size;
-
-    /* Even if the alloc fails, set the cells to defaults */
-
-    size_t i, j;
-    for(i = 0; i < drawing_size.y; i++)
-    {
-        for(j = 0; j < drawing_size.x; j++)
-        {
-            ntg_object_draw_set(&object->ro.drawing, ntg_vcell_new_default(), ntg_xy(j, i));
-        }
-    }
-
-    /* Now return if alloc failed */
-
-    if(_status != 0)
-        return _status;
 
     if(ntg_insets_hsum(object->ro.border_size) || ntg_insets_vsum(object->ro.border_size))
         _status = draw_unoptimized(object, arena);
@@ -2177,9 +2161,8 @@ static int tmp_draw_init(
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
-        {
             ntg_object_tmp_draw_set(drawing, base_bg, ntg_xy(j, i));
-        }
+        
     }
 
     return 0;
@@ -2669,6 +2652,7 @@ draw_unoptimized(ntg_object* object, sarena* arena)
 
     size_t i, j;
 
+    /*
     for(i = bsize.n; i < (object_size.y - bsize.s); i++)
     {
         for(j = bsize.w; j < (object_size.x - bsize.e); j++)
@@ -2676,6 +2660,7 @@ draw_unoptimized(ntg_object* object, sarena* arena)
             ntg_object_tmp_draw_set(&object_drawing, bg, ntg_xy(j, i));
         }
     }
+    */
 
     if(ntg_obj_vtbl(object)->draw_fn)
     {
