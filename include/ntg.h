@@ -90,6 +90,7 @@ ntg_disable(void);
 
 FIX:
 ntg_cell/ntg_vcell zero-initaliazable, ntg_fcs_scope default/auto values, remove _default() methods
+rename: ntg_object -> ntg_widget, ntg_entity -> ntg_object
 pos -> NTG_SIZE_MAX for no draw
 ntg_button: disable() or ntg_object: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input
