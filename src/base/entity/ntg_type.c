@@ -11,9 +11,9 @@
 /* TYPES */
 /* ========================================================================== */
 
-const ntg_type NTG_TYPE_ENTIY = {
+const ntg_type NTG_TYPE_ENTITY = {
     .ro.size = sizeof(ntg_entity),
-    .ro.parent = &NTG_TYPE_ENTITY
+    .ro.parent = NULL
 };
 
 /* ------------------------------------------------------ */
@@ -67,6 +67,11 @@ const ntg_type NTG_TYPE_SCENE = {
     .ro.parent = &NTG_TYPE_ENTITY
 };
 
+const ntg_type NTG_TYPE_FCS_MANAGER = {
+    .ro.size = sizeof(ntg_fcs_manager),
+    .ro.parent = &NTG_TYPE_ENTITY
+};
+
 /* ------------------------------------------------------ */
 
 const ntg_type NTG_TYPE_STAGE = {
@@ -93,9 +98,24 @@ const ntg_type NTG_TYPE_ANCHOR_POLICY = {
     .ro.parent = &NTG_TYPE_ENTITY
 };
 
+const ntg_type NTG_TYPE_FLOAT = {
+    .ro.size = sizeof(ntg_float),
+    .ro.parent = &NTG_TYPE_ANCHOR_POLICY
+};
+
+const ntg_type NTG_TYPE_SIDEFLOAT = {
+    .ro.size = sizeof(ntg_sidefloat),
+    .ro.parent = &NTG_TYPE_ANCHOR_POLICY
+};
+
 const ntg_type NTG_TYPE_BORDER_STYLE = {
     .ro.size = sizeof(ntg_border_style),
     .ro.parent = &NTG_TYPE_ENTITY
+};
+
+const ntg_type NTG_TYPE_BORDER_9X = {
+    .ro.size = sizeof(ntg_border_9x),
+    .ro.parent = &NTG_TYPE_BORDER_STYLE
 };
 
 /* ========================================================================== */

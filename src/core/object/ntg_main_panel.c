@@ -136,9 +136,7 @@ int ntg_main_panel_set(
         .new_child = object,
         .pos = pos
     };
-    ntg_event_raise(
-            &ntg_obj(panel)->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_MAIN_PANEL_CHLDCHG, panel, &event_dt));
+    ntg_entity_event_raise(ntg_ent(panel), NTG_EVENT_MAIN_PANEL_CHLDCHG, &event_dt);
 
     return 0;
 }
@@ -168,9 +166,7 @@ int ntg_main_panel_set_opts(
         .old_opts = &old_opts,
         .new_opts = &new_opts
     };
-    ntg_event_raise(
-            &ntg_obj(panel)->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_MAIN_PANEL_OPTCHG, panel, &event_dt));
+    ntg_entity_event_raise(ntg_ent(panel), NTG_EVENT_MAIN_PANEL_OPTCHG, &event_dt);
 
     return 0;
 }
@@ -198,7 +194,7 @@ int ntg_main_panel_init_inherit(
         return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_MAIN_PANEL))
-        return NTG_ERR_INV_TYPE;
+        return NTG_ERR_BAD_TYPE;
 
     int _status = ntg_object_init_inherit(
             (ntg_object*)panel, &vtable->object, type, layout_dt);
@@ -577,7 +573,7 @@ void ntg_main_panel_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
 
 /* ------------------------------------------------------ */
 
-void ntg_main_panel_deinit_fn(ntg_object* _panel)
+void ntg_main_panel_deinit_fn(ntg_entity* _panel)
 {
     ntg_main_panel_deinit((ntg_main_panel*)_panel);
 }
@@ -587,5 +583,5 @@ const struct ntg_object_vtable NTG_MAIN_PANEL_OBJECT_IMPL = {
     .constrain_fn = ntg_main_panel_constrain_fn,
     .arrange_fn = ntg_main_panel_arrange_fn,
     .rm_child_fn = ntg_main_panel_child_rm_fn,
-    .deinit_fn = ntg_main_panel_deinit_fn
+    .base.deinit_fn = ntg_main_panel_deinit_fn
 };

@@ -40,11 +40,11 @@ static void border_9x_draw_fn(
         struct ntg_insets border_size,
         ntg_object_tmp_draw* out_drawing);
 
-static void border_9x_deinit_fn(ntg_border_style* base);
+static void border_9x_deinit_fn(ntg_entity* _style);
 
 static const struct ntg_border_style_vtable VTABLE = {
     .draw_fn = border_9x_draw_fn,
-    .deinit_fn = border_9x_deinit_fn
+    .base.deinit_fn = border_9x_deinit_fn
 };
 
 /* ========================================================================== */
@@ -311,14 +311,14 @@ int ntg_border_9x_init_custom(
     if(!style)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_border_style_init_inherit(&style->priv.base, &VTABLE);
+    int _status = ntg_border_style_init_inherit(&style->_base, &VTABLE, &NTG_TYPE_BORDER_9X);
     if(_status)
         return _status;
 
     struct border_9x_data* data = malloc(sizeof(*data));
     if(!data)
     {
-        ntg_border_style_deinit(&style->priv.base);
+        ntg_border_style_deinit(&style->_base);
         return NTG_ERR_ALLOC_FAIL;
     }
 
@@ -327,7 +327,7 @@ int ntg_border_9x_init_custom(
         .gfx = gfx
     };
 
-    style->priv.base.pub.data = data;
+    style->_base.pub.data = data;
     style->ro.symbols = symbols ? (*symbols) : BORDER_9X_SYM_DEFAULT;
     return 0;
 }
@@ -338,11 +338,11 @@ int ntg_border_9x_deinit(ntg_border_9x* style)
 {
     if(!style) return NTG_ERR_INV_ARG;
 
-    free(style->priv.base.pub.data);
-    style->priv.base.pub.data = NULL;
+    free(style->_base.pub.data);
+    style->_base.pub.data = NULL;
     style->ro.symbols = BORDER_9X_SYM_DEFAULT;
 
-    ntg_border_style_deinit(&style->priv.base);
+    ntg_border_style_deinit(&style->_base);
 
     return 0;
 }
@@ -483,7 +483,7 @@ static void border_9x_draw_fn(
     }
 }
 
-static void border_9x_deinit_fn(ntg_border_style* base)
+static void border_9x_deinit_fn(ntg_entity* _style)
 {
-    ntg_border_9x_deinit((ntg_border_9x*)base);
+    ntg_border_9x_deinit((ntg_border_9x*)_style);
 }

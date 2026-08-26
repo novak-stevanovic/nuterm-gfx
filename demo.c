@@ -73,8 +73,6 @@ ntg_float flt_ap;
 ntg_label sflt_label;
 ntg_sidefloat sflt_ap;
 
-struct ntg_fcs_scope fs1, fs2;
-
 void init_north();
 void init_center();
 void init_south();
@@ -83,10 +81,6 @@ void init_sflt_label();
 void init_root();
 void init_bs(); // border styles
 void init_ap(); // attach policies
-void init_fs(); // focus scopes
-
-
-const struct ntg_fcs_scope_vtable FS1_VTABLE;
 
 void task_loop_stop(void* _)
 {
@@ -141,6 +135,7 @@ bool loop_on_event_fn(const struct nt_event* event)
     return false;
 }
 
+/*
 bool fs1_dispatch_key_fn(ntg_fcs_scope* scope, struct nt_key key)
 {
     if(nt_key_esc_match(key, NT_ESC_KEY_ARR_UP))
@@ -196,27 +191,13 @@ bool fs1_dispatch_mouse_fn(
 
     return true;
 }
-
-/*
-bool fs1_handle_mouse_fn(
-        ntg_fcs_scope* scope,
-        struct nt_mouse mouse,
-        ntg_object* clicked)
-{
-    bool consumed = ntg_fcs_scope_dispatch_mouse_bubble_fn(scope, mouse, clicked);
-    if(consumed) return true;
-
-    // ntg_object_remove_from_scene(clicked);
-
-    return true;
-}
 */
 
-void sflt_on_mouse_fn(void* subscriber, struct ntg_event event)
+void sflt_on_mouse_fn(ntg_entity* subscriber, struct ntg_event event)
 {
     if(event.type == NTG_EVENT_OBJECT_MOUSE)
     {
-        ntg_label* label = subscriber;
+        ntg_label* label = ntg_lbl(subscriber);
         const struct ntg_event_object_mouse_dt* event_dt = event.data;
         if(!event_dt || !event_dt->mouse) return;
 
@@ -238,7 +219,8 @@ int main(int argc, char *argv[])
     struct ntg_opts opts = ntg_opts_default();
     // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
     // opts.cursor_mode = NTG_CURSOR_SHOW;
-    _status = ntg_enable(&opts, "ntg_log.txt");
+    // _status = ntg_enable(&opts, "ntg_log.txt");
+    _status = ntg_enable(&opts, NULL);
     assert(!_status);
 
     batch = ntg_cleanup_batch_new();
@@ -253,7 +235,6 @@ int main(int argc, char *argv[])
     init_flt_button();
     init_sflt_label();
     init_root();
-    init_fs();
 
     _status = ntg_scene_init(&scene, NULL, NTG_SCENE_MAX_IT_AUTO);
     _status = ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_void, NULL);
@@ -278,9 +259,6 @@ int main(int argc, char *argv[])
     assert(!ntg_object_set_anchor_policy(ntg_obj(&flt_button), ntg_ap(&flt_ap)));
     assert(!ntg_object_set_anchor_policy(ntg_obj(&sflt_label), ntg_ap(&sflt_ap)));
 
-    // ntg_fcs_manager_push_scope(scene.ro.fm, &fs2, &_status);
-    _status = ntg_fcs_manager_stack_push(scene.ro.fm, &fs1);
-
     struct ntg_loop_start_opts loop_start_opts = ntg_loop_start_opts_default();
     loop_start_opts.mouse_mode = NTG_LOOP_MOUSE_ENABLE;
     _status = ntg_loop_start(&loop_start_opts);
@@ -290,7 +268,7 @@ int main(int argc, char *argv[])
     set_breakpoint();
 
     nt_cursor_move(0, 0);
-    nt_write_str_unsafe("Loop end", NT_GFX_DEFAULT);
+    nt_write_str_unsafe("Loop end", NT_GFX_ZERO);
 
     nt_buffer_flush();
 
@@ -320,7 +298,7 @@ void init_north()
     struct nt_gfx label_gfx = {
         .fg = nt_color_new_auto(255, 255, 255),
         .bg = nt_color_new_auto(143, 0, 255),
-        .style = nt_style_new_uniform(NT_STYLE_BOLD)
+        .style = NT_STYLE_BOLD
     };
     struct ntg_label_opts north_label_opts = ntg_label_opts_default();
     north_label_opts.text_opts.gfx = label_gfx;
@@ -366,7 +344,7 @@ void init_south()
 
     struct ntg_bdr_opts border_opts = ntg_bdr_opts_default();
     border_opts.pref_size = ntg_insets(1, 1, 1, 1);
-    border_opts.style = &def_rounded_border.priv.base;
+    border_opts.style = &def_rounded_border._base;
     border_opts.enable = NTG_OBJECT_DCR_ENABLE_ALWAYS;
 
     // SOUTH BOX
@@ -386,7 +364,7 @@ void init_south()
     sb_label1_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(250, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
-        .style = NT_STYLE_DEFAULT
+        .style = 0
     };
     _status = ntg_label_init(&sb_label1, &sb_label1_opts);
     _status = ntg_cleanup_batch_add(batch, &sb_label1, ntg_label_deinit_void, NULL);
@@ -400,7 +378,7 @@ void init_south()
     sb_label2_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(150, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
-        .style = NT_STYLE_DEFAULT
+        .style = 0
     };
     _status = ntg_label_init(&sb_label2, &sb_label2_opts);
     _status = ntg_cleanup_batch_add(batch, &sb_label2, ntg_label_deinit_void, NULL);
@@ -414,7 +392,7 @@ void init_south()
     sb_label3_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(100, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
-        .style = NT_STYLE_DEFAULT
+        .style = 0
     };
     sb_label3_opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
 
@@ -436,7 +414,7 @@ void init_south()
     s_label_opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(50, 0, 0),
         .fg = nt_color_new_auto(255, 255, 255),
-        .style = NT_STYLE_DEFAULT
+        .style = 0
     };
     ntg_label_set_opts(&s_label, &s_label_opts);
 
@@ -472,7 +450,7 @@ void init_flt_button()
     opts.text_opts.bg_mode = NTG_TEXT_BG_FLT;
     opts.text_opts.focused_gfx = (struct nt_gfx) {
         .fg = nt_color_new_auto(255, 165, 0),
-        .style = nt_style_new_uniform(NT_STYLE_BOLD),
+        .style = NT_STYLE_BOLD,
         .bg = nt_color_new_auto(255, 255, 255)
     };
 
@@ -492,7 +470,7 @@ void init_flt_button()
 
     struct ntg_bdr_opts border_opts = ntg_bdr_opts_default();
     border_opts.pref_size = ntg_insets(1, 1, 1, 1);
-    border_opts.style = &flt_rounded_border.priv.base;
+    border_opts.style = &flt_rounded_border._base;
     ntg_object_set_bdr_opts(ntg_obj(&flt_button), &border_opts);
 
     // ntg_object_set_user_min_size_cont(ntg_obj(&flt_button), ntg_xy(1000, 1000));
@@ -512,15 +490,15 @@ void init_sflt_label()
     opts.text_opts.gfx = (struct nt_gfx) {
         .bg = nt_color_new_auto(255, 255, 255),
         .fg = nt_color_new_auto(0, 0, 0),
-        .style = nt_style_new_uniform(NT_STYLE_ITALIC)
+        .style = NT_STYLE_ITALIC
     };
     ntg_label_set_opts(&sflt_label, &opts);
 
     _status = ntg_label_init(&sflt_label, &opts);
 
-    _status = ntg_event_bind(
-            &ntg_obj(&sflt_label)->ro.event_dlgt,
-            &sflt_label,
+    _status = ntg_entity_event_bind(
+            ntg_ent(&sflt_label),
+            ntg_ent(&sflt_label),
             sflt_on_mouse_fn,
             &sflt_mouse_binding);
 
@@ -553,7 +531,7 @@ void init_bs()
 
     _status = ntg_border_9x_init_rounded(
             &flt_rounded_border,
-            NT_GFX_DEFAULT,
+            NT_GFX_ZERO,
             true);
     _status = ntg_cleanup_batch_add(
             batch,
@@ -563,7 +541,7 @@ void init_bs()
 
     _status = ntg_border_9x_init_rounded(
             &def_rounded_border,
-            NT_GFX_DEFAULT,
+            NT_GFX_ZERO,
             false);
     _status = ntg_cleanup_batch_add(
             batch,
@@ -601,20 +579,4 @@ void init_ap()
             &sflt_ap,
             ntg_sidefloat_deinit_void,
             NULL);
-}
-
-const struct ntg_fcs_scope_vtable FS1_VTABLE = {
-    .dispatch_key_fn = fs1_dispatch_key_fn,
-    .dispatch_mouse_fn = fs1_dispatch_mouse_fn
-};
-
-void init_fs()
-{
-    struct ntg_fcs_scope_opts opts = ntg_fcs_scope_opts_default();
-    opts.input_mode = NTG_FCS_SCOPE_INPUT_MODAL;
-    opts.out_click_mode = NTG_FCS_SCOPE_OUT_CLICK_CLR;
-
-    ntg_fcs_scope_init_inherit(&fs1, &FS1_VTABLE, ntg_obj(NULL), NULL, &opts);
-
-    // ntg_fcs_scope_init(&fs2, NULL, NULL, NULL, NULL);
 }

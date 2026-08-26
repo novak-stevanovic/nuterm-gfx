@@ -192,8 +192,7 @@ void ntg_object_vdeinit(ntg_object* object)
 {
     if(!object) return;
 
-    if(object->priv.vtable->deinit_fn)
-        object->priv.vtable->deinit_fn(object);
+    ntg_entity_vdeinit(ntg_ent(object));
 }
 
 /* ------------------------------------------------------ */
@@ -207,15 +206,13 @@ bool ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event)
 
     bool consumed = false;
 
-    if(object->priv.vtable->handle_key_fn)
+    if(ntg_obj_vtbl(object)->handle_key_fn)
     {
-        consumed = object->priv.vtable->handle_key_fn(object, event);
+        consumed = ntg_obj_vtbl(object)->handle_key_fn(object, event);
     }
 
     struct ntg_event_object_key_dt event_dt = { .key = event };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_KEY, object, &event_dt));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_KEY, &event_dt);
 
     return consumed;
 }
@@ -244,15 +241,13 @@ bool ntg_object_feed_mouse(ntg_object* object, const struct ntg_object_mouse* ev
 
     bool consumed = false;
 
-    if(object->priv.vtable->handle_mouse_fn)
+    if(ntg_obj_vtbl(object)->handle_mouse_fn)
     {
-        consumed = object->priv.vtable->handle_mouse_fn(object, event);
+        consumed = ntg_obj_vtbl(object)->handle_mouse_fn(object, event);
     }
 
     struct ntg_event_object_mouse_dt event_dt = { .mouse = event };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_MOUSE, object, &event_dt));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_MOUSE, &event_dt);
 
     return consumed;
 }
@@ -273,9 +268,9 @@ int ntg_object_set_lay_opts(ntg_object* object, const struct ntg_lay_opts* opts_
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
-    if(object->priv.vtable->chng_lay_opts_fn)
+    if(ntg_obj_vtbl(object)->chng_lay_opts_fn)
     {
-        object->priv.vtable->chng_lay_opts_fn(
+        ntg_obj_vtbl(object)->chng_lay_opts_fn(
                 object,
                 &old_opts,
                 &object->ro.layout_opts);
@@ -285,9 +280,7 @@ int ntg_object_set_lay_opts(ntg_object* object, const struct ntg_lay_opts* opts_
         .old_opts = &old_opts,
         .new_opts = &object->ro.layout_opts
     };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_LAYOPTCHG, object, &event_dt));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_LAYOPTCHG, &event_dt);
 
     return 0;
 }
@@ -308,9 +301,9 @@ int ntg_object_set_bdr_opts(ntg_object* object, const struct ntg_bdr_opts* opts_
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
-    if(object->priv.vtable->chng_bdr_opts_fn)
+    if(ntg_obj_vtbl(object)->chng_bdr_opts_fn)
     {
-        object->priv.vtable->chng_bdr_opts_fn(
+        ntg_obj_vtbl(object)->chng_bdr_opts_fn(
                 object,
                 &old_opts,
                 &object->ro.border_opts);
@@ -320,9 +313,7 @@ int ntg_object_set_bdr_opts(ntg_object* object, const struct ntg_bdr_opts* opts_
         .old_opts = &old_opts,
         .new_opts = &object->ro.border_opts
     };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_BDROPTCHG, object, &event_dt));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_BDROPTCHG, &event_dt);
 
     return 0;
 }
@@ -341,9 +332,9 @@ int ntg_object_set_pad_opts(ntg_object* object, const struct ntg_pad_opts* opts_
 
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
-    if(object->priv.vtable->chng_pad_opts_fn)
+    if(ntg_obj_vtbl(object)->chng_pad_opts_fn)
     {
-        object->priv.vtable->chng_pad_opts_fn(
+        ntg_obj_vtbl(object)->chng_pad_opts_fn(
                 object,
                 &old_opts,
                 &object->ro.padding_opts);
@@ -353,9 +344,7 @@ int ntg_object_set_pad_opts(ntg_object* object, const struct ntg_pad_opts* opts_
         .old_opts = &old_opts,
         .new_opts = &object->ro.padding_opts
     };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_PADOPTCHG, object, &event_dt));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_PADOPTCHG, &event_dt);
 
     return 0;
 }
@@ -466,27 +455,23 @@ int ntg_object_detach(ntg_object* object)
 
     object->ro.parent = NULL;
 
-    if(parent->priv.vtable->rm_child_fn)
-        parent->priv.vtable->rm_child_fn(parent, object);
+    if(ntg_obj_vtbl(parent)->rm_child_fn)
+        ntg_obj_vtbl(parent)->rm_child_fn(parent, object);
 
     if(scene)
         ntg__scene_rm_object_tree(scene, object);
 
     ntg_object_mark_dirty(parent, NTG_OBJECT_DIRTY_FULL);
 
-    if(object->priv.vtable->rm_parent_fn)
-        object->priv.vtable->rm_parent_fn(object, parent);
+    if(ntg_obj_vtbl(object)->rm_parent_fn)
+        ntg_obj_vtbl(object)->rm_parent_fn(object, parent);
 
     struct ntg_event_object_chldrm_dt chldrm_dt = { .child = object };
     struct ntg_event_object_prntrm_dt prntrm_dt = { .parent = parent };
 
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_PRNTRM, object, &prntrm_dt));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_PRNTRM, &prntrm_dt);
             
-    ntg_event_raise(
-            &parent->ro.event_dlgt,
-           ntg_event_new(NTG_EVENT_OBJECT_CHLDRM, parent, &chldrm_dt));
+    ntg_entity_event_raise(ntg_ent(parent), NTG_EVENT_OBJECT_CHLDRM, &chldrm_dt);
 
     if(scene)
         ntg__scene_on_rm_object_tree(scene, object);
@@ -530,24 +515,20 @@ int ntg_object_anchor(ntg_object* base, ntg_object* root)
 
     ntg_scene* scene = ntg_object_get_scene_(root);
 
-    if(base->priv.vtable->add_anchored_fn)
-        base->priv.vtable->add_anchored_fn(base, root);
+    if(ntg_obj_vtbl(base)->add_anchored_fn)
+        ntg_obj_vtbl(base)->add_anchored_fn(base, root);
 
-    if(root->priv.vtable->set_base_fn)
-        root->priv.vtable->set_base_fn(root, base);
+    if(ntg_obj_vtbl(root)->set_base_fn)
+        ntg_obj_vtbl(root)->set_base_fn(root, base);
 
     if(scene)
         ntg__scene_add_object_tree(scene, root);
 
     struct ntg_event_object_anchadd_dt anchadd_dt = { .anchored = root };
-    ntg_event_raise(
-            &base->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_ANCHADD, base, &anchadd_dt));
+    ntg_entity_event_raise(ntg_ent(base), NTG_EVENT_OBJECT_ANCHADD, &anchadd_dt);
 
     struct ntg_event_object_bsset_dt bsset_dt = { .base = base };
-    ntg_event_raise(
-            &root->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_BSSET, root, &bsset_dt));
+    ntg_entity_event_raise(ntg_ent(root), NTG_EVENT_OBJECT_BSSET, &bsset_dt);
 
     if(scene)
         ntg__scene_on_add_object_tree(scene, root);
@@ -568,24 +549,20 @@ int ntg_object_unanchor(ntg_object* root)
     root->ro.base = NULL;
     root->ro.anchor_policy = NULL;
 
-    if(base->priv.vtable->rm_anchored_fn)
-        base->priv.vtable->rm_anchored_fn(base, root);
+    if(ntg_obj_vtbl(base)->rm_anchored_fn)
+        ntg_obj_vtbl(base)->rm_anchored_fn(base, root);
 
     if(scene)
         ntg__scene_rm_object_tree(scene, root);
 
-    if(root->priv.vtable->rm_base_fn)
-        root->priv.vtable->rm_base_fn(root, base);
+    if(ntg_obj_vtbl(root)->rm_base_fn)
+        ntg_obj_vtbl(root)->rm_base_fn(root, base);
 
     struct ntg_event_object_anchrm_dt anchrm_dt = { .anchored = root };
-    ntg_event_raise(
-            &base->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_ANCHRM, base, &anchrm_dt));
+    ntg_entity_event_raise(ntg_ent(base), NTG_EVENT_OBJECT_ANCHRM, &anchrm_dt);
 
     struct ntg_event_object_bsrm_dt bsrm_dt = { .base = base };
-    ntg_event_raise(
-            &root->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_BSRM, root, &bsrm_dt));
+    ntg_entity_event_raise(ntg_ent(root), NTG_EVENT_OBJECT_BSRM, &bsrm_dt);
 
     if(scene)
         ntg__scene_on_rm_object_tree(scene, root);
@@ -1036,24 +1013,29 @@ int ntg_object_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
-    if(!object)
+    if(!object || !vtable || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instanceof(type, &NTG_TYPE_OBJECT))
-        return NTG_ERR_INV_TYPE;
-
-    if(!vtable ||!vtable->deinit_fn)
+    if(!vtable->base.deinit_fn)
         return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_OBJECT))
+        return NTG_ERR_BAD_TYPE;
 
     init_default(object);
 
-    object->ro.type = type;
-    object->priv.vtable = vtable;
+    int status = ntg_entity_init_inherit(ntg_ent(object), &vtable->base, type);
+    switch(status)
+    {
+        case 0:
+            break;
+        default:
+            return NTG_ERR_UNEXPECTED;
+    }
+
     object->priv.layout_dt = layout_dt;
 
     ntg_object_draw_init(&object->ro.drawing);
-
-    ntg_event_delegate_init(&object->ro.event_dlgt);
 
     return 0;
 }
@@ -1095,7 +1077,7 @@ int ntg_object_deinit(ntg_object* object)
 
     ntg_object_draw_deinit(&object->ro.drawing);
 
-    ntg_event_delegate_deinit(&object->ro.event_dlgt);
+    ntg_entity_deinit(ntg_ent(object));
 
     if(object->priv.layout_dt && object->priv.layout_dt->free_fn)
         object->priv.layout_dt->free_fn(object->priv.layout_dt);
@@ -1145,19 +1127,15 @@ int ntg_object_attach(ntg_object* parent, ntg_object* child)
     if(scene)
         ntg__scene_add_object_tree(scene, child);
 
-    if(child->priv.vtable->set_parent_fn)
-        child->priv.vtable->set_parent_fn(child, parent);
+    if(ntg_obj_vtbl(child)->set_parent_fn)
+        ntg_obj_vtbl(child)->set_parent_fn(child, parent);
 
     struct ntg_event_object_chldadd_dt chldadd_dt = { .child = child };
     struct ntg_event_object_prntset_dt prntset_dt = { .parent = parent };
 
-    ntg_event_raise(
-            &parent->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_CHLDADD, parent, &chldadd_dt));
+    ntg_entity_event_raise(ntg_ent(parent), NTG_EVENT_OBJECT_CHLDADD, &chldadd_dt);
 
-    ntg_event_raise(
-            &child->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_PRNTSET, child, &prntset_dt));
+    ntg_entity_event_raise(ntg_ent(child), NTG_EVENT_OBJECT_PRNTSET, &prntset_dt);
 
     if(scene)
         ntg__scene_on_add_object_tree(scene, child);
@@ -1604,9 +1582,9 @@ int ntg__object_layout_prepare(ntg_object* object, sarena* arena)
     if(!object || !arena)
         return NTG_ERR_INV_ARG;
 
-    if(object->priv.vtable->layout_prepare_fn)
+    if(ntg_obj_vtbl(object)->layout_prepare_fn)
     {
-        return object->priv.vtable->layout_prepare_fn(
+        return ntg_obj_vtbl(object)->layout_prepare_fn(
                 object, object->priv.layout_dt, arena);
     }
 
@@ -1622,9 +1600,9 @@ int ntg__object_hmeasure(ntg_object* object, sarena* arena, uint32_t* relayout)
 
     struct ntg_object_measure measure = {0};
     int _status = 0;
-    if(object->priv.vtable->measure_fn)
+    if(ntg_obj_vtbl(object)->measure_fn)
     {
-        _status = object->priv.vtable->measure_fn(
+        _status = ntg_obj_vtbl(object)->measure_fn(
                 object,
                 object->priv.layout_dt,
                 NTG_ORIENT_H,
@@ -1722,9 +1700,9 @@ int ntg__object_hconstrain(ntg_object* object, sarena* arena, uint32_t* relayout
         return _status;
     }
 
-    if(object->priv.vtable->constrain_fn)
+    if(ntg_obj_vtbl(object)->constrain_fn)
     {
-        _status = object->priv.vtable->constrain_fn(
+        _status = ntg_obj_vtbl(object)->constrain_fn(
                 object,
                 object->priv.layout_dt,
                 NTG_ORIENT_H,
@@ -1761,9 +1739,9 @@ int ntg__object_vmeasure(ntg_object* object, sarena* arena, uint32_t* relayout)
 
     struct ntg_object_measure measure = {0};
     int _status = 0;
-    if(object->priv.vtable->measure_fn)
+    if(ntg_obj_vtbl(object)->measure_fn)
     {
-        _status = object->priv.vtable->measure_fn(
+        _status = ntg_obj_vtbl(object)->measure_fn(
                 object,
                 object->priv.layout_dt,
                 NTG_ORIENT_V,
@@ -1838,9 +1816,9 @@ int ntg__object_vconstrain(ntg_object* object, sarena* arena, uint32_t* relayout
         return _status;
     }
 
-    if(object->priv.vtable->constrain_fn)
+    if(ntg_obj_vtbl(object)->constrain_fn)
     {
-        _status = object->priv.vtable->constrain_fn(
+        _status = ntg_obj_vtbl(object)->constrain_fn(
                 object,
                 object->priv.layout_dt,
                 NTG_ORIENT_V,
@@ -1890,9 +1868,9 @@ int ntg__object_arrange(ntg_object* object, sarena* arena, uint32_t* relayout)
         return _status;
     }
 
-    if(object->priv.vtable->arrange_fn)
+    if(ntg_obj_vtbl(object)->arrange_fn)
     {
-        _status = object->priv.vtable->arrange_fn(
+        _status = ntg_obj_vtbl(object)->arrange_fn(
                 object,
                 object->priv.layout_dt,
                 &map,
@@ -1935,51 +1913,45 @@ void ntg__object_layout_finalize(ntg_object* object, sarena* arena)
     struct ntg_xy new_size = object->ro.size;
     if(!ntg_xy_are_eql(old_size, new_size))
     {
-        if(object->priv.vtable->resize_fn)
-            object->priv.vtable->resize_fn(object, arena);
+        if(ntg_obj_vtbl(object)->resize_fn)
+            ntg_obj_vtbl(object)->resize_fn(object, arena);
 
         struct ntg_event_object_szchg_dt event_dt = {
             .old_size = &old_size,
             .new_size = &new_size
         };
 
-        ntg_event_raise(
-                &object->ro.event_dlgt,
-                ntg_event_new(NTG_EVENT_OBJECT_SZCHG, object, &event_dt));
+        ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_SZCHG, &event_dt);
     }
 
     struct ntg_xy old_cont_size = object->priv.old_cont_size;
     struct ntg_xy new_cont_size = ntg_object_get_size_cont(object);
     if(!ntg_xy_are_eql(old_cont_size, new_cont_size))
     {
-        if(object->priv.vtable->cont_resize_fn)
-            object->priv.vtable->cont_resize_fn(object, arena);
+        if(ntg_obj_vtbl(object)->cont_resize_fn)
+            ntg_obj_vtbl(object)->cont_resize_fn(object, arena);
 
         struct ntg_event_object_contszchg_dt event_dt = {
             .old_size = &old_size,
             .new_size = &new_size
         };
 
-        ntg_event_raise(
-                &object->ro.event_dlgt,
-                ntg_event_new(NTG_EVENT_OBJECT_CONTSZCHG, object, &event_dt));
+        ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_CONTSZCHG, &event_dt);
     }
 
     struct ntg_xy old_pos = object->priv.old_pos;
     struct ntg_xy new_pos = ntg_object_get_abs_pos(object);
     if(!ntg_xy_are_eql(old_pos, new_pos))
     {
-        if(object->priv.vtable->pos_chng_fn)
-            object->priv.vtable->pos_chng_fn(object, arena);
+        if(ntg_obj_vtbl(object)->pos_chng_fn)
+            ntg_obj_vtbl(object)->pos_chng_fn(object, arena);
 
         struct ntg_event_object_poschg_dt event_dt = {
             .old_pos = &old_pos,
             .new_pos = &new_pos
         };
 
-        ntg_event_raise(
-                &object->ro.event_dlgt,
-                ntg_event_new(NTG_EVENT_OBJECT_POSCHG, object, &event_dt));
+        ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_POSCHG, &event_dt);
     }
 }
 
@@ -1996,7 +1968,7 @@ int ntg__object_draw(ntg_object* object, sarena* arena)
 
     int _status = ntg_object_draw_set_size(
             &object->ro.drawing, object->ro.size);
-    struct ntg_xy drawing_size = ntg_object_draw_get_size(&object->ro.drawing);
+    struct ntg_xy drawing_size = object->ro.drawing.ro.size;
 
     /* Even if the alloc fails, set the cells to defaults */
 
@@ -2060,8 +2032,8 @@ void ntg__object_scene_enter(ntg_object* object, ntg_scene* scene)
     layout_reset(object);
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
 
-    if(object->priv.vtable->enter_scene_fn)
-        object->priv.vtable->enter_scene_fn(object, scene);
+    if(ntg_obj_vtbl(object)->enter_scene_fn)
+        ntg_obj_vtbl(object)->enter_scene_fn(object, scene);
 }
 
 void ntg__object_on_scene_enter(ntg_object* object, ntg_scene* scene)
@@ -2069,9 +2041,7 @@ void ntg__object_on_scene_enter(ntg_object* object, ntg_scene* scene)
     if(!object) return;
 
     struct ntg_event_object_scnset_dt event_dt = { .scene = scene };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_SCNSET, object, &event_dt));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_SCNSET, &event_dt);
 }
 
 void ntg__object_scene_leave(ntg_object* object, ntg_scene* scene)
@@ -2080,8 +2050,8 @@ void ntg__object_scene_leave(ntg_object* object, ntg_scene* scene)
 
     layout_reset(object);
 
-    if(object->priv.vtable->rm_scene_fn)
-        object->priv.vtable->rm_scene_fn(object, scene);
+    if(ntg_obj_vtbl(object)->rm_scene_fn)
+        ntg_obj_vtbl(object)->rm_scene_fn(object, scene);
 }
 
 void ntg__object_on_scene_leave(ntg_object* object, ntg_scene* scene)
@@ -2089,9 +2059,7 @@ void ntg__object_on_scene_leave(ntg_object* object, ntg_scene* scene)
     if(!object) return;
 
     struct ntg_event_object_scnrm_dt event_dt = { .scene = scene };
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_SCNRM, object, &event_dt));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_SCNRM, &event_dt);
 
 }
 
@@ -2099,12 +2067,10 @@ void ntg__object_focus(ntg_object* object)
 {
     if(!object) return;
 
-    if(object->priv.vtable->focus_fn)
-        object->priv.vtable->focus_fn(object);
+    if(ntg_obj_vtbl(object)->focus_fn)
+        ntg_obj_vtbl(object)->focus_fn(object);
 
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_FCS, object, NULL));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_FCS, NULL);
 
 }
 
@@ -2112,12 +2078,10 @@ void ntg__object_unfocus(ntg_object* object)
 {
     if(!object) return;
 
-    if(object->priv.vtable->unfocus_fn)
-        object->priv.vtable->unfocus_fn(object);
+    if(ntg_obj_vtbl(object)->unfocus_fn)
+        ntg_obj_vtbl(object)->unfocus_fn(object);
 
-    ntg_event_raise(
-            &object->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_OBJECT_UNFCS, object, NULL));
+    ntg_entity_event_raise(ntg_ent(object), NTG_EVENT_OBJECT_UNFCS, NULL);
 
 }
 
@@ -2632,7 +2596,7 @@ static int calculate_padding_vsize(ntg_object* object, size_t* out_n, size_t* ou
 static int draw_optimized(ntg_object* object, sarena* arena)
 {
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
-    struct ntg_xy object_size = ntg_object_draw_get_size(&object->ro.drawing);
+    struct ntg_xy object_size = object->ro.drawing.ro.size;
 
     struct ntg_vcell bg = object->priv.base_bg;
     struct ntg_insets psize = object->ro.padding_size;
@@ -2642,9 +2606,9 @@ static int draw_optimized(ntg_object* object, sarena* arena)
     if(_status != 0)
         return _status;
 
-    if(object->priv.vtable->draw_fn)
+    if(ntg_obj_vtbl(object)->draw_fn)
     {
-        _status = object->priv.vtable->draw_fn(
+        _status = ntg_obj_vtbl(object)->draw_fn(
                 object,
                 object->priv.layout_dt,
                 &content_drawing,
@@ -2684,7 +2648,7 @@ static int
 draw_unoptimized(ntg_object* object, sarena* arena)
 {
     struct ntg_xy content_size = ntg_object_get_size_cont(object);
-    struct ntg_xy object_size = ntg_object_draw_get_size(&object->ro.drawing);
+    struct ntg_xy object_size = object->ro.drawing.ro.size;
 
     struct ntg_vcell bg = object->priv.base_bg;
     struct ntg_insets bsize = object->ro.border_size;
@@ -2713,9 +2677,9 @@ draw_unoptimized(ntg_object* object, sarena* arena)
         }
     }
 
-    if(object->priv.vtable->draw_fn)
+    if(ntg_obj_vtbl(object)->draw_fn)
     {
-        _status = object->priv.vtable->draw_fn(
+        _status = ntg_obj_vtbl(object)->draw_fn(
                 object,
                 object->priv.layout_dt,
                 &content_drawing,

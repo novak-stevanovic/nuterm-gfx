@@ -44,10 +44,7 @@ enum ntg_main_panel_pos
 
 struct ntg_main_panel
 {
-    struct
-    {
-        ntg_object base;
-    } priv;
+    ntg_object _base;
 
     struct
     {
@@ -167,7 +164,7 @@ ntg_main_panel_child_rm_fn(ntg_object* _panel, ntg_object* child);
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_main_panel_deinit_fn(ntg_object* _panel);
+ntg_main_panel_deinit_fn(ntg_entity* _panel);
 
 NTG_API extern const struct ntg_object_vtable NTG_MAIN_PANEL_OBJECT_IMPL;
 

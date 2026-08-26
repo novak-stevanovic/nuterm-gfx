@@ -152,9 +152,7 @@ int ntg_box_add_child(ntg_box* box, ntg_object* child)
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 
     struct ntg_event_box_chldadd_dt event_dt = { .child = child };
-    ntg_event_raise(
-            &ntg_obj(box)->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_BOX_CHLDADD, box, &event_dt));
+    ntg_entity_event_raise(ntg_ent(box), NTG_EVENT_BOX_CHLDADD, &event_dt);
 
     return 0;
 }
@@ -173,9 +171,7 @@ int ntg_box_rm_child(ntg_box* box, ntg_object* child)
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 
     struct ntg_event_box_chldrm_dt event_dt = { .child = child };
-    ntg_event_raise(
-            &ntg_obj(box)->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_BOX_CHLDRM, box, &event_dt));
+    ntg_entity_event_raise(ntg_ent(box), NTG_EVENT_BOX_CHLDRM, &event_dt);
 
     return 0;
 }
@@ -203,7 +199,7 @@ int ntg_box_init_inherit(
         return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_BOX))
-        return NTG_ERR_INV_TYPE;
+        return NTG_ERR_BAD_TYPE;
 
     int _status = ntg_object_init_inherit(
             (ntg_object*)box, &vtable->object, type, layout_dt);
@@ -543,7 +539,7 @@ void ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child)
 
 /* ------------------------------------------------------ */
 
-void ntg_box_deinit_fn(ntg_object* _box)
+void ntg_box_deinit_fn(ntg_entity* _box)
 {
     ntg_box_deinit(ntg_box(_box));
 }
@@ -553,5 +549,5 @@ NTG_API const struct ntg_object_vtable NTG_BOX_OBJECT_IMPL = {
     .constrain_fn = ntg_box_constrain_fn,
     .arrange_fn = ntg_box_arrange_fn,
     .rm_child_fn = ntg_box_child_rm_fn,
-    .deinit_fn = ntg_box_deinit_fn
+    .base.deinit_fn = ntg_box_deinit_fn
 };

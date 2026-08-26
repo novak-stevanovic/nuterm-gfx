@@ -1,5 +1,5 @@
 #include "ntg.h"
-#include "shared/ntg_shared_internal"
+#include "shared/ntg_shared_internal.h"
 
 int ntg_entity_vdeinit(ntg_entity* entity)
 {
@@ -90,4 +90,6 @@ int ntg_entity_deinit(ntg_entity* entity)
     ntg_event_delegate_deinit(&entity->ro.event_dlgt);
 
     (*entity) = (ntg_entity) {0};
+
+    return 0;
 }

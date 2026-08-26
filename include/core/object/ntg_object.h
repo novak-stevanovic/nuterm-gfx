@@ -3,7 +3,7 @@
 
 #include "nt_event.h"
 #include "shared/ntg_shared.h"
-#include "base/ntg_event.h"
+#include "base/entity/ntg_entity.h"
 #include "core/object/ntg_object_draw.h"
 #include "core/object/ntg_objptr_vec.h"
 #include "thirdparty/genc.h"
@@ -132,6 +132,8 @@ struct ntg_object_hit_res
 
 struct ntg_object
 {
+    ntg_entity _base;
+
     struct
     {
         void* data;
@@ -139,8 +141,6 @@ struct ntg_object
 
     struct
     {
-        const ntg_type* type;
-
         ntg_object* parent;
         struct ntg_objptr_vec children;
 
@@ -165,7 +165,6 @@ struct ntg_object
         enum ntg_object_click_mode clickable;
         enum ntg_object_focus_mode focusable;
 
-        ntg_event_delegate event_dlgt;
     } ro;
 
     struct
@@ -180,8 +179,6 @@ struct ntg_object
         uint8_t repeat;
 
         struct ntg_xy old_pos, old_size, old_cont_size;
-
-        const struct ntg_object_vtable* vtable;
     } priv;
 };
 
@@ -429,6 +426,8 @@ ntg_object_sort_by_z(ntg_object** objects, size_t size);
 
 struct ntg_object_vtable
 {
+    struct ntg_entity_vtable base;
+
     int (*layout_prepare_fn)(
             ntg_object* object,
             struct ntg_object_layout_dt* layout_dt,
@@ -463,7 +462,6 @@ struct ntg_object_vtable
             ntg_object_tmp_draw* out_drawing,
             sarena* arena);
 
-    void (*deinit_fn)(ntg_object* object);
 
     void (*cont_resize_fn)(ntg_object* object, sarena* arena);
     void (*resize_fn)(ntg_object* object, sarena* arena);

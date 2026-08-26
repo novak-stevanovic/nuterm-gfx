@@ -73,9 +73,7 @@ int ntg_clr_block_set_color(ntg_clr_block* clr_block, nt_color color)
         .old_color = old_color,
         .new_color = color
     };
-    ntg_event_raise(
-            &ntg_obj(clr_block)->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_CLR_BLOCK_CLRCHG, clr_block, &event_dt));
+    ntg_entity_event_raise(ntg_ent(clr_block), NTG_EVENT_CLR_BLOCK_CLRCHG, &event_dt);
 
     return 0;
 }
@@ -173,7 +171,7 @@ int ntg_clr_block_draw_fn(
 
 /* ------------------------------------------------------ */
 
-void ntg_clr_block_deinit_fn(ntg_object* _clr_block)
+void ntg_clr_block_deinit_fn(ntg_entity* _clr_block)
 {
     ntg_clr_block_deinit((ntg_clr_block*)_clr_block);
 }
@@ -181,5 +179,5 @@ void ntg_clr_block_deinit_fn(ntg_object* _clr_block)
 NTG_API const struct ntg_object_vtable NTG_CLR_BLOCK_OBJECT_IMPL = {
     .measure_fn = ntg_clr_block_measure_fn,
     .draw_fn = ntg_clr_block_draw_fn,
-    .deinit_fn = ntg_clr_block_deinit_fn
+    .base.deinit_fn = ntg_clr_block_deinit_fn
 };

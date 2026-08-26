@@ -20,8 +20,7 @@ int ntg_object_draw_init(ntg_object_draw* drawing)
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
-    if(ntg_vcell_vecgrid_init(&drawing->priv.data))
-        return NTG_ERR_UNEXPECTED;
+    (*drawing) = (ntg_object_draw) {0};
 
     return 0;
 }
@@ -30,8 +29,9 @@ int ntg_object_draw_deinit(ntg_object_draw* drawing)
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
-    if(ntg_vcell_vecgrid_deinit(&drawing->priv.data))
-        return NTG_ERR_UNEXPECTED;
+    ntg_vcell_vec_deinit(&drawing->priv.vcell_vec);
+
+    (*drawing) = (ntg_object_draw) {0};
 
     return 0;
 }
@@ -48,7 +48,46 @@ int ntg_object_draw_set_size(ntg_object_draw* drawing, struct ntg_xy size)
     if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
         return NTG_ERR_INV_ARG;
 
-    return ntg_vcell_vecgrid_set_size(&drawing->priv.data, size);
+    int status;
+
+    size_t new_size_prod = size.x * size.y; 
+    size_t curr_size_prod = drawing->ro.size.x * drawing->ro.size.y;
+    struct ntg_vcell_vec* vcell_vec = &(drawing->priv.vcell_vec);
+
+    size_t i;
+
+    drawing->ro.size = size;
+
+    if(new_size_prod > curr_size_prod)
+    {
+        size_t diff = new_size_prod - curr_size_prod;
+
+        for(i = 0; i < diff; i++)
+        {
+            status = ntg_vcell_vec_pushb(vcell_vec, ntg_vcell_new_default());
+            if(status)
+            {
+                ntg_vcell_vec_popb_many(vcell_vec, i);
+                return NTG_ERR_ALLOC_FAIL;
+            }
+        }
+
+        for(i = 0; i < curr_size_prod; i++)
+            vcell_vec->data[i] = ntg_vcell_new_default();
+
+        return 0;
+    }
+    else
+    {
+        size_t diff = curr_size_prod - new_size_prod;
+
+        ntg_vcell_vec_popb_many_shrink(vcell_vec, diff);
+
+        for(i = 0; i < new_size_prod; i++)
+            vcell_vec->data[i] = ntg_vcell_new_default();
+
+        return 0;
+    }
 }
 
 /* ------------------------------------------------------ */
@@ -61,12 +100,10 @@ int ntg_object_draw_place(
         struct ntg_xy dest_start_pos)
 {
     if(!src_drawing || !dest_drawing || (src_drawing == dest_drawing))
-    {
         return NTG_ERR_INV_ARG;
-    }
 
-    struct ntg_xy dest_size = ntg_object_draw_get_size(dest_drawing);
-    struct ntg_xy src_size = ntg_object_draw_get_size(src_drawing);
+    struct ntg_xy dest_size = dest_drawing->ro.size;
+    struct ntg_xy src_size = src_drawing->ro.size;
 
     if(ntg_xy_is_zero_any(src_size)) return 0; 
 
@@ -107,8 +144,8 @@ int ntg_object_draw_place_(
         return NTG_ERR_INV_ARG;
     }
 
-    struct ntg_xy dest_size = ntg_stage_draw_get_size(dest_drawing);
-    struct ntg_xy src_size = ntg_object_draw_get_size(src_drawing);
+    struct ntg_xy dest_size = dest_drawing->ro.size;
+    struct ntg_xy src_size = src_drawing->ro.size;
 
     if(ntg_xy_is_zero_any(src_size)) return 0; 
 

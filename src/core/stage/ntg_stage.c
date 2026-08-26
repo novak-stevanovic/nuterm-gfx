@@ -11,8 +11,6 @@
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static const struct ntg_stage_vtable VTABLE_EMPTY = {0};
-
 static void init_default(ntg_stage* stage);
 static void init_default_drawing(ntg_stage* stage);
 
@@ -35,7 +33,7 @@ static bool draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 
 int ntg_stage_init(ntg_stage* stage)
 {
-    return ntg_stage_init_inherit(stage, &NTG_STAGE_VTABLE_DEFAULT);
+    return ntg_stage_init_inherit(stage, &NTG_STAGE_VTABLE_DEFAULT, &NTG_TYPE_STAGE);
 }
 
 int ntg_stage_deinit(ntg_stage* stage)
@@ -54,7 +52,7 @@ int ntg_stage_deinit(ntg_stage* stage)
 
     ntg_stage_draw_deinit(&stage->ro.drawing);
 
-    ntg_event_delegate_deinit(&stage->ro.event_dlgt);
+    ntg_entity_deinit(ntg_ent(stage));
 
     init_default(stage);
 
@@ -76,15 +74,15 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
 {
     if(!stage || !arena) return false;
 
-    ntg_event_raise(
-            &stage->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_STAGE_CMPSPRE, stage, NULL));
+    ntg_log_log("COMPOSE");
+
+    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_CMPSPRE, NULL);
 
     bool rval = false;
     struct ntg_xy size = stage->ro.size;
 
     int _status;
-    if(!ntg_xy_are_eql(ntg_stage_draw_get_size(&stage->ro.drawing), size))
+    if(!ntg_xy_are_eql(stage->ro.drawing.ro.size, size))
     {
         _status = ntg_stage_draw_set_size(&stage->ro.drawing, size);
         if(_status)
@@ -114,8 +112,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
 
     ntg_scene_collect_layers_by_z(stage->ro.scene, layers, layer_count);
 
-    /* Drawing is happening so default init cells */
-    init_default_drawing(stage);
+    // init_default_drawing(stage);
 
     size_t i;
     for(i = 0; i < layer_count; i++)
@@ -125,9 +122,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     }
 
 done:
-    ntg_event_raise(
-            &stage->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_STAGE_CMPSPOST, stage, NULL));
+    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_CMPSPOST, NULL);
 
     return rval;
 }
@@ -186,9 +181,7 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         .old_scene = old_scene,
         .new_scene = scene
     };
-    ntg_event_raise(
-            &stage->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_STAGE_SCNCHG, stage, &event_dt));
+    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_SCNCHG, &event_dt);
 
     if(old_scene)
         ntg__scene_on_stage_leave(old_scene, old_scene_stage);
@@ -210,13 +203,11 @@ bool ntg_stage_feed_key(ntg_stage* stage, nt_key key)
 
     bool handled = false;
 
-    if(stage->priv.vtable && stage->priv.vtable->handle_key_fn)
-        handled = stage->priv.vtable->handle_key_fn(stage, key);
+    if(ntg_stg_vtbl(stage) && ntg_stg_vtbl(stage)->handle_key_fn)
+        handled = ntg_stg_vtbl(stage)->handle_key_fn(stage, key);
 
     struct ntg_event_stage_key_dt event_dt = { .key = key };
-    ntg_event_raise(
-            &stage->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_STAGE_KEY, stage, &event_dt));
+    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_KEY, &event_dt);
 
     return handled;
 }
@@ -228,13 +219,11 @@ bool ntg_stage_feed_mouse(ntg_stage* stage, nt_mouse mouse)
 
     bool handled = false;
 
-    if(stage->priv.vtable && stage->priv.vtable->handle_mouse_fn)
-        handled = stage->priv.vtable->handle_mouse_fn(stage, mouse);
+    if(ntg_stg_vtbl(stage) && ntg_stg_vtbl(stage)->handle_mouse_fn)
+        handled = ntg_stg_vtbl(stage)->handle_mouse_fn(stage, mouse);
 
     struct ntg_event_stage_mouse_dt event_dt = { .mouse = mouse };
-    ntg_event_raise(
-            &stage->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_STAGE_MOUSE, stage, &event_dt));
+    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_MOUSE, &event_dt);
 
     return handled;
 }
@@ -251,24 +240,36 @@ bool ntg_stage_feed_mouse(ntg_stage* stage, nt_mouse mouse)
 
 int ntg_stage_init_inherit(
         ntg_stage* stage,
-        const struct ntg_stage_vtable* vtable)
+        const struct ntg_stage_vtable* vtable,
+        const ntg_type* type)
 {
-    if(!stage)
+    if(!stage || !vtable || !type)
         return NTG_ERR_INV_ARG;
+
+    if(!vtable->base.deinit_fn)
+        return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_STAGE))
+        return NTG_ERR_BAD_TYPE;
 
     init_default(stage);
 
-    stage->priv.vtable = (vtable ? vtable : &VTABLE_EMPTY);
+    int status = ntg_entity_init_inherit(ntg_ent(stage), &vtable->base, type);
+    switch(status)
+    {
+        case 0:
+            break;
+        default:
+            return NTG_ERR_UNEXPECTED;
+    }
 
     int _status = ntg_stage_draw_init(&stage->ro.drawing);
-
     if(_status != 0)
     {
+        ntg_entity_deinit(ntg_ent(stage));
         init_default(stage);
         return _status;
     }
-
-    ntg_event_delegate_init(&stage->ro.event_dlgt);
 
     return 0;
 }
@@ -295,7 +296,13 @@ bool ntg_stage_dispatch_mouse_fn(
         return false;
 }
 
+void ntg_stage_deinit_fn(ntg_entity* _stage)
+{
+    ntg_stage_deinit(ntg_stg(_stage));
+}
+
 const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT = {
+    .base.deinit_fn = ntg_stage_deinit_fn,
     .handle_key_fn = ntg_stage_dispatch_key_fn,
     .handle_mouse_fn = ntg_stage_dispatch_mouse_fn
 };
@@ -341,9 +348,7 @@ int ntg__stage_set_size(ntg_stage* stage, struct ntg_xy size)
         .new_x = size.x,
         .new_y = size.y
     };
-    ntg_event_raise(
-            &stage->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_STAGE_SZCHG, stage, &event_dt));
+    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_SZCHG, &event_dt);
 
     return 0;
 }
@@ -363,9 +368,7 @@ void ntg__stage_enter_loop(ntg_stage* stage)
     stage->ro.in_loop = true;
     ntg_stage_mark_dirty(stage);
 
-    ntg_event_raise(
-            &stage->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_STAGE_ENTER, stage, NULL));
+    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_ENTER, NULL);
 
 }
 
@@ -375,9 +378,7 @@ void ntg__stage_leave_loop(ntg_stage* stage)
 
     stage->ro.in_loop = false;
 
-    ntg_event_raise(
-            &stage->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_STAGE_LEAVE, stage, NULL));
+    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_LEAVE, NULL);
 
 }
 
@@ -402,7 +403,7 @@ static void init_default_drawing(ntg_stage* stage)
 {
     if(!stage) return;
 
-    struct ntg_xy size = ntg_stage_draw_get_size(&stage->ro.drawing);
+    struct ntg_xy size = stage->ro.drawing.ro.size;
 
     size_t i, j;
     for(i = 0; i < size.y; i++)
@@ -424,7 +425,7 @@ static void draw_object(ntg_stage* stage, ntg_object* object)
     struct ntg_xy abs_pos;
     abs_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
 
-    struct ntg_xy draw_size = ntg_object_draw_get_size(&object->ro.drawing);
+    struct ntg_xy draw_size = object->ro.drawing.ro.size;
 
     // If size is equal, use the drawing, even if last draw failed.
     if(ntg_xy_size_are_eql(object->ro.size, draw_size))

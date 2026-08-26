@@ -22,12 +22,12 @@ static struct ntg_xy float_arrange_fn(
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena);
 
-static void float_deinit_fn(ntg_anchor_policy* ap);
+static void float_deinit_fn(ntg_entity* _ap);
 
 static const struct ntg_anchor_policy_vtable VTABLE = {
     .constrain_fn = float_constrain_fn,
     .arrange_fn = float_arrange_fn,
-    .deinit_fn = float_deinit_fn
+    .base.deinit_fn = float_deinit_fn
 };
 
 /* ========================================================================== */
@@ -61,7 +61,7 @@ int ntg_float_init(
     if(!float_ap)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_anchor_policy_init_inherit(&float_ap->priv.base, &VTABLE);
+    int _status = ntg_anchor_policy_init_inherit(&float_ap->_base, &VTABLE, &NTG_TYPE_FLOAT);
     if(_status)
         return _status;
 
@@ -74,7 +74,7 @@ int ntg_float_deinit(ntg_float* float_ap)
     if(!float_ap) return NTG_ERR_INV_ARG;
 
     float_ap->ro.opts = ntg_float_opts_default();
-    ntg_anchor_policy_deinit(&float_ap->priv.base);
+    ntg_anchor_policy_deinit(&float_ap->_base);
 
     return 0;
 }
@@ -170,7 +170,7 @@ static struct ntg_xy float_arrange_fn(
     return ntg_xy_add(ctx->base_pos, align_offset);
 }
 
-static void float_deinit_fn(ntg_anchor_policy* ap)
+static void float_deinit_fn(ntg_entity* _ap)
 {
-    ntg_float_deinit((ntg_float*)ap);
+    ntg_float_deinit((ntg_float*)_ap);
 }

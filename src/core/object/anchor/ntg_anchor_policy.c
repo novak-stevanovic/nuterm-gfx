@@ -22,12 +22,12 @@ static struct ntg_xy root_arrange_fn(
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena);
 
-static void root_deinit_fn(ntg_anchor_policy* ap);
+static void root_deinit_fn(ntg_entity* _ap);
 
 static const struct ntg_anchor_policy_vtable ROOT_VTABLE = {
+    .base.deinit_fn = root_deinit_fn,
     .constrain_fn = root_constrain_fn,
-    .arrange_fn = root_arrange_fn,
-    .deinit_fn = root_deinit_fn
+    .arrange_fn = root_arrange_fn
 };
 
 /* ========================================================================== */
@@ -41,7 +41,8 @@ static const struct ntg_anchor_policy_vtable ROOT_VTABLE = {
 /* ========================================================================== */
 
 const ntg_anchor_policy NTG_ANCHOR_POLICY_ROOT = {
-    .priv.vtable = &ROOT_VTABLE,
+    ._base.ro.vtable = &ROOT_VTABLE.base,
+    ._base.ro.type = &NTG_TYPE_ANCHOR_POLICY,
     .pub.data = NULL
 };
 
@@ -52,12 +53,8 @@ const ntg_anchor_policy NTG_ANCHOR_POLICY_ROOT = {
 int ntg_anchor_policy_vdeinit(ntg_anchor_policy* ap)
 {
     if(!ap) return NTG_ERR_INV_ARG;
-    if(!ap->priv.vtable) return 0;
 
-    if(ap->priv.vtable->deinit_fn)
-        ap->priv.vtable->deinit_fn(ap);
-
-    return 0;
+    return ntg_entity_vdeinit(ntg_ent(ap));
 }
 
 /* ========================================================================== */
@@ -72,18 +69,29 @@ int ntg_anchor_policy_vdeinit(ntg_anchor_policy* ap)
 
 int ntg_anchor_policy_init_inherit(
         ntg_anchor_policy* ap,
-        const struct ntg_anchor_policy_vtable* vtable)
+        const struct ntg_anchor_policy_vtable* vtable,
+        const ntg_type* type)
 {
-    if(!ap)
+    if(!ap || !vtable || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!vtable || !vtable->deinit_fn)
+    if(!vtable->base.deinit_fn)
         return NTG_ERR_BAD_VTABLE;
 
-    (*ap) = (ntg_anchor_policy) {
-        .priv.vtable = vtable,
-        .pub.data = NULL
-    };
+    if(!ntg_type_instanceof(type, &NTG_TYPE_ANCHOR_POLICY))
+        return NTG_ERR_BAD_TYPE;
+
+    (*ap) = (ntg_anchor_policy) {0};
+
+    int status = ntg_entity_init_inherit(ntg_ent(ap), &vtable->base, type);
+    switch(status)
+    {
+        case 0:
+            break;
+        default:
+            return NTG_ERR_UNEXPECTED;
+    }
+
     return 0;
 }
 
@@ -91,6 +99,7 @@ int ntg_anchor_policy_deinit(ntg_anchor_policy* ap)
 {
     if(!ap) return NTG_ERR_INV_ARG;
 
+    ntg_entity_deinit(ntg_ent(ap));
     (*ap) = (ntg_anchor_policy) {0};
 
     return 0;
@@ -111,10 +120,10 @@ size_t ntg__anchor_policy_hconstrain(
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena)
 {
-    if(!ap || !ap->priv.vtable || !ap->priv.vtable->constrain_fn)
+    if(!ap || !ntg_ap_vtbl(ap) || !ntg_ap_vtbl(ap)->constrain_fn)
         return 0;
 
-    return ap->priv.vtable->constrain_fn(ap, NTG_ORIENT_H, ctx, arena);
+    return ntg_ap_vtbl(ap)->constrain_fn(ap, NTG_ORIENT_H, ctx, arena);
 }
 
 size_t ntg__anchor_policy_vconstrain(
@@ -122,10 +131,10 @@ size_t ntg__anchor_policy_vconstrain(
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena)
 {
-    if(!ap || !ap->priv.vtable || !ap->priv.vtable->constrain_fn)
+    if(!ap || !ntg_ap_vtbl(ap) || !ntg_ap_vtbl(ap)->constrain_fn)
         return 0;
 
-    return ap->priv.vtable->constrain_fn(ap, NTG_ORIENT_V, ctx, arena);
+    return ntg_ap_vtbl(ap)->constrain_fn(ap, NTG_ORIENT_V, ctx, arena);
 }
 
 struct ntg_xy ntg__anchor_policy_arrange(
@@ -133,10 +142,10 @@ struct ntg_xy ntg__anchor_policy_arrange(
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena)
 {
-    if(!ap || !ap->priv.vtable || !ap->priv.vtable->arrange_fn)
+    if(!ap || !ntg_ap_vtbl(ap) || !ntg_ap_vtbl(ap)->arrange_fn)
         return ntg_xy(0, 0);
 
-    return ap->priv.vtable->arrange_fn(ap, ctx, arena);
+    return ntg_ap_vtbl(ap)->arrange_fn(ap, ctx, arena);
 }
 
 /* ========================================================================== */
@@ -149,9 +158,9 @@ struct ntg_xy ntg__anchor_policy_arrange(
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static void root_deinit_fn(ntg_anchor_policy* ap)
+static void root_deinit_fn(ntg_entity* _ap)
 {
-    ntg_anchor_policy_deinit(ap);
+    ntg_anchor_policy_deinit(ntg_ap(_ap));
 }
 
 static size_t root_constrain_fn(

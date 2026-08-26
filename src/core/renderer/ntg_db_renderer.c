@@ -15,18 +15,22 @@
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static int full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size);
+static int full_empty_render(
+        ntg_db_renderer* renderer, 
+        struct ntg_cell* new_bbuff,
+        struct ntg_xy size);
 
 static int optimized_render(
         ntg_db_renderer* renderer,
         const ntg_stage_draw* drawing,
+        struct ntg_cell* new_bbuff,
         struct ntg_xy size,
-        struct ntg_xy old_size,
         sarena* arena);
 
 static int full_render(
         ntg_db_renderer* renderer,
         const ntg_stage_draw* drawing,
+        struct ntg_cell* new_bbuff,
         struct ntg_xy size,
         sarena* arena);
 
@@ -60,27 +64,21 @@ int ntg_db_renderer_init(
     int _status;
 
     _status = ntg_renderer_init_inherit(
-            (ntg_renderer*)renderer,
-            &NTG_DB_RENDERER_VTABLE);
+            ntg_rnd(renderer),
+            &NTG_DB_RENDERER_VTABLE,
+            &NTG_TYPE_DB_RENDERER);
     if(_status != 0)
         return _status;
-
-    _status = ntg_stage_draw_init(&renderer->priv.backbuff);
-    if(_status != 0)
-    {
-        ntg_renderer_deinit(ntg_rnd(renderer));
-        return _status;
-    }
 
     renderer->priv.term_buff = malloc(opts_final.term_buff_size);
     if(!renderer->priv.term_buff)
     {
-        ntg_stage_draw_deinit(&renderer->priv.backbuff);
         ntg_renderer_deinit(ntg_rnd(renderer));
         return NTG_ERR_ALLOC_FAIL;
     }
 
-    renderer->priv.old_size = ntg_xy(0, 0);
+    renderer->priv.bbuff = NULL;
+    renderer->priv.bbuff_size = ntg_xy(0, 0);
     renderer->priv.force_full_render = false;
     renderer->ro.opts = opts_final;
     return 0;
@@ -90,11 +88,9 @@ int ntg_db_renderer_deinit(ntg_db_renderer* renderer)
 {
     if(!renderer) return NTG_ERR_INV_ARG;
 
-    ntg_stage_draw_deinit(&renderer->priv.backbuff);
-    free(renderer->priv.term_buff);
-
-    renderer->priv.backbuff = (ntg_stage_draw) {0};
-    renderer->priv.old_size = ntg_xy(0, 0);
+    free(renderer->priv.bbuff);
+    renderer->priv.bbuff = NULL;
+    renderer->priv.bbuff_size = ntg_xy(0, 0);
     renderer->priv.force_full_render = false;
     renderer->priv.term_buff = NULL;
     renderer->ro.opts = ntg_db_renderer_opts_default();
@@ -133,19 +129,12 @@ int ntg_db_renderer_render_fn(
 
     ntg_db_renderer* renderer = (ntg_db_renderer*)_renderer;
     struct ntg_xy size = (stage_drawing ?
-            ntg_stage_draw_get_size(stage_drawing) :
+            stage_drawing->ro.size : 
             ntg_xy(0, 0));
-    bool resize = !(ntg_xy_are_eql(renderer->priv.old_size, size));
+    bool resize = !(ntg_xy_are_eql(renderer->priv.bbuff_size, size));
     bool full_render_req = resize || renderer->priv.force_full_render;
 
-    struct ntg_xy old_size;
-    old_size = ntg_stage_draw_get_size(&renderer->priv.backbuff);
-    _status = ntg_stage_draw_set_size(&renderer->priv.backbuff, size);
-    if(_status)
-    {
-        renderer->priv.force_full_render = true;
-        return _status;
-    }
+    struct ntg_cell* new_bbuff = malloc(sizeof(struct ntg_cell) * size.x * size.y);
 
     _status = nt_buffer_enable(renderer->priv.term_buff, renderer->ro.opts.term_buff_size);
     if(_status)
@@ -155,36 +144,38 @@ int ntg_db_renderer_render_fn(
 
     if(stage_drawing == NULL)
     {
-        rval = full_empty_render(renderer, size);
+        rval = full_empty_render(renderer, new_bbuff, size);
     }
     else if(full_render_req)
     {
-        _status = full_render(renderer, stage_drawing, size, arena);
+        _status = full_render(renderer, stage_drawing, new_bbuff, size, arena);
         if(_status && !rval) rval = _status;
     }
     else
     {
-        rval = optimized_render(renderer, stage_drawing, size, old_size, arena);
+        rval = optimized_render(renderer, stage_drawing, new_bbuff, size, arena);
         if(_status && !rval) rval = _status;
     }
 
-    renderer->priv.old_size = size;
-
     nt_buffer_disable(NT_BUFF_FLUSH, NULL);
+
+    free(renderer->priv.bbuff);
+    renderer->priv.bbuff = new_bbuff;
+    renderer->priv.bbuff_size = size;
 
     renderer->priv.force_full_render = (rval != 0);
 
     return rval;
 }
 
-void ntg_db_renderer_deinit_fn(ntg_renderer* _renderer)
+void ntg_db_renderer_deinit_fn(ntg_entity* _renderer)
 {
     ntg_db_renderer_deinit((ntg_db_renderer*)_renderer);
 }
 
 const struct ntg_renderer_vtable NTG_DB_RENDERER_VTABLE = {
-    .render_fn = ntg_db_renderer_render_fn,
-    .deinit_fn = ntg_db_renderer_deinit_fn
+    .base.deinit_fn = ntg_db_renderer_deinit_fn,
+    .render_fn = ntg_db_renderer_render_fn
 };
 
 /* ========================================================================== */
@@ -193,11 +184,20 @@ const struct ntg_renderer_vtable NTG_DB_RENDERER_VTABLE = {
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
+#define bbuff_set(bbuff, pos, size, vcell) \
+    if(bbuff) bbuff[size.x * pos.y + pos.x] = vcell;
+
+#define bbuff_get(bbuff, pos, size) \
+    (bbuff ? bbuff[size.x * pos.y + pos.x] : ntg_cell_default());
+
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static int full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size)
+static int full_empty_render(
+        ntg_db_renderer* renderer,
+        struct ntg_cell* new_bbuff,
+        struct ntg_xy size)
 {
     ntg_log_log("RENDER: FULL EMPTY");
     size_t i, j;
@@ -205,10 +205,7 @@ static int full_empty_render(ntg_db_renderer* renderer, struct ntg_xy size)
     {
         for(j = 0; j < size.x; j++)
         {
-            ntg_stage_draw_set(
-                    &renderer->priv.backbuff,
-                    ntg_cell_default(),
-                    ntg_xy(j, i));
+            bbuff_set(new_bbuff, ntg_xy(j, i), size, ntg_cell_default());
         }
     }
 
@@ -242,8 +239,8 @@ static inline size_t fwd_equal_gfx_search(
 static int optimized_render(
         ntg_db_renderer* renderer,
         const ntg_stage_draw* drawing,
+        struct ntg_cell* new_bbuff,
         struct ntg_xy size,
-        struct ntg_xy old_size,
         sarena* arena)
 {
     ntg_log_log("RENDER: OPTIMIZED");
@@ -255,12 +252,15 @@ static int optimized_render(
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
     if(!row_buff) return NTG_ERR_ALLOC_FAIL;
 
+    struct ntg_xy bbuff_size = renderer->priv.bbuff_size;
+    struct ntg_cell* bbuff = renderer->priv.bbuff;
+
     nt_erase_scrollback();
 
     size_t i, j, k;
     size_t it_opt;
     struct ntg_cell it_draw_cell;
-    struct ntg_cell it_bb_cell;
+    struct ntg_cell it_bbuff_cell;
     int _status;
     size_t _uc_len;
     for(i = 0; i < size.y; i++)
@@ -269,10 +269,10 @@ static int optimized_render(
         {
             it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy(j, i));
 
-            if((i < old_size.y) && (j < old_size.x))
+            if((i < bbuff_size.y) && (j < bbuff_size.x))
             {
-                it_bb_cell = ntg_stage_draw_get(&renderer->priv.backbuff, ntg_xy(j, i));
-                if(ntg_cell_are_eql(it_bb_cell, it_draw_cell))
+                it_bbuff_cell = bbuff_get(bbuff, ntg_xy(j, i), size);
+                if(ntg_cell_are_eql(it_bbuff_cell, it_draw_cell))
                 {
                     j++;
                     continue;
@@ -286,7 +286,7 @@ static int optimized_render(
                 it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy(j + k, i));
                 row32_buff[k] = it_draw_cell.cp;
 
-                ntg_stage_draw_set(&renderer->priv.backbuff, it_draw_cell, ntg_xy(j + k, i));
+                bbuff_set(new_bbuff, ntg_xy(j + k, i), size, it_draw_cell);
             }
             _status = uc_utf32_to_utf8( row32_buff, k, row_buff, row_buff_cap, 0, NULL, &_uc_len);
 
@@ -303,6 +303,7 @@ static int optimized_render(
 static int full_render(
         ntg_db_renderer* renderer,
         const ntg_stage_draw* drawing,
+        struct ntg_cell* new_bbuff,
         struct ntg_xy size,
         sarena* arena)
 {
@@ -328,8 +329,6 @@ static int full_render(
         {
             it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy(j, i));
 
-            ntg_stage_draw_set(&renderer->priv.backbuff, it_draw_cell, ntg_xy(j, i));
-
             it_opt = fwd_equal_gfx_search(drawing, it_draw_cell.gfx, ntg_xy(j, i), size.x);
 
             for(k = 0; k < it_opt; k++)
@@ -337,7 +336,7 @@ static int full_render(
                 it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy(j + k, i));
                 row32_buff[k] = it_draw_cell.cp;
 
-                ntg_stage_draw_set(&renderer->priv.backbuff, it_draw_cell, ntg_xy(j + k, i));
+                bbuff_set(new_bbuff, ntg_xy(j + k, i), size, it_draw_cell);
             }
 
             _status = uc_utf32_to_utf8(row32_buff, k, row_buff, row_buff_cap, 0, NULL, &_uc_len);

@@ -55,10 +55,7 @@ ntg_prog_bar_opts_are_eql(
 
 struct ntg_prog_bar
 {
-    struct
-    {
-        ntg_object base;
-    } priv;
+    ntg_object _base;
 
     struct
     {
@@ -163,7 +160,7 @@ ntg_prog_bar_draw_fn(
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_prog_bar_deinit_fn(ntg_object* _prog_bar);
+ntg_prog_bar_deinit_fn(ntg_entity* _prog_bar);
 
 NTG_API extern const struct ntg_object_vtable NTG_PROG_BAR_OBJECT_IMPL;
 

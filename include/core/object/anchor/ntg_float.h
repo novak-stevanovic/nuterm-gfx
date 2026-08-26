@@ -35,10 +35,7 @@ ntg_float_opts_default(void);
 
 struct ntg_float
 {
-    struct
-    {
-        ntg_anchor_policy base;
-    } priv;
+    ntg_anchor_policy _base;
 
     struct
     {

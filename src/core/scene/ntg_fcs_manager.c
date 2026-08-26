@@ -28,6 +28,11 @@ GENC_FWD_LIST_INLINE(ntg_fcs_scope_list, struct ntg_fcs_scope_data)
 
 static void scope_stack_pop(ntg_fcs_manager* fm);
 static void scope_stack_sync(ntg_fcs_manager* fm);
+static void fcs_manager_deinit_fn(ntg_entity* _fm);
+
+static const struct ntg_entity_vtable VTABLE = {
+    .deinit_fn = fcs_manager_deinit_fn
+};
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -79,10 +84,7 @@ bool ntg_fcs_manager_request_focus(ntg_fcs_manager* fm, ntg_object* object)
             .old_focused = old_focused,
             .new_focused = object
         };
-        ntg_event_raise(
-                &fm->ro.event_dlgt,
-                ntg_event_new(
-                    NTG_EVENT_FCS_MANAGER_FCSCHG, fm, &event_dt));
+        ntg_entity_event_raise(ntg_ent(fm), NTG_EVENT_FCS_MANAGER_FCSCHG, &event_dt);
             
         if(old_focused)
             ntg__object_unfocus(old_focused);
@@ -141,7 +143,7 @@ int ntg_fcs_manager_stack_push(ntg_fcs_manager* fm, const struct ntg_fcs_scope* 
 
     if(head)
     {
-        head->data.last_focused = fm->ro.fcoused;
+        head->data.last_focused = fm->ro.focused;
     }
 
     struct ntg_fcs_scope_data data = {
@@ -165,9 +167,7 @@ int ntg_fcs_manager_stack_push(ntg_fcs_manager* fm, const struct ntg_fcs_scope* 
     ntg_fcs_manager_request_focus(fm, NULL);
 
     struct ntg_event_fcs_manager_scpsh_dt event_dt = { .scope = scope_copy };
-    ntg_event_raise(
-            &fm->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_FCS_MANAGER_SCPSH, fm, &event_dt));
+    ntg_entity_event_raise(ntg_ent(fm), NTG_EVENT_FCS_MANAGER_SCPSH, &event_dt);
 
     return 0;
 }
@@ -234,8 +234,10 @@ bool ntg_fcs_manager_feed_key(ntg_fcs_manager* fm, nt_key key)
     if(!ntg__fcs_scope_handle_keybind(&scope, &ctx, key))
     {
         if(scope.handlers.dispatch_key_fn)
-            scope.handlers.dispatch_key_fn(&ctx, key);
+            return scope.handlers.dispatch_key_fn(&ctx, key);
     }
+
+    return false;
 }
 
 /* ------------------------------------------------------ */
@@ -288,7 +290,7 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse)
     {
         ntg__fcs_scope_handle_mouse_focus(&scope, &ctx, mouse, hit);
         if(scope.handlers.dispatch_mouse_fn)
-            scope.handlers.dispatch_mouse_fn(&ctx, mouse, hit);
+            return scope.handlers.dispatch_mouse_fn(&ctx, mouse, hit);
     }
     else 
     {
@@ -311,6 +313,8 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse)
         else
             return false;
     }
+
+    return false;
 }
 
 /* ========================================================================== */
@@ -338,8 +342,24 @@ int ntg__fcs_manager_init(
 
     (*fm) = (ntg_fcs_manager) {0};
 
+    int status = ntg_entity_init_inherit(
+            ntg_ent(fm),
+            &VTABLE,
+            &NTG_TYPE_FCS_MANAGER);
+    switch(status)
+    {
+        case 0:
+            break;
+        default:
+            return NTG_ERR_UNEXPECTED;
+    }
+
     fm->priv.scope_stack = malloc(sizeof(struct ntg_fcs_scope_list));
-    if(!fm->priv.scope_stack) return NTG_ERR_ALLOC_FAIL;
+    if(!fm->priv.scope_stack)
+    {
+        ntg_entity_deinit(ntg_ent(fm));
+        return NTG_ERR_ALLOC_FAIL;
+    }
 
     *fm->priv.scope_stack = (struct ntg_fcs_scope_list) {0};
 
@@ -369,8 +389,6 @@ int ntg__fcs_manager_init(
             return NTG_ERR_UNEXPECTED;
     }
 
-    ntg_event_delegate_init(&fm->ro.event_dlgt);
-
     return 0;
 }
 
@@ -394,7 +412,7 @@ void ntg__fcs_manager_deinit(ntg_fcs_manager* fm)
     fm->ro.scene = NULL;
     fm->ro.focused = NULL;
 
-    ntg_event_delegate_deinit(&fm->ro.event_dlgt);
+    ntg_entity_deinit(ntg_ent(fm));
 }
 
 void ntg_fcs_manager_deinit_void(void* _fm)
@@ -441,6 +459,11 @@ void ntg__fcs_manager_on_scene_object_rm(ntg_fcs_manager* fm, ntg_object* remove
 /* FUNCTIONS */
 /* ========================================================================== */
 
+static void fcs_manager_deinit_fn(ntg_entity* _fm)
+{
+    ntg__fcs_manager_deinit((ntg_fcs_manager*)_fm);
+}
+
 static void scope_stack_pop(ntg_fcs_manager* fm)
 {
     struct ntg_fcs_scope_list_node* old_head = fm->priv.scope_stack->head;
@@ -458,9 +481,7 @@ static void scope_stack_pop(ntg_fcs_manager* fm)
     head->data.last_focused = NULL;
 
     struct ntg_event_fcs_manager_scpop_dt event_dt = { .scope = &popped_scope };
-    ntg_event_raise(
-            &fm->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_FCS_MANAGER_SCPOP, fm, &event_dt));
+    ntg_entity_event_raise(ntg_ent(fm), NTG_EVENT_FCS_MANAGER_SCPOP, &event_dt);
 }
 
 static void scope_stack_sync(ntg_fcs_manager* fm)

@@ -75,14 +75,13 @@ static void update_object_bg(ntg_text* text_obj);
 
 static void init_default(ntg_text* text_obj)
 {
-    text_obj->priv.vtable = NULL;
     text_obj->priv.utf32_text = (struct ntg_str32) {0};
     text_obj->priv.utf32_rows = NULL;
     text_obj->priv.utf32_row_count = 0;
     text_obj->priv.utf8_text = (struct ntg_charvec) {0};
     
     text_obj->ro.opts = ntg_text_opts_default();
-    text_obj->ro.gfx = NT_GFX_DEFAULT;
+    text_obj->ro.gfx = (struct nt_gfx) {0};
 
     text_obj->ro.scroll = ntg_xy(0, 0);
 }
@@ -99,11 +98,11 @@ static void init_default(ntg_text* text_obj)
 
 struct ntg_text_opts ntg_text_opts_default(void)
 {
-    struct ntg_text_opts opts =  {
+    struct ntg_text_opts opts = (struct ntg_text_opts) {
         .orient = NTG_ORIENT_H,
-        .gfx = NT_GFX_DEFAULT,
+        .gfx = (struct nt_gfx) {0},
         .wrap = NTG_TEXT_WRAP_NONE,
-        .focused_gfx = NT_GFX_DEFAULT,
+        .focused_gfx = (struct nt_gfx) {0},
         .line_mode = NTG_TEXT_LINE_ALIGN,
         .bg_mode = NTG_TEXT_BG_FULL,
         .prim_align = NTG_ALIGN_1,
@@ -448,7 +447,7 @@ int ntg_text_init_inherit(
         return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_TEXT))
-        return NTG_ERR_INV_TYPE;
+        return NTG_ERR_BAD_TYPE;
 
     int _status = ntg_object_init_inherit((ntg_object*)text_obj,
             &vtable->object, type, layout_dt);
@@ -464,7 +463,6 @@ int ntg_text_init_inherit(
         return _status;
     }
 
-    text_obj->priv.vtable = vtable;
     return 0;
 }
 
@@ -793,8 +791,8 @@ int ntg_text_draw_fn(
         }
     }
 
-    if(text_obj->priv.vtable && text_obj->priv.vtable->post_draw_fn)
-        text_obj->priv.vtable->post_draw_fn(text_obj, out_drawing, arena);
+    if(ntg_txt_vtbl(text_obj) && ntg_txt_vtbl(text_obj)->post_draw_fn)
+        ntg_txt_vtbl(text_obj)->post_draw_fn(text_obj, out_drawing, arena);
 
     return 0;
 }
@@ -808,7 +806,7 @@ void ntg_text_cont_resize_fn(ntg_object* object, sarena* arena)
     text->ro.scroll = calculate_effective_scroll(text);
 }
 
-void ntg_text_deinit_fn(ntg_object* _text_obj)
+void ntg_text_deinit_fn(ntg_entity* _text_obj)
 {
     ntg_text_deinit((ntg_text*)_text_obj);
 }
@@ -844,7 +842,7 @@ const struct ntg_object_vtable NTG_TEXT_OBJECT_IMPL = {
     .measure_fn = ntg_text_measure_fn,
     .draw_fn = ntg_text_draw_fn,
     .cont_resize_fn = ntg_text_cont_resize_fn,
-    .deinit_fn = ntg_text_deinit_fn,
+    .base.deinit_fn = ntg_text_deinit_fn,
     .focus_fn = ntg_text_focus_fn,
     .unfocus_fn = ntg_text_unfocus_fn
 };

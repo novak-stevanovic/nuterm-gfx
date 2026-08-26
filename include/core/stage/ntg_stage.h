@@ -3,7 +3,7 @@
 
 #include "shared/ntg_shared.h"
 #include "core/stage/ntg_stage_draw.h"
-#include "base/ntg_event.h"
+#include "base/entity/ntg_entity.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -17,6 +17,8 @@
 
 struct ntg_stage
 {
+    ntg_entity _base;
+
     struct
     {
         void* data;
@@ -32,13 +34,8 @@ struct ntg_stage
         bool in_loop;
         bool dirty;
 
-        ntg_event_delegate event_dlgt;
     } ro;
 
-    struct
-    {
-        const struct ntg_stage_vtable* vtable;
-    } priv;
 };
 
 /* ========================================================================== */
@@ -98,6 +95,8 @@ ntg_stage_feed_mouse(ntg_stage* stage, nt_mouse mouse);
 
 struct ntg_stage_vtable
 {
+    struct ntg_entity_vtable base;
+
     bool (*handle_key_fn)(ntg_stage* stage, nt_key key);
     bool (*handle_mouse_fn)(ntg_stage* stage, nt_mouse mouse);
 };
@@ -109,13 +108,17 @@ struct ntg_stage_vtable
 NTG_API int
 ntg_stage_init_inherit(
         ntg_stage* stage,
-        const struct ntg_stage_vtable* vtable);
+        const struct ntg_stage_vtable* vtable,
+        const ntg_type* type);
 
 NTG_API bool
 ntg_stage_dispatch_key_fn(ntg_stage* stage, nt_key key);
 
 NTG_API bool
 ntg_stage_dispatch_mouse_fn(ntg_stage* stage, nt_mouse mouse);
+
+NTG_API void
+ntg_stage_deinit_fn(ntg_entity* _stage);
 
 NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 

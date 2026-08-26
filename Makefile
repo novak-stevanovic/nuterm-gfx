@@ -11,7 +11,7 @@ PC_WITH_PATH :=
 CC := gcc
 AR := ar
 
-DEBUG ?= 1
+DEBUG ?= 0
 
 # ---------------------------------------------------------
 # Thirdparty dependencies
@@ -38,7 +38,7 @@ AR_FLAGS_REL := rcs
 # DEBUG BUILD
 # ---------------------------------------------------------
 
-SRC_CFLAGS_DEB := $(NUTERM_CFLAGS) -Iinclude -std=c99 -O0 -Wall -Wextra -Wpedantic -g -pthread -MMD -MP # -fsanitize=address
+SRC_CFLAGS_DEB := $(NUTERM_CFLAGS) -Iinclude -std=c99 -O0 -Wall -Wextra -Wpedantic -Wno-missing-braces -g -pthread -MMD -MP # -fsanitize=address
 SRC_CFLAGS_SO_DEB := -DNTG_EXPORT -fvisibility=hidden -fPIC
 SRC_CFLAGS_AR_DEB :=
 

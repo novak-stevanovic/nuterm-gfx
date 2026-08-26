@@ -22,12 +22,12 @@ static struct ntg_xy sidefloat_arrange_fn(
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena);
 
-static void sidefloat_deinit_fn(ntg_anchor_policy* ap);
+static void sidefloat_deinit_fn(ntg_entity* _ap);
 
 static const struct ntg_anchor_policy_vtable VTABLE = {
     .constrain_fn = sidefloat_constrain_fn,
     .arrange_fn = sidefloat_arrange_fn,
-    .deinit_fn = sidefloat_deinit_fn
+    .base.deinit_fn = sidefloat_deinit_fn
 };
 
 /* ========================================================================== */
@@ -61,7 +61,7 @@ int ntg_sidefloat_init(
     if(!sidefloat_ap)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_anchor_policy_init_inherit(&sidefloat_ap->priv.base, &VTABLE);
+    int _status = ntg_anchor_policy_init_inherit(&sidefloat_ap->_base, &VTABLE, &NTG_TYPE_SIDEFLOAT);
     if(_status)
         return _status;
 
@@ -74,7 +74,7 @@ int ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap)
     if(!sidefloat_ap) return NTG_ERR_INV_ARG;
 
     sidefloat_ap->ro.opts = ntg_sidefloat_opts_default();
-    ntg_anchor_policy_deinit(&sidefloat_ap->priv.base);
+    ntg_anchor_policy_deinit(&sidefloat_ap->_base);
 
     return 0;
 }
@@ -230,7 +230,7 @@ static struct ntg_xy sidefloat_arrange_fn(
     return pos;
 }
 
-static void sidefloat_deinit_fn(ntg_anchor_policy* ap)
+static void sidefloat_deinit_fn(ntg_entity* _ap)
 {
-    ntg_sidefloat_deinit((ntg_sidefloat*)ap);
+    ntg_sidefloat_deinit((ntg_sidefloat*)_ap);
 }

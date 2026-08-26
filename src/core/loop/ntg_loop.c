@@ -104,7 +104,7 @@ static void deinit(void)
     if(loop.renderer && loop.owns_renderer)
     {
         if(loop.init_renderer)
-            ntg_renderer_vdeinit(loop.renderer);
+            ntg_entity_vdeinit(ntg_ent(loop.renderer));
 
         free(loop.renderer);
     }

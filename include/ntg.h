@@ -89,8 +89,7 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-remove ntg_vecgrid?
-ntg_fcs_scope default/auto values
+ntg_cell/ntg_vcell zero-initaliazable, ntg_fcs_scope default/auto values, remove _default() methods
 pos -> NTG_SIZE_MAX for no draw
 ntg_button: disable() or ntg_object: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input

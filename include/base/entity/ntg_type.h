@@ -37,6 +37,7 @@ NTG_API extern const ntg_type NTG_TYPE_CLR_BLOCK;
 NTG_API extern const ntg_type NTG_TYPE_PROG_BAR;
 
 NTG_API extern const ntg_type NTG_TYPE_SCENE;
+NTG_API extern const ntg_type NTG_TYPE_FCS_MANAGER;
 
 NTG_API extern const ntg_type NTG_TYPE_STAGE;
 
@@ -44,7 +45,11 @@ NTG_API extern const ntg_type NTG_TYPE_RENDERER;
 NTG_API extern const ntg_type NTG_TYPE_DB_RENDERER;
 
 NTG_API extern const ntg_type NTG_TYPE_ANCHOR_POLICY;
+NTG_API extern const ntg_type NTG_TYPE_FLOAT;
+NTG_API extern const ntg_type NTG_TYPE_SIDEFLOAT;
+
 NTG_API extern const ntg_type NTG_TYPE_BORDER_STYLE;
+NTG_API extern const ntg_type NTG_TYPE_BORDER_9X;
 
 /* ========================================================================== */
 /* FUNCTIONS */

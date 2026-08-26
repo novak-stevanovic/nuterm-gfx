@@ -39,10 +39,7 @@ NTG_API struct ntg_sidefloat_opts ntg_sidefloat_opts_default(void);
 
 struct ntg_sidefloat
 {
-    struct
-    {
-        ntg_anchor_policy base;
-    } priv;
+    ntg_anchor_policy _base;
 
     struct
     {

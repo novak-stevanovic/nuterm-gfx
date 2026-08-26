@@ -75,11 +75,10 @@ struct ntg_text_vtable
 
 struct ntg_text
 {
+    ntg_object _base;
+
     struct
     {
-        ntg_object base;
-        const struct ntg_text_vtable* vtable;
-
         struct ntg_charvec utf8_text;
         
         struct ntg_str32 utf32_text;
@@ -173,7 +172,7 @@ NTG_API void
 ntg_text_cont_resize_fn(ntg_object* object, sarena* arena);
 
 NTG_API void
-ntg_text_deinit_fn(ntg_object* _text_obj);
+ntg_text_deinit_fn(ntg_entity* _text_obj);
 
 NTG_API void
 ntg_text_focus_fn(ntg_object* _text_obj);

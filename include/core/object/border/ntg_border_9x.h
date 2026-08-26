@@ -25,10 +25,7 @@ struct ntg_border_9x_sym
 
 struct ntg_border_9x
 {
-    struct
-    {
-        ntg_border_style base;
-    } priv;
+    ntg_border_style _base;
 
     struct
     {

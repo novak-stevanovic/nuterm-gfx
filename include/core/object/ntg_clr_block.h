@@ -16,10 +16,7 @@
 
 struct ntg_clr_block
 {
-    struct
-    {
-        ntg_object base;
-    } priv;
+    ntg_object _base;
 
     struct
     {
@@ -105,7 +102,7 @@ ntg_clr_block_draw_fn(
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_clr_block_deinit_fn(ntg_object* _clr_block);
+ntg_clr_block_deinit_fn(ntg_entity* _clr_block);
 
 NTG_API extern const struct ntg_object_vtable NTG_CLR_BLOCK_OBJECT_IMPL;
 

@@ -37,8 +37,6 @@ static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_da
 static inline void arrange_phase(ntg_object* root, struct layout_data* lay_data);
 static inline void draw_phase(ntg_object* root, struct layout_data* lay_data);
 
-static const struct ntg_scene_vtable VTABLE_EMPTY = {0};
-
 static void init_default(ntg_scene* scene)
 {
     (*scene) = (ntg_scene) {0};
@@ -66,6 +64,7 @@ int ntg_scene_init(
     return ntg_scene_init_inherit(
             scene,
             &NTG_SCENE_VTABLE_DEFAULT,
+            &NTG_TYPE_SCENE,
             init_scope_keybinds,
             max_it);
 }
@@ -83,7 +82,7 @@ int ntg_scene_deinit(ntg_scene* scene)
         free(scene->ro.fm);
     }
 
-    ntg_event_delegate_deinit(&scene->ro.event_dlgt);
+    ntg_entity_deinit(ntg_ent(scene));
 
     ntg_objptr_vec_deinit(&scene->ro.roots);
 
@@ -321,13 +320,11 @@ bool ntg_scene_feed_key(ntg_scene* scene, nt_key key)
 
     bool handled = false;
 
-    if(scene->priv.vtable && scene->priv.vtable->handle_key_fn)
-        handled = scene->priv.vtable->handle_key_fn(scene, key);
+    if(ntg_scn_vtbl(scene) && ntg_scn_vtbl(scene)->handle_key_fn)
+        handled = ntg_scn_vtbl(scene)->handle_key_fn(scene, key);
 
     struct ntg_event_scene_key_dt event_dt = { .key = key };
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_KEY, scene, &event_dt));
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_KEY, &event_dt);
 
     return handled;
 }
@@ -341,13 +338,11 @@ bool ntg_scene_feed_mouse(ntg_scene* scene, nt_mouse mouse)
 
     bool handled = false;
 
-    if(scene->priv.vtable && scene->priv.vtable->handle_mouse_fn)
-        handled = scene->priv.vtable->handle_mouse_fn(scene, mouse);
+    if(ntg_scn_vtbl(scene) && ntg_scn_vtbl(scene)->handle_mouse_fn)
+        handled = ntg_scn_vtbl(scene)->handle_mouse_fn(scene, mouse);
 
     struct ntg_event_scene_mouse_dt event_dt = { .mouse = mouse };
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_MOUSE, scene, &event_dt));
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_MOUSE, &event_dt);
 
     return handled;
 }
@@ -365,17 +360,36 @@ bool ntg_scene_feed_mouse(ntg_scene* scene, nt_mouse mouse)
 int ntg_scene_init_inherit(
         ntg_scene* scene,
         const struct ntg_scene_vtable* vtable,
+        const ntg_type* type,
         const struct ntg_fcs_scope_keys* init_scope_keybinds,
         unsigned int max_it)
 {
-    if(!scene || !max_it)
+    if(!scene || !vtable || !type || !max_it)
         return NTG_ERR_INV_ARG;
+
+    if(!vtable->base.deinit_fn)
+        return NTG_ERR_BAD_VTABLE;
+
+    if(!ntg_type_instanceof(type, &NTG_TYPE_SCENE))
+        return NTG_ERR_BAD_TYPE;
 
     init_default(scene);
 
+    int status = ntg_entity_init_inherit(ntg_ent(scene), &vtable->base, type);
+    switch(status)
+    {
+        case 0:
+            break;
+        default:
+            return NTG_ERR_UNEXPECTED;
+    }
+
     scene->ro.fm = malloc(sizeof(ntg_fcs_manager));
     if(!scene->ro.fm)
+    {
+        ntg_entity_deinit(ntg_ent(scene));
         return NTG_ERR_ALLOC_FAIL;
+    }
 
     int _status = ntg__fcs_manager_init(scene->ro.fm, scene, init_scope_keybinds);
     if(_status != 0)
@@ -384,11 +398,7 @@ int ntg_scene_init_inherit(
         return _status;
     }
 
-    scene->priv.vtable = (vtable ? vtable : &VTABLE_EMPTY);
-
     scene->priv.max_it = max_it;
-
-    ntg_event_delegate_init(&scene->ro.event_dlgt);
 
     return 0;
 }
@@ -407,7 +417,13 @@ bool ntg_scene_dispatch_mouse_fn(ntg_scene* scene, nt_mouse mouse)
     return ntg_fcs_manager_feed_mouse(scene->ro.fm, mouse);
 }
 
+void ntg_scene_deinit_fn(ntg_entity* _scene)
+{
+    ntg_scene_deinit(ntg_scn(_scene));
+}
+
 const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT = {
+    .base.deinit_fn = ntg_scene_deinit_fn,
     .handle_key_fn = ntg_scene_dispatch_key_fn,
     .handle_mouse_fn = ntg_scene_dispatch_mouse_fn
 };
@@ -444,9 +460,7 @@ int ntg__scene_set_size(ntg_scene* scene, struct ntg_xy size)
         .new_x = size.x,
         .new_y = size.y
     };
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_SZCHG, scene, &event_dt));
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_SZCHG, &event_dt);
 
     return 0;
 }
@@ -455,9 +469,9 @@ bool ntg__scene_layout(ntg_scene* scene, sarena* arena)
 {
     if(!scene) return false;
 
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_LAYPRE, scene, NULL));
+    ntg_log_log("LAYOUT");
+
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_LAYPRE, NULL);
 
     bool relayout = false;
 
@@ -490,9 +504,7 @@ bool ntg__scene_layout(ntg_scene* scene, sarena* arena)
         }
     }
 
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_LAYPOST, scene, NULL));
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_LAYPOST, NULL);
 
     return relayout;
 }
@@ -521,9 +533,7 @@ void ntg__scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage)
     if(!scene) return;
 
     struct ntg_event_scene_enter_dt event_dt = { .stage = stage };
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_ENTER, scene, &event_dt));
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_ENTER, &event_dt);
 
 }
 
@@ -532,9 +542,7 @@ void ntg__scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage)
     if(!scene) return;
 
     struct ntg_event_scene_leave_dt event_dt = { .stage = stage };
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_LEAVE, scene, &event_dt));
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_LEAVE, &event_dt);
 
 }
 
@@ -571,9 +579,7 @@ void ntg__scene_on_add_object(ntg_scene* scene, ntg_object* object)
     if(!scene || !object) return;
 
     struct ntg_event_scene_objadd_dt object_event_dt = { .object = object };
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_OBJADD, scene, &object_event_dt));
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_OBJADD, &object_event_dt);
 }
 
 void ntg__scene_on_rm_object(ntg_scene* scene, ntg_object* object)
@@ -581,9 +587,7 @@ void ntg__scene_on_rm_object(ntg_scene* scene, ntg_object* object)
     if(!scene || !object) return;
 
     struct ntg_event_scene_objrm_dt object_event_dt = { .object = object };
-    ntg_event_raise(
-            &scene->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_SCENE_OBJRM, scene, &object_event_dt));
+    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_OBJRM, &object_event_dt);
 }
 
 void ntg__scene_add_object_tree(ntg_scene* scene, ntg_object* root)

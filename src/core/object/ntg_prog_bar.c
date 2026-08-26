@@ -139,9 +139,7 @@ int ntg_prog_bar_set_opts(
         .old_opts = &old_opts,
         .new_opts = &new_opts
     };
-    ntg_event_raise(
-            &ntg_obj(prog_bar)->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_PROG_BAR_OPTCHG, prog_bar, &event_dt));
+    ntg_entity_event_raise(ntg_ent(prog_bar), NTG_EVENT_PROG_BAR_OPTCHG, &event_dt);
 
     return 0;
 }
@@ -169,9 +167,7 @@ int ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
         .old_prog = old_progress,
         .new_prog = progress
     };
-    ntg_event_raise(
-            &ntg_obj(prog_bar)->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_PROG_BAR_PROGCHG, prog_bar, &event_dt));
+    ntg_entity_event_raise(ntg_ent(prog_bar), NTG_EVENT_PROG_BAR_PROGCHG, &event_dt);
 
     return 0;
 }
@@ -199,7 +195,7 @@ int ntg_prog_bar_init_inherit(
         return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_PROG_BAR))
-        return NTG_ERR_INV_TYPE;
+        return NTG_ERR_BAD_TYPE;
 
     int _status = ntg_object_init_inherit(
             (ntg_object*)prog_bar, &vtable->object, type, layout_dt);
@@ -290,7 +286,7 @@ int ntg_prog_bar_draw_fn(
 
 /* ------------------------------------------------------ */
 
-void ntg_prog_bar_deinit_fn(ntg_object* _prog_bar)
+void ntg_prog_bar_deinit_fn(ntg_entity* _prog_bar)
 {
     ntg_prog_bar_deinit((ntg_prog_bar*)_prog_bar);
 }
@@ -298,5 +294,5 @@ void ntg_prog_bar_deinit_fn(ntg_object* _prog_bar)
 const struct ntg_object_vtable NTG_PROG_BAR_OBJECT_IMPL = {
     .measure_fn = ntg_prog_bar_measure_fn,
     .draw_fn = ntg_prog_bar_draw_fn,
-    .deinit_fn = ntg_prog_bar_deinit_fn
+    .base.deinit_fn = ntg_prog_bar_deinit_fn
 };

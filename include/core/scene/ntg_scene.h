@@ -6,6 +6,7 @@
 #include "core/object/ntg_object.h"
 #include "core/object/ntg_objptr_vec.h"
 #include "base/ntg_xy.h"
+#include "base/entity/ntg_entity.h"
 
 #define NTG_SCENE_MAX_IT_AUTO 20
 
@@ -34,6 +35,8 @@ struct ntg_scene_layer_node;
 
 struct ntg_scene
 {
+    ntg_entity _base;
+
     struct
     {
         void* data;
@@ -50,12 +53,10 @@ struct ntg_scene
 
         bool dirty;
 
-        ntg_event_delegate event_dlgt;
     } ro;
 
     struct
     {
-        const struct ntg_scene_vtable* vtable;
         unsigned int max_it;
     } priv;
 };
@@ -130,6 +131,8 @@ ntg_scene_feed_mouse(ntg_scene* scene, nt_mouse mouse);
 
 struct ntg_scene_vtable
 {
+    struct ntg_entity_vtable base;
+
     bool (*handle_key_fn)(ntg_scene* scene, nt_key key);
     bool (*handle_mouse_fn)(ntg_scene* scene, nt_mouse mouse);
 };
@@ -138,6 +141,7 @@ NTG_API int
 ntg_scene_init_inherit(
         ntg_scene* scene,
         const struct ntg_scene_vtable* vtable,
+        const ntg_type* type,
         const struct ntg_fcs_scope_keys* init_scope_keys,
         unsigned int max_it);
 
@@ -146,6 +150,9 @@ ntg_scene_dispatch_key_fn(ntg_scene* scene, nt_key key);
 
 NTG_API bool
 ntg_scene_dispatch_mouse_fn(ntg_scene* scene, nt_mouse mouse);
+
+NTG_API void
+ntg_scene_deinit_fn(ntg_entity* _scene);
 
 NTG_API extern const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT;
 

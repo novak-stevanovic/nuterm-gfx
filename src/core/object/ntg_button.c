@@ -133,9 +133,7 @@ int ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
         .old_opts = &old_opts,
         .new_opts = &new_opts
     };
-    ntg_event_raise(
-            &ntg_obj(button)->ro.event_dlgt,
-            ntg_event_new(NTG_EVENT_BUTTON_OPTCHG, button, &event_dt));
+    ntg_entity_event_raise(ntg_ent(button), NTG_EVENT_BUTTON_OPTCHG, &event_dt);
 
     return 0;
 }
@@ -200,7 +198,7 @@ int ntg_button_init_inherit(
         return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_BUTTON))
-        return NTG_ERR_INV_TYPE;
+        return NTG_ERR_BAD_TYPE;
 
     button->priv.click_fn = NULL;
 
@@ -260,7 +258,7 @@ int ntg_button_draw_fn(
     return ntg_text_draw_fn(_button, layout_dt, out_drawing, arena);
 }
 
-void ntg_button_deinit_fn(ntg_object* _button)
+void ntg_button_deinit_fn(ntg_entity* _button)
 {
     ntg_button_deinit(ntg_btn(_button));
 }
@@ -302,7 +300,7 @@ const struct ntg_text_vtable NTG_BUTTON_TEXT_IMPL = {
         .layout_prepare_fn = ntg_button_layout_prepare_fn,
         .measure_fn = ntg_button_measure_fn,
         .draw_fn = ntg_button_draw_fn,
-        .deinit_fn = ntg_button_deinit_fn,
+        .base.deinit_fn = ntg_button_deinit_fn,
         .cont_resize_fn = ntg_text_cont_resize_fn,
         .handle_mouse_fn = ntg_button_process_mouse_fn,
         .focus_fn = ntg_button_focus_fn,

@@ -4,6 +4,7 @@
 #include "ntg_fcs_scope.h"
 #include "shared/ntg_shared.h"
 #include "core/scene/ntg_scene.h"
+#include "base/entity/ntg_entity.h"
 
 struct ntg_fcs_scope;
 
@@ -19,6 +20,8 @@ struct ntg_fcs_scope;
 
 struct ntg_fcs_manager
 {
+    ntg_entity _base;
+
     struct
     {
         void* data;
@@ -30,7 +33,6 @@ struct ntg_fcs_manager
 
         struct ntg_fcs_scope_keys default_keybinds;
 
-        ntg_event_delegate event_dlgt;
     } ro;
 
     struct

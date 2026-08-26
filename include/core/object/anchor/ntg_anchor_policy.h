@@ -3,6 +3,7 @@
 
 #include "shared/ntg_shared.h"
 #include "base/ntg_xy.h"
+#include "base/entity/ntg_entity.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -16,15 +17,12 @@
 
 struct ntg_anchor_policy
 {
+    ntg_entity _base;
+
     struct
     {
         void* data;
     } pub;
-
-    struct
-    {
-        const struct ntg_anchor_policy_vtable* vtable;
-    } priv;
 };
 
 NTG_API extern const ntg_anchor_policy NTG_ANCHOR_POLICY_ROOT;
@@ -65,6 +63,8 @@ struct ntg_anchor_arrange_ctx
 
 struct ntg_anchor_policy_vtable
 {
+    struct ntg_entity_vtable base;
+
     size_t (*constrain_fn)(
             const ntg_anchor_policy* ap,
             enum ntg_orient orient,
@@ -74,7 +74,6 @@ struct ntg_anchor_policy_vtable
             const ntg_anchor_policy* ap,
             const struct ntg_anchor_arrange_ctx* ctx,
             sarena* arena);
-    void (*deinit_fn)(ntg_anchor_policy* ap);
 };
 
 /* ========================================================================== */
@@ -84,7 +83,8 @@ struct ntg_anchor_policy_vtable
 NTG_API int
 ntg_anchor_policy_init_inherit(
         ntg_anchor_policy* ap,
-        const struct ntg_anchor_policy_vtable* vtable);
+        const struct ntg_anchor_policy_vtable* vtable,
+        const ntg_type* type);
 
 NTG_API int
 ntg_anchor_policy_deinit(ntg_anchor_policy* ap);

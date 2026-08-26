@@ -42,10 +42,7 @@ ntg_box_opts_are_eql(
 
 struct ntg_box
 {
-    struct
-    {
-        ntg_object base;
-    } priv;
+    ntg_object _base;
 
     struct
     {
@@ -176,7 +173,7 @@ ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child);
 /* ------------------------------------------------------ */
 
 NTG_API void
-ntg_box_deinit_fn(ntg_object* _box);
+ntg_box_deinit_fn(ntg_entity* _box);
 
 NTG_API extern const struct ntg_object_vtable NTG_BOX_OBJECT_IMPL;
 
