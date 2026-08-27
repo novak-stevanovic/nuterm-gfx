@@ -15,30 +15,30 @@
 #include "base/ntg_cell.h"
 #include "base/ntg_xy.h"
 #include "base/ntg_sap.h"
-#include "base/entity/ntg_event.h"
-#include "base/entity/ntg_type.h"
-#include "base/entity/ntg_entity.h"
+#include "base/object/ntg_event.h"
+#include "base/object/ntg_type.h"
+#include "base/object/ntg_object.h"
 #include "core/renderer/ntg_db_renderer.h"
 #include "core/renderer/ntg_renderer.h"
 #include "core/loop/ntg_loop.h"
-#include "core/object/ntg_object_layout.h"
-#include "core/object/ntg_object.h"
-#include "core/object/border/ntg_border_style.h"
-#include "core/object/border/ntg_border_9x.h"
-#include "core/object/ntg_prog_bar.h"
-#include "core/object/ntg_text.h"
-#include "core/object/ntg_label.h"
-#include "core/object/ntg_button.h"
-#include "core/object/ntg_clr_block.h"
-#include "core/object/ntg_main_panel.h"
-#include "core/object/ntg_box.h"
-#include "core/object/ntg_objptr_vec.h"
+#include "core/widget/ntg_widget_layout.h"
+#include "core/widget/ntg_widget.h"
+#include "core/widget/border/ntg_border_style.h"
+#include "core/widget/border/ntg_border_9x.h"
+#include "core/widget/ntg_prog_bar.h"
+#include "core/widget/ntg_text.h"
+#include "core/widget/ntg_label.h"
+#include "core/widget/ntg_button.h"
+#include "core/widget/ntg_clr_block.h"
+#include "core/widget/ntg_main_panel.h"
+#include "core/widget/ntg_box.h"
+#include "core/widget/ntg_widget_vec.h"
 #include "core/scene/ntg_scene.h"
 #include "core/scene/ntg_fcs_manager.h"
 #include "core/scene/ntg_fcs_scope.h"
-#include "core/object/anchor/ntg_anchor_policy.h"
-#include "core/object/anchor/ntg_float.h"
-#include "core/object/anchor/ntg_sidefloat.h"
+#include "core/widget/anchor/ntg_anchor_policy.h"
+#include "core/widget/anchor/ntg_float.h"
+#include "core/widget/anchor/ntg_sidefloat.h"
 #include "core/stage/ntg_stage.h"
 #include "core/task/ntg_task_runner.h"
 
@@ -89,9 +89,8 @@ ntg_disable(void);
 
 FIX:
 zero-init: finish
-rename: ntg_object -> ntg_widget, ntg_entity -> ntg_object
 pos -> NTG_SIZE_MAX for no draw
-ntg_button: disable() or ntg_object: disable()?
+ntg_button: disable() or ntg_widget: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input
 
 IMPLEMENT:

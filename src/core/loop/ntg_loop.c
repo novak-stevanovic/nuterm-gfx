@@ -83,7 +83,7 @@ static void deinit(void)
     if(loop.renderer && loop.owns_renderer)
     {
         if(loop.init_renderer)
-            ntg_entity_vdeinit(ntg_ent(loop.renderer));
+            ntg_object_vdeinit(ntg_obj(loop.renderer));
 
         free(loop.renderer);
     }

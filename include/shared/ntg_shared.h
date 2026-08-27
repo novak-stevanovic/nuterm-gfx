@@ -27,7 +27,7 @@ struct ntg_event;
 struct nt_event;
 struct ntg_xy;
 struct ntg_insets;
-struct ntg_object_measure;
+struct ntg_widget_measure;
 
 /* ------------------------------------------------------ */
 /* BASE */
@@ -41,7 +41,7 @@ typedef struct ntg_type ntg_type;
 typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_binding ntg_event_binding;
 typedef struct ntg_cleanup_batch ntg_cleanup_batch;
-typedef struct ntg_entity ntg_entity;
+typedef struct ntg_object ntg_object;
 
 /* ------------------------------------------------------ */
 /* CORE */
@@ -60,19 +60,18 @@ typedef struct ntg_stage_draw ntg_stage_draw;
 
 typedef struct ntg_scene ntg_scene;
 typedef struct ntg_fcs_manager ntg_fcs_manager;
-typedef struct ntg_object ntg_object;
+typedef struct ntg_widget ntg_widget;
 typedef struct ntg_border_style ntg_border_style;
 typedef struct ntg_anchor_policy ntg_anchor_policy;
 typedef struct ntg_float ntg_float;
 typedef struct ntg_sidefloat ntg_sidefloat;
 typedef struct ntg_border_9x ntg_border_9x;
-typedef struct ntg_object_size_map ntg_object_size_map;
-typedef struct ntg_object_pos_map ntg_object_pos_map;
-typedef struct ntg_object_draw ntg_object_draw;
-typedef struct ntg_tmp_object_draw ntg_tmp_object_draw;
-typedef struct ntg_object_tmp_draw ntg_object_tmp_draw;
+typedef struct ntg_widget_size_map ntg_widget_size_map;
+typedef struct ntg_widget_pos_map ntg_widget_pos_map;
+typedef struct ntg_widget_draw ntg_widget_draw;
+typedef struct ntg_tmp_widget_draw ntg_tmp_widget_draw;
+typedef struct ntg_widget_tmp_draw ntg_widget_tmp_draw;
 
-typedef struct ntg_widget ntg_widget;
 typedef struct ntg_widget_vec ntg_widget_vec;
 
 typedef struct ntg_text ntg_text;

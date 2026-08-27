@@ -11,8 +11,8 @@
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static void draw_object(ntg_stage* stage, ntg_object* object);
-static bool draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
+static void draw_widget(ntg_stage* stage, ntg_widget* object);
+static bool draw_layer(ntg_stage* stage, ntg_widget* root, sarena* arena);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -49,8 +49,8 @@ int ntg_stage_deinit(ntg_stage* stage)
 
     ntg_stage_draw_deinit(&stage->ro.drawing);
 
-    ntg_entity_zero(stage);
-    ntg_entity_deinit(ntg_ent(stage));
+    ntg_object_zero(stage);
+    ntg_object_deinit(ntg_obj(stage));
 
     return 0;
 }
@@ -72,7 +72,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
 
     ntg_log_log("COMPOSE");
 
-    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_CMPSPRE, NULL);
+    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_CMPSPRE, NULL);
 
     bool rval = false;
     struct ntg_xy size = stage->ro.size;
@@ -99,7 +99,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
 
     size_t layer_count = ntg_scene_collect_layers_by_z(stage->ro.scene, NULL, SIZE_MAX);
     if(layer_count == 0) goto done;
-    ntg_object** layers = sarena_malloc(arena, sizeof(ntg_object*) * layer_count);
+    ntg_widget** layers = sarena_malloc(arena, sizeof(ntg_widget*) * layer_count);
     if(!layers)
     {
         rval = true;
@@ -116,7 +116,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     }
 
 done:
-    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_CMPSPOST, NULL);
+    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_CMPSPOST, NULL);
 
     return rval;
 }
@@ -175,7 +175,7 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         .old_scene = old_scene,
         .new_scene = scene
     };
-    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_SCNCHG, &event_dt);
+    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_SCNCHG, &event_dt);
 
     if(old_scene)
         ntg__scene_on_stage_leave(old_scene, old_scene_stage);
@@ -201,7 +201,7 @@ bool ntg_stage_feed_key(ntg_stage* stage, nt_key key)
         handled = ntg_stg_vtbl(stage)->handle_key_fn(stage, key);
 
     struct ntg_event_stage_key_dt event_dt = { .key = key };
-    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_KEY, &event_dt);
+    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_KEY, &event_dt);
 
     return handled;
 }
@@ -217,7 +217,7 @@ bool ntg_stage_feed_mouse(ntg_stage* stage, nt_mouse mouse)
         handled = ntg_stg_vtbl(stage)->handle_mouse_fn(stage, mouse);
 
     struct ntg_event_stage_mouse_dt event_dt = { .mouse = mouse };
-    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_MOUSE, &event_dt);
+    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_MOUSE, &event_dt);
 
     return handled;
 }
@@ -243,16 +243,16 @@ int ntg_stage_init_inherit(
     if(!ntg_type_instanceof(type, &NTG_TYPE_STAGE))
         return NTG_ERR_BAD_TYPE;
 
-    int status = ntg_entity_init_inherit(ntg_ent(stage), &vtable->base, type);
+    int status = ntg_object_init_inherit(ntg_obj(stage), &vtable->base, type);
     NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    ntg_entity_zero(stage);
+    ntg_object_zero(stage);
 
     status = ntg_stage_draw_init(&stage->ro.drawing);
     if(status != 0)
     {
-        ntg_entity_zero(stage);
-        ntg_entity_deinit(ntg_ent(stage));
+        ntg_object_zero(stage);
+        ntg_object_deinit(ntg_obj(stage));
         return status;
     }
 
@@ -291,7 +291,7 @@ bool ntg_stage_dispatch_mouse_fn(
         return false;
 }
 
-void ntg_stage_deinit_fn(ntg_entity* _stage)
+void ntg_stage_deinit_fn(ntg_object* _stage)
 {
     ntg_stage_deinit(ntg_stg(_stage));
 }
@@ -338,7 +338,7 @@ int ntg__stage_set_size(ntg_stage* stage, struct ntg_xy size)
         .new_x = size.x,
         .new_y = size.y
     };
-    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_SZCHG, &event_dt);
+    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_SZCHG, &event_dt);
 
     return 0;
 }
@@ -358,7 +358,7 @@ void ntg__stage_enter_loop(ntg_stage* stage)
     stage->ro.in_loop = true;
     ntg_stage_mark_dirty(stage);
 
-    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_ENTER, NULL);
+    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_ENTER, NULL);
 
 }
 
@@ -368,7 +368,7 @@ void ntg__stage_leave_loop(ntg_stage* stage)
 
     stage->ro.in_loop = false;
 
-    ntg_entity_event_raise(ntg_ent(stage), NTG_EVENT_STAGE_LEAVE, NULL);
+    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_LEAVE, NULL);
 
 }
 
@@ -383,31 +383,31 @@ void ntg__stage_leave_loop(ntg_stage* stage)
 /* ========================================================================== */
 
 
-static void draw_object(ntg_stage* stage, ntg_object* object)
+static void draw_widget(ntg_stage* stage, ntg_widget* object)
 {
     if(!object) return;
 
     struct ntg_xy abs_pos;
-    abs_pos = ntg_xy_from_dxy(ntg_object_map_to_scene(object, ntg_dxy(0, 0)));
+    abs_pos = ntg_xy_from_dxy(ntg_widget_map_to_scene(object, ntg_dxy(0, 0)));
 
     struct ntg_xy draw_size = object->ro.drawing.ro.size;
 
     // If size is equal, use the drawing, even if last draw failed.
     if(ntg_xy_size_are_eql(object->ro.size, draw_size))
     {
-        ntg_object_draw_place_(
+        ntg_widget_draw_place_(
                 &object->ro.drawing,
                 &stage->ro.drawing,
                 abs_pos);
     }
 
-    if(!(object->ro.dirty & NTG_OBJECT_DIRTY_DRAW))
-        ntg__object_clean(object, NTG__OBJECT_DIRTY_RENDER);
+    if(!(object->ro.dirty & NTG_WIDGET_DIRTY_DRAW))
+        ntg__widget_clean(object, NTG__WIDGET_DIRTY_RENDER);
 }
 
-static int get_objects_in_draw_order_layer(
-        ntg_object* root,
-        ntg_object** buff,
+static int get_widgets_in_draw_order_layer(
+        ntg_widget* root,
+        ntg_widget** buff,
         size_t* counter,
         sarena* arena)
 {
@@ -416,54 +416,54 @@ static int get_objects_in_draw_order_layer(
     buff[*counter] = root;
     (*counter)++;
 
-    const struct ntg_objptr_vec* children = &root->ro.children;
+    const struct ntg_widget_vec* children = &root->ro.children;
 
     if(children->size == 0) return 0;
 
     // Init children_by_z
-    ntg_object** children_by_z = sarena_malloc(arena, sizeof(ntg_object*) * children->size);
+    ntg_widget** children_by_z = sarena_malloc(arena, sizeof(ntg_widget*) * children->size);
     if(!children_by_z) return NTG_ERR_ALLOC_FAIL;
-    memcpy(children_by_z, children->data, sizeof(ntg_object*) * children->size);
+    memcpy(children_by_z, children->data, sizeof(ntg_widget*) * children->size);
 
     // Sort children_by_z
-    ntg_object_sort_by_z(children_by_z, children->size);
+    ntg_widget_sort_by_z(children_by_z, children->size);
 
     size_t i;
     int status;
     for(i = 0; i < children->size; i++)
     {
-        status = get_objects_in_draw_order_layer(children_by_z[i], buff, counter, arena);
+        status = get_widgets_in_draw_order_layer(children_by_z[i], buff, counter, arena);
         if(status) return NTG_ERR_ALLOC_FAIL;
     }
 
     return 0;
 }
 
-static bool draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena)
+static bool draw_layer(ntg_stage* stage, ntg_widget* root, sarena* arena)
 {
     if(!root) return false;
 
     // naive attempt
     const size_t init_cap = 100;
 
-    ntg_object** buff = sarena_calloc(arena, sizeof(ntg_object*) * init_cap);
+    ntg_widget** buff = sarena_calloc(arena, sizeof(ntg_widget*) * init_cap);
     if(!buff) return true;
 
-    size_t tree_size = ntg_object_tree_collect_pre(root, buff, init_cap);
+    size_t tree_size = ntg_widget_tree_collect_pre(root, buff, init_cap);
     if(tree_size == 0) return false;
 
     if(tree_size > init_cap)
     {
-        buff = sarena_malloc(arena, sizeof(ntg_object*) * tree_size);
+        buff = sarena_malloc(arena, sizeof(ntg_widget*) * tree_size);
         if(!buff) return true;
     }
 
     size_t _counter = 0;
-    get_objects_in_draw_order_layer(root, buff, &_counter, arena);
+    get_widgets_in_draw_order_layer(root, buff, &_counter, arena);
 
     size_t i;
     for(i = 0; i < tree_size; i++)
-        draw_object(stage, buff[i]);
+        draw_widget(stage, buff[i]);
 
     return false;
 }

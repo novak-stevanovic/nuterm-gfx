@@ -82,6 +82,6 @@ ntg_db_renderer_render_fn(
         sarena* arena);
 
 NTG_API void
-ntg_db_renderer_deinit_fn(ntg_entity* _renderer);
+ntg_db_renderer_deinit_fn(ntg_object* _renderer);
 
 #endif // NTG_DB_RENDERER_H

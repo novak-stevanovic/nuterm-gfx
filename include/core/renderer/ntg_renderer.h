@@ -2,7 +2,7 @@
 #define NTG_RENDERER_H
 
 #include "shared/ntg_shared.h"
-#include "base/entity/ntg_entity.h"
+#include "base/object/ntg_object.h"
 #include "base/ntg_cell.h"
 
 /* ========================================================================== */
@@ -26,7 +26,7 @@ ntg_renderer_cell_normalize(struct ntg_cell cell)
 
 struct ntg_renderer
 {
-    ntg_entity _base;
+    ntg_object _base;
     struct
     {
         void* data;
@@ -55,7 +55,7 @@ ntg_renderer_render(
 
 struct ntg_renderer_vtable
 {
-    struct ntg_entity_vtable base;
+    struct ntg_object_vtable base;
 
     bool (*render_fn)(
             ntg_renderer* renderer,

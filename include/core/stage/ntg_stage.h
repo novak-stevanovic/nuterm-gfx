@@ -3,7 +3,7 @@
 
 #include "shared/ntg_shared.h"
 #include "core/stage/ntg_stage_draw.h"
-#include "base/entity/ntg_entity.h"
+#include "base/object/ntg_object.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -17,7 +17,7 @@
 
 struct ntg_stage
 {
-    ntg_entity _base;
+    ntg_object _base;
 
     struct
     {
@@ -95,7 +95,7 @@ ntg_stage_feed_mouse(ntg_stage* stage, nt_mouse mouse);
 
 struct ntg_stage_vtable
 {
-    struct ntg_entity_vtable base;
+    struct ntg_object_vtable base;
 
     bool (*handle_key_fn)(ntg_stage* stage, nt_key key);
     bool (*handle_mouse_fn)(ntg_stage* stage, nt_mouse mouse);
@@ -124,7 +124,7 @@ NTG_API bool
 ntg_stage_dispatch_mouse_fn(ntg_stage* stage, nt_mouse mouse);
 
 NTG_API void
-ntg_stage_deinit_fn(ntg_entity* _stage);
+ntg_stage_deinit_fn(ntg_object* _stage);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

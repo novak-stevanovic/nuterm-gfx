@@ -3,10 +3,10 @@
 
 #include "ntg_fcs_scope.h"
 #include "shared/ntg_shared.h"
-#include "core/object/ntg_object.h"
-#include "core/object/ntg_objptr_vec.h"
+#include "core/widget/ntg_widget.h"
+#include "core/widget/ntg_widget_vec.h"
 #include "base/ntg_xy.h"
-#include "base/entity/ntg_entity.h"
+#include "base/object/ntg_object.h"
 
 #define NTG_SCENE_MAX_IT_AUTO 20
 
@@ -24,7 +24,7 @@ struct ntg_attach_policy;
 
 struct ntg_scene_hit_res
 {
-    struct ntg_object_hit_res res;
+    struct ntg_widget_hit_res res;
 };
 
 /* ------------------------------------------------------ */
@@ -35,7 +35,7 @@ struct ntg_scene_layer_node;
 
 struct ntg_scene
 {
-    ntg_entity _base;
+    ntg_object _base;
 
     struct
     {
@@ -44,7 +44,7 @@ struct ntg_scene
 
     struct
     {
-        struct ntg_objptr_vec roots;
+        struct ntg_widget_vec roots;
         size_t tree_count, object_count; // Cached
 
         ntg_stage* stage;
@@ -89,7 +89,7 @@ ntg_scene_mark_dirty(ntg_scene* scene);
 /* ------------------------------------------------------ */
 
 NTG_API size_t
-ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_object** out_buff, size_t cap);
+ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_widget** out_buff, size_t cap);
 
 /* ------------------------------------------------------ */
 
@@ -102,10 +102,10 @@ ntg_scene_hit_test(
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_scene_add_root(ntg_scene* scene, ntg_object* object);
+ntg_scene_add_root(ntg_scene* scene, ntg_widget* widget);
 
 NTG_API int
-ntg_scene_rm_root(ntg_scene* scene, ntg_object* object);
+ntg_scene_rm_root(ntg_scene* scene, ntg_widget* widget);
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -131,7 +131,7 @@ ntg_scene_feed_mouse(ntg_scene* scene, nt_mouse mouse);
 
 struct ntg_scene_vtable
 {
-    struct ntg_entity_vtable base;
+    struct ntg_object_vtable base;
 
     bool (*handle_key_fn)(ntg_scene* scene, nt_key key);
     bool (*handle_mouse_fn)(ntg_scene* scene, nt_mouse mouse);
@@ -158,7 +158,7 @@ NTG_API bool
 ntg_scene_dispatch_mouse_fn(ntg_scene* scene, nt_mouse mouse);
 
 NTG_API void
-ntg_scene_deinit_fn(ntg_entity* _scene);
+ntg_scene_deinit_fn(ntg_object* _scene);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -179,10 +179,10 @@ void ntg__scene_set_stage(ntg_scene* scene, ntg_stage* stage);
 void ntg__scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage);
 void ntg__scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage);
 
-void ntg__scene_add_object_tree(ntg_scene* scene, ntg_object* root);
-void ntg__scene_rm_object_tree(ntg_scene* scene, ntg_object* root);
+void ntg__scene_add_widget_tree(ntg_scene* scene, ntg_widget* root);
+void ntg__scene_rm_widget_tree(ntg_scene* scene, ntg_widget* root);
 
-void ntg__scene_on_add_object_tree(ntg_scene* scene, ntg_object* root);
-void ntg__scene_on_rm_object_tree(ntg_scene* scene, ntg_object* root);
+void ntg__scene_on_add_widget_tree(ntg_scene* scene, ntg_widget* root);
+void ntg__scene_on_rm_widget_tree(ntg_scene* scene, ntg_widget* root);
 
 #endif // NTG_SCENE_H

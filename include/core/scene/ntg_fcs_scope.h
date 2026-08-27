@@ -68,8 +68,8 @@ struct ntg_fcs_scope_keys
 
 struct ntg_fcs_scope_ctx
 {
-    ntg_object* root;
-    ntg_object* last_focused;
+    ntg_widget* root;
+    ntg_widget* last_focused;
     ntg_fcs_manager* fm;
     void* data;
 };
@@ -78,16 +78,16 @@ struct ntg_fcs_scope_handlers
 {
     bool (*dispatch_key_fn)(const struct ntg_fcs_scope_ctx* ctx, nt_key key);
 
-    // mouse coordinates are provided in `clicked` object space
+    // mouse coordinates are provided in `clicked` widget space
     bool (*dispatch_mouse_fn)(
             const struct ntg_fcs_scope_ctx* ctx,
             nt_mouse mouse,
-            ntg_object* clicked);
+            ntg_widget* clicked);
 };
 
 struct ntg_fcs_scope
 {
-    ntg_object* root;
+    ntg_widget* root;
     struct ntg_fcs_scope_keys keys;
     struct ntg_fcs_scope_opts opts;
     struct ntg_fcs_scope_handlers handlers;
@@ -116,13 +116,13 @@ NTG_API bool
 ntg_fcs_scope_dispatch_mouse_fn(
         const struct ntg_fcs_scope_ctx* ctx,
         nt_mouse mouse,
-        ntg_object* clicked);
+        ntg_widget* clicked);
 
 NTG_API bool
 ntg_fcs_scope_dispatch_mouse_bubble_fn(
         const struct ntg_fcs_scope_ctx* ctx,
         nt_mouse mouse,
-        ntg_object* clicked);
+        ntg_widget* clicked);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -139,6 +139,6 @@ void ntg__fcs_scope_handle_mouse_focus(
         const struct ntg_fcs_scope* scope,
         const struct ntg_fcs_scope_ctx* ctx,
         nt_mouse mouse,
-        ntg_object* clicked);
+        ntg_widget* clicked);
 
 #endif // NTG_FCS_SCOPE_H

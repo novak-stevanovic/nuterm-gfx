@@ -1,12 +1,8 @@
-#ifndef NTG_FCS_MANAGER_H
-#define NTG_FCS_MANAGER_H
+#ifndef NTG_CLR_BLOCK_H
+#define NTG_CLR_BLOCK_H
 
-#include "ntg_fcs_scope.h"
 #include "shared/ntg_shared.h"
-#include "core/scene/ntg_scene.h"
-#include "base/object/ntg_object.h"
-
-struct ntg_fcs_scope;
+#include "core/widget/ntg_widget.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -18,73 +14,15 @@ struct ntg_fcs_scope;
 /* TYPES */
 /* ========================================================================== */
 
-struct ntg_fcs_manager
+struct ntg_clr_block
 {
-    ntg_object _base;
+    ntg_widget _base;
 
     struct
     {
-        void* data;
-    } pub;
-    struct
-    {
-        ntg_scene* scene;
-        ntg_widget* focused;
-
-        struct ntg_fcs_scope_keys default_keybinds;
-
+        nt_color color;
     } ro;
-
-    struct
-    {
-        struct ntg_fcs_scope_list* scope_stack;
-    } priv;
 };
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
-/* ------------------------------------------------------ */
-/* FOCUS */
-/* ------------------------------------------------------ */
-
-NTG_API bool
-ntg_fcs_manager_request_focus(ntg_fcs_manager* fm, ntg_widget* widget);
-
-/* ------------------------------------------------------ */
-/* SCOPES */
-/* ------------------------------------------------------ */
-
-NTG_API int
-ntg_fcs_manager_stack_push(ntg_fcs_manager* fm, const struct ntg_fcs_scope* scope_copy);
-
-NTG_API int
-ntg_fcs_manager_stack_pop(ntg_fcs_manager* fm);
-
-NTG_API const struct ntg_fcs_scope*
-ntg_fcs_manager_stack_get_active(ntg_fcs_manager* fm);
-
-NTG_API size_t
-ntg_fcs_manager_stack_get_size(const ntg_fcs_manager* fm);
-
-/* ------------------------------------------------------ */
-/* EVENT */
-/* ------------------------------------------------------ */
-
-NTG_API bool
-ntg_fcs_manager_feed_key(ntg_fcs_manager* fm, nt_key key);
-
-/* ------------------------------------------------------ */
-
-NTG_API bool
-ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse);
-
-/* ========================================================================== */
-/* -------------------------------------------------------------------------- */
-/* INTERNAL */
-/* -------------------------------------------------------------------------- */
-/* ========================================================================== */
 
 /* ========================================================================== */
 /* FUNCTIONS */
@@ -94,19 +32,72 @@ ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg__fcs_manager_init(
-        ntg_fcs_manager* fm,
-        ntg_scene* scene,
-        const struct ntg_fcs_scope_keys* init_scope_keys);
+NTG_API int
+ntg_clr_block_init(ntg_clr_block* clr_block, nt_color color);
+
+NTG_API int
+ntg_clr_block_deinit(ntg_clr_block* clr_block);
+
+/* ------------------------------------------------------ */
+/* COLOR */
+/* ------------------------------------------------------ */
+
+NTG_API int
+ntg_clr_block_set_color(ntg_clr_block* clr_block, nt_color color);
+
+/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
+/* PROTECTED */
+/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+
+/* ========================================================================== */
+/* TYPES */
+/* ========================================================================== */
+
+struct ntg_clr_block_vtable
+{
+    struct ntg_widget_vtable base;
+};
+
+/* ========================================================================== */
+/* FUNCTIONS */
+/* ========================================================================== */
+
+NTG_API int
+ntg_clr_block_init_inherit(
+        ntg_clr_block* clr_block,
+        const struct ntg_clr_block_vtable* vtable,
+        const ntg_type* type,
+        struct ntg_widget_layout_dt* layout_dt);
+
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+NTG_API extern const struct ntg_clr_block_vtable NTG_CLR_BLOCK_VTABLE;
+
+NTG_API int
+ntg_clr_block_measure_fn(
+        const ntg_widget* _clr_block,
+        struct ntg_widget_layout_dt* layout_dt,
+        enum ntg_orient orient,
+        sarena* arena,
+        uint32_t* relayout,
+        struct ntg_widget_measure* out_measure);
 
 /* ------------------------------------------------------ */
 
-void ntg__fcs_manager_deinit(ntg_fcs_manager* fm);
+NTG_API int
+ntg_clr_block_draw_fn(
+        const ntg_widget* _clr_block,
+        struct ntg_widget_layout_dt* layout_dt,
+        ntg_widget_tmp_draw* out_drawing,
+        sarena* arena);
 
 /* ------------------------------------------------------ */
-/* INVALIDATE */
-/* ------------------------------------------------------ */
 
-void ntg__fcs_manager_on_scene_widget_rm(ntg_fcs_manager* fm, ntg_widget* removed);
+NTG_API void
+ntg_clr_block_deinit_fn(ntg_object* _clr_block);
 
-#endif // NTG_FCS_MANAGER_H
+#endif // NTG_CLR_BLOCK_H

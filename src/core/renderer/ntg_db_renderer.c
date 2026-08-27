@@ -60,12 +60,12 @@ int ntg_db_renderer_init(
             &NTG_TYPE_DB_RENDERER);
     NTG_POST_INHERIT_CHECK(status);
 
-    ntg_entity_zero(renderer);
+    ntg_object_zero(renderer);
 
     renderer->priv.term_buff = malloc(opts_final.term_buff_size);
     if(!renderer->priv.term_buff)
     {
-        ntg_entity_zero(renderer);
+        ntg_object_zero(renderer);
         ntg_renderer_deinit(ntg_rnd(renderer));
         return NTG_ERR_ALLOC_FAIL;
     }
@@ -82,7 +82,7 @@ int ntg_db_renderer_deinit(ntg_db_renderer* renderer)
     free(renderer->priv.bbuff);
     free(renderer->priv.term_buff);
 
-    ntg_entity_zero(renderer);
+    ntg_object_zero(renderer);
     ntg_renderer_deinit(ntg_rnd(renderer));
 
     return 0;
@@ -114,7 +114,7 @@ const struct ntg_renderer_vtable NTG_DB_RENDERER_VTABLE = {
     .render_fn = ntg_db_renderer_render_fn
 };
 
-void ntg_db_renderer_deinit_fn(ntg_entity* _renderer)
+void ntg_db_renderer_deinit_fn(ntg_object* _renderer)
 {
     ntg_db_renderer_deinit((ntg_db_renderer*)_renderer);
 }

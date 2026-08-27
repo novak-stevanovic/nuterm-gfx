@@ -52,15 +52,15 @@ bool ntg_fcs_scope_dispatch_key_fn(
     if(nt_key_are_eql(key, NT_KEY_ZERO)) return false;
 
     ntg_fcs_manager* fm = ctx->fm;
-    ntg_object* focused = fm->ro.focused;
+    ntg_widget* focused = fm->ro.focused;
 
     if(focused)
     {
-        struct ntg_object_key event = {
+        struct ntg_widget_key event = {
             .key = key,
             .target = focused
         };
-        return ntg_object_feed_key(focused, &event);
+        return ntg_widget_feed_key(focused, &event);
     }
     else
         return false;
@@ -73,19 +73,19 @@ bool ntg_fcs_scope_dispatch_key_bubble_fn(
     if(nt_key_are_eql(key, NT_KEY_ZERO)) return false;
 
     ntg_fcs_manager* fm = ctx->fm;
-    ntg_object* focused = fm->ro.focused;
+    ntg_widget* focused = fm->ro.focused;
 
     if(focused)
     {
-        struct ntg_object_key event = {
+        struct ntg_widget_key event = {
             .key = key,
             .target = focused
         };
 
-        ntg_object* it_obj = focused;
+        ntg_widget* it_obj = focused;
         while(it_obj)
         {
-            if(ntg_object_feed_key(it_obj, &event))
+            if(ntg_widget_feed_key(it_obj, &event))
                 return true;
 
             if(it_obj == ctx->root)
@@ -102,24 +102,24 @@ bool ntg_fcs_scope_dispatch_key_bubble_fn(
 bool ntg_fcs_scope_dispatch_mouse_fn(
         const struct ntg_fcs_scope_ctx* ctx,
         nt_mouse mouse,
-        ntg_object* clicked)
+        ntg_widget* clicked)
 {
     if(nt_mouse_are_eql(mouse, NT_MOUSE_ZERO)) return false;
     if(!clicked) return false;
 
     ntg_fcs_manager* fm = ctx->fm;
-    ntg_object* focused = fm->ro.focused;
+    ntg_widget* focused = fm->ro.focused;
 
     bool click = (mouse.type == NT_MOUSE_CLICK_LEFT) ||
             (mouse.type == NT_MOUSE_CLICK_RIGHT) ||
             (mouse.type == NT_MOUSE_CLICK_MIDDLE);
 
-    ntg_object* target = (click ? clicked : focused);
+    ntg_widget* target = (click ? clicked : focused);
 
     if(!click && !focused)
         return false;
 
-    struct ntg_object_mouse event = {
+    struct ntg_widget_mouse event = {
         .mouse = mouse,
         .target = target,
         .from_keybind = false
@@ -128,7 +128,7 @@ bool ntg_fcs_scope_dispatch_mouse_fn(
     // Pass event
     if(target->ro.clickable)
     {
-        return ntg_object_feed_mouse(target, &event);
+        return ntg_widget_feed_mouse(target, &event);
     }
 
     return false;
@@ -137,13 +137,13 @@ bool ntg_fcs_scope_dispatch_mouse_fn(
 bool ntg_fcs_scope_dispatch_mouse_bubble_fn(
         const struct ntg_fcs_scope_ctx* ctx,
         nt_mouse mouse,
-        ntg_object* clicked)
+        ntg_widget* clicked)
 {
     if(nt_mouse_are_eql(mouse, NT_MOUSE_ZERO)) return false;
     if(!clicked) return false;
 
     ntg_fcs_manager* fm = ctx->fm;
-    ntg_object* focused = fm->ro.focused;
+    ntg_widget* focused = fm->ro.focused;
 
     bool click = (mouse.type == NT_MOUSE_CLICK_LEFT) ||
             (mouse.type == NT_MOUSE_CLICK_RIGHT) ||
@@ -152,21 +152,21 @@ bool ntg_fcs_scope_dispatch_mouse_bubble_fn(
     if(!click && !focused)
         return false;
 
-    ntg_object* target = (click ? clicked : focused);
+    ntg_widget* target = (click ? clicked : focused);
 
-    struct ntg_object_mouse event = {
+    struct ntg_widget_mouse event = {
         .mouse = mouse,
         .target = target,
         .from_keybind = false
     };
 
     // Bubble event
-    ntg_object* it_obj = target;
+    ntg_widget* it_obj = target;
     while(it_obj)
     {
         if(it_obj->ro.clickable)
         {
-            if(ntg_object_feed_mouse(it_obj, &event))
+            if(ntg_widget_feed_mouse(it_obj, &event))
                 return true;
         }
 
@@ -197,11 +197,11 @@ bool ntg__fcs_scope_handle_keybind(
     if(nt_key_are_eql(key, NT_KEY_ZERO)) return false;
 
     ntg_fcs_manager* fm = ctx->fm;
-    ntg_object* focused = fm->ro.focused;
+    ntg_widget* focused = fm->ro.focused;
 
     if(focused)
     {
-        struct ntg_object_mouse event = {
+        struct ntg_widget_mouse event = {
             .mouse = {0},
             .target = focused,
             .from_keybind = true
@@ -210,27 +210,27 @@ bool ntg__fcs_scope_handle_keybind(
         if(nt_key_are_eql(scope->keys.left_click, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_CLICK_LEFT, 0, 0);
-            return ntg_object_feed_mouse(focused, &event);
+            return ntg_widget_feed_mouse(focused, &event);
         }
         else if(nt_key_are_eql(scope->keys.right_click, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_CLICK_RIGHT, 0, 0);
-            return ntg_object_feed_mouse(focused, &event);
+            return ntg_widget_feed_mouse(focused, &event);
         }
         else if(nt_key_are_eql(scope->keys.middle_click, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_CLICK_MIDDLE, 0, 0);
-            return ntg_object_feed_mouse(focused, &event);
+            return ntg_widget_feed_mouse(focused, &event);
         }
         else if(nt_key_are_eql(scope->keys.scroll_up, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_SCROLL_UP, 0, 0);
-            return ntg_object_feed_mouse(focused, &event);
+            return ntg_widget_feed_mouse(focused, &event);
         }
         else if(nt_key_are_eql(scope->keys.scroll_down, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_SCROLL_DOWN, 0, 0);
-            return ntg_object_feed_mouse(focused, &event);
+            return ntg_widget_feed_mouse(focused, &event);
         }
         else if(nt_key_are_eql(scope->keys.cancel, key))
         {
@@ -248,13 +248,13 @@ void ntg__fcs_scope_handle_mouse_focus(
         const struct ntg_fcs_scope* scope,
         const struct ntg_fcs_scope_ctx* ctx,
         nt_mouse mouse,
-        ntg_object* clicked)
+        ntg_widget* clicked)
 {
     if(!scope || !ctx) return;
     if(nt_mouse_are_eql(mouse, NT_MOUSE_ZERO)) return;
 
     ntg_fcs_manager* fm = ctx->fm;
-    ntg_object* focused = fm->ro.focused;
+    ntg_widget* focused = fm->ro.focused;
 
     uint8_t flag = (mouse.type <= 4) ?
         scope->opts.mouse_flags[mouse.type] :

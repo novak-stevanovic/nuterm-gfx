@@ -18,24 +18,24 @@ struct layout_data
     bool new_it, stay_dirty, prepare_failed;
 
     size_t tree_size;
-    ntg_object** tree_pre; // May be NULL if alloc fails
-    ntg_object** tree_post; // May be NULL if alloc fails
+    ntg_widget** tree_pre; // May be NULL if alloc fails
+    ntg_widget** tree_post; // May be NULL if alloc fails
 };
 
 /* ------------------------------------------------------ */
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-static bool layout_layer(ntg_scene* scene, ntg_object* root, sarena* arena);
+static bool layout_layer(ntg_scene* scene, ntg_widget* root, sarena* arena);
 
-static inline void prepare_phase(ntg_object* root, struct layout_data* lay_data);
-static inline void finalize_phase(ntg_object* root, struct layout_data* lay_data);
-static inline void hmeasure_phase(ntg_object* root, struct layout_data* lay_data);
-static inline void hconstrain_phase(ntg_object* root, struct layout_data* lay_data);
-static inline void vmeasure_phase(ntg_object* root, struct layout_data* lay_data);
-static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_data);
-static inline void arrange_phase(ntg_object* root, struct layout_data* lay_data);
-static inline void draw_phase(ntg_object* root, struct layout_data* lay_data);
+static inline void prepare_phase(ntg_widget* root, struct layout_data* lay_data);
+static inline void finalize_phase(ntg_widget* root, struct layout_data* lay_data);
+static inline void hmeasure_phase(ntg_widget* root, struct layout_data* lay_data);
+static inline void hconstrain_phase(ntg_widget* root, struct layout_data* lay_data);
+static inline void vmeasure_phase(ntg_widget* root, struct layout_data* lay_data);
+static inline void vconstrain_phase(ntg_widget* root, struct layout_data* lay_data);
+static inline void arrange_phase(ntg_widget* root, struct layout_data* lay_data);
+static inline void draw_phase(ntg_widget* root, struct layout_data* lay_data);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -77,10 +77,10 @@ int ntg_scene_deinit(ntg_scene* scene)
         free(scene->ro.fm);
     }
 
-    ntg_objptr_vec_deinit(&scene->ro.roots);
+    ntg_widget_vec_deinit(&scene->ro.roots);
 
-    ntg_entity_zero(scene);
-    ntg_entity_deinit(ntg_ent(scene));
+    ntg_object_zero(scene);
+    ntg_object_deinit(ntg_obj(scene));
 
     return 0;
 }
@@ -110,14 +110,14 @@ int ntg_scene_mark_dirty(ntg_scene* scene)
 /* GENERAL */
 /* ------------------------------------------------------ */
 
-size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_object** out_buff, size_t cap)
+size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_widget** out_buff, size_t cap)
 {
     if(!scene) return 0;
 
     size_t sum = 0;
     size_t new_cap = cap;
 
-    const struct ntg_objptr_vec* roots = &scene->ro.roots;
+    const struct ntg_widget_vec* roots = &scene->ro.roots;
     if(roots->size == 0)
         return 0;
 
@@ -125,7 +125,7 @@ size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_object** out_buff, si
     size_t it_tree_count;
     for(i = 0; i < roots->size; i++)
     {
-        it_tree_count = ntg_object_graph_collect_roots_pre(
+        it_tree_count = ntg_widget_graph_collect_roots_pre(
                 roots->data[i],
                 out_buff ? out_buff + sum : NULL,
                 new_cap);
@@ -137,7 +137,7 @@ size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_object** out_buff, si
     if(out_buff)
     {
         size_t counted = _min2_size(cap, sum);
-        ntg_object_sort_by_z(out_buff, counted);
+        ntg_widget_sort_by_z(out_buff, counted);
     }
 
     return sum;
@@ -159,7 +159,7 @@ int ntg_scene_hit_test(
     size_t layer_count = scene->ro.tree_count;
     if(layer_count == 0) return 0;
 
-    ntg_object** layers = malloc(layer_count * sizeof(ntg_object*));
+    ntg_widget** layers = malloc(layer_count * sizeof(ntg_widget*));
     if(!layers)
         return NTG_ERR_ALLOC_FAIL;
 
@@ -168,21 +168,21 @@ int ntg_scene_hit_test(
     size_t i = layer_count;
     struct ntg_dxy it_adj_pos_dxy;
     struct ntg_xy it_adj_pos;
-    // struct ntg_xy _out_object_pos;
-    // enum ntg_object_hit_result _hit;
-    struct ntg_object_hit_res it_res = {0};
+    // struct ntg_xy _out_widget_pos;
+    // enum ntg_widget_hit_result _hit;
+    struct ntg_widget_hit_res it_res = {0};
     while(i > 0)
     {
         i--;
-        it_adj_pos_dxy = ntg_object_map_from_scene(layers[i], ntg_dxy_from_xy(pos));
+        it_adj_pos_dxy = ntg_widget_map_from_scene(layers[i], ntg_dxy_from_xy(pos));
 
         if((it_adj_pos_dxy.x < 0) || (it_adj_pos_dxy.y < 0))
             continue;
 
         it_adj_pos = ntg_xy_from_dxy(it_adj_pos_dxy);
 
-        it_res = ntg_object_hit_test(layers[i], it_adj_pos);
-        if(it_res.object) break;
+        it_res = ntg_widget_hit_test(layers[i], it_adj_pos);
+        if(it_res.widget) break;
     }
 
     free(layers);
@@ -194,46 +194,46 @@ int ntg_scene_hit_test(
 }
 
 /*
-int ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
+int ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene)
         return NTG_ERR_INV_ARG;
 
-    ntg_object* old_root = scene->ro.root;
+    ntg_widget* old_root = scene->ro.root;
 
     if(old_root) 
     {
-        ntg__object_root_set_scene(old_root, NULL);
+        ntg__widget_root_set_scene(old_root, NULL);
         
-        ntg__scene_rm_object_tree(scene, old_root);
+        ntg__scene_rm_widget_tree(scene, old_root);
     }
 
     if(root)
     {
-        if(ntg_object_is_true_root(root)) 
+        if(ntg_widget_is_true_root(root)) 
         {
-            ntg_scene* scene = ntg_object_get_scene_(root);
+            ntg_scene* scene = ntg_widget_get_scene_(root);
             if(scene)
             {
                 ntg_scene_set_root(scene, NULL);
             }
         }
-        else if(ntg_object_is_root(root)) 
+        else if(ntg_widget_is_root(root)) 
         {
-            ntg_object_unanchor(root);
+            ntg_widget_unanchor(root);
         }
 
-        ntg__scene_add_object_tree(scene, root);
-        ntg__object_root_set_scene(root, scene);
+        ntg__scene_add_widget_tree(scene, root);
+        ntg__widget_root_set_scene(root, scene);
     }
 
     scene->ro.root = root;
         
     if(old_root)
-        ntg__scene_on_rm_object_tree(scene, old_root);
+        ntg__scene_on_rm_widget_tree(scene, old_root);
 
     if(root)
-        ntg__scene_on_add_object_tree(scene, root);
+        ntg__scene_on_add_widget_tree(scene, root);
 
     return 0;
 }
@@ -241,18 +241,18 @@ int ntg_scene_set_root(ntg_scene* scene, ntg_object* root)
 
 /* ------------------------------------------------------ */
 
-int ntg_scene_add_root(ntg_scene* scene, ntg_object* object)
+int ntg_scene_add_root(ntg_scene* scene, ntg_widget* widget)
 {
-    if(!scene || !object)
+    if(!scene || !widget)
         return NTG_ERR_INV_ARG;
 
     // If already root, success
-    if(ntg_objptr_vec_exists(&scene->ro.roots, object))
+    if(ntg_widget_vec_exists(&scene->ro.roots, widget))
         return 0;
 
     int status;
 
-    status = ntg_object_remove_from_scene(object);
+    status = ntg_widget_remove_from_scene(widget);
     switch(status)
     {
         case 0: break;
@@ -260,7 +260,7 @@ int ntg_scene_add_root(ntg_scene* scene, ntg_object* object)
             return NTG_ERR_UNEXPECTED;
     }
 
-    status = ntg_objptr_vec_pushb(&scene->ro.roots, object);
+    status = ntg_widget_vec_pushb(&scene->ro.roots, widget);
     switch(status)
     {
         case 0: break;
@@ -270,24 +270,24 @@ int ntg_scene_add_root(ntg_scene* scene, ntg_object* object)
             return NTG_ERR_UNEXPECTED;
     }
 
-    ntg__scene_add_object_tree(scene, object);
-    ntg__scene_on_add_object_tree(scene, object);
+    ntg__scene_add_widget_tree(scene, widget);
+    ntg__scene_on_add_widget_tree(scene, widget);
 
-    ntg__object_root_set_scene(object, scene);
+    ntg__widget_root_set_scene(widget, scene);
 
     return 0;
 }
 
-int ntg_scene_rm_root(ntg_scene* scene, ntg_object* object)
+int ntg_scene_rm_root(ntg_scene* scene, ntg_widget* widget)
 {
-    if(!scene || !object)
+    if(!scene || !widget)
         return NTG_ERR_INV_ARG;
 
     // If not root, success
-    if(!ntg_objptr_vec_exists(&scene->ro.roots, object))
+    if(!ntg_widget_vec_exists(&scene->ro.roots, widget))
         return 0;
 
-    int status = ntg_objptr_vec_rm(&scene->ro.roots, object);
+    int status = ntg_widget_vec_rm(&scene->ro.roots, widget);
     switch(status)
     {
         case 0: break;
@@ -295,10 +295,10 @@ int ntg_scene_rm_root(ntg_scene* scene, ntg_object* object)
             return NTG_ERR_UNEXPECTED;
     }
 
-    ntg__scene_rm_object_tree(scene, object);
-    ntg__scene_on_rm_object_tree(scene, object);
+    ntg__scene_rm_widget_tree(scene, widget);
+    ntg__scene_on_rm_widget_tree(scene, widget);
 
-    ntg__object_root_set_scene(object, NULL);
+    ntg__widget_root_set_scene(widget, NULL);
 
     return 0;
 }
@@ -318,7 +318,7 @@ bool ntg_scene_feed_key(ntg_scene* scene, nt_key key)
         handled = ntg_scn_vtbl(scene)->handle_key_fn(scene, key);
 
     struct ntg_event_scene_key_dt event_dt = { .key = key };
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_KEY, &event_dt);
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_KEY, &event_dt);
 
     return handled;
 }
@@ -336,7 +336,7 @@ bool ntg_scene_feed_mouse(ntg_scene* scene, nt_mouse mouse)
         handled = ntg_scn_vtbl(scene)->handle_mouse_fn(scene, mouse);
 
     struct ntg_event_scene_mouse_dt event_dt = { .mouse = mouse };
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_MOUSE, &event_dt);
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_MOUSE, &event_dt);
 
     return handled;
 }
@@ -364,15 +364,15 @@ int ntg_scene_init_inherit(
     if(!ntg_type_instanceof(type, &NTG_TYPE_SCENE))
         return NTG_ERR_BAD_TYPE;
 
-    int status = ntg_entity_init_inherit(ntg_ent(scene), &vtable->base, type);
+    int status = ntg_object_init_inherit(ntg_obj(scene), &vtable->base, type);
     NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    ntg_entity_zero(scene);
+    ntg_object_zero(scene);
 
     scene->ro.fm = malloc(sizeof(ntg_fcs_manager));
     if(!scene->ro.fm)
     {
-        ntg_entity_deinit(ntg_ent(scene));
+        ntg_object_deinit(ntg_obj(scene));
         return NTG_ERR_ALLOC_FAIL;
     }
 
@@ -380,8 +380,8 @@ int ntg_scene_init_inherit(
     if(status != 0)
     {
         free(scene->ro.fm);
-        ntg_entity_zero(scene);
-        ntg_entity_deinit(ntg_ent(scene));
+        ntg_object_zero(scene);
+        ntg_object_deinit(ntg_obj(scene));
         return status;
     }
 
@@ -414,7 +414,7 @@ bool ntg_scene_dispatch_mouse_fn(ntg_scene* scene, nt_mouse mouse)
     return ntg_fcs_manager_feed_mouse(scene->ro.fm, mouse);
 }
 
-void ntg_scene_deinit_fn(ntg_entity* _scene)
+void ntg_scene_deinit_fn(ntg_object* _scene)
 {
     ntg_scene_deinit(ntg_scn(_scene));
 }
@@ -452,7 +452,7 @@ int ntg__scene_set_size(ntg_scene* scene, struct ntg_xy size)
         .new_x = size.x,
         .new_y = size.y
     };
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_SZCHG, &event_dt);
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_SZCHG, &event_dt);
 
     return 0;
 }
@@ -463,7 +463,7 @@ bool ntg__scene_layout(ntg_scene* scene, sarena* arena)
 
     ntg_log_log("LAYOUT");
 
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_LAYPRE, NULL);
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_LAYPRE, NULL);
 
     bool relayout = false;
 
@@ -471,7 +471,7 @@ bool ntg__scene_layout(ntg_scene* scene, sarena* arena)
     {
         /* Total tree count will suffice (it is >= each graph tree count) */
         size_t cap = scene->ro.tree_count;
-        ntg_object** buff = sarena_calloc(arena, sizeof(ntg_object*) * cap);
+        ntg_widget** buff = sarena_calloc(arena, sizeof(ntg_widget*) * cap);
         if(!buff)
         {
             relayout = true;
@@ -479,13 +479,13 @@ bool ntg__scene_layout(ntg_scene* scene, sarena* arena)
         else
         {
             size_t i, j;
-            ntg_object* it_root;
+            ntg_widget* it_root;
             size_t it_count;
             for(i = 0; i < scene->ro.roots.size; i++)
             {
                 it_root = scene->ro.roots.data[i];
 
-                it_count = ntg_object_graph_collect_roots_pre(it_root, buff, cap);
+                it_count = ntg_widget_graph_collect_roots_pre(it_root, buff, cap);
 
                 for(j = 0; j < it_count; j++)
                 {
@@ -496,7 +496,7 @@ bool ntg__scene_layout(ntg_scene* scene, sarena* arena)
         }
     }
 
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_LAYPOST, NULL);
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_LAYPOST, NULL);
 
     return relayout;
 }
@@ -525,7 +525,7 @@ void ntg__scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage)
     if(!scene) return;
 
     struct ntg_event_scene_enter_dt event_dt = { .stage = stage };
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_ENTER, &event_dt);
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_ENTER, &event_dt);
 
 }
 
@@ -534,55 +534,55 @@ void ntg__scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage)
     if(!scene) return;
 
     struct ntg_event_scene_leave_dt event_dt = { .stage = stage };
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_LEAVE, &event_dt);
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_LEAVE, &event_dt);
 
 }
 
-void ntg__scene_add(ntg_scene* scene, ntg_object* object)
+void ntg__scene_add(ntg_scene* scene, ntg_widget* widget)
 {
-    if(!scene || !object) return;
+    if(!scene || !widget) return;
 
-    ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_FULL);
+    ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_FULL);
     ntg_scene_mark_dirty(scene);
 
     scene->ro.object_count++;
-    if(ntg_object_is_tree_root(object))
+    if(ntg_widget_is_tree_root(widget))
         scene->ro.tree_count++;
 
-    ntg__object_scene_enter(object, scene);
+    ntg__widget_scene_enter(widget, scene);
 }
 
-void ntg__scene_rm(ntg_scene* scene, ntg_object* object)
+void ntg__scene_rm(ntg_scene* scene, ntg_widget* widget)
 {
-    if(!scene || !object) return;
+    if(!scene || !widget) return;
 
     ntg_scene_mark_dirty(scene);
 
     _sub2_size(scene->ro.object_count, 1);
-    if(ntg_object_is_tree_root(object))
+    if(ntg_widget_is_tree_root(widget))
         _sub2_size(scene->ro.tree_count, 1);
 
-    ntg__fcs_manager_on_scene_object_rm(scene->ro.fm, object);
-    ntg__object_scene_leave(object, scene);
+    ntg__fcs_manager_on_scene_widget_rm(scene->ro.fm, widget);
+    ntg__widget_scene_leave(widget, scene);
 }
 
-void ntg__scene_on_add_object(ntg_scene* scene, ntg_object* object)
+void ntg__scene_on_add_widget(ntg_scene* scene, ntg_widget* widget)
 {
-    if(!scene || !object) return;
+    if(!scene || !widget) return;
 
-    struct ntg_event_scene_objadd_dt object_event_dt = { .object = object };
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_OBJADD, &object_event_dt);
+    struct ntg_event_scene_wgtadd_dt object_event_dt = { .widget = widget };
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_WGTADD, &object_event_dt);
 }
 
-void ntg__scene_on_rm_object(ntg_scene* scene, ntg_object* object)
+void ntg__scene_on_rm_widget(ntg_scene* scene, ntg_widget* widget)
 {
-    if(!scene || !object) return;
+    if(!scene || !widget) return;
 
-    struct ntg_event_scene_objrm_dt object_event_dt = { .object = object };
-    ntg_entity_event_raise(ntg_ent(scene), NTG_EVENT_SCENE_OBJRM, &object_event_dt);
+    struct ntg_event_scene_wgtrm_dt object_event_dt = { .widget = widget };
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_WGTRM, &object_event_dt);
 }
 
-void ntg__scene_add_object_tree(ntg_scene* scene, ntg_object* root)
+void ntg__scene_add_widget_tree(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene || !root) return;
 
@@ -591,19 +591,19 @@ void ntg__scene_add_object_tree(ntg_scene* scene, ntg_object* root)
     size_t i;
     for(i = 0; i < root->ro.children.size; i++)
     {
-        ntg_object* child = root->ro.children.data[i];
-        ntg__scene_add_object_tree(scene, child);
+        ntg_widget* child = root->ro.children.data[i];
+        ntg__scene_add_widget_tree(scene, child);
     }
 
     for(i = 0; i < root->ro.anchored.size; i++)
     {
-        ntg_object* layer = root->ro.anchored.data[i];
-        ntg__scene_add_object_tree(scene, layer);
+        ntg_widget* layer = root->ro.anchored.data[i];
+        ntg__scene_add_widget_tree(scene, layer);
     }
 
 }
 
-void ntg__scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
+void ntg__scene_rm_widget_tree(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene || !root) return;
 
@@ -612,56 +612,56 @@ void ntg__scene_rm_object_tree(ntg_scene* scene, ntg_object* root)
     size_t i;
     for(i = 0; i < root->ro.children.size; i++)
     {
-        ntg_object* child = root->ro.children.data[i];
-        ntg__scene_rm_object_tree(scene, child);
+        ntg_widget* child = root->ro.children.data[i];
+        ntg__scene_rm_widget_tree(scene, child);
     }
 
     for(i = 0; i < root->ro.anchored.size; i++)
     {
-        ntg_object* layer = root->ro.anchored.data[i];
-        ntg__scene_rm_object_tree(scene, layer);
+        ntg_widget* layer = root->ro.anchored.data[i];
+        ntg__scene_rm_widget_tree(scene, layer);
     }
 
 }
 
-void ntg__scene_on_add_object_tree(ntg_scene* scene, ntg_object* root)
+void ntg__scene_on_add_widget_tree(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene || !root) return;
 
-    ntg__scene_on_add_object(scene, root);
+    ntg__scene_on_add_widget(scene, root);
 
     size_t i;
     for(i = 0; i < root->ro.children.size; i++)
     {
-        ntg_object* child = root->ro.children.data[i];
-        ntg__scene_on_add_object_tree(scene, child);
+        ntg_widget* child = root->ro.children.data[i];
+        ntg__scene_on_add_widget_tree(scene, child);
     }
 
     for(i = 0; i < root->ro.anchored.size; i++)
     {
-        ntg_object* layer = root->ro.anchored.data[i];
-        ntg__scene_on_add_object_tree(scene, layer);
+        ntg_widget* layer = root->ro.anchored.data[i];
+        ntg__scene_on_add_widget_tree(scene, layer);
     }
 
 }
 
-void ntg__scene_on_rm_object_tree(ntg_scene* scene, ntg_object* root)
+void ntg__scene_on_rm_widget_tree(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene || !root) return;
 
-    ntg__scene_on_rm_object(scene, root);
+    ntg__scene_on_rm_widget(scene, root);
 
     size_t i;
     for(i = 0; i < root->ro.children.size; i++)
     {
-        ntg_object* child = root->ro.children.data[i];
-        ntg__scene_on_rm_object_tree(scene, child);
+        ntg_widget* child = root->ro.children.data[i];
+        ntg__scene_on_rm_widget_tree(scene, child);
     }
 
     for(i = 0; i < root->ro.anchored.size; i++)
     {
-        ntg_object* layer = root->ro.anchored.data[i];
-        ntg__scene_on_rm_object_tree(scene, layer);
+        ntg_widget* layer = root->ro.anchored.data[i];
+        ntg__scene_on_rm_widget_tree(scene, layer);
     }
 
 }
@@ -682,7 +682,7 @@ void ntg__scene_on_rm_object_tree(ntg_scene* scene, ntg_object* root)
 
 static inline void init_layout_data(
         ntg_scene* scene,
-        ntg_object* root,
+        ntg_widget* root,
         sarena* arena,
         struct layout_data* lay_data)
 {
@@ -691,39 +691,39 @@ static inline void init_layout_data(
     lay_data->new_it = false;
     lay_data->stay_dirty = false;
     lay_data->prepare_failed = false;
-    lay_data->tree_size = ntg_object_tree_collect_pre(root, NULL, SIZE_MAX);
+    lay_data->tree_size = ntg_widget_tree_collect_pre(root, NULL, SIZE_MAX);
 
-    lay_data->tree_pre = sarena_malloc(arena, lay_data->tree_size * sizeof(ntg_object*));
+    lay_data->tree_pre = sarena_malloc(arena, lay_data->tree_size * sizeof(ntg_widget*));
     if(lay_data->tree_pre)
     {
-        ntg_object_tree_collect_pre(root, lay_data->tree_pre, lay_data->tree_size);
+        ntg_widget_tree_collect_pre(root, lay_data->tree_pre, lay_data->tree_size);
     }
 
-    lay_data->tree_post = sarena_malloc(arena, lay_data->tree_size * sizeof(ntg_object*));
+    lay_data->tree_post = sarena_malloc(arena, lay_data->tree_size * sizeof(ntg_widget*));
     if(lay_data->tree_pre && lay_data->tree_post)
     {
-        ntg_object_tree_collect_post(root, lay_data->tree_post, lay_data->tree_size);
+        ntg_widget_tree_collect_post(root, lay_data->tree_post, lay_data->tree_size);
     }
 }
 
 static inline void
 get_root_constrain_ctx(
         ntg_scene* scene,
-        ntg_object* root,
+        ntg_widget* root,
         struct ntg_anchor_constrain_ctx* out_ctx,
         enum ntg_orient orient)
 {
-    ntg_object* base = root->ro.base;
+    ntg_widget* base = root->ro.base;
 
     if(base)
     {
         (*out_ctx) = (struct ntg_anchor_constrain_ctx) {
             .root = root,
-            .base_min_size = ntg_xy_get(ntg_object_get_min_size(base), orient),
-            .base_nat_size = ntg_xy_get(ntg_object_get_nat_size(base), orient),
-            .base_max_size = ntg_xy_get(ntg_object_get_max_size(base), orient),
-            .base_size = ntg_xy_get(ntg_object_get_size(base), orient),
-            .base_pos = ntg_xy_get(ntg_object_get_abs_pos(base), orient)
+            .base_min_size = ntg_xy_get(ntg_widget_get_min_size(base), orient),
+            .base_nat_size = ntg_xy_get(ntg_widget_get_nat_size(base), orient),
+            .base_max_size = ntg_xy_get(ntg_widget_get_max_size(base), orient),
+            .base_size = ntg_xy_get(ntg_widget_get_size(base), orient),
+            .base_pos = ntg_xy_get(ntg_widget_get_abs_pos(base), orient)
         };
     }
     else
@@ -744,25 +744,25 @@ get_root_constrain_ctx(
 static inline void
 get_root_arrange_ctx(
         ntg_scene* scene,
-        ntg_object* root,
+        ntg_widget* root,
         struct ntg_anchor_arrange_ctx* out_ctx)
 {
-    ntg_object* base = root->ro.base;
+    ntg_widget* base = root->ro.base;
 
     if(base)
     {
         (*out_ctx) = (struct ntg_anchor_arrange_ctx) {
             .root = root,
-            .size = ntg_object_get_size(root),
-            .base_size = ntg_object_get_size(base),
-            .base_pos = ntg_object_get_abs_pos(base)
+            .size = ntg_widget_get_size(root),
+            .base_size = ntg_widget_get_size(base),
+            .base_pos = ntg_widget_get_abs_pos(base)
         };
     }
     else
     {
         (*out_ctx) = (struct ntg_anchor_arrange_ctx) {
             .root = root,
-            .size = ntg_object_get_size(root),
+            .size = ntg_widget_get_size(root),
             .base_size = scene->ro.size,
             .base_pos = ntg_xy(0, 0)
         };
@@ -770,7 +770,7 @@ get_root_arrange_ctx(
 }
 
 static bool 
-layout_layer(ntg_scene* scene, ntg_object* root, sarena* arena)
+layout_layer(ntg_scene* scene, ntg_widget* root, sarena* arena)
 {
     if(!root) return false;
 
@@ -822,202 +822,202 @@ static inline bool new_it(uint32_t dirty_flags, unsigned int curr_phase)
     return ((dirty_flags & masks[curr_phase]) != 0);
 }
 
-static inline void prepare_object(ntg_object* object, void* _layout_data)
+static inline void prepare_widget(ntg_widget* widget, void* _layout_data)
 {
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->ro.dirty & NTG_OBJECT_DIRTY_PREPARE)
+    if(widget->ro.dirty & NTG_WIDGET_DIRTY_PREPARE)
     {
-        // ntg_log_log("NTG_SCENE | P | %p", object);
+        // ntg_log_log("NTG_SCENE | P | %p", widget);
 
-        int _status = ntg__object_layout_prepare(object, arena);
+        int _status = ntg__widget_layout_prepare(widget, arena);
         if(_status)
             layout_data->prepare_failed = true;
         else
-            ntg__object_clean(object, NTG_OBJECT_DIRTY_PREPARE);
+            ntg__widget_clean(widget, NTG_WIDGET_DIRTY_PREPARE);
     }
     else
     {
-        // ntg_log_log("NTG_SCENE | P SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | P SKIPPED | %p", widget);
     }
 }
 
-static inline void hmeasure_object(ntg_object* object, void* _layout_data)
+static inline void hmeasure_widget(ntg_widget* widget, void* _layout_data)
 {
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->ro.dirty & NTG_OBJECT_DIRTY_HMEASURE)
+    if(widget->ro.dirty & NTG_WIDGET_DIRTY_HMEASURE)
     {
-        // ntg_log_log("NTG_SCENE | HM | %p", object);
+        // ntg_log_log("NTG_SCENE | HM | %p", widget);
 
         uint32_t _relayout = 0;
-        int _status = ntg__object_hmeasure(object, arena, &_relayout);
+        int _status = ntg__widget_hmeasure(widget, arena, &_relayout);
         if(_status)
             layout_data->stay_dirty = true;
         else
-            ntg__object_clean(object, NTG_OBJECT_DIRTY_HMEASURE);
+            ntg__widget_clean(widget, NTG_WIDGET_DIRTY_HMEASURE);
 
         if(_relayout)
-            ntg_object_mark_dirty(object, _relayout);
+            ntg_widget_mark_dirty(widget, _relayout);
         layout_data->new_it = layout_data->new_it || new_it(_relayout, 0);
     }
     else
     {
-        // ntg_log_log("NTG_SCENE | HM SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | HM SKIPPED | %p", widget);
     }
 }
 
-static inline void hconstrain_object(ntg_object* object, void* _layout_data)
+static inline void hconstrain_widget(ntg_widget* widget, void* _layout_data)
 {
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->ro.dirty & NTG_OBJECT_DIRTY_HCONSTRAIN)
+    if(widget->ro.dirty & NTG_WIDGET_DIRTY_HCONSTRAIN)
     {
-        // ntg_log_log("NTG_SCENE | HC | %p", object);
+        // ntg_log_log("NTG_SCENE | HC | %p", widget);
 
         uint32_t _relayout = 0;
-        int _status = ntg__object_hconstrain(object, arena, &_relayout);
+        int _status = ntg__widget_hconstrain(widget, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
-            ntg__object_clean(object, NTG_OBJECT_DIRTY_HCONSTRAIN);
+            ntg__widget_clean(widget, NTG_WIDGET_DIRTY_HCONSTRAIN);
 
         if(_relayout)
-            ntg_object_mark_dirty(object, _relayout);
+            ntg_widget_mark_dirty(widget, _relayout);
         layout_data->new_it = layout_data->new_it || new_it(_relayout, 1);
     }
     else
     {
-        // ntg_log_log("NTG_SCENE | HC SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | HC SKIPPED | %p", widget);
     }
 }
 
-static inline void vmeasure_object(ntg_object* object, void* _layout_data)
+static inline void vmeasure_widget(ntg_widget* widget, void* _layout_data)
 {
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->ro.dirty & NTG_OBJECT_DIRTY_VMEASURE)
+    if(widget->ro.dirty & NTG_WIDGET_DIRTY_VMEASURE)
     {
-        // ntg_log_log("NTG_SCENE | VM | %p", object);
+        // ntg_log_log("NTG_SCENE | VM | %p", widget);
 
         uint32_t _relayout = 0;
-        int _status = ntg__object_vmeasure(object, arena, &_relayout);
+        int _status = ntg__widget_vmeasure(widget, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
-            ntg__object_clean(object, NTG_OBJECT_DIRTY_VMEASURE);
+            ntg__widget_clean(widget, NTG_WIDGET_DIRTY_VMEASURE);
 
         if(_relayout)
-            ntg_object_mark_dirty(object, _relayout);
+            ntg_widget_mark_dirty(widget, _relayout);
         layout_data->new_it = layout_data->new_it || new_it(_relayout, 2);
     }
     else
     {
-        // ntg_log_log("NTG_SCENE | VM SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | VM SKIPPED | %p", widget);
     }
 }
 
-static inline void vconstrain_object(ntg_object* object, void* _layout_data)
+static inline void vconstrain_widget(ntg_widget* widget, void* _layout_data)
 {
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->ro.dirty & NTG_OBJECT_DIRTY_VCONSTRAIN)
+    if(widget->ro.dirty & NTG_WIDGET_DIRTY_VCONSTRAIN)
     {
-        // ntg_log_log("NTG_SCENE | VC | %p", object);
+        // ntg_log_log("NTG_SCENE | VC | %p", widget);
 
         uint32_t _relayout = 0;
-        int _status = ntg__object_vconstrain(object, arena, &_relayout);
+        int _status = ntg__widget_vconstrain(widget, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
-            ntg__object_clean(object, NTG_OBJECT_DIRTY_VCONSTRAIN);
+            ntg__widget_clean(widget, NTG_WIDGET_DIRTY_VCONSTRAIN);
 
         if(_relayout)
-            ntg_object_mark_dirty(object, _relayout);
+            ntg_widget_mark_dirty(widget, _relayout);
         layout_data->new_it = layout_data->new_it || new_it(_relayout, 3);
     }
     else
     {
-        // ntg_log_log("NTG_SCENE | VC SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | VC SKIPPED | %p", widget);
     }
 }
 
-static inline void arrange_object(ntg_object* object, void* _layout_data)
+static inline void arrange_widget(ntg_widget* widget, void* _layout_data)
 {
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->ro.dirty & NTG_OBJECT_DIRTY_ARRANGE)
+    if(widget->ro.dirty & NTG_WIDGET_DIRTY_ARRANGE)
     {
-        // ntg_log_log("NTG_SCENE | A | %p", object);
+        // ntg_log_log("NTG_SCENE | A | %p", widget);
 
         uint32_t _relayout = 0;
-        int _status = ntg__object_arrange(object, arena, &_relayout);
+        int _status = ntg__widget_arrange(widget, arena, &_relayout);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
-            ntg__object_clean(object, NTG_OBJECT_DIRTY_ARRANGE);
+            ntg__widget_clean(widget, NTG_WIDGET_DIRTY_ARRANGE);
 
         if(_relayout)
-            ntg_object_mark_dirty(object, _relayout);
+            ntg_widget_mark_dirty(widget, _relayout);
         layout_data->new_it = layout_data->new_it || new_it(_relayout, 4);
     }
     else
     {
-        // ntg_log_log("NTG_SCENE | A SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | A SKIPPED | %p", widget);
     }
 }
 
-static inline void draw_object(ntg_object* object, void* _layout_data)
+static inline void draw_widget(ntg_widget* widget, void* _layout_data)
 {
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    if(object->ro.dirty & NTG_OBJECT_DIRTY_DRAW)
+    if(widget->ro.dirty & NTG_WIDGET_DIRTY_DRAW)
     {
-        // ntg_log_log("NTG_SCENE | D | %p", object);
+        // ntg_log_log("NTG_SCENE | D | %p", widget);
 
-        int _status = ntg__object_draw(object, arena);
+        int _status = ntg__widget_draw(widget, arena);
         if(_status != 0)
             layout_data->stay_dirty = true;
         else
-            ntg__object_clean(object, NTG_OBJECT_DIRTY_DRAW);
+            ntg__widget_clean(widget, NTG_WIDGET_DIRTY_DRAW);
     }
     else
     {
-        // ntg_log_log("NTG_SCENE | D SKIPPED | %p", object);
+        // ntg_log_log("NTG_SCENE | D SKIPPED | %p", widget);
     }
 }
 
-static inline void finalize_object(ntg_object* object, void* _layout_data)
+static inline void finalize_widget(ntg_widget* widget, void* _layout_data)
 {
     struct layout_data* layout_data = _layout_data;
     sarena* arena = layout_data->arena; 
 
-    ntg__object_layout_finalize(object, arena);
+    ntg__widget_layout_finalize(widget, arena);
 }
 
-NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(prepare_tree, prepare_object)
-NTG_OBJECT_TREE_DEF_TRAVERSE_POST(hmeasure_tree, hmeasure_object)
-NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(hconstrain_tree, hconstrain_object)
-NTG_OBJECT_TREE_DEF_TRAVERSE_POST(vmeasure_tree, vmeasure_object)
-NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(vconstrain_tree, vconstrain_object)
-NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(arrange_tree, arrange_object)
-NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(draw_tree, draw_object)
-NTG_OBJECT_TREE_DEF_TRAVERSE_PRE(finalize_tree, finalize_object)
+NTG_WIDGET_TREE_DEF_TRAVERSE_PRE(prepare_tree, prepare_widget)
+NTG_WIDGET_TREE_DEF_TRAVERSE_POST(hmeasure_tree, hmeasure_widget)
+NTG_WIDGET_TREE_DEF_TRAVERSE_PRE(hconstrain_tree, hconstrain_widget)
+NTG_WIDGET_TREE_DEF_TRAVERSE_POST(vmeasure_tree, vmeasure_widget)
+NTG_WIDGET_TREE_DEF_TRAVERSE_PRE(vconstrain_tree, vconstrain_widget)
+NTG_WIDGET_TREE_DEF_TRAVERSE_PRE(arrange_tree, arrange_widget)
+NTG_WIDGET_TREE_DEF_TRAVERSE_PRE(draw_tree, draw_widget)
+NTG_WIDGET_TREE_DEF_TRAVERSE_PRE(finalize_tree, finalize_widget)
 
-static inline void prepare_phase(ntg_object* root, struct layout_data* lay_data)
+static inline void prepare_phase(ntg_widget* root, struct layout_data* lay_data)
 {
     if(lay_data->tree_pre)
     {
         size_t i;
         for(i = 0; i < lay_data->tree_size; i++)
-            prepare_object(lay_data->tree_pre[i], lay_data);
+            prepare_widget(lay_data->tree_pre[i], lay_data);
     }
     else
     {
@@ -1025,13 +1025,13 @@ static inline void prepare_phase(ntg_object* root, struct layout_data* lay_data)
     }
 }
 
-static inline void hmeasure_phase(ntg_object* root, struct layout_data* lay_data)
+static inline void hmeasure_phase(ntg_widget* root, struct layout_data* lay_data)
 {
     if(lay_data->tree_post)
     {
         size_t i;
         for(i = 0; i < lay_data->tree_size; i++)
-            hmeasure_object(lay_data->tree_post[i], lay_data);
+            hmeasure_widget(lay_data->tree_post[i], lay_data);
     }
     else
     {
@@ -1039,7 +1039,7 @@ static inline void hmeasure_phase(ntg_object* root, struct layout_data* lay_data
     }
 }
 
-static inline void hconstrain_phase(ntg_object* root, struct layout_data* lay_data)
+static inline void hconstrain_phase(ntg_widget* root, struct layout_data* lay_data)
 {
     const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
     ntg_scene* scene = lay_data->scene;
@@ -1060,7 +1060,7 @@ static inline void hconstrain_phase(ntg_object* root, struct layout_data* lay_da
         it_hsize = ctx.base_size;
 
     if(root->ro.size.x != it_hsize)
-        ntg__object_root_set_hsize(root, it_hsize);
+        ntg__widget_root_set_hsize(root, it_hsize);
 
     /* Tree */
 
@@ -1068,7 +1068,7 @@ static inline void hconstrain_phase(ntg_object* root, struct layout_data* lay_da
     {
         size_t i;
         for(i = 0; i < lay_data->tree_size; i++)
-            hconstrain_object(lay_data->tree_pre[i], lay_data);
+            hconstrain_widget(lay_data->tree_pre[i], lay_data);
     }
     else
     {
@@ -1076,13 +1076,13 @@ static inline void hconstrain_phase(ntg_object* root, struct layout_data* lay_da
     }
 }
 
-static inline void vmeasure_phase(ntg_object* root, struct layout_data* lay_data)
+static inline void vmeasure_phase(ntg_widget* root, struct layout_data* lay_data)
 {
     if(lay_data->tree_post)
     {
         size_t i;
         for(i = 0; i < lay_data->tree_size; i++)
-            vmeasure_object(lay_data->tree_post[i], lay_data);
+            vmeasure_widget(lay_data->tree_post[i], lay_data);
     }
     else
     {
@@ -1090,7 +1090,7 @@ static inline void vmeasure_phase(ntg_object* root, struct layout_data* lay_data
     }
 }
 
-static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_data)
+static inline void vconstrain_phase(ntg_widget* root, struct layout_data* lay_data)
 {
     const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
     ntg_scene* scene = lay_data->scene;
@@ -1112,7 +1112,7 @@ static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_da
         it_vsize = ctx.base_size;
 
     if(root->ro.size.y != it_vsize)
-        ntg__object_root_set_vsize(root, it_vsize);
+        ntg__widget_root_set_vsize(root, it_vsize);
 
     /* Tree */
 
@@ -1120,7 +1120,7 @@ static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_da
     {
         size_t i;
         for(i = 0; i < lay_data->tree_size; i++)
-            vconstrain_object(lay_data->tree_pre[i], lay_data);
+            vconstrain_widget(lay_data->tree_pre[i], lay_data);
     }
     else
     {
@@ -1128,7 +1128,7 @@ static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_da
     }
 }
 
-static inline void arrange_phase(ntg_object* root, struct layout_data* lay_data)
+static inline void arrange_phase(ntg_widget* root, struct layout_data* lay_data)
 {
     const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
     ntg_scene* scene = lay_data->scene;
@@ -1152,13 +1152,13 @@ static inline void arrange_phase(ntg_object* root, struct layout_data* lay_data)
     pos.y -= _sub2_size(pos.y + size.y, scene->ro.size.y);
 
     if(!ntg_xy_are_eql(root->ro.pos, pos))
-        ntg__object_root_set_pos(root, pos);
+        ntg__widget_root_set_pos(root, pos);
 
     if(lay_data->tree_pre)
     {
         size_t i;
         for(i = 0; i < lay_data->tree_size; i++)
-            arrange_object(lay_data->tree_pre[i], lay_data);
+            arrange_widget(lay_data->tree_pre[i], lay_data);
     }
     else
     {
@@ -1166,13 +1166,13 @@ static inline void arrange_phase(ntg_object* root, struct layout_data* lay_data)
     }
 }
 
-static inline void draw_phase(ntg_object* root, struct layout_data* lay_data)
+static inline void draw_phase(ntg_widget* root, struct layout_data* lay_data)
 {
     if(lay_data->tree_pre)
     {
         size_t i;
         for(i = 0; i < lay_data->tree_size; i++)
-            draw_object(lay_data->tree_pre[i], lay_data);
+            draw_widget(lay_data->tree_pre[i], lay_data);
     }
     else
     {
@@ -1180,13 +1180,13 @@ static inline void draw_phase(ntg_object* root, struct layout_data* lay_data)
     }
 }
 
-static inline void finalize_phase(ntg_object* root, struct layout_data* lay_data)
+static inline void finalize_phase(ntg_widget* root, struct layout_data* lay_data)
 {
     if(lay_data->tree_pre)
     {
         size_t i;
         for(i = 0; i < lay_data->tree_size; i++)
-            finalize_object(lay_data->tree_pre[i], lay_data);
+            finalize_widget(lay_data->tree_pre[i], lay_data);
     }
     else
     {

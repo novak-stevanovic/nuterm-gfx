@@ -28,7 +28,7 @@ bool ntg_renderer_render(
         .drawing = stage_drawing,
         .arena = arena
     };
-    ntg_entity_event_raise(ntg_ent(renderer), NTG_EVENT_RENDERER_RNDRPRE, &event_dt);
+    ntg_object_event_raise(ntg_obj(renderer), NTG_EVENT_RENDERER_RNDRPRE, &event_dt);
 
     struct ntg_renderer_vtable* vtable = ntg_rnd_vtbl(renderer);
 
@@ -36,7 +36,7 @@ bool ntg_renderer_render(
     if(vtable->render_fn)
         rval = vtable->render_fn(renderer, stage_drawing, arena);
 
-    ntg_entity_event_raise(ntg_ent(renderer), NTG_EVENT_RENDERER_RNDRPOST, &event_dt);
+    ntg_object_event_raise(ntg_obj(renderer), NTG_EVENT_RENDERER_RNDRPOST, &event_dt);
 
     return rval;
 }
@@ -65,10 +65,10 @@ int ntg_renderer_init_inherit(
     if(!ntg_type_instanceof(type, &NTG_TYPE_RENDERER))
         return NTG_ERR_BAD_TYPE;
 
-    int status = ntg_entity_init_inherit(ntg_ent(renderer), &vtable->base, type);
+    int status = ntg_object_init_inherit(ntg_obj(renderer), &vtable->base, type);
     NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    ntg_entity_zero(renderer);
+    ntg_object_zero(renderer);
 
     return 0;
 }
@@ -77,8 +77,8 @@ int ntg_renderer_deinit(ntg_renderer* renderer)
 {
     if(!renderer) return NTG_ERR_INV_ARG;
 
-    ntg_entity_zero(renderer);
-    ntg_entity_deinit(ntg_ent(renderer));
+    ntg_object_zero(renderer);
+    ntg_object_deinit(ntg_obj(renderer));
 
     return 0;
 }
