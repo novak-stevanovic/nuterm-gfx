@@ -102,7 +102,6 @@ int ntg_task_runner_new(unsigned int workers, ntg_task_runner** out_runner)
     if(!new->threads)
     {
         ntg_task_runner_destroy(new);
-        free(new);
         return NTG_ERR_ALLOC_FAIL;
     } 
 

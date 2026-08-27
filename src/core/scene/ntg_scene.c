@@ -170,7 +170,7 @@ int ntg_scene_hit_test(
     struct ntg_xy it_adj_pos;
     // struct ntg_xy _out_object_pos;
     // enum ntg_object_hit_result _hit;
-    struct ntg_object_hit_res it_res;
+    struct ntg_object_hit_res it_res = {0};
     while(i > 0)
     {
         i--;

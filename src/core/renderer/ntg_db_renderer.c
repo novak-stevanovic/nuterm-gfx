@@ -136,8 +136,9 @@ bool ntg_db_renderer_render_fn(
     bool full_render_req = resize || renderer->priv.force_full_render;
 
     size_t size_prod = size.x * size.y;
+    bool new_bbuff = resize || !renderer->priv.bbuff;
     struct ntg_cell* write_bbuff;
-    if(resize || !renderer->priv.bbuff)
+    if(new_bbuff)
     {
         write_bbuff = size_prod ? malloc(sizeof(struct ntg_cell) * size_prod) : NULL;
         if(size_prod && !write_bbuff)
@@ -151,7 +152,7 @@ bool ntg_db_renderer_render_fn(
     _status = nt_buffer_enable(renderer->priv.term_buff, renderer->ro.opts.term_buff_size);
     if(_status)
     {
-        free(write_bbuff);
+        if(new_bbuff) free(write_bbuff);
         return true;
     }
 
@@ -175,7 +176,7 @@ bool ntg_db_renderer_render_fn(
 
     nt_buffer_disable(NT_BUFF_FLUSH, NULL);
 
-    if(resize)
+    if(new_bbuff)
     {
         free(renderer->priv.bbuff);
         renderer->priv.bbuff = write_bbuff;

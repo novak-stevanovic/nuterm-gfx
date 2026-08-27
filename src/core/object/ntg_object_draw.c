@@ -78,7 +78,8 @@ int ntg_object_draw_set_size(ntg_object_draw* drawing, struct ntg_xy size)
 
         ntg_vcell_vec_popb_many_shrink(vcell_vec, diff);
 
-        memset(vcell_vec->data, 0, new_size_prod * sizeof(struct ntg_vcell));
+        if(new_size_prod)
+            memset(vcell_vec->data, 0, new_size_prod * sizeof(struct ntg_vcell));
     }
 
     drawing->ro.size = size;

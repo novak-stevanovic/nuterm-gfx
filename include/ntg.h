@@ -79,7 +79,7 @@ static const struct ntg_opts NTG_OPTS_ZERO = {0};
 NTG_API int
 ntg_enable(const struct ntg_opts* opts, const char* log_filepath);
 
-NTG_API const struct ntg_opts
+NTG_API const struct ntg_opts*
 ntg_get_opts(void);
 
 NTG_API void
@@ -88,7 +88,6 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-bug in south_box?
 zero-init: finish
 rename: ntg_object -> ntg_widget, ntg_entity -> ntg_object
 pos -> NTG_SIZE_MAX for no draw
