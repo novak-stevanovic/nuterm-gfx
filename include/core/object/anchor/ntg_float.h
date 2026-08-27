@@ -30,8 +30,7 @@ struct ntg_float_opts
     enum ntg_align prim_align, sec_align;
 };
 
-NTG_API struct ntg_float_opts
-ntg_float_opts_default(void);
+static const struct ntg_float_opts NTG_FLOAT_OPTS_ZERO = {0};
 
 struct ntg_float
 {

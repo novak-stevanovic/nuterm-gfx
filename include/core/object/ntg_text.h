@@ -19,20 +19,20 @@
 
 enum ntg_text_wrap
 {
-    NTG_TEXT_WRAP_NONE,
+    NTG_TEXT_WRAP_NONE = 0,
     NTG_TEXT_WRAP_CHAR,
     NTG_TEXT_WRAP_WORD
 };
 
 enum ntg_text_line_mode
 {
-    NTG_TEXT_LINE_ALIGN,
+    NTG_TEXT_LINE_ALIGN = 0,
     NTG_TEXT_LINE_JUSTIFY
 };
 
 enum ntg_text_bg_mode
 {
-    NTG_TEXT_BG_FULL,
+    NTG_TEXT_BG_FULL = 0,
     NTG_TEXT_BG_FLT
 };
 
@@ -51,8 +51,7 @@ struct ntg_text_opts
     size_t indent;
 };
 
-NTG_API struct ntg_text_opts
-ntg_text_opts_default(void);
+static const struct ntg_text_opts NTG_TEXT_OPTS_ZERO = {0};
 
 NTG_API bool
 ntg_text_opts_are_eql(
@@ -63,7 +62,7 @@ ntg_text_opts_are_eql(
 
 struct ntg_text_vtable
 {
-    struct ntg_object_vtable object;
+    struct ntg_object_vtable base;
 
     void (*post_draw_fn)(
         const ntg_text* text,
@@ -130,7 +129,7 @@ NTG_API int
 ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff);
 
 /* ------------------------------------------------------ */
-/* INHERIT */
+/* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
 NTG_API int
@@ -143,8 +142,14 @@ ntg_text_init_inherit(
 NTG_API int
 ntg_text_deinit(ntg_text* text_obj);
 
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+NTG_API extern const struct ntg_text_vtable NTG_TEXT_VTABLE;
+
 NTG_API void
-ntg_text_deinit_void(void* _text);
+ntg_text_deinit_fn(ntg_entity* _text_obj);
 
 NTG_API int
 ntg_text_layout_prepare_fn(
@@ -172,14 +177,9 @@ NTG_API void
 ntg_text_cont_resize_fn(ntg_object* object, sarena* arena);
 
 NTG_API void
-ntg_text_deinit_fn(ntg_entity* _text_obj);
-
-NTG_API void
 ntg_text_focus_fn(ntg_object* _text_obj);
 
 NTG_API void
 ntg_text_unfocus_fn(ntg_object* _text_obj);
-
-NTG_API extern const struct ntg_object_vtable NTG_TEXT_OBJECT_IMPL;
 
 #endif // NTG_TEXT_H

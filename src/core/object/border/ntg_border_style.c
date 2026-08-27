@@ -44,13 +44,6 @@ const ntg_border_style NTG_BORDER_STYLE_DEFAULT = {
 /* FUNCTIONS */
 /* ========================================================================== */
 
-void ntg_border_style_vdeinit(ntg_border_style* style)
-{
-    if(!style) return;
-
-    ntg_entity_vdeinit(ntg_ent(style));
-}
-
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
@@ -69,22 +62,13 @@ int ntg_border_style_init_inherit(
     if(!style || !vtable || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!vtable->base.deinit_fn)
-        return NTG_ERR_BAD_VTABLE;
-
     if(!ntg_type_instanceof(type, &NTG_TYPE_BORDER_STYLE))
         return NTG_ERR_BAD_TYPE;
 
-    (*style) = (ntg_border_style) {0};
-
     int status = ntg_entity_init_inherit(ntg_ent(style), &vtable->base, type);
-    switch(status)
-    {
-        case 0:
-            break;
-        default:
-            return NTG_ERR_UNEXPECTED;
-    }
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
+
+    ntg_entity_zero(style);
 
     return 0;
 }
@@ -93,8 +77,9 @@ int ntg_border_style_deinit(ntg_border_style* style)
 {
     if(!style) return NTG_ERR_INV_ARG;
 
+    ntg_entity_zero(style);
+
     ntg_entity_deinit(ntg_ent(style));
-    (*style) = (ntg_border_style) {0};
 
     return 0;
 }
@@ -119,7 +104,6 @@ void ntg__border_style_draw(
     if(!ntg_bs_vtbl(style) || !ntg_bs_vtbl(style)->draw_fn) return;
 
     ntg_bs_vtbl(style)->draw_fn(style, size, border_size, out_drawing);
-
 }
 
 /* ========================================================================== */
@@ -152,11 +136,7 @@ static void border_style_draw_fn(
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
-        {
-            ntg_object_tmp_draw_set(
-                    out_drawing,
-                    ntg_vcell_new_default(),
-                    ntg_xy(j, i));
-        }
+            ntg_object_tmp_draw_set(out_drawing, NTG_VCELL_ZERO, ntg_xy(j, i));
+        
     }
 }

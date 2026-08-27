@@ -16,35 +16,24 @@
 
 struct ntg_prog_bar_style
 {
-    struct ntg_vcell complete,
-        uncomplete, threshold;
+    struct ntg_vcell complete, uncomplete,
+                     threshold;
 };
 
 NTG_API struct ntg_prog_bar_style
-ntg_prog_bar_style_default(void);
-
-/* ------------------------------------------------------ */
-
+ntg_prog_bar_style_auto(void);
 
 NTG_API bool
 ntg_prog_bar_style_are_eql(
         const struct ntg_prog_bar_style* style1,
         const struct ntg_prog_bar_style* style2);
 
-/* ------------------------------------------------------ */
-
 struct ntg_prog_bar_opts
 {
-    struct ntg_prog_bar_style style;
     enum ntg_orient orient;
 };
 
-
-NTG_API struct ntg_prog_bar_opts
-ntg_prog_bar_opts_default(void);
-
-/* ------------------------------------------------------ */
-
+static const struct ntg_prog_bar_opts NTG_PROG_BAR_OPTS_ZERO = {0};
 
 NTG_API bool
 ntg_prog_bar_opts_are_eql(
@@ -61,6 +50,7 @@ struct ntg_prog_bar
     {
         double prog;
         struct ntg_prog_bar_opts opts;
+        struct ntg_prog_bar_style style;
     } ro;
 };
 
@@ -72,38 +62,20 @@ struct ntg_prog_bar
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-
 NTG_API int
 ntg_prog_bar_init(
         ntg_prog_bar* prog_bar,
-        const struct ntg_prog_bar_opts* opts);
-
-/* ------------------------------------------------------ */
-
+        const struct ntg_prog_bar_opts* opts,
+        const struct ntg_prog_bar_style* style);
 
 NTG_API int
 ntg_prog_bar_deinit(ntg_prog_bar* prog_bar);
 
-/* ------------------------------------------------------ */
-
-
-NTG_API void
-ntg_prog_bar_deinit_void(void* _prog_bar);
-
-/* ------------------------------------------------------ */
-/* OPTS */
-/* ------------------------------------------------------ */
-
+NTG_API int
+ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts);
 
 NTG_API int
-ntg_prog_bar_set_opts(
-        ntg_prog_bar* prog_bar,
-        const struct ntg_prog_bar_opts* opts);
-
-/* ------------------------------------------------------ */
-/* PROGRESS */
-/* ------------------------------------------------------ */
-
+ntg_prog_bar_set_style(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_style* opts);
 
 NTG_API int
 ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress);
@@ -120,13 +92,12 @@ ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress);
 
 struct ntg_prog_bar_vtable
 {
-    struct ntg_object_vtable object;
+    struct ntg_object_vtable base;
 };
 
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
-
 
 NTG_API int
 ntg_prog_bar_init_inherit(
@@ -136,7 +107,10 @@ ntg_prog_bar_init_inherit(
         struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
 
+NTG_API extern const struct ntg_prog_bar_vtable NTG_PROG_BAR_VTABLE;
 
 NTG_API int
 ntg_prog_bar_measure_fn(
@@ -147,9 +121,6 @@ ntg_prog_bar_measure_fn(
         uint32_t* relayout,
         struct ntg_object_measure* out_measure);
 
-/* ------------------------------------------------------ */
-
-
 NTG_API int
 ntg_prog_bar_draw_fn(
         const ntg_object* _prog_bar,
@@ -157,11 +128,7 @@ ntg_prog_bar_draw_fn(
         ntg_object_tmp_draw* out_drawing,
         sarena* arena);
 
-/* ------------------------------------------------------ */
-
 NTG_API void
 ntg_prog_bar_deinit_fn(ntg_entity* _prog_bar);
-
-NTG_API extern const struct ntg_object_vtable NTG_PROG_BAR_OBJECT_IMPL;
 
 #endif // NTG_PROG_BAR_H

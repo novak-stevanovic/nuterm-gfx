@@ -37,35 +37,23 @@ static const struct ntg_anchor_policy_vtable VTABLE = {
 /* ========================================================================== */
 
 /* ========================================================================== */
-/* TYPES */
-/* ========================================================================== */
-
-struct ntg_sidefloat_opts ntg_sidefloat_opts_default(void)
-{
-    return (struct ntg_sidefloat_opts) {
-        .align = NTG_ALIGN_1,
-        .side = NTG_SIDE_N,
-        .thresh = NTG_SIDEFLOAT_THRESH_MIN,
-        .size_cap = NTG_SIDEFLOAT_SIZE_CAP_NONE
-    };
-}
-
-/* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int ntg_sidefloat_init(
-        ntg_sidefloat* sidefloat_ap,
-        const struct ntg_sidefloat_opts* opts)
+int ntg_sidefloat_init(ntg_sidefloat* sidefloat_ap, const struct ntg_sidefloat_opts* opts)
 {
     if(!sidefloat_ap)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_anchor_policy_init_inherit(&sidefloat_ap->_base, &VTABLE, &NTG_TYPE_SIDEFLOAT);
-    if(_status)
-        return _status;
+    int status = ntg_anchor_policy_init_inherit(
+            ntg_ap(sidefloat_ap),
+            &VTABLE,
+            &NTG_TYPE_SIDEFLOAT);
+    NTG_POST_INHERIT_CHECK(status);
 
-    sidefloat_ap->ro.opts = opts ? (*opts) : ntg_sidefloat_opts_default();
+    ntg_entity_zero(sidefloat_ap);
+    sidefloat_ap->ro.opts = opts ? (*opts) : NTG_SIDEFLOAT_OPTS_ZERO;
+
     return 0;
 }
 
@@ -73,7 +61,7 @@ int ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap)
 {
     if(!sidefloat_ap) return NTG_ERR_INV_ARG;
 
-    sidefloat_ap->ro.opts = ntg_sidefloat_opts_default();
+    ntg_entity_zero(sidefloat_ap);
     ntg_anchor_policy_deinit(&sidefloat_ap->_base);
 
     return 0;

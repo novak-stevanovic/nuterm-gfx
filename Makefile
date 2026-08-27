@@ -11,7 +11,7 @@ PC_WITH_PATH :=
 CC := gcc
 AR := ar
 
-DEBUG ?= 1
+DEBUG ?= 0
 
 # ---------------------------------------------------------
 # Thirdparty dependencies

@@ -11,9 +11,6 @@
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static void init_default(ntg_stage* stage);
-static void init_default_drawing(ntg_stage* stage);
-
 static void draw_object(ntg_stage* stage, ntg_object* object);
 static bool draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 
@@ -33,7 +30,7 @@ static bool draw_layer(ntg_stage* stage, ntg_object* root, sarena* arena);
 
 int ntg_stage_init(ntg_stage* stage)
 {
-    return ntg_stage_init_inherit(stage, &NTG_STAGE_VTABLE_DEFAULT, &NTG_TYPE_STAGE);
+    return ntg_stage_init_inherit(stage, &NTG_STAGE_VTABLE, &NTG_TYPE_STAGE);
 }
 
 int ntg_stage_deinit(ntg_stage* stage)
@@ -52,9 +49,8 @@ int ntg_stage_deinit(ntg_stage* stage)
 
     ntg_stage_draw_deinit(&stage->ro.drawing);
 
+    ntg_entity_zero(stage);
     ntg_entity_deinit(ntg_ent(stage));
-
-    init_default(stage);
 
     return 0;
 }
@@ -111,8 +107,6 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     }
 
     ntg_scene_collect_layers_by_z(stage->ro.scene, layers, layer_count);
-
-    // init_default_drawing(stage);
 
     size_t i;
     for(i = 0; i < layer_count; i++)
@@ -246,33 +240,34 @@ int ntg_stage_init_inherit(
     if(!stage || !vtable || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!vtable->base.deinit_fn)
-        return NTG_ERR_BAD_VTABLE;
-
     if(!ntg_type_instanceof(type, &NTG_TYPE_STAGE))
         return NTG_ERR_BAD_TYPE;
 
-    init_default(stage);
-
     int status = ntg_entity_init_inherit(ntg_ent(stage), &vtable->base, type);
-    switch(status)
-    {
-        case 0:
-            break;
-        default:
-            return NTG_ERR_UNEXPECTED;
-    }
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    int _status = ntg_stage_draw_init(&stage->ro.drawing);
-    if(_status != 0)
+    ntg_entity_zero(stage);
+
+    status = ntg_stage_draw_init(&stage->ro.drawing);
+    if(status != 0)
     {
+        ntg_entity_zero(stage);
         ntg_entity_deinit(ntg_ent(stage));
-        init_default(stage);
-        return _status;
+        return status;
     }
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+const struct ntg_stage_vtable NTG_STAGE_VTABLE = {
+    .base.deinit_fn = ntg_stage_deinit_fn,
+    .handle_key_fn = ntg_stage_dispatch_key_fn,
+    .handle_mouse_fn = ntg_stage_dispatch_mouse_fn
+};
 
 bool ntg_stage_dispatch_key_fn(ntg_stage* stage, nt_key key)
 {
@@ -301,11 +296,6 @@ void ntg_stage_deinit_fn(ntg_entity* _stage)
     ntg_stage_deinit(ntg_stg(_stage));
 }
 
-const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT = {
-    .base.deinit_fn = ntg_stage_deinit_fn,
-    .handle_key_fn = ntg_stage_dispatch_key_fn,
-    .handle_mouse_fn = ntg_stage_dispatch_mouse_fn
-};
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -392,31 +382,6 @@ void ntg__stage_leave_loop(ntg_stage* stage)
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static void init_default(ntg_stage* stage)
-{
-    if(!stage) return;
-
-    (*stage) = (ntg_stage) {0};
-}
-
-static void init_default_drawing(ntg_stage* stage)
-{
-    if(!stage) return;
-
-    struct ntg_xy size = stage->ro.drawing.ro.size;
-
-    size_t i, j;
-    for(i = 0; i < size.y; i++)
-    {
-        for(j = 0; j < size.x; j++)
-        {
-            ntg_stage_draw_set(
-                    &stage->ro.drawing,
-                    ntg_cell_default(),
-                    ntg_xy(j, i));
-        }
-    }
-}
 
 static void draw_object(ntg_stage* stage, ntg_object* object)
 {

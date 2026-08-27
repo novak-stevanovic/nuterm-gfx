@@ -145,6 +145,12 @@ ntg_scene_init_inherit(
         const struct ntg_fcs_scope_keys* init_scope_keys,
         unsigned int max_it);
 
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+NTG_API extern const struct ntg_scene_vtable NTG_SCENE_VTABLE;
+
 NTG_API bool
 ntg_scene_dispatch_key_fn(ntg_scene* scene, nt_key key);
 
@@ -153,8 +159,6 @@ ntg_scene_dispatch_mouse_fn(ntg_scene* scene, nt_mouse mouse);
 
 NTG_API void
 ntg_scene_deinit_fn(ntg_entity* _scene);
-
-NTG_API extern const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT;
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

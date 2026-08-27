@@ -38,6 +38,8 @@ struct ntg_event
     void* data;
 };
 
+static const struct ntg_event NTG_EVENT_ZERO = {0};
+
 struct ntg_event_binding
 {
     struct
@@ -62,8 +64,7 @@ struct ntg_event_delegate
 static inline struct ntg_event
 ntg_event_new(unsigned int type, ntg_entity* source, void* data)
 {
-    if(type == NTG_EVENT_INVALID)
-        return (struct ntg_event) {0};
+    if(type == NTG_EVENT_INVALID) return NTG_EVENT_ZERO;
 
     return (struct ntg_event) {
         .type = type,
@@ -328,6 +329,13 @@ struct ntg_event_prog_bar_optchg_dt
 {
     const struct ntg_prog_bar_opts* old_opts;
     const struct ntg_prog_bar_opts* new_opts;
+};
+
+#define NTG_EVENT_PROG_BAR_STYLCHG 151
+struct ntg_event_prog_bar_stylchg_dt
+{
+    const struct ntg_prog_bar_style* old_style;
+    const struct ntg_prog_bar_style* new_style;
 };
 
 /* ------------------------------------------------------ */

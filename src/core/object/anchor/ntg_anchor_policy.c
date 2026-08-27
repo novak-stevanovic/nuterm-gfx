@@ -47,17 +47,6 @@ const ntg_anchor_policy NTG_ANCHOR_POLICY_ROOT = {
 };
 
 /* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
-int ntg_anchor_policy_vdeinit(ntg_anchor_policy* ap)
-{
-    if(!ap) return NTG_ERR_INV_ARG;
-
-    return ntg_entity_vdeinit(ntg_ent(ap));
-}
-
-/* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
 /* -------------------------------------------------------------------------- */
@@ -75,22 +64,13 @@ int ntg_anchor_policy_init_inherit(
     if(!ap || !vtable || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!vtable->base.deinit_fn)
-        return NTG_ERR_BAD_VTABLE;
-
     if(!ntg_type_instanceof(type, &NTG_TYPE_ANCHOR_POLICY))
         return NTG_ERR_BAD_TYPE;
 
-    (*ap) = (ntg_anchor_policy) {0};
-
     int status = ntg_entity_init_inherit(ntg_ent(ap), &vtable->base, type);
-    switch(status)
-    {
-        case 0:
-            break;
-        default:
-            return NTG_ERR_UNEXPECTED;
-    }
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
+
+    ntg_entity_zero(ap);
 
     return 0;
 }
@@ -99,8 +79,8 @@ int ntg_anchor_policy_deinit(ntg_anchor_policy* ap)
 {
     if(!ap) return NTG_ERR_INV_ARG;
 
+    ntg_entity_zero(ap);
     ntg_entity_deinit(ntg_ent(ap));
-    (*ap) = (ntg_anchor_policy) {0};
 
     return 0;
 }

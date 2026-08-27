@@ -37,35 +37,24 @@ static const struct ntg_anchor_policy_vtable VTABLE = {
 /* ========================================================================== */
 
 /* ========================================================================== */
-/* TYPES */
-/* ========================================================================== */
-
-struct ntg_float_opts ntg_float_opts_default(void)
-{
-    return (struct ntg_float_opts) {
-        .enable = NTG_FLOAT_ENABLE_MIN,
-        .shrink = ntg_insets(0, 0, 0, 0),
-        .prim_align = NTG_ALIGN_1,
-        .sec_align = NTG_ALIGN_1
-    };
-}
-
-/* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int ntg_float_init(
-        ntg_float* float_ap,
-        const struct ntg_float_opts* opts)
+int ntg_float_init(ntg_float* float_ap, const struct ntg_float_opts* opts)
 {
     if(!float_ap)
         return NTG_ERR_INV_ARG;
 
-    int _status = ntg_anchor_policy_init_inherit(&float_ap->_base, &VTABLE, &NTG_TYPE_FLOAT);
-    if(_status)
-        return _status;
+    int status = ntg_anchor_policy_init_inherit(
+            ntg_ap(float_ap),
+            &VTABLE,
+            &NTG_TYPE_FLOAT);
+    NTG_POST_INHERIT_CHECK(status);
 
-    float_ap->ro.opts = opts ? (*opts) : ntg_float_opts_default();
+    ntg_entity_zero(float_ap);
+
+    float_ap->ro.opts = opts ? (*opts) : NTG_FLOAT_OPTS_ZERO;
+
     return 0;
 }
 
@@ -73,7 +62,7 @@ int ntg_float_deinit(ntg_float* float_ap)
 {
     if(!float_ap) return NTG_ERR_INV_ARG;
 
-    float_ap->ro.opts = ntg_float_opts_default();
+    ntg_entity_zero(float_ap);
     ntg_anchor_policy_deinit(&float_ap->_base);
 
     return 0;

@@ -35,22 +35,11 @@ static struct ntg_opts _opts = {0};
 /* FUNCTIONS */
 /* ========================================================================== */
 
-struct ntg_opts ntg_opts_default(void)
-{
-    return (struct ntg_opts) {
-        .alt_screen_mode = NTG_ALT_SCREEN_ENABLE,
-        // .cursor_mode = NTG_CURSOR_HIDE,
-        .unsupported_term_mode = NTG_UNSUPPORTED_TERM_IGNORE
-    };
-}
-
-int ntg_enable(
-        const struct ntg_opts* opts,
-        const char* log_filepath)
+int ntg_enable(const struct ntg_opts* opts, const char* log_filepath)
 {
     int _status;
 
-    _opts = (opts ? (*opts) : ntg_opts_default());
+    _opts = (opts ? (*opts) : NTG_OPTS_ZERO);
 
     if(log_filepath != NULL)
     {

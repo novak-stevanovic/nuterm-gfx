@@ -2,6 +2,7 @@
 #define NTG_CONVENIENCE_H
 
 #include "shared/ntg_shared.h"
+#include <string.h>
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -55,6 +56,10 @@
 
 #define ntg_ap(ap_ptr) ((ntg_anchor_policy*)(ap_ptr))
 #define ntg_ap_vtbl(ap_ptr) ((struct ntg_anchor_policy_vtable*)((ntg_ent(ap_ptr))->ro.vtable))
+
+#define ntg_entity_zero(ent_ptr) \
+    memset((unsigned char*)(ent_ptr) + sizeof((ent_ptr)->_base), 0, \
+            sizeof(*(ent_ptr)) - sizeof((ent_ptr)->_base))
 
 #define NTG_CLEANUP_GEN_FN(fn_name, callee_fn)                                 \
 static void fn_name(void* data)                                                \

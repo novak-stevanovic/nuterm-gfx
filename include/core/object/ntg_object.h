@@ -39,8 +39,7 @@ struct ntg_bdr_opts
     const struct ntg_border_style* style;
 };
 
-NTG_API struct ntg_bdr_opts
-ntg_bdr_opts_default(void);
+static const struct ntg_bdr_opts NTG_BDR_OPTS_ZERO = {0};
 
 NTG_API bool
 ntg_bdr_opts_are_eql(const struct ntg_bdr_opts* o1, const struct ntg_bdr_opts* o2);
@@ -51,7 +50,7 @@ struct ntg_pad_opts
     struct ntg_insets pref_size;
 };
 
-NTG_API struct ntg_pad_opts ntg_padding_opts_default(void);
+static const struct ntg_pad_opts NTG_PAD_OPTS_ZERO = {0};
 
 NTG_API bool
 ntg_pad_opts_are_eql(const struct ntg_pad_opts* o1, const struct ntg_pad_opts* o2);
@@ -185,14 +184,6 @@ struct ntg_object
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
-
-/* ------------------------------------------------------ */
-/* GENERAL */
-/* ------------------------------------------------------ */
-
-void ntg_object_vdeinit(ntg_object* object);
-
-/* ------------------------------------------------------ */
 
 NTG_API bool
 ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event);

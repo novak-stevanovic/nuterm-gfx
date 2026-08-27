@@ -3,12 +3,22 @@
 
 #include "shared/ntg_shared.h"
 #include "base/entity/ntg_entity.h"
+#include "base/ntg_cell.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
+
+static inline struct ntg_cell
+ntg_renderer_cell_normalize(struct ntg_cell cell)
+{
+    return (struct ntg_cell) {
+        .cp = (ntg_cell_cp_is_ws(cell.cp) ? ' ' : cell.cp),
+        .gfx = cell.gfx
+    };
+}
 
 /* ========================================================================== */
 /* TYPES */
@@ -27,7 +37,7 @@ struct ntg_renderer
 /* FUNCTIONS */
 /* ========================================================================== */
 
-NTG_API int
+NTG_API bool
 ntg_renderer_render(
         ntg_renderer* renderer,
         const ntg_stage_draw* stage_drawing,
@@ -47,7 +57,7 @@ struct ntg_renderer_vtable
 {
     struct ntg_entity_vtable base;
 
-    int (*render_fn)(
+    bool (*render_fn)(
             ntg_renderer* renderer,
             const ntg_stage_draw* stage_drawing,
             sarena* arena);

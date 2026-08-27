@@ -104,15 +104,6 @@ static inline bool set_pos_helper(ntg_object* object, struct ntg_xy pos);
 /* TYPES */
 /* ========================================================================== */
 
-struct ntg_bdr_opts ntg_bdr_opts_default(void)
-{
-    return (struct ntg_bdr_opts) {
-        .style = &NTG_BORDER_STYLE_DEFAULT,
-        .pref_size = ntg_insets(0, 0, 0, 0),
-        .enable = NTG_OBJECT_DCR_ENABLE_MIN
-    };
-}
-
 bool ntg_bdr_opts_are_eql(
         const struct ntg_bdr_opts* opts1,
         const struct ntg_bdr_opts* opts2)
@@ -126,14 +117,6 @@ bool ntg_bdr_opts_are_eql(
     return ((opts1->enable == opts2->enable) &&
             (ntg_insets_are_eql(opts1->pref_size, opts2->pref_size)) &&
             (opts1->style == opts2->style));
-}
-
-struct ntg_pad_opts ntg_padding_opts_default(void)
-{
-    return (struct ntg_pad_opts) {
-        .pref_size = ntg_insets(0, 0, 0, 0),
-        .enable = NTG_OBJECT_DCR_ENABLE_MIN
-    };
 }
 
 bool ntg_pad_opts_are_eql(
@@ -183,19 +166,6 @@ bool ntg_layout_opts_are_eql(
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
-
-/* ------------------------------------------------------ */
-/* GENERAL */
-/* ------------------------------------------------------ */
-
-void ntg_object_vdeinit(ntg_object* object)
-{
-    if(!object) return;
-
-    ntg_entity_vdeinit(ntg_ent(object));
-}
-
-/* ------------------------------------------------------ */
 
 bool ntg_object_feed_key(ntg_object* object, const struct ntg_object_key* event)
 {
@@ -290,7 +260,9 @@ int ntg_object_set_bdr_opts(ntg_object* object, const struct ntg_bdr_opts* opts_
     if(!object) return NTG_ERR_INV_ARG;
 
     struct ntg_bdr_opts old_opts = object->ro.border_opts;
-    struct ntg_bdr_opts new_opts = (opts_cp ? (*opts_cp) : ntg_bdr_opts_default());
+    struct ntg_bdr_opts new_opts = (opts_cp ? (*opts_cp) : NTG_BDR_OPTS_ZERO);
+    if(!new_opts.style)
+        new_opts.style = &NTG_BORDER_STYLE_DEFAULT;
 
     if(ntg_bdr_opts_are_eql(&old_opts, &new_opts))
         return 0;
@@ -323,7 +295,7 @@ int ntg_object_set_pad_opts(ntg_object* object, const struct ntg_pad_opts* opts_
     if(!object) return NTG_ERR_INV_ARG;
 
     struct ntg_pad_opts old_opts = object->ro.padding_opts;
-    struct ntg_pad_opts new_opts = (opts_cp ? (*opts_cp) : ntg_padding_opts_default());
+    struct ntg_pad_opts new_opts = (opts_cp ? (*opts_cp) : NTG_PAD_OPTS_ZERO);
 
     if(ntg_pad_opts_are_eql(&old_opts, &new_opts))
         return 0;
@@ -351,7 +323,10 @@ int ntg_object_set_pad_opts(ntg_object* object, const struct ntg_pad_opts* opts_
 
 int ntg_object_set_anchor_policy(ntg_object* object, const ntg_anchor_policy* policy)
 {
-    ntg_not_null(object);
+    if(!object) return NTG_ERR_INV_ARG;
+
+    if(!policy)
+        policy = &NTG_ANCHOR_POLICY_ROOT;
 
     object->ro.anchor_policy = policy;
 
@@ -362,8 +337,7 @@ int ntg_object_set_anchor_policy(ntg_object* object, const ntg_anchor_policy* po
 
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_object_hit_res
-ntg_object_hit_test(ntg_object* object, struct ntg_xy pos)
+struct ntg_object_hit_res ntg_object_hit_test(ntg_object* object, struct ntg_xy pos)
 {
     struct ntg_object_hit_res out = {0};
 
@@ -993,18 +967,10 @@ int ntg_object_sort_by_z(ntg_object** objects, size_t size)
 
 static void init_default(ntg_object* object)
 {
-    (*object) = (ntg_object) {0};
-
-    object->ro.layout_opts = ntg_lay_opts_default();
-
-    object->ro.border_opts = ntg_bdr_opts_default();
-    object->ro.padding_opts = ntg_padding_opts_default();
+    ntg_entity_zero(object);
     object->ro.anchor_policy = &NTG_ANCHOR_POLICY_ROOT;
-
-    object->priv.base_bg = ntg_vcell_new_default();
-
-    object->ro.clickable = NTG_OBJECT_UNCLICKABLE;
-    object->ro.focusable = NTG_OBJECT_UNFOCUSABLE;
+    object->ro.border_opts.style = &NTG_BORDER_STYLE_DEFAULT;
+    object->ro.layout_opts = ntg_lay_opts_default();
 }
 
 int ntg_object_init_inherit(
@@ -1016,25 +982,15 @@ int ntg_object_init_inherit(
     if(!object || !vtable || !type)
         return NTG_ERR_INV_ARG;
 
-    if(!vtable->base.deinit_fn)
-        return NTG_ERR_BAD_VTABLE;
-
     if(!ntg_type_instanceof(type, &NTG_TYPE_OBJECT))
         return NTG_ERR_BAD_TYPE;
 
+    int status = ntg_entity_init_inherit(ntg_ent(object), &vtable->base, type);
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
+
     init_default(object);
 
-    int status = ntg_entity_init_inherit(ntg_ent(object), &vtable->base, type);
-    switch(status)
-    {
-        case 0:
-            break;
-        default:
-            return NTG_ERR_UNEXPECTED;
-    }
-
     object->priv.layout_dt = layout_dt;
-
     ntg_object_draw_init(&object->ro.drawing);
 
     return 0;
@@ -1077,12 +1033,11 @@ int ntg_object_deinit(ntg_object* object)
 
     ntg_object_draw_deinit(&object->ro.drawing);
 
-    ntg_entity_deinit(ntg_ent(object));
-
     if(object->priv.layout_dt && object->priv.layout_dt->free_fn)
         object->priv.layout_dt->free_fn(object->priv.layout_dt);
 
-    init_default(object);
+    ntg_entity_zero(object);
+    ntg_entity_deinit(ntg_ent(object));
 
     return 0;
 }
@@ -1968,7 +1923,6 @@ int ntg__object_draw(ntg_object* object, sarena* arena)
 
     int _status = ntg_object_draw_set_size(&object->ro.drawing, object->ro.size);
     if(_status != 0) return _status;
-    struct ntg_xy drawing_size = object->ro.drawing.ro.size;
 
     if(ntg_insets_hsum(object->ro.border_size) || ntg_insets_vsum(object->ro.border_size))
         _status = draw_unoptimized(object, arena);
@@ -2652,7 +2606,6 @@ draw_unoptimized(ntg_object* object, sarena* arena)
 
     size_t i, j;
 
-    /*
     for(i = bsize.n; i < (object_size.y - bsize.s); i++)
     {
         for(j = bsize.w; j < (object_size.x - bsize.e); j++)
@@ -2660,7 +2613,6 @@ draw_unoptimized(ntg_object* object, sarena* arena)
             ntg_object_tmp_draw_set(&object_drawing, bg, ntg_xy(j, i));
         }
     }
-    */
 
     if(ntg_obj_vtbl(object)->draw_fn)
     {

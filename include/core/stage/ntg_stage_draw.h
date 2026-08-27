@@ -54,14 +54,14 @@ ntg_stage_draw_set_size(ntg_stage_draw* drawing, struct ntg_xy size);
 static inline struct ntg_cell
 ntg_stage_draw_get(const ntg_stage_draw* drawing, struct ntg_xy pos)
 {
-    if(!drawing) return ntg_cell_default();
+    if(!drawing) return NTG_CELL_ZERO;
 
     struct ntg_xy size = drawing->ro.size;
 
     if((pos.x < size.x) && (pos.y < size.y))
         return drawing->priv.cell_vec.data[pos.y * size.x + pos.x];
     else
-        return ntg_cell_default();
+        return NTG_CELL_ZERO;
 }
 
 static inline void

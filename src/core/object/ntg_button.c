@@ -3,16 +3,6 @@
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
-/* STATIC */
-/* -------------------------------------------------------------------------- */
-/* ========================================================================== */
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
-/* ========================================================================== */
-/* -------------------------------------------------------------------------- */
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
@@ -20,13 +10,6 @@
 /* ========================================================================== */
 /* TYPES */
 /* ========================================================================== */
-
-struct ntg_button_opts ntg_button_opts_default(void)
-{
-    return (struct ntg_button_opts) {
-        .text_opts = ntg_text_opts_default()
-    };
-}
 
 bool ntg_button_opts_are_eql(
         const struct ntg_button_opts* opts1,
@@ -57,30 +40,8 @@ int ntg_button_init(
     if(!button)
         return NTG_ERR_INV_ARG;
 
-    button->priv.click_fn = NULL;
-
-    int status = ntg_text_init_inherit(
-            ntg_txt(button), &NTG_BUTTON_TEXT_IMPL, &NTG_TYPE_BUTTON, NULL);
-    if(status != 0) return status;
-
-    status = ntg_button_set_text_unsafe(button, "");
-    switch(status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_text_deinit(ntg_txt(button));
-            return NTG_ERR_ALLOC_FAIL;
-        default:
-            ntg_text_deinit(ntg_txt(button));
-            return NTG_ERR_UNEXPECTED;
-    }
-
-    ntg_button_set_opts(button, NULL);
-    ntg_button_set_click_fn(button, NULL);
-
-    ntg_object_set_focusable(ntg_obj(button), NTG_OBJECT_FOCUSABLE);
-    ntg_object_set_clickable(ntg_obj(button), NTG_OBJECT_CLICKABLE_CONT);
+    int status = ntg_button_init_inherit(button, &NTG_BUTTON_VTABLE, &NTG_TYPE_BUTTON, NULL);
+    NTG_POST_INHERIT_CHECK(status);
 
     ntg_button_set_opts(button, opts);
     ntg_button_set_click_fn(button, click_fn);
@@ -91,9 +52,8 @@ int ntg_button_deinit(ntg_button* button)
 {
     if(!button) return NTG_ERR_INV_ARG;
 
+    ntg_entity_zero(button);
     ntg_text_deinit(ntg_txt(button));
-
-    button->priv.click_fn = NULL;
 
     return 0;
 }
@@ -120,7 +80,7 @@ int ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
 {
     if(!button) return NTG_ERR_INV_ARG;
 
-    struct ntg_button_opts new_opts = (opts ? (*opts) : ntg_button_opts_default());
+    struct ntg_button_opts new_opts = (opts ? (*opts) : NTG_BUTTON_OPTS_ZERO);
     struct ntg_button_opts old_opts = {0};
     ntg_button_get_opts(button, &old_opts);
 
@@ -191,41 +151,42 @@ int ntg_button_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
-    if(!button || !type)
+    if(!button || !type || !vtable)
         return NTG_ERR_INV_ARG;
-
-    if(!vtable)
-        return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_BUTTON))
         return NTG_ERR_BAD_TYPE;
 
-    button->priv.click_fn = NULL;
+    int status = ntg_text_init_inherit(ntg_txt(button), &vtable->base, type, layout_dt);
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    int status = ntg_text_init_inherit(
-            ntg_txt(button), &vtable->text, type, layout_dt);
-    if(status != 0) return status;
-
-    status = ntg_button_set_text_unsafe(button, "");
-    switch(status)
-    {
-        case 0:
-            break;
-        case NTG_ERR_ALLOC_FAIL:
-            ntg_text_deinit(ntg_txt(button));
-            return NTG_ERR_ALLOC_FAIL;
-        default:
-            ntg_text_deinit(ntg_txt(button));
-            return NTG_ERR_UNEXPECTED;
-    }
-
-    ntg_button_set_opts(button, NULL);
-    ntg_button_set_click_fn(button, NULL);
+    ntg_entity_zero(button);
 
     ntg_object_set_focusable(ntg_obj(button), NTG_OBJECT_FOCUSABLE);
     ntg_object_set_clickable(ntg_obj(button), NTG_OBJECT_CLICKABLE_CONT);
+
     return 0;
 }
+
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+const struct ntg_button_vtable NTG_BUTTON_VTABLE = {
+    .base = {
+        .base = {
+            .layout_prepare_fn = ntg_button_layout_prepare_fn,
+            .measure_fn = ntg_button_measure_fn,
+            .draw_fn = ntg_button_draw_fn,
+            .base.deinit_fn = ntg_button_deinit_fn,
+            .cont_resize_fn = ntg_text_cont_resize_fn,
+            .handle_mouse_fn = ntg_button_process_mouse_fn,
+            .focus_fn = ntg_button_focus_fn,
+            .unfocus_fn = ntg_button_unfocus_fn
+        },
+        .post_draw_fn = ntg_button_post_draw_fn
+    }
+};
 
 int ntg_button_layout_prepare_fn(
         ntg_object* object, 
@@ -295,16 +256,3 @@ void ntg_button_post_draw_fn(
     (void)arena;
 }
 
-const struct ntg_text_vtable NTG_BUTTON_TEXT_IMPL = {
-    .object = {
-        .layout_prepare_fn = ntg_button_layout_prepare_fn,
-        .measure_fn = ntg_button_measure_fn,
-        .draw_fn = ntg_button_draw_fn,
-        .base.deinit_fn = ntg_button_deinit_fn,
-        .cont_resize_fn = ntg_text_cont_resize_fn,
-        .handle_mouse_fn = ntg_button_process_mouse_fn,
-        .focus_fn = ntg_button_focus_fn,
-        .unfocus_fn = ntg_button_unfocus_fn
-    },
-    .post_draw_fn = ntg_button_post_draw_fn
-};

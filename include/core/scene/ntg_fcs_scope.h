@@ -58,10 +58,8 @@ struct ntg_fcs_scope_opts
 
 struct ntg_fcs_scope_keys
 {
-    nt_key left_click,
-           right_click, middle_click,
-           scroll_up, scroll_down,
-           cancel;
+    nt_key left_click, right_click, middle_click,
+           scroll_up, scroll_down, cancel;
 };
 
 /* ------------------------------------------------------ */

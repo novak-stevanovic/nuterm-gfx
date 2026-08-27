@@ -31,13 +31,9 @@ struct ntg_loop_init_opts
     size_t arena_size;
 };
 
-NTG_API struct ntg_loop_init_opts
-ntg_loop_init_opts_default(void);
-
 /* ------------------------------------------------------ */
 
 #define NTG_LOOP_FRAMERATE_AUTO 60
-#define NTG_LOOP_FRAMERATE_MAX 500
 
 enum ntg_loop_mouse_mode
 {
@@ -50,9 +46,6 @@ struct ntg_loop_start_opts
     enum ntg_loop_mouse_mode mouse_mode; 
     unsigned int framerate;
 };
-
-NTG_API struct ntg_loop_start_opts
-ntg_loop_start_opts_default(void);
 
 /* ========================================================================== */
 /* FUNCTIONS */

@@ -27,17 +27,6 @@ static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 /* TYPES */
 /* ========================================================================== */
 
-struct ntg_box_opts ntg_box_opts_default(void)
-{
-    return (struct ntg_box_opts) {
-        .orient = NTG_ORIENT_H,
-        .prim_align = NTG_ALIGN_1,
-        .sec_align = NTG_ALIGN_1,
-        .spacing = 0,
-        .bg = ntg_vcell_new_default()
-    };
-}
-
 /* ------------------------------------------------------ */
 
 bool ntg_box_opts_are_eql(
@@ -65,23 +54,16 @@ bool ntg_box_opts_are_eql(
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_box_init(
-        ntg_box* box,
-        const struct ntg_box_opts* opts)
+int ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts)
 {
-    int _status;
+    if(!box) return NTG_ERR_INV_ARG;
 
-    _status = ntg_object_init_inherit(
-            (ntg_object*)box,
-            &NTG_BOX_OBJECT_IMPL,
-            &NTG_TYPE_BOX,
-            NULL);
-    if(_status != 0)
-        return _status;
+    int status = ntg_box_init_inherit(box, &NTG_BOX_VTABLE, &NTG_TYPE_BOX, NULL);
+    NTG_POST_INHERIT_CHECK(status);
 
-    box->ro.opts = ntg_box_opts_default();
     ntg_box_set_opts(box, opts);
-    return 0;
+
+    return status;
 }
 
 /* ------------------------------------------------------ */
@@ -90,18 +72,10 @@ int ntg_box_deinit(ntg_box* box)
 {
     if(!box) return NTG_ERR_INV_ARG;
 
-    box->ro.opts = ntg_box_opts_default();
-
+    ntg_entity_zero(box);
     ntg_object_deinit((ntg_object*)box);
 
     return 0;
-}
-
-/* ------------------------------------------------------ */
-
-void ntg_box_deinit_void(void* _box)
-{
-    ntg_box_deinit(_box);
 }
 
 /* ------------------------------------------------------ */
@@ -113,7 +87,7 @@ int ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
     if(!box) return NTG_ERR_INV_ARG;
 
     struct ntg_box_opts old_opts = box->ro.opts;
-    struct ntg_box_opts new_opts = (opts ? (*opts) : ntg_box_opts_default());
+    struct ntg_box_opts new_opts = (opts ? (*opts) : NTG_BOX_OPTS_ZERO);
 
     if(ntg_box_opts_are_eql(&old_opts, &new_opts))
         return 0;
@@ -192,25 +166,35 @@ int ntg_box_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
-    if(!box || !type)
+    if(!box || !type || !vtable)
         return NTG_ERR_INV_ARG;
-
-    if(!vtable)
-        return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_BOX))
         return NTG_ERR_BAD_TYPE;
 
-    int _status = ntg_object_init_inherit(
-            (ntg_object*)box, &vtable->object, type, layout_dt);
-    if(_status != 0)
-        return _status;
+    int status = ntg_object_init_inherit(ntg_obj(box), &vtable->base, type, layout_dt);
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    box->ro.opts = ntg_box_opts_default();
+    ntg_entity_zero(box);
+
     return 0;
 }
 
 /* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+const struct ntg_box_vtable NTG_BOX_VTABLE = {
+    .base = {
+        .base = {
+            .deinit_fn = ntg_box_deinit_fn
+        },
+        .measure_fn = ntg_box_measure_fn,
+        .constrain_fn = ntg_box_constrain_fn,
+        .arrange_fn = ntg_box_arrange_fn,
+        .rm_child_fn = ntg_box_child_rm_fn
+    }
+};
 
 int ntg_box_measure_fn(
         const ntg_object* _box,
@@ -526,8 +510,6 @@ int ntg_box_arrange_fn(
     return 0;
 }
 
-/* ------------------------------------------------------ */
-
 void ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child)
 {
     (void)child;
@@ -537,17 +519,7 @@ void ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child)
     ntg_object_mark_dirty((ntg_object*)box, NTG_OBJECT_DIRTY_FULL);
 }
 
-/* ------------------------------------------------------ */
-
 void ntg_box_deinit_fn(ntg_entity* _box)
 {
     ntg_box_deinit(ntg_box(_box));
 }
-
-NTG_API const struct ntg_object_vtable NTG_BOX_OBJECT_IMPL = {
-    .measure_fn = ntg_box_measure_fn,
-    .constrain_fn = ntg_box_constrain_fn,
-    .arrange_fn = ntg_box_arrange_fn,
-    .rm_child_fn = ntg_box_child_rm_fn,
-    .base.deinit_fn = ntg_box_deinit_fn
-};

@@ -30,15 +30,6 @@ static void get_children(
 /* TYPES */
 /* ========================================================================== */
 
-struct ntg_main_panel_opts ntg_main_panel_opts_default(void)
-{
-    return (struct ntg_main_panel_opts) {
-        .bg = ntg_vcell_new_default()
-    };
-}
-
-/* ------------------------------------------------------ */
-
 bool ntg_main_panel_opts_are_eql(
         const struct ntg_main_panel_opts* opts1,
         const struct ntg_main_panel_opts* opts2)
@@ -60,22 +51,20 @@ bool ntg_main_panel_opts_are_eql(
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_main_panel_init(
-        ntg_main_panel* panel,
-        const struct ntg_main_panel_opts* opts)
+int ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts)
 {
-    int _status = ntg_object_init_inherit(
-            (ntg_object*)panel,
-            &NTG_MAIN_PANEL_OBJECT_IMPL,
+    if(!panel) return NTG_ERR_INV_ARG;
+
+    int status = ntg_main_panel_init_inherit(
+            panel,
+            &NTG_MAIN_PANEL_VTABLE,
             &NTG_TYPE_MAIN_PANEL,
             NULL);
-    if(_status != 0)
-        return _status;
+    NTG_POST_INHERIT_CHECK(status);
 
-    panel->ro.opts = ntg_main_panel_opts_default();
-    memset(panel->ro.children, 0, sizeof(panel->ro.children));
     ntg_main_panel_set_opts(panel, opts);
-    return 0;
+
+    return status;
 }
 
 /* ------------------------------------------------------ */
@@ -84,19 +73,11 @@ int ntg_main_panel_deinit(ntg_main_panel* panel)
 {
     if(!panel) return NTG_ERR_INV_ARG;
 
-    panel->ro.opts = ntg_main_panel_opts_default();
-    memset(panel->ro.children, 0, sizeof(panel->ro.children));
+    ntg_entity_zero(panel);
 
     ntg_object_deinit((ntg_object*)panel);
 
     return 0;
-}
-
-/* ------------------------------------------------------ */
-
-void ntg_main_panel_deinit_void(void* _panel)
-{
-    ntg_main_panel_deinit(_panel);
 }
 
 /* ------------------------------------------------------ */
@@ -152,8 +133,7 @@ int ntg_main_panel_set_opts(
     if(!panel) return NTG_ERR_INV_ARG;
 
     struct ntg_main_panel_opts old_opts = panel->ro.opts;
-    struct ntg_main_panel_opts new_opts =
-            (opts ? (*opts) : ntg_main_panel_opts_default());
+    struct ntg_main_panel_opts new_opts = (opts ? (*opts) : NTG_MAIN_PANEL_OPTS_ZERO);
 
     if(ntg_main_panel_opts_are_eql(&old_opts, &new_opts))
         return 0;
@@ -187,26 +167,39 @@ int ntg_main_panel_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
-    if(!panel || !type)
+    if(!panel || !type || !vtable)
         return NTG_ERR_INV_ARG;
-
-    if(!vtable)
-        return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_MAIN_PANEL))
         return NTG_ERR_BAD_TYPE;
 
-    int _status = ntg_object_init_inherit(
-            (ntg_object*)panel, &vtable->object, type, layout_dt);
-    if(_status != 0)
-        return _status;
+    int status = ntg_object_init_inherit(
+            ntg_obj(panel),
+            &vtable->base,
+            type,
+            layout_dt);
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    panel->ro.opts = ntg_main_panel_opts_default();
-    memset(panel->ro.children, 0, sizeof(panel->ro.children));
+    ntg_entity_zero(panel);
+
     return 0;
 }
 
 /* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+const struct ntg_main_panel_vtable NTG_MAIN_PANEL_VTABLE = {
+    .base = {
+        .base = {
+            .deinit_fn = ntg_main_panel_deinit_fn
+        },
+        .measure_fn = ntg_main_panel_measure_fn,
+        .constrain_fn = ntg_main_panel_constrain_fn,
+        .arrange_fn = ntg_main_panel_arrange_fn,
+        .rm_child_fn = ntg_main_panel_child_rm_fn
+    }
+};
 
 int ntg_main_panel_measure_fn(
         const ntg_object* _panel,
@@ -571,17 +564,7 @@ void ntg_main_panel_child_rm_fn(ntg_object* _main_panel, ntg_object* child)
     ntg_object_mark_dirty(_main_panel, NTG_OBJECT_DIRTY_FULL);
 }
 
-/* ------------------------------------------------------ */
-
 void ntg_main_panel_deinit_fn(ntg_entity* _panel)
 {
     ntg_main_panel_deinit((ntg_main_panel*)_panel);
 }
-
-const struct ntg_object_vtable NTG_MAIN_PANEL_OBJECT_IMPL = {
-    .measure_fn = ntg_main_panel_measure_fn,
-    .constrain_fn = ntg_main_panel_constrain_fn,
-    .arrange_fn = ntg_main_panel_arrange_fn,
-    .rm_child_fn = ntg_main_panel_child_rm_fn,
-    .base.deinit_fn = ntg_main_panel_deinit_fn
-};

@@ -111,6 +111,12 @@ ntg_stage_init_inherit(
         const struct ntg_stage_vtable* vtable,
         const ntg_type* type);
 
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE;
+
 NTG_API bool
 ntg_stage_dispatch_key_fn(ntg_stage* stage, nt_key key);
 
@@ -119,8 +125,6 @@ ntg_stage_dispatch_mouse_fn(ntg_stage* stage, nt_mouse mouse);
 
 NTG_API void
 ntg_stage_deinit_fn(ntg_entity* _stage);
-
-NTG_API extern const struct ntg_stage_vtable NTG_STAGE_VTABLE_DEFAULT;
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

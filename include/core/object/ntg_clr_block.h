@@ -35,15 +35,8 @@ struct ntg_clr_block
 NTG_API int
 ntg_clr_block_init(ntg_clr_block* clr_block, nt_color color);
 
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_clr_block_deinit(ntg_clr_block* clr_block);
-
-/* ------------------------------------------------------ */
-
-NTG_API void
-ntg_clr_block_deinit_void(void* _clr_block);
 
 /* ------------------------------------------------------ */
 /* COLOR */
@@ -64,7 +57,7 @@ ntg_clr_block_set_color(ntg_clr_block* clr_block, nt_color color);
 
 struct ntg_clr_block_vtable
 {
-    struct ntg_object_vtable object;
+    struct ntg_object_vtable base;
 };
 
 /* ========================================================================== */
@@ -79,7 +72,10 @@ ntg_clr_block_init_inherit(
         struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
 
+NTG_API extern const struct ntg_clr_block_vtable NTG_CLR_BLOCK_VTABLE;
 
 NTG_API int
 ntg_clr_block_measure_fn(
@@ -103,7 +99,5 @@ ntg_clr_block_draw_fn(
 
 NTG_API void
 ntg_clr_block_deinit_fn(ntg_entity* _clr_block);
-
-NTG_API extern const struct ntg_object_vtable NTG_CLR_BLOCK_OBJECT_IMPL;
 
 #endif // NTG_CLR_BLOCK_H

@@ -63,27 +63,6 @@ static void execute_ready_tasks(void);
 /* ========================================================================== */
 
 /* ========================================================================== */
-/* TYPES */
-/* ========================================================================== */
-
-struct ntg_loop_init_opts ntg_loop_init_opts_default(void)
-{
-    return (struct ntg_loop_init_opts) {
-        .arena_size = NTG_LOOP_ARENA_SIZE_AUTO
-    };
-}
-
-/* ------------------------------------------------------ */
-
-struct ntg_loop_start_opts ntg_loop_start_opts_default(void)
-{
-    return (struct ntg_loop_start_opts) {
-        .mouse_mode = NTG_LOOP_MOUSE_DISABLE,
-        .framerate = NTG_LOOP_FRAMERATE_AUTO
-    };
-}
-
-/* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
@@ -131,20 +110,13 @@ int ntg_loop_init(
 
     /* Opts */
 
-    struct ntg_loop_init_opts opts_final;
-    if(opts)
-    {
-        if(opts->arena_size == 0)
-            return NTG_ERR_INV_ARG;
+    struct ntg_loop_init_opts opts_final = {0};
+    if(opts) opts_final = (*opts);
+    ntg_set_deref(opts_final, opts);
+    if(opts_final.arena_size == 0)
+        opts_final.arena_size = NTG_LOOP_ARENA_SIZE_AUTO;
 
-        opts_final = (*opts);
-    }
-    else
-    {
-        opts_final = ntg_loop_init_opts_default();
-    }
-
-    loop.task_list = (struct ntg_task_list) {0}; /* Can't fail */
+    loop.task_list = (struct ntg_task_list) {0};
     if(pthread_mutex_init(&loop.lock, NULL))
         return NTG_ERR_MUTEX_INIT_FAIL;
 
@@ -173,9 +145,7 @@ int ntg_loop_init(
             return NTG_ERR_ALLOC_FAIL; 
         }
 
-        status = ntg_db_renderer_init(
-                (ntg_db_renderer*)loop.renderer,
-                NULL);
+        status = ntg_db_renderer_init((ntg_db_renderer*)loop.renderer, NULL);
         if(status != 0)
         {
             deinit();
@@ -197,7 +167,6 @@ int ntg_loop_init(
     return 0;
 }
 
-// What if there are active tasks?
 int ntg_loop_deinit(void)
 {
     if(ntg_loop_is_running())
@@ -254,16 +223,10 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     if(loop.state != NTG_LOOP_READY)
         return NTG_ERR_INV_STATE;
 
-    struct ntg_loop_start_opts opts_final;
-    if(opts)
-    {
-        opts_final = (*opts);
-        opts_final.framerate = _min2_uint(opts_final.framerate, NTG_LOOP_FRAMERATE_MAX);
-    }
-    else
-    {
-        opts_final = ntg_loop_start_opts_default();
-    }
+    struct ntg_loop_start_opts opts_final = {0};
+    if(opts) opts_final = (*opts);
+    if(opts_final.framerate == 0)
+        opts_final.framerate = NTG_LOOP_FRAMERATE_AUTO;
 
     loop.framerate = opts_final.framerate;
 

@@ -19,8 +19,7 @@ struct ntg_main_panel_opts
     struct ntg_vcell bg;
 };
 
-NTG_API struct ntg_main_panel_opts
-ntg_main_panel_opts_default(void);
+static const struct ntg_main_panel_opts NTG_MAIN_PANEL_OPTS_ZERO = {0};
 
 /* ------------------------------------------------------ */
 
@@ -61,23 +60,11 @@ struct ntg_main_panel
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-
 NTG_API int
-ntg_main_panel_init(
-        ntg_main_panel* panel,
-        const struct ntg_main_panel_opts* opts);
-
-/* ------------------------------------------------------ */
-
+ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts);
 
 NTG_API int
 ntg_main_panel_deinit(ntg_main_panel* panel);
-
-/* ------------------------------------------------------ */
-
-
-NTG_API void
-ntg_main_panel_deinit_void(void* _panel);
 
 /* ------------------------------------------------------ */
 /* CHILDREN */
@@ -110,7 +97,7 @@ ntg_main_panel_set_opts(
 
 struct ntg_main_panel_vtable
 {
-    struct ntg_object_vtable object;
+    struct ntg_object_vtable base;
 };
 
 /* ========================================================================== */
@@ -125,6 +112,10 @@ ntg_main_panel_init_inherit(
         struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+NTG_API extern const struct ntg_main_panel_vtable NTG_MAIN_PANEL_VTABLE;
 
 NTG_API int
 ntg_main_panel_measure_fn(
@@ -135,8 +126,6 @@ ntg_main_panel_measure_fn(
         uint32_t* relayout,
         struct ntg_object_measure* out_measure);
 
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_main_panel_constrain_fn(
         const ntg_object* _panel,
@@ -146,8 +135,6 @@ ntg_main_panel_constrain_fn(
         sarena* arena,
         uint32_t* relayout);
 
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_main_panel_arrange_fn(
         const ntg_object* _panel,
@@ -156,16 +143,10 @@ ntg_main_panel_arrange_fn(
         sarena* arena,
         uint32_t* relayout);
 
-/* ------------------------------------------------------ */
-
 NTG_API void
 ntg_main_panel_child_rm_fn(ntg_object* _panel, ntg_object* child);
 
-/* ------------------------------------------------------ */
-
 NTG_API void
 ntg_main_panel_deinit_fn(ntg_entity* _panel);
-
-NTG_API extern const struct ntg_object_vtable NTG_MAIN_PANEL_OBJECT_IMPL;
 
 #endif // NTG_MAIN_PANEL_H

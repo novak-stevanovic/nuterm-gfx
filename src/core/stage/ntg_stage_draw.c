@@ -56,15 +56,13 @@ int ntg_stage_draw_set_size(ntg_stage_draw* drawing, struct ntg_xy size)
 
     size_t i;
 
-    drawing->ro.size = size;
-
     if(new_size_prod > curr_size_prod)
     {
         size_t diff = new_size_prod - curr_size_prod;
 
         for(i = 0; i < diff; i++)
         {
-            status = ntg_cell_vec_pushb(cell_vec, ntg_cell_default());
+            status = ntg_cell_vec_pushb(cell_vec, NTG_CELL_ZERO);
             if(status)
             {
                 ntg_cell_vec_popb_many(cell_vec, i);
@@ -72,10 +70,7 @@ int ntg_stage_draw_set_size(ntg_stage_draw* drawing, struct ntg_xy size)
             }
         }
 
-        for(i = 0; i < curr_size_prod; i++)
-            cell_vec->data[i] = ntg_cell_default();
-
-        return 0;
+        memset(cell_vec->data, 0, curr_size_prod * sizeof(struct ntg_cell));
     }
     else
     {
@@ -83,9 +78,9 @@ int ntg_stage_draw_set_size(ntg_stage_draw* drawing, struct ntg_xy size)
 
         ntg_cell_vec_popb_many_shrink(cell_vec, diff);
 
-        for(i = 0; i < new_size_prod; i++)
-            cell_vec->data[i] = ntg_cell_default();
-
-        return 0;
+        memset(cell_vec->data, 0, new_size_prod * sizeof(struct ntg_cell));
     }
+
+    drawing->ro.size = size;
+    return 0;
 }

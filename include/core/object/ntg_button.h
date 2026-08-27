@@ -19,8 +19,7 @@ struct ntg_button_opts
     struct ntg_text_opts text_opts;
 };
 
-NTG_API struct ntg_button_opts
-ntg_button_opts_default(void);
+static const struct ntg_button_opts NTG_BUTTON_OPTS_ZERO = {0};
 
 NTG_API bool
 ntg_button_opts_are_eql(
@@ -99,7 +98,7 @@ ntg_button_set_text_unsafe(ntg_button* button, const char* text);
 
 struct ntg_button_vtable
 {
-    struct ntg_text_vtable text;
+    struct ntg_text_vtable base;
 };
 
 /* ========================================================================== */
@@ -112,6 +111,12 @@ ntg_button_init_inherit(
         const struct ntg_button_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
+
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+NTG_API extern const struct ntg_button_vtable NTG_BUTTON_VTABLE;
 
 NTG_API int
 ntg_button_layout_prepare_fn(
@@ -152,7 +157,5 @@ ntg_button_post_draw_fn(
         const ntg_text* _button,
         ntg_object_tmp_draw* out_drawing,
         sarena* arena);
-
-NTG_API extern const struct ntg_text_vtable NTG_BUTTON_TEXT_IMPL;
 
 #endif // NTG_BUTTON_H

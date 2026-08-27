@@ -37,11 +37,6 @@ static inline void vconstrain_phase(ntg_object* root, struct layout_data* lay_da
 static inline void arrange_phase(ntg_object* root, struct layout_data* lay_data);
 static inline void draw_phase(ntg_object* root, struct layout_data* lay_data);
 
-static void init_default(ntg_scene* scene)
-{
-    (*scene) = (ntg_scene) {0};
-}
-
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* PUBLIC */
@@ -63,7 +58,7 @@ int ntg_scene_init(
 {
     return ntg_scene_init_inherit(
             scene,
-            &NTG_SCENE_VTABLE_DEFAULT,
+            &NTG_SCENE_VTABLE,
             &NTG_TYPE_SCENE,
             init_scope_keybinds,
             max_it);
@@ -82,11 +77,10 @@ int ntg_scene_deinit(ntg_scene* scene)
         free(scene->ro.fm);
     }
 
-    ntg_entity_deinit(ntg_ent(scene));
-
     ntg_objptr_vec_deinit(&scene->ro.roots);
 
-    init_default(scene);
+    ntg_entity_zero(scene);
+    ntg_entity_deinit(ntg_ent(scene));
 
     return 0;
 }
@@ -133,7 +127,7 @@ size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_object** out_buff, si
     {
         it_tree_count = ntg_object_graph_collect_roots_pre(
                 roots->data[i],
-                out_buff + sum,
+                out_buff ? out_buff + sum : NULL,
                 new_cap);
 
         sum += it_tree_count;
@@ -367,22 +361,13 @@ int ntg_scene_init_inherit(
     if(!scene || !vtable || !type || !max_it)
         return NTG_ERR_INV_ARG;
 
-    if(!vtable->base.deinit_fn)
-        return NTG_ERR_BAD_VTABLE;
-
     if(!ntg_type_instanceof(type, &NTG_TYPE_SCENE))
         return NTG_ERR_BAD_TYPE;
 
-    init_default(scene);
-
     int status = ntg_entity_init_inherit(ntg_ent(scene), &vtable->base, type);
-    switch(status)
-    {
-        case 0:
-            break;
-        default:
-            return NTG_ERR_UNEXPECTED;
-    }
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
+
+    ntg_entity_zero(scene);
 
     scene->ro.fm = malloc(sizeof(ntg_fcs_manager));
     if(!scene->ro.fm)
@@ -391,17 +376,29 @@ int ntg_scene_init_inherit(
         return NTG_ERR_ALLOC_FAIL;
     }
 
-    int _status = ntg__fcs_manager_init(scene->ro.fm, scene, init_scope_keybinds);
-    if(_status != 0)
+    status = ntg__fcs_manager_init(scene->ro.fm, scene, init_scope_keybinds);
+    if(status != 0)
     {
-        ntg_scene_deinit(scene);
-        return _status;
+        free(scene->ro.fm);
+        ntg_entity_zero(scene);
+        ntg_entity_deinit(ntg_ent(scene));
+        return status;
     }
 
     scene->priv.max_it = max_it;
 
     return 0;
 }
+
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+const struct ntg_scene_vtable NTG_SCENE_VTABLE = {
+    .base.deinit_fn = ntg_scene_deinit_fn,
+    .handle_key_fn = ntg_scene_dispatch_key_fn,
+    .handle_mouse_fn = ntg_scene_dispatch_mouse_fn
+};
 
 bool ntg_scene_dispatch_key_fn(ntg_scene* scene, nt_key key)
 {
@@ -422,11 +419,6 @@ void ntg_scene_deinit_fn(ntg_entity* _scene)
     ntg_scene_deinit(ntg_scn(_scene));
 }
 
-const struct ntg_scene_vtable NTG_SCENE_VTABLE_DEFAULT = {
-    .base.deinit_fn = ntg_scene_deinit_fn,
-    .handle_key_fn = ntg_scene_dispatch_key_fn,
-    .handle_mouse_fn = ntg_scene_dispatch_mouse_fn
-};
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

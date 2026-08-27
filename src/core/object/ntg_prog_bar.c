@@ -12,7 +12,7 @@
 /* TYPES */
 /* ========================================================================== */
 
-struct ntg_prog_bar_style ntg_prog_bar_style_default(void)
+struct ntg_prog_bar_style ntg_prog_bar_style_auto(void)
 {
     return (struct ntg_prog_bar_style) {
         .complete = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0)),
@@ -20,8 +20,6 @@ struct ntg_prog_bar_style ntg_prog_bar_style_default(void)
         .threshold = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0))
     };
 }
-
-/* ------------------------------------------------------ */
 
 bool ntg_prog_bar_style_are_eql(
         const struct ntg_prog_bar_style* style1,
@@ -33,25 +31,10 @@ bool ntg_prog_bar_style_are_eql(
     if(!style1 || !style2)
         return false;
 
-    return (ntg_vcell_are_eql(style1->complete,
-                             style2->complete) &&
-            ntg_vcell_are_eql(style1->uncomplete,
-                             style2->uncomplete) &&
-            ntg_vcell_are_eql(style1->threshold,
-                             style2->threshold));
+    return (ntg_vcell_are_eql(style1->complete, style2->complete) &&
+            ntg_vcell_are_eql(style1->uncomplete, style2->uncomplete) &&
+            ntg_vcell_are_eql(style1->threshold, style2->threshold));
 }
-
-/* ------------------------------------------------------ */
-
-struct ntg_prog_bar_opts ntg_prog_bar_opts_default(void)
-{
-    return (struct ntg_prog_bar_opts) {
-        .orient = NTG_ORIENT_H,
-        .style = ntg_prog_bar_style_default()
-    };
-}
-
-/* ------------------------------------------------------ */
 
 bool ntg_prog_bar_opts_are_eql(
         const struct ntg_prog_bar_opts* opts1,
@@ -63,8 +46,7 @@ bool ntg_prog_bar_opts_are_eql(
     if(!opts1 || !opts2)
         return false;
 
-    return (ntg_prog_bar_style_are_eql(&opts1->style, &opts2->style) &&
-            (opts1->orient == opts2->orient));
+    return (opts1->orient == opts2->orient);
 }
 
 /* ========================================================================== */
@@ -77,19 +59,20 @@ bool ntg_prog_bar_opts_are_eql(
 
 int ntg_prog_bar_init(
         ntg_prog_bar* prog_bar,
-        const struct ntg_prog_bar_opts* opts)
+        const struct ntg_prog_bar_opts* opts,
+        const struct ntg_prog_bar_style* style)
 {
-    int _status = ntg_object_init_inherit(
-            (ntg_object*)prog_bar,
-            &NTG_PROG_BAR_OBJECT_IMPL,
+    if(!prog_bar) return NTG_ERR_INV_ARG;
+
+    int status = ntg_prog_bar_init_inherit(
+            prog_bar,
+            &NTG_PROG_BAR_VTABLE,
             &NTG_TYPE_PROG_BAR,
             NULL);
-    if(_status != 0)
-        return _status;
+    NTG_POST_INHERIT_CHECK(status);
 
-    prog_bar->ro.prog = 0.0;
-    prog_bar->ro.opts = ntg_prog_bar_opts_default();
     ntg_prog_bar_set_opts(prog_bar, opts);
+    ntg_prog_bar_set_style(prog_bar, style);
     return 0;
 }
 
@@ -99,8 +82,7 @@ int ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 {
     if(!prog_bar) return NTG_ERR_INV_ARG;
 
-    prog_bar->ro.prog = 0.0;
-    prog_bar->ro.opts = ntg_prog_bar_opts_default();
+    ntg_entity_zero(prog_bar);
 
     ntg_object_deinit((ntg_object*)prog_bar);
 
@@ -108,25 +90,15 @@ int ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 }
 
 /* ------------------------------------------------------ */
-
-void ntg_prog_bar_deinit_void(void* _prog_bar)
-{
-    ntg_prog_bar_deinit(_prog_bar);
-}
-
-/* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
 
-int ntg_prog_bar_set_opts(
-        ntg_prog_bar* prog_bar,
-        const struct ntg_prog_bar_opts* opts)
+int ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
 {
     if(!prog_bar) return NTG_ERR_INV_ARG;
 
     struct ntg_prog_bar_opts old_opts = prog_bar->ro.opts;
-    struct ntg_prog_bar_opts new_opts =
-            (opts ? (*opts) : ntg_prog_bar_opts_default());
+    struct ntg_prog_bar_opts new_opts = (opts ? (*opts) : NTG_PROG_BAR_OPTS_ZERO);
 
     if(ntg_prog_bar_opts_are_eql(&old_opts, &new_opts))
         return 0;
@@ -140,6 +112,29 @@ int ntg_prog_bar_set_opts(
         .new_opts = &new_opts
     };
     ntg_entity_event_raise(ntg_ent(prog_bar), NTG_EVENT_PROG_BAR_OPTCHG, &event_dt);
+
+    return 0;
+}
+
+int ntg_prog_bar_set_style(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_style* style)
+{
+    if(!prog_bar) return NTG_ERR_INV_ARG;
+
+    struct ntg_prog_bar_style old_style = prog_bar->ro.style;
+    struct ntg_prog_bar_style new_style = (style ? (*style) : ntg_prog_bar_style_auto());
+
+    if(ntg_prog_bar_style_are_eql(&old_style, &new_style))
+        return 0;
+
+    prog_bar->ro.style = new_style;
+
+    ntg_object_mark_dirty((ntg_object*)prog_bar, NTG_OBJECT_DIRTY_DRAW);
+
+    struct ntg_event_prog_bar_stylchg_dt event_dt = {
+        .old_style = &old_style,
+        .new_style = &new_style
+    };
+    ntg_entity_event_raise(ntg_ent(prog_bar), NTG_EVENT_PROG_BAR_STYLCHG, &event_dt);
 
     return 0;
 }
@@ -188,26 +183,33 @@ int ntg_prog_bar_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
-    if(!prog_bar || !type)
+    if(!prog_bar || !type || !vtable)
         return NTG_ERR_INV_ARG;
-
-    if(!vtable)
-        return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_PROG_BAR))
         return NTG_ERR_BAD_TYPE;
 
-    int _status = ntg_object_init_inherit(
-            (ntg_object*)prog_bar, &vtable->object, type, layout_dt);
-    if(_status != 0)
-        return _status;
+    int status = ntg_object_init_inherit(ntg_obj(prog_bar), &vtable->base, type, layout_dt);
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    prog_bar->ro.prog = 0.0;
-    prog_bar->ro.opts = ntg_prog_bar_opts_default();
+    ntg_entity_zero(prog_bar);
+
     return 0;
 }
 
 /* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+const struct ntg_prog_bar_vtable NTG_PROG_BAR_VTABLE = {
+    .base = {
+        .base = {
+            .deinit_fn = ntg_prog_bar_deinit_fn
+        },
+        .measure_fn = ntg_prog_bar_measure_fn,
+        .draw_fn = ntg_prog_bar_draw_fn
+    }
+};
 
 int ntg_prog_bar_measure_fn(
         const ntg_object* _prog_bar,
@@ -267,15 +269,15 @@ int ntg_prog_bar_draw_fn(
             it_xy = ntg_xy_from_oxy(_it_xy);
 
             if(complete_count == _size.prim_val)
-                it_cell = prog_bar->ro.opts.style.complete;
+                it_cell = prog_bar->ro.style.complete;
             else if(complete_count == 0)
-                it_cell = prog_bar->ro.opts.style.uncomplete;
+                it_cell = prog_bar->ro.style.uncomplete;
             else if(i < (complete_count - 1))
-                it_cell = prog_bar->ro.opts.style.complete;
+                it_cell = prog_bar->ro.style.complete;
             else if(i == (complete_count - 1))
-                it_cell = prog_bar->ro.opts.style.threshold;
+                it_cell = prog_bar->ro.style.threshold;
             else
-                it_cell = prog_bar->ro.opts.style.uncomplete;
+                it_cell = prog_bar->ro.style.uncomplete;
 
             ntg_object_tmp_draw_set(out_drawing, it_cell, it_xy);
         }
@@ -291,8 +293,3 @@ void ntg_prog_bar_deinit_fn(ntg_entity* _prog_bar)
     ntg_prog_bar_deinit((ntg_prog_bar*)_prog_bar);
 }
 
-const struct ntg_object_vtable NTG_PROG_BAR_OBJECT_IMPL = {
-    .measure_fn = ntg_prog_bar_measure_fn,
-    .draw_fn = ntg_prog_bar_draw_fn,
-    .base.deinit_fn = ntg_prog_bar_deinit_fn
-};

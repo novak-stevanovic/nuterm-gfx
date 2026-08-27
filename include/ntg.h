@@ -70,8 +70,7 @@ struct ntg_opts
     enum ntg_unsupported_term_mode unsupported_term_mode;
 };
 
-NTG_API struct ntg_opts
-ntg_opts_default(void);
+static const struct ntg_opts NTG_OPTS_ZERO = {0};
 
 /* ========================================================================== */
 /* FUNCTIONS */
@@ -80,7 +79,7 @@ ntg_opts_default(void);
 NTG_API int
 ntg_enable(const struct ntg_opts* opts, const char* log_filepath);
 
-NTG_API const struct ntg_opts*
+NTG_API const struct ntg_opts
 ntg_get_opts(void);
 
 NTG_API void
@@ -89,7 +88,8 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-ntg_cell/ntg_vcell zero-initaliazable, ntg_fcs_scope default/auto values, remove _default() methods
+bug in south_box?
+zero-init: finish
 rename: ntg_object -> ntg_widget, ntg_entity -> ntg_object
 pos -> NTG_SIZE_MAX for no draw
 ntg_button: disable() or ntg_object: disable()?

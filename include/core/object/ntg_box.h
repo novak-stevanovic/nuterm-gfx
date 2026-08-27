@@ -24,12 +24,7 @@ struct ntg_box_opts
     struct ntg_vcell bg;
 };
 
-
-NTG_API struct ntg_box_opts
-ntg_box_opts_default(void);
-
-/* ------------------------------------------------------ */
-
+static const struct ntg_box_opts NTG_BOX_OPTS_ZERO = {0};
 
 NTG_API bool
 ntg_box_opts_are_eql(
@@ -58,28 +53,15 @@ struct ntg_box
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-
 NTG_API int
-ntg_box_init(
-        ntg_box* box,
-        const struct ntg_box_opts* opts);
-
-/* ------------------------------------------------------ */
-
+ntg_box_init(ntg_box* box, const struct ntg_box_opts* opts);
 
 NTG_API int
 ntg_box_deinit(ntg_box* box);
 
 /* ------------------------------------------------------ */
-
-
-NTG_API void
-ntg_box_deinit_void(void* _box);
-
-/* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
-
 
 NTG_API int
 ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts);
@@ -93,12 +75,10 @@ ntg_box_get_children(const ntg_box* box);
 
 /* ------------------------------------------------------ */
 
-
 NTG_API int
 ntg_box_add_child(ntg_box* box, ntg_object* child);
 
 /* ------------------------------------------------------ */
-
 
 NTG_API int
 ntg_box_rm_child(ntg_box* box, ntg_object* child);
@@ -113,15 +93,20 @@ ntg_box_rm_child(ntg_box* box, ntg_object* child);
 /* TYPES */
 /* ========================================================================== */
 
+struct ntg_box_vtable_extend
+{
+    void (*placeholder_fn)(void);
+};
+
 struct ntg_box_vtable
 {
-    struct ntg_object_vtable object;
+    struct ntg_object_vtable base;
+    struct ntg_box_vtable_extend extend;
 };
 
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
-
 
 NTG_API int
 ntg_box_init_inherit(
@@ -131,7 +116,10 @@ ntg_box_init_inherit(
         struct ntg_object_layout_dt* layout_dt);
 
 /* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
 
+NTG_API extern const struct ntg_box_vtable NTG_BOX_VTABLE;
 
 NTG_API int
 ntg_box_measure_fn(
@@ -142,9 +130,6 @@ ntg_box_measure_fn(
         uint32_t* relayout,
         struct ntg_object_measure* out_measure);
 
-/* ------------------------------------------------------ */
-
-
 NTG_API int
 ntg_box_constrain_fn(
         const ntg_object* _box,
@@ -154,9 +139,6 @@ ntg_box_constrain_fn(
         sarena* arena,
         uint32_t* relayout);
 
-/* ------------------------------------------------------ */
-
-
 NTG_API int
 ntg_box_arrange_fn(
         const ntg_object* _box,
@@ -165,16 +147,10 @@ ntg_box_arrange_fn(
         sarena* arena,
         uint32_t* relayout);
 
-/* ------------------------------------------------------ */
-
 NTG_API void
 ntg_box_child_rm_fn(ntg_object* _box, ntg_object* child);
 
-/* ------------------------------------------------------ */
-
 NTG_API void
 ntg_box_deinit_fn(ntg_entity* _box);
-
-NTG_API extern const struct ntg_object_vtable NTG_BOX_OBJECT_IMPL;
 
 #endif // NTG_BOX_H

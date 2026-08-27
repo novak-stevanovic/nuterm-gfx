@@ -66,14 +66,14 @@ ntg_object_draw_place_(
 static inline struct ntg_vcell
 ntg_object_draw_get(const ntg_object_draw* drawing, struct ntg_xy pos)
 {
-    if(!drawing) return ntg_vcell_new_default();
+    if(!drawing) return NTG_VCELL_ZERO;
 
     struct ntg_xy size = drawing->ro.size;
 
     if((pos.x < size.x) && (pos.y < size.y))
         return drawing->priv.vcell_vec.data[pos.y * size.x + pos.x];
     else
-        return ntg_vcell_new_default();
+        return NTG_VCELL_ZERO;
 }
 
 static inline void

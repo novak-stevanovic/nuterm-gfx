@@ -19,8 +19,7 @@ struct ntg_label_opts
     struct ntg_text_opts text_opts;
 };
 
-NTG_API struct ntg_label_opts
-ntg_label_opts_default(void);
+static const struct ntg_label_opts NTG_LABEL_OPTS_ZERO = {0};
 
 NTG_API bool
 ntg_label_opts_are_eql(
@@ -56,7 +55,6 @@ ntg_label_deinit_void(void* _label);
 NTG_API int
 ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts);
 
-
 NTG_API int
 ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
 
@@ -85,7 +83,7 @@ ntg_label_set_text_unsafe(ntg_label* label, const char* text);
 
 struct ntg_label_vtable
 {
-    struct ntg_text_vtable text;
+    struct ntg_text_vtable base;
 };
 
 /* ========================================================================== */
@@ -98,6 +96,12 @@ ntg_label_init_inherit(
         const struct ntg_label_vtable* vtable,
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt);
+
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+NTG_API extern const struct ntg_label_vtable NTG_LABEL_VTABLE;
 
 NTG_API int
 ntg_label_layout_prepare_fn(
@@ -135,7 +139,5 @@ ntg_label_post_draw_fn(
         const ntg_text* _label,
         ntg_object_tmp_draw* out_drawing,
         sarena* arena);
-
-NTG_API extern const struct ntg_text_vtable NTG_LABEL_TEXT_IMPL;
 
 #endif // NTG_LABEL_H

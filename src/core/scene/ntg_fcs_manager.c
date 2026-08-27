@@ -338,25 +338,18 @@ int ntg__fcs_manager_init(
 {
     if(!fm || !scene) return NTG_ERR_INV_ARG;
 
-    int _status;
-
-    (*fm) = (ntg_fcs_manager) {0};
-
     int status = ntg_entity_init_inherit(
             ntg_ent(fm),
             &VTABLE,
             &NTG_TYPE_FCS_MANAGER);
-    switch(status)
-    {
-        case 0:
-            break;
-        default:
-            return NTG_ERR_UNEXPECTED;
-    }
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
+
+    ntg_entity_zero(fm);
 
     fm->priv.scope_stack = malloc(sizeof(struct ntg_fcs_scope_list));
     if(!fm->priv.scope_stack)
     {
+        ntg_entity_zero(fm);
         ntg_entity_deinit(ntg_ent(fm));
         return NTG_ERR_ALLOC_FAIL;
     }
@@ -376,8 +369,8 @@ int ntg__fcs_manager_init(
         .keys = (init_scope_keys ? (*init_scope_keys) : zero_keys)
     };
 
-    _status = ntg_fcs_manager_stack_push(fm, &scope);
-    switch(_status)
+    status = ntg_fcs_manager_stack_push(fm, &scope);
+    switch(status)
     {
         case 0:
             break;
@@ -408,10 +401,7 @@ void ntg__fcs_manager_deinit(ntg_fcs_manager* fm)
         free(fm->priv.scope_stack);
     }
 
-    fm->priv.scope_stack = NULL;
-    fm->ro.scene = NULL;
-    fm->ro.focused = NULL;
-
+    ntg_entity_zero(fm);
     ntg_entity_deinit(ntg_ent(fm));
 }
 

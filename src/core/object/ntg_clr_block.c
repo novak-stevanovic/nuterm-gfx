@@ -19,16 +19,17 @@
 
 int ntg_clr_block_init(ntg_clr_block* clr_block, nt_color color)
 {
-    int _status = ntg_object_init_inherit(
-            (ntg_object*)clr_block,
-            &NTG_CLR_BLOCK_OBJECT_IMPL,
+    if(!clr_block) return NTG_ERR_INV_ARG;
+
+    int status = ntg_clr_block_init_inherit(
+            clr_block,
+            &NTG_CLR_BLOCK_VTABLE,
             &NTG_TYPE_CLR_BLOCK,
             NULL);
-    if(_status != 0)
-        return _status;
+    NTG_POST_INHERIT_CHECK(status);
 
-    clr_block->ro.color = NT_COLOR_ZERO;
     ntg_clr_block_set_color(clr_block, color);
+
     return 0;
 }
 
@@ -38,18 +39,11 @@ int ntg_clr_block_deinit(ntg_clr_block* clr_block)
 {
     if(!clr_block) return NTG_ERR_INV_ARG;
 
-    clr_block->ro.color = NT_COLOR_ZERO;
+    ntg_entity_zero(clr_block);
 
     ntg_object_deinit((ntg_object*)clr_block);
 
     return 0;
-}
-
-/* ------------------------------------------------------ */
-
-void ntg_clr_block_deinit_void(void* _clr_block)
-{
-    ntg_clr_block_deinit(_clr_block);
 }
 
 /* ------------------------------------------------------ */
@@ -94,25 +88,32 @@ int ntg_clr_block_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
-    if(!clr_block || !type)
+    if(!clr_block || !type || !vtable)
         return NTG_ERR_INV_ARG;
-
-    if(!vtable)
-        return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_CLR_BLOCK))
         return NTG_ERR_BAD_TYPE;
 
-    int _status = ntg_object_init_inherit(
-            (ntg_object*)clr_block, &vtable->object, type, layout_dt);
-    if(_status != 0)
-        return _status;
+    int status = ntg_object_init_inherit(ntg_obj(clr_block),
+            &vtable->base, type, layout_dt);
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    clr_block->ro.color = NT_COLOR_ZERO;
+    ntg_entity_zero(clr_block);
+
     return 0;
 }
 
 /* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+const struct ntg_clr_block_vtable NTG_CLR_BLOCK_VTABLE = {
+    .base = {
+        .measure_fn = ntg_clr_block_measure_fn,
+        .draw_fn = ntg_clr_block_draw_fn,
+        .base.deinit_fn = ntg_clr_block_deinit_fn
+    }
+};
 
 int ntg_clr_block_measure_fn(
         const ntg_object* _clr_block,
@@ -176,8 +177,3 @@ void ntg_clr_block_deinit_fn(ntg_entity* _clr_block)
     ntg_clr_block_deinit((ntg_clr_block*)_clr_block);
 }
 
-NTG_API const struct ntg_object_vtable NTG_CLR_BLOCK_OBJECT_IMPL = {
-    .measure_fn = ntg_clr_block_measure_fn,
-    .draw_fn = ntg_clr_block_draw_fn,
-    .base.deinit_fn = ntg_clr_block_deinit_fn
-};

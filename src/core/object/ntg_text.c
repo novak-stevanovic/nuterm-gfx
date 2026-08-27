@@ -71,21 +71,6 @@ static void update_object_bg(ntg_text* text_obj);
 
 // static int trim_text(struct ntg_str* text);
 
-/* ------------------------------------------------------ */
-
-static void init_default(ntg_text* text_obj)
-{
-    text_obj->priv.utf32_text = (struct ntg_str32) {0};
-    text_obj->priv.utf32_rows = NULL;
-    text_obj->priv.utf32_row_count = 0;
-    text_obj->priv.utf8_text = (struct ntg_charvec) {0};
-    
-    text_obj->ro.opts = ntg_text_opts_default();
-    text_obj->ro.gfx = (struct nt_gfx) {0};
-
-    text_obj->ro.scroll = ntg_xy(0, 0);
-}
-
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
@@ -95,25 +80,6 @@ static void init_default(ntg_text* text_obj)
 /* ========================================================================== */
 /* TYPES */
 /* ========================================================================== */
-
-struct ntg_text_opts ntg_text_opts_default(void)
-{
-    struct ntg_text_opts opts = (struct ntg_text_opts) {
-        .orient = NTG_ORIENT_H,
-        .gfx = (struct nt_gfx) {0},
-        .wrap = NTG_TEXT_WRAP_NONE,
-        .focused_gfx = (struct nt_gfx) {0},
-        .line_mode = NTG_TEXT_LINE_ALIGN,
-        .bg_mode = NTG_TEXT_BG_FULL,
-        .prim_align = NTG_ALIGN_1,
-        .sec_align = NTG_ALIGN_1,
-        .indent = 0,
-    };
-
-    opts.focused_gfx = nt_gfx_style_reverse(opts.gfx);
-
-    return opts;
-}
 
 bool ntg_text_opts_are_eql(
         const struct ntg_text_opts* opts1,
@@ -149,7 +115,7 @@ int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
     if(!text_obj) return NTG_ERR_INV_ARG;
 
     struct ntg_text_opts old_opts = text_obj->ro.opts;
-    struct ntg_text_opts new_opts = (opts ? (*opts) : ntg_text_opts_default());
+    struct ntg_text_opts new_opts = (opts ? (*opts) : NTG_TEXT_OPTS_ZERO);
 
     if(ntg_text_opts_are_eql(&old_opts, &new_opts))
         return 0;
@@ -177,13 +143,11 @@ int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 struct ntg_str_view ntg_text_get_text(const ntg_text* text_obj)
 {
     if(!text_obj) return (struct ntg_str_view) {0};
-    else
-    {
-        return (struct ntg_str_view) {
-            .data = text_obj->priv.utf8_text.data,
-            .len = text_obj->priv.utf8_text.size - 1 // account for \0
-        };
-    }
+
+    return (struct ntg_str_view) {
+        .data = text_obj->priv.utf8_text.data,
+        .len = text_obj->priv.utf8_text.size - 1 /* account for \0 */
+    };
 }
 
 int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
@@ -198,19 +162,20 @@ int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
 
     int status;
 
+    struct ntg_charvec* pending_text = &text_obj->priv.utf8_text;
     struct ntg_str_view curr_text = ntg_text_get_text(text_obj);
 
     /* Assume it's worth comparing because if text is different the len is probably different */
-    if((curr_text.len == len) && ((len == 0) || (memcmp(curr_text.data, text, len) == 0)))
+    if((pending_text->size > 0) && (curr_text.len == len) &&
+            ((len == 0) || (memcmp(curr_text.data, text, len) == 0)))
     {
         return 0; /* Same text */
     }
 
-    struct ntg_charvec* pending_text = &text_obj->priv.utf8_text;
-
-    if(len > curr_text.len) // needs more space
+    size_t req_cap = len + 1; /* include \0 */
+    if(req_cap > pending_text->cap)
     {
-        status = ntg_charvec_prealloc(pending_text, len - curr_text.len);
+        status = ntg_charvec_prealloc(pending_text, req_cap - pending_text->cap);
         switch(status)
         {
             case 0: break;
@@ -224,7 +189,7 @@ int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
     /* Empty but don't shrink, O(1) */
     ntg_charvec_empty(pending_text);
 
-    /* These must not failed because we already alloced/had enough space */
+    /* These must not fail because enough space was preallocated */
     status = ntg_charvec_pushb_many(pending_text, text, len);
     if(status) assert(0);
     status = ntg_charvec_pushb(pending_text, '\0');
@@ -238,7 +203,6 @@ int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
 
     return 0;
 }
-
 
 int ntg_text_set_text_unsafe(ntg_text* text_obj, const char* text)
 {
@@ -440,27 +404,22 @@ int ntg_text_init_inherit(
         const ntg_type* type,
         struct ntg_object_layout_dt* layout_dt)
 {
-    if(!text_obj || !type)
+    if(!text_obj || !type || !vtable)
         return NTG_ERR_INV_ARG;
-
-    if(!vtable)
-        return NTG_ERR_BAD_VTABLE;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_TEXT))
         return NTG_ERR_BAD_TYPE;
 
-    int _status = ntg_object_init_inherit((ntg_object*)text_obj,
-            &vtable->object, type, layout_dt);
-    if(_status)
-        return _status;
+    int status = ntg_object_init_inherit(ntg_obj(text_obj), &vtable->base, type, layout_dt);
+    NTG_POST_INHERIT_CHECK_VTABLE(status);
 
-    init_default(text_obj);
+    ntg_entity_zero(text_obj);
 
-    _status = ntg_text_set_text_unsafe(text_obj, "");
-    if(_status != 0)
+    status = ntg_text_set_text_unsafe(text_obj, "");
+    if(status != 0)
     {
         ntg_object_deinit((ntg_object*)text_obj);
-        return _status;
+        return status;
     }
 
     return 0;
@@ -476,16 +435,34 @@ int ntg_text_deinit(ntg_text* text_obj)
     if(text_obj->priv.utf32_rows)
         free(text_obj->priv.utf32_rows);
 
-    init_default(text_obj);
+    ntg_entity_zero(text_obj);
 
     ntg_object_deinit((ntg_object*)text_obj);
 
     return 0;
 }
 
-void ntg_text_deinit_void(void* _text)
+/* ------------------------------------------------------ */
+/* IMPLEMENT */
+/* ------------------------------------------------------ */
+
+const struct ntg_text_vtable NTG_TEXT_VTABLE = {
+    .base = {
+        .base = {
+            .deinit_fn = ntg_text_deinit_fn
+        },
+        .measure_fn = ntg_text_measure_fn,
+        .draw_fn = ntg_text_draw_fn,
+        .focus_fn = ntg_text_focus_fn,
+        .unfocus_fn = ntg_text_unfocus_fn,
+        .layout_prepare_fn = ntg_text_layout_prepare_fn,
+        .cont_resize_fn = ntg_text_cont_resize_fn
+    }
+};
+
+void ntg_text_deinit_fn(ntg_entity* _text_obj)
 {
-    ntg_text_deinit(_text);
+    ntg_text_deinit((ntg_text*)_text_obj);
 }
 
 int ntg_text_layout_prepare_fn(
@@ -652,7 +629,7 @@ int ntg_text_draw_fn(
     if(!full_buff)
         return NTG_ERR_ALLOC_FAIL;
 
-    for(i = 0; i < full_size_prod; i++) full_buff[i] = ' ';
+    for(i = 0; i < full_size_prod; i++) full_buff[i] = 0;
 
     size_t row_count = text_obj->priv.utf32_row_count;
     const struct ntg_str32_view* rows = text_obj->priv.utf32_rows;
@@ -717,12 +694,12 @@ int ntg_text_draw_fn(
             cont_j = it_row_effective_indent;
 
             it_wrow_space_counter = 0;
-            it_wrow_space_count = ntg_str32_count(_it_wrows[j], ' ');
+            it_wrow_space_count = ntg_str32_count(_it_wrows[j], 0);
             it_wrow_cont_space = _it_wrows[j].len + it_row_effective_indent;
             it_wrow_extra_space = _sub2_size(full_size_adj.x, it_wrow_cont_space);
             for(k = 0; k < _it_wrows[j].len; k++)
             {
-                if(_it_wrows[j].data[k] == ' ')
+                if(_it_wrows[j].data[k] == 0)
                 {
                     if((j < (_it_wrows_count - 1)) && opts.line_mode == NTG_TEXT_LINE_JUSTIFY)
                     {
@@ -781,7 +758,7 @@ int ntg_text_draw_fn(
             else
             {
                 it_cell = (opts.bg_mode == NTG_TEXT_BG_FULL) ?
-                    ntg_vcell_new_full(' ' , text_obj->ro.gfx) :
+                    ntg_vcell_new_full(0 , text_obj->ro.gfx) :
                     ntg_vcell_new_transparent();
             }
 
@@ -804,11 +781,6 @@ void ntg_text_cont_resize_fn(ntg_object* object, sarena* arena)
     ntg_text* text = ntg_txt(object);
 
     text->ro.scroll = calculate_effective_scroll(text);
-}
-
-void ntg_text_deinit_fn(ntg_entity* _text_obj)
-{
-    ntg_text_deinit((ntg_text*)_text_obj);
 }
 
 void ntg_text_focus_fn(ntg_object* object)
@@ -837,15 +809,6 @@ void ntg_text_unfocus_fn(ntg_object* object)
     ntg_object_mark_dirty(object, NTG_OBJECT_DIRTY_DRAW);
 }
 
-const struct ntg_object_vtable NTG_TEXT_OBJECT_IMPL = {
-    .layout_prepare_fn = ntg_text_layout_prepare_fn,
-    .measure_fn = ntg_text_measure_fn,
-    .draw_fn = ntg_text_draw_fn,
-    .cont_resize_fn = ntg_text_cont_resize_fn,
-    .base.deinit_fn = ntg_text_deinit_fn,
-    .focus_fn = ntg_text_focus_fn,
-    .unfocus_fn = ntg_text_unfocus_fn
-};
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -989,13 +952,13 @@ static int measure_wwrap_fn(
             if(rows[i].len == 0) continue;
 
             max_row_len = _max2_size(max_row_len, rows[i].len + indent);
-            it_word_count = ntg_str32_count(rows[i], ' ') + 1;
+            it_word_count = ntg_str32_count(rows[i], 0) + 1;
             it_words = sarena_malloc(arena,
                     sizeof(struct ntg_str32_view) * it_word_count);
             if(!it_words)
                 return NTG_ERR_ALLOC_FAIL;
 
-            ntg_str32_split(rows[i], ' ', it_words, it_word_count);
+            ntg_str32_split(rows[i], 0, it_words, it_word_count);
             for(j = 0; j < it_word_count; j++)
             {
                 j_word_adj_indent = (j == 0) ? indent : 0;
@@ -1124,12 +1087,12 @@ static int get_wrows_wwrap(
     if((row.len == 0) || !row.data)
         return get_wrows_nowrap(row, for_size, out_wrows, arena, out_count);
 
-    size_t word_count = ntg_str32_count(row, ' ') + 1;
+    size_t word_count = ntg_str32_count(row, 0) + 1;
     struct ntg_str32_view* words = sarena_malloc(
             arena, word_count * sizeof(struct ntg_str32_view));
     if(!words)
         return NTG_ERR_ALLOC_FAIL;
-    ntg_str32_split(row, ' ', words, word_count);
+    ntg_str32_split(row, 0, words, word_count);
 
     struct ntg_str32_view* wrows = sarena_malloc(
             arena, word_count * sizeof(struct ntg_str32_view));
@@ -1252,7 +1215,7 @@ static void update_object_bg(ntg_text* text_obj)
 
     struct ntg_vcell cell =
             (text_obj->ro.opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_new_full(' ', text_obj->ro.gfx) :
+            ntg_vcell_new_full(0, text_obj->ro.gfx) :
             ntg_vcell_new_transparent();
 
     ntg_object_set_base_bg(ntg_obj(text_obj), cell);
@@ -1266,11 +1229,11 @@ static int trim_text(struct ntg_str* text)
 
     struct ntg_str_view view = ntg_str_get_view(*text, 0);
 
-    size_t word_count = ntg_str_count(view, ' ') + 1;
+    size_t word_count = ntg_str_count(view, 0) + 1;
     struct ntg_str_view* words = calloc(word_count, sizeof(struct ntg_str_view));
     if(!words)
         return NTG_ERR_ALLOC_FAIL;
-    word_count = ntg_str_split(view, ' ', words, word_count);
+    word_count = ntg_str_split(view, 0, words, word_count);
 
     size_t space_needed = 0;
 
@@ -1285,7 +1248,7 @@ static int trim_text(struct ntg_str* text)
 
             if(i < (word_count - 1))
             {
-                text->data[space_needed + words[i].len] = ' ';
+                text->data[space_needed + words[i].len] = 0;
                 space_needed += (1 + words[i].len);
             }
             else
@@ -1294,7 +1257,7 @@ static int trim_text(struct ntg_str* text)
         }
     }
 
-    if((space_needed > 0) && (text->data[space_needed - 1] == ' '))
+    if((space_needed > 0) && (text->data[space_needed - 1] == 0))
         space_needed--;
 
     char *tmp = realloc(text->data, space_needed + 1);

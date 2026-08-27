@@ -56,15 +56,13 @@ int ntg_object_draw_set_size(ntg_object_draw* drawing, struct ntg_xy size)
 
     size_t i;
 
-    drawing->ro.size = size;
-
     if(new_size_prod > curr_size_prod)
     {
         size_t diff = new_size_prod - curr_size_prod;
 
         for(i = 0; i < diff; i++)
         {
-            status = ntg_vcell_vec_pushb(vcell_vec, ntg_vcell_new_default());
+            status = ntg_vcell_vec_pushb(vcell_vec, NTG_VCELL_ZERO);
             if(status)
             {
                 ntg_vcell_vec_popb_many(vcell_vec, i);
@@ -72,10 +70,7 @@ int ntg_object_draw_set_size(ntg_object_draw* drawing, struct ntg_xy size)
             }
         }
 
-        for(i = 0; i < curr_size_prod; i++)
-            vcell_vec->data[i] = ntg_vcell_new_default();
-
-        return 0;
+        memset(vcell_vec->data, 0, curr_size_prod * sizeof(struct ntg_vcell));
     }
     else
     {
@@ -83,11 +78,11 @@ int ntg_object_draw_set_size(ntg_object_draw* drawing, struct ntg_xy size)
 
         ntg_vcell_vec_popb_many_shrink(vcell_vec, diff);
 
-        for(i = 0; i < new_size_prod; i++)
-            vcell_vec->data[i] = ntg_vcell_new_default();
-
-        return 0;
+        memset(vcell_vec->data, 0, new_size_prod * sizeof(struct ntg_vcell));
     }
+
+    drawing->ro.size = size;
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -111,7 +106,7 @@ int ntg_object_draw_place(
 
     if(!ntg_xy_is_lesser(dest_start_pos, dest_end_pos))
         return NTG_ERR_OUT_OF_BOUNDS;
-    if(!ntg_xy_is_lesser_eq(dest_size, dest_end_pos))
+    if(!ntg_xy_is_lesser_eq(dest_end_pos, dest_size))
         return NTG_ERR_OUT_OF_BOUNDS;
 
     size_t i, j;

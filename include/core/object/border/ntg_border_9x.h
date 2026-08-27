@@ -29,6 +29,22 @@ struct ntg_border_9x
 
     struct
     {
+        bool overlay;
+        union
+        {
+            struct
+            {
+                struct nt_gfx gfx;
+            } full;
+
+            struct
+            {
+                nt_color fg;
+                nt_style style;
+            } overlay;
+
+        } data;
+
         struct ntg_border_9x_sym symbols;
     } ro;
 };
@@ -38,94 +54,123 @@ struct ntg_border_9x
 /* ========================================================================== */
 
 NTG_API int
-ntg_border_9x_init_monochrome(struct ntg_border_9x* style, nt_color color);
+ntg_border_9x_init_monochrome(ntg_border_9x* bs, nt_color color);
 
+/* ------------------------------------------------------ */
+/* BASIC */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_basic(
-        struct ntg_border_9x* style,
-        struct nt_gfx gfx,
+ntg_border_9x_init_basic(ntg_border_9x* bs, uint32_t cp, struct nt_gfx gfx);
+
+NTG_API int
+ntg_border_9x_init_basic_overlay(
+        ntg_border_9x* bs,
         uint32_t cp,
-        bool overlay);
+        nt_color fg,
+        nt_style style);
 
+/* ------------------------------------------------------ */
+/* BASIC EDGE */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_basic_edge(
-        struct ntg_border_9x* style,
-        struct nt_gfx gfx,
-        uint32_t cp,
-        bool overlay);
+ntg_border_9x_init_basic_edge(ntg_border_9x* bs, struct nt_gfx gfx, uint32_t cp);
 
+NTG_API int
+ntg_border_9x_init_basic_edge_overlay(
+        ntg_border_9x* bs,
+        nt_color fg,
+        nt_style style,
+        uint32_t cp);
+
+/* ------------------------------------------------------ */
+/* SINGLE */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_single(
-        struct ntg_border_9x* style,
-        struct nt_gfx gfx,
-        bool overlay);
+ntg_border_9x_init_single(ntg_border_9x* bs, struct nt_gfx gfx);
 
+NTG_API int
+ntg_border_9x_init_single_overlay(ntg_border_9x* bs, nt_color fg, nt_style style);
+
+/* ------------------------------------------------------ */
+/* DOUBLE */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_double(
-        struct ntg_border_9x* style,
-        struct nt_gfx gfx,
-        bool overlay);
+ntg_border_9x_init_double(ntg_border_9x* bs, struct nt_gfx gfx);
 
+NTG_API int
+ntg_border_9x_init_double_overlay(ntg_border_9x* bs, nt_color fg, nt_style style);
+
+/* ------------------------------------------------------ */
+/* ROUNDED */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_rounded(
-        struct ntg_border_9x* style,
-        struct nt_gfx gfx,
-        bool overlay);
+ntg_border_9x_init_rounded(ntg_border_9x* bs, struct nt_gfx gfx);
 
+NTG_API int
+ntg_border_9x_init_rounded_overlay(ntg_border_9x* bs, nt_color fg, nt_style style);
+
+/* ------------------------------------------------------ */
+/* HEAVY */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_heavy(
-        struct ntg_border_9x* style,
-        struct nt_gfx gfx,
-        bool overlay);
+ntg_border_9x_init_heavy(ntg_border_9x* bs, struct nt_gfx gfx);
 
+NTG_API int
+ntg_border_9x_init_heavy_overlay(ntg_border_9x* bs, nt_color fg, nt_style style);
+
+/* ------------------------------------------------------ */
+/* DASHED */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_dashed(
-        struct ntg_border_9x* style,
-        struct nt_gfx gfx,
-        bool overlay);
+ntg_border_9x_init_dashed(ntg_border_9x* bs, struct nt_gfx gfx);
 
+NTG_API int
+ntg_border_9x_init_dashed_overlay(ntg_border_9x* bs, nt_color fg, nt_style style);
+
+/* ------------------------------------------------------ */
+/* ASCII */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_ascii(
-        struct ntg_border_9x* style,
-        struct nt_gfx gfx,
-        bool overlay);
+ntg_border_9x_init_ascii(ntg_border_9x* bs, struct nt_gfx gfx);
 
+NTG_API int
+ntg_border_9x_init_ascii_overlay(ntg_border_9x* bs, nt_color fg, nt_style style);
+
+/* ------------------------------------------------------ */
+/* TRANSPARENT */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_init_transparent(struct ntg_border_9x* style);
+ntg_border_9x_init_transparent(ntg_border_9x* bs);
 
+/* ------------------------------------------------------ */
+/* CUSTOM */
 /* ------------------------------------------------------ */
 
 NTG_API int
 ntg_border_9x_init_custom(
-        struct ntg_border_9x* style,
-        enum ntg_vcell_type type,
+        ntg_border_9x* bs,
         struct nt_gfx gfx,
+        const struct ntg_border_9x_sym* symbols);
+
+NTG_API int
+ntg_border_9x_init_custom_overlay(
+        ntg_border_9x* bs,
+        nt_color fg,
+        nt_style style,
         const struct ntg_border_9x_sym* symbols);
 
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_border_9x_deinit(struct ntg_border_9x* style);
-
-NTG_API void
-ntg_border_9x_deinit_void(void* _style);
+ntg_border_9x_deinit(ntg_border_9x* bs);
 
 #endif // NTG_BORDER_9X_H
