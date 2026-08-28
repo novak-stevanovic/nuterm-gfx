@@ -69,8 +69,6 @@ static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj);
 
 static void update_widget_bg(ntg_text* text_obj);
 
-// static int trim_text(struct ntg_str* text);
-
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
 /* PROTECTED */
@@ -373,7 +371,7 @@ int ntg_text_layout_prepare_fn(
         .len = width
     };
 
-    size_t row_count = ntg_str32_count(ntg_str32_get_view(utf32_text, 0), '\n') + 1;
+    size_t row_count = ntg_str32_count(utf32_text.data, utf32_text.len, '\n') + 1;
     struct ntg_str32_view* new_rows = malloc(sizeof(struct ntg_str32_view) * row_count);
     if(!new_rows)
     {
@@ -381,7 +379,7 @@ int ntg_text_layout_prepare_fn(
         return NTG_ERR_ALLOC_FAIL;
     }
 
-    ntg_str32_split(ntg_str32_get_view(utf32_text, 0), '\n', new_rows, row_count);
+    ntg_str32_split(utf32_text.data, utf32_text.len, '\n', new_rows, row_count);
 
     /* Free old UTF32 data */
 
@@ -557,7 +555,7 @@ int ntg_text_draw_fn(
             cont_j = it_row_effective_indent;
 
             it_wrow_space_counter = 0;
-            it_wrow_space_count = ntg_str32_count(_it_wrows[j], ' ');
+            it_wrow_space_count = ntg_str32_count(_it_wrows[j].data, _it_wrows[j].len, ' ');
             it_wrow_cont_space = _it_wrows[j].len + it_row_effective_indent;
             it_wrow_extra_space = _sub2_size(full_size_adj.x, it_wrow_cont_space);
             for(k = 0; k < _it_wrows[j].len; k++)
@@ -815,13 +813,13 @@ static int measure_wwrap_fn(
             if(rows[i].len == 0) continue;
 
             max_row_len = _max2_size(max_row_len, rows[i].len + indent);
-            it_word_count = ntg_str32_count(rows[i], ' ') + 1;
+            it_word_count = ntg_str32_count(rows[i].data, rows[i].len, ' ') + 1;
             it_words = sarena_malloc(arena,
                     sizeof(struct ntg_str32_view) * it_word_count);
             if(!it_words)
                 return NTG_ERR_ALLOC_FAIL;
 
-            ntg_str32_split(rows[i], ' ', it_words, it_word_count);
+            ntg_str32_split(rows[i].data, rows[i].len, ' ', it_words, it_word_count);
             for(j = 0; j < it_word_count; j++)
             {
                 j_word_adj_indent = (j == 0) ? indent : 0;
@@ -950,12 +948,12 @@ static int get_wrows_wwrap(
     if((row.len == 0) || !row.data)
         return get_wrows_nowrap(row, for_size, out_wrows, arena, out_count);
 
-    size_t word_count = ntg_str32_count(row, ' ') + 1;
+    size_t word_count = ntg_str32_count(row.data, row.len, ' ') + 1;
     struct ntg_str32_view* words = sarena_malloc(
             arena, word_count * sizeof(struct ntg_str32_view));
     if(!words)
         return NTG_ERR_ALLOC_FAIL;
-    ntg_str32_split(row, ' ', words, word_count);
+    ntg_str32_split(row.data, row.len, ' ', words, word_count);
 
     struct ntg_str32_view* wrows = sarena_malloc(
             arena, word_count * sizeof(struct ntg_str32_view));
@@ -1083,59 +1081,3 @@ static void update_widget_bg(ntg_text* text_obj)
 
     ntg_widget_set_base_bg(ntg_wgt(text_obj), cell);
 }
-
-/*
-static int trim_text(struct ntg_str* text)
-{
-    if((text->len == 0) || (text->data == NULL))
-        return 0;
-
-    struct ntg_str_view view = ntg_str_get_view(*text, 0);
-
-    size_t word_count = ntg_str_count(view, 0) + 1;
-    struct ntg_str_view* words = calloc(word_count, sizeof(struct ntg_str_view));
-    if(!words)
-        return NTG_ERR_ALLOC_FAIL;
-    word_count = ntg_str_split(view, 0, words, word_count);
-
-    size_t space_needed = 0;
-
-    size_t i;
-    for(i = 0; i < word_count; i++)
-    {
-        if(words[i].len > 0)
-        {
-            memmove(text->data + space_needed,
-                    words[i].data,
-                    words[i].len);
-
-            if(i < (word_count - 1))
-            {
-                text->data[space_needed + words[i].len] = 0;
-                space_needed += (1 + words[i].len);
-            }
-            else
-                space_needed += words[i].len;
-
-        }
-    }
-
-    if((space_needed > 0) && (text->data[space_needed - 1] == 0))
-        space_needed--;
-
-    char *tmp = realloc(text->data, space_needed + 1);
-    if(!tmp)
-    {
-        free(words);
-        return NTG_ERR_ALLOC_FAIL;
-    }
-
-    tmp[space_needed] = 0;
-    text->data = tmp;
-    text->len = space_needed;
-
-    free(words);
-
-    return 0;
-}
-*/

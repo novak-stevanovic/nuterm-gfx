@@ -185,9 +185,9 @@ int ntg_widget_set_lay_opts(ntg_widget* widget, const struct ntg_lay_opts* opts)
 
     uint8_t dirty = 0;
 
-    if(ntg_xy_are_eql(widget->ro.user_min_size, min) ||
-        ntg_xy_are_eql(widget->ro.user_max_size, max) ||
-        ntg_xy_are_eql(widget->ro.user_grow, grow))
+    if(!ntg_xy_are_eql(widget->ro.user_min_size, min) ||
+        !ntg_xy_are_eql(widget->ro.user_max_size, max) ||
+        !ntg_xy_are_eql(widget->ro.user_grow, grow))
     {
         dirty |= NTG_WIDGET_DIRTY_FULL;
     }

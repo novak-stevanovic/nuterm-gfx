@@ -68,14 +68,22 @@ ntg_str32_get_view(struct ntg_str32 string, size_t offset)
     };
 }
 
-size_t ntg_str_count(struct ntg_str_view str, char sep);
+NTG_API size_t
+ntg_str_count(const char* text, size_t len, char sep);
 
-size_t ntg_str32_count(struct ntg_str32_view str, uint32_t sep);
+NTG_API size_t
+ntg_str32_count(const uint32_t* text, size_t len, uint32_t sep);
 
-size_t ntg_str_split(struct ntg_str_view str, char sep,
-        struct ntg_str_view* out_views, size_t cap);
+NTG_API size_t
+ntg_str_split(const char* text, size_t len, char sep,
+              struct ntg_str_view* out_views, size_t cap);
 
-size_t ntg_str32_split(struct ntg_str32_view str, uint32_t sep,
-        struct ntg_str32_view* out_views, size_t cap);
+NTG_API size_t
+ntg_str32_split(const uint32_t* text, size_t len, uint32_t sep,
+                struct ntg_str32_view* out_views, size_t cap);
+
+/* SIZE_MAX on failure */
+NTG_API size_t
+ntg_str_rm_ws(char* text, size_t len);
 
 #endif // NTG_STR_H

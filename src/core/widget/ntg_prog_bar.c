@@ -205,8 +205,7 @@ int ntg_prog_bar_draw_fn(
 
     if(ntg_xy_is_zero_any(size)) return 0;
 
-    struct ntg_oxy _size =
-            ntg_oxy_from_xy(size, prog_bar->ro.opts.orient);
+    struct ntg_oxy _size = ntg_oxy_from_xy(size, prog_bar->ro.opts.orient);
 
     size_t complete_count = round(_size.prim_val * prog_bar->ro.prog);
 
