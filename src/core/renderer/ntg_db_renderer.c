@@ -217,7 +217,6 @@ static int full_empty_render(
     return 0;
 }
 
-// TODO
 static inline size_t fwd_equal_gfx_search(
         const ntg_stage_draw* drawing,
         struct ntg_cell start_cell,

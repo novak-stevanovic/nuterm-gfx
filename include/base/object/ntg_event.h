@@ -242,7 +242,6 @@ struct ntg_event_box_chldrm_dt
 /* ntg_main_panel */
 /* ------------------------------------------------------ */
 
-// TODO: change
 #define NTG_EVENT_MAIN_PANEL_CHLDADD 131
 struct ntg_event_main_panel_chldadd_dt
 {

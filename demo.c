@@ -491,7 +491,10 @@ void init_flt_button()
 
     status = ntg_button_set_text_unsafe(&flt_button, "Floating button example");
 
-    ntg_widget_set_z_index(ntg_wgt(&flt_button), 1);
+    struct ntg_lay_opts lay_opts = {
+        .z_index = ntg_int_opt_new(1)
+    };
+    ntg_widget_set_lay_opts(ntg_wgt(&flt_button), &lay_opts);
 
     struct ntg_pad_opts pad_opts = {
         .pref_size = ntg_insets(2, 2, 2, 2)
@@ -535,7 +538,10 @@ void init_sflt_label()
             sflt_on_mouse_fn,
             &sflt_mouse_binding);
 
-    ntg_widget_set_z_index(ntg_wgt(&sflt_label), 2);
+    struct ntg_lay_opts lay_opts = {
+        .z_index = ntg_int_opt_new(2)
+    };
+    ntg_widget_set_lay_opts(ntg_wgt(&sflt_label), &lay_opts);
 
     status = ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat");
 

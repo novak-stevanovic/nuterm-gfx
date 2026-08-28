@@ -72,7 +72,6 @@ struct ntg_fcs_scope_ctx
     void* data;
 };
 
-// TODO: default fn calls
 struct ntg_fcs_scope
 {
     /* Optional. */
