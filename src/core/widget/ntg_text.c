@@ -622,7 +622,7 @@ int ntg_text_draw_fn(
             {
                 it_cell = (bg_mode == NTG_TEXT_BG_FULL) ?
                     ntg_vcell_new_full(0 , text_obj->ro.gfx) :
-                    ntg_vcell_new_transparent();
+                    ntg_vcell_new_overlay(0, text_obj->ro.gfx.fg, 0);
             }
 
             dst_xy = (orient == NTG_ORIENT_H) ? ntg_xy(j, i) : ntg_xy(i, j);

@@ -16,14 +16,14 @@
 
 enum ntg_sidefloat_thresh
 {
-    NTG_SIDEFLOAT_THRESH_MIN,
+    NTG_SIDEFLOAT_THRESH_MIN = 0,
     NTG_SIDEFLOAT_THRESH_NAT,
     NTG_SIDEFLOAT_THRESH_ALWAYS,
 };
 
 enum ntg_sidefloat_size_cap
 {
-    NTG_SIDEFLOAT_SIZE_CAP_NONE,
+    NTG_SIDEFLOAT_SIZE_CAP_NONE = 0,
     NTG_SIDEFLOAT_SIZE_CAP_ANCHOR
 };
 
@@ -33,6 +33,7 @@ struct ntg_sidefloat_opts
     enum ntg_side side;
     enum ntg_sidefloat_thresh thresh;
     enum ntg_sidefloat_size_cap size_cap;
+    size_t side_shrink[2];
 };
 
 static const struct ntg_sidefloat_opts NTG_SIDEFLOAT_OPTS_ZERO = {0};
@@ -49,6 +50,7 @@ struct ntg_sidefloat
             enum ntg_side side;
             enum ntg_sidefloat_thresh thresh;
             enum ntg_sidefloat_size_cap size_cap;
+            size_t side_shrink[2];
         } opts;
     } ro;
 };
@@ -58,15 +60,12 @@ struct ntg_sidefloat
 /* ========================================================================== */
 
 NTG_API int
-ntg_sidefloat_init(ntg_sidefloat* sidefloat_ap, const struct ntg_sidefloat_opts* opts);
+ntg_sidefloat_init(ntg_sidefloat* sflt, const struct ntg_sidefloat_opts* opts);
 
 NTG_API int
-ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap);
-
+ntg_sidefloat_deinit(ntg_sidefloat* sflt);
 
 NTG_API int
-ntg_sidefloat_set_opts(
-        ntg_sidefloat* sidefloat_ap,
-        const struct ntg_sidefloat_opts* opts);
+ntg_sidefloat_set_opts(ntg_sidefloat* sflt, const struct ntg_sidefloat_opts* opts);
 
 #endif // NTG_SIDEFLOAT_H

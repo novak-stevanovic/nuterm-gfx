@@ -124,7 +124,7 @@ int ntg_button_init_inherit(
     ntg_object_zero(button);
 
     ntg_widget_set_focusable(ntg_wgt(button), NTG_WIDGET_FOCUSABLE);
-    ntg_widget_set_clickable(ntg_wgt(button), NTG_WIDGET_CLICKABLE_CONT);
+    ntg_widget_set_clickable(ntg_wgt(button), NTG_WIDGET_CLICKABLE_CONT_PAD);
 
     return 0;
 }

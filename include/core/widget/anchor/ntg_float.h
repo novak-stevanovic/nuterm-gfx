@@ -52,13 +52,12 @@ struct ntg_float
 /* ========================================================================== */
 
 NTG_API int
-ntg_float_init(ntg_float* float_ap, const struct ntg_float_opts* opts);
+ntg_float_init(ntg_float* flt, const struct ntg_float_opts* opts);
 
 NTG_API int
-ntg_float_deinit(ntg_float* float_ap);
-
+ntg_float_deinit(ntg_float* flt);
 
 NTG_API int
-ntg_float_set_opts(ntg_float* float_ap, const struct ntg_float_opts* opts);
+ntg_float_set_opts(ntg_float* flt, const struct ntg_float_opts* opts);
 
 #endif // NTG_FLOAT_H

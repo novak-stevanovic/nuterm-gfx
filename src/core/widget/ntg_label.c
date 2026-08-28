@@ -116,7 +116,7 @@ int ntg_label_init_inherit(
 
     // TODO:
     ntg_widget_set_focusable(ntg_wgt(label), NTG_WIDGET_FOCUSABLE);
-    ntg_widget_set_clickable(ntg_wgt(label), NTG_WIDGET_CLICKABLE_CONT);
+    ntg_widget_set_clickable(ntg_wgt(label), NTG_WIDGET_CLICKABLE_CONT_PAD);
     return 0;
 }
 

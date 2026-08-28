@@ -82,11 +82,13 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
+dodati u enume = 0
 rename: main_panel -> ???
 rename: NTG_MAIN_PANEL_NORTH -> ???
 pos -> NTG_SIZE_MAX for no draw
 ntg_button: disable() or ntg_widget: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input
+Error codes: change values
 
 IMPLEMENT:
 ntg_input
@@ -95,7 +97,6 @@ ntg_dialogue
 ntg_popup
 
 FINISH:
-Error codes: change values
 add some old useful comments that were deleted
 add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
 ntg_log()

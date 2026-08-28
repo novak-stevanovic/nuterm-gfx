@@ -142,11 +142,11 @@ bool ntg_widget_feed_mouse(ntg_widget* widget, const struct ntg_widget_mouse* ev
 
     if(!event->from_keybind)
     {
-        if((widget->ro.clickable == NTG_WIDGET_CLICKABLE_CONT) &&
-            (res.part != NTG_WIDGET_HIT_CONT))
-        {
+        bool cont_pad_clickable = NTG_WIDGET_CLICKABLE_CONT_PAD;
+        bool cont_pad_click = (res.part == NTG_WIDGET_HIT_CONT) ||
+                              (res.part == NTG_WIDGET_HIT_PAD);
+        if(!(cont_pad_clickable && cont_pad_click))
             return false;
-        }
     }
 
     bool consumed = false;

@@ -96,7 +96,7 @@ enum ntg_widget_focus_mode
 enum ntg_widget_click_mode
 {
     NTG_WIDGET_UNCLICKABLE,
-    NTG_WIDGET_CLICKABLE_CONT,
+    NTG_WIDGET_CLICKABLE_CONT_PAD,
     NTG_WIDGET_CLICKABLE_BDR
 };
 
