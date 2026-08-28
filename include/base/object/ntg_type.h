@@ -29,7 +29,7 @@ NTG_API extern const ntg_type NTG_TYPE_OBJECT;
 NTG_API extern const ntg_type NTG_TYPE_WIDGET;
 
 NTG_API extern const ntg_type NTG_TYPE_BOX;
-NTG_API extern const ntg_type NTG_TYPE_MAIN_PANEL;
+NTG_API extern const ntg_type NTG_TYPE_PANEL;
 NTG_API extern const ntg_type NTG_TYPE_TEXT;
 NTG_API extern const ntg_type NTG_TYPE_LABEL;
 NTG_API extern const ntg_type NTG_TYPE_BUTTON;

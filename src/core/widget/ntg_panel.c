@@ -13,7 +13,7 @@
 /* ========================================================================== */
 
 static void get_children(
-        const ntg_main_panel* panel,
+        const ntg_panel* panel,
         ntg_widget** out_north,
         ntg_widget** out_east,
         ntg_widget** out_south,
@@ -38,25 +38,25 @@ static void get_children(
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts)
+int ntg_panel_init(ntg_panel* panel, const struct ntg_panel_opts* opts)
 {
     if(!panel) return NTG_ERR_INV_ARG;
 
-    int status = ntg_main_panel_init_inherit(
+    int status = ntg_panel_init_inherit(
             panel,
-            &NTG_MAIN_PANEL_VTABLE,
-            &NTG_TYPE_MAIN_PANEL,
+            &NTG_PANEL_VTABLE,
+            &NTG_TYPE_PANEL,
             NULL);
     NTG_POST_INHERIT_CHECK(status);
 
-    ntg_main_panel_set_opts(panel, opts);
+    ntg_panel_set_opts(panel, opts);
 
     return status;
 }
 
 /* ------------------------------------------------------ */
 
-int ntg_main_panel_deinit(ntg_main_panel* panel)
+int ntg_panel_deinit(ntg_panel* panel)
 {
     if(!panel) return NTG_ERR_INV_ARG;
 
@@ -71,12 +71,12 @@ int ntg_main_panel_deinit(ntg_main_panel* panel)
 /* CHILDREN */
 /* ------------------------------------------------------ */
 
-int ntg_main_panel_set(
-        ntg_main_panel* panel,
+int ntg_panel_set(
+        ntg_panel* panel,
         ntg_widget* widget,
-        enum ntg_main_panel_pos pos)
+        enum ntg_panel_pos pos)
 {
-    if(!panel || (pos < NTG_MAIN_PANEL_NORTH) || (pos > NTG_MAIN_PANEL_CENTER))
+    if(!panel || (pos < NTG_PANEL_POS_N) || (pos > NTG_PANEL_POS_C))
         return NTG_ERR_INV_ARG;
 
     ntg_widget* old_child = panel->ro.children[pos];
@@ -101,12 +101,12 @@ int ntg_main_panel_set(
 
     if(widget)
     {
-        struct ntg_event_main_panel_chldadd_dt event_dt = {
+        struct ntg_event_panel_chldadd_dt event_dt = {
             .child = widget,
             .pos = pos
         };
         ntg_object_event_raise(
-                ntg_obj(panel), NTG_EVENT_MAIN_PANEL_CHLDADD, &event_dt);
+                ntg_obj(panel), NTG_EVENT_PANEL_CHLDADD, &event_dt);
     }
 
     return 0;
@@ -116,14 +116,14 @@ int ntg_main_panel_set(
 /* OPTS */
 /* ------------------------------------------------------ */
 
-int ntg_main_panel_set_opts(
-        ntg_main_panel* panel,
-        const struct ntg_main_panel_opts* opts)
+int ntg_panel_set_opts(
+        ntg_panel* panel,
+        const struct ntg_panel_opts* opts)
 {
     if(!panel) return NTG_ERR_INV_ARG;
 
-    struct ntg_main_panel_opts opts_final =
-            (opts ? (*opts) : NTG_MAIN_PANEL_OPTS_ZERO);
+    struct ntg_panel_opts opts_final =
+            (opts ? (*opts) : NTG_PANEL_OPTS_ZERO);
 
     if(ntg_vcell_are_eql(panel->ro.opts.bg, opts_final.bg))
         return 0;
@@ -145,16 +145,16 @@ int ntg_main_panel_set_opts(
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int ntg_main_panel_init_inherit(
-        ntg_main_panel* panel,
-        const struct ntg_main_panel_vtable* vtable,
+int ntg_panel_init_inherit(
+        ntg_panel* panel,
+        const struct ntg_panel_vtable* vtable,
         const ntg_type* type,
         struct ntg_widget_layout_dt* layout_dt)
 {
     if(!panel || !type || !vtable)
         return NTG_ERR_INV_ARG;
 
-    if(!ntg_type_instanceof(type, &NTG_TYPE_MAIN_PANEL))
+    if(!ntg_type_instanceof(type, &NTG_TYPE_PANEL))
         return NTG_ERR_BAD_TYPE;
 
     int status = ntg_widget_init_inherit(
@@ -173,19 +173,19 @@ int ntg_main_panel_init_inherit(
 /* IMPLEMENT */
 /* ------------------------------------------------------ */
 
-const struct ntg_main_panel_vtable NTG_MAIN_PANEL_VTABLE = {
+const struct ntg_panel_vtable NTG_PANEL_VTABLE = {
     .base = {
         .base = {
-            .deinit_fn = ntg_main_panel_deinit_fn
+            .deinit_fn = ntg_panel_deinit_fn
         },
-        .measure_fn = ntg_main_panel_measure_fn,
-        .constrain_fn = ntg_main_panel_constrain_fn,
-        .arrange_fn = ntg_main_panel_arrange_fn,
-        .rm_child_fn = ntg_main_panel_child_rm_fn
+        .measure_fn = ntg_panel_measure_fn,
+        .constrain_fn = ntg_panel_constrain_fn,
+        .arrange_fn = ntg_panel_arrange_fn,
+        .rm_child_fn = ntg_panel_child_rm_fn
     }
 };
 
-int ntg_main_panel_measure_fn(
+int ntg_panel_measure_fn(
         const ntg_widget* _panel,
         struct ntg_widget_layout_dt* layout_dt,
         enum ntg_orient orient,
@@ -196,10 +196,10 @@ int ntg_main_panel_measure_fn(
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
+    const ntg_panel* panel = (const ntg_panel*)_panel;
 
     ntg_widget *north, *east, *south, *west, *center;
-    get_children(main_panel, &north, &east, &south, &west, &center);
+    get_children(panel, &north, &east, &south, &west, &center);
 
     struct ntg_widget_measure north_msr = (north != NULL) ?
         ntg_widget_get_measure(north, orient) :
@@ -263,7 +263,7 @@ int ntg_main_panel_measure_fn(
 
 /* ------------------------------------------------------ */
 
-int ntg_main_panel_constrain_fn(
+int ntg_panel_constrain_fn(
         const ntg_widget* _panel,
         struct ntg_widget_layout_dt* layout_dt,
         enum ntg_orient orient,
@@ -274,7 +274,7 @@ int ntg_main_panel_constrain_fn(
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
+    const ntg_panel* panel = (const ntg_panel*)_panel;
     size_t size = ntg_widget_get_size_1d_cont(_panel, orient);
 
     if(_panel->ro.children.size == 0) return 0;
@@ -285,7 +285,7 @@ int ntg_main_panel_constrain_fn(
     }
 
     ntg_widget *north, *east, *south, *west, *center;
-    get_children(main_panel, &north, &east, &south, &west, &center);
+    get_children(panel, &north, &east, &south, &west, &center);
 
     struct ntg_widget_measure north_msr = (north != NULL) ?
         ntg_widget_get_measure(north, orient) :
@@ -467,7 +467,7 @@ int ntg_main_panel_constrain_fn(
 
 /* ------------------------------------------------------ */
 
-int ntg_main_panel_arrange_fn(
+int ntg_panel_arrange_fn(
         const ntg_widget* _panel,
         struct ntg_widget_layout_dt* layout_dt,
         ntg_widget_pos_map* out_pos_map,
@@ -477,11 +477,11 @@ int ntg_main_panel_arrange_fn(
     (void)layout_dt;
     (void)arena;
     (void)relayout;
-    const ntg_main_panel* main_panel = (const ntg_main_panel*)_panel;
+    const ntg_panel* panel = (const ntg_panel*)_panel;
     struct ntg_xy size = ntg_widget_get_size_cont(_panel);
 
     ntg_widget *north, *east, *south, *west, *center;
-    get_children(main_panel, &north, &east, &south, &west, &center);
+    get_children(panel, &north, &east, &south, &west, &center);
 
     if(_panel->ro.children.size == 0) return 0;
     if(ntg_xy_is_zero_any(size))
@@ -521,40 +521,40 @@ int ntg_main_panel_arrange_fn(
     return 0;
 }
 
-static void get_children(const ntg_main_panel* panel, ntg_widget** out_north,
+static void get_children(const ntg_panel* panel, ntg_widget** out_north,
         ntg_widget** out_east, ntg_widget** out_south, ntg_widget** out_west,
         ntg_widget** out_center)
 {
-    (*out_north) = panel->ro.children[NTG_MAIN_PANEL_NORTH];
-    (*out_east) = panel->ro.children[NTG_MAIN_PANEL_EAST];
-    (*out_south) = panel->ro.children[NTG_MAIN_PANEL_SOUTH];
-    (*out_west) = panel->ro.children[NTG_MAIN_PANEL_WEST];
-    (*out_center) = panel->ro.children[NTG_MAIN_PANEL_CENTER];
+    (*out_north) = panel->ro.children[NTG_PANEL_POS_N];
+    (*out_east) = panel->ro.children[NTG_PANEL_POS_E];
+    (*out_south) = panel->ro.children[NTG_PANEL_POS_S];
+    (*out_west) = panel->ro.children[NTG_PANEL_POS_W];
+    (*out_center) = panel->ro.children[NTG_PANEL_POS_C];
 }
 
 /* ------------------------------------------------------ */
 
-void ntg_main_panel_child_rm_fn(ntg_widget* _main_panel, ntg_widget* child)
+void ntg_panel_child_rm_fn(ntg_widget* _panel, ntg_widget* child)
 {
-    ntg_main_panel* main_panel = (ntg_main_panel*)_main_panel;
+    ntg_panel* panel = (ntg_panel*)_panel;
 
     size_t i;
     for(i = 0; i < 5; i++)
     {
-        if(main_panel->ro.children[i] == child)
+        if(panel->ro.children[i] == child)
         {
-            main_panel->ro.children[i] = NULL;
+            panel->ro.children[i] = NULL;
             break;
         }
     }
 
-    ntg_widget_mark_dirty(_main_panel, NTG_WIDGET_DIRTY_FULL);
+    ntg_widget_mark_dirty(_panel, NTG_WIDGET_DIRTY_FULL);
 
-    struct ntg_event_main_panel_chldrm_dt event_dt = { .child = child, .pos = i };
-    ntg_object_event_raise(ntg_obj(_main_panel), NTG_EVENT_MAIN_PANEL_CHLDRM, &event_dt);
+    struct ntg_event_panel_chldrm_dt event_dt = { .child = child, .pos = i };
+    ntg_object_event_raise(ntg_obj(_panel), NTG_EVENT_PANEL_CHLDRM, &event_dt);
 }
 
-void ntg_main_panel_deinit_fn(ntg_object* _panel)
+void ntg_panel_deinit_fn(ntg_object* _panel)
 {
-    ntg_main_panel_deinit((ntg_main_panel*)_panel);
+    ntg_panel_deinit((ntg_panel*)_panel);
 }

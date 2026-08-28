@@ -24,7 +24,7 @@
 #include "core/widget/ntg_label.h"
 #include "core/widget/ntg_button.h"
 #include "core/widget/ntg_clr_block.h"
-#include "core/widget/ntg_main_panel.h"
+#include "core/widget/ntg_panel.h"
 #include "core/widget/ntg_box.h"
 #include "core/widget/ntg_widget_vec.h"
 #include "core/scene/ntg_scene.h"
@@ -82,9 +82,8 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-dodati u enume = 0
-rename: main_panel -> ???
-rename: NTG_MAIN_PANEL_NORTH -> ???
+prog bar: 2nd threshold
+ntg_str: trim ws
 pos -> NTG_SIZE_MAX for no draw
 ntg_button: disable() or ntg_widget: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input

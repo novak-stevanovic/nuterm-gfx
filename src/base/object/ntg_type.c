@@ -30,8 +30,8 @@ const ntg_type NTG_TYPE_BOX = {
     .ro.parent = &NTG_TYPE_WIDGET
 };
 
-const ntg_type NTG_TYPE_MAIN_PANEL = {
-    .ro.size = sizeof(ntg_main_panel),
+const ntg_type NTG_TYPE_PANEL = {
+    .ro.size = sizeof(ntg_panel),
     .ro.parent = &NTG_TYPE_WIDGET
 };
 

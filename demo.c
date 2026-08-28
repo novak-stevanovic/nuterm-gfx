@@ -53,7 +53,7 @@ const char* lorem =
 
 ntg_garbage* garbage;
 ntg_border_9x flt_rounded_border, def_rounded_border;
-ntg_main_panel root;
+ntg_panel root;
 ntg_label north;
 ntg_box center, south, south_box;
 ntg_label s_label, sb_label1, sb_label2, sb_label3;
@@ -552,13 +552,13 @@ void init_root()
 {
     int status;
 
-    status = ntg_main_panel_init(&root, NULL);
+    status = ntg_panel_init(&root, NULL);
     assert(!status);
     ntg_garbage_add_obj(garbage, &root);
 
-    status = ntg_main_panel_set(&root, ntg_wgt(&north), NTG_MAIN_PANEL_NORTH);
-    status = ntg_main_panel_set(&root, ntg_wgt(&center), NTG_MAIN_PANEL_CENTER);
-    status = ntg_main_panel_set(&root, ntg_wgt(&south), NTG_MAIN_PANEL_SOUTH);
+    status = ntg_panel_set(&root, ntg_wgt(&north), NTG_PANEL_POS_N);
+    status = ntg_panel_set(&root, ntg_wgt(&center), NTG_PANEL_POS_C);
+    status = ntg_panel_set(&root, ntg_wgt(&south), NTG_PANEL_POS_S);
 }
 
 void init_bs()

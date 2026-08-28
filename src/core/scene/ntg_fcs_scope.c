@@ -177,7 +177,7 @@ bool ntg_fcs_scope_mouse_bubble_fn(
 
 static const struct ntg_fcs_scope_keys KEYS_AUTO = {
     .left_click = {
-        ._non_zero = true,
+        .set = true,
         .type = NT_KEY_UTF32,
         .data.utf32 = {
             .alt = false,
@@ -185,7 +185,7 @@ static const struct ntg_fcs_scope_keys KEYS_AUTO = {
         }
     },
     .cancel = {
-        ._non_zero = true,
+        .set = true,
         .type = NT_KEY_UTF32,
         .data.utf32 = {
             .alt = false,

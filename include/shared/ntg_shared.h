@@ -91,6 +91,6 @@ typedef struct ntg_button ntg_button;
 typedef struct ntg_clr_block ntg_clr_block;
 typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
-typedef struct ntg_main_panel ntg_main_panel;
+typedef struct ntg_panel ntg_panel;
 
 #endif // NTG_SHARED_H

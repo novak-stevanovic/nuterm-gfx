@@ -19,8 +19,8 @@
 #define ntg_wgt(obj_ptr) ((ntg_widget*)(obj_ptr))
 #define ntg_wgt_vtbl(obj_ptr) ((struct ntg_widget_vtable*)((ntg_obj(obj_ptr))->ro.vtable))
 
-#define ntg_mp(mp_ptr) ((ntg_main_panel*)(mp_ptr))
-#define ntg_mp_vtbl(mp_ptr) ((struct ntg_main_panel_vtable*)((ntg_obj(mp_ptr))->ro.vtable))
+#define ntg_pnl(pnl_ptr) ((ntg_panel*)(pnl_ptr))
+#define ntg_pnl_vtbl(pnl_ptr) ((struct ntg_panel_vtable*)((ntg_obj(pnl_ptr))->ro.vtable))
 
 #define ntg_box(box_ptr) ((ntg_box*)(box_ptr))
 #define ntg_box_vtbl(box_ptr) ((struct ntg_box_vtable*)((ntg_obj(box_ptr))->ro.vtable))

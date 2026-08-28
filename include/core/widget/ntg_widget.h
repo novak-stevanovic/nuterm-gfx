@@ -89,13 +89,13 @@ struct ntg_widget_mouse
 
 enum ntg_widget_focus_mode
 {
-    NTG_WIDGET_UNFOCUSABLE,
+    NTG_WIDGET_UNFOCUSABLE = 0,
     NTG_WIDGET_FOCUSABLE
 };
 
 enum ntg_widget_click_mode
 {
-    NTG_WIDGET_UNCLICKABLE,
+    NTG_WIDGET_UNCLICKABLE = 0,
     NTG_WIDGET_CLICKABLE_CONT_PAD,
     NTG_WIDGET_CLICKABLE_BDR
 };
@@ -106,7 +106,7 @@ enum ntg_widget_click_mode
 
 enum ntg_widget_part
 {
-    NTG_WIDGET_HIT_CONT,
+    NTG_WIDGET_HIT_CONT = 0,
     NTG_WIDGET_HIT_PAD,
     NTG_WIDGET_HIT_BDR
 };

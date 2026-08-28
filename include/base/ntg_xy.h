@@ -30,14 +30,14 @@ struct ntg_dxy
 
 enum ntg_orient
 {
-    NTG_ORIENT_H,
+    NTG_ORIENT_H = 0,
     NTG_ORIENT_V
 };
 
 enum ntg_align
 {
     
-    NTG_ALIGN_1,
+    NTG_ALIGN_1 = 0,
 
     
     NTG_ALIGN_2,
@@ -63,7 +63,7 @@ static const struct ntg_dxy NTG_DXY_UNSET = { 0, 0 };
 
 enum ntg_side
 {
-    NTG_SIDE_N,
+    NTG_SIDE_N = 0,
     NTG_SIDE_E,
     NTG_SIDE_S,
     NTG_SIDE_W

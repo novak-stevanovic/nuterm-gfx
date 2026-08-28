@@ -239,18 +239,18 @@ struct ntg_event_box_chldrm_dt
 };
 
 /* ------------------------------------------------------ */
-/* ntg_main_panel */
+/* ntg_panel */
 /* ------------------------------------------------------ */
 
-#define NTG_EVENT_MAIN_PANEL_CHLDADD 131
-struct ntg_event_main_panel_chldadd_dt
+#define NTG_EVENT_PANEL_CHLDADD 131
+struct ntg_event_panel_chldadd_dt
 {
     ntg_widget* child;
-    int pos; // enum ntg_main_panel_pos
+    int pos; // enum ntg_panel_pos
 };
 
-#define NTG_EVENT_MAIN_PANEL_CHLDRM 132
-struct ntg_event_main_panel_chldrm_dt
+#define NTG_EVENT_PANEL_CHLDRM 132
+struct ntg_event_panel_chldrm_dt
 {
     ntg_widget* child;
     int pos;
