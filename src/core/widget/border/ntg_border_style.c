@@ -13,8 +13,8 @@
 
 static void border_style_draw_fn(
         const ntg_border_style* style,
-        struct ntg_xy size,
-        struct ntg_insets border_size,
+        ntg_xy size,
+        ntg_insets border_size,
         ntg_widget_tmp_draw* out_drawing);
 
 static void border_style_deinit_fn(ntg_object* _style);
@@ -96,8 +96,8 @@ int ntg_border_style_deinit(ntg_border_style* style)
 
 void ntg__border_style_draw(
         const ntg_border_style* style,
-        struct ntg_xy size,
-        struct ntg_insets border_size,
+        ntg_xy size,
+        ntg_insets border_size,
         ntg_widget_tmp_draw* out_drawing)
 {
     if(!style || !out_drawing) return;
@@ -123,8 +123,8 @@ static void border_style_deinit_fn(ntg_object* _style)
 
 static void border_style_draw_fn(
         const ntg_border_style* style,
-        struct ntg_xy size,
-        struct ntg_insets border_size,
+        ntg_xy size,
+        ntg_insets border_size,
         ntg_widget_tmp_draw* out_drawing)
 {
     (void)style;

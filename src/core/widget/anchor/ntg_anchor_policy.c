@@ -17,7 +17,7 @@ static size_t root_constrain_fn(
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena);
 
-static struct ntg_xy root_arrange_fn(
+static ntg_xy root_arrange_fn(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena);
@@ -117,7 +117,7 @@ size_t ntg__anchor_policy_vconstrain(
     return ntg_ap_vtbl(ap)->constrain_fn(ap, NTG_ORIENT_V, ctx, arena);
 }
 
-struct ntg_xy ntg__anchor_policy_arrange(
+ntg_xy ntg__anchor_policy_arrange(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena)
@@ -161,7 +161,7 @@ static size_t root_constrain_fn(
     return ctx->base_size;
 }
 
-static struct ntg_xy root_arrange_fn(
+static ntg_xy root_arrange_fn(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena)

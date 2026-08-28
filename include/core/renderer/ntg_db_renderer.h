@@ -31,7 +31,7 @@ struct ntg_db_renderer
     struct
     {
         struct ntg_cell* bbuff;
-        struct ntg_xy bbuff_size;
+        ntg_xy bbuff_size;
 
         bool force_full_render;
 

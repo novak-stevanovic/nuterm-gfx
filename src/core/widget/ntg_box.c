@@ -12,7 +12,7 @@
 /* FUNCTIONS */
 /* ========================================================================== */
 
-static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
+static inline size_t calc_total_spacing(size_t spacing, size_t child_count)
 {
     return (child_count > 0) ? ((child_count - 1) * spacing) : 0;
 }
@@ -238,7 +238,7 @@ int ntg_box_measure_fn(
         }
     }
 
-    size_t spacing = calculate_total_spacing(
+    size_t spacing = calc_total_spacing(
             box->ro.opts.spacing, children->size);
 
      struct ntg_widget_measure measure = {
@@ -322,7 +322,7 @@ int ntg_box_constrain_fn(
         {
             if(size >= min_size) 
             {
-                size_t pref_spacing = calculate_total_spacing(
+                size_t pref_spacing = calc_total_spacing(
                         box->ro.opts.spacing, children->size);
                 extra_size = ntg_sub2_size(size - min_size, pref_spacing);
 
@@ -399,7 +399,7 @@ int ntg_box_arrange_fn(
     (void)relayout;
     const ntg_box* box = (const ntg_box*)_box;
     const struct ntg_widget_vec* children = ntg_box_get_children(box);
-    struct ntg_xy size = ntg_widget_get_size_cont(_box);
+    ntg_xy size = ntg_widget_get_size_cont(_box);
 
     if(children->size == 0) return 0;
     if(ntg_xy_is_zero_any(size))
@@ -414,28 +414,31 @@ int ntg_box_arrange_fn(
     enum ntg_align prim_align = box->ro.opts.prim_align;
     enum ntg_align sec_align = box->ro.opts.sec_align;
 
+    size_t size_ort[2] = { 
+        ntg_xy_get(size, orient),
+        ntg_xy_get_other(size, orient)
+    };
+
+    size_t children_size_ort[2] = {0, 0};
+
     size_t i;
+    size_t it_size_ort[2];
     const ntg_widget* it_child;
-    struct ntg_xy it_size;
-    struct ntg_oxy _it_size;
-    
-    struct ntg_oxy _size = ntg_oxy_from_xy(size, orient);
-    struct ntg_oxy _children_size = ntg_oxy_new(0, 0, orient);
     for(i = 0; i < children->size; i++)
     {
         it_child = children->data[i];
 
-        it_size = it_child->ro.size;
-        _it_size = ntg_oxy_from_xy(it_size, orient);
+        it_size_ort[0] = ntg_xy_get(it_child->ro.size, orient);
+        it_size_ort[1] = ntg_xy_get_other(it_child->ro.size, orient);
 
-        _children_size.prim_val += _it_size.prim_val;
-        _children_size.sec_val = ntg_max2_size(_children_size.sec_val, _it_size.sec_val);
+        children_size_ort[0] += it_size_ort[0];
+        children_size_ort[1] = ntg_max2_size(children_size_ort[1], it_size_ort[1]);
     }
     
-    size_t pref_spacing = calculate_total_spacing(
-            box->ro.opts.spacing, children->size);
-    size_t total_spacing = ntg_min2_size(pref_spacing, _size.prim_val - _children_size.prim_val);
-
+    size_t pref_spacing = calc_total_spacing(box->ro.opts.spacing, children->size);
+    size_t total_spacing = ntg_min2_size(
+            pref_spacing,
+            ntg_sub2_size(size_ort[0], children_size_ort[0]));
     
     size_t array_size = children->size * sizeof(size_t);
 
@@ -463,39 +466,38 @@ int ntg_box_arrange_fn(
     if(_status != 0)
         return _status;
     
-    struct ntg_oxy _cont_size = ntg_oxy_new(
-            _children_size.prim_val + total_spacing,
-            _children_size.sec_val, orient);
+    size_t cont_size_ort[2] = { 
+        children_size_ort[0] + total_spacing,
+        children_size_ort[1]
+    };
     
-    struct ntg_oxy _base_offset = ntg_oxy_new(
-        ntg_align_offset_size(_cont_size.prim_val, _size.prim_val, prim_align),
-        ntg_align_offset_size(_cont_size.sec_val, _size.sec_val, sec_align),
-        orient);
+    size_t base_offset_ort[2] = {
+        ntg_align_offset_size(cont_size_ort[0], size_ort[0], prim_align),
+        ntg_align_offset_size(cont_size_ort[1], size_ort[1], sec_align),
+    };
 
-    struct ntg_oxy _it_extra_offset = ntg_oxy_new(0, 0, orient);
-    struct ntg_xy it_pos;
+    size_t it_extra_offset_ort[2] = {0, 0};
+    ntg_xy it_pos;
     for(i = 0; i < children->size; i++)
     {
         it_child = children->data[i];
 
-        it_size = it_child->ro.size;
-        _it_size = ntg_oxy_from_xy(it_size, orient);
-
+        it_size_ort[0] = ntg_xy_get(it_child->ro.size, orient);
+        it_size_ort[1] = ntg_xy_get_other(it_child->ro.size, orient);
         
-        _it_extra_offset.sec_val = ntg_align_offset_size(
-                _cont_size.sec_val,
-                _it_size.sec_val,
+        it_extra_offset_ort[1] = ntg_align_offset_size(
+                cont_size_ort[1],
+                it_size_ort[1],
                 sec_align);
-
         
         it_pos = ntg_xy_add(
-                ntg_xy_from_oxy(_base_offset),
-                ntg_xy_from_oxy(_it_extra_offset));
+            ntg_xy_new_orient(base_offset_ort[0], base_offset_ort[1], orient),
+            ntg_xy_new_orient(it_extra_offset_ort[0], it_extra_offset_ort[1], orient)
+        );
 
         ntg_widget_pos_map_set(out_pos_map, it_child, it_pos);
-
         
-        _it_extra_offset.prim_val += (_it_size.prim_val + _spacing_after[i]);
+        it_extra_offset_ort[0] += it_size_ort[0] + _spacing_after[i];
     }
 
     return 0;

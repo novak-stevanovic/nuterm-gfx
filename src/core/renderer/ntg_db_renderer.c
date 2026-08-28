@@ -17,19 +17,19 @@
 
 static int full_empty_render(
         struct ntg_cell* new_bbuff,
-        struct ntg_xy size);
+        ntg_xy size);
 
 static int optimized_render(
         ntg_db_renderer* renderer,
         const ntg_stage_draw* drawing,
         struct ntg_cell* new_bbuff,
-        struct ntg_xy size,
+        ntg_xy size,
         sarena* arena);
 
 static int full_render(
         const ntg_stage_draw* drawing,
         struct ntg_cell* new_bbuff,
-        struct ntg_xy size,
+        ntg_xy size,
         sarena* arena);
 
 /* ========================================================================== */
@@ -121,7 +121,7 @@ bool ntg_db_renderer_render_fn(
     int _status;
 
     ntg_db_renderer* renderer = (ntg_db_renderer*)_renderer;
-    struct ntg_xy size = (stage_drawing ?
+    ntg_xy size = (stage_drawing ?
             stage_drawing->ro.size : 
             ntg_xy_new(0, 0));
     bool resize = !(ntg_xy_are_eql(renderer->priv.bbuff_size, size));
@@ -199,7 +199,7 @@ bool ntg_db_renderer_render_fn(
 
 static int full_empty_render(
         struct ntg_cell* new_bbuff,
-        struct ntg_xy size)
+        ntg_xy size)
 {
     ntg_log_log("RENDER: FULL EMPTY");
     size_t i, j;
@@ -220,7 +220,7 @@ static int full_empty_render(
 static inline size_t fwd_equal_gfx_search(
         const ntg_stage_draw* drawing,
         struct ntg_cell start_cell,
-        struct ntg_xy pos,
+        ntg_xy pos,
         size_t row_size)
 {
     start_cell = ntg_renderer_cell_normalize(start_cell);
@@ -246,7 +246,7 @@ static int optimized_render(
         ntg_db_renderer* renderer,
         const ntg_stage_draw* drawing,
         struct ntg_cell* new_bbuff,
-        struct ntg_xy size,
+        ntg_xy size,
         sarena* arena)
 {
     ntg_log_log("RENDER: OPTIMIZED");
@@ -258,7 +258,7 @@ static int optimized_render(
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
     if(!row_buff) return NTG_ERR_ALLOC_FAIL;
 
-    struct ntg_xy bbuff_size = renderer->priv.bbuff_size;
+    ntg_xy bbuff_size = renderer->priv.bbuff_size;
     struct ntg_cell* bbuff = renderer->priv.bbuff;
 
     nt_erase_scrollback();
@@ -320,7 +320,7 @@ static int optimized_render(
 static int full_render(
         const ntg_stage_draw* drawing,
         struct ntg_cell* new_bbuff,
-        struct ntg_xy size,
+        ntg_xy size,
         sarena* arena)
 {
     ntg_log_log("RENDER: FULL");

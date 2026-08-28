@@ -79,7 +79,7 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_CMPSPRE, NULL);
 
     bool rval = false;
-    struct ntg_xy size = stage->ro.size;
+    ntg_xy size = stage->ro.size;
 
     int _status;
     if(!ntg_xy_are_eql(stage->ro.drawing.ro.size, size))
@@ -314,7 +314,7 @@ void ntg_stage_deinit_fn(ntg_object* _stage)
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int ntg__stage_set_size(ntg_stage* stage, struct ntg_xy size)
+int ntg__stage_set_size(ntg_stage* stage, ntg_xy size)
 {
     if(!stage)
         return NTG_ERR_INV_ARG;
@@ -325,7 +325,7 @@ int ntg__stage_set_size(ntg_stage* stage, struct ntg_xy size)
     if(ntg_xy_are_eql(stage->ro.size, size))
         return 0;
 
-    struct ntg_xy old_size = stage->ro.size;
+    ntg_xy old_size = stage->ro.size;
 
     stage->ro.size = size;
     ntg_stage_mark_dirty(stage);
@@ -394,10 +394,10 @@ static void draw_widget(ntg_stage* stage, ntg_widget* object)
 {
     if(!object) return;
 
-    struct ntg_xy abs_pos;
+    ntg_xy abs_pos;
     abs_pos = ntg_xy_from_dxy(ntg_widget_map_to_scene(object, ntg_dxy_new(0, 0)));
 
-    struct ntg_xy draw_size = object->ro.drawing.ro.size;
+    ntg_xy draw_size = object->ro.drawing.ro.size;
 
     // If size is equal, use the drawing, even if last draw failed.
     if(ntg_xy_are_eql(ntg_xy_size(object->ro.size), ntg_xy_size(draw_size)))

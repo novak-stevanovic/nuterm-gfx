@@ -38,7 +38,7 @@ struct ntg_loop
     unsigned int fps;
     ntg_stage* stage;
     ntg_stage* pending_stage;
-    struct ntg_xy app_size;
+    ntg_xy app_size;
 
     struct ntg_task_list task_list;
     pthread_mutex_t lock;
@@ -535,7 +535,7 @@ int ntg_loop_set_stage(ntg_stage* stage)
     return 0;
 }
 
-struct ntg_xy ntg_loop_get_app_size(void)
+ntg_xy ntg_loop_get_app_size(void)
 {
     if((loop.state != NTG_LOOP_RUNNING) && (loop.state != NTG_LOOP_STOPPING))
         return ntg_xy_new(0, 0);

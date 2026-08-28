@@ -124,7 +124,7 @@ ntg_loop_get_stage(void);
 NTG_API int
 ntg_loop_set_stage(ntg_stage* stage);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_loop_get_app_size(void);
 
 NTG_API unsigned int

@@ -40,7 +40,7 @@ int ntg_stage_draw_deinit(ntg_stage_draw* drawing)
 /* SIZE */
 /* ------------------------------------------------------ */
 
-int ntg_stage_draw_set_size(ntg_stage_draw* drawing, struct ntg_xy size)
+int ntg_stage_draw_set_size(ntg_stage_draw* drawing, ntg_xy size)
 {
     if(!drawing)
         return NTG_ERR_INV_ARG;

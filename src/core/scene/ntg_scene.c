@@ -138,7 +138,7 @@ size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_widget** out_buff, si
 
 int ntg_scene_hit_test(
         ntg_scene* scene,
-        struct ntg_xy pos,
+        ntg_xy pos,
         struct ntg_scene_hit_res* out_res)
 {
     struct ntg_scene_hit_res out = {0};
@@ -157,9 +157,9 @@ int ntg_scene_hit_test(
     ntg_scene_collect_layers_by_z(scene, layers, layer_count);
 
     size_t i = layer_count;
-    struct ntg_dxy it_adj_pos_dxy;
-    struct ntg_xy it_adj_pos;
-    // struct ntg_xy _out_widget_pos;
+    ntg_dxy it_adj_pos_dxy;
+    ntg_xy it_adj_pos;
+    // ntg_xy _out_widget_pos;
     // enum ntg_widget_hit_result _hit;
     struct ntg_widget_hit_res it_res = {0};
     while(i > 0)
@@ -379,7 +379,7 @@ void ntg_scene_deinit_fn(ntg_object* _scene)
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int ntg__scene_set_size(ntg_scene* scene, struct ntg_xy size)
+int ntg__scene_set_size(ntg_scene* scene, ntg_xy size)
 {
     if(!scene)
         return NTG_ERR_INV_ARG;
@@ -387,7 +387,7 @@ int ntg__scene_set_size(ntg_scene* scene, struct ntg_xy size)
     if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
         return NTG_ERR_INV_ARG;
 
-    struct ntg_xy old_size = scene->ro.size;
+    ntg_xy old_size = scene->ro.size;
 
     if(ntg_xy_are_eql(old_size, size))
         return 0;
@@ -1082,13 +1082,13 @@ static inline void arrange_phase(ntg_widget* root, struct layout_data* lay_data)
     const struct ntg_anchor_policy* policy = root->ro.anchor_policy;
     ntg_scene* scene = lay_data->scene;
     sarena* arena = lay_data->arena;
-    struct ntg_xy size = root->ro.size;
+    ntg_xy size = root->ro.size;
 
     /* Anchor */
 
     struct ntg_anchor_arrange_ctx ctx;
     get_root_arrange_ctx(scene, root, &ctx);
-    struct ntg_xy pos;
+    ntg_xy pos;
     if(policy)
     {
         pos = ntg__anchor_policy_arrange(policy, &ctx, arena);

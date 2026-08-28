@@ -55,7 +55,7 @@ struct ntg_scene
         size_t tree_count, object_count; /* Cache */
 
         ntg_stage* stage;
-        struct ntg_xy size;
+        ntg_xy size;
         ntg_fcs_manager* fm;
         bool dirty;
     } ro;
@@ -96,7 +96,7 @@ ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_widget** out_buff, size_t ca
 NTG_API int
 ntg_scene_hit_test(
         ntg_scene* scene,
-        struct ntg_xy pos,
+        ntg_xy pos,
         struct ntg_scene_hit_res* out_res);
 
 /* ------------------------------------------------------ */
@@ -169,7 +169,7 @@ ntg_scene_deinit_fn(ntg_object* _scene);
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int ntg__scene_set_size(ntg_scene* scene, struct ntg_xy size);
+int ntg__scene_set_size(ntg_scene* scene, ntg_xy size);
 bool ntg__scene_layout(ntg_scene* scene, sarena* arena);
 
 void ntg__scene_clean(ntg_scene* scene);

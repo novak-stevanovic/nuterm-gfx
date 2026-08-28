@@ -178,22 +178,22 @@ struct ntg_event_widget_bsrm_dt
 #define NTG_EVENT_WIDGET_SZCHG 19
 struct ntg_event_widget_szchg_dt
 {
-    const struct ntg_xy* old_size;
-    const struct ntg_xy* new_size;
+    const ntg_xy* old_size;
+    const ntg_xy* new_size;
 };
 
 #define NTG_EVENT_WIDGET_CONTSZCHG 20
 struct ntg_event_widget_contszchg_dt
 {
-    const struct ntg_xy* old_size;
-    const struct ntg_xy* new_size;
+    const ntg_xy* old_size;
+    const ntg_xy* new_size;
 };
 
 #define NTG_EVENT_WIDGET_POSCHG 21
 struct ntg_event_widget_poschg_dt
 {
-    const struct ntg_xy* old_pos;
-    const struct ntg_xy* new_pos;
+    const ntg_xy* old_pos;
+    const ntg_xy* new_pos;
 };
 
 /* ------------------------------------------------------ */

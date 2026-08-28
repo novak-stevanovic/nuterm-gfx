@@ -37,7 +37,7 @@ struct ntg_stage
     {
         ntg_scene* scene;
 
-        struct ntg_xy size;
+        ntg_xy size;
         ntg_stage_draw drawing;
 
         bool in_loop;
@@ -143,7 +143,7 @@ ntg_stage_deinit_fn(ntg_object* _stage);
 /* FUNCTIONS */
 /* ========================================================================== */
 
-int ntg__stage_set_size(ntg_stage* stage, struct ntg_xy size);
+int ntg__stage_set_size(ntg_stage* stage, ntg_xy size);
 void ntg__stage_clean(ntg_stage* stage);
 void ntg__stage_enter_loop(ntg_stage* stage);
 void ntg__stage_leave_loop(ntg_stage* stage);

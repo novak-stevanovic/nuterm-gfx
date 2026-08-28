@@ -21,7 +21,7 @@ struct ntg_widget_size_map
 struct ntg_widget_pos_map
 {
     ntg_widget** keys;
-    struct ntg_xy* vals;
+    ntg_xy* vals;
 
     size_t size;
 };
@@ -53,7 +53,7 @@ static int pos_map_init(
 
 static int tmp_draw_init(
         struct ntg_widget_tmp_draw* drawing,
-        struct ntg_xy size,
+        ntg_xy size,
         struct ntg_vcell base_bg,
         sarena* arena);
 
@@ -92,7 +92,7 @@ static bool set_hmeasure_helper(ntg_widget* widget, struct ntg_widget_measure me
 static bool set_vmeasure_helper(ntg_widget* widget, struct ntg_widget_measure measure);
 static bool set_hsize_helper(ntg_widget* widget, size_t size);
 static bool set_vsize_helper(ntg_widget* widget, size_t size);
-static inline bool set_pos_helper(ntg_widget* widget, struct ntg_xy pos);
+static inline bool set_pos_helper(ntg_widget* widget, ntg_xy pos);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -132,11 +132,11 @@ bool ntg_widget_feed_mouse(ntg_widget* widget, const struct ntg_widget_mouse* ev
     if(!event->target) return false;
     if(nt_mouse_are_eql(event->mouse, NT_MOUSE_ZERO)) return false;
 
-    struct ntg_xy size = ntg_widget_get_size(widget);
+    ntg_xy size = ntg_widget_get_size(widget);
     if((event->mouse.x >= size.x) || (event->mouse.y >= size.y))
         return false;
 
-    struct ntg_xy pos = ntg_xy_new(event->mouse.x, event->mouse.y);
+    ntg_xy pos = ntg_xy_new(event->mouse.x, event->mouse.y);
     struct ntg_widget_hit_res res;
     res = ntg_widget_hit_test(widget, pos);
 
@@ -172,13 +172,13 @@ int ntg_widget_set_lay_opts(ntg_widget* widget, const struct ntg_lay_opts* opts)
 
     /* Get actual values */
 
-    struct ntg_xy min = ntg_xy_opt_get(
+    ntg_xy min = ntg_xy_opt_get(
             opts_final.min_cont_size,
             ntg_xy_new(NTG_WIDGET_MINSZ_UNSET, NTG_WIDGET_MINSZ_UNSET));
-    struct ntg_xy max = ntg_xy_opt_get(
+    ntg_xy max = ntg_xy_opt_get(
             opts_final.max_cont_size,
             ntg_xy_new(NTG_WIDGET_MAXSZ_UNSET, NTG_WIDGET_MAXSZ_UNSET));
-    struct ntg_xy grow = ntg_xy_opt_get(
+    ntg_xy grow = ntg_xy_opt_get(
             opts_final.grow,
             ntg_xy_new(NTG_WIDGET_GROW_UNSET, NTG_WIDGET_GROW_UNSET));
     int z = ntg_int_opt_get(opts_final.z_index, NTG_WIDGET_ZIDX_UNSET);
@@ -287,7 +287,7 @@ int ntg_widget_set_anchor_policy(ntg_widget* widget, const ntg_anchor_policy* po
 
 /* ------------------------------------------------------ */
 
-struct ntg_widget_hit_res ntg_widget_hit_test(ntg_widget* widget, struct ntg_xy pos)
+struct ntg_widget_hit_res ntg_widget_hit_test(ntg_widget* widget, ntg_xy pos)
 {
     struct ntg_widget_hit_res out = {0};
 
@@ -305,9 +305,9 @@ struct ntg_widget_hit_res ntg_widget_hit_test(ntg_widget* widget, struct ntg_xy 
 
     /* Set `out_hit_res`, ancestors will choose the right one later */
 
-    struct ntg_insets padding_size = widget->ro.padding_size;
-    struct ntg_insets border_size = widget->ro.border_size;
-    struct ntg_xy cont_size = ntg_widget_get_size_cont(widget);
+    ntg_insets padding_size = widget->ro.padding_size;
+    ntg_insets border_size = widget->ro.border_size;
+    ntg_xy cont_size = ntg_widget_get_size_cont(widget);
 
     if((pos.x > (padding_size.w + cont_size.x + padding_size.e)) ||
        (pos.x < border_size.w) ||
@@ -331,7 +331,7 @@ struct ntg_widget_hit_res ntg_widget_hit_test(ntg_widget* widget, struct ntg_xy 
     size_t i;
     ntg_widget* it_child;
     struct ntg_widget_hit_res it_out;
-    struct ntg_dxy it_adj_pos;
+    ntg_dxy it_adj_pos;
     int curr_z = INT_MIN;
     for(i = 0; i < widget->ro.children.size; i++)
     {
@@ -647,7 +647,7 @@ bool ntg_widget_is_in_graph(const ntg_widget* graph_root, const ntg_widget* desc
 /* SIZE & POS */
 /* ------------------------------------------------------ */
 
-struct ntg_xy ntg_widget_get_size(const ntg_widget* widget)
+ntg_xy ntg_widget_get_size(const ntg_widget* widget)
 {
     if(!widget)
         return ntg_xy_new(0, 0);
@@ -655,34 +655,34 @@ struct ntg_xy ntg_widget_get_size(const ntg_widget* widget)
     return widget->ro.size;
 }
 
-struct ntg_xy ntg_widget_get_size_cont(const ntg_widget* widget)
+ntg_xy ntg_widget_get_size_cont(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    struct ntg_insets border_size = widget->ro.border_size;
-    struct ntg_insets padding_size = widget->ro.padding_size;
+    ntg_insets border_size = widget->ro.border_size;
+    ntg_insets padding_size = widget->ro.padding_size;
 
-    struct ntg_xy sub = ntg_xy_new(
+    ntg_xy sub = ntg_xy_new(
         ntg_insets_hsum(border_size) + ntg_insets_hsum(padding_size),
         ntg_insets_vsum(border_size) + ntg_insets_vsum(padding_size)
     );
     return ntg_xy_sub(widget->ro.size, sub);
 }
 
-struct ntg_xy ntg_widget_get_size_pad(const ntg_widget* widget)
+ntg_xy ntg_widget_get_size_pad(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    struct ntg_insets border_size = widget->ro.border_size;
+    ntg_insets border_size = widget->ro.border_size;
 
-    struct ntg_xy sub = ntg_xy_new(
+    ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(border_size),
             ntg_insets_vsum(border_size)
     );
     return ntg_xy_sub(widget->ro.size, sub);
 }
 
-struct ntg_xy ntg_widget_get_abs_pos(const ntg_widget* widget)
+ntg_xy ntg_widget_get_abs_pos(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
@@ -693,17 +693,17 @@ struct ntg_xy ntg_widget_get_abs_pos(const ntg_widget* widget)
 /* SPACE MAPPING */
 /* ------------------------------------------------------ */
 
-struct ntg_dxy ntg_widget_map_to_ancs(
+ntg_dxy ntg_widget_map_to_ancs(
         const ntg_widget* widget,
         const ntg_widget* ancs,
-        struct ntg_dxy point)
+        ntg_dxy point)
 {
     if(!widget) return NTG_DXY_MAX;
 
     if(widget == ancs)
         return point;
 
-    struct ntg_dxy out = point;
+    ntg_dxy out = point;
 
     const ntg_widget* it = widget;
     while(it && (it != ancs))
@@ -715,27 +715,27 @@ struct ntg_dxy ntg_widget_map_to_ancs(
     return out;
 }
 
-struct ntg_dxy ntg_widget_map_to_desc(
+ntg_dxy ntg_widget_map_to_desc(
         const ntg_widget* widget,
         const ntg_widget* desc,
-        struct ntg_dxy point)
+        ntg_dxy point)
 {
     if(!desc) return NTG_DXY_MAX;
 
-    struct ntg_dxy desc_pos = ntg_widget_map_to_ancs(
+    ntg_dxy desc_pos = ntg_widget_map_to_ancs(
             desc, widget, ntg_dxy_new(0, 0));
 
     return ntg_dxy_sub(point, desc_pos);
 }
 
-struct ntg_dxy 
-ntg_widget_map_to_scene(const ntg_widget* widget, struct ntg_dxy point)
+ntg_dxy 
+ntg_widget_map_to_scene(const ntg_widget* widget, ntg_dxy point)
 {
     return ntg_widget_map_to_ancs(widget, NULL, point);
 }
 
-struct ntg_dxy 
-ntg_widget_map_from_scene(const ntg_widget* widget, struct ntg_dxy point)
+ntg_dxy 
+ntg_widget_map_from_scene(const ntg_widget* widget, ntg_dxy point)
 {
     if(!widget)
         return NTG_DXY_MAX;
@@ -1193,7 +1193,7 @@ int ntg_widget_zero_constrain(const ntg_widget* widget, ntg_widget_size_map* map
 /* ARRANGE PHASE */
 /* ------------------------------------------------------ */
 
-struct ntg_xy ntg_widget_pos_map_get(
+ntg_xy ntg_widget_pos_map_get(
         const ntg_widget_pos_map* map,
         const ntg_widget* widget)
 {
@@ -1213,7 +1213,7 @@ struct ntg_xy ntg_widget_pos_map_get(
 int ntg_widget_pos_map_set(
         ntg_widget_pos_map* map,
         const ntg_widget* widget,
-        struct ntg_xy pos)
+        ntg_xy pos)
 {
     if(!map || !widget) return NTG_ERR_INV_ARG;
 
@@ -1274,7 +1274,7 @@ int ntg_widget_mark_dirty(ntg_widget* widget, uint32_t dirty)
 /* MEASURE & SIZE HELPERS */
 /* ------------------------------------------------------ */
 
-struct ntg_xy ntg_widget_get_min_size(const ntg_widget* widget)
+ntg_xy ntg_widget_get_min_size(const ntg_widget* widget)
 {
     if(!widget)
         return ntg_xy_new(0, 0);
@@ -1282,7 +1282,7 @@ struct ntg_xy ntg_widget_get_min_size(const ntg_widget* widget)
     return widget->ro.min_size;
 }
 
-struct ntg_xy ntg_widget_get_nat_size(const ntg_widget* widget)
+ntg_xy ntg_widget_get_nat_size(const ntg_widget* widget)
 {
     if(!widget)
         return ntg_xy_new(0, 0);
@@ -1290,7 +1290,7 @@ struct ntg_xy ntg_widget_get_nat_size(const ntg_widget* widget)
     return widget->ro.nat_size;
 }
 
-struct ntg_xy ntg_widget_get_max_size(const ntg_widget* widget)
+ntg_xy ntg_widget_get_max_size(const ntg_widget* widget)
 {
     if(!widget)
         return ntg_xy_new(0, 0);
@@ -1320,14 +1320,14 @@ size_t ntg_widget_get_size_1d(const ntg_widget* widget, enum ntg_orient orient)
     return ntg_xy_get(widget->ro.size, orient);
 }
 
-struct ntg_xy ntg_widget_get_min_size_cont(const ntg_widget* widget)
+ntg_xy ntg_widget_get_min_size_cont(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
-    struct ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
 
-    struct ntg_xy sub = ntg_xy_new(
+    ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(pref_border_size) + ntg_insets_hsum(pref_padding_size),
             ntg_insets_vsum(pref_border_size) + ntg_insets_vsum(pref_padding_size)
     );
@@ -1335,14 +1335,14 @@ struct ntg_xy ntg_widget_get_min_size_cont(const ntg_widget* widget)
     return ntg_xy_sub(widget->ro.min_size, sub);
 }
 
-struct ntg_xy ntg_widget_get_nat_size_cont(const ntg_widget* widget)
+ntg_xy ntg_widget_get_nat_size_cont(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
-    struct ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
 
-    struct ntg_xy sub = ntg_xy_new(
+    ntg_xy sub = ntg_xy_new(
         ntg_insets_hsum(pref_border_size) + ntg_insets_hsum(pref_padding_size),
         ntg_insets_vsum(pref_border_size) + ntg_insets_vsum(pref_padding_size)
     );
@@ -1350,14 +1350,14 @@ struct ntg_xy ntg_widget_get_nat_size_cont(const ntg_widget* widget)
     return ntg_xy_sub(widget->ro.nat_size, sub);
 }
 
-struct ntg_xy ntg_widget_get_max_size_cont(const ntg_widget* widget)
+ntg_xy ntg_widget_get_max_size_cont(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
-    struct ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
 
-    struct ntg_xy sub = ntg_xy_new(
+    ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(pref_border_size) + ntg_insets_hsum(pref_padding_size),
             ntg_insets_vsum(pref_border_size) + ntg_insets_vsum(pref_padding_size)
     );
@@ -1375,8 +1375,8 @@ ntg_widget_get_measure_cont(const ntg_widget* widget, enum ntg_orient orient)
 
     struct ntg_widget_measure m = ntg_widget_get_measure(widget, orient);
 
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
-    struct ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
 
     size_t sub = ntg_insets_sum(pref_border_size, orient) +
             ntg_insets_sum(pref_padding_size, orient);
@@ -1394,8 +1394,8 @@ size_t ntg_widget_get_size_1d_cont(const ntg_widget* widget, enum ntg_orient ori
 
     size_t s = ntg_xy_get(widget->ro.size, orient);
 
-    struct ntg_insets border_size = widget->ro.border_size;
-    struct ntg_insets padding_size = widget->ro.padding_size;
+    ntg_insets border_size = widget->ro.border_size;
+    ntg_insets padding_size = widget->ro.padding_size;
 
     size_t sub = ntg_insets_sum(border_size, orient) +
             ntg_insets_sum(padding_size, orient);
@@ -1412,39 +1412,39 @@ size_t ntg_widget_get_for_size_cont(const ntg_widget* widget, enum ntg_orient or
             ntg_widget_get_size_1d_cont(widget, NTG_ORIENT_H);
 }
 
-struct ntg_xy ntg_widget_get_min_size_pad(const ntg_widget* widget)
+ntg_xy ntg_widget_get_min_size_pad(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
 
-    struct ntg_xy sub = ntg_xy_new(
+    ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(pref_border_size),
             ntg_insets_vsum(pref_border_size)
     );
     return ntg_xy_sub(widget->ro.min_size, sub);
 }
 
-struct ntg_xy ntg_widget_get_nat_size_pad(const ntg_widget* widget)
+ntg_xy ntg_widget_get_nat_size_pad(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
 
-    struct ntg_xy sub = ntg_xy_new(
+    ntg_xy sub = ntg_xy_new(
         ntg_insets_hsum(pref_border_size),
         ntg_insets_vsum(pref_border_size)
     );
     return ntg_xy_sub(widget->ro.nat_size, sub);
 }
 
-struct ntg_xy ntg_widget_get_max_size_pad(const ntg_widget* widget)
+ntg_xy ntg_widget_get_max_size_pad(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
 
-    struct ntg_xy sub = ntg_xy_new(
+    ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(pref_border_size),
             ntg_insets_vsum(pref_border_size)
     );
@@ -1461,7 +1461,7 @@ ntg_widget_get_measure_pad(const ntg_widget* widget, enum ntg_orient orient)
 
     struct ntg_widget_measure m = ntg_widget_get_measure(widget, orient);
 
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
 
     size_t sub = ntg_insets_sum(pref_border_size, orient);
 
@@ -1478,7 +1478,7 @@ size_t ntg_widget_get_size_1d_pad(const ntg_widget* widget, enum ntg_orient orie
 
     size_t s = ntg_xy_get(widget->ro.size, orient);
 
-    struct ntg_insets border_size = widget->ro.border_size;
+    ntg_insets border_size = widget->ro.border_size;
 
     size_t sub = ntg_insets_sum(border_size, orient);
 
@@ -1803,12 +1803,12 @@ int ntg__widget_arrange(ntg_widget* widget, sarena* arena, uint32_t* relayout)
         }
     }
 
-    struct ntg_xy dcr_sum = ntg_xy_new(
+    ntg_xy dcr_sum = ntg_xy_new(
             widget->ro.border_size.w + widget->ro.padding_size.w,
             widget->ro.border_size.n + widget->ro.padding_size.n);
 
     ntg_widget* it_child;
-    struct ntg_xy it_pos;
+    ntg_xy it_pos;
 
     for(i = 0; i < map.size; i++)
     {
@@ -1827,8 +1827,8 @@ void ntg__widget_layout_finalize(ntg_widget* widget, sarena* arena)
 
     (void)arena;
 
-    struct ntg_xy old_size = widget->priv.old_size;
-    struct ntg_xy new_size = widget->ro.size;
+    ntg_xy old_size = widget->priv.old_size;
+    ntg_xy new_size = widget->ro.size;
     if(!ntg_xy_are_eql(old_size, new_size))
     {
         if(ntg_wgt_vtbl(widget)->resize_fn)
@@ -1842,8 +1842,8 @@ void ntg__widget_layout_finalize(ntg_widget* widget, sarena* arena)
         ntg_object_event_raise(ntg_obj(widget), NTG_EVENT_WIDGET_SZCHG, &event_dt);
     }
 
-    struct ntg_xy old_cont_size = widget->priv.old_cont_size;
-    struct ntg_xy new_cont_size = ntg_widget_get_size_cont(widget);
+    ntg_xy old_cont_size = widget->priv.old_cont_size;
+    ntg_xy new_cont_size = ntg_widget_get_size_cont(widget);
     if(!ntg_xy_are_eql(old_cont_size, new_cont_size))
     {
         if(ntg_wgt_vtbl(widget)->resize_cont_fn)
@@ -1857,8 +1857,8 @@ void ntg__widget_layout_finalize(ntg_widget* widget, sarena* arena)
         ntg_object_event_raise(ntg_obj(widget), NTG_EVENT_WIDGET_CONTSZCHG, &event_dt);
     }
 
-    struct ntg_xy old_pos = widget->priv.old_pos;
-    struct ntg_xy new_pos = ntg_widget_get_abs_pos(widget);
+    ntg_xy old_pos = widget->priv.old_pos;
+    ntg_xy new_pos = ntg_widget_get_abs_pos(widget);
     if(!ntg_xy_are_eql(old_pos, new_pos))
     {
         if(ntg_wgt_vtbl(widget)->pos_chng_fn)
@@ -1911,7 +1911,7 @@ void ntg__widget_root_set_vsize(ntg_widget* widget, size_t size)
     set_vsize_helper(widget, size);
 }
 
-void ntg__widget_root_set_pos(ntg_widget* widget, struct ntg_xy pos)
+void ntg__widget_root_set_pos(ntg_widget* widget, ntg_xy pos)
 {
     if(!widget) return;
     if(widget->ro.parent) return;
@@ -2044,7 +2044,7 @@ static int pos_map_init(
     map->size = children->size;
     map->keys = sarena_malloc(arena, sizeof(ntg_widget*) * children->size);
     if(!map->keys) return NTG_ERR_ALLOC_FAIL;
-    map->vals = sarena_malloc(arena, sizeof(struct ntg_xy) * children->size);
+    map->vals = sarena_malloc(arena, sizeof(ntg_xy) * children->size);
     if(!map->vals) return NTG_ERR_ALLOC_FAIL;
 
     size_t i;
@@ -2059,7 +2059,7 @@ static int pos_map_init(
 
 static int tmp_draw_init(
         struct ntg_widget_tmp_draw* drawing,
-        struct ntg_xy size,
+        ntg_xy size,
         struct ntg_vcell base_bg,
         sarena* arena)
 {
@@ -2204,7 +2204,7 @@ static bool set_vsize_helper(ntg_widget* widget, size_t size)
     else return false;
 }
 
-static inline bool set_pos_helper(ntg_widget* widget, struct ntg_xy pos)
+static inline bool set_pos_helper(ntg_widget* widget, ntg_xy pos)
 {
     if(!ntg_xy_are_eql(widget->ro.pos, pos))
     {
@@ -2293,7 +2293,7 @@ static int calculate_border_hsize(
 
 static int vconstrain_border(ntg_widget* widget, bool* out_repeat)
 {
-    struct ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
 
     bool hborder_missing = 
             (ntg_insets_hsum(pref_border_size) > 0) &&
@@ -2364,7 +2364,7 @@ static int vconstrain_border(ntg_widget* widget, bool* out_repeat)
 
 static int vconstrain_padding(ntg_widget* widget, bool* out_repeat)
 {
-    struct ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
 
     bool hpadding_missing = 
             (ntg_insets_hsum(pref_padding_size) > 0) &&
@@ -2495,11 +2495,11 @@ static int calculate_padding_vsize(ntg_widget* widget, size_t* out_n, size_t* ou
 }
 static int draw_optimized(ntg_widget* widget, sarena* arena)
 {
-    struct ntg_xy content_size = ntg_widget_get_size_cont(widget);
-    struct ntg_xy object_size = widget->ro.drawing.ro.size;
+    ntg_xy content_size = ntg_widget_get_size_cont(widget);
+    ntg_xy object_size = widget->ro.drawing.ro.size;
 
     struct ntg_vcell bg = widget->priv.base_bg;
-    struct ntg_insets psize = widget->ro.padding_size;
+    ntg_insets psize = widget->ro.padding_size;
 
     struct ntg_widget_tmp_draw content_drawing;
     int _status = tmp_draw_init(&content_drawing, content_size, bg, arena);
@@ -2518,10 +2518,10 @@ static int draw_optimized(ntg_widget* widget, sarena* arena)
 
     struct ntg_vcell it_src_cell;
 
-    struct ntg_xy offset = ntg_xy_new(psize.w, psize.n);
+    ntg_xy offset = ntg_xy_new(psize.w, psize.n);
 
     size_t i, j;
-    struct ntg_xy ji;
+    ntg_xy ji;
     for(i = 0; i < object_size.y; i++)
     {
         for(j = 0; j < object_size.x; j++)
@@ -2547,12 +2547,12 @@ static int draw_optimized(ntg_widget* widget, sarena* arena)
 static int 
 draw_unoptimized(ntg_widget* widget, sarena* arena)
 {
-    struct ntg_xy content_size = ntg_widget_get_size_cont(widget);
-    struct ntg_xy object_size = widget->ro.drawing.ro.size;
+    ntg_xy content_size = ntg_widget_get_size_cont(widget);
+    ntg_xy object_size = widget->ro.drawing.ro.size;
 
     struct ntg_vcell bg = widget->priv.base_bg;
-    struct ntg_insets bsize = widget->ro.border_size;
-    struct ntg_insets psize = widget->ro.padding_size;
+    ntg_insets bsize = widget->ro.border_size;
+    ntg_insets psize = widget->ro.padding_size;
     const struct ntg_border_style* border_style = widget->ro.bdr_style;
 
     struct ntg_widget_tmp_draw content_drawing;
@@ -2591,8 +2591,8 @@ draw_unoptimized(ntg_widget* widget, sarena* arena)
 
     struct ntg_vcell it_src_cell;
 
-    struct ntg_xy offset = ntg_xy_new(bsize.w + psize.w, bsize.n + psize.n);
-    struct ntg_xy ji;
+    ntg_xy offset = ntg_xy_new(bsize.w + psize.w, bsize.n + psize.n);
+    ntg_xy ji;
     for(i = 0; i < content_size.y; i++)
     {
         for(j = 0; j < content_size.x; j++)

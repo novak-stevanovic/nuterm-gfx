@@ -201,26 +201,24 @@ int ntg_prog_bar_draw_fn(
     (void)layout_dt;
     (void)arena;
     const ntg_prog_bar* prog_bar = (const ntg_prog_bar*)_prog_bar;
-    struct ntg_xy size = ntg_widget_get_size_cont(_prog_bar);
+    ntg_xy size = ntg_widget_get_size_cont(_prog_bar);
 
     if(ntg_xy_is_zero_any(size)) return 0;
 
-    struct ntg_oxy _size = ntg_oxy_from_xy(size, prog_bar->ro.opts.orient);
+    enum ntg_orient orient = prog_bar->ro.opts.orient;
 
-    size_t complete_count = round(_size.prim_val * prog_bar->ro.prog);
+    size_t size_prim = ntg_xy_get(size, orient);
+    size_t size_sec = ntg_xy_get_other(size, orient);
+
+    size_t complete_count = round(size_prim * prog_bar->ro.prog);
 
     size_t i, j;
-    struct ntg_oxy _it_xy;
-    struct ntg_xy it_xy;
     struct ntg_vcell it_cell;
-    for(i = 0; i < _size.prim_val; i++)
-    {
-        for(j = 0; j < _size.sec_val; j++)
+    for(i = 0; i < size_prim; i++)
+    { 
+        for(j = 0; j < size_sec; j++)
         {
-            _it_xy = ntg_oxy_new(i, j, prog_bar->ro.opts.orient);
-            it_xy = ntg_xy_from_oxy(_it_xy);
-
-            if(complete_count == _size.prim_val)
+            if(complete_count == size_prim)
                 it_cell = prog_bar->ro.opts.style.complete;
             else if(complete_count == 0)
                 it_cell = prog_bar->ro.opts.style.uncomplete;
@@ -231,7 +229,7 @@ int ntg_prog_bar_draw_fn(
             else
                 it_cell = prog_bar->ro.opts.style.uncomplete;
 
-            ntg_widget_tmp_draw_set(out_drawing, it_cell, it_xy);
+            ntg_widget_tmp_draw_set(out_drawing, it_cell, ntg_xy_new_orient(i, j, orient));
         }
     }
 

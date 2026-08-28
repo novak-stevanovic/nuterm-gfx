@@ -151,7 +151,7 @@ int ntg_clr_block_draw_fn(
     (void)layout_dt;
     (void)arena;
     const ntg_clr_block* clr_block = ntg_cb(_clr_block);
-    struct ntg_xy size = ntg_widget_get_size_cont(_clr_block);
+    ntg_xy size = ntg_widget_get_size_cont(_clr_block);
 
     if(ntg_xy_is_zero_any(size)) return 0;
 

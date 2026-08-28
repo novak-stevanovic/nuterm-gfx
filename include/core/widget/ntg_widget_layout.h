@@ -109,7 +109,7 @@ ntg_widget_zero_constrain(const ntg_widget* widget, ntg_widget_size_map* map);
 /* ARRANGE PHASE */
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_pos_map_get(
         const ntg_widget_pos_map* map,
         const ntg_widget* widget);
@@ -120,7 +120,7 @@ NTG_API int
 ntg_widget_pos_map_set(
         ntg_widget_pos_map* map,
         const ntg_widget* widget,
-        struct ntg_xy pos);
+        ntg_xy pos);
 
 /* ------------------------------------------------------ */
 
@@ -134,11 +134,11 @@ ntg_widget_zero_arrange(const ntg_widget* widget, ntg_widget_pos_map* map);
 struct ntg_widget_tmp_draw
 {
     struct ntg_vcell* data;
-    struct ntg_xy size;
+    ntg_xy size;
 };
 
 static inline struct ntg_vcell
-ntg_widget_tmp_draw_get(const ntg_widget_tmp_draw* drawing, struct ntg_xy pos)
+ntg_widget_tmp_draw_get(const ntg_widget_tmp_draw* drawing, ntg_xy pos)
 {
     if(!drawing) return NTG_VCELL_ZERO;
 
@@ -152,7 +152,7 @@ static inline int
 ntg_widget_tmp_draw_set(
         ntg_widget_tmp_draw* drawing,
         struct ntg_vcell cell,
-        struct ntg_xy pos)
+        ntg_xy pos)
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
@@ -173,13 +173,13 @@ ntg_widget_mark_dirty(ntg_widget* widget, uint32_t dirty);
 /* MEASURE & SIZE HELPERS */
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_min_size(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_nat_size(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_max_size(const ntg_widget* widget);
 
 NTG_API struct ntg_widget_measure
@@ -190,13 +190,13 @@ ntg_widget_get_size_1d(const ntg_widget* widget, enum ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_min_size_cont(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_nat_size_cont(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_max_size_cont(const ntg_widget* widget);
 
 NTG_API struct ntg_widget_measure
@@ -210,13 +210,13 @@ ntg_widget_get_for_size_cont(const ntg_widget* widget, enum ntg_orient orient);
 
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_min_size_pad(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_nat_size_pad(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_max_size_pad(const ntg_widget* widget);
 
 NTG_API struct ntg_widget_measure
@@ -246,7 +246,7 @@ int ntg__widget_draw(ntg_widget* widget, sarena* arena);
 
 void ntg__widget_root_set_hsize(ntg_widget* widget, size_t size);
 void ntg__widget_root_set_vsize(ntg_widget* widget, size_t size);
-void ntg__widget_root_set_pos(ntg_widget* widget, struct ntg_xy pos);
+void ntg__widget_root_set_pos(ntg_widget* widget, ntg_xy pos);
 
 void ntg__widget_clean(ntg_widget* widget, uint32_t clean);
 

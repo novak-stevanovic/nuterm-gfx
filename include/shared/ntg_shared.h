@@ -36,14 +36,15 @@ GENC_OPT_INLINE_DEF(ntg_size_opt, size_t)
 
 struct ntg_event;
 struct nt_event;
-struct ntg_xy;
-struct ntg_insets;
 struct ntg_widget_measure;
 
 /* ------------------------------------------------------ */
 /* BASE */
 /* ------------------------------------------------------ */
 
+typedef struct ntg_xy ntg_xy;
+typedef struct ntg_dxy ntg_dxy;
+typedef struct ntg_insets ntg_insets;
 typedef struct ntg_cell_grid ntg_cell_grid;
 typedef struct ntg_vcell_grid ntg_vcell_grid;
 typedef struct ntg_cell_vecgrid ntg_cell_vecgrid;

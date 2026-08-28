@@ -26,7 +26,7 @@ struct ntg_widget_draw
     } priv;
     struct
     {
-        struct ntg_xy size;
+        ntg_xy size;
     } ro;
 };
 
@@ -45,30 +45,30 @@ NTG_API int
 ntg_widget_draw_deinit(ntg_widget_draw* drawing);
 
 NTG_API int
-ntg_widget_draw_set_size(ntg_widget_draw* drawing, struct ntg_xy size);
+ntg_widget_draw_set_size(ntg_widget_draw* drawing, ntg_xy size);
 
 NTG_API int
 ntg_widget_draw_place(
         const ntg_widget_draw* src_drawing,
         ntg_widget_draw* dest_drawing,
-        struct ntg_xy dest_start_pos);
+        ntg_xy dest_start_pos);
 
 NTG_API int
 ntg_widget_draw_place_(
         const ntg_widget_draw* src_drawing,
         ntg_stage_draw* dest_drawing,
-        struct ntg_xy dest_start_pos);
+        ntg_xy dest_start_pos);
 
 /* ------------------------------------------------------ */
 /* CELLS */
 /* ------------------------------------------------------ */
 
 static inline struct ntg_vcell
-ntg_widget_draw_get(const ntg_widget_draw* drawing, struct ntg_xy pos)
+ntg_widget_draw_get(const ntg_widget_draw* drawing, ntg_xy pos)
 {
     if(!drawing) return NTG_VCELL_ZERO;
 
-    struct ntg_xy size = drawing->ro.size;
+    ntg_xy size = drawing->ro.size;
 
     if((pos.x < size.x) && (pos.y < size.y))
         return drawing->priv.vcell_vec.data[pos.y * size.x + pos.x];
@@ -77,11 +77,11 @@ ntg_widget_draw_get(const ntg_widget_draw* drawing, struct ntg_xy pos)
 }
 
 static inline void
-ntg_widget_draw_set(ntg_widget_draw* drawing, struct ntg_vcell cell, struct ntg_xy pos)
+ntg_widget_draw_set(ntg_widget_draw* drawing, struct ntg_vcell cell, ntg_xy pos)
 {
     if(!drawing) return;
 
-    struct ntg_xy size = drawing->ro.size;
+    ntg_xy size = drawing->ro.size;
 
     if((pos.x < size.x) && (pos.y < size.y))
         drawing->priv.vcell_vec.data[pos.y * size.x + pos.x] = cell;

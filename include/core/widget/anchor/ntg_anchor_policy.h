@@ -43,11 +43,11 @@ struct ntg_anchor_constrain_ctx
 
 struct ntg_anchor_arrange_ctx
 {
-    struct ntg_xy size;
+    ntg_xy size;
     const ntg_widget* root;
 
-    struct ntg_xy base_size, base_pos;
-    struct ntg_xy base_min_size, base_nat_size, base_max_size;
+    ntg_xy base_size, base_pos;
+    ntg_xy base_min_size, base_nat_size, base_max_size;
 };
 
 struct ntg_anchor_policy_vtable
@@ -59,7 +59,7 @@ struct ntg_anchor_policy_vtable
             enum ntg_orient orient,
             const struct ntg_anchor_constrain_ctx* ctx,
             sarena* arena);
-    struct ntg_xy (*arrange_fn)(
+    ntg_xy (*arrange_fn)(
             const ntg_anchor_policy* ap,
             const struct ntg_anchor_arrange_ctx* ctx,
             sarena* arena);
@@ -98,7 +98,7 @@ size_t ntg__anchor_policy_vconstrain(
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena);
 
-struct ntg_xy ntg__anchor_policy_arrange(
+ntg_xy ntg__anchor_policy_arrange(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena);

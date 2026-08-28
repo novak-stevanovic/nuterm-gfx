@@ -17,7 +17,7 @@ static size_t sidefloat_constrain_fn(
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena);
 
-static struct ntg_xy sidefloat_arrange_fn(
+static ntg_xy sidefloat_arrange_fn(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena);
@@ -181,7 +181,7 @@ static size_t sidefloat_constrain_fn(
     return ntg_min2_size(available_space, root_measure.nat_size);
 }
 
-static struct ntg_xy sidefloat_arrange_fn(
+static ntg_xy sidefloat_arrange_fn(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena)
@@ -192,8 +192,8 @@ static struct ntg_xy sidefloat_arrange_fn(
 
     const ntg_sidefloat* sflt = (const ntg_sidefloat*)ap;
 
-    struct ntg_xy pos = ntg_xy_new(0, 0);
-    struct ntg_dxy size_diff = ntg_dxy_new(
+    ntg_xy pos = ntg_xy_new(0, 0);
+    ntg_dxy size_diff = ntg_dxy_new(
             (ssize_t)ctx->size.x - (ssize_t)ctx->base_size.x,
             (ssize_t)ctx->size.y - (ssize_t)ctx->base_size.y);
 

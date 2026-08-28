@@ -95,7 +95,7 @@ struct ntg_text
         } opts;
 
         struct nt_gfx gfx;
-        struct ntg_xy scroll;
+        ntg_xy scroll;
     } ro;
 };
 
@@ -128,10 +128,10 @@ ntg_text_set_text_unsafe(ntg_text* text_obj, const char* text);
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll);
+ntg_text_set_scroll(ntg_text* text_obj, ntg_xy scroll);
 
 NTG_API int
-ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff);
+ntg_text_scroll(ntg_text* text_obj, ntg_dxy scroll_diff);
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */

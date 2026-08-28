@@ -26,7 +26,7 @@ struct ntg_stage_draw
     } priv;
     struct
     {
-        struct ntg_xy size;
+        ntg_xy size;
     } ro;
 };
 
@@ -45,18 +45,18 @@ NTG_API int
 ntg_stage_draw_deinit(ntg_stage_draw* drawing);
 
 NTG_API int
-ntg_stage_draw_set_size(ntg_stage_draw* drawing, struct ntg_xy size);
+ntg_stage_draw_set_size(ntg_stage_draw* drawing, ntg_xy size);
 
 /* ------------------------------------------------------ */
 /* CELLS */
 /* ------------------------------------------------------ */
 
 static inline struct ntg_cell
-ntg_stage_draw_get(const ntg_stage_draw* drawing, struct ntg_xy pos)
+ntg_stage_draw_get(const ntg_stage_draw* drawing, ntg_xy pos)
 {
     if(!drawing) return NTG_CELL_ZERO;
 
-    struct ntg_xy size = drawing->ro.size;
+    ntg_xy size = drawing->ro.size;
 
     if((pos.x < size.x) && (pos.y < size.y))
         return drawing->priv.cell_vec.data[pos.y * size.x + pos.x];
@@ -65,11 +65,11 @@ ntg_stage_draw_get(const ntg_stage_draw* drawing, struct ntg_xy pos)
 }
 
 static inline void
-ntg_stage_draw_set(ntg_stage_draw* drawing, struct ntg_cell cell, struct ntg_xy pos)
+ntg_stage_draw_set(ntg_stage_draw* drawing, struct ntg_cell cell, ntg_xy pos)
 {
     if(!drawing) return;
 
-    struct ntg_xy size = drawing->ro.size;
+    ntg_xy size = drawing->ro.size;
 
     if((pos.x < size.x) && (pos.y < size.y))
         drawing->priv.cell_vec.data[pos.y * size.x + pos.x] = cell;

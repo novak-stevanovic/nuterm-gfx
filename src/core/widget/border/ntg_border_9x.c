@@ -13,8 +13,8 @@
 
 static void border_9x_draw_fn(
         const ntg_border_style* base,
-        struct ntg_xy size,
-        struct ntg_insets border_size,
+        ntg_xy size,
+        ntg_insets border_size,
         ntg_widget_tmp_draw* out_draw);
 
 static void border_9x_deinit_fn(ntg_object* _style);
@@ -481,8 +481,8 @@ int ntg_border_9x_deinit(ntg_border_9x* style)
 
 static void border_9x_draw_fn(
         const ntg_border_style* base,
-        struct ntg_xy size,
-        struct ntg_insets border_size,
+        ntg_xy size,
+        ntg_insets border_size,
         ntg_widget_tmp_draw* out_draw)
 {
     if(ntg_xy_is_zero_any(size)) return;

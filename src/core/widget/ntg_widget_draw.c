@@ -40,7 +40,7 @@ int ntg_widget_draw_deinit(ntg_widget_draw* drawing)
 /* SIZE */
 /* ------------------------------------------------------ */
 
-int ntg_widget_draw_set_size(ntg_widget_draw* drawing, struct ntg_xy size)
+int ntg_widget_draw_set_size(ntg_widget_draw* drawing, ntg_xy size)
 {
     if(!drawing)
         return NTG_ERR_INV_ARG;
@@ -93,17 +93,17 @@ int ntg_widget_draw_set_size(ntg_widget_draw* drawing, struct ntg_xy size)
 int ntg_widget_draw_place(
         const ntg_widget_draw* src_drawing,
         ntg_widget_draw* dest_drawing,
-        struct ntg_xy dest_start_pos)
+        ntg_xy dest_start_pos)
 {
     if(!src_drawing || !dest_drawing || (src_drawing == dest_drawing))
         return NTG_ERR_INV_ARG;
 
-    struct ntg_xy dest_size = dest_drawing->ro.size;
-    struct ntg_xy src_size = src_drawing->ro.size;
+    ntg_xy dest_size = dest_drawing->ro.size;
+    ntg_xy src_size = src_drawing->ro.size;
 
     if(ntg_xy_is_zero_any(src_size)) return 0; 
 
-    struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
+    ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
     if(!ntg_xy_is_lt(dest_start_pos, dest_end_pos))
         return NTG_ERR_OUT_OF_BOUNDS;
@@ -111,7 +111,7 @@ int ntg_widget_draw_place(
         return NTG_ERR_OUT_OF_BOUNDS;
 
     size_t i, j;
-    struct ntg_xy it_dest_pos, it_src_pos;
+    ntg_xy it_dest_pos, it_src_pos;
     struct ntg_vcell it_src_cell;
     for(i = 0; i < src_size.y; i++)
     {
@@ -133,19 +133,19 @@ int ntg_widget_draw_place(
 int ntg_widget_draw_place_(
         const ntg_widget_draw* src_drawing,
         ntg_stage_draw* dest_drawing,
-        struct ntg_xy dest_start_pos)
+        ntg_xy dest_start_pos)
 {
     if(!src_drawing || !dest_drawing)
     {
         return NTG_ERR_INV_ARG;
     }
 
-    struct ntg_xy dest_size = dest_drawing->ro.size;
-    struct ntg_xy src_size = src_drawing->ro.size;
+    ntg_xy dest_size = dest_drawing->ro.size;
+    ntg_xy src_size = src_drawing->ro.size;
 
     if(ntg_xy_is_zero_any(src_size)) return 0; 
 
-    struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
+    ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
     if(!ntg_xy_is_lt(dest_start_pos, dest_end_pos))
         return NTG_ERR_OUT_OF_BOUNDS;
@@ -153,7 +153,7 @@ int ntg_widget_draw_place_(
         return NTG_ERR_OUT_OF_BOUNDS;
 
     size_t i, j;
-    struct ntg_xy it_dest_pos, it_src_pos;
+    ntg_xy it_dest_pos, it_src_pos;
     struct ntg_vcell it_src_cell;
     struct ntg_cell it_base_cell;
     struct ntg_cell it_overwritten;

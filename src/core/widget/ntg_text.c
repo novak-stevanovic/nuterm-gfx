@@ -65,7 +65,7 @@ static int measure_wwrap_fn(
         sarena* arena,
         struct ntg_widget_measure* out_measure);
 
-static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj);
+static ntg_xy calculate_effective_scroll(const ntg_text* text_obj);
 
 static void update_widget_bg(ntg_text* text_obj);
 
@@ -220,7 +220,7 @@ int ntg_text_set_text_unsafe(ntg_text* text_obj, const char* text)
 /* SCROLL */
 /* ------------------------------------------------------ */
 
-int ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll)
+int ntg_text_set_scroll(ntg_text* text_obj, ntg_xy scroll)
 {
     if(!text_obj) return NTG_ERR_INV_ARG;
 
@@ -233,17 +233,17 @@ int ntg_text_set_scroll(ntg_text* text_obj, struct ntg_xy scroll)
     return 0;
 }
 
-int ntg_text_scroll(ntg_text* text_obj, struct ntg_dxy scroll_diff)
+int ntg_text_scroll(ntg_text* text_obj, ntg_dxy scroll_diff)
 {
     if(!text_obj) return NTG_ERR_INV_ARG;
     if((scroll_diff.x == 0) && (scroll_diff.y == 0))
         return 0;
 
-    struct ntg_dxy curr_scroll_dxy = ntg_dxy_from_xy(text_obj->ro.scroll);
+    ntg_dxy curr_scroll_dxy = ntg_dxy_from_xy(text_obj->ro.scroll);
 
-    struct ntg_dxy scroll_dxy = ntg_dxy_add(curr_scroll_dxy, scroll_diff);
+    ntg_dxy scroll_dxy = ntg_dxy_add(curr_scroll_dxy, scroll_diff);
 
-    struct ntg_xy scroll = ntg_xy_from_dxy(scroll_dxy);
+    ntg_xy scroll = ntg_xy_from_dxy(scroll_dxy);
 
     ntg_text_set_scroll(text_obj, scroll);
 
@@ -442,12 +442,12 @@ int ntg_text_draw_fn(
         sarena* arena)
 {
     (void)layout_dt;
-    struct ntg_xy cont_size = ntg_widget_get_size_cont(_text_obj);
+    ntg_xy cont_size = ntg_widget_get_size_cont(_text_obj);
     if(ntg_xy_is_zero_any(cont_size)) return 0;
 
     const ntg_text* text_obj = (const ntg_text*)_text_obj;
 
-    struct ntg_xy cont_nat_size = ntg_widget_get_nat_size_cont(_text_obj);
+    ntg_xy cont_nat_size = ntg_widget_get_nat_size_cont(_text_obj);
 
     enum ntg_orient orient = text_obj->ro.opts.orient;
     enum ntg_text_wrap wrap = text_obj->ro.opts.wrap;
@@ -458,7 +458,7 @@ int ntg_text_draw_fn(
 
     /* Determine full size */
 
-    struct ntg_xy full_size;
+    ntg_xy full_size;
 
     if(wrap == NTG_TEXT_WRAP_NONE)
     {
@@ -479,7 +479,7 @@ int ntg_text_draw_fn(
 
     if(ntg_xy_is_zero_any(full_size)) return 0;
 
-    struct ntg_xy full_size_adj =
+    ntg_xy full_size_adj =
         (orient == NTG_ORIENT_H) ?
         full_size :
         ntg_xy_transpose(full_size);
@@ -590,15 +590,15 @@ int ntg_text_draw_fn(
 
     /* Viewport size is content size */
 
-    struct ntg_xy scroll = calculate_effective_scroll(text_obj);
+    ntg_xy scroll = calculate_effective_scroll(text_obj);
 
-    struct ntg_xy scroll_adj = 
+    ntg_xy scroll_adj = 
         (orient == NTG_ORIENT_H) ?
         scroll :
         ntg_xy_transpose(scroll);
 
-    struct ntg_xy src_xy;
-    struct ntg_xy dst_xy;
+    ntg_xy src_xy;
+    ntg_xy dst_xy;
     struct ntg_vcell it_cell;
     uint32_t it_cont;
 
@@ -1040,12 +1040,12 @@ static int get_wrows_wwrap(
     return 0;
 }
 
-static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
+static ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
 {
-    struct ntg_xy opts_scroll = text_obj->ro.scroll;
-    struct ntg_xy cont_size = ntg_widget_get_size_cont(ntg_wgt(text_obj));
-    struct ntg_xy cont_nat_size = ntg_widget_get_nat_size_cont(ntg_wgt(text_obj));
-    struct ntg_xy full_size;
+    ntg_xy opts_scroll = text_obj->ro.scroll;
+    ntg_xy cont_size = ntg_widget_get_size_cont(ntg_wgt(text_obj));
+    ntg_xy cont_nat_size = ntg_widget_get_nat_size_cont(ntg_wgt(text_obj));
+    ntg_xy full_size;
 
     if(text_obj->ro.opts.wrap == NTG_TEXT_WRAP_NONE)
     {
@@ -1059,7 +1059,7 @@ static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
             full_size = ntg_xy_new(cont_nat_size.x, cont_size.y);
     }
 
-    struct ntg_xy scroll = ntg_xy_new(
+    ntg_xy scroll = ntg_xy_new(
         ntg_min2_size(opts_scroll.x, ntg_sub2_size(full_size.x, cont_size.x)),
         ntg_min2_size(opts_scroll.y, ntg_sub2_size(full_size.y, cont_size.y))
     );

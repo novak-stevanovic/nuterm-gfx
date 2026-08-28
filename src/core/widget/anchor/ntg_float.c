@@ -17,7 +17,7 @@ static size_t float_constrain_fn(
         const struct ntg_anchor_constrain_ctx* ctx,
         sarena* arena);
 
-static struct ntg_xy float_arrange_fn(
+static ntg_xy float_arrange_fn(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena);
@@ -147,7 +147,7 @@ static size_t float_constrain_fn(
     return (size >= thresh) ? size : 0;
 }
 
-static struct ntg_xy float_arrange_fn(
+static ntg_xy float_arrange_fn(
         const ntg_anchor_policy* ap,
         const struct ntg_anchor_arrange_ctx* ctx,
         sarena* arena)
@@ -159,12 +159,12 @@ static struct ntg_xy float_arrange_fn(
 
     const ntg_float* flt = (const ntg_float*)ap;
 
-    struct ntg_xy shrink = ntg_xy_new(
+    ntg_xy shrink = ntg_xy_new(
             ntg_insets_hsum(flt->ro.opts.shrink),
             ntg_insets_vsum(flt->ro.opts.shrink));
-    struct ntg_xy base_size = ntg_xy_sub(ctx->base_size, shrink);
+    ntg_xy base_size = ntg_xy_sub(ctx->base_size, shrink);
 
-    struct ntg_xy align_offset = ntg_xy_new(
+    ntg_xy align_offset = ntg_xy_new(
             ntg_align_offset_size(ctx->size.x, base_size.x, flt->ro.opts.prim_align),
             ntg_align_offset_size(ctx->size.y, base_size.y, flt->ro.opts.sec_align));
 

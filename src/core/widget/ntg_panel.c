@@ -478,7 +478,7 @@ int ntg_panel_arrange_fn(
     (void)arena;
     (void)relayout;
     const ntg_panel* panel = (const ntg_panel*)_panel;
-    struct ntg_xy size = ntg_widget_get_size_cont(_panel);
+    ntg_xy size = ntg_widget_get_size_cont(_panel);
 
     ntg_widget *north, *east, *south, *west, *center;
     get_children(panel, &north, &east, &south, &west, &center);
@@ -490,22 +490,22 @@ int ntg_panel_arrange_fn(
         return 0;
     }
 
-    struct ntg_xy north_size = (north != NULL) ? north->ro.size : ntg_xy_new(0, 0);
-    struct ntg_xy east_size = (east != NULL) ? east->ro.size : ntg_xy_new(0, 0);
-    struct ntg_xy south_size = (south != NULL) ? south->ro.size : ntg_xy_new(0, 0);
-    struct ntg_xy west_size = (west != NULL) ? west->ro.size : ntg_xy_new(0, 0);
+    ntg_xy north_size = (north != NULL) ? north->ro.size : ntg_xy_new(0, 0);
+    ntg_xy east_size = (east != NULL) ? east->ro.size : ntg_xy_new(0, 0);
+    ntg_xy south_size = (south != NULL) ? south->ro.size : ntg_xy_new(0, 0);
+    ntg_xy west_size = (west != NULL) ? west->ro.size : ntg_xy_new(0, 0);
 
     size_t west_east_width = west_size.x + east_size.x;
     size_t north_south_height = north_size.y + south_size.y;
-    struct ntg_xy collective_side_size = ntg_xy_new(west_east_width, north_south_height);
+    ntg_xy collective_side_size = ntg_xy_new(west_east_width, north_south_height);
 
-    struct ntg_xy center_size = ntg_xy_size(ntg_xy_sub(size, collective_side_size));
+    ntg_xy center_size = ntg_xy_size(ntg_xy_sub(size, collective_side_size));
 
-    struct ntg_xy north_pos = ntg_xy_new(0, 0);
-    struct ntg_xy east_pos = ntg_xy_new(west_size.x + center_size.x, north_size.y);
-    struct ntg_xy south_pos = ntg_xy_new(0, north_size.y + center_size.y);
-    struct ntg_xy west_pos = ntg_xy_new(0, north_size.y);
-    struct ntg_xy center_pos = ntg_xy_new(west_size.x, north_size.y);
+    ntg_xy north_pos = ntg_xy_new(0, 0);
+    ntg_xy east_pos = ntg_xy_new(west_size.x + center_size.x, north_size.y);
+    ntg_xy south_pos = ntg_xy_new(0, north_size.y + center_size.y);
+    ntg_xy west_pos = ntg_xy_new(0, north_size.y);
+    ntg_xy center_pos = ntg_xy_new(west_size.x, north_size.y);
 
     if(north)
         ntg_widget_pos_map_set(out_pos_map, north, north_pos);

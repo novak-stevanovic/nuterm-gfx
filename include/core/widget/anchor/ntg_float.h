@@ -26,7 +26,7 @@ enum ntg_float_enable
 struct ntg_float_opts
 {
     enum ntg_float_enable enable;
-    struct ntg_insets shrink;
+    ntg_insets shrink;
     enum ntg_align prim_align, sec_align;
 };
 
@@ -41,7 +41,7 @@ struct ntg_float
         struct
         {
             enum ntg_float_enable enable;
-            struct ntg_insets shrink;
+            ntg_insets shrink;
             enum ntg_align prim_align, sec_align;
         } opts;
     } ro;

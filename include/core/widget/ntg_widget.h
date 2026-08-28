@@ -35,7 +35,7 @@ enum ntg_widget_dcr_enable
 struct ntg_bdr_opts
 {
     enum ntg_widget_dcr_enable enable;
-    struct ntg_insets pref_size;
+    ntg_insets pref_size;
     const struct ntg_border_style* style;
 };
 
@@ -44,7 +44,7 @@ static const struct ntg_bdr_opts NTG_BDR_OPTS_ZERO = {0};
 struct ntg_pad_opts
 {
     enum ntg_widget_dcr_enable enable;
-    struct ntg_insets pref_size;
+    ntg_insets pref_size;
 };
 
 static const struct ntg_pad_opts NTG_PAD_OPTS_ZERO = {0};
@@ -118,7 +118,7 @@ enum ntg_widget_part
 struct ntg_widget_hit_res
 {
     ntg_widget* widget;
-    struct ntg_xy local_pos;
+    ntg_xy local_pos;
     enum ntg_widget_part part;
 };
 
@@ -140,23 +140,23 @@ struct ntg_widget
         ntg_widget* base;
         const struct ntg_anchor_policy* anchor_policy;
 
-        struct ntg_xy min_size, nat_size, max_size, grow;
-        struct ntg_xy size;
-        struct ntg_insets border_size;
-        struct ntg_insets padding_size;
-        struct ntg_xy pos;
+        ntg_xy min_size, nat_size, max_size, grow;
+        ntg_xy size;
+        ntg_insets border_size;
+        ntg_insets padding_size;
+        ntg_xy pos;
         ntg_widget_draw drawing;
         uint32_t dirty;
 
-        struct ntg_xy user_min_size, user_max_size, user_grow;
+        ntg_xy user_min_size, user_max_size, user_grow;
         int z_index;
 
         enum ntg_widget_dcr_enable bdr_enable;
-        struct ntg_insets bdr_pref_size;
+        ntg_insets bdr_pref_size;
         const struct ntg_border_style* bdr_style;
 
         enum ntg_widget_dcr_enable pad_enable;
-        struct ntg_insets pad_pref_size;
+        ntg_insets pad_pref_size;
 
         enum ntg_widget_click_mode clickable;
         enum ntg_widget_focus_mode focusable;
@@ -174,7 +174,7 @@ struct ntg_widget
         bool special_repeat;
         uint8_t repeat;
 
-        struct ntg_xy old_pos, old_size, old_cont_size;
+        ntg_xy old_pos, old_size, old_cont_size;
     } priv;
 };
 
@@ -205,7 +205,7 @@ ntg_widget_set_anchor_policy(ntg_widget* widget, const ntg_anchor_policy* policy
 /* ------------------------------------------------------ */
 
 NTG_API struct ntg_widget_hit_res
-ntg_widget_hit_test(ntg_widget* widget, struct ntg_xy pos);
+ntg_widget_hit_test(ntg_widget* widget, ntg_xy pos);
 
 /* ------------------------------------------------------ */
 
@@ -277,39 +277,39 @@ ntg_widget_is_in_graph(const ntg_widget* graph_root, const ntg_widget* desc);
 /* SIZE & POS */
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_size(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_size_cont(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_size_pad(const ntg_widget* widget);
 
-NTG_API struct ntg_xy
+NTG_API ntg_xy
 ntg_widget_get_abs_pos(const ntg_widget* widget);
 
 /* ------------------------------------------------------ */
 /* SPACE MAPPING */
 /* ------------------------------------------------------ */
 
-NTG_API struct ntg_dxy
+NTG_API ntg_dxy
 ntg_widget_map_to_ancs(
         const ntg_widget* widget,
         const ntg_widget* ancs,
-        struct ntg_dxy point);
+        ntg_dxy point);
 
-NTG_API struct ntg_dxy
+NTG_API ntg_dxy
 ntg_widget_map_to_desc(
         const ntg_widget* widget,
         const ntg_widget* desc,
-        struct ntg_dxy point);
+        ntg_dxy point);
 
-NTG_API struct ntg_dxy
-ntg_widget_map_to_scene(const ntg_widget* widget, struct ntg_dxy point);
+NTG_API ntg_dxy
+ntg_widget_map_to_scene(const ntg_widget* widget, ntg_dxy point);
 
-NTG_API struct ntg_dxy
-ntg_widget_map_from_scene(const ntg_widget* widget, struct ntg_dxy point);
+NTG_API ntg_dxy
+ntg_widget_map_from_scene(const ntg_widget* widget, ntg_dxy point);
 
 /* ------------------------------------------------------ */
 /* COLLECT */
