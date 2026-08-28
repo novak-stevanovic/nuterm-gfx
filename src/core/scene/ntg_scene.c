@@ -167,7 +167,7 @@ int ntg_scene_hit_test(
         i--;
         it_adj_pos_dxy = ntg_widget_map_from_scene(layers[i], ntg_dxy_from_xy(pos));
 
-        if((it_adj_pos_dxy.x < 0) || (it_adj_pos_dxy.y < 0))
+        if((it_adj_pos_dxy.ro.x < 0) || (it_adj_pos_dxy.ro.y < 0))
             continue;
 
         it_adj_pos = ntg_xy_from_dxy(it_adj_pos_dxy);
@@ -384,7 +384,7 @@ int ntg__scene_set_size(ntg_scene* scene, ntg_xy size)
     if(!scene)
         return NTG_ERR_INV_ARG;
 
-    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
+    if((size.ro.x > NTG_SIZE_MAX) || (size.ro.y > NTG_SIZE_MAX))
         return NTG_ERR_INV_ARG;
 
     ntg_xy old_size = scene->ro.size;
@@ -396,10 +396,10 @@ int ntg__scene_set_size(ntg_scene* scene, ntg_xy size)
     ntg_scene_mark_dirty(scene);
     
     struct ntg_event_scene_szchg_dt event_dt = {
-        .old_x = old_size.x,
-        .old_y = old_size.y,
-        .new_x = size.x,
-        .new_y = size.y
+        .old_x = old_size.ro.x,
+        .old_y = old_size.ro.y,
+        .new_x = size.ro.x,
+        .new_y = size.ro.y
     };
     ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_SZCHG, &event_dt);
 
@@ -949,6 +949,12 @@ static inline void finalize_widget(ntg_widget* widget, void* _layout_data)
     sarena* arena = layout_data->arena; 
 
     ntg__widget_layout_finalize(widget, arena);
+
+    ntg_log_log("NTG_SCENE: F | OBJ_NAME: %s | SIZE: (%d, %d) | POS: (%d, %d) | ABS_POS: (%d, %d)",
+        ntg_obj_name(widget),
+        widget->ro.size.ro.x, widget->ro.size.ro.y,
+        widget->ro.pos.ro.x, widget->ro.pos.ro.y,
+        ntg_widget_get_abs_pos(widget).ro.x, ntg_widget_get_abs_pos(widget).ro.y);
 }
 
 NTG_WIDGET_TREE_DEF_TRAVERSE_PRE(prepare_tree, prepare_widget)
@@ -1003,12 +1009,12 @@ static inline void hconstrain_phase(ntg_widget* root, struct layout_data* lay_da
     if(policy)
     {
         it_hsize = ntg__anchor_policy_hconstrain(policy, &ctx, arena);
-        it_hsize = ntg_clamp_size(0, it_hsize, scene->ro.size.x);
+        it_hsize = ntg_clamp_size(0, it_hsize, scene->ro.size.ro.x);
     }
     else
         it_hsize = ctx.base_size;
 
-    if(root->ro.size.x != it_hsize)
+    if(root->ro.size.ro.x != it_hsize)
         ntg__widget_root_set_hsize(root, it_hsize);
 
     /* Tree */
@@ -1055,12 +1061,12 @@ static inline void vconstrain_phase(ntg_widget* root, struct layout_data* lay_da
     if(policy)
     {
         it_vsize = ntg__anchor_policy_vconstrain(policy, &ctx, arena);
-        it_vsize = ntg_clamp_size(0, it_vsize, scene->ro.size.y);
+        it_vsize = ntg_clamp_size(0, it_vsize, scene->ro.size.ro.y);
     }
     else
         it_vsize = ctx.base_size;
 
-    if(root->ro.size.y != it_vsize)
+    if(root->ro.size.ro.y != it_vsize)
         ntg__widget_root_set_vsize(root, it_vsize);
 
     /* Tree */
@@ -1097,8 +1103,9 @@ static inline void arrange_phase(ntg_widget* root, struct layout_data* lay_data)
     else
         pos = ctx.base_pos;
 
-    pos.x -= ntg_sub2_size(pos.x + size.x, scene->ro.size.x);
-    pos.y -= ntg_sub2_size(pos.y + size.y, scene->ro.size.y);
+    pos = ntg_xy_sub(pos, ntg_xy_new(
+            ntg_sub2_size(pos.ro.x + size.ro.x, scene->ro.size.ro.x),
+            ntg_sub2_size(pos.ro.y + size.ro.y, scene->ro.size.ro.y)));
 
     if(!ntg_xy_are_eql(root->ro.pos, pos))
         ntg__widget_root_set_pos(root, pos);

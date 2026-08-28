@@ -127,7 +127,7 @@ bool ntg_db_renderer_render_fn(
     bool resize = !(ntg_xy_are_eql(renderer->priv.bbuff_size, size));
     bool full_render_req = resize || renderer->priv.force_full_render;
 
-    size_t size_prod = size.x * size.y;
+    size_t size_prod = size.ro.x * size.ro.y;
     bool new_bbuff = resize || !renderer->priv.bbuff;
     struct ntg_cell* write_bbuff;
     if(new_bbuff)
@@ -188,10 +188,10 @@ bool ntg_db_renderer_render_fn(
 /* ========================================================================== */
 
 #define bbuff_set(bbuff, pos, size, vcell) \
-    if(bbuff) bbuff[size.x * pos.y + pos.x] = vcell;
+    if(bbuff) bbuff[size.ro.x * pos.ro.y + pos.ro.x] = vcell;
 
 #define bbuff_get(bbuff, pos, size) \
-    (bbuff ? bbuff[size.x * pos.y + pos.x] : NTG_CELL_ZERO)
+    (bbuff ? bbuff[size.ro.x * pos.ro.y + pos.ro.x] : NTG_CELL_ZERO)
 
 /* ========================================================================== */
 /* FUNCTIONS */
@@ -203,9 +203,9 @@ static int full_empty_render(
 {
     ntg_log_log("RENDER: FULL EMPTY");
     size_t i, j;
-    for(i = 0; i < size.y; i++)
+    for(i = 0; i < size.ro.y; i++)
     {
-        for(j = 0; j < size.x; j++)
+        for(j = 0; j < size.ro.x; j++)
         {
             bbuff_set(new_bbuff, ntg_xy_new(j, i), size, ntg_renderer_cell_normalize(NTG_CELL_ZERO));
         }
@@ -228,9 +228,9 @@ static inline size_t fwd_equal_gfx_search(
     size_t j;
     struct ntg_cell it_cell;
     size_t counter = 1;
-    for(j = pos.x + 1; j < row_size; j++)
+    for(j = pos.ro.x + 1; j < row_size; j++)
     {
-        it_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j, pos.y));
+        it_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j, pos.ro.y));
         it_cell = ntg_renderer_cell_normalize(it_cell);
 
         if(ntg_cell_are_eql_render(start_cell, it_cell))
@@ -251,10 +251,10 @@ static int optimized_render(
 {
     ntg_log_log("RENDER: OPTIMIZED");
 
-    uint32_t* row32_buff = sarena_malloc(arena, size.x * sizeof(uint32_t));
+    uint32_t* row32_buff = sarena_malloc(arena, size.ro.x * sizeof(uint32_t));
     if(!row32_buff) return NTG_ERR_ALLOC_FAIL;
 
-    size_t row_buff_cap = size.x * 4;
+    size_t row_buff_cap = size.ro.x * 4;
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
     if(!row_buff) return NTG_ERR_ALLOC_FAIL;
 
@@ -269,14 +269,14 @@ static int optimized_render(
     struct ntg_cell it_bbuff_cell;
     int _status;
     size_t _uc_len;
-    for(i = 0; i < size.y; i++)
+    for(i = 0; i < size.ro.y; i++)
     {
-        for(j = 0; j < size.x;)
+        for(j = 0; j < size.ro.x;)
         {
             it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j, i));
             it_draw_cell = ntg_renderer_cell_normalize(it_draw_cell);
 
-            if((i < bbuff_size.y) && (j < bbuff_size.x))
+            if((i < bbuff_size.ro.y) && (j < bbuff_size.ro.x))
             {
                 it_bbuff_cell = bbuff_get(bbuff, ntg_xy_new(j, i), size);
                 if(ntg_cell_are_eql_render(it_bbuff_cell, it_draw_cell))
@@ -287,7 +287,7 @@ static int optimized_render(
                 }
             }
 
-            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell, ntg_xy_new(j, i), size.x);
+            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell, ntg_xy_new(j, i), size.ro.x);
 
             for(k = 0; k < it_opt; k++)
             {
@@ -325,10 +325,10 @@ static int full_render(
 {
     ntg_log_log("RENDER: FULL");
 
-    uint32_t* row32_buff = sarena_malloc(arena, size.x * sizeof(uint32_t));
+    uint32_t* row32_buff = sarena_malloc(arena, size.ro.x * sizeof(uint32_t));
     if(!row32_buff) return NTG_ERR_ALLOC_FAIL;
 
-    size_t row_buff_cap = size.x * 4;
+    size_t row_buff_cap = size.ro.x * 4;
     uint8_t* row_buff = sarena_malloc(arena, row_buff_cap * sizeof(uint8_t));
     if(!row_buff) return NTG_ERR_ALLOC_FAIL;
 
@@ -339,14 +339,14 @@ static int full_render(
     struct ntg_cell it_draw_cell;
     int _status;
     size_t _uc_len;
-    for(i = 0; i < size.y; i++)
+    for(i = 0; i < size.ro.y; i++)
     {
-        for(j = 0; j < size.x;)
+        for(j = 0; j < size.ro.x;)
         {
             it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j, i));
             it_draw_cell = ntg_renderer_cell_normalize(it_draw_cell);
 
-            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell, ntg_xy_new(j, i), size.x);
+            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell, ntg_xy_new(j, i), size.ro.x);
 
             for(k = 0; k < it_opt; k++)
             {

@@ -491,8 +491,8 @@ static void border_9x_draw_fn(
     const ntg_border_9x* style = (const ntg_border_9x*)base;
 
     size_t i, j;
-    size_t x_end = size.x - 1;
-    size_t y_end = size.y - 1;
+    size_t x_end = size.ro.x - 1;
+    size_t y_end = size.ro.y - 1;
 
     struct ntg_vcell top_left, top, top_right, right,
                      bottom_right, bottom, bottom_left,
@@ -528,32 +528,32 @@ static void border_9x_draw_fn(
             ntg_vcell_new_overlay(symbols->padding, style->ro.data.overlay.fg, style->ro.data.overlay.style) :
             ntg_vcell_new_full(symbols->padding, style->ro.data.full.gfx);
 
-    for(i = 0; i < size.y; i++)
+    for(i = 0; i < size.ro.y; i++)
     {
-        for(j = 0; j < size.x; j++)
+        for(j = 0; j < size.ro.x; j++)
             ntg_widget_tmp_draw_set(out_draw, padding, ntg_xy_new(j, i));
     }
 
-    if(size.y >= 1)
+    if(size.ro.y >= 1)
     {
-        if(border_size.w > 0)
+        if(border_size.ro.w > 0)
         {
-            for(i = 0; i < size.y; i++)
+            for(i = 0; i < size.ro.y; i++)
                 ntg_widget_tmp_draw_set(out_draw, left, ntg_xy_new(0, i));
         }
 
-        if(border_size.e > 0)
+        if(border_size.ro.e > 0)
         {
-            for(i = 0; i < size.y; i++)
+            for(i = 0; i < size.ro.y; i++)
             {
                 ntg_widget_tmp_draw_set(out_draw, right, ntg_xy_new(x_end, i));
             }
         }
     }
 
-    if(size.x >= 3)
+    if(size.ro.x >= 3)
     {
-        if(border_size.n > 0)
+        if(border_size.ro.n > 0)
         {
             ntg_widget_tmp_draw_set(out_draw, top_left, ntg_xy_new(0, 0));
             for(j = 1; j < x_end; j++)
@@ -561,7 +561,7 @@ static void border_9x_draw_fn(
             ntg_widget_tmp_draw_set(out_draw, top_right, ntg_xy_new(x_end, 0));
         }
 
-        if(border_size.s > 0)
+        if(border_size.ro.s > 0)
         {
             ntg_widget_tmp_draw_set(out_draw, bottom_left, ntg_xy_new(0, y_end));
             for(j = 1; j < x_end; j++)
@@ -571,17 +571,17 @@ static void border_9x_draw_fn(
             ntg_widget_tmp_draw_set(out_draw, bottom_right, ntg_xy_new(x_end, y_end));
         }
     }
-    else if(size.x >= 1)
+    else if(size.ro.x >= 1)
     {
-        if(border_size.n > 0)
+        if(border_size.ro.n > 0)
         {
-            for(j = 0; j < size.x; j++)
+            for(j = 0; j < size.ro.x; j++)
                 ntg_widget_tmp_draw_set(out_draw, top, ntg_xy_new(j, 0));
         }
 
-        if(border_size.s > 0)
+        if(border_size.ro.s > 0)
         {
-            for(j = 0; j < size.x; j++)
+            for(j = 0; j < size.ro.x; j++)
             {
                 ntg_widget_tmp_draw_set(out_draw, bottom, ntg_xy_new(j, y_end));
             }

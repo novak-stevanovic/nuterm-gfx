@@ -133,7 +133,7 @@ bool ntg_widget_feed_mouse(ntg_widget* widget, const struct ntg_widget_mouse* ev
     if(nt_mouse_are_eql(event->mouse, NT_MOUSE_ZERO)) return false;
 
     ntg_xy size = ntg_widget_get_size(widget);
-    if((event->mouse.x >= size.x) || (event->mouse.y >= size.y))
+    if((event->mouse.x >= size.ro.x) || (event->mouse.y >= size.ro.y))
         return false;
 
     ntg_xy pos = ntg_xy_new(event->mouse.x, event->mouse.y);
@@ -309,17 +309,17 @@ struct ntg_widget_hit_res ntg_widget_hit_test(ntg_widget* widget, ntg_xy pos)
     ntg_insets border_size = widget->ro.border_size;
     ntg_xy cont_size = ntg_widget_get_size_cont(widget);
 
-    if((pos.x > (padding_size.w + cont_size.x + padding_size.e)) ||
-       (pos.x < border_size.w) ||
-       (pos.y > (padding_size.n + cont_size.y + padding_size.s)) ||
-       (pos.y < border_size.n))
+    if((pos.ro.x > (padding_size.ro.w + cont_size.ro.x + padding_size.ro.e)) ||
+       (pos.ro.x < border_size.ro.w) ||
+       (pos.ro.y > (padding_size.ro.n + cont_size.ro.y + padding_size.ro.s)) ||
+       (pos.ro.y < border_size.ro.n))
     {
         out.part = NTG_WIDGET_HIT_BDR;
     }
-    else if((pos.x >= cont_size.x) ||
-            (pos.x < (border_size.w + padding_size.w)) ||
-            (pos.y >= cont_size.y) ||
-            (pos.y < (border_size.n + padding_size.n)))
+    else if((pos.ro.x >= cont_size.ro.x) ||
+            (pos.ro.x < (border_size.ro.w + padding_size.ro.w)) ||
+            (pos.ro.y >= cont_size.ro.y) ||
+            (pos.ro.y < (border_size.ro.n + padding_size.ro.n)))
     {
         out.part = NTG_WIDGET_HIT_PAD;
     }
@@ -934,6 +934,7 @@ static void init_default(ntg_widget* widget)
             NTG_WIDGET_GROW_UNSET,
             NTG_WIDGET_GROW_UNSET);
     widget->ro.z_index = 0;
+    widget->ro.pos = NTG_WIDGET_POS_NODRAW; // Not drawn
 }
 
 int ntg_widget_init_inherit(
@@ -1542,9 +1543,9 @@ int ntg__widget_hmeasure(ntg_widget* widget, sarena* arena, uint32_t* relayout)
 
         measure = incorporate_user_measure(
                 measure,
-                widget->ro.user_min_size.x + extra,
-                widget->ro.user_max_size.x + extra,
-                widget->ro.user_grow.x);
+                widget->ro.user_min_size.ro.x + extra,
+                widget->ro.user_max_size.ro.x + extra,
+                widget->ro.user_grow.ro.x);
 
         if(measure.min_size == extra)
             measure.min_size = 0;
@@ -1569,8 +1570,8 @@ int ntg__widget_hconstrain(ntg_widget* widget, sarena* arena, uint32_t* relayout
 
     if(widget->priv.skip_hborder)
     {
-        widget->ro.border_size.w = 0;
-        widget->ro.border_size.e = 0;
+        widget->ro.border_size = ntg_insets_set(widget->ro.border_size, 0, NTG_DIR_W);
+        widget->ro.border_size = ntg_insets_set(widget->ro.border_size, 0, NTG_DIR_E);
     }
     else
     {
@@ -1579,13 +1580,13 @@ int ntg__widget_hconstrain(ntg_widget* widget, sarena* arena, uint32_t* relayout
         if(status != 0)
             return status;
 
-        widget->ro.border_size.w = w;
-        widget->ro.border_size.e = e;
+        widget->ro.border_size = ntg_insets_set(widget->ro.border_size, w, NTG_DIR_W);
+        widget->ro.border_size = ntg_insets_set(widget->ro.border_size, e, NTG_DIR_E);
     }
     if(widget->priv.skip_hpadding)
     {
-        widget->ro.padding_size.w = 0;
-        widget->ro.padding_size.e = 0;
+        widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, 0, NTG_DIR_W);
+        widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, 0, NTG_DIR_E);
     }
     else
     {
@@ -1594,8 +1595,8 @@ int ntg__widget_hconstrain(ntg_widget* widget, sarena* arena, uint32_t* relayout
         if(status != 0)
             return status;
 
-        widget->ro.padding_size.w = w;
-        widget->ro.padding_size.e = e;
+        widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, w, NTG_DIR_W);
+        widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, e, NTG_DIR_E);
     }
 
     ntg_widget_mark_dirty(widget,
@@ -1681,9 +1682,9 @@ int ntg__widget_vmeasure(ntg_widget* widget, sarena* arena, uint32_t* relayout)
 
         measure = incorporate_user_measure(
                 measure,
-                widget->ro.user_min_size.y + extra,
-                widget->ro.user_max_size.y + extra,
-                widget->ro.user_grow.y);
+                widget->ro.user_min_size.ro.y + extra,
+                widget->ro.user_max_size.ro.y + extra,
+                widget->ro.user_grow.ro.y);
 
         if(measure.min_size == extra)
             measure.min_size = 0;
@@ -1781,7 +1782,7 @@ int ntg__widget_arrange(ntg_widget* widget, sarena* arena, uint32_t* relayout)
     if(_status)
     {
         for(i = 0; i < widget->ro.children.size; i++)
-            set_pos_helper(widget->ro.children.data[i], ntg_xy_new(0, 0));
+            set_pos_helper(widget->ro.children.data[i], NTG_WIDGET_POS_NODRAW);
 
         return _status;
     }
@@ -1797,15 +1798,15 @@ int ntg__widget_arrange(ntg_widget* widget, sarena* arena, uint32_t* relayout)
         if(_status)
         {
             for(i = 0; i < widget->ro.children.size; i++)
-                set_pos_helper(widget->ro.children.data[i], ntg_xy_new(0, 0));
+                set_pos_helper(widget->ro.children.data[i], NTG_WIDGET_POS_NODRAW);
 
             return _status;
         }
     }
 
     ntg_xy dcr_sum = ntg_xy_new(
-            widget->ro.border_size.w + widget->ro.padding_size.w,
-            widget->ro.border_size.n + widget->ro.padding_size.n);
+            widget->ro.border_size.ro.w + widget->ro.padding_size.ro.w,
+            widget->ro.border_size.ro.n + widget->ro.padding_size.ro.n);
 
     ntg_widget* it_child;
     ntg_xy it_pos;
@@ -1829,6 +1830,10 @@ void ntg__widget_layout_finalize(ntg_widget* widget, sarena* arena)
 
     ntg_xy old_size = widget->priv.old_size;
     ntg_xy new_size = widget->ro.size;
+
+    if(ntg_xy_is_zero_any(new_size))
+        widget->ro.pos = NTG_WIDGET_POS_NODRAW;
+
     if(!ntg_xy_are_eql(old_size, new_size))
     {
         if(ntg_wgt_vtbl(widget)->resize_fn)
@@ -2070,14 +2075,14 @@ static int tmp_draw_init(
     drawing->size = ntg_xy_new(0, 0);
 
     drawing->data = sarena_malloc(arena, 1 +
-        sizeof(struct ntg_vcell) * size.x * size.y);
+        sizeof(struct ntg_vcell) * size.ro.x * size.ro.y);
     if(!drawing->data) return NTG_ERR_ALLOC_FAIL;
     drawing->size = size;
 
     size_t i, j;
-    for(i = 0; i < size.y; i++)
+    for(i = 0; i < size.ro.y; i++)
     {
-        for(j = 0; j < size.x; j++)
+        for(j = 0; j < size.ro.x; j++)
             ntg_widget_tmp_draw_set(drawing, base_bg, ntg_xy_new(j, i));
         
     }
@@ -2116,10 +2121,10 @@ static bool set_hmeasure_helper(ntg_widget* widget, struct ntg_widget_measure me
 
     if(!ntg_widget_measure_are_eql(measure, old))
     {
-        widget->ro.min_size.x = measure.min_size;
-        widget->ro.nat_size.x = measure.nat_size;
-        widget->ro.max_size.x = measure.max_size;
-        widget->ro.grow.x = measure.grow;
+        widget->ro.min_size = ntg_xy_set_x(widget->ro.min_size, measure.min_size);
+        widget->ro.nat_size = ntg_xy_set_x(widget->ro.nat_size, measure.nat_size);
+        widget->ro.max_size = ntg_xy_set_x(widget->ro.max_size, measure.max_size);
+        widget->ro.grow = ntg_xy_set_x(widget->ro.grow, measure.grow);
         ntg_widget_mark_dirty(widget,
                 NTG_WIDGET_DIRTY_HCONSTRAIN |
                 NTG_WIDGET_DIRTY_VMEASURE);
@@ -2141,10 +2146,10 @@ static bool set_vmeasure_helper(ntg_widget* widget, struct ntg_widget_measure me
 
     if(!ntg_widget_measure_are_eql(measure, old))
     {
-        widget->ro.min_size.y = measure.min_size;
-        widget->ro.nat_size.y = measure.nat_size;
-        widget->ro.max_size.y = measure.max_size;
-        widget->ro.grow.y = measure.grow;
+        widget->ro.min_size = ntg_xy_set_y(widget->ro.min_size, measure.min_size);
+        widget->ro.nat_size = ntg_xy_set_y(widget->ro.nat_size, measure.nat_size);
+        widget->ro.max_size = ntg_xy_set_y(widget->ro.max_size, measure.max_size);
+        widget->ro.grow = ntg_xy_set_y(widget->ro.grow, measure.grow);
 
         ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_VCONSTRAIN);
         if(widget->ro.parent)
@@ -2161,9 +2166,9 @@ static bool set_vmeasure_helper(ntg_widget* widget, struct ntg_widget_measure me
 
 static bool set_hsize_helper(ntg_widget* widget, size_t size)
 {
-    if(widget->ro.size.x != size)
+    if(widget->ro.size.ro.x != size)
     {
-        widget->ro.size.x = size;
+        widget->ro.size = ntg_xy_set_x(widget->ro.size, size);
         ntg_widget_mark_dirty(widget, 
                 NTG_WIDGET_DIRTY_HCONSTRAIN |
                 NTG_WIDGET_DIRTY_VMEASURE |
@@ -2177,9 +2182,12 @@ static bool set_hsize_helper(ntg_widget* widget, size_t size)
 
 static bool set_vsize_helper(ntg_widget* widget, size_t size)
 {
-    if(widget->ro.size.y != size)
+    if(widget->ro.size.ro.x == 0)
+        size = 0;
+
+    if(widget->ro.size.ro.y != size)
     {
-        widget->ro.size.y = size;
+        widget->ro.size = ntg_xy_set_y(widget->ro.size, size);
 
         bool hborder_missing = 
             (ntg_insets_hsum(widget->ro.bdr_pref_size) > 0) &&
@@ -2206,6 +2214,9 @@ static bool set_vsize_helper(ntg_widget* widget, size_t size)
 
 static inline bool set_pos_helper(ntg_widget* widget, ntg_xy pos)
 {
+    if(ntg_xy_is_zero_any(widget->ro.size))
+        pos = NTG_WIDGET_POS_NODRAW;
+
     if(!ntg_xy_are_eql(widget->ro.pos, pos))
     {
         widget->ro.pos = pos;
@@ -2273,14 +2284,14 @@ static int calculate_border_hsize(
         ntg_widget* widget, size_t* out_w, size_t* out_e)
 {
     size_t we_pref_size[2];
-    we_pref_size[0] = widget->ro.bdr_pref_size.w;
-    we_pref_size[1] = widget->ro.bdr_pref_size.e;
+    we_pref_size[0] = widget->ro.bdr_pref_size.ro.w;
+    we_pref_size[1] = widget->ro.bdr_pref_size.ro.e;
     size_t _sizes[2] = {0, 0};
 
     int status = get_dcr_size(
             widget->ro.bdr_enable,
             we_pref_size,
-            widget->ro.size.x,
+            widget->ro.size.ro.x,
             ntg_widget_get_measure_pad(widget, NTG_ORIENT_H),
             _sizes);
     if(status != 0)
@@ -2306,8 +2317,8 @@ static int vconstrain_border(ntg_widget* widget, bool* out_repeat)
     int status = calculate_border_vsize(widget, &n, &s);
     if(status != 0) return status;
 
-    widget->ro.border_size.n = n;
-    widget->ro.border_size.s = s;
+    widget->ro.border_size = ntg_insets_set(widget->ro.border_size, n, NTG_DIR_N);
+    widget->ro.border_size = ntg_insets_set(widget->ro.border_size, s, NTG_DIR_S);
 
     bool vborder_missing = 
             (ntg_insets_vsum(pref_border_size) > 0) &&
@@ -2322,8 +2333,8 @@ static int vconstrain_border(ntg_widget* widget, bool* out_repeat)
                 return 0;
             else // Vborder present
             {
-                widget->ro.border_size.n = 0;
-                widget->ro.border_size.s = 0;
+                widget->ro.border_size = ntg_insets_set(widget->ro.border_size, 0, NTG_DIR_N);
+                widget->ro.border_size = ntg_insets_set(widget->ro.border_size, 0, NTG_DIR_S);
                 return 0;
             }
         }
@@ -2333,8 +2344,8 @@ static int vconstrain_border(ntg_widget* widget, bool* out_repeat)
                 return 0;
             else // Vborder present
             {
-                widget->ro.border_size.n = 0;
-                widget->ro.border_size.s = 0;
+                widget->ro.border_size = ntg_insets_set(widget->ro.border_size, 0, NTG_DIR_N);
+                widget->ro.border_size = ntg_insets_set(widget->ro.border_size, 0, NTG_DIR_S);
                 if(widget->priv.special_repeat)
                 {
                     widget->priv.special_repeat = false;
@@ -2377,8 +2388,8 @@ static int vconstrain_padding(ntg_widget* widget, bool* out_repeat)
     int status = calculate_padding_vsize(widget, &n, &s);
     if(status != 0) return status;
 
-    widget->ro.padding_size.n = n;
-    widget->ro.padding_size.s = s;
+    widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, n, NTG_DIR_N);
+    widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, s, NTG_DIR_S);
 
     bool vpadding_missing = 
             (ntg_insets_vsum(pref_padding_size) > 0) &&
@@ -2393,8 +2404,8 @@ static int vconstrain_padding(ntg_widget* widget, bool* out_repeat)
                 return 0;
             else // Vpadding present
             {
-                widget->ro.padding_size.n = 0;
-                widget->ro.padding_size.s = 0;
+                widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, 0, NTG_DIR_N);
+                widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, 0, NTG_DIR_S);
                 return 0;
             }
         }
@@ -2404,8 +2415,8 @@ static int vconstrain_padding(ntg_widget* widget, bool* out_repeat)
                 return 0;
             else // Vpadding present
             {
-                widget->ro.padding_size.n = 0;
-                widget->ro.padding_size.s = 0;
+                widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, 0, NTG_DIR_N);
+                widget->ro.padding_size = ntg_insets_set(widget->ro.padding_size, 0, NTG_DIR_S);
                 if(widget->priv.special_repeat)
                 {
                     widget->priv.special_repeat = false;
@@ -2436,14 +2447,14 @@ static int vconstrain_padding(ntg_widget* widget, bool* out_repeat)
 static int calculate_border_vsize(ntg_widget* widget, size_t* out_n, size_t* out_s)
 {
     size_t ns_pref_size[2];
-    ns_pref_size[0] = widget->ro.bdr_pref_size.n;
-    ns_pref_size[1] = widget->ro.bdr_pref_size.s;
+    ns_pref_size[0] = widget->ro.bdr_pref_size.ro.n;
+    ns_pref_size[1] = widget->ro.bdr_pref_size.ro.s;
     size_t _sizes[2] = {0, 0};
 
     int status = get_dcr_size(
             widget->ro.bdr_enable,
             ns_pref_size, 
-            widget->ro.size.y,
+            widget->ro.size.ro.y,
             ntg_widget_get_measure_pad(widget, NTG_ORIENT_V),
             _sizes);
     if(status != 0) return status;
@@ -2456,14 +2467,14 @@ static int calculate_border_vsize(ntg_widget* widget, size_t* out_n, size_t* out
 static int calculate_padding_hsize(ntg_widget* widget, size_t* out_w, size_t* out_e)
 {
     size_t we_pref_size[2];
-    we_pref_size[0] = widget->ro.pad_pref_size.w;
-    we_pref_size[1] = widget->ro.pad_pref_size.e;
+    we_pref_size[0] = widget->ro.pad_pref_size.ro.w;
+    we_pref_size[1] = widget->ro.pad_pref_size.ro.e;
     size_t _sizes[2] = {0, 0};
 
     int status = get_dcr_size(
             widget->ro.pad_enable,
             we_pref_size,  
-            ntg_widget_get_size_pad(widget).x,
+            ntg_widget_get_size_pad(widget).ro.x,
             ntg_widget_get_measure_cont(widget, NTG_ORIENT_H),
             _sizes);
     if(status != 0) return status;
@@ -2476,15 +2487,15 @@ static int calculate_padding_hsize(ntg_widget* widget, size_t* out_w, size_t* ou
 static int calculate_padding_vsize(ntg_widget* widget, size_t* out_n, size_t* out_s)
 {
     size_t ns_pref_size[2];
-    ns_pref_size[0] = widget->ro.pad_pref_size.n;
-    ns_pref_size[1] = widget->ro.pad_pref_size.s;
+    ns_pref_size[0] = widget->ro.pad_pref_size.ro.n;
+    ns_pref_size[1] = widget->ro.pad_pref_size.ro.s;
 
     size_t _sizes[2] = {0, 0};
 
      int status = get_dcr_size(
              widget->ro.pad_enable,
              ns_pref_size,  
-             ntg_widget_get_size_pad(widget).y,
+             ntg_widget_get_size_pad(widget).ro.y,
              ntg_widget_get_measure_cont(widget, NTG_ORIENT_V),
              _sizes);
     if(status != 0) return status;
@@ -2518,22 +2529,22 @@ static int draw_optimized(ntg_widget* widget, sarena* arena)
 
     struct ntg_vcell it_src_cell;
 
-    ntg_xy offset = ntg_xy_new(psize.w, psize.n);
+    ntg_xy offset = ntg_xy_new(psize.ro.w, psize.ro.n);
 
     size_t i, j;
     ntg_xy ji;
-    for(i = 0; i < object_size.y; i++)
+    for(i = 0; i < object_size.ro.y; i++)
     {
-        for(j = 0; j < object_size.x; j++)
+        for(j = 0; j < object_size.ro.x; j++)
         {
             ji = ntg_xy_new(j, i);
             ntg_widget_draw_set(&widget->ro.drawing, bg, ji);
         }
     }
 
-    for(i = 0; i < content_size.y; i++)
+    for(i = 0; i < content_size.ro.y; i++)
     {
-        for(j = 0; j < content_size.x; j++)
+        for(j = 0; j < content_size.ro.x; j++)
         {
             ji = ntg_xy_new(j, i);
 
@@ -2569,9 +2580,9 @@ draw_unoptimized(ntg_widget* widget, sarena* arena)
 
     size_t i, j;
 
-    for(i = bsize.n; i < (object_size.y - bsize.s); i++)
+    for(i = bsize.ro.n; i < (object_size.ro.y - bsize.ro.s); i++)
     {
-        for(j = bsize.w; j < (object_size.x - bsize.e); j++)
+        for(j = bsize.ro.w; j < (object_size.ro.x - bsize.ro.e); j++)
         {
             ntg_widget_tmp_draw_set(&object_drawing, bg, ntg_xy_new(j, i));
         }
@@ -2591,11 +2602,11 @@ draw_unoptimized(ntg_widget* widget, sarena* arena)
 
     struct ntg_vcell it_src_cell;
 
-    ntg_xy offset = ntg_xy_new(bsize.w + psize.w, bsize.n + psize.n);
+    ntg_xy offset = ntg_xy_new(bsize.ro.w + psize.ro.w, bsize.ro.n + psize.ro.n);
     ntg_xy ji;
-    for(i = 0; i < content_size.y; i++)
+    for(i = 0; i < content_size.ro.y; i++)
     {
-        for(j = 0; j < content_size.x; j++)
+        for(j = 0; j < content_size.ro.x; j++)
         {
             ji = ntg_xy_new(j, i);
 
@@ -2608,9 +2619,9 @@ draw_unoptimized(ntg_widget* widget, sarena* arena)
         }
     }
 
-    for(i = 0; i < object_size.y; i++)
+    for(i = 0; i < object_size.ro.y; i++)
     {
-        for(j = 0; j < object_size.x; j++)
+        for(j = 0; j < object_size.ro.x; j++)
         {
             ji = ntg_xy_new(j, i);
 

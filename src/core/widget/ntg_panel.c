@@ -495,17 +495,17 @@ int ntg_panel_arrange_fn(
     ntg_xy south_size = (south != NULL) ? south->ro.size : ntg_xy_new(0, 0);
     ntg_xy west_size = (west != NULL) ? west->ro.size : ntg_xy_new(0, 0);
 
-    size_t west_east_width = west_size.x + east_size.x;
-    size_t north_south_height = north_size.y + south_size.y;
+    size_t west_east_width = west_size.ro.x + east_size.ro.x;
+    size_t north_south_height = north_size.ro.y + south_size.ro.y;
     ntg_xy collective_side_size = ntg_xy_new(west_east_width, north_south_height);
 
     ntg_xy center_size = ntg_xy_normalize(ntg_xy_sub(size, collective_side_size));
 
     ntg_xy north_pos = ntg_xy_new(0, 0);
-    ntg_xy east_pos = ntg_xy_new(west_size.x + center_size.x, north_size.y);
-    ntg_xy south_pos = ntg_xy_new(0, north_size.y + center_size.y);
-    ntg_xy west_pos = ntg_xy_new(0, north_size.y);
-    ntg_xy center_pos = ntg_xy_new(west_size.x, north_size.y);
+    ntg_xy east_pos = ntg_xy_new(west_size.ro.x + center_size.ro.x, north_size.ro.y);
+    ntg_xy south_pos = ntg_xy_new(0, north_size.ro.y + center_size.ro.y);
+    ntg_xy west_pos = ntg_xy_new(0, north_size.ro.y);
+    ntg_xy center_pos = ntg_xy_new(west_size.ro.x, north_size.ro.y);
 
     if(north)
         ntg_widget_pos_map_set(out_pos_map, north, north_pos);

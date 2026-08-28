@@ -181,9 +181,9 @@ bool fs1_dispatch_mouse_fn(
     struct ntg_xy curr_scroll = (ntg_txt(&north))->ro.scroll;
 
     if(mouse.type == NT_MOUSE_SCROLL_DOWN)
-        curr_scroll.y += 1;
+        curr_scroll = ntg_xy_add_y(curr_scroll, 1);
     else if(mouse.type == NT_MOUSE_SCROLL_UP)
-        curr_scroll.y = ((curr_scroll.y > 0) ? (curr_scroll.y - 1) : 0);
+        curr_scroll = ntg_xy_sub_y(curr_scroll, 1);
 
     ntg_text_set_scroll(ntg_txt(&north), curr_scroll);
 
@@ -240,10 +240,12 @@ int main(int argc, char *argv[])
     status = ntg_scene_init(&scene, NULL);
     assert(!status);
     ntg_garbage_add_obj(garbage, &scene);
+    ntg_obj_set_name(&scene, "scene");
 
     status = ntg_stage_init(&stage, NULL);
     assert(!status);
     ntg_garbage_add_obj(garbage, &stage);
+    ntg_obj_set_name(&stage, "stage");
 
     struct ntg_loop_init_opts loop_init_opts = {
         .on_event_fn = loop_on_event_fn,
@@ -309,6 +311,7 @@ void init_north()
     status = ntg_label_init(&north, &north_label_opts);
     assert(!status);
     ntg_garbage_add_obj(garbage, &north);
+    ntg_obj_set_name(&north, "north");
 
     status = ntg_label_set_text_unsafe(&north, lorem);
     assert(!status);
@@ -321,14 +324,17 @@ void init_center()
     status = ntg_box_init(&center, NULL);
     assert(!status);
     ntg_garbage_add_obj(garbage, &center);
+    ntg_obj_set_name(&center, "center");
 
     status = ntg_clr_block_init(&c_cb1, nt_color_new_auto(200, 0, 40));
     assert(!status);
     ntg_garbage_add_obj(garbage, &c_cb1);
+    ntg_obj_set_name(&c_cb1, "c_cb1");
 
     status = ntg_clr_block_init(&c_cb2, nt_color_new_auto(40, 0, 200));
     assert(!status);
     ntg_garbage_add_obj(garbage, &c_cb2);
+    ntg_obj_set_name(&c_cb2, "c_cb2");
 
     struct ntg_lay_opts center_lay_opts = {
         .min_cont_size = ntg_xy_opt_new(ntg_xy_new(0, 15))
@@ -366,6 +372,7 @@ void init_south()
     status = ntg_box_init(&south_box, &south_box_opts);
     assert(!status);
     ntg_garbage_add_obj(garbage, &south_box);
+    ntg_obj_set_name(&south_box, "south_box");
 
     // ntg_widget_set_pad_opts(ntg_wgt(&south_box), &pad_opts);
 
@@ -384,6 +391,7 @@ void init_south()
     status = ntg_label_init(&sb_label1, &sb_label1_opts);
     assert(!status);
     ntg_garbage_add_obj(garbage, &sb_label1);
+    ntg_obj_set_name(&sb_label1, "sb_label1");
 
     status = ntg_label_set_text_unsafe(&sb_label1, "Test1");
     assert(!status);
@@ -403,6 +411,7 @@ void init_south()
     status = ntg_label_init(&sb_label2, &sb_label2_opts);
     assert(!status);
     ntg_garbage_add_obj(garbage, &sb_label2);
+    ntg_obj_set_name(&sb_label2, "sb_label2");
 
     status = ntg_label_set_text_unsafe(&sb_label2, "Test2");
     ntg_widget_set_pad_opts(ntg_wgt(&sb_label2), &pad_opts);
@@ -421,6 +430,7 @@ void init_south()
     status = ntg_label_init(&sb_label3, &sb_label3_opts);
     assert(!status);
     ntg_garbage_add_obj(garbage, &sb_label3);
+    ntg_obj_set_name(&sb_label3, "sb_label3");
 
     status = ntg_label_set_text_unsafe(&sb_label3, lorem);
     ntg_widget_set_pad_opts(ntg_wgt(&sb_label3), &pad_opts);
@@ -445,6 +455,7 @@ void init_south()
     status = ntg_label_init(&s_label, &s_label_opts);
     assert(!status);
     ntg_garbage_add_obj(garbage, &s_label);
+    ntg_obj_set_name(&s_label, "s_label");
 
     ntg_widget_set_pad_opts(ntg_wgt(&s_label), &pad_opts);
 
@@ -462,6 +473,7 @@ void init_south()
     status = ntg_box_init(&south, &south_opts);
     assert(!status);
     ntg_garbage_add_obj(garbage, &south);
+    ntg_obj_set_name(&south, "south");
 
     ntg_widget_set_bdr_opts(ntg_wgt(&south), &bdr_opts);
 
@@ -488,6 +500,7 @@ void init_flt_button()
     status = ntg_button_init(&flt_button, &opts, flt_button_mouse_fn);
     assert(!status);
     ntg_garbage_add_obj(garbage, &flt_button);
+    ntg_obj_set_name(&flt_button, "flt_button");
 
     status = ntg_button_set_text_unsafe(&flt_button, "Floating button example");
 
@@ -526,11 +539,10 @@ void init_sflt_label()
             }
         }
     };
-    ntg_log_log("ABCD LABEL | ROOT | SOUTH: %p %p %p", &s_label, &root, &south);
-
     status = ntg_label_init(&sflt_label, &opts);
     assert(!status);
     ntg_garbage_add_obj(garbage, &sflt_label);
+    ntg_obj_set_name(&sflt_label, "sflt_label");
 
     status = ntg_object_event_bind(
             ntg_obj(&sflt_label),
@@ -555,6 +567,7 @@ void init_root()
     status = ntg_panel_init(&root, NULL);
     assert(!status);
     ntg_garbage_add_obj(garbage, &root);
+    ntg_obj_set_name(&root, "root");
 
     status = ntg_panel_set(&root, ntg_wgt(&north), NTG_PANEL_POS_N);
     status = ntg_panel_set(&root, ntg_wgt(&center), NTG_PANEL_POS_C);

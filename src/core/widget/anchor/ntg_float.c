@@ -165,11 +165,12 @@ static ntg_xy float_arrange_fn(
     ntg_xy base_size = ntg_xy_sub(ctx->base_size, shrink);
 
     ntg_xy align_offset = ntg_xy_new(
-            ntg_align_offset_size(ctx->size.x, base_size.x, flt->ro.opts.prim_align),
-            ntg_align_offset_size(ctx->size.y, base_size.y, flt->ro.opts.sec_align));
+            ntg_align_offset_size(ctx->size.ro.x, base_size.ro.x, flt->ro.opts.prim_align),
+            ntg_align_offset_size(ctx->size.ro.y, base_size.ro.y, flt->ro.opts.sec_align));
 
-    align_offset.x += flt->ro.opts.shrink.w;
-    align_offset.y += flt->ro.opts.shrink.n;
+    align_offset = ntg_xy_add(
+            align_offset,
+            ntg_xy_new(flt->ro.opts.shrink.ro.w, flt->ro.opts.shrink.ro.n));
 
     return ntg_xy_add(ctx->base_pos, align_offset);
 }

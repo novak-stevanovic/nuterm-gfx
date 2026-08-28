@@ -133,9 +133,9 @@ static void border_style_draw_fn(
     if(ntg_insets_is_zero(border_size)) return;
 
     size_t i, j;
-    for(i = 0; i < size.y; i++)
+    for(i = 0; i < size.ro.y; i++)
     {
-        for(j = 0; j < size.x; j++)
+        for(j = 0; j < size.ro.x; j++)
             ntg_widget_tmp_draw_set(out_drawing, NTG_VCELL_ZERO, ntg_xy_new(j, i));
         
     }

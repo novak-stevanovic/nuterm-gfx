@@ -240,9 +240,9 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     struct nt_resize resize_event;
     unsigned int event_elapsed;
 
-    nt_get_term_size(&loop.app_size.x, &loop.app_size.y);
-    loop.app_size.x = ntg_clamp_size(0, loop.app_size.x, NTG_SIZE_MAX);
-    loop.app_size.y = ntg_clamp_size(0, loop.app_size.y, NTG_SIZE_MAX);;
+    size_t app_x, app_y;
+    nt_get_term_size(&app_x, &app_y);
+    loop.app_size = ntg_xy_new(app_x, app_y);
 
     if(opts_final.mouse_mode == NTG_LOOP_MOUSE_ENABLE)
         nt_mouse_mode_enable();
@@ -283,8 +283,9 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
         if(event.type == NT_EVENT_RESIZE)
         {
             NT_EVENT_FILL_DATA(event, &resize_event);
-            loop.app_size.x = ntg_clamp_size(0, resize_event.new_x, NTG_SIZE_MAX);
-            loop.app_size.y = ntg_clamp_size(0, resize_event.new_y, NTG_SIZE_MAX);;
+            loop.app_size = ntg_xy_new(
+                    resize_event.new_x,
+                    resize_event.new_y);
 
             if(loop.stage)
             {

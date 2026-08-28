@@ -15,6 +15,8 @@
 /* ========================================================================== */
 
 #define ntg_obj(obj_ptr) ((ntg_object*)(obj_ptr))
+#define ntg_obj_name(obj_ptr) (ntg_obj(obj_ptr)->pub.name)
+#define ntg_obj_set_name(obj_ptr, name_ptr) (ntg_obj(obj_ptr)->pub.name = name_ptr)
 
 #define ntg_wgt(obj_ptr) ((ntg_widget*)(obj_ptr))
 #define ntg_wgt_vtbl(obj_ptr) ((struct ntg_widget_vtable*)((ntg_obj(obj_ptr))->ro.vtable))

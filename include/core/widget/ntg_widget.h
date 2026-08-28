@@ -16,6 +16,7 @@
 
 #define NTG_WIDGET_MAX_CHILDREN 1000
 #define NTG_WIDGET_MAX_ANCHORED 100
+#define NTG_WIDGET_POS_NODRAW NTG_XY_MAX
 
 /* ========================================================================== */
 /* TYPES */

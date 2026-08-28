@@ -156,9 +156,9 @@ int ntg_clr_block_draw_fn(
     if(ntg_xy_is_zero_any(size)) return 0;
 
     size_t i, j;
-    for(i = 0; i < size.y; i++)
+    for(i = 0; i < size.ro.y; i++)
     {
-        for(j = 0; j < size.x; j++)
+        for(j = 0; j < size.ro.x; j++)
         {
             ntg_widget_tmp_draw_set(
                     out_drawing,

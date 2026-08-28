@@ -58,8 +58,8 @@ ntg_stage_draw_get(const ntg_stage_draw* drawing, ntg_xy pos)
 
     ntg_xy size = drawing->ro.size;
 
-    if((pos.x < size.x) && (pos.y < size.y))
-        return drawing->priv.cell_vec.data[pos.y * size.x + pos.x];
+    if((pos.ro.x < size.ro.x) && (pos.ro.y < size.ro.y))
+        return drawing->priv.cell_vec.data[pos.ro.y * size.ro.x + pos.ro.x];
     else
         return NTG_CELL_ZERO;
 }
@@ -71,8 +71,8 @@ ntg_stage_draw_set(ntg_stage_draw* drawing, struct ntg_cell cell, ntg_xy pos)
 
     ntg_xy size = drawing->ro.size;
 
-    if((pos.x < size.x) && (pos.y < size.y))
-        drawing->priv.cell_vec.data[pos.y * size.x + pos.x] = cell;
+    if((pos.ro.x < size.ro.x) && (pos.ro.y < size.ro.y))
+        drawing->priv.cell_vec.data[pos.ro.y * size.ro.x + pos.ro.x] = cell;
 }
 
 #endif // NTG_STAGE_DRAW_H

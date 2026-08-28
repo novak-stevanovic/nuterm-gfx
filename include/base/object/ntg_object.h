@@ -19,6 +19,11 @@ struct ntg_object
 {
     struct
     {
+        const char* name; /* Can be used for logging */
+    } pub;
+
+    struct
+    {
         const struct ntg_object_vtable* vtable;
         const ntg_type* type;
         ntg_event_delegate event_dlgt;

@@ -194,46 +194,54 @@ static ntg_xy sidefloat_arrange_fn(
 
     ntg_xy pos = ntg_xy_new(0, 0);
     ntg_dxy size_diff = ntg_dxy_new(
-            (ssize_t)ctx->size.x - (ssize_t)ctx->base_size.x,
-            (ssize_t)ctx->size.y - (ssize_t)ctx->base_size.y);
+            (ssize_t)ctx->size.ro.x - (ssize_t)ctx->base_size.ro.x,
+            (ssize_t)ctx->size.ro.y - (ssize_t)ctx->base_size.ro.y);
 
     switch(sflt->ro.opts.side)
     {
         case NTG_DIR_N:
-            pos.x = (size_diff.x > 0) ?
-                    ntg_sub2_size(ctx->base_pos.x, size_diff.x) :
-                    ctx->base_pos.x + ntg_align_offset_ssize(
-                            ctx->size.x,
-                            ctx->base_size.x,
-                            sflt->ro.opts.align);
-            pos.y = ntg_sub2_size(ctx->base_pos.y, ctx->size.y);
+            pos = ntg_xy_set_x(pos, (size_diff.ro.x > 0) ?
+                    ntg_sub2_size(ctx->base_pos.ro.x, size_diff.ro.x) :
+                    ctx->base_pos.ro.x + ntg_align_offset_ssize(
+                            ctx->size.ro.x,
+                            ctx->base_size.ro.x,
+                            sflt->ro.opts.align));
+            pos = ntg_xy_set_y(
+                    pos,
+                    ntg_sub2_size(ctx->base_pos.ro.y, ctx->size.ro.y));
             break;
         case NTG_DIR_E:
-            pos.x = ctx->base_pos.x + ctx->base_size.x;
-            pos.y = (size_diff.y > 0) ?
-                    ntg_sub2_size(ctx->base_pos.y, size_diff.y) :
-                    ctx->base_pos.y + ntg_align_offset_ssize(
-                            ctx->size.y,
-                            ctx->base_size.y,
-                            sflt->ro.opts.align);
+            pos = ntg_xy_set_x(
+                    pos,
+                    ctx->base_pos.ro.x + ctx->base_size.ro.x);
+            pos = ntg_xy_set_y(pos, (size_diff.ro.y > 0) ?
+                    ntg_sub2_size(ctx->base_pos.ro.y, size_diff.ro.y) :
+                    ctx->base_pos.ro.y + ntg_align_offset_ssize(
+                            ctx->size.ro.y,
+                            ctx->base_size.ro.y,
+                            sflt->ro.opts.align));
             break;
         case NTG_DIR_S:
-            pos.x = (size_diff.x > 0) ?
-                    ntg_sub2_size(ctx->base_pos.x, size_diff.x) :
-                    ctx->base_pos.x + ntg_align_offset_ssize(
-                            ctx->size.x,
-                            ctx->base_size.x,
-                            sflt->ro.opts.align);
-            pos.y = ctx->base_pos.y + ctx->base_size.y;
+            pos = ntg_xy_set_x(pos, (size_diff.ro.x > 0) ?
+                    ntg_sub2_size(ctx->base_pos.ro.x, size_diff.ro.x) :
+                    ctx->base_pos.ro.x + ntg_align_offset_ssize(
+                            ctx->size.ro.x,
+                            ctx->base_size.ro.x,
+                            sflt->ro.opts.align));
+            pos = ntg_xy_set_y(
+                    pos,
+                    ctx->base_pos.ro.y + ctx->base_size.ro.y);
             break;
         case NTG_DIR_W:
-            pos.x = ntg_sub2_size(ctx->base_pos.x, ctx->size.x);
-            pos.y = (size_diff.y > 0) ?
-                    ntg_sub2_size(ctx->base_pos.y, size_diff.y) :
-                    ctx->base_pos.y + ntg_align_offset_ssize(
-                            ctx->size.y,
-                            ctx->base_size.y,
-                            sflt->ro.opts.align);
+            pos = ntg_xy_set_x(
+                    pos,
+                    ntg_sub2_size(ctx->base_pos.ro.x, ctx->size.ro.x));
+            pos = ntg_xy_set_y(pos, (size_diff.ro.y > 0) ?
+                    ntg_sub2_size(ctx->base_pos.ro.y, size_diff.ro.y) :
+                    ctx->base_pos.ro.y + ntg_align_offset_ssize(
+                            ctx->size.ro.y,
+                            ctx->base_size.ro.y,
+                            sflt->ro.opts.align));
             break;
         default:
             break;

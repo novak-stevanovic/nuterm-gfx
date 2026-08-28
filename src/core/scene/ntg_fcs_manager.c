@@ -285,8 +285,8 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse)
         return false;
     }
     
-    mouse.x = res.res.local_pos.x;
-    mouse.y = res.res.local_pos.y;
+    mouse.x = res.res.local_pos.ro.x;
+    mouse.y = res.res.local_pos.ro.y;
 
     if((!scope.root) || ntg_widget_is_in_tree(scope.root, hit))
     {

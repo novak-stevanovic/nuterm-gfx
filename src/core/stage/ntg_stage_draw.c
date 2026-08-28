@@ -45,13 +45,13 @@ int ntg_stage_draw_set_size(ntg_stage_draw* drawing, ntg_xy size)
     if(!drawing)
         return NTG_ERR_INV_ARG;
 
-    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
+    if((size.ro.x > NTG_SIZE_MAX) || (size.ro.y > NTG_SIZE_MAX))
         return NTG_ERR_INV_ARG;
 
     int status;
 
-    size_t new_size_prod = size.x * size.y; 
-    size_t curr_size_prod = drawing->ro.size.x * drawing->ro.size.y;
+    size_t new_size_prod = size.ro.x * size.ro.y; 
+    size_t curr_size_prod = drawing->ro.size.ro.x * drawing->ro.size.ro.y;
     struct ntg_cell_vec* cell_vec = &(drawing->priv.cell_vec);
 
     size_t i;

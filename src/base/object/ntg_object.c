@@ -80,6 +80,8 @@ int ntg_object_init_inherit(
     object->ro.vtable = vtable;
     object->ro.type = type;
 
+    ntg_log_log("OBJECT INIT: %p", object);
+
     return 0;
 }
 
@@ -90,6 +92,8 @@ int ntg_object_deinit(ntg_object* object)
     ntg_event_delegate_deinit(&object->ro.event_dlgt);
 
     (*object) = (ntg_object) {0};
+
+    ntg_log_log("OBJECT DEINIT: %p", object);
 
     return 0;
 }

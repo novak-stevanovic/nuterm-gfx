@@ -70,8 +70,8 @@ ntg_widget_draw_get(const ntg_widget_draw* drawing, ntg_xy pos)
 
     ntg_xy size = drawing->ro.size;
 
-    if((pos.x < size.x) && (pos.y < size.y))
-        return drawing->priv.vcell_vec.data[pos.y * size.x + pos.x];
+    if((pos.ro.x < size.ro.x) && (pos.ro.y < size.ro.y))
+        return drawing->priv.vcell_vec.data[pos.ro.y * size.ro.x + pos.ro.x];
     else
         return NTG_VCELL_ZERO;
 }
@@ -83,8 +83,8 @@ ntg_widget_draw_set(ntg_widget_draw* drawing, struct ntg_vcell cell, ntg_xy pos)
 
     ntg_xy size = drawing->ro.size;
 
-    if((pos.x < size.x) && (pos.y < size.y))
-        drawing->priv.vcell_vec.data[pos.y * size.x + pos.x] = cell;
+    if((pos.ro.x < size.ro.x) && (pos.ro.y < size.ro.y))
+        drawing->priv.vcell_vec.data[pos.ro.y * size.ro.x + pos.ro.x] = cell;
 }
 
 #endif // NTG_WIDGET_DRAW_H

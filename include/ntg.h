@@ -82,7 +82,6 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-pos -> NTG_SIZE_MAX for no draw
 ntg_button: disable() or ntg_widget: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input
 

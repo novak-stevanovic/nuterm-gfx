@@ -319,7 +319,7 @@ int ntg__stage_set_size(ntg_stage* stage, ntg_xy size)
     if(!stage)
         return NTG_ERR_INV_ARG;
 
-    if((size.x > NTG_SIZE_MAX) || (size.y > NTG_SIZE_MAX))
+    if((size.ro.x > NTG_SIZE_MAX) || (size.ro.y > NTG_SIZE_MAX))
         return NTG_ERR_INV_ARG;
 
     if(ntg_xy_are_eql(stage->ro.size, size))
@@ -340,10 +340,10 @@ int ntg__stage_set_size(ntg_stage* stage, ntg_xy size)
     }
 
     struct ntg_event_stage_szchg_dt event_dt = {
-        .old_x = old_size.x,
-        .old_y = old_size.y,
-        .new_x = size.x,
-        .new_y = size.y
+        .old_x = old_size.ro.x,
+        .old_y = old_size.ro.y,
+        .new_x = size.ro.x,
+        .new_y = size.ro.y
     };
     ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_SZCHG, &event_dt);
 
@@ -396,6 +396,8 @@ static void draw_widget(ntg_stage* stage, ntg_widget* object)
 
     ntg_xy abs_pos;
     abs_pos = ntg_xy_from_dxy(ntg_widget_map_to_scene(object, ntg_dxy_new(0, 0)));
+    if(ntg_xy_are_eql(abs_pos, NTG_XY_MAX))
+        return; /* Not drawn */
 
     ntg_xy draw_size = object->ro.drawing.ro.size;
 
