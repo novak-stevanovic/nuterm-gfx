@@ -241,8 +241,8 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     unsigned int event_elapsed;
 
     nt_get_term_size(&loop.app_size.x, &loop.app_size.y);
-    loop.app_size.x = _clamp_size(0, loop.app_size.x, NTG_SIZE_MAX);
-    loop.app_size.y = _clamp_size(0, loop.app_size.y, NTG_SIZE_MAX);;
+    loop.app_size.x = ntg_clamp_size(0, loop.app_size.x, NTG_SIZE_MAX);
+    loop.app_size.y = ntg_clamp_size(0, loop.app_size.y, NTG_SIZE_MAX);;
 
     if(opts_final.mouse_mode == NTG_LOOP_MOUSE_ENABLE)
         nt_mouse_mode_enable();
@@ -283,8 +283,8 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
         if(event.type == NT_EVENT_RESIZE)
         {
             NT_EVENT_FILL_DATA(event, &resize_event);
-            loop.app_size.x = _clamp_size(0, resize_event.new_x, NTG_SIZE_MAX);
-            loop.app_size.y = _clamp_size(0, resize_event.new_y, NTG_SIZE_MAX);;
+            loop.app_size.x = ntg_clamp_size(0, resize_event.new_x, NTG_SIZE_MAX);
+            loop.app_size.y = ntg_clamp_size(0, resize_event.new_y, NTG_SIZE_MAX);;
 
             if(loop.stage)
             {
@@ -333,12 +333,12 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
         }
         else
         {
-            timeout = _sub2_uint(timeout, event_elapsed);
+            timeout = ntg_sub2_uint(timeout, event_elapsed);
         }
 
         clock_gettime(CLOCK_MONOTONIC, &ts_end);
         
-        process_elapsed_ms = _sub2_ull(timespec_to_ms(ts_end), timespec_to_ms(ts_start));
+        process_elapsed_ms = ntg_sub2_ull(timespec_to_ms(ts_end), timespec_to_ms(ts_start));
 
         timeout = ((timeout > process_elapsed_ms) ? (timeout - process_elapsed_ms) : 0);
     }
@@ -373,7 +373,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
 
     loop.pending_stage = loop.stage;
     loop.fps = 0;
-    loop.app_size = ntg_xy(0, 0);
+    loop.app_size = ntg_xy_new(0, 0);
 
     if(make_ready)
         loop.state = NTG_LOOP_READY;
@@ -538,7 +538,7 @@ int ntg_loop_set_stage(ntg_stage* stage)
 struct ntg_xy ntg_loop_get_app_size(void)
 {
     if((loop.state != NTG_LOOP_RUNNING) && (loop.state != NTG_LOOP_STOPPING))
-        return ntg_xy(0, 0);
+        return ntg_xy_new(0, 0);
     else
         return loop.app_size;
 }
@@ -561,7 +561,7 @@ static int update_stage(void)
     if(old)
     {
         ntg__stage_leave_loop(old);
-        int status = ntg__stage_set_size(old, ntg_xy(0, 0));
+        int status = ntg__stage_set_size(old, ntg_xy_new(0, 0));
         if(status != 0)
             return status;
     }

@@ -105,9 +105,9 @@ int ntg_widget_draw_place(
 
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
-    if(!ntg_xy_is_lesser(dest_start_pos, dest_end_pos))
+    if(!ntg_xy_is_lt(dest_start_pos, dest_end_pos))
         return NTG_ERR_OUT_OF_BOUNDS;
-    if(!ntg_xy_is_lesser_eq(dest_end_pos, dest_size))
+    if(!ntg_xy_is_le(dest_end_pos, dest_size))
         return NTG_ERR_OUT_OF_BOUNDS;
 
     size_t i, j;
@@ -117,8 +117,8 @@ int ntg_widget_draw_place(
     {
         for(j = 0; j < src_size.x; j++)
         {
-            it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
-            it_src_pos = ntg_xy(j, i);
+            it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy_new(j, i));
+            it_src_pos = ntg_xy_new(j, i);
 
             it_src_cell = ntg_widget_draw_get(src_drawing, it_src_pos);
             ntg_widget_draw_set(dest_drawing, it_src_cell, it_dest_pos);
@@ -147,9 +147,9 @@ int ntg_widget_draw_place_(
 
     struct ntg_xy dest_end_pos = ntg_xy_add(dest_start_pos, src_size);
 
-    if(!ntg_xy_is_lesser(dest_start_pos, dest_end_pos))
+    if(!ntg_xy_is_lt(dest_start_pos, dest_end_pos))
         return NTG_ERR_OUT_OF_BOUNDS;
-    if(!ntg_xy_is_lesser_eq(dest_end_pos, dest_size))
+    if(!ntg_xy_is_le(dest_end_pos, dest_size))
         return NTG_ERR_OUT_OF_BOUNDS;
 
     size_t i, j;
@@ -161,8 +161,8 @@ int ntg_widget_draw_place_(
     {
         for(j = 0; j < src_size.x; j++)
         {
-            it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy(j, i));
-            it_src_pos = ntg_xy(j, i);
+            it_dest_pos = ntg_xy_add(dest_start_pos, ntg_xy_new(j, i));
+            it_src_pos = ntg_xy_new(j, i);
 
             it_src_cell = ntg_widget_draw_get(src_drawing, it_src_pos);
             it_base_cell = ntg_stage_draw_get(dest_drawing, it_dest_pos);

@@ -100,11 +100,11 @@ int ntg_prog_bar_set_prog(ntg_prog_bar* prog_bar, double progress)
 {
     if(!prog_bar) return NTG_ERR_INV_ARG;
 
-    progress = _max2_double(0.0, _min2_double(1.0, progress));
+    progress = ntg_max2_double(0.0, ntg_min2_double(1.0, progress));
 
     double old_progress = prog_bar->ro.prog;
 
-    if(_double_are_eql(old_progress, progress))
+    if(ntg_double_are_eql(old_progress, progress))
         return 0;
 
     prog_bar->ro.prog = progress;
@@ -217,7 +217,7 @@ int ntg_prog_bar_draw_fn(
     {
         for(j = 0; j < _size.sec_val; j++)
         {
-            _it_xy = ntg_oxy(i, j, prog_bar->ro.opts.orient);
+            _it_xy = ntg_oxy_new(i, j, prog_bar->ro.opts.orient);
             it_xy = ntg_xy_from_oxy(_it_xy);
 
             if(complete_count == _size.prim_val)

@@ -531,7 +531,7 @@ static void border_9x_draw_fn(
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
-            ntg_widget_tmp_draw_set(out_draw, padding, ntg_xy(j, i));
+            ntg_widget_tmp_draw_set(out_draw, padding, ntg_xy_new(j, i));
     }
 
     if(size.y >= 1)
@@ -539,14 +539,14 @@ static void border_9x_draw_fn(
         if(border_size.w > 0)
         {
             for(i = 0; i < size.y; i++)
-                ntg_widget_tmp_draw_set(out_draw, left, ntg_xy(0, i));
+                ntg_widget_tmp_draw_set(out_draw, left, ntg_xy_new(0, i));
         }
 
         if(border_size.e > 0)
         {
             for(i = 0; i < size.y; i++)
             {
-                ntg_widget_tmp_draw_set(out_draw, right, ntg_xy(x_end, i));
+                ntg_widget_tmp_draw_set(out_draw, right, ntg_xy_new(x_end, i));
             }
         }
     }
@@ -555,20 +555,20 @@ static void border_9x_draw_fn(
     {
         if(border_size.n > 0)
         {
-            ntg_widget_tmp_draw_set(out_draw, top_left, ntg_xy(0, 0));
+            ntg_widget_tmp_draw_set(out_draw, top_left, ntg_xy_new(0, 0));
             for(j = 1; j < x_end; j++)
-                ntg_widget_tmp_draw_set(out_draw, top, ntg_xy(j, 0));
-            ntg_widget_tmp_draw_set(out_draw, top_right, ntg_xy(x_end, 0));
+                ntg_widget_tmp_draw_set(out_draw, top, ntg_xy_new(j, 0));
+            ntg_widget_tmp_draw_set(out_draw, top_right, ntg_xy_new(x_end, 0));
         }
 
         if(border_size.s > 0)
         {
-            ntg_widget_tmp_draw_set(out_draw, bottom_left, ntg_xy(0, y_end));
+            ntg_widget_tmp_draw_set(out_draw, bottom_left, ntg_xy_new(0, y_end));
             for(j = 1; j < x_end; j++)
             {
-                ntg_widget_tmp_draw_set(out_draw, bottom, ntg_xy(j, y_end));
+                ntg_widget_tmp_draw_set(out_draw, bottom, ntg_xy_new(j, y_end));
             }
-            ntg_widget_tmp_draw_set(out_draw, bottom_right, ntg_xy(x_end, y_end));
+            ntg_widget_tmp_draw_set(out_draw, bottom_right, ntg_xy_new(x_end, y_end));
         }
     }
     else if(size.x >= 1)
@@ -576,14 +576,14 @@ static void border_9x_draw_fn(
         if(border_size.n > 0)
         {
             for(j = 0; j < size.x; j++)
-                ntg_widget_tmp_draw_set(out_draw, top, ntg_xy(j, 0));
+                ntg_widget_tmp_draw_set(out_draw, top, ntg_xy_new(j, 0));
         }
 
         if(border_size.s > 0)
         {
             for(j = 0; j < size.x; j++)
             {
-                ntg_widget_tmp_draw_set(out_draw, bottom, ntg_xy(j, y_end));
+                ntg_widget_tmp_draw_set(out_draw, bottom, ntg_xy_new(j, y_end));
             }
         }
     }

@@ -123,7 +123,7 @@ struct ntg_xy ntg__anchor_policy_arrange(
         sarena* arena)
 {
     if(!ap || !ntg_ap_vtbl(ap) || !ntg_ap_vtbl(ap)->arrange_fn)
-        return ntg_xy(0, 0);
+        return ntg_xy_new(0, 0);
 
     return ntg_ap_vtbl(ap)->arrange_fn(ap, ctx, arena);
 }

@@ -154,7 +154,7 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
         ntg__scene_set_stage(old_scene, NULL);
 
         /* Can only fail if size exceeds NTG_SIZE_MAX */
-        ntg__scene_set_size(old_scene, ntg_xy(0, 0));
+        ntg__scene_set_size(old_scene, ntg_xy_new(0, 0));
     }
 
     if(scene)
@@ -395,12 +395,12 @@ static void draw_widget(ntg_stage* stage, ntg_widget* object)
     if(!object) return;
 
     struct ntg_xy abs_pos;
-    abs_pos = ntg_xy_from_dxy(ntg_widget_map_to_scene(object, ntg_dxy(0, 0)));
+    abs_pos = ntg_xy_from_dxy(ntg_widget_map_to_scene(object, ntg_dxy_new(0, 0)));
 
     struct ntg_xy draw_size = object->ro.drawing.ro.size;
 
     // If size is equal, use the drawing, even if last draw failed.
-    if(ntg_xy_size_are_eql(object->ro.size, draw_size))
+    if(ntg_xy_are_eql(ntg_xy_size(object->ro.size), ntg_xy_size(draw_size)))
     {
         ntg_widget_draw_place_(
                 &object->ro.drawing,

@@ -142,7 +142,7 @@ ntg_widget_tmp_draw_get(const ntg_widget_tmp_draw* drawing, struct ntg_xy pos)
 {
     if(!drawing) return NTG_VCELL_ZERO;
 
-    if(ntg_xy_is_lesser(pos, drawing->size))
+    if(ntg_xy_is_lt(pos, drawing->size))
         return drawing->data[drawing->size.x * pos.y + pos.x];
     else
         return NTG_VCELL_ZERO;
@@ -156,7 +156,7 @@ ntg_widget_tmp_draw_set(
 {
     if(!drawing) return NTG_ERR_INV_ARG;
 
-    if(ntg_xy_is_lesser(pos, drawing->size))
+    if(ntg_xy_is_lt(pos, drawing->size))
         drawing->data[drawing->size.x * pos.y + pos.x] = cell;
 
     return 0;

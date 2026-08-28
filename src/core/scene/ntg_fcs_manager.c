@@ -267,7 +267,7 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse)
         .root = scope.root
     };
 
-    struct ntg_xy pos = ntg_xy(mouse.x, mouse.y);
+    struct ntg_xy pos = ntg_xy_new(mouse.x, mouse.y);
 
     int _status;
     struct ntg_scene_hit_res res;

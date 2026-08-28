@@ -136,7 +136,7 @@ static void border_style_draw_fn(
     for(i = 0; i < size.y; i++)
     {
         for(j = 0; j < size.x; j++)
-            ntg_widget_tmp_draw_set(out_drawing, NTG_VCELL_ZERO, ntg_xy(j, i));
+            ntg_widget_tmp_draw_set(out_drawing, NTG_VCELL_ZERO, ntg_xy_new(j, i));
         
     }
 }

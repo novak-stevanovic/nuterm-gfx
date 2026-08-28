@@ -220,30 +220,30 @@ int ntg_panel_measure_fn(
     size_t min, nat, max;
     if(orient == NTG_ORIENT_H)
     {
-        min = _max3_size(
+        min = ntg_max3_size(
                 north_msr.min_size,
                 east_msr.min_size + center_msr.min_size + west_msr.min_size,
                 south_msr.min_size);
-        nat = _max3_size(
+        nat = ntg_max3_size(
                 north_msr.nat_size,
                 east_msr.nat_size + center_msr.nat_size + west_msr.nat_size,
                 south_msr.nat_size);
-        max = _max3_size(
+        max = ntg_max3_size(
                 north_msr.max_size,
                 east_msr.max_size + center_msr.max_size + west_msr.max_size,
                 south_msr.max_size);
     }
     else
     {
-        min = _max3_size(
+        min = ntg_max3_size(
                 north_msr.min_size + west_msr.min_size + south_msr.min_size,
                 north_msr.min_size + center_msr.min_size + south_msr.min_size,
                 north_msr.min_size + east_msr.min_size + south_msr.min_size);
-        nat = _max3_size(
+        nat = ntg_max3_size(
                 north_msr.nat_size + west_msr.nat_size + south_msr.nat_size,
                 north_msr.nat_size + center_msr.nat_size + south_msr.nat_size,
                 north_msr.nat_size + east_msr.nat_size + south_msr.nat_size);
-        max = _max3_size(
+        max = ntg_max3_size(
                 north_msr.max_size + west_msr.max_size + south_msr.max_size,
                 north_msr.max_size + center_msr.max_size + south_msr.max_size,
                 north_msr.max_size + east_msr.max_size + south_msr.max_size);
@@ -380,10 +380,10 @@ int ntg_panel_constrain_fn(
     else 
     {
         struct ntg_widget_measure wce_msr = {
-            .min_size = _max3_size(west_msr.min_size, center_msr.min_size, east_msr.min_size),
-            .nat_size = _max3_size(west_msr.nat_size, center_msr.nat_size, east_msr.nat_size),
-            .max_size = _max3_size(west_msr.max_size, center_msr.max_size, east_msr.max_size),
-            .grow = _max3_size(west_msr.grow, center_msr.grow, east_msr.grow)
+            .min_size = ntg_max3_size(west_msr.min_size, center_msr.min_size, east_msr.min_size),
+            .nat_size = ntg_max3_size(west_msr.nat_size, center_msr.nat_size, east_msr.nat_size),
+            .max_size = ntg_max3_size(west_msr.max_size, center_msr.max_size, east_msr.max_size),
+            .grow = ntg_max3_size(west_msr.grow, center_msr.grow, east_msr.grow)
         };
 
         struct ntg_widget_measure total_msr = {
@@ -490,22 +490,22 @@ int ntg_panel_arrange_fn(
         return 0;
     }
 
-    struct ntg_xy north_size = (north != NULL) ? north->ro.size : ntg_xy(0, 0);
-    struct ntg_xy east_size = (east != NULL) ? east->ro.size : ntg_xy(0, 0);
-    struct ntg_xy south_size = (south != NULL) ? south->ro.size : ntg_xy(0, 0);
-    struct ntg_xy west_size = (west != NULL) ? west->ro.size : ntg_xy(0, 0);
+    struct ntg_xy north_size = (north != NULL) ? north->ro.size : ntg_xy_new(0, 0);
+    struct ntg_xy east_size = (east != NULL) ? east->ro.size : ntg_xy_new(0, 0);
+    struct ntg_xy south_size = (south != NULL) ? south->ro.size : ntg_xy_new(0, 0);
+    struct ntg_xy west_size = (west != NULL) ? west->ro.size : ntg_xy_new(0, 0);
 
     size_t west_east_width = west_size.x + east_size.x;
     size_t north_south_height = north_size.y + south_size.y;
-    struct ntg_xy collective_side_size = ntg_xy(west_east_width, north_south_height);
+    struct ntg_xy collective_side_size = ntg_xy_new(west_east_width, north_south_height);
 
     struct ntg_xy center_size = ntg_xy_size(ntg_xy_sub(size, collective_side_size));
 
-    struct ntg_xy north_pos = ntg_xy(0, 0);
-    struct ntg_xy east_pos = ntg_xy(west_size.x + center_size.x, north_size.y);
-    struct ntg_xy south_pos = ntg_xy(0, north_size.y + center_size.y);
-    struct ntg_xy west_pos = ntg_xy(0, north_size.y);
-    struct ntg_xy center_pos = ntg_xy(west_size.x, north_size.y);
+    struct ntg_xy north_pos = ntg_xy_new(0, 0);
+    struct ntg_xy east_pos = ntg_xy_new(west_size.x + center_size.x, north_size.y);
+    struct ntg_xy south_pos = ntg_xy_new(0, north_size.y + center_size.y);
+    struct ntg_xy west_pos = ntg_xy_new(0, north_size.y);
+    struct ntg_xy center_pos = ntg_xy_new(west_size.x, north_size.y);
 
     if(north)
         ntg_widget_pos_map_set(out_pos_map, north, north_pos);

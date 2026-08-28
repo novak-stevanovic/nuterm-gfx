@@ -118,8 +118,8 @@ static size_t float_constrain_fn(
 
     size_t base_size = ctx->base_size;
     size_t shrink = ntg_insets_sum(flt->ro.opts.shrink, orient);
-    size_t size = _min2_size(
-            _sub2_size(base_size, shrink),
+    size_t size = ntg_min2_size(
+            ntg_sub2_size(base_size, shrink),
             root_measure.nat_size);
 
     size_t thresh;
@@ -154,19 +154,19 @@ static struct ntg_xy float_arrange_fn(
 {
     (void)arena;
 
-    if(!ctx) return ntg_xy(0, 0);
-    if(ntg_xy_is_zero_any(ctx->size)) return ntg_xy(0, 0);
+    if(!ctx) return ntg_xy_new(0, 0);
+    if(ntg_xy_is_zero_any(ctx->size)) return ntg_xy_new(0, 0);
 
     const ntg_float* flt = (const ntg_float*)ap;
 
-    struct ntg_xy shrink = ntg_xy(
+    struct ntg_xy shrink = ntg_xy_new(
             ntg_insets_hsum(flt->ro.opts.shrink),
             ntg_insets_vsum(flt->ro.opts.shrink));
     struct ntg_xy base_size = ntg_xy_sub(ctx->base_size, shrink);
 
-    struct ntg_xy align_offset = ntg_xy(
-            ntg_align_offset(ctx->size.x, base_size.x, flt->ro.opts.prim_align),
-            ntg_align_offset(ctx->size.y, base_size.y, flt->ro.opts.sec_align));
+    struct ntg_xy align_offset = ntg_xy_new(
+            ntg_align_offset_size(ctx->size.x, base_size.x, flt->ro.opts.prim_align),
+            ntg_align_offset_size(ctx->size.y, base_size.y, flt->ro.opts.sec_align));
 
     align_offset.x += flt->ro.opts.shrink.w;
     align_offset.y += flt->ro.opts.shrink.n;

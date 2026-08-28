@@ -123,7 +123,7 @@ bool ntg_db_renderer_render_fn(
     ntg_db_renderer* renderer = (ntg_db_renderer*)_renderer;
     struct ntg_xy size = (stage_drawing ?
             stage_drawing->ro.size : 
-            ntg_xy(0, 0));
+            ntg_xy_new(0, 0));
     bool resize = !(ntg_xy_are_eql(renderer->priv.bbuff_size, size));
     bool full_render_req = resize || renderer->priv.force_full_render;
 
@@ -207,7 +207,7 @@ static int full_empty_render(
     {
         for(j = 0; j < size.x; j++)
         {
-            bbuff_set(new_bbuff, ntg_xy(j, i), size, ntg_renderer_cell_normalize(NTG_CELL_ZERO));
+            bbuff_set(new_bbuff, ntg_xy_new(j, i), size, ntg_renderer_cell_normalize(NTG_CELL_ZERO));
         }
     }
 
@@ -230,7 +230,7 @@ static inline size_t fwd_equal_gfx_search(
     size_t counter = 1;
     for(j = pos.x + 1; j < row_size; j++)
     {
-        it_cell = ntg_stage_draw_get(drawing, ntg_xy(j, pos.y));
+        it_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j, pos.y));
         it_cell = ntg_renderer_cell_normalize(it_cell);
 
         if(ntg_cell_are_eql_render(start_cell, it_cell))
@@ -273,29 +273,29 @@ static int optimized_render(
     {
         for(j = 0; j < size.x;)
         {
-            it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy(j, i));
+            it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j, i));
             it_draw_cell = ntg_renderer_cell_normalize(it_draw_cell);
 
             if((i < bbuff_size.y) && (j < bbuff_size.x))
             {
-                it_bbuff_cell = bbuff_get(bbuff, ntg_xy(j, i), size);
+                it_bbuff_cell = bbuff_get(bbuff, ntg_xy_new(j, i), size);
                 if(ntg_cell_are_eql_render(it_bbuff_cell, it_draw_cell))
                 {
-                    bbuff_set(new_bbuff, ntg_xy(j, i), size, it_draw_cell);
+                    bbuff_set(new_bbuff, ntg_xy_new(j, i), size, it_draw_cell);
                     j++;
                     continue;
                 }
             }
 
-            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell, ntg_xy(j, i), size.x);
+            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell, ntg_xy_new(j, i), size.x);
 
             for(k = 0; k < it_opt; k++)
             {
-                it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy(j + k, i));
+                it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j + k, i));
                 it_draw_cell = ntg_renderer_cell_normalize(it_draw_cell);
                 row32_buff[k] = it_draw_cell.cp;
 
-                bbuff_set(new_bbuff, ntg_xy(j + k, i), size, it_draw_cell);
+                bbuff_set(new_bbuff, ntg_xy_new(j + k, i), size, it_draw_cell);
             }
             _status = uc_utf32_to_utf8(row32_buff, k, row_buff, row_buff_cap, 0, NULL, &_uc_len);
 
@@ -343,19 +343,19 @@ static int full_render(
     {
         for(j = 0; j < size.x;)
         {
-            it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy(j, i));
+            it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j, i));
             it_draw_cell = ntg_renderer_cell_normalize(it_draw_cell);
 
-            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell, ntg_xy(j, i), size.x);
+            it_opt = fwd_equal_gfx_search(drawing, it_draw_cell, ntg_xy_new(j, i), size.x);
 
             for(k = 0; k < it_opt; k++)
             {
-                it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy(j + k, i));
+                it_draw_cell = ntg_stage_draw_get(drawing, ntg_xy_new(j + k, i));
                 it_draw_cell = ntg_renderer_cell_normalize(it_draw_cell);
 
                 row32_buff[k] = it_draw_cell.cp;
 
-                bbuff_set(new_bbuff, ntg_xy(j + k, i), size, it_draw_cell);
+                bbuff_set(new_bbuff, ntg_xy_new(j + k, i), size, it_draw_cell);
             }
 
             _status = uc_utf32_to_utf8(row32_buff, k, row_buff, row_buff_cap, 0, NULL, &_uc_len);

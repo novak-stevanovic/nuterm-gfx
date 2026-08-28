@@ -122,12 +122,12 @@ size_t ntg_scene_collect_layers_by_z(ntg_scene* scene, ntg_widget** out_buff, si
                 new_cap);
 
         sum += it_tree_count;
-        new_cap = _sub2_size(new_cap, it_tree_count);
+        new_cap = ntg_sub2_size(new_cap, it_tree_count);
     }
 
     if(out_buff)
     {
-        size_t counted = _min2_size(cap, sum);
+        size_t counted = ntg_min2_size(cap, sum);
         ntg_widget_sort_by_z(out_buff, counted);
     }
 
@@ -507,9 +507,9 @@ void ntg__scene_rm(ntg_scene* scene, ntg_widget* widget)
 
     ntg_scene_mark_dirty(scene);
 
-    scene->ro.object_count = _sub2_size(scene->ro.object_count, 1);
+    scene->ro.object_count = ntg_sub2_size(scene->ro.object_count, 1);
     if(ntg_widget_is_tree_root(widget))
-        scene->ro.tree_count = _sub2_size(scene->ro.tree_count, 1);
+        scene->ro.tree_count = ntg_sub2_size(scene->ro.tree_count, 1);
 
     ntg__fcs_manager_on_scene_widget_rm(scene->ro.fm, widget);
     ntg__widget_scene_leave(widget, scene);
@@ -713,7 +713,7 @@ get_root_arrange_ctx(
             .root = root,
             .size = ntg_widget_get_size(root),
             .base_size = scene->ro.size,
-            .base_pos = ntg_xy(0, 0)
+            .base_pos = ntg_xy_new(0, 0)
         };
     }
 }
@@ -1003,7 +1003,7 @@ static inline void hconstrain_phase(ntg_widget* root, struct layout_data* lay_da
     if(policy)
     {
         it_hsize = ntg__anchor_policy_hconstrain(policy, &ctx, arena);
-        it_hsize = _clamp_size(0, it_hsize, scene->ro.size.x);
+        it_hsize = ntg_clamp_size(0, it_hsize, scene->ro.size.x);
     }
     else
         it_hsize = ctx.base_size;
@@ -1055,7 +1055,7 @@ static inline void vconstrain_phase(ntg_widget* root, struct layout_data* lay_da
     if(policy)
     {
         it_vsize = ntg__anchor_policy_vconstrain(policy, &ctx, arena);
-        it_vsize = _clamp_size(0, it_vsize, scene->ro.size.y);
+        it_vsize = ntg_clamp_size(0, it_vsize, scene->ro.size.y);
     }
     else
         it_vsize = ctx.base_size;
@@ -1097,8 +1097,8 @@ static inline void arrange_phase(ntg_widget* root, struct layout_data* lay_data)
     else
         pos = ctx.base_pos;
 
-    pos.x -= _sub2_size(pos.x + size.x, scene->ro.size.x);
-    pos.y -= _sub2_size(pos.y + size.y, scene->ro.size.y);
+    pos.x -= ntg_sub2_size(pos.x + size.x, scene->ro.size.x);
+    pos.y -= ntg_sub2_size(pos.y + size.y, scene->ro.size.y);
 
     if(!ntg_xy_are_eql(root->ro.pos, pos))
         ntg__widget_root_set_pos(root, pos);

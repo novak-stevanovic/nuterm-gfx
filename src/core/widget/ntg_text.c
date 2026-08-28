@@ -162,7 +162,7 @@ int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
 
     if(!text) text = "";  
 
-    len = _min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
+    len = ntg_min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
 
     int status;
 
@@ -467,14 +467,14 @@ int ntg_text_draw_fn(
             _max2_size(cont_nat_size.x, cont_size.x),
             _max2_size(cont_nat_size.y, cont_size.y));
         */
-        full_size = ntg_xy(cont_nat_size.x, cont_nat_size.y);
+        full_size = ntg_xy_new(cont_nat_size.x, cont_nat_size.y);
     }
     else
     {
         if(orient == NTG_ORIENT_H)
-            full_size = ntg_xy(cont_size.x, cont_nat_size.y);
+            full_size = ntg_xy_new(cont_size.x, cont_nat_size.y);
         else
-            full_size = ntg_xy(cont_nat_size.x, cont_size.y);
+            full_size = ntg_xy_new(cont_nat_size.x, cont_size.y);
     }
 
     if(ntg_xy_is_zero_any(full_size)) return 0;
@@ -495,7 +495,7 @@ int ntg_text_draw_fn(
     size_t row_count = text_obj->priv.utf32_row_count;
     const struct ntg_str32_view* rows = text_obj->priv.utf32_rows;
 
-    size_t capped_indent = _min2_size(indent, _sub2_size(full_size_adj.x, 1));
+    size_t capped_indent = ntg_min2_size(indent, ntg_sub2_size(full_size_adj.x, 1));
     
     size_t cont_i = 0, cont_j = 0;
     
@@ -536,11 +536,11 @@ int ntg_text_draw_fn(
         {
             if(cont_i >= full_size_adj.y) break;
             
-            _it_wrows[j].len = _min2_size(_it_wrows[j].len, full_size_adj.x);
+            _it_wrows[j].len = ntg_min2_size(_it_wrows[j].len, full_size_adj.x);
 
             if(line_mode == NTG_TEXT_LINE_ALIGN)
             {
-                it_row_align_indent = ntg_align_offset(
+                it_row_align_indent = ntg_align_offset_size(
                         full_size_adj.x,
                         _it_wrows[j].len,
                         prim_align);
@@ -550,14 +550,14 @@ int ntg_text_draw_fn(
 
             
             it_row_effective_indent = (j == 0) ?
-                _max2_size(capped_indent, it_row_align_indent) :
+                ntg_max2_size(capped_indent, it_row_align_indent) :
                 it_row_align_indent;
             cont_j = it_row_effective_indent;
 
             it_wrow_space_counter = 0;
             it_wrow_space_count = ntg_str32_count(_it_wrows[j].data, _it_wrows[j].len, ' ');
             it_wrow_cont_space = _it_wrows[j].len + it_row_effective_indent;
-            it_wrow_extra_space = _sub2_size(full_size_adj.x, it_wrow_cont_space);
+            it_wrow_extra_space = ntg_sub2_size(full_size_adj.x, it_wrow_cont_space);
             for(k = 0; k < _it_wrows[j].len; k++)
             {
                 if(_it_wrows[j].data[k] == ' ')
@@ -606,7 +606,7 @@ int ntg_text_draw_fn(
     {
         for(j = 0; j < cont_size.x; j++)
         {
-            src_xy = ntg_xy(scroll_adj.x + j, scroll_adj.y + i);
+            src_xy = ntg_xy_new(scroll_adj.x + j, scroll_adj.y + i);
 
             if((src_xy.x < full_size_adj.x) && (src_xy.y < full_size_adj.y))
             {
@@ -623,7 +623,7 @@ int ntg_text_draw_fn(
                     ntg_vcell_new_overlay(0, text_obj->ro.gfx.fg, 0);
             }
 
-            dst_xy = (orient == NTG_ORIENT_H) ? ntg_xy(j, i) : ntg_xy(i, j);
+            dst_xy = (orient == NTG_ORIENT_H) ? ntg_xy_new(j, i) : ntg_xy_new(i, j);
 
             ntg_widget_tmp_draw_set(out_drawing, it_cell, dst_xy);
         }
@@ -706,12 +706,12 @@ static int measure_nowrap_fn(
         for(i = 0; i < row_count; i++)
         {
             if(rows[i].len == 0) continue;
-            max_row_len = _max2_size(max_row_len, rows[i].len + indent);
+            max_row_len = ntg_max2_size(max_row_len, rows[i].len + indent);
         }
 
         *out_measure = (struct ntg_widget_measure) {
-            .min_size = _max2_size(max_row_len, DEFAULT_SIZE),
-            .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
+            .min_size = ntg_max2_size(max_row_len, DEFAULT_SIZE),
+            .nat_size = ntg_max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX,
             .grow = 1
         };
@@ -719,8 +719,8 @@ static int measure_nowrap_fn(
     else
     {
         *out_measure = (struct ntg_widget_measure) {
-            .min_size = _max2_size(row_count, DEFAULT_SIZE),
-            .nat_size = _max2_size(row_count, DEFAULT_SIZE),
+            .min_size = ntg_max2_size(row_count, DEFAULT_SIZE),
+            .nat_size = ntg_max2_size(row_count, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX,
             .grow = 1
         };
@@ -751,12 +751,12 @@ static int measure_wrap_fn(
         for(i = 0; i < row_count; i++)
         {
             if(rows[i].len == 0) continue;
-            max_row_len = _max2_size(max_row_len, rows[i].len + indent);
+            max_row_len = ntg_max2_size(max_row_len, rows[i].len + indent);
         }
 
         *out_measure = (struct ntg_widget_measure) {
             .min_size = DEFAULT_SIZE,
-            .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
+            .nat_size = ntg_max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX,
             .grow = 1
         };
@@ -777,8 +777,8 @@ static int measure_wrap_fn(
     }
 
     *out_measure = (struct ntg_widget_measure) {
-        .min_size = _max2_size(row_counter, DEFAULT_SIZE),
-        .nat_size = _max2_size(row_counter, DEFAULT_SIZE),
+        .min_size = ntg_max2_size(row_counter, DEFAULT_SIZE),
+        .nat_size = ntg_max2_size(row_counter, DEFAULT_SIZE),
         .max_size = NTG_SIZE_MAX,
         .grow = 1
     };
@@ -812,7 +812,7 @@ static int measure_wwrap_fn(
         {
             if(rows[i].len == 0) continue;
 
-            max_row_len = _max2_size(max_row_len, rows[i].len + indent);
+            max_row_len = ntg_max2_size(max_row_len, rows[i].len + indent);
             it_word_count = ntg_str32_count(rows[i].data, rows[i].len, ' ') + 1;
             it_words = sarena_malloc(arena,
                     sizeof(struct ntg_str32_view) * it_word_count);
@@ -823,14 +823,14 @@ static int measure_wwrap_fn(
             for(j = 0; j < it_word_count; j++)
             {
                 j_word_adj_indent = (j == 0) ? indent : 0;
-                max_word_len = _max2_size(max_word_len,
+                max_word_len = ntg_max2_size(max_word_len,
                         it_words[j].len + j_word_adj_indent);
             }
         }
 
         *out_measure = (struct ntg_widget_measure) {
-            .min_size = _max2_size(max_word_len, DEFAULT_SIZE),
-            .nat_size = _max2_size(max_row_len, DEFAULT_SIZE),
+            .min_size = ntg_max2_size(max_word_len, DEFAULT_SIZE),
+            .nat_size = ntg_max2_size(max_row_len, DEFAULT_SIZE),
             .max_size = NTG_SIZE_MAX,
             .grow = 1
         };
@@ -851,8 +851,8 @@ static int measure_wwrap_fn(
     }
 
     *out_measure = (struct ntg_widget_measure) {
-        .min_size = _max2_size(row_counter, DEFAULT_SIZE),
-        .nat_size = _max2_size(row_counter, DEFAULT_SIZE),
+        .min_size = ntg_max2_size(row_counter, DEFAULT_SIZE),
+        .nat_size = ntg_max2_size(row_counter, DEFAULT_SIZE),
         .max_size = NTG_SIZE_MAX,
         .grow = 1
     };
@@ -881,7 +881,7 @@ static int get_wrows_nowrap(
 
     wrows[0] = (struct ntg_str32_view) {
         .data = row.data,
-        .len = ((row.len == 0) || !row.data) ? 0 : _min2_size(for_size, row.len)
+        .len = ((row.len == 0) || !row.data) ? 0 : ntg_min2_size(for_size, row.len)
     };
 
     *out_wrows = wrows;
@@ -917,7 +917,7 @@ static int get_wrows_wrap(
     size_t it_start = 0, it_end;
     for(i = 0; i < wrow_count; i++)
     {
-        it_end = it_start + _min2_size(for_size, row.len - it_start);
+        it_end = it_start + ntg_min2_size(for_size, row.len - it_start);
         wrows[i] = (struct ntg_str32_view) {
             .data = &(row.data[it_start]),
             .len = it_end - it_start
@@ -1049,19 +1049,19 @@ static struct ntg_xy calculate_effective_scroll(const ntg_text* text_obj)
 
     if(text_obj->ro.opts.wrap == NTG_TEXT_WRAP_NONE)
     {
-        full_size = ntg_xy(cont_nat_size.x, cont_nat_size.y);
+        full_size = ntg_xy_new(cont_nat_size.x, cont_nat_size.y);
     }
     else
     {
         if(text_obj->ro.opts.orient == NTG_ORIENT_H)
-            full_size = ntg_xy(cont_size.x, cont_nat_size.y);
+            full_size = ntg_xy_new(cont_size.x, cont_nat_size.y);
         else
-            full_size = ntg_xy(cont_nat_size.x, cont_size.y);
+            full_size = ntg_xy_new(cont_nat_size.x, cont_size.y);
     }
 
-    struct ntg_xy scroll = ntg_xy(
-        _min2_size(opts_scroll.x, _sub2_size(full_size.x, cont_size.x)),
-        _min2_size(opts_scroll.y, _sub2_size(full_size.y, cont_size.y))
+    struct ntg_xy scroll = ntg_xy_new(
+        ntg_min2_size(opts_scroll.x, ntg_sub2_size(full_size.x, cont_size.x)),
+        ntg_min2_size(opts_scroll.y, ntg_sub2_size(full_size.y, cont_size.y))
     );
 
     if(text_obj->ro.opts.wrap != NTG_TEXT_WRAP_NONE)

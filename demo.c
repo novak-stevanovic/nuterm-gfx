@@ -331,7 +331,7 @@ void init_center()
     ntg_garbage_add_obj(garbage, &c_cb2);
 
     struct ntg_lay_opts center_lay_opts = {
-        .min_cont_size = ntg_xy_opt_new(ntg_xy(0, 15))
+        .min_cont_size = ntg_xy_opt_new(ntg_xy_new(0, 15))
     };
     ntg_widget_set_lay_opts(ntg_wgt(&center), &center_lay_opts);
     
@@ -346,12 +346,12 @@ void init_south()
     int status;
 
     struct ntg_pad_opts pad_opts = {
-        .pref_size = ntg_insets(1, 1, 1, 1),
+        .pref_size = ntg_insets_new(1, 1, 1, 1),
         .enable = NTG_WIDGET_DCR_ENABLE_ALWAYS
     };
 
     struct ntg_bdr_opts bdr_opts = {
-        .pref_size = ntg_insets(1, 1, 1, 1),
+        .pref_size = ntg_insets_new(1, 1, 1, 1),
         .style = &def_rounded_border._base,
         .enable = NTG_WIDGET_DCR_ENABLE_ALWAYS
     };
@@ -497,12 +497,12 @@ void init_flt_button()
     ntg_widget_set_lay_opts(ntg_wgt(&flt_button), &lay_opts);
 
     struct ntg_pad_opts pad_opts = {
-        .pref_size = ntg_insets(2, 2, 2, 2)
+        .pref_size = ntg_insets_new(2, 2, 2, 2)
     };
     ntg_widget_set_pad_opts(ntg_wgt(&flt_button), &pad_opts);
 
     struct ntg_bdr_opts border_opts = {
-        .pref_size = ntg_insets(1, 1, 1, 1),
+        .pref_size = ntg_insets_new(1, 1, 1, 1),
         .style = &flt_rounded_border._base
     };
     ntg_widget_set_bdr_opts(ntg_wgt(&flt_button), &border_opts);

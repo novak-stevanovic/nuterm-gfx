@@ -85,8 +85,8 @@ int ntg_sap_cap_round_robin(
             
             if(out_sizes[i] + distributed[i] >= caps[i]) continue;
 
-            it_to_distribute = _min2_double(space_left, it_grow_factor);
-            it_to_distribute = _min2_double(
+            it_to_distribute = ntg_min2_double(space_left, it_grow_factor);
+            it_to_distribute = ntg_min2_double(
                     it_to_distribute,
                     caps[i] - out_sizes[i] - distributed[i]);
             if(is_equal_double(it_to_distribute, 0)) continue;

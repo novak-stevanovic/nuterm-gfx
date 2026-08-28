@@ -68,7 +68,7 @@
     ntg_garbage_add((batch_ptr), (obj_ptr), ntg_object_vdeinit_void, free)
 
 /* ========================================================================== */
-/* FUNCTIONS */
+/* GARBAGE */
 /* ========================================================================== */
 
 #define NTG_GARBAGE_CAP_AUTO 1000

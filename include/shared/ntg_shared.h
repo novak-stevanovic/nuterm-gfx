@@ -93,4 +93,108 @@ typedef struct ntg_prog_bar ntg_prog_bar;
 typedef struct ntg_box ntg_box;
 typedef struct ntg_panel ntg_panel;
 
+/* ========================================================================== */
+/* OP */
+/* ========================================================================== */
+
+static inline size_t ntg_clamp_size(size_t min, size_t mid, size_t max)
+{
+    if(mid < min) mid = min;
+    else if(mid > max) mid = max;
+
+    return mid;
+}
+
+static inline int ntg_clamp_int(int min, int mid, int max)
+{
+    if(mid < min) mid = min;
+    else if(mid > max) mid = max;
+
+    return mid;
+}
+
+static inline size_t ntg_max2_size(size_t x, size_t y)
+{
+    return (x > y) ? x : y;
+}
+
+static inline size_t ntg_min2_size(size_t x, size_t y)
+{
+    return (x > y) ? y : x;
+}
+
+static inline unsigned int ntg_max2_uint(unsigned int x, unsigned int y)
+{
+    return (x > y) ? x : y;
+}
+
+static inline unsigned int ntg_min2_uint(unsigned int x, unsigned int y)
+{
+    return (x > y) ? y : x;
+}
+
+static inline size_t ntg_max3_size(size_t x, size_t y, size_t z)
+{
+    size_t tmp = ntg_max2_size(x, y);
+
+    return ntg_max2_size(tmp, z);
+}
+
+static inline size_t ntg_min3_size(size_t x, size_t y, size_t z)
+{
+    size_t tmp = ntg_min2_size(x, y);
+
+    return ntg_min2_size(tmp, z);
+}
+
+static inline ssize_t ntg_max2_ssize(ssize_t x, ssize_t y)
+{
+    return (x > y) ? x : y;
+}
+
+
+static inline ssize_t ntg_min2_ssize(ssize_t x, ssize_t y)
+{
+    return (x > y) ? y : x;
+}
+
+static inline double ntg_min2_double(double x, double y)
+{
+    return (x > y) ? y : x;
+}
+
+static inline double ntg_max2_double(double x, double y)
+{
+    return (x < y) ? y : x;
+}
+
+static inline bool ntg_double_are_eql(double a, double b)
+{
+    const double eps = 1e-9;
+    double diff = a - b;
+
+    return (diff > -eps) && (diff < eps);
+}
+
+static inline size_t ntg_sub2_size(size_t x, size_t y)
+{
+    return (x > y) ? x - y : 0;
+}
+
+static inline unsigned int ntg_sub2_uint(unsigned int x, unsigned int y)
+{
+    return (x > y) ? x - y : 0;
+}
+
+static inline unsigned long long
+ntg_sub2_ull(unsigned long long int x, unsigned long long int y)
+{
+    return (x > y) ? x - y : 0;
+}
+
+static inline size_t ntg_sub3_size(size_t x, size_t y, size_t z)
+{
+    return ((x >= (y + z)) ? ((x - y) - z) : 0);
+}
+
 #endif // NTG_SHARED_H

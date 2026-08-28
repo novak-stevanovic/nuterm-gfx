@@ -163,7 +163,7 @@ int ntg_clr_block_draw_fn(
             ntg_widget_tmp_draw_set(
                     out_drawing,
                     ntg_vcell_new_full_bg(clr_block->ro.color),
-                    ntg_xy(j, i));
+                    ntg_xy_new(j, i));
         }
     }
 
