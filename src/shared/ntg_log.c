@@ -70,7 +70,7 @@ int ntg_log_init(const char* filepath)
     if(new_log_file == NULL)
     {
         pthread_mutex_unlock(&log_lock);
-        return NTG_ERR_LOG_INIT_FAIL;
+        return NTG_ERR_FOPEN_FAIL;
     }
 
     if(log_file != NULL)

@@ -120,7 +120,7 @@ int ntg_fcs_manager_stack_push(ntg_fcs_manager* fm, const struct ntg_fcs_scope* 
     if(scope_copy->root) 
     {
         size_t layer_count = ntg_scene_collect_layers_by_z(fm->ro.scene, NULL, 0);
-        if(layer_count == 0) return NTG_ERR_SCENE_EMPTY;
+        if(layer_count == 0) return NTG_ERR_BAD_FCS_SCOPE;
 
         ntg_widget** layers = malloc(layer_count * sizeof(ntg_widget*));
         if(!layers) return NTG_ERR_ALLOC_FAIL;
@@ -138,7 +138,7 @@ int ntg_fcs_manager_stack_push(ntg_fcs_manager* fm, const struct ntg_fcs_scope* 
         free(layers);
 
         if(!desc_of_any_layer)
-            return NTG_ERR_SCOPE_NOT_IN_SCENE;
+            return NTG_ERR_BAD_FCS_SCOPE;
     }
 
     if(head)

@@ -411,7 +411,7 @@ int ntg_widget_anchor(ntg_widget* base, ntg_widget* root)
         return NTG_ERR_INV_ARG;
 
     if(base->ro.anchored.size >= NTG_WIDGET_MAX_ANCHORED)
-        return NTG_ERR_MAX_ANCHORED;
+        return NTG_ERR_NO_CAP;
 
     if(root->ro.parent)
     {
@@ -1015,7 +1015,7 @@ int ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
         return NTG_ERR_INV_ARG;
 
     if(parent->ro.children.size >= NTG_WIDGET_MAX_CHILDREN)
-        return NTG_ERR_MAX_CHILDREN;
+        return NTG_ERR_NO_CAP;
 
     if(child->ro.parent != NULL)
         ntg_widget_detach(child);
