@@ -74,6 +74,8 @@ struct ntg_widget_measure
     size_t min_size, nat_size, max_size, grow;
 };
 
+static const struct ntg_widget_measure NTG_WIDGET_MEASURE_ZERO = {0};
+
 static inline bool
 ntg_widget_measure_are_eql(struct ntg_widget_measure m1, struct ntg_widget_measure m2)
 {

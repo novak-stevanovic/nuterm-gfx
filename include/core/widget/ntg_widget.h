@@ -41,9 +41,6 @@ struct ntg_bdr_opts
 
 static const struct ntg_bdr_opts NTG_BDR_OPTS_ZERO = {0};
 
-NTG_API bool
-ntg_bdr_opts_are_eql(const struct ntg_bdr_opts* o1, const struct ntg_bdr_opts* o2);
-
 struct ntg_pad_opts
 {
     enum ntg_widget_dcr_enable enable;
@@ -52,26 +49,22 @@ struct ntg_pad_opts
 
 static const struct ntg_pad_opts NTG_PAD_OPTS_ZERO = {0};
 
-NTG_API bool
-ntg_pad_opts_are_eql(const struct ntg_pad_opts* o1, const struct ntg_pad_opts* o2);
-
 /* ------------------------------------------------------ */
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-#define NTG_WIDGET_MIN_SIZE_UNSET 0
-#define NTG_WIDGET_MAX_SIZE_UNSET NTG_SIZE_MAX
+#define NTG_WIDGET_MINSZ_UNSET 0
+#define NTG_WIDGET_MAXSZ_UNSET NTG_SIZE_MAX
 #define NTG_WIDGET_GROW_UNSET NTG_SIZE_MAX
-#define NTG_WIDGET_Z_INDEX_UNSET 0
+#define NTG_WIDGET_ZIDX_UNSET 0
 
 struct ntg_lay_opts
 {
-    struct ntg_xy min_cont_size, max_cont_size, grow;
-    int z_index;
+    ntg_xy_opt min_cont_size, max_cont_size, grow;
+    ntg_int_opt z_index;
 };
 
-NTG_API struct ntg_lay_opts
-ntg_lay_opts_default(void);
+static const struct ntg_lay_opts NTG_LAY_OPTS_ZERO = {0};
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -147,19 +140,23 @@ struct ntg_widget
         ntg_widget* base;
         const struct ntg_anchor_policy* anchor_policy;
 
-        struct ntg_lay_opts layout_opts;
-
         struct ntg_xy min_size, nat_size, max_size, grow;
         struct ntg_xy size;
+        struct ntg_insets border_size;
+        struct ntg_insets padding_size;
         struct ntg_xy pos;
         ntg_widget_draw drawing;
         uint32_t dirty;
 
-        struct ntg_bdr_opts border_opts;
-        struct ntg_insets border_size;
+        struct ntg_xy user_min_size, user_max_size, user_grow;
+        int z_index;
 
-        struct ntg_pad_opts padding_opts;
-        struct ntg_insets padding_size;
+        enum ntg_widget_dcr_enable bdr_enable;
+        struct ntg_insets bdr_pref_size;
+        const struct ntg_border_style* bdr_style;
+
+        enum ntg_widget_dcr_enable pad_enable;
+        struct ntg_insets pad_pref_size;
 
         enum ntg_widget_click_mode clickable;
         enum ntg_widget_focus_mode focusable;
@@ -194,13 +191,13 @@ ntg_widget_feed_mouse(ntg_widget* widget, const struct ntg_widget_mouse* event);
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_widget_set_lay_opts(ntg_widget* widget, const struct ntg_lay_opts* opts_cp);
+ntg_widget_set_lay_opts(ntg_widget* widget, const struct ntg_lay_opts* opts);
 
 NTG_API int
-ntg_widget_set_bdr_opts(ntg_widget* widget, const struct ntg_bdr_opts* opts_cp);
+ntg_widget_set_bdr_opts(ntg_widget* widget, const struct ntg_bdr_opts* opts);
 
 NTG_API int
-ntg_widget_set_pad_opts(ntg_widget* widget, const struct ntg_pad_opts* opts_cp);
+ntg_widget_set_pad_opts(ntg_widget* widget, const struct ntg_pad_opts* opts);
 
 NTG_API int
 ntg_widget_set_anchor_policy(ntg_widget* widget, const ntg_anchor_policy* policy);
@@ -345,7 +342,7 @@ static void fn_name(ntg_widget* widget, void* data)                            \
 {                                                                              \
     if(widget == NULL) return;                                                 \
     perform_fn(widget, data);                                                  \
-    const struct ntg_widget_vec* children = &widget->ro.children;              \
+    const struct ntg_widget_vec* children = &widget->ro.children;        \
     size_t i;                                                                  \
     for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
@@ -357,7 +354,7 @@ static void fn_name(ntg_widget* widget, void* data)                            \
 static void fn_name(ntg_widget* widget, void* data)                            \
 {                                                                              \
     if(widget == NULL) return;                                                 \
-    const struct ntg_widget_vec* children = &widget->ro.children;              \
+    const struct ntg_widget_vec* children = &widget->ro.children;        \
     size_t i;                                                                  \
     for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
@@ -371,8 +368,8 @@ static void fn_name(ntg_widget* widget, void* data)                            \
 {                                                                              \
     if(widget == NULL) return;                                                 \
     perform_fn(widget, data);                                                  \
-    const struct ntg_widget_vec* children = &widget->ro.children;              \
-    const struct ntg_widget_vec* anchored = &widget->ro.anchored;              \
+    const struct ntg_widget_vec* children = &widget->ro.children;        \
+    const struct ntg_widget_vec* anchored = &widget->ro.anchored;        \
     size_t i;                                                                  \
     for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
@@ -388,8 +385,8 @@ static void fn_name(ntg_widget* widget, void* data)                            \
 static void fn_name(ntg_widget* widget, void* data)                            \
 {                                                                              \
     if(widget == NULL) return;                                                 \
-    const struct ntg_widget_vec* children = &widget->ro.children;              \
-    const struct ntg_widget_vec* anchored = &widget->ro.anchored;              \
+    const struct ntg_widget_vec* children = &widget->ro.children;        \
+    const struct ntg_widget_vec* anchored = &widget->ro.anchored;        \
     size_t i;                                                                  \
     for(i = 0; i < children->size; i++)                                        \
     {                                                                          \
@@ -453,8 +450,8 @@ struct ntg_widget_vtable
             ntg_widget_tmp_draw* out_drawing,
             sarena* arena);
 
-
-    void (*cont_resize_fn)(ntg_widget* widget, sarena* arena);
+    /* Raised in layout finalize phase */
+    void (*resize_cont_fn)(ntg_widget* widget, sarena* arena);
     void (*resize_fn)(ntg_widget* widget, sarena* arena);
     void (*pos_chng_fn)(ntg_widget* widget, sarena* arena);
 
@@ -478,20 +475,12 @@ struct ntg_widget_vtable
     void (*focus_fn)(ntg_widget* widget);
     void (*unfocus_fn)(ntg_widget* widget);
 
-    void (*chng_bdr_opts_fn)(
-            ntg_widget* widget,
-            const struct ntg_bdr_opts* old_opts,
-            const struct ntg_bdr_opts* new_opts);
+    void (*chng_pad_pref_size_fn)(ntg_widget* widget);
+    void (*chng_pad_enable_fn)(ntg_widget* widget);
 
-    void (*chng_pad_opts_fn)(
-            ntg_widget* widget,
-            const struct ntg_pad_opts* old_opts,
-            const struct ntg_pad_opts* new_opts);
-
-    void (*chng_lay_opts_fn)(
-            ntg_widget* widget,
-            const struct ntg_lay_opts* old_opts,
-            const struct ntg_lay_opts* new_opts);
+    void (*chng_bdr_pref_size_fn)(ntg_widget* widget);
+    void (*chng_bdr_style_fn)(ntg_widget* widget);
+    void (*chng_bdr_enable_fn)(ntg_widget* widget);
 };
 
 /* ========================================================================== */

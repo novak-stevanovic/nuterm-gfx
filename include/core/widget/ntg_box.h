@@ -26,13 +26,6 @@ struct ntg_box_opts
 
 static const struct ntg_box_opts NTG_BOX_OPTS_ZERO = {0};
 
-NTG_API bool
-ntg_box_opts_are_eql(
-        const struct ntg_box_opts* opts1,
-        const struct ntg_box_opts* opts2);
-
-/* ------------------------------------------------------ */
-
 /* ------------------------------------------------------ */
 
 struct ntg_box
@@ -41,7 +34,14 @@ struct ntg_box
 
     struct
     {
-        struct ntg_box_opts opts;
+        struct
+        {
+            enum ntg_orient orient;
+            enum ntg_align prim_align;
+            enum ntg_align sec_align;
+            size_t spacing;
+            struct ntg_vcell bg;
+        } opts;
     } ro;
 };
 

@@ -1,14 +1,23 @@
 #ifndef NTG_SCENE_H
 #define NTG_SCENE_H
 
-#include "ntg_fcs_scope.h"
 #include "shared/ntg_shared.h"
+#include "core/scene/ntg_fcs_scope.h"
 #include "core/widget/ntg_widget.h"
 #include "core/widget/ntg_widget_vec.h"
 #include "base/ntg_xy.h"
 #include "base/object/ntg_object.h"
 
 #define NTG_SCENE_MAX_IT_AUTO 20
+
+struct ntg_scene_init_opts
+{
+    ntg_fcs_scope_keys_opt init_scope_keys; /* 0 for auto */
+
+    unsigned int max_it; /* 0 for auto */
+};
+
+static const struct ntg_scene_init_opts NTG_SCENE_INIT_OPTS_ZERO = {0};
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -19,8 +28,6 @@
 /* ========================================================================== */
 /* TYPES */
 /* ========================================================================== */
-
-struct ntg_attach_policy;
 
 struct ntg_scene_hit_res
 {
@@ -45,14 +52,12 @@ struct ntg_scene
     struct
     {
         struct ntg_widget_vec roots;
-        size_t tree_count, object_count; // Cached
+        size_t tree_count, object_count; /* Cache */
 
         ntg_stage* stage;
         struct ntg_xy size;
         ntg_fcs_manager* fm;
-
         bool dirty;
-
     } ro;
 
     struct
@@ -70,16 +75,11 @@ struct ntg_scene
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_scene_init(
-        ntg_scene* scene,
-        const struct ntg_fcs_scope_keys* init_scope_keys,
-        unsigned int max_it);
+ntg_scene_init(ntg_scene* scene, const struct ntg_scene_init_opts* opts);
 
 NTG_API int
 ntg_scene_deinit(ntg_scene* scene);
 
-NTG_API void
-ntg_scene_deinit_void(void* _scene);
 
 NTG_API int
 ntg_scene_mark_dirty(ntg_scene* scene);
@@ -142,8 +142,7 @@ ntg_scene_init_inherit(
         ntg_scene* scene,
         const struct ntg_scene_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_fcs_scope_keys* init_scope_keys,
-        unsigned int max_it);
+        const struct ntg_scene_init_opts* opts);
 
 /* ------------------------------------------------------ */
 /* IMPLEMENT */

@@ -21,11 +21,6 @@ struct ntg_button_opts
 
 static const struct ntg_button_opts NTG_BUTTON_OPTS_ZERO = {0};
 
-NTG_API bool
-ntg_button_opts_are_eql(
-        const struct ntg_button_opts* opts1,
-        const struct ntg_button_opts* opts2);
-
 struct ntg_button
 {
     ntg_text _base;
@@ -53,15 +48,10 @@ ntg_button_init(
 NTG_API int
 ntg_button_deinit(ntg_button* button);
 
-NTG_API void
-ntg_button_deinit_void(void* _button);
 
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
-
-NTG_API int
-ntg_button_get_opts(const ntg_button* button, struct ntg_button_opts* out_opts);
 
 NTG_API int
 ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts);

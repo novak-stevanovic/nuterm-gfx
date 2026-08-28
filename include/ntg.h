@@ -1,12 +1,6 @@
 #ifndef NTG_H
 #define NTG_H
 
-#include "nt_gfx.h"
-#include "nt_event.h"
-
-#include "thirdparty/uconv.h"
-#include "thirdparty/sarena.h"
-#include "thirdparty/genc.h"
 #include "shared/ntg_shared.h"
 #include "shared/ntg_error.h"
 #include "shared/ntg_convenience.h"
@@ -88,7 +82,8 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-zero-init: finish
+rename: main_panel -> ???
+rename: NTG_MAIN_PANEL_NORTH -> ???
 pos -> NTG_SIZE_MAX for no draw
 ntg_button: disable() or ntg_widget: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input

@@ -53,9 +53,7 @@ int ntg_float_init(ntg_float* float_ap, const struct ntg_float_opts* opts)
 
     ntg_object_zero(float_ap);
 
-    float_ap->ro.opts = opts ? (*opts) : NTG_FLOAT_OPTS_ZERO;
-
-    return 0;
+    return ntg_float_set_opts(float_ap, opts);
 }
 
 int ntg_float_deinit(ntg_float* float_ap)
@@ -68,9 +66,28 @@ int ntg_float_deinit(ntg_float* float_ap)
     return 0;
 }
 
-void ntg_float_deinit_void(void* _float_ap)
+
+int ntg_float_set_opts(ntg_float* float_ap, const struct ntg_float_opts* opts)
 {
-    ntg_float_deinit(_float_ap);
+    if(!float_ap) return NTG_ERR_INV_ARG;
+
+    struct ntg_float_opts opts_final =
+            (opts ? (*opts) : NTG_FLOAT_OPTS_ZERO);
+
+    if((float_ap->ro.opts.enable == opts_final.enable) &&
+       ntg_insets_are_eql(float_ap->ro.opts.shrink, opts_final.shrink) &&
+       (float_ap->ro.opts.prim_align == opts_final.prim_align) &&
+       (float_ap->ro.opts.sec_align == opts_final.sec_align))
+    {
+        return 0;
+    }
+
+    float_ap->ro.opts.enable = opts_final.enable;
+    float_ap->ro.opts.shrink = opts_final.shrink;
+    float_ap->ro.opts.prim_align = opts_final.prim_align;
+    float_ap->ro.opts.sec_align = opts_final.sec_align;
+
+    return 0;
 }
 
 /* ========================================================================== */
@@ -94,20 +111,19 @@ static size_t float_constrain_fn(
     if(!ctx || !ctx->root) return 0;
 
     const ntg_float* float_ap = (const ntg_float*)ap;
-    const struct ntg_float_opts* opts = &float_ap->ro.opts;
     const ntg_widget* root = ctx->root;
 
     struct ntg_widget_measure root_measure;
     root_measure = ntg_widget_get_measure(root, orient);
 
     size_t base_size = ctx->base_size;
-    size_t shrink = ntg_insets_sum(opts->shrink, orient);
+    size_t shrink = ntg_insets_sum(float_ap->ro.opts.shrink, orient);
     size_t size = _min2_size(
             _sub2_size(base_size, shrink),
             root_measure.nat_size);
 
     size_t thresh;
-    switch(opts->enable)
+    switch(float_ap->ro.opts.enable)
     {
         case NTG_FLOAT_ENABLE_MIN:
             thresh = root_measure.min_size;
@@ -142,19 +158,18 @@ static struct ntg_xy float_arrange_fn(
     if(ntg_xy_is_zero_any(ctx->size)) return ntg_xy(0, 0);
 
     const ntg_float* float_ap = (const ntg_float*)ap;
-    const struct ntg_float_opts* opts = &float_ap->ro.opts;
 
     struct ntg_xy shrink = ntg_xy(
-            ntg_insets_hsum(opts->shrink),
-            ntg_insets_vsum(opts->shrink));
+            ntg_insets_hsum(float_ap->ro.opts.shrink),
+            ntg_insets_vsum(float_ap->ro.opts.shrink));
     struct ntg_xy base_size = ntg_xy_sub(ctx->base_size, shrink);
 
     struct ntg_xy align_offset = ntg_xy(
-            ntg_align_offset(ctx->size.x, base_size.x, opts->prim_align),
-            ntg_align_offset(ctx->size.y, base_size.y, opts->sec_align));
+            ntg_align_offset(ctx->size.x, base_size.x, float_ap->ro.opts.prim_align),
+            ntg_align_offset(ctx->size.y, base_size.y, float_ap->ro.opts.sec_align));
 
-    align_offset.x += opts->shrink.w;
-    align_offset.y += opts->shrink.n;
+    align_offset.x += float_ap->ro.opts.shrink.w;
+    align_offset.y += float_ap->ro.opts.shrink.n;
 
     return ntg_xy_add(ctx->base_pos, align_offset);
 }

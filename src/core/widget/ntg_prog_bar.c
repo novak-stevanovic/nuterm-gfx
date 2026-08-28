@@ -8,59 +8,11 @@
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* ========================================================================== */
-/* TYPES */
-/* ========================================================================== */
-
-struct ntg_prog_bar_style ntg_prog_bar_style_auto(void)
-{
-    return (struct ntg_prog_bar_style) {
-        .complete = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0)),
-        .uncomplete = ntg_vcell_new_full_bg(nt_color_new_auto(255, 0, 0)),
-        .threshold = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0))
-    };
-}
-
-bool ntg_prog_bar_style_are_eql(
-        const struct ntg_prog_bar_style* style1,
-        const struct ntg_prog_bar_style* style2)
-{
-    if(style1 == style2)
-        return true;
-
-    if(!style1 || !style2)
-        return false;
-
-    return (ntg_vcell_are_eql(style1->complete, style2->complete) &&
-            ntg_vcell_are_eql(style1->uncomplete, style2->uncomplete) &&
-            ntg_vcell_are_eql(style1->threshold, style2->threshold));
-}
-
-bool ntg_prog_bar_opts_are_eql(
-        const struct ntg_prog_bar_opts* opts1,
-        const struct ntg_prog_bar_opts* opts2)
-{
-    if(opts1 == opts2)
-        return true;
-
-    if(!opts1 || !opts2)
-        return false;
-
-    return (opts1->orient == opts2->orient);
-}
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_prog_bar_init(
-        ntg_prog_bar* prog_bar,
-        const struct ntg_prog_bar_opts* opts,
-        const struct ntg_prog_bar_style* style)
+int ntg_prog_bar_init(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
 {
     if(!prog_bar) return NTG_ERR_INV_ARG;
 
@@ -72,7 +24,7 @@ int ntg_prog_bar_init(
     NTG_POST_INHERIT_CHECK(status);
 
     ntg_prog_bar_set_opts(prog_bar, opts);
-    ntg_prog_bar_set_style(prog_bar, style);
+
     return 0;
 }
 
@@ -93,48 +45,49 @@ int ntg_prog_bar_deinit(ntg_prog_bar* prog_bar)
 /* OPTS */
 /* ------------------------------------------------------ */
 
+static inline bool
+styles_are_eql(struct ntg_prog_bar_style style1, struct ntg_prog_bar_style style2)
+{
+    return ntg_vcell_are_eql(style1.complete, style2.complete) &&
+           ntg_vcell_are_eql(style1.uncomplete, style2.uncomplete) &&
+           ntg_vcell_are_eql(style1.threshold, style2.threshold);
+}
+
 int ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts* opts)
 {
     if(!prog_bar) return NTG_ERR_INV_ARG;
 
-    struct ntg_prog_bar_opts old_opts = prog_bar->ro.opts;
-    struct ntg_prog_bar_opts new_opts = (opts ? (*opts) : NTG_PROG_BAR_OPTS_ZERO);
+    /* Set up final opts */
 
-    if(ntg_prog_bar_opts_are_eql(&old_opts, &new_opts))
-        return 0;
+    struct ntg_prog_bar_opts opts_final = (opts ? (*opts) : NTG_PROG_BAR_OPTS_ZERO);
+    if(styles_are_eql(opts_final.style, NTG_PROG_BAR_STYLE_ZERO))
+    {
+        opts_final.style = (struct ntg_prog_bar_style) {
+            .complete = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0)),
+            .uncomplete = ntg_vcell_new_full_bg(nt_color_new_auto(255, 0, 0)),
+            .threshold = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0))
+        };
+    }
 
-    prog_bar->ro.opts = new_opts;
+    /* Check for changes */
 
-    ntg_widget_mark_dirty((ntg_widget*)prog_bar, NTG_WIDGET_DIRTY_FULL);
+    uint8_t dirty = 0;
 
-    struct ntg_event_prog_bar_optchg_dt event_dt = {
-        .old_opts = &old_opts,
-        .new_opts = &new_opts
-    };
-    ntg_object_event_raise(ntg_obj(prog_bar), NTG_EVENT_PROG_BAR_OPTCHG, &event_dt);
+    if(prog_bar->ro.opts.orient != opts_final.orient)
+    {
+        dirty |= NTG_WIDGET_DIRTY_FULL;
+    }
+    if(!styles_are_eql(prog_bar->ro.opts.style, opts_final.style))
+    {
+        dirty |= NTG_WIDGET_DIRTY_DRAW;
+    }
+    
+    if(!dirty) return 0;
 
-    return 0;
-}
+    prog_bar->ro.opts.orient = opts_final.orient;
+    prog_bar->ro.opts.style = opts_final.style;
 
-int ntg_prog_bar_set_style(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_style* style)
-{
-    if(!prog_bar) return NTG_ERR_INV_ARG;
-
-    struct ntg_prog_bar_style old_style = prog_bar->ro.style;
-    struct ntg_prog_bar_style new_style = (style ? (*style) : ntg_prog_bar_style_auto());
-
-    if(ntg_prog_bar_style_are_eql(&old_style, &new_style))
-        return 0;
-
-    prog_bar->ro.style = new_style;
-
-    ntg_widget_mark_dirty((ntg_widget*)prog_bar, NTG_WIDGET_DIRTY_DRAW);
-
-    struct ntg_event_prog_bar_stylchg_dt event_dt = {
-        .old_style = &old_style,
-        .new_style = &new_style
-    };
-    ntg_object_event_raise(ntg_obj(prog_bar), NTG_EVENT_PROG_BAR_STYLCHG, &event_dt);
+    ntg_widget_mark_dirty((ntg_widget*)prog_bar, dirty);
 
     return 0;
 }
@@ -269,15 +222,15 @@ int ntg_prog_bar_draw_fn(
             it_xy = ntg_xy_from_oxy(_it_xy);
 
             if(complete_count == _size.prim_val)
-                it_cell = prog_bar->ro.style.complete;
+                it_cell = prog_bar->ro.opts.style.complete;
             else if(complete_count == 0)
-                it_cell = prog_bar->ro.style.uncomplete;
+                it_cell = prog_bar->ro.opts.style.uncomplete;
             else if(i < (complete_count - 1))
-                it_cell = prog_bar->ro.style.complete;
+                it_cell = prog_bar->ro.opts.style.complete;
             else if(i == (complete_count - 1))
-                it_cell = prog_bar->ro.style.threshold;
+                it_cell = prog_bar->ro.opts.style.threshold;
             else
-                it_cell = prog_bar->ro.style.uncomplete;
+                it_cell = prog_bar->ro.opts.style.uncomplete;
 
             ntg_widget_tmp_draw_set(out_drawing, it_cell, it_xy);
         }

@@ -21,15 +21,6 @@ struct ntg_main_panel_opts
 
 static const struct ntg_main_panel_opts NTG_MAIN_PANEL_OPTS_ZERO = {0};
 
-/* ------------------------------------------------------ */
-
-NTG_API bool
-ntg_main_panel_opts_are_eql(
-        const struct ntg_main_panel_opts* opts1,
-        const struct ntg_main_panel_opts* opts2);
-
-/* ------------------------------------------------------ */
-
 enum ntg_main_panel_pos
 {
     NTG_MAIN_PANEL_NORTH = 0,
@@ -47,7 +38,10 @@ struct ntg_main_panel
 
     struct
     {
-        struct ntg_main_panel_opts opts;
+        struct 
+        {
+            struct ntg_vcell bg;
+        } opts;
         ntg_widget* children[5];
     } ro;
 };
@@ -56,19 +50,11 @@ struct ntg_main_panel
 /* FUNCTIONS */
 /* ========================================================================== */
 
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
 NTG_API int
 ntg_main_panel_init(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts);
 
 NTG_API int
 ntg_main_panel_deinit(ntg_main_panel* panel);
-
-/* ------------------------------------------------------ */
-/* CHILDREN */
-/* ------------------------------------------------------ */
 
 NTG_API int
 ntg_main_panel_set(
@@ -76,14 +62,8 @@ ntg_main_panel_set(
         ntg_widget* widget,
         enum ntg_main_panel_pos pos);
 
-/* ------------------------------------------------------ */
-/* OPTS */
-/* ------------------------------------------------------ */
-
 NTG_API int
-ntg_main_panel_set_opts(
-        ntg_main_panel* panel,
-        const struct ntg_main_panel_opts* opts);
+ntg_main_panel_set_opts(ntg_main_panel* panel, const struct ntg_main_panel_opts* opts);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -91,18 +71,10 @@ ntg_main_panel_set_opts(
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* ========================================================================== */
-/* TYPES */
-/* ========================================================================== */
-
 struct ntg_main_panel_vtable
 {
     struct ntg_widget_vtable base;
 };
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
 
 NTG_API int
 ntg_main_panel_init_inherit(

@@ -30,19 +30,6 @@ static void get_children(
 /* TYPES */
 /* ========================================================================== */
 
-bool ntg_main_panel_opts_are_eql(
-        const struct ntg_main_panel_opts* opts1,
-        const struct ntg_main_panel_opts* opts2)
-{
-    if(opts1 == opts2)
-        return true;
-
-    if(!opts1 || !opts2)
-        return false;
-
-    return ntg_vcell_are_eql(opts1->bg, opts2->bg);
-}
-
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
@@ -112,12 +99,15 @@ int ntg_main_panel_set(
 
     ntg_widget_mark_dirty((ntg_widget*)panel, NTG_WIDGET_DIRTY_FULL);
 
-    struct ntg_event_main_panel_chldchg_dt event_dt = {
-        .old_child = old_child,
-        .new_child = widget,
-        .pos = pos
-    };
-    ntg_object_event_raise(ntg_obj(panel), NTG_EVENT_MAIN_PANEL_CHLDCHG, &event_dt);
+    if(widget)
+    {
+        struct ntg_event_main_panel_chldadd_dt event_dt = {
+            .child = widget,
+            .pos = pos
+        };
+        ntg_object_event_raise(
+                ntg_obj(panel), NTG_EVENT_MAIN_PANEL_CHLDADD, &event_dt);
+    }
 
     return 0;
 }
@@ -132,21 +122,15 @@ int ntg_main_panel_set_opts(
 {
     if(!panel) return NTG_ERR_INV_ARG;
 
-    struct ntg_main_panel_opts old_opts = panel->ro.opts;
-    struct ntg_main_panel_opts new_opts = (opts ? (*opts) : NTG_MAIN_PANEL_OPTS_ZERO);
+    struct ntg_main_panel_opts opts_final =
+            (opts ? (*opts) : NTG_MAIN_PANEL_OPTS_ZERO);
 
-    if(ntg_main_panel_opts_are_eql(&old_opts, &new_opts))
+    if(ntg_vcell_are_eql(panel->ro.opts.bg, opts_final.bg))
         return 0;
 
-    panel->ro.opts = new_opts;
+    panel->ro.opts.bg = opts_final.bg;
 
-    ntg_widget_set_base_bg(ntg_wgt(panel), new_opts.bg);
-
-    struct ntg_event_main_panel_optchg_dt event_dt = {
-        .old_opts = &old_opts,
-        .new_opts = &new_opts
-    };
-    ntg_object_event_raise(ntg_obj(panel), NTG_EVENT_MAIN_PANEL_OPTCHG, &event_dt);
+    ntg_widget_set_base_bg(ntg_wgt(panel), opts_final.bg);
 
     return 0;
 }
@@ -558,10 +542,16 @@ void ntg_main_panel_child_rm_fn(ntg_widget* _main_panel, ntg_widget* child)
     for(i = 0; i < 5; i++)
     {
         if(main_panel->ro.children[i] == child)
+        {
             main_panel->ro.children[i] = NULL;
+            break;
+        }
     }
 
     ntg_widget_mark_dirty(_main_panel, NTG_WIDGET_DIRTY_FULL);
+
+    struct ntg_event_main_panel_chldrm_dt event_dt = { .child = child, .pos = i };
+    ntg_object_event_raise(ntg_obj(_main_panel), NTG_EVENT_MAIN_PANEL_CHLDRM, &event_dt);
 }
 
 void ntg_main_panel_deinit_fn(ntg_object* _panel)

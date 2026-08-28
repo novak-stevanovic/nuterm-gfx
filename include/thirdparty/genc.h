@@ -53,6 +53,84 @@
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
+/* OPT */
+/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+
+/* Optional value type. GENC_OPT_INLINE() will generate `static inline`
+ * functions. GENC_OPT_INLINE_DEF() will additionally typedef the generated
+ * optional value struct. */
+
+/* ========================================================================== */
+/* OPT - PROTOTYPES */
+/* ========================================================================== */
+
+/* --------------------------------------------------------|
+
+struct <name>
+{
+    <type> val;
+    bool set;
+};
+
+|----------------------------------------------------------|
+
+Helper init function. Returns optional value object with `set` set to true.
+
+struct <name> <name>_new(<type> val);
+
+|----------------------------------------------------------|
+
+Helper zero-init function.
+
+struct <name> <name>_zero(void);
+
+|----------------------------------------------------------|
+
+If `opt_val` is set returns its value. Otherwise, `default_val` is returned.
+
+<type> <name>_get(struct <name> opt_val, <type> default_val);
+
+|-------------------------------------------------------- */
+
+/* ========================================================================== */
+/* OPT - GENERATOR MACROS */
+/* ========================================================================== */
+
+#define GENC_OPT_INLINE(NAME, TYPE)                                            \
+struct NAME                                                                    \
+{                                                                              \
+    TYPE val;                                                                  \
+    bool set;                                                                  \
+};                                                                             \
+                                                                               \
+static inline struct NAME                                                      \
+NAME##_new( TYPE val )                                                         \
+{                                                                              \
+    return ( struct NAME ) {                                                   \
+        .val = val,                                                            \
+        .set = true                                                            \
+    };                                                                         \
+}                                                                              \
+                                                                               \
+static inline TYPE                                                             \
+NAME##_get( struct NAME var , TYPE deflt )                                     \
+{                                                                              \
+    return (var.set ? var.val : deflt);                                        \
+}                                                                              \
+                                                                               \
+static inline struct NAME                                                      \
+NAME##_zero(void)                                                              \
+{                                                                              \
+    return ( struct NAME ) {0};                                                \
+}
+
+#define GENC_OPT_INLINE_DEF(NAME, TYPE)                                        \
+    GENC_OPT_INLINE(NAME, TYPE)                                                \
+    typedef struct NAME NAME ;
+
+/* ========================================================================== */
+/* -------------------------------------------------------------------------- */
 /* VECTOR */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */

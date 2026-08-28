@@ -21,11 +21,6 @@ struct ntg_label_opts
 
 static const struct ntg_label_opts NTG_LABEL_OPTS_ZERO = {0};
 
-NTG_API bool
-ntg_label_opts_are_eql(
-        const struct ntg_label_opts* opts1,
-        const struct ntg_label_opts* opts2);
-
 struct ntg_label
 {
     ntg_text _base;
@@ -45,15 +40,10 @@ ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts);
 NTG_API int
 ntg_label_deinit(ntg_label* label);
 
-NTG_API void
-ntg_label_deinit_void(void* _label);
 
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
-
-NTG_API int
-ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts);
 
 NTG_API int
 ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);

@@ -5,7 +5,11 @@
 #include <stddef.h>
 #include <sys/types.h>
 #include <stdint.h>
+
 #include "thirdparty/sarena.h"
+#include "thirdparty/genc.h"
+#include "nt_gfx.h"
+#include "nt_event.h"
 
 #ifdef NTG_EXPORT
 #define NTG_API __attribute__((visibility("default")))
@@ -18,6 +22,13 @@
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
+
+/* Shared optional values */
+
+GENC_OPT_INLINE_DEF(ntg_int_opt, int)
+GENC_OPT_INLINE_DEF(ntg_uint_opt, unsigned int)
+GENC_OPT_INLINE_DEF(ntg_uint8_opt, uint8_t)
+GENC_OPT_INLINE_DEF(ntg_size_opt, size_t)
 
 /* ========================================================================== */
 /* FORWARD DECLARATIONS */
@@ -40,7 +51,7 @@ typedef struct ntg_vcell_vecgrid ntg_vcell_vecgrid;
 typedef struct ntg_type ntg_type;
 typedef struct ntg_event_delegate ntg_event_delegate;
 typedef struct ntg_event_binding ntg_event_binding;
-typedef struct ntg_cleanup_batch ntg_cleanup_batch;
+typedef struct ntg_garbage ntg_garbage;
 typedef struct ntg_object ntg_object;
 
 /* ------------------------------------------------------ */

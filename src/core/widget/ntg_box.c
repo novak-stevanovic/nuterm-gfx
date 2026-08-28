@@ -29,23 +29,6 @@ static inline size_t calculate_total_spacing(size_t spacing, size_t child_count)
 
 /* ------------------------------------------------------ */
 
-bool ntg_box_opts_are_eql(
-        const struct ntg_box_opts* opts1,
-        const struct ntg_box_opts* opts2)
-{
-    if(opts1 == opts2)
-        return true;
-
-    if(!opts1 || !opts2)
-        return false;
-
-    return ((opts1->orient == opts2->orient) &&
-            (opts1->prim_align == opts2->prim_align) &&
-            (opts1->sec_align == opts2->sec_align) &&
-            (opts1->spacing == opts2->spacing) &&
-            ntg_vcell_are_eql(opts1->bg, opts2->bg));
-}
-
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
@@ -86,17 +69,25 @@ int ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
 {
     if(!box) return NTG_ERR_INV_ARG;
 
-    struct ntg_box_opts old_opts = box->ro.opts;
-    struct ntg_box_opts new_opts = (opts ? (*opts) : NTG_BOX_OPTS_ZERO);
+    struct ntg_box_opts opts_final = (opts ? (*opts) : NTG_BOX_OPTS_ZERO);
 
-    if(ntg_box_opts_are_eql(&old_opts, &new_opts))
+    if((box->ro.opts.orient == opts_final.orient) &&
+       (box->ro.opts.prim_align == opts_final.prim_align) &&
+       (box->ro.opts.sec_align == opts_final.sec_align) &&
+       (box->ro.opts.spacing == opts_final.spacing) &&
+       ntg_vcell_are_eql(box->ro.opts.bg, opts_final.bg))
+    {
         return 0;
+    }
 
-    box->ro.opts = new_opts;
+    box->ro.opts.orient = opts_final.orient;
+    box->ro.opts.prim_align = opts_final.prim_align;
+    box->ro.opts.sec_align = opts_final.sec_align;
+    box->ro.opts.spacing = opts_final.spacing;
+    box->ro.opts.bg = opts_final.bg;
 
-    ntg_widget_set_base_bg(ntg_wgt(box), new_opts.bg);
-
-    ntg_widget_mark_dirty((ntg_widget*)box, NTG_WIDGET_DIRTY_FULL);
+    ntg_widget_set_base_bg(ntg_wgt(box), opts_final.bg);
+    ntg_widget_mark_dirty(ntg_wgt(box), NTG_WIDGET_DIRTY_FULL);
 
     return 0;
 }

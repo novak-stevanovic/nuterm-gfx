@@ -5,7 +5,7 @@
 #include "core/renderer/ntg_renderer.h"
 #include "core/stage/ntg_stage_draw.h"
 
-#define NTG_DB_RENDERER_TBUFF_SIZE_AUTO 50000
+#define NTG_DB_RENDERER_TBUFSZ_AUTO 50000
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -13,12 +13,12 @@
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-struct ntg_db_renderer_opts
+struct ntg_db_renderer_init_opts
 {
-    size_t term_buff_size;
+    size_t term_buff_size; /* 0 for auto */
 };
 
-static const struct ntg_db_renderer_opts NTG_DB_RENDERER_OPTS_ZERO = {0};
+static const struct ntg_db_renderer_init_opts NTG_DB_RENDERER_INIT_OPTS_ZERO = {0};
 
 /* ========================================================================== */
 /* TYPES */
@@ -36,12 +36,8 @@ struct ntg_db_renderer
         bool force_full_render;
 
         char* term_buff;
+        size_t term_buff_size;
     } priv;
-
-    struct
-    {
-        struct ntg_db_renderer_opts opts;
-    } ro;
 };
 
 /* ========================================================================== */
@@ -51,13 +47,10 @@ struct ntg_db_renderer
 NTG_API int
 ntg_db_renderer_init(
         ntg_db_renderer* renderer,
-        const struct ntg_db_renderer_opts* opts);
+        const struct ntg_db_renderer_init_opts* opts);
 
 NTG_API int
 ntg_db_renderer_deinit(ntg_db_renderer* renderer);
-
-NTG_API void
-ntg_db_renderer_deinit_void(void* _renderer);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

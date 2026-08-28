@@ -22,18 +22,26 @@ enum ntg_loop_state
 };
 
 /* ------------------------------------------------------ */
+/* INIT */
+/* ------------------------------------------------------ */
 
-#define NTG_LOOP_WORKERS_AUTO 8
-#define NTG_LOOP_ARENA_SIZE_AUTO ((size_t)2000000)
+#define NTG_LOOP_ARENASZ_AUTO ((size_t)2000000)
 
 struct ntg_loop_init_opts
 {
-    size_t arena_size;
+    ntg_renderer* renderer; /* NULL for default */
+    bool (*on_event_fn)(const struct nt_event* event); /* NULL for default */
+    ntg_stage* stage;
+    size_t arena_size; /* 0 for auto */
 };
 
+static const struct ntg_loop_init_opts NTG_LOOP_INIT_OPTS_ZERO = {0};
+
+/* ------------------------------------------------------ */
+/* START */
 /* ------------------------------------------------------ */
 
-#define NTG_LOOP_FRAMERATE_AUTO 60
+#define NTG_LOOP_FPS_AUTO 60
 
 enum ntg_loop_mouse_mode
 {
@@ -44,8 +52,10 @@ enum ntg_loop_mouse_mode
 struct ntg_loop_start_opts
 {
     enum ntg_loop_mouse_mode mouse_mode; 
-    unsigned int framerate;
+    unsigned int fps; /* 0 for auto */
 };
+
+static const struct ntg_loop_start_opts NTG_LOOP_START_OPTS_ZERO = {0};
 
 /* ========================================================================== */
 /* FUNCTIONS */
@@ -56,11 +66,7 @@ struct ntg_loop_start_opts
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_loop_init(
-        ntg_renderer* custom_renderer,
-        bool (*on_event_fn)(const struct nt_event* event),
-        ntg_stage* init_stage,
-        const struct ntg_loop_init_opts* opts);
+ntg_loop_init(const struct ntg_loop_init_opts* opts);
 
 // What if there are active tasks?
 NTG_API int
@@ -93,19 +99,15 @@ ntg_loop_stop(void);
 /* EXECUTE */
 /* ------------------------------------------------------ */
 
-#define NTG_LOOP_DELAY_MS_MAX 86400000L
+#define NTG_LOOP_DELAY_MAX 86400000L
 
 /* If loop is NTG_LOOP_READY the tasks will be executed on next ntg_loop_start(). */
 
 NTG_API int
-ntg_loop_schedule(
-        void (*task_fn)(void* data),
-        void* data,
-        unsigned long delay_ms);
+ntg_loop_schedule(void (*task_fn)(void* data), void* data, unsigned long delay_ms);
 
 /* May be used before starting the loop or stopping the loop to discard any tasks
  * that were pushed while the loop was inactive. */
-
 NTG_API void
 ntg_loop_tasks_clear(void);
 

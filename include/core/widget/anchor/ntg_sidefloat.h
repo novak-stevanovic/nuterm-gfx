@@ -43,7 +43,13 @@ struct ntg_sidefloat
 
     struct
     {
-        struct ntg_sidefloat_opts opts;
+        struct
+        {
+            enum ntg_align align;
+            enum ntg_side side;
+            enum ntg_sidefloat_thresh thresh;
+            enum ntg_sidefloat_size_cap size_cap;
+        } opts;
     } ro;
 };
 
@@ -57,7 +63,10 @@ ntg_sidefloat_init(ntg_sidefloat* sidefloat_ap, const struct ntg_sidefloat_opts*
 NTG_API int
 ntg_sidefloat_deinit(ntg_sidefloat* sidefloat_ap);
 
-NTG_API void
-ntg_sidefloat_deinit_void(void* _sidefloat_ap);
+
+NTG_API int
+ntg_sidefloat_set_opts(
+        ntg_sidefloat* sidefloat_ap,
+        const struct ntg_sidefloat_opts* opts);
 
 #endif // NTG_SIDEFLOAT_H

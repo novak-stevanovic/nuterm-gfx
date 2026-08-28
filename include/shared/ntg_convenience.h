@@ -61,25 +61,30 @@
     memset((unsigned char*)(obj_ptr) + sizeof((obj_ptr)->_base), 0, \
             sizeof(*(obj_ptr)) - sizeof((obj_ptr)->_base))
 
-#define NTG_CLEANUP_GEN_FN(fn_name, callee_fn)                                 \
-static void fn_name(void* data)                                                \
-{                                                                              \
-    callee_fn(data);                                                           \
-}
+#define ntg_garbage_add_obj(garbage_ptr, obj_ptr) \
+    ntg_garbage_add((garbage_ptr), (obj_ptr), ntg_object_vdeinit_void, NULL)
+
+#define ntg_garbage_add_obj_free(batch_ptr, obj_ptr) \
+    ntg_garbage_add((batch_ptr), (obj_ptr), ntg_object_vdeinit_void, free)
 
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
 
-NTG_API ntg_cleanup_batch*
-ntg_cleanup_batch_new(void);
+#define NTG_GARBAGE_CAP_AUTO 1000
+
+NTG_API ntg_garbage*
+ntg_garbage_new(size_t cap);
+
+NTG_API void
+ntg_garbage_throw(ntg_garbage* garbage);
+
+NTG_API void
+ntg_garbage_destroy(ntg_garbage* garbage);
 
 NTG_API int
-ntg_cleanup_batch_finish(ntg_cleanup_batch* batch);
-
-NTG_API int
-ntg_cleanup_batch_add(
-        ntg_cleanup_batch* batch,
+ntg_garbage_add(
+        ntg_garbage* garbage,
         void* data,
         void (*deinit_fn)(void* data),
         void (*free_fn)(void* data));

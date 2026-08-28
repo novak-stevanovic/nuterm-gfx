@@ -38,7 +38,12 @@ struct ntg_float
 
     struct
     {
-        struct ntg_float_opts opts;
+        struct
+        {
+            enum ntg_float_enable enable;
+            struct ntg_insets shrink;
+            enum ntg_align prim_align, sec_align;
+        } opts;
     } ro;
 };
 
@@ -52,7 +57,8 @@ ntg_float_init(ntg_float* float_ap, const struct ntg_float_opts* opts);
 NTG_API int
 ntg_float_deinit(ntg_float* float_ap);
 
-NTG_API void
-ntg_float_deinit_void(void* _float_ap);
+
+NTG_API int
+ntg_float_set_opts(ntg_float* float_ap, const struct ntg_float_opts* opts);
 
 #endif // NTG_FLOAT_H

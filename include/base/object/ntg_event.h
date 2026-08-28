@@ -3,9 +3,6 @@
 
 #include "shared/ntg_shared.h"
 #include "shared/ntg_str.h"
-#include "nt_gfx.h"
-#include "nt_event.h"
-#include "thirdparty/genc.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -178,31 +175,6 @@ struct ntg_event_widget_bsrm_dt
     ntg_widget* base;
 };
 
-#define NTG_EVENT_WIDGET_BDROPTCHG 16
-struct ntg_event_widget_bdroptchg_dt
-{
-    const struct ntg_bdr_opts* old_opts;
-    const struct ntg_bdr_opts* new_opts;
-};
-
-/* ---------------------------------- */
-
-#define NTG_EVENT_WIDGET_PADOPTCHG 17
-struct ntg_event_widget_padoptchg_dt
-{
-    const struct ntg_pad_opts* old_opts;
-    const struct ntg_pad_opts* new_opts;
-};
-
-/* ---------------------------------- */
-
-#define NTG_EVENT_WIDGET_LAYOPTCHG 18
-struct ntg_event_widget_layoptchg_dt
-{
-    const struct ntg_lay_opts* old_opts;
-    const struct ntg_lay_opts* new_opts;
-};
-
 #define NTG_EVENT_WIDGET_SZCHG 19
 struct ntg_event_widget_szchg_dt
 {
@@ -235,12 +207,7 @@ struct ntg_event_label_txtchg_dt
     struct ntg_str_view new_text;
 };
 
-#define NTG_EVENT_LABEL_OPTCHG 101
-struct ntg_event_label_optchg_dt
-{
-    const struct ntg_label_opts* old_opts;
-    const struct ntg_label_opts* new_opts;
-};
+// TODO: add gfx chng (not opts)
 
 /* ------------------------------------------------------ */
 /* ntg_button */
@@ -253,23 +220,11 @@ struct ntg_event_button_txtchg_dt
     struct ntg_str_view new_text;
 };
 
-#define NTG_EVENT_BUTTON_OPTCHG 111
-struct ntg_event_button_optchg_dt
-{
-    const struct ntg_button_opts* old_opts;
-    const struct ntg_button_opts* new_opts;
-};
+// TODO: add gfx chng (not opts)
 
 /* ------------------------------------------------------ */
 /* ntg_box */
 /* ------------------------------------------------------ */
-
-#define NTG_EVENT_BOX_OPTCHG 120
-struct ntg_event_box_optchg_dt
-{
-    const struct ntg_box_opts* old_opts;
-    const struct ntg_box_opts* new_opts;
-};
 
 #define NTG_EVENT_BOX_CHLDADD 121
 struct ntg_event_box_chldadd_dt
@@ -287,18 +242,18 @@ struct ntg_event_box_chldrm_dt
 /* ntg_main_panel */
 /* ------------------------------------------------------ */
 
-#define NTG_EVENT_MAIN_PANEL_OPTCHG 130
-struct ntg_event_main_panel_optchg_dt
+// TODO: change
+#define NTG_EVENT_MAIN_PANEL_CHLDADD 131
+struct ntg_event_main_panel_chldadd_dt
 {
-    const struct ntg_main_panel_opts* old_opts;
-    const struct ntg_main_panel_opts* new_opts;
+    ntg_widget* child;
+    int pos; // enum ntg_main_panel_pos
 };
 
-#define NTG_EVENT_MAIN_PANEL_CHLDCHG 131
-struct ntg_event_main_panel_chldchg_dt
+#define NTG_EVENT_MAIN_PANEL_CHLDRM 132
+struct ntg_event_main_panel_chldrm_dt
 {
-    ntg_widget* old_child;
-    ntg_widget* new_child;
+    ntg_widget* child;
     int pos;
 };
 
@@ -322,20 +277,6 @@ struct ntg_event_prog_bar_progchg_dt
 {
     double old_prog;
     double new_prog;
-};
-
-#define NTG_EVENT_PROG_BAR_OPTCHG 151
-struct ntg_event_prog_bar_optchg_dt
-{
-    const struct ntg_prog_bar_opts* old_opts;
-    const struct ntg_prog_bar_opts* new_opts;
-};
-
-#define NTG_EVENT_PROG_BAR_STYLCHG 151
-struct ntg_event_prog_bar_stylchg_dt
-{
-    const struct ntg_prog_bar_style* old_style;
-    const struct ntg_prog_bar_style* new_style;
 };
 
 /* ------------------------------------------------------ */

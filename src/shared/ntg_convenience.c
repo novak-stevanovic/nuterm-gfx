@@ -12,20 +12,17 @@
 /* TYPES */
 /* ========================================================================== */
 
-struct ntg_cleanup_data
+struct ntg_garbage_item
 {
     void* data;
     void (*deinit_fn)(void* object);
     void (*free_fn)(void* object);
 };
 
-GENC_VECTOR_INLINE(ntg_cleanup_data_vec, struct ntg_cleanup_data, 1.5)
-
-struct ntg_cleanup_batch
+struct ntg_garbage
 {
-    struct ntg_cleanup_data_vec vec;
-
-    bool deinit, free;
+    struct ntg_garbage_item* items;
+    size_t size, cap;
 };
 
 /* ========================================================================== */
@@ -38,78 +35,76 @@ struct ntg_cleanup_batch
 /* FUNCTIONS */
 /* ========================================================================== */
 
-ntg_cleanup_batch* ntg_cleanup_batch_new(void)
+ntg_garbage* ntg_garbage_new(size_t cap)
 {
-    ntg_cleanup_batch* new = malloc(sizeof(struct ntg_cleanup_batch));
-    if(!new) return NULL;
+    if(cap == 0)
+        cap = NTG_GARBAGE_CAP_AUTO;
 
-    new->deinit = false;
-    new->free = false;
+    ntg_garbage* garbage = malloc(sizeof(ntg_garbage));
+    if(!garbage) return NULL;
 
-    new->vec = (struct ntg_cleanup_data_vec) {0};
-    if(ntg_cleanup_data_vec_prealloc(&new->vec, 20) != 0)
+    garbage->items = malloc(cap * sizeof(struct ntg_garbage_item));
+    if(!garbage->items)
     {
-        free(new);
+        free(garbage);
         return NULL;
     }
 
-    return new;
+    garbage->size = 0;
+    garbage->cap = cap;
+    
+    return garbage;
 }
 
-int ntg_cleanup_batch_finish(ntg_cleanup_batch* batch)
+void ntg_garbage_throw(ntg_garbage* garbage)
 {
-    if(!batch) return NTG_ERR_INV_ARG;
-
-    if(batch->deinit) return 0;
+    if(!garbage) return;
 
     size_t i;
-    struct ntg_cleanup_data it_data;
-    for(i = 0; i < batch->vec.size; i++)
+    for(i = 0; i < garbage->size; i++)
     {
-        it_data = batch->vec.data[i];
+        ntg_log_log("GARBAGE COLLECT: %p", garbage->items + i);
 
-        if(it_data.deinit_fn)
-            it_data.deinit_fn(it_data.data);
+        if(garbage->items[i].deinit_fn)
+            garbage->items[i].deinit_fn(garbage->items[i].data);
 
-        if(it_data.free_fn)
-            it_data.free_fn(it_data.data);
+        if(garbage->items[i].free_fn)
+            garbage->items[i].free_fn(garbage->items[i].data);
     }
-    
-    ntg_cleanup_data_vec_deinit(&batch->vec);
 
-    free(batch);
-
-    return 0;
+    garbage->size = 0;
 }
 
-int ntg_cleanup_batch_add(
-        ntg_cleanup_batch* batch,
+void ntg_garbage_destroy(ntg_garbage* garbage)
+{
+    if(!garbage) return;
+
+    ntg_garbage_throw(garbage);
+
+    free(garbage->items);
+    (*garbage) = (ntg_garbage) {0};
+    free(garbage);
+}
+
+int ntg_garbage_add(
+        ntg_garbage* garbage,
         void* data,
         void (*deinit_fn)(void* data),
         void (*free_fn)(void* data))
 {
-    if(!batch)
+    if((!garbage) || (!deinit_fn && !free_fn))
         return NTG_ERR_INV_ARG;
 
-    struct ntg_cleanup_data cleanup_data = {
+    if(garbage->size >= garbage->cap)
+        return NTG_ERR_NO_CAP;
+
+    garbage->items[garbage->size] = (struct ntg_garbage_item) {
         .data = data,
         .deinit_fn = deinit_fn,
         .free_fn = free_fn
     };
 
-    int _status;
-    _status = ntg_cleanup_data_vec_pushb(&batch->vec, cleanup_data);
-
-    if(_status != 0)
-    {
-        switch(_status)
-        {
-            case GENC_ERR_ALLOC_FAIL:
-                return NTG_ERR_ALLOC_FAIL;
-            default:
-                return NTG_ERR_UNEXPECTED;
-        }
-    }
+    garbage->size++;
 
     return 0;
 }

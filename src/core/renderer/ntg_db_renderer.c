@@ -44,15 +44,10 @@ static int full_render(
 
 int ntg_db_renderer_init(
         ntg_db_renderer* renderer,
-        const struct ntg_db_renderer_opts* opts)
+        const struct ntg_db_renderer_init_opts* opts)
 {
     if(!renderer)
         return NTG_ERR_INV_ARG;
-
-    struct ntg_db_renderer_opts opts_final = (opts ? (*opts) : NTG_DB_RENDERER_OPTS_ZERO);
-
-    if(opts_final.term_buff_size == 0)
-        opts_final.term_buff_size = NTG_DB_RENDERER_TBUFF_SIZE_AUTO;
 
     int status = ntg_renderer_init_inherit(
             ntg_rnd(renderer),
@@ -62,15 +57,19 @@ int ntg_db_renderer_init(
 
     ntg_object_zero(renderer);
 
+    struct ntg_db_renderer_init_opts opts_final = {0};
+    if(opts) opts_final = (*opts);
+    if(opts_final.term_buff_size == 0)
+        opts_final.term_buff_size = NTG_DB_RENDERER_TBUFSZ_AUTO;
+
+    renderer->priv.term_buff_size = opts_final.term_buff_size;
+
     renderer->priv.term_buff = malloc(opts_final.term_buff_size);
     if(!renderer->priv.term_buff)
     {
-        ntg_object_zero(renderer);
         ntg_renderer_deinit(ntg_rnd(renderer));
         return NTG_ERR_ALLOC_FAIL;
     }
-
-    renderer->ro.opts = opts_final;
 
     return 0;
 }
@@ -86,13 +85,6 @@ int ntg_db_renderer_deinit(ntg_db_renderer* renderer)
     ntg_renderer_deinit(ntg_rnd(renderer));
 
     return 0;
-}
-
-void ntg_db_renderer_deinit_void(void* _renderer)
-{
-    if(!_renderer) return;
-
-    ntg_db_renderer_deinit(_renderer);
 }
 
 /* ========================================================================== */
@@ -149,7 +141,7 @@ bool ntg_db_renderer_render_fn(
         write_bbuff = renderer->priv.bbuff;
     }
 
-    _status = nt_buffer_enable(renderer->priv.term_buff, renderer->ro.opts.term_buff_size);
+    _status = nt_buffer_enable(renderer->priv.term_buff, renderer->priv.term_buff_size);
     if(_status)
     {
         if(new_bbuff) free(write_bbuff);

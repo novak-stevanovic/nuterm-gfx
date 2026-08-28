@@ -21,19 +21,6 @@
 /* TYPES */
 /* ========================================================================== */
 
-bool ntg_label_opts_are_eql(
-        const struct ntg_label_opts* opts1,
-        const struct ntg_label_opts* opts2)
-{
-    if(opts1 == opts2)
-        return true;
-
-    if(!opts1 || !opts2)
-        return false;
-
-    return ntg_text_opts_are_eql(&opts1->text_opts, &opts2->text_opts);
-}
-
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
@@ -64,44 +51,18 @@ int ntg_label_deinit(ntg_label* label)
     return 0;
 }
 
-void ntg_label_deinit_void(void* _label)
-{
-    ntg_label_deinit(_label);
-}
 
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
 
-int ntg_label_get_opts(const ntg_label* label, struct ntg_label_opts* out_opts)
-{
-    if(!label || !out_opts) return NTG_ERR_INV_ARG;
-
-    out_opts->text_opts = (ntg_txt(label))->ro.opts;
-
-    return 0;
-}
-
 int ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 {
     if(!label) return NTG_ERR_INV_ARG;
 
-    struct ntg_label_opts new_opts = (opts ? (*opts) : NTG_LABEL_OPTS_ZERO);
-    struct ntg_label_opts old_opts = {0};
-    ntg_label_get_opts(label, &old_opts);
+    struct ntg_label_opts opts_final = (opts ? (*opts) : NTG_LABEL_OPTS_ZERO);
 
-    if(ntg_label_opts_are_eql(&new_opts, &old_opts))
-        return 0;
-
-    ntg_text_set_opts(ntg_txt(label), &new_opts.text_opts);
-
-    struct ntg_event_label_optchg_dt event_dt = {
-        .old_opts = &old_opts,
-        .new_opts = &new_opts
-    };
-    ntg_object_event_raise(ntg_obj(label), NTG_EVENT_LABEL_OPTCHG, &event_dt);
-
-    return 0;
+    return ntg_text_set_opts(ntg_txt(label), &opts_final.text_opts);
 }
 
 /* ------------------------------------------------------ */
@@ -170,7 +131,7 @@ const struct ntg_label_vtable NTG_LABEL_VTABLE = {
             .measure_fn = ntg_label_measure_fn,
             .draw_fn = ntg_label_draw_fn,
             .base.deinit_fn = ntg_label_deinit_fn,
-            .cont_resize_fn = ntg_text_cont_resize_fn,
+            .resize_cont_fn = ntg_text_cont_resize_fn,
             .focus_fn = ntg_label_focus_fn,
             .unfocus_fn = ntg_label_unfocus_fn
         },

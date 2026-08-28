@@ -51,17 +51,14 @@ static inline void draw_phase(ntg_widget* root, struct layout_data* lay_data);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_scene_init(
-        ntg_scene* scene,
-        const struct ntg_fcs_scope_keys* init_scope_keybinds,
-        unsigned int max_it)
+int ntg_scene_init(ntg_scene* scene, const struct ntg_scene_init_opts* opts)
 {
-    return ntg_scene_init_inherit(
-            scene,
-            &NTG_SCENE_VTABLE,
-            &NTG_TYPE_SCENE,
-            init_scope_keybinds,
-            max_it);
+    if(!scene) return NTG_ERR_INV_ARG;
+
+    int status = ntg_scene_init_inherit(scene, &NTG_SCENE_VTABLE, &NTG_TYPE_SCENE, opts);
+    NTG_POST_INHERIT_CHECK(status);
+
+    return 0;
 }
 
 int ntg_scene_deinit(ntg_scene* scene)
@@ -85,12 +82,6 @@ int ntg_scene_deinit(ntg_scene* scene)
     return 0;
 }
 
-void ntg_scene_deinit_void(void* _scene)
-{
-    if(!_scene) return;
-
-    ntg_scene_deinit(_scene);
-}
 
 int ntg_scene_mark_dirty(ntg_scene* scene)
 {
@@ -192,52 +183,6 @@ int ntg_scene_hit_test(
 
     return 0;
 }
-
-/*
-int ntg_scene_set_root(ntg_scene* scene, ntg_widget* root)
-{
-    if(!scene)
-        return NTG_ERR_INV_ARG;
-
-    ntg_widget* old_root = scene->ro.root;
-
-    if(old_root) 
-    {
-        ntg__widget_root_set_scene(old_root, NULL);
-        
-        ntg__scene_rm_widget_tree(scene, old_root);
-    }
-
-    if(root)
-    {
-        if(ntg_widget_is_true_root(root)) 
-        {
-            ntg_scene* scene = ntg_widget_get_scene_(root);
-            if(scene)
-            {
-                ntg_scene_set_root(scene, NULL);
-            }
-        }
-        else if(ntg_widget_is_root(root)) 
-        {
-            ntg_widget_unanchor(root);
-        }
-
-        ntg__scene_add_widget_tree(scene, root);
-        ntg__widget_root_set_scene(root, scene);
-    }
-
-    scene->ro.root = root;
-        
-    if(old_root)
-        ntg__scene_on_rm_widget_tree(scene, old_root);
-
-    if(root)
-        ntg__scene_on_add_widget_tree(scene, root);
-
-    return 0;
-}
-*/
 
 /* ------------------------------------------------------ */
 
@@ -355,11 +300,15 @@ int ntg_scene_init_inherit(
         ntg_scene* scene,
         const struct ntg_scene_vtable* vtable,
         const ntg_type* type,
-        const struct ntg_fcs_scope_keys* init_scope_keybinds,
-        unsigned int max_it)
+        const struct ntg_scene_init_opts* opts)
 {
-    if(!scene || !vtable || !type || !max_it)
+    if(!scene || !vtable || !type)
         return NTG_ERR_INV_ARG;
+
+    struct ntg_scene_init_opts opts_final = NTG_SCENE_INIT_OPTS_ZERO;
+    if(opts) opts_final = (*opts);
+    if(opts_final.max_it == 0)
+        opts_final.max_it = NTG_SCENE_MAX_IT_AUTO;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_SCENE))
         return NTG_ERR_BAD_TYPE;
@@ -376,7 +325,7 @@ int ntg_scene_init_inherit(
         return NTG_ERR_ALLOC_FAIL;
     }
 
-    status = ntg__fcs_manager_init(scene->ro.fm, scene, init_scope_keybinds);
+    status = ntg__fcs_manager_init(scene->ro.fm, scene, opts_final.init_scope_keys);
     if(status != 0)
     {
         free(scene->ro.fm);
@@ -385,7 +334,7 @@ int ntg_scene_init_inherit(
         return status;
     }
 
-    scene->priv.max_it = max_it;
+    scene->priv.max_it = opts_final.max_it;
 
     return 0;
 }
@@ -558,9 +507,9 @@ void ntg__scene_rm(ntg_scene* scene, ntg_widget* widget)
 
     ntg_scene_mark_dirty(scene);
 
-    _sub2_size(scene->ro.object_count, 1);
+    scene->ro.object_count = _sub2_size(scene->ro.object_count, 1);
     if(ntg_widget_is_tree_root(widget))
-        _sub2_size(scene->ro.tree_count, 1);
+        scene->ro.tree_count = _sub2_size(scene->ro.tree_count, 1);
 
     ntg__fcs_manager_on_scene_widget_rm(scene->ro.fm, widget);
     ntg__widget_scene_leave(widget, scene);

@@ -21,6 +21,8 @@ struct ntg_xy
     size_t x, y;
 };
 
+GENC_OPT_INLINE_DEF(ntg_xy_opt, struct ntg_xy)
+
 struct ntg_dxy
 {
     ssize_t x, y;

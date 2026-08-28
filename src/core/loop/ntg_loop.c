@@ -35,7 +35,7 @@ struct ntg_loop
     bool (*on_event_fn)(const struct nt_event* event);
     sarena* arena;
 
-    unsigned int framerate;
+    unsigned int fps;
     ntg_stage* stage;
     ntg_stage* pending_stage;
     struct ntg_xy app_size;
@@ -97,24 +97,19 @@ static void deinit(void)
     init_default();
 }
 
-int ntg_loop_init(
-        ntg_renderer* renderer,
-        bool (*on_event_fn)(const struct nt_event* event),
-        ntg_stage* init_stage,
-        const struct ntg_loop_init_opts* opts)
+int ntg_loop_init(const struct ntg_loop_init_opts* opts)
 {
     if(loop.state != NTG_LOOP_DEINIT)
         return NTG_ERR_INV_STATE;
 
     int status;
 
-    /* Opts */
+    /* Set up final opts */
 
-    struct ntg_loop_init_opts opts_final = {0};
+    struct ntg_loop_init_opts opts_final = NTG_LOOP_INIT_OPTS_ZERO;
     if(opts) opts_final = (*opts);
-    ntg_set_deref(opts_final, opts);
     if(opts_final.arena_size == 0)
-        opts_final.arena_size = NTG_LOOP_ARENA_SIZE_AUTO;
+        opts_final.arena_size = NTG_LOOP_ARENASZ_AUTO;
 
     loop.task_list = (struct ntg_task_list) {0};
     if(pthread_mutex_init(&loop.lock, NULL))
@@ -131,9 +126,9 @@ int ntg_loop_init(
 
     /* Renderer */
 
-    if(renderer) // CUSTOM RENDERER
+    if(opts_final.renderer) // CUSTOM RENDERER
     {
-        loop.renderer = renderer;
+        loop.renderer = opts_final.renderer;
         loop.owns_renderer = false;
     }
     else
@@ -157,13 +152,13 @@ int ntg_loop_init(
     }
 
     loop.on_event_fn = (
-            on_event_fn ?
-            on_event_fn :
+            opts_final.on_event_fn ?
+            opts_final.on_event_fn :
             ntg_loop_dispatch_event_fn_default);
     loop.state = NTG_LOOP_READY;
 
-    loop.stage = init_stage;
-    loop.pending_stage = init_stage;
+    loop.stage = opts_final.stage;
+    loop.pending_stage = opts_final.stage;
     return 0;
 }
 
@@ -223,18 +218,20 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
     if(loop.state != NTG_LOOP_READY)
         return NTG_ERR_INV_STATE;
 
+    /* Set up final opts */
+
     struct ntg_loop_start_opts opts_final = {0};
     if(opts) opts_final = (*opts);
-    if(opts_final.framerate == 0)
-        opts_final.framerate = NTG_LOOP_FRAMERATE_AUTO;
+    if(opts_final.fps == 0)
+        opts_final.fps = NTG_LOOP_FPS_AUTO;
 
-    loop.framerate = opts_final.framerate;
+    loop.fps = opts_final.fps;
 
     sarena_rewind(loop.arena);
 
     int _status = 0 ,_tmp_status;
 
-    unsigned int timeout = 1000 / loop.framerate;
+    unsigned int timeout = 1000 / loop.fps;
     struct timespec ts_start, ts_end;
     unsigned long long process_elapsed_ms;
     const ntg_stage_draw* drawing;
@@ -310,7 +307,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
 
         if(event.type == NT_EVENT_TIMEOUT)
         {
-            timeout = 1000 / loop.framerate;
+            timeout = 1000 / loop.fps;
 
             execute_ready_tasks();
 
@@ -375,7 +372,7 @@ int ntg_loop_start(const struct ntg_loop_start_opts* opts)
         nt_mouse_mode_disable();
 
     loop.pending_stage = loop.stage;
-    loop.framerate = 0;
+    loop.fps = 0;
     loop.app_size = ntg_xy(0, 0);
 
     if(make_ready)
@@ -405,7 +402,7 @@ int ntg_loop_schedule(
     if(!task_fn)
         return NTG_ERR_INV_ARG;
 
-    if(delay_ms > NTG_LOOP_DELAY_MS_MAX)
+    if(delay_ms > NTG_LOOP_DELAY_MAX)
         return NTG_ERR_INV_ARG;
 
     if(loop.state == NTG_LOOP_DEINIT)
@@ -551,7 +548,7 @@ unsigned int ntg_loop_get_framerate(void)
     if((loop.state != NTG_LOOP_RUNNING) && (loop.state != NTG_LOOP_STOPPING))
         return 0;
     else
-        return loop.framerate;
+        return loop.fps;
 }
 
 static int update_stage(void)

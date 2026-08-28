@@ -28,9 +28,19 @@ static bool draw_layer(ntg_stage* stage, ntg_widget* root, sarena* arena);
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
-int ntg_stage_init(ntg_stage* stage)
+int ntg_stage_init(ntg_stage* stage, const struct ntg_stage_init_opts* opts)
 {
-    return ntg_stage_init_inherit(stage, &NTG_STAGE_VTABLE, &NTG_TYPE_STAGE);
+    if(!stage) return NTG_ERR_INV_ARG;
+
+    int status =  ntg_stage_init_inherit(
+            stage,
+            &NTG_STAGE_VTABLE,
+            &NTG_TYPE_STAGE,
+            opts);
+
+    NTG_POST_INHERIT_CHECK(status);
+
+    return 0;
 }
 
 int ntg_stage_deinit(ntg_stage* stage)
@@ -55,12 +65,6 @@ int ntg_stage_deinit(ntg_stage* stage)
     return 0;
 }
 
-void ntg_stage_deinit_void(void* _stage)
-{
-    if(!_stage) return;
-
-    ntg_stage_deinit(_stage);
-}
 
 /* ------------------------------------------------------ */
 /* GENERAL */
@@ -235,10 +239,13 @@ bool ntg_stage_feed_mouse(ntg_stage* stage, nt_mouse mouse)
 int ntg_stage_init_inherit(
         ntg_stage* stage,
         const struct ntg_stage_vtable* vtable,
-        const ntg_type* type)
+        const ntg_type* type,
+        const struct ntg_stage_init_opts* opts)
 {
     if(!stage || !vtable || !type)
         return NTG_ERR_INV_ARG;
+
+    (void)opts;
 
     if(!ntg_type_instanceof(type, &NTG_TYPE_STAGE))
         return NTG_ERR_BAD_TYPE;

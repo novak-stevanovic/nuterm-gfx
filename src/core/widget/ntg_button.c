@@ -11,19 +11,6 @@
 /* TYPES */
 /* ========================================================================== */
 
-bool ntg_button_opts_are_eql(
-        const struct ntg_button_opts* opts1,
-        const struct ntg_button_opts* opts2)
-{
-    if(opts1 == opts2)
-        return true;
-
-    if(!opts1 || !opts2)
-        return false;
-
-    return ntg_text_opts_are_eql(&opts1->text_opts, &opts2->text_opts);
-}
-
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
@@ -58,44 +45,18 @@ int ntg_button_deinit(ntg_button* button)
     return 0;
 }
 
-void ntg_button_deinit_void(void* _button)
-{
-    ntg_button_deinit(_button);
-}
 
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
 
-int ntg_button_get_opts(const ntg_button* button, struct ntg_button_opts* out_opts)
-{
-    if(!button || !out_opts) return NTG_ERR_INV_ARG;
-
-    out_opts->text_opts = (ntg_txt(button))->ro.opts;
-
-    return 0;
-}
-
 int ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
 {
     if(!button) return NTG_ERR_INV_ARG;
 
-    struct ntg_button_opts new_opts = (opts ? (*opts) : NTG_BUTTON_OPTS_ZERO);
-    struct ntg_button_opts old_opts = {0};
-    ntg_button_get_opts(button, &old_opts);
+    struct ntg_button_opts opts_final = (opts ? (*opts) : NTG_BUTTON_OPTS_ZERO);
 
-    if(ntg_button_opts_are_eql(&new_opts, &old_opts))
-        return 0;
-
-    ntg_text_set_opts(ntg_txt(button), &new_opts.text_opts);
-
-    struct ntg_event_button_optchg_dt event_dt = {
-        .old_opts = &old_opts,
-        .new_opts = &new_opts
-    };
-    ntg_object_event_raise(ntg_obj(button), NTG_EVENT_BUTTON_OPTCHG, &event_dt);
-
-    return 0;
+    return ntg_text_set_opts(ntg_txt(button), &opts_final.text_opts);
 }
 
 /* ------------------------------------------------------ */
@@ -179,7 +140,7 @@ const struct ntg_button_vtable NTG_BUTTON_VTABLE = {
             .measure_fn = ntg_button_measure_fn,
             .draw_fn = ntg_button_draw_fn,
             .base.deinit_fn = ntg_button_deinit_fn,
-            .cont_resize_fn = ntg_text_cont_resize_fn,
+            .resize_cont_fn = ntg_text_cont_resize_fn,
             .handle_mouse_fn = ntg_button_process_mouse_fn,
             .focus_fn = ntg_button_focus_fn,
             .unfocus_fn = ntg_button_unfocus_fn

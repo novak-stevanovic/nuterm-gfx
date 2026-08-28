@@ -32,7 +32,6 @@ struct ntg_fcs_manager
         ntg_widget* focused;
 
         struct ntg_fcs_scope_keys default_keybinds;
-
     } ro;
 
     struct
@@ -86,26 +85,12 @@ ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse);
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
-/* ------------------------------------------------------ */
-/* INIT/DEINIT */
-/* ------------------------------------------------------ */
-
 int ntg__fcs_manager_init(
         ntg_fcs_manager* fm,
         ntg_scene* scene,
-        const struct ntg_fcs_scope_keys* init_scope_keys);
-
-/* ------------------------------------------------------ */
+        ntg_fcs_scope_keys_opt init_scope_keys);
 
 void ntg__fcs_manager_deinit(ntg_fcs_manager* fm);
-
-/* ------------------------------------------------------ */
-/* INVALIDATE */
-/* ------------------------------------------------------ */
 
 void ntg__fcs_manager_on_scene_widget_rm(ntg_fcs_manager* fm, ntg_widget* removed);
 

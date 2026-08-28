@@ -15,6 +15,15 @@
 /* TYPES */
 /* ========================================================================== */
 
+struct ntg_stage_init_opts
+{
+    unsigned char _reserved;
+};
+
+static const struct ntg_stage_init_opts NTG_STAGE_INIT_OPTS_ZERO = {0};
+
+/* ------------------------------------------------------ */
+
 struct ntg_stage
 {
     ntg_object _base;
@@ -33,7 +42,6 @@ struct ntg_stage
 
         bool in_loop;
         bool dirty;
-
     } ro;
 
 };
@@ -47,13 +55,11 @@ struct ntg_stage
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_stage_init(ntg_stage* stage);
+ntg_stage_init(ntg_stage* stage, const struct ntg_stage_init_opts* opts);
 
 NTG_API int
 ntg_stage_deinit(ntg_stage* stage);
 
-NTG_API void
-ntg_stage_deinit_void(void* _stage);
 
 /* ------------------------------------------------------ */
 /* GENERAL */
@@ -109,7 +115,8 @@ NTG_API int
 ntg_stage_init_inherit(
         ntg_stage* stage,
         const struct ntg_stage_vtable* vtable,
-        const ntg_type* type);
+        const ntg_type* type,
+        const struct ntg_stage_init_opts* opts);
 
 /* ------------------------------------------------------ */
 /* IMPLEMENT */

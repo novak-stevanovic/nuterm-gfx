@@ -19,9 +19,9 @@
 
 enum ntg_text_wrap
 {
-    NTG_TEXT_WRAP_NONE = 0,
+    NTG_TEXT_WRAP_WORD = 0,
     NTG_TEXT_WRAP_CHAR,
-    NTG_TEXT_WRAP_WORD
+    NTG_TEXT_WRAP_NONE
 };
 
 enum ntg_text_line_mode
@@ -53,11 +53,6 @@ struct ntg_text_opts
 
 static const struct ntg_text_opts NTG_TEXT_OPTS_ZERO = {0};
 
-NTG_API bool
-ntg_text_opts_are_eql(
-        const struct ntg_text_opts* opts1,
-        const struct ntg_text_opts* opts2);
-
 /* ------------------------------------------------------ */
 
 struct ntg_text_vtable
@@ -87,9 +82,19 @@ struct ntg_text
 
     struct
     {
-        struct ntg_text_opts opts;
-        struct nt_gfx gfx;
+        struct 
+        {
+            enum ntg_orient orient;
+            struct nt_gfx gfx, focused_gfx;
+            enum ntg_text_wrap wrap;
+            enum ntg_text_line_mode line_mode;
+            enum ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
+            enum ntg_align sec_align;
+            enum ntg_text_bg_mode bg_mode;
+            size_t indent;
+        } opts;
 
+        struct nt_gfx gfx;
         struct ntg_xy scroll;
     } ro;
 };

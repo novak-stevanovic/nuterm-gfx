@@ -113,7 +113,7 @@ int ntg_fcs_manager_stack_push(ntg_fcs_manager* fm, const struct ntg_fcs_scope* 
 
     if(head)
     {
-        if(head->data.scope.opts.block_mode == NTG_FCS_SCOPE_BLOCK_TRUE)
+        if(head->data.scope.block_mode == NTG_FCS_SCOPE_BLOCK_TRUE)
             return 0;
     }
 
@@ -233,8 +233,10 @@ bool ntg_fcs_manager_feed_key(ntg_fcs_manager* fm, nt_key key)
 
     if(!ntg__fcs_scope_handle_keybind(&scope, &ctx, key))
     {
-        if(scope.handlers.dispatch_key_fn)
-            return scope.handlers.dispatch_key_fn(&ctx, key);
+        if(scope.dispatch_key_fn)
+            return scope.dispatch_key_fn(&ctx, key);
+        else
+            return ntg_fcs_scope_key_dispatch_fn(&ctx, key);
     }
 
     return false;
@@ -277,7 +279,7 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse)
 
     if(!hit)
     {
-        if(scope.opts.out_click_mode == NTG_FCS_SCOPE_OUT_CLICK_CLR)
+        if(scope.out_click_mode == NTG_FCS_SCOPE_OUT_CLICK_CLR)
             ntg_fcs_manager_request_focus(fm, NULL);
 
         return false;
@@ -289,15 +291,17 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse)
     if((!scope.root) || ntg_widget_is_in_tree(scope.root, hit))
     {
         ntg__fcs_scope_handle_mouse_focus(&scope, &ctx, mouse, hit);
-        if(scope.handlers.dispatch_mouse_fn)
-            return scope.handlers.dispatch_mouse_fn(&ctx, mouse, hit);
+        if(scope.dispatch_mouse_fn)
+            return scope.dispatch_mouse_fn(&ctx, mouse, hit);
+        else
+            return ntg_fcs_scope_mouse_dispatch_fn(&ctx, mouse, hit);
     }
     else 
     {
-        if(scope.opts.out_click_mode == NTG_FCS_SCOPE_OUT_CLICK_CLR)
+        if(scope.out_click_mode == NTG_FCS_SCOPE_OUT_CLICK_CLR)
             ntg_fcs_manager_request_focus(fm, NULL);
 
-        if(scope.opts.input_mode == NTG_FCS_SCOPE_INPUT_MODELESS)
+        if(scope.input_mode == NTG_FCS_SCOPE_INPUT_MODELESS)
         {
             struct ntg_widget_mouse event = {
                 .mouse = mouse,
@@ -334,7 +338,7 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse)
 int ntg__fcs_manager_init(
         ntg_fcs_manager* fm,
         ntg_scene* scene,
-        const struct ntg_fcs_scope_keys* init_scope_keys)
+        ntg_fcs_scope_keys_opt init_scope_keys)
 {
     if(!fm || !scene) return NTG_ERR_INV_ARG;
 
@@ -359,14 +363,10 @@ int ntg__fcs_manager_init(
     fm->ro.scene = scene;
     fm->ro.focused = NULL;
 
-    // TODO - scope keys default, handlers default, opts default
-    struct ntg_fcs_scope_keys zero_keys = {0};
     struct ntg_fcs_scope scope = {
         .data = NULL,
         .root = NULL,
-        .handlers = {0},
-        .opts = {0},
-        .keys = (init_scope_keys ? (*init_scope_keys) : zero_keys)
+        .keys = init_scope_keys
     };
 
     status = ntg_fcs_manager_stack_push(fm, &scope);
@@ -405,12 +405,6 @@ void ntg__fcs_manager_deinit(ntg_fcs_manager* fm)
     ntg_object_deinit(ntg_obj(fm));
 }
 
-void ntg_fcs_manager_deinit_void(void* _fm)
-{
-    if(!_fm) return;
-
-    ntg__fcs_manager_deinit(_fm);
-}
 
 /* ------------------------------------------------------ */
 /* INVALIDATE */

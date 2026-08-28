@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include <assert.h>
 
-void set_breakpoint() {}
-
 const char* lorem = 
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi ullamcorper "
 "a diam ut mollis. Sed sed diam eu erat consequat finibus pulvinar eu eros. "
@@ -53,7 +51,7 @@ const char* lorem =
 "dolor ut euismod tempor. In hac habitasse platea dictumst. Proin eget "
 "vestibulum diam.";
 
-ntg_cleanup_batch* batch;
+ntg_garbage* garbage;
 ntg_border_9x flt_rounded_border, def_rounded_border;
 ntg_main_panel root;
 ntg_label north;
@@ -104,12 +102,12 @@ void task_change_text_2b(void* _)
 
 bool flt_button_mouse_fn(ntg_button* button)
 {
-    int _status;
-    _status = ntg_loop_schedule(task_loop_stop, NULL, 5000);
-    _status = ntg_loop_schedule(task_change_text_1, NULL, 1000);
-    _status = ntg_loop_schedule(task_change_text_2a, NULL, 2000);
-    _status = ntg_loop_schedule(task_change_text_2b, NULL, 2000);
-    assert(!_status);
+    int status;
+    status = ntg_loop_schedule(task_loop_stop, NULL, 5000);
+    status = ntg_loop_schedule(task_change_text_1, NULL, 1000);
+    status = ntg_loop_schedule(task_change_text_2a, NULL, 2000);
+    status = ntg_loop_schedule(task_change_text_2b, NULL, 2000);
+    assert(!status);
 
     return true;
 }
@@ -218,15 +216,15 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
-    int _status;
-    struct ntg_opts opts = NTG_OPTS_ZERO;
+    int status;
+    struct ntg_opts opts = {0};
     // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
-    // opts.cursor_mode = NTG_CURSOR_SHOW;
-    _status = ntg_enable(&opts, "ntg_log.txt");
-    // _status = ntg_enable(&opts, NULL);
-    assert(!_status);
+    status = ntg_enable(&opts, "ntg_log.txt");
+    // status = ntg_enable(&opts, NULL);
+    assert(!status);
 
-    batch = ntg_cleanup_batch_new();
+    garbage = ntg_garbage_new(0);
+    if(!garbage) return 1;
 
     // INIT BORDER
 
@@ -239,51 +237,54 @@ int main(int argc, char *argv[])
     init_sflt_label();
     init_root();
 
-    _status = ntg_scene_init(&scene, NULL, NTG_SCENE_MAX_IT_AUTO);
-    _status = ntg_cleanup_batch_add(batch, &scene, ntg_scene_deinit_void, NULL);
+    status = ntg_scene_init(&scene, NULL);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &scene);
 
-    _status = ntg_stage_init(&stage);
-    _status = ntg_cleanup_batch_add(batch, &stage, ntg_stage_deinit_void, NULL);
+    status = ntg_stage_init(&stage, NULL);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &stage);
 
-    _status = ntg_loop_init(NULL, loop_on_event_fn, &stage, NULL);
-    assert(!_status);
+    struct ntg_loop_init_opts loop_init_opts = {
+        .on_event_fn = loop_on_event_fn,
+        .stage = &stage
+    };
+    status = ntg_loop_init(&loop_init_opts);
+    assert(!status);
 
     // ATTACH ROOTS, SCENE, STAGE
 
-    _status = ntg_scene_add_root(&scene, ntg_wgt(&root));
-    _status = ntg_stage_set_scene(&stage, &scene);
-    _status = ntg_widget_anchor(ntg_wgt(&root), ntg_wgt(&flt_button));
-    _status = ntg_widget_anchor(ntg_wgt(&flt_button), ntg_wgt(&sflt_label));
+    status = ntg_scene_add_root(&scene, ntg_wgt(&root));
+    status = ntg_stage_set_scene(&stage, &scene);
+    status = ntg_widget_anchor(ntg_wgt(&north), ntg_wgt(&flt_button));
+    status = ntg_widget_anchor(ntg_wgt(&flt_button), ntg_wgt(&sflt_label));
 
     assert(!ntg_widget_set_anchor_policy(ntg_wgt(&flt_button), ntg_ap(&flt_ap)));
     assert(!ntg_widget_set_anchor_policy(ntg_wgt(&sflt_label), ntg_ap(&sflt_ap)));
 
-    struct ntg_loop_start_opts loop_start_opts = (struct ntg_loop_start_opts) {0};
-    loop_start_opts.mouse_mode = NTG_LOOP_MOUSE_ENABLE;
-    _status = ntg_loop_start(&loop_start_opts);
-    ntg_log_log("STATUS: %d", _status);
-    assert(!_status);
-
-    set_breakpoint();
+    struct ntg_loop_start_opts loop_start_opts = {
+        .mouse_mode = NTG_LOOP_MOUSE_ENABLE
+    };
+    status = ntg_loop_start(&loop_start_opts);
+    ntg_log_log("STATUS: %d", status);
+    assert(!status);
 
     nt_cursor_move(0, 0);
     nt_write_str_unsafe("Loop end", NT_GFX_ZERO);
 
     nt_buffer_flush();
 
-    set_breakpoint();
-
     char c = getchar();
     if(c == 'a')
     {
-        _status = ntg_loop_start(&loop_start_opts);
-        assert(!_status);
+        status = ntg_loop_start(&loop_start_opts);
+        assert(!status);
     }
 
-    ntg_cleanup_batch_finish(batch);
+    ntg_garbage_destroy(garbage);
 
-    _status = ntg_loop_deinit();
-    assert(!_status);
+    status = ntg_loop_deinit();
+    assert(!status);
 
     ntg_disable();
 
@@ -292,186 +293,215 @@ int main(int argc, char *argv[])
 
 void init_north()
 {
-    int _status;
+    int status;
 
     struct nt_gfx label_gfx = {
         .fg = nt_color_new_auto(255, 255, 255),
         .bg = nt_color_new_auto(143, 0, 255),
         .style = NT_STYLE_BOLD
     };
-    struct ntg_label_opts north_label_opts = NTG_LABEL_OPTS_ZERO;
-    north_label_opts.text_opts.gfx = label_gfx;
-    north_label_opts.text_opts.indent = 2;
-    north_label_opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
+    struct ntg_label_opts north_label_opts = {
+        .text_opts = {
+            .gfx = label_gfx,
+            .indent = 2
+        }
+    };
+    status = ntg_label_init(&north, &north_label_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &north);
 
-    _status = ntg_label_init(&north, &north_label_opts);
-    _status = ntg_cleanup_batch_add(batch, &north, ntg_label_deinit_void, NULL);
-    _status = ntg_label_set_text_unsafe(&north, lorem);
-    assert(!_status);
+    status = ntg_label_set_text_unsafe(&north, lorem);
+    assert(!status);
 }
 
 void init_center()
 {
-    int _status;
+    int status;
 
-    _status = ntg_box_init(&center, NULL);
-    _status = ntg_cleanup_batch_add(batch, &center, ntg_object_vdeinit_void, NULL);
+    status = ntg_box_init(&center, NULL);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &center);
 
-    _status = ntg_clr_block_init(&c_cb1, nt_color_new_auto(200, 0, 40));
-    _status = ntg_cleanup_batch_add(batch, &c_cb1, ntg_object_vdeinit_void, NULL);
+    status = ntg_clr_block_init(&c_cb1, nt_color_new_auto(200, 0, 40));
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &c_cb1);
 
-    _status = ntg_clr_block_init(&c_cb2, nt_color_new_auto(40, 0, 200));
-    _status = ntg_cleanup_batch_add(batch, &c_cb2, ntg_object_vdeinit_void, NULL);
+    status = ntg_clr_block_init(&c_cb2, nt_color_new_auto(40, 0, 200));
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &c_cb2);
 
-    struct ntg_lay_opts center_layout_opts = (ntg_wgt(&center))->ro.layout_opts;
-    center_layout_opts.min_cont_size.y = 15;
-    ntg_widget_set_lay_opts(ntg_wgt(&center), &center_layout_opts);
+    struct ntg_lay_opts center_lay_opts = {
+        .min_cont_size = ntg_xy_opt_new(ntg_xy(0, 15))
+    };
+    ntg_widget_set_lay_opts(ntg_wgt(&center), &center_lay_opts);
     
     // CONNECT
 
-    _status = ntg_box_add_child(&center, ntg_wgt(&c_cb1));
-    _status = ntg_box_add_child(&center, ntg_wgt(&c_cb2));
+    status = ntg_box_add_child(&center, ntg_wgt(&c_cb1));
+    status = ntg_box_add_child(&center, ntg_wgt(&c_cb2));
 }
 
 void init_south()
 {
-    int _status;
+    int status;
 
-    struct ntg_pad_opts pad_opts = NTG_PAD_OPTS_ZERO;
-    pad_opts.pref_size = ntg_insets(1, 1, 1, 1);
-    pad_opts.enable = NTG_WIDGET_DCR_ENABLE_ALWAYS;
+    struct ntg_pad_opts pad_opts = {
+        .pref_size = ntg_insets(1, 1, 1, 1),
+        .enable = NTG_WIDGET_DCR_ENABLE_ALWAYS
+    };
 
-    struct ntg_bdr_opts border_opts = NTG_BDR_OPTS_ZERO;
-    border_opts.pref_size = ntg_insets(1, 1, 1, 1);
-    border_opts.style = &def_rounded_border._base;
-    border_opts.enable = NTG_WIDGET_DCR_ENABLE_ALWAYS;
+    struct ntg_bdr_opts bdr_opts = {
+        .pref_size = ntg_insets(1, 1, 1, 1),
+        .style = &def_rounded_border._base,
+        .enable = NTG_WIDGET_DCR_ENABLE_ALWAYS
+    };
 
     // SOUTH BOX
 
-    struct ntg_box_opts south_box_opts = NTG_BOX_OPTS_ZERO;
-    south_box_opts.orient = NTG_ORIENT_V;
-    south_box_opts.bg = ntg_vcell_new_full_bg(nt_color_new_auto(255, 255, 255));
+    struct ntg_box_opts south_box_opts = {
+        .orient = NTG_ORIENT_V,
+        .bg = ntg_vcell_new_full_bg(nt_color_new_auto(255, 255, 255))
+    };
 
-    _status = ntg_box_init(&south_box, &south_box_opts);
-    _status = ntg_cleanup_batch_add(batch, &south_box, ntg_object_vdeinit_void, NULL);
+    status = ntg_box_init(&south_box, &south_box_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &south_box);
 
-    ntg_widget_set_pad_opts(ntg_wgt(&south_box), &pad_opts);
+    // ntg_widget_set_pad_opts(ntg_wgt(&south_box), &pad_opts);
 
-    ntg_widget_set_bdr_opts(ntg_wgt(&south_box), &border_opts);
+    ntg_widget_set_bdr_opts(ntg_wgt(&south_box), &bdr_opts);
 
     // SOUTH BOX LABEL1
 
-    struct ntg_label_opts sb_label1_opts = NTG_LABEL_OPTS_ZERO;
-    sb_label1_opts.text_opts.gfx = (struct nt_gfx) {
-        .bg = nt_color_new_auto(250, 0, 0),
-        .fg = nt_color_new_auto(255, 255, 255),
-        .style = 0
+    struct ntg_label_opts sb_label1_opts = {
+        .text_opts = {
+            .gfx = {
+                .bg = nt_color_new_auto(250, 0, 0),
+                .fg = nt_color_new_auto(255, 255, 255)
+            }
+        }
     };
-    _status = ntg_label_init(&sb_label1, &sb_label1_opts);
-    _status = ntg_cleanup_batch_add(batch, &sb_label1, ntg_label_deinit_void, NULL);
-    _status = ntg_label_set_text_unsafe(&sb_label1, "Test1");
+    status = ntg_label_init(&sb_label1, &sb_label1_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &sb_label1);
+
+    status = ntg_label_set_text_unsafe(&sb_label1, "Test1");
+    assert(!status);
 
     ntg_widget_set_pad_opts(ntg_wgt(&sb_label1), &pad_opts);
 
     // SOUTH BOX LABEL2
 
-    struct ntg_label_opts sb_label2_opts = NTG_LABEL_OPTS_ZERO;
-    sb_label2_opts.text_opts.gfx = (struct nt_gfx) {
-        .bg = nt_color_new_auto(150, 0, 0),
-        .fg = nt_color_new_auto(255, 255, 255),
-        .style = 0
+    struct ntg_label_opts sb_label2_opts = {
+        .text_opts = {
+            .gfx = {
+                .bg = nt_color_new_auto(150, 0, 0),
+                .fg = nt_color_new_auto(255, 255, 255)
+            }
+        }
     };
-    _status = ntg_label_init(&sb_label2, &sb_label2_opts);
-    _status = ntg_cleanup_batch_add(batch, &sb_label2, ntg_label_deinit_void, NULL);
+    status = ntg_label_init(&sb_label2, &sb_label2_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &sb_label2);
 
-    _status = ntg_label_set_text_unsafe(&sb_label2, "Test2");
+    status = ntg_label_set_text_unsafe(&sb_label2, "Test2");
     ntg_widget_set_pad_opts(ntg_wgt(&sb_label2), &pad_opts);
 
     // SOUTH BOX LABEL3
 
-    struct ntg_label_opts sb_label3_opts = NTG_LABEL_OPTS_ZERO;
-    sb_label3_opts.text_opts.gfx = (struct nt_gfx) {
-        .bg = nt_color_new_auto(100, 0, 0),
-        .fg = nt_color_new_auto(255, 255, 255),
-        .style = 0
+    struct ntg_label_opts sb_label3_opts = {
+        .text_opts = {
+            .gfx = {
+                .bg = nt_color_new_auto(100, 0, 0),
+                .fg = nt_color_new_auto(255, 255, 255)
+            }
+        }
     };
-    sb_label3_opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
 
-    _status = ntg_label_init(&sb_label3, &sb_label3_opts);
-    _status = ntg_cleanup_batch_add(batch, &sb_label3, ntg_label_deinit_void, NULL);
+    status = ntg_label_init(&sb_label3, &sb_label3_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &sb_label3);
 
-    _status = ntg_label_set_text_unsafe(&sb_label3, lorem);
+    status = ntg_label_set_text_unsafe(&sb_label3, lorem);
     ntg_widget_set_pad_opts(ntg_wgt(&sb_label3), &pad_opts);
     
     // CONNECT
 
-    _status = ntg_box_add_child(&south_box, ntg_wgt(&sb_label1));
-    _status = ntg_box_add_child(&south_box, ntg_wgt(&sb_label2));
-    _status = ntg_box_add_child(&south_box, ntg_wgt(&sb_label3));
+    status = ntg_box_add_child(&south_box, ntg_wgt(&sb_label1));
+    status = ntg_box_add_child(&south_box, ntg_wgt(&sb_label2));
+    status = ntg_box_add_child(&south_box, ntg_wgt(&sb_label3));
 
     // SOUTH LABEL
 
-    struct ntg_label_opts s_label_opts = NTG_LABEL_OPTS_ZERO;
-    s_label_opts.text_opts.gfx = (struct nt_gfx) {
-        .bg = nt_color_new_auto(50, 0, 0),
-        .fg = nt_color_new_auto(255, 255, 255),
-        .style = 0
+    struct ntg_label_opts s_label_opts = {
+        .text_opts = {
+            .gfx = {
+                .bg = nt_color_new_auto(50, 0, 0),
+                .fg = nt_color_new_auto(255, 255, 255),
+                .style = 0
+            }
+        }
     };
-    ntg_label_set_opts(&s_label, &s_label_opts);
+    status = ntg_label_init(&s_label, &s_label_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &s_label);
 
-    _status = ntg_label_init(&s_label, &s_label_opts);
     ntg_widget_set_pad_opts(ntg_wgt(&s_label), &pad_opts);
 
-    _status = ntg_cleanup_batch_add(batch, &s_label, ntg_label_deinit_void, NULL);
+    status = ntg_label_set_text_unsafe(&s_label, "ABCD");
+    assert(!status);
 
-    _status = ntg_label_set_text_unsafe(&s_label, "ABCD");
-
-    ntg_widget_set_bdr_opts(ntg_wgt(&s_label), &border_opts);
+    ntg_widget_set_bdr_opts(ntg_wgt(&s_label), &bdr_opts);
 
     // SOUTH
 
-    struct ntg_box_opts south_opts = NTG_BOX_OPTS_ZERO;
-    south_opts.bg = ntg_vcell_new_full_bg(nt_color_new_auto(255, 255, 0));
+    struct ntg_box_opts south_opts = {
+        .bg = ntg_vcell_new_full_bg(nt_color_new_auto(255, 255, 0))
+    };
 
-    _status = ntg_box_init(&south, &south_opts);
-    _status = ntg_cleanup_batch_add(batch, &south, ntg_object_vdeinit_void, NULL);
+    status = ntg_box_init(&south, &south_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &south);
 
-    ntg_widget_set_bdr_opts(ntg_wgt(&south), &border_opts);
+    ntg_widget_set_bdr_opts(ntg_wgt(&south), &bdr_opts);
 
-    _status = ntg_box_add_child(&south, ntg_wgt(&s_label));
-    _status = ntg_box_add_child(&south, ntg_wgt(&south_box));
+    status = ntg_box_add_child(&south, ntg_wgt(&s_label));
+    status = ntg_box_add_child(&south, ntg_wgt(&south_box));
 }
 
 void init_flt_button()
 {
-    int _status;
+    int status;
 
-    struct ntg_button_opts opts = NTG_BUTTON_OPTS_ZERO;
-    opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
-    opts.text_opts.bg_mode = NTG_TEXT_BG_FLT;
-    opts.text_opts.focused_gfx = (struct nt_gfx) {
-        .fg = nt_color_new_auto(255, 165, 0),
-        .style = NT_STYLE_BOLD,
-        .bg = nt_color_new_auto(255, 255, 255)
+    struct ntg_button_opts opts = {
+        .text_opts = {
+            .wrap = NTG_TEXT_WRAP_WORD,
+            .bg_mode = NTG_TEXT_BG_FLT,
+            .focused_gfx = {
+                .fg = nt_color_new_auto(255, 165, 0),
+                .style = NT_STYLE_BOLD,
+                .bg = nt_color_new_auto(255, 255, 255)
+            }
+        }
     };
 
-    _status = ntg_button_init(&flt_button, &opts, flt_button_mouse_fn);
-    assert(!_status);
-    _status = ntg_cleanup_batch_add(batch, &flt_button, ntg_button_deinit_void, NULL);
+    status = ntg_button_init(&flt_button, &opts, flt_button_mouse_fn);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &flt_button);
 
-    _status = ntg_button_set_text_unsafe(&flt_button, "Floating button example");
+    status = ntg_button_set_text_unsafe(&flt_button, "Floating button example");
 
-    struct ntg_lay_opts flt_button_layout_opts = (ntg_wgt(&flt_button))->ro.layout_opts;
-    flt_button_layout_opts.z_index = 1;
-    ntg_widget_set_lay_opts(ntg_wgt(&flt_button), &flt_button_layout_opts);
+    ntg_widget_set_z_index(ntg_wgt(&flt_button), 1);
 
-    struct ntg_pad_opts pad_opts = NTG_PAD_OPTS_ZERO;
-    pad_opts.pref_size = ntg_insets(2, 2, 2, 2);
+    struct ntg_pad_opts pad_opts = {
+        .pref_size = ntg_insets(2, 2, 2, 2)
+    };
     ntg_widget_set_pad_opts(ntg_wgt(&flt_button), &pad_opts);
 
-    struct ntg_bdr_opts border_opts = NTG_BDR_OPTS_ZERO;
-    border_opts.pref_size = ntg_insets(1, 1, 1, 1);
-    border_opts.style = &flt_rounded_border._base;
+    struct ntg_bdr_opts border_opts = {
+        .pref_size = ntg_insets(1, 1, 1, 1),
+        .style = &flt_rounded_border._base
+    };
     ntg_widget_set_bdr_opts(ntg_wgt(&flt_button), &border_opts);
 
     // ntg_widget_set_user_min_size_cont(ntg_wgt(&flt_button), ntg_xy(1000, 1000));
@@ -479,93 +509,87 @@ void init_flt_button()
 
 void init_sflt_label()
 {
-    int _status;
+    int status;
 
-    struct ntg_label_opts opts = NTG_LABEL_OPTS_ZERO;
+    struct ntg_label_opts opts = {
+        .text_opts = {
+            .wrap = NTG_TEXT_WRAP_WORD,
+            .line_mode = NTG_TEXT_LINE_ALIGN,
+            .sec_align = NTG_ALIGN_3,
+            .gfx = {
+                .bg = nt_color_new_auto(255, 255, 255),
+                .fg = nt_color_new_auto(0, 0, 0),
+                .style = NT_STYLE_ITALIC
+            }
+        }
+    };
     ntg_log_log("ABCD LABEL | ROOT | SOUTH: %p %p %p", &s_label, &root, &south);
 
-    opts.text_opts.wrap = NTG_TEXT_WRAP_WORD;
-    opts.text_opts.line_mode = NTG_TEXT_LINE_JUSTIFY;
-    opts.text_opts.line_mode = NTG_TEXT_LINE_ALIGN;
-    opts.text_opts.sec_align = NTG_ALIGN_3;
-    opts.text_opts.gfx = (struct nt_gfx) {
-        .bg = nt_color_new_auto(255, 255, 255),
-        .fg = nt_color_new_auto(0, 0, 0),
-        .style = NT_STYLE_ITALIC
-    };
-    ntg_label_set_opts(&sflt_label, &opts);
+    status = ntg_label_init(&sflt_label, &opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &sflt_label);
 
-    _status = ntg_label_init(&sflt_label, &opts);
-
-    _status = ntg_object_event_bind(
+    status = ntg_object_event_bind(
             ntg_obj(&sflt_label),
             ntg_obj(&sflt_label),
             sflt_on_mouse_fn,
             &sflt_mouse_binding);
 
-    struct ntg_lay_opts sflt_label_layout_opts = (ntg_wgt(&sflt_label))->ro.layout_opts;
-    sflt_label_layout_opts.z_index = 2;
-    ntg_widget_set_lay_opts(ntg_wgt(&sflt_label), &sflt_label_layout_opts);
+    ntg_widget_set_z_index(ntg_wgt(&sflt_label), 2);
 
-    _status = ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat");
-
-    _status = ntg_cleanup_batch_add(batch, &sflt_label, ntg_label_deinit_void, NULL);
+    status = ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat");
 
     ntg_widget_set_clickable(ntg_wgt(&sflt_label), NTG_WIDGET_CLICKABLE_BDR);
 }
 
 void init_root()
 {
-    int _status;
+    int status;
 
-    _status = ntg_main_panel_init(&root, NULL);
+    status = ntg_main_panel_init(&root, NULL);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &root);
 
-    _status = ntg_cleanup_batch_add(batch, &root, ntg_object_vdeinit_void, NULL);
-    _status = ntg_main_panel_set(&root, ntg_wgt(&north), NTG_MAIN_PANEL_NORTH);
-    _status = ntg_main_panel_set(&root, ntg_wgt(&center), NTG_MAIN_PANEL_CENTER);
-    _status = ntg_main_panel_set(&root, ntg_wgt(&south), NTG_MAIN_PANEL_SOUTH);
+    status = ntg_main_panel_set(&root, ntg_wgt(&north), NTG_MAIN_PANEL_NORTH);
+    status = ntg_main_panel_set(&root, ntg_wgt(&center), NTG_MAIN_PANEL_CENTER);
+    status = ntg_main_panel_set(&root, ntg_wgt(&south), NTG_MAIN_PANEL_SOUTH);
 }
 
 void init_bs()
 {
-    int _status;
+    int status;
 
-    _status = ntg_border_9x_init_rounded_overlay(&flt_rounded_border, NT_COLOR_ZERO, 0);
-    _status = ntg_cleanup_batch_add(batch, &flt_rounded_border,
-            ntg_object_vdeinit_void, NULL);
+    status = ntg_border_9x_init_rounded_overlay(&flt_rounded_border, NT_COLOR_ZERO, 0);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &flt_rounded_border);
 
-    _status = ntg_border_9x_init_rounded(&def_rounded_border, NT_GFX_ZERO);
-    _status = ntg_cleanup_batch_add(batch, &def_rounded_border,
-            ntg_object_vdeinit_void, NULL);
+    status = ntg_border_9x_init_rounded(&def_rounded_border, NT_GFX_ZERO);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &def_rounded_border);
 }
 
 void init_ap()
 {
-    int _status;
+    int status;
 
-    struct ntg_float_opts flt_opts = NTG_FLOAT_OPTS_ZERO;
-    flt_opts.prim_align = NTG_ALIGN_2;
-    flt_opts.sec_align = NTG_ALIGN_2;
-    flt_opts.enable = NTG_FLOAT_ENABLE_ALWAYS;
+    struct ntg_float_opts flt_opts = {
+        .prim_align = NTG_ALIGN_2,
+        .sec_align = NTG_ALIGN_2,
+        .enable = NTG_FLOAT_ENABLE_ALWAYS
+    };
 
-    _status = ntg_float_init(&flt_ap, &flt_opts);
+    status = ntg_float_init(&flt_ap, &flt_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &flt_ap);
 
-    _status = ntg_cleanup_batch_add(
-            batch,
-            &flt_ap,
-            ntg_float_deinit_void,
-            NULL);
+    struct ntg_sidefloat_opts sflt_opts = {
+        .align = NTG_ALIGN_2,
+        .side = NTG_SIDE_S,
+        .size_cap = NTG_SIDEFLOAT_SIZE_CAP_ANCHOR,
+        .thresh = NTG_SIDEFLOAT_THRESH_ALWAYS
+    };
 
-    struct ntg_sidefloat_opts sflt_opts = NTG_SIDEFLOAT_OPTS_ZERO;
-    sflt_opts.align = NTG_ALIGN_2;
-    sflt_opts.side = NTG_SIDE_W;
-    sflt_opts.thresh = NTG_SIDEFLOAT_THRESH_ALWAYS;
-
-    _status = ntg_sidefloat_init(&sflt_ap, &sflt_opts);
-
-    _status = ntg_cleanup_batch_add(
-            batch,
-            &sflt_ap,
-            ntg_sidefloat_deinit_void,
-            NULL);
+    status = ntg_sidefloat_init(&sflt_ap, &sflt_opts);
+    assert(!status);
+    ntg_garbage_add_obj(garbage, &sflt_ap);
 }

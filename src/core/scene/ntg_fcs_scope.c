@@ -7,45 +7,19 @@
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
-/* ========================================================================== */
-/* TYPES */
-/* ========================================================================== */
+/* ------------------------------------------------------ */
+/* KEY */
+/* ------------------------------------------------------ */
 
-/*
-struct ntg_fcs_scope_opts ntg_fcs_scope_opts_default(void)
+bool ntg_fcs_scope_key_ignore_fn(const struct ntg_fcs_scope_ctx* ctx, nt_key key)
 {
-     struct ntg_fcs_scope_opts opts = {
-        .input_mode = NTG_FCS_SCOPE_INPUT_MODELESS,
-        .out_click_mode = NTG_FCS_SCOPE_OUT_CLICK_CLR,
-        .block_mode = NTG_FCS_SCOPE_BLOCK_FALSE,
-        .mouse_flags = {0, 0, 0, 0, 0}
-    };
+    (void)ctx;
+    (void)key;
 
-    opts.mouse_flags[NT_MOUSE_CLICK_LEFT] ^= (NTG_FCS_SCOPE_MOUSE_CAN_UNFCS ^
-                                              NTG_FCS_SCOPE_MOUSE_CAN_FCS);
-
-    opts.mouse_flags[NT_MOUSE_CLICK_RIGHT] ^= (NTG_FCS_SCOPE_MOUSE_CAN_UNFCS ^
-                                               NTG_FCS_SCOPE_MOUSE_CAN_FCS);
-
-    opts.mouse_flags[NT_MOUSE_CLICK_MIDDLE] ^= NTG_FCS_SCOPE_MOUSE_CAN_UNFCS;
-
-    return opts;
+    return false;
 }
 
-struct ntg_fcs_scope_keys ntg_fcs_scope_keys_default(void)
-{
-    return (struct ntg_fcs_scope_keys) {
-        .cancel = nt_key_utf32_new(27, false),
-        .left_click = nt_key_utf32_new(13, false)
-    };
-}
-*/
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
-bool ntg_fcs_scope_dispatch_key_fn(
+bool ntg_fcs_scope_key_dispatch_fn(
         const struct ntg_fcs_scope_ctx* ctx,
         nt_key key)
 {
@@ -66,7 +40,7 @@ bool ntg_fcs_scope_dispatch_key_fn(
         return false;
 }
 
-bool ntg_fcs_scope_dispatch_key_bubble_fn(
+bool ntg_fcs_scope_key_bubble_fn(
         const struct ntg_fcs_scope_ctx* ctx,
         nt_key key)
 {
@@ -99,7 +73,23 @@ bool ntg_fcs_scope_dispatch_key_bubble_fn(
         return false;
 }
 
-bool ntg_fcs_scope_dispatch_mouse_fn(
+/* ------------------------------------------------------ */
+/* MOUSE */
+/* ------------------------------------------------------ */
+
+bool ntg_fcs_scope_mouse_ignore_fn(
+        const struct ntg_fcs_scope_ctx* ctx,
+        nt_mouse mouse,
+        ntg_widget* clicked)
+{
+    (void)ctx;
+    (void)mouse;
+    (void)clicked;
+
+    return false;
+}
+
+bool ntg_fcs_scope_mouse_dispatch_fn(
         const struct ntg_fcs_scope_ctx* ctx,
         nt_mouse mouse,
         ntg_widget* clicked)
@@ -134,7 +124,7 @@ bool ntg_fcs_scope_dispatch_mouse_fn(
     return false;
 }
 
-bool ntg_fcs_scope_dispatch_mouse_bubble_fn(
+bool ntg_fcs_scope_mouse_bubble_fn(
         const struct ntg_fcs_scope_ctx* ctx,
         nt_mouse mouse,
         ntg_widget* clicked)
@@ -185,6 +175,25 @@ bool ntg_fcs_scope_dispatch_mouse_bubble_fn(
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
+static const struct ntg_fcs_scope_keys KEYS_AUTO = {
+    .left_click = {
+        ._non_zero = true,
+        .type = NT_KEY_UTF32,
+        .data.utf32 = {
+            .alt = false,
+            .cp = 13
+        }
+    },
+    .cancel = {
+        ._non_zero = true,
+        .type = NT_KEY_UTF32,
+        .data.utf32 = {
+            .alt = false,
+            .cp = 27
+        }
+    }
+};
+
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
@@ -195,6 +204,9 @@ bool ntg__fcs_scope_handle_keybind(
         nt_key key)
 {
     if(nt_key_are_eql(key, NT_KEY_ZERO)) return false;
+
+    struct ntg_fcs_scope_keys keys_final;
+    keys_final = ntg_fcs_scope_keys_opt_get(scope->keys, KEYS_AUTO);
 
     ntg_fcs_manager* fm = ctx->fm;
     ntg_widget* focused = fm->ro.focused;
@@ -207,32 +219,32 @@ bool ntg__fcs_scope_handle_keybind(
             .from_keybind = true
         };
 
-        if(nt_key_are_eql(scope->keys.left_click, key))
+        if(nt_key_are_eql(keys_final.left_click, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_CLICK_LEFT, 0, 0);
             return ntg_widget_feed_mouse(focused, &event);
         }
-        else if(nt_key_are_eql(scope->keys.right_click, key))
+        else if(nt_key_are_eql(keys_final.right_click, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_CLICK_RIGHT, 0, 0);
             return ntg_widget_feed_mouse(focused, &event);
         }
-        else if(nt_key_are_eql(scope->keys.middle_click, key))
+        else if(nt_key_are_eql(keys_final.middle_click, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_CLICK_MIDDLE, 0, 0);
             return ntg_widget_feed_mouse(focused, &event);
         }
-        else if(nt_key_are_eql(scope->keys.scroll_up, key))
+        else if(nt_key_are_eql(keys_final.scroll_up, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_SCROLL_UP, 0, 0);
             return ntg_widget_feed_mouse(focused, &event);
         }
-        else if(nt_key_are_eql(scope->keys.scroll_down, key))
+        else if(nt_key_are_eql(keys_final.scroll_down, key))
         {
             event.mouse = nt_mouse_new(NT_MOUSE_SCROLL_DOWN, 0, 0);
             return ntg_widget_feed_mouse(focused, &event);
         }
-        else if(nt_key_are_eql(scope->keys.cancel, key))
+        else if(nt_key_are_eql(keys_final.cancel, key))
         {
             ntg_fcs_manager_request_focus(fm, NULL);
             return false;
@@ -243,6 +255,14 @@ bool ntg__fcs_scope_handle_keybind(
     else
         return false;
 }
+
+static const uint8_t mouse_flags_default[5] = {
+    NTG_FCS_SCOPE_MOUSE_CAN_UNFCS ^ NTG_FCS_SCOPE_MOUSE_CAN_FCS,
+    NTG_FCS_SCOPE_MOUSE_CAN_UNFCS ^ NTG_FCS_SCOPE_MOUSE_CAN_FCS,
+    NTG_FCS_SCOPE_MOUSE_CAN_UNFCS,
+    0,
+    0
+};
 
 void ntg__fcs_scope_handle_mouse_focus(
         const struct ntg_fcs_scope* scope,
@@ -256,9 +276,14 @@ void ntg__fcs_scope_handle_mouse_focus(
     ntg_fcs_manager* fm = ctx->fm;
     ntg_widget* focused = fm->ro.focused;
 
-    uint8_t flag = (mouse.type <= 4) ?
-        scope->opts.mouse_flags[mouse.type] :
-        0;
+    uint8_t flag = 0;
+
+    if(mouse.type <= 4)
+    {
+        flag = ntg_uint8_opt_get(
+                scope->mouse_flags[mouse.type],
+                mouse_flags_default[mouse.type]);
+    }
 
     // Decide new focus
     if(focused)
