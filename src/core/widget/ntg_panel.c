@@ -499,7 +499,7 @@ int ntg_panel_arrange_fn(
     size_t north_south_height = north_size.y + south_size.y;
     ntg_xy collective_side_size = ntg_xy_new(west_east_width, north_south_height);
 
-    ntg_xy center_size = ntg_xy_size(ntg_xy_sub(size, collective_side_size));
+    ntg_xy center_size = ntg_xy_normalize(ntg_xy_sub(size, collective_side_size));
 
     ntg_xy north_pos = ntg_xy_new(0, 0);
     ntg_xy east_pos = ntg_xy_new(west_size.x + center_size.x, north_size.y);

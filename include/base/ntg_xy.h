@@ -44,25 +44,29 @@ enum ntg_align
 };
 
 static const ntg_xy NTG_XY_MAX = { NTG_SIZE_MAX, NTG_SIZE_MAX };
-static const ntg_xy NTG_XY_MIN = { 0, 0 };
-static const ntg_xy NTG_XY_ZERO = {0};
+static const ntg_xy NTG_XY_ZERO = { 0, 0 };
 
 static const ntg_dxy NTG_DXY_MAX = { NTG_SIZE_MAX, NTG_SIZE_MAX };
-static const ntg_dxy NTG_DXY_MIN = { -NTG_SIZE_MAX, -NTG_SIZE_MAX };
-static const ntg_dxy NTG_DXY_ZERO = {0};
+static const ntg_dxy NTG_DXY_ZERO = { 0, 0 };
 
-enum ntg_side
+enum ntg_dir
 {
-    NTG_SIDE_N = 0,
-    NTG_SIDE_E,
-    NTG_SIDE_S,
-    NTG_SIDE_W
+    NTG_DIR_N = 0,
+    NTG_DIR_E,
+    NTG_DIR_S,
+    NTG_DIR_W
 };
 
 struct ntg_insets
 {
     size_t n, e, s, w;
 };
+
+static const ntg_insets NTG_INSETS_MAX = {
+    NTG_SIZE_MAX, NTG_SIZE_MAX,
+    NTG_SIZE_MAX, NTG_SIZE_MAX
+};
+static const ntg_insets NTG_INSETS_ZERO = {0};
 
 /* ========================================================================== */
 /* FUNCTIONS */
@@ -75,17 +79,22 @@ struct ntg_insets
 static inline ntg_xy
 ntg_xy_new(size_t x, size_t y)
 {
-    return (ntg_xy) { .x = x, .y = y };
+    return (ntg_xy) {
+        .x = ntg_min2_size(x, NTG_XY_MAX.x),
+        .y = ntg_min2_size(y, NTG_XY_MAX.y),
+    };
 }
 
 static inline ntg_xy
 ntg_xy_new_orient(size_t prim, size_t sec, enum ntg_orient orient)
 {
-    return (orient == NTG_ORIENT_H) ? ntg_xy_new(prim, sec) : ntg_xy_new(sec, prim);
+    return (orient == NTG_ORIENT_H) ?
+            ntg_xy_new(prim, sec) :
+            ntg_xy_new(sec, prim);
 }
 
 static inline ntg_xy
-ntg_xy_size(ntg_xy xy)
+ntg_xy_normalize(ntg_xy xy)
 {
     if(!xy.x || !xy.y)
         return (ntg_xy) {0};
@@ -96,15 +105,18 @@ ntg_xy_size(ntg_xy xy)
 static inline ntg_xy
 ntg_xy_add(ntg_xy a, ntg_xy b)
 {
-    return (ntg_xy) { .x = a.x + b.x, .y = a.y + b.y };
+    return (ntg_xy) {
+        .x = ntg_min2_size(a.x + b.x, NTG_XY_MAX.x),
+        .y = ntg_min2_size(a.y + b.y, NTG_XY_MAX.y),
+    };
 }
 
 static inline ntg_xy
 ntg_xy_sub(ntg_xy a, ntg_xy b)
 {
     return (ntg_xy) { 
-        .x = (a.x > b.x) ? (a.x - b.x) : 0,
-        .y = (a.y > b.y) ? (a.y - b.y) : 0,
+        .x = ntg_sub2_size(a.x, b.x),
+        .y = ntg_sub2_size(a.y, b.y),
     };
 }
 
@@ -167,15 +179,15 @@ ntg_xy_is_in_rect(ntg_xy pos, ntg_xy start, ntg_xy end)
 }
 
 static inline bool
-ntg_xy_is_zero(ntg_xy size)
+ntg_xy_is_zero(ntg_xy xy)
 {
-    return ((size.x == 0) && (size.y == 0));
+    return ((xy.x == 0) && (xy.y == 0));
 }
 
 static inline bool
-ntg_xy_is_zero_any(ntg_xy size)
+ntg_xy_is_zero_any(ntg_xy xy)
 {
-    return ((size.x == 0) || (size.y == 0));
+    return ((xy.x == 0) || (xy.y == 0));
 }
 
 static inline ntg_xy
@@ -202,12 +214,53 @@ ntg_xy_get_other(ntg_xy xy, enum ntg_orient orient)
 static inline ntg_xy
 ntg_xy_set(ntg_xy xy, size_t val, enum ntg_orient orient)
 {
-    if(orient == NTG_ORIENT_H)
-        xy.x = val;
-    else
-        xy.y = val;
+    return (orient == NTG_ORIENT_H) ?
+            ntg_xy_new(val, xy.y) :
+            ntg_xy_new(xy.x, val);
+}
 
-    return xy;
+static inline ntg_xy
+ntg_xy_set_other(ntg_xy xy, size_t val, enum ntg_orient orient)
+{
+    return (orient == NTG_ORIENT_V) ?
+            ntg_xy_new(val, xy.y) :
+            ntg_xy_new(xy.x, val);
+}
+
+static inline ntg_xy
+ntg_xy_set_x(ntg_xy xy, size_t x)
+{
+    return ntg_xy_new(x, xy.y);
+}
+
+static inline ntg_xy
+ntg_xy_set_y(ntg_xy xy, size_t y)
+{
+    return ntg_xy_new(xy.x, y);
+}
+
+static inline ntg_xy
+ntg_xy_add_x(ntg_xy xy, size_t x_add)
+{
+    return ntg_xy_add(xy, ntg_xy_new(x_add, 0));
+}
+
+static inline ntg_xy
+ntg_xy_add_y(ntg_xy xy, size_t y_add)
+{
+    return ntg_xy_add(xy, ntg_xy_new(0, y_add));
+}
+
+static inline ntg_xy
+ntg_xy_sub_x(ntg_xy xy, size_t x_sub)
+{
+    return ntg_xy_sub(xy, ntg_xy_new(x_sub, 0));
+}
+
+static inline ntg_xy
+ntg_xy_sub_y(ntg_xy xy, size_t y_sub)
+{
+    return ntg_xy_sub(xy, ntg_xy_new(0, y_sub));
 }
 
 static inline ntg_xy
@@ -239,25 +292,84 @@ ntg_xy_pos_clamp(ntg_xy pos, ntg_xy size, ntg_xy parent_size)
 static inline ntg_dxy
 ntg_dxy_new(ssize_t x, ssize_t y)
 {
-    return (ntg_dxy) { .x = x, .y = y };
+    return (ntg_dxy) {
+        .x = ntg_min2_ssize(x, NTG_DXY_MAX.x),
+        .y = ntg_min2_ssize(y, NTG_DXY_MAX.y),
+    };
 }
 
 static inline ntg_dxy
-ntg_dxy_from_xy(ntg_xy xy)
+ntg_dxy_new_orient(ssize_t prim, ssize_t sec, enum ntg_orient orient)
 {
-    return (ntg_dxy) { .x = (ssize_t)xy.x, .y = (ssize_t)xy.y };
+    return (orient == NTG_ORIENT_H) ?
+            ntg_dxy_new(prim, sec) :
+            ntg_dxy_new(sec, prim);
+}
+
+static inline ntg_dxy
+ntg_dxy_normalize(ntg_dxy dxy)
+{
+    if(!dxy.x || !dxy.y)
+        return (ntg_dxy) {0};
+    else
+        return dxy;
 }
 
 static inline ntg_dxy
 ntg_dxy_add(ntg_dxy a, ntg_dxy b)
 {
-    return (ntg_dxy) { .x = a.x + b.x, .y = a.y + b.y };
+    return (ntg_dxy) {
+        .x = ntg_min2_ssize(a.x + b.x, NTG_DXY_MAX.x),
+        .y = ntg_min2_ssize(a.y + b.y, NTG_DXY_MAX.y),
+    };
 }
 
 static inline ntg_dxy
 ntg_dxy_sub(ntg_dxy a, ntg_dxy b)
 {
-    return (ntg_dxy) { .x = a.x - b.x, .y = a.y - b.y };
+    return (ntg_dxy) { 
+        .x = a.x - b.x,
+        .y = a.y - b.y
+    };
+}
+
+static inline ntg_dxy
+ntg_dxy_from_xy(ntg_xy xy)
+{
+    return (ntg_dxy) {
+        .x = xy.x,
+        .y = xy.y
+    };
+}
+
+static inline bool
+ntg_dxy_is_gt(ntg_dxy a, ntg_dxy b)
+{
+    return ((a.x > b.x) && (a.y > b.y));
+}
+
+static inline bool
+ntg_dxy_is_lt(ntg_dxy a, ntg_dxy b)
+{
+    return ((a.x < b.x) && (a.y < b.y));
+}
+
+static inline bool
+ntg_dxy_is_le(ntg_dxy a, ntg_dxy b)
+{
+    return ((a.x <= b.x) && (a.y <= b.y));
+}
+
+static inline bool
+ntg_dxy_is_ge(ntg_dxy a, ntg_dxy b)
+{
+    return ((a.x >= b.x) && (a.y >= b.y));
+}
+
+static inline bool
+ntg_dxy_are_eql(ntg_dxy a, ntg_dxy b)
+{
+    return ((a.x == b.x) && (a.y == b.y));
 }
 
 static inline ntg_dxy
@@ -272,17 +384,96 @@ ntg_dxy_clamp(ntg_dxy min, ntg_dxy val, ntg_dxy max)
     return val;
 }
 
-static inline size_t
-ntg_dxy_get(ntg_dxy xy, enum ntg_orient orient)
-{
-    return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
-}
-
 static inline bool
 ntg_dxy_is_in_rect(ntg_dxy pos, ntg_dxy start, ntg_dxy end)
 {
     return ((pos.x >= start.x) && (pos.y >= start.y) &&
             (pos.x < end.x) && (pos.y < end.y));
+}
+
+static inline bool
+ntg_dxy_is_zero(ntg_dxy dxy)
+{
+    return ((dxy.x == 0) && (dxy.y == 0));
+}
+
+static inline bool
+ntg_dxy_is_zero_any(ntg_dxy dxy)
+{
+    return ((dxy.x == 0) || (dxy.y == 0));
+}
+
+static inline ntg_dxy
+ntg_dxy_transpose(ntg_dxy xy)
+{
+    return (ntg_dxy) {
+        .x = xy.y,
+        .y = xy.x
+    };
+}
+
+static inline ssize_t
+ntg_dxy_get(ntg_dxy xy, enum ntg_orient orient)
+{
+    return (orient == NTG_ORIENT_H) ? xy.x : xy.y;
+}
+
+static inline ssize_t
+ntg_dxy_get_other(ntg_dxy xy, enum ntg_orient orient)
+{
+    return (orient == NTG_ORIENT_V) ? xy.x : xy.y;
+}
+
+static inline ntg_dxy
+ntg_dxy_set(ntg_dxy dxy, ssize_t val, enum ntg_orient orient)
+{
+    return (orient == NTG_ORIENT_H) ?
+            ntg_dxy_new(val, dxy.y) :
+            ntg_dxy_new(dxy.x, val);
+}
+
+static inline ntg_dxy
+ntg_dxy_set_other(ntg_dxy dxy, ssize_t val, enum ntg_orient orient)
+{
+    return (orient == NTG_ORIENT_V) ?
+            ntg_dxy_new(val, dxy.y) :
+            ntg_dxy_new(dxy.x, val);
+}
+
+static inline ntg_dxy
+ntg_dxy_set_x(ntg_dxy dxy, ssize_t x)
+{
+    return ntg_dxy_new(x, dxy.y);
+}
+
+static inline ntg_dxy
+ntg_dxy_set_y(ntg_dxy dxy, ssize_t y)
+{
+    return ntg_dxy_new(dxy.x, y);
+}
+
+static inline ntg_dxy
+ntg_dxy_add_x(ntg_dxy dxy, ssize_t x_add)
+{
+    return ntg_dxy_add(dxy, ntg_dxy_new(x_add, 0));
+}
+
+static inline ntg_dxy
+ntg_dxy_add_y(ntg_dxy dxy, ssize_t y_add)
+{
+    return ntg_dxy_add(dxy, ntg_dxy_new(0, y_add));
+}
+
+static inline ntg_dxy
+ntg_dxy_sub_x(ntg_dxy dxy, ssize_t x_sub)
+{
+    return ntg_dxy_sub(dxy, ntg_dxy_new(x_sub, 0));
+}
+
+static inline ntg_dxy
+ntg_dxy_sub_y(ntg_dxy dxy, ssize_t y_sub)
+{
+    return ntg_dxy_sub(dxy, ntg_dxy_new(0, y_sub));
 }
 
 /* ------------------------------------------------------ */
@@ -302,19 +493,24 @@ ntg_orient_other(enum ntg_orient ort)
 static inline ntg_insets
 ntg_insets_new(size_t n, size_t e, size_t s, size_t w)
 {
-    return (ntg_insets) { .n = n, .e = e, .s = s, .w = w };
+    return (ntg_insets) { 
+        .n = ntg_min2_size(n, NTG_INSETS_MAX.n),
+        .e = ntg_min2_size(e, NTG_INSETS_MAX.e),
+        .s = ntg_min2_size(s, NTG_INSETS_MAX.s),
+        .w = ntg_min2_size(w, NTG_INSETS_MAX.w),
+    };
 }
 
 static inline size_t
 ntg_insets_hsum(ntg_insets insets)
 {
-    return insets.e + insets.w;
+    return ntg_min2_size(NTG_SIZE_MAX, insets.e + insets.w);
 }
 
 static inline size_t
 ntg_insets_vsum(ntg_insets insets)
 {
-    return insets.n + insets.s;
+    return ntg_min2_size(NTG_SIZE_MAX, insets.n + insets.s);
 }
 
 static inline size_t
@@ -330,11 +526,27 @@ static inline ntg_insets
 ntg_insets_add(ntg_insets i1, ntg_insets i2)
 {
     return (ntg_insets) {
-        .n = i1.n + i2.n,
-        .e = i1.e + i2.e,
-        .s = i1.s + i2.s,
-        .w = i1.w + i2.w
+        .n = ntg_min2_size(i1.n + i2.n, NTG_INSETS_MAX.n),
+        .e = ntg_min2_size(i1.e + i2.e, NTG_INSETS_MAX.e),
+        .s = ntg_min2_size(i1.s + i2.s, NTG_INSETS_MAX.s),
+        .w = ntg_min2_size(i1.w + i2.w, NTG_INSETS_MAX.w)
     };
+}
+
+static inline size_t
+ntg_insets_get(ntg_insets insets, enum ntg_dir dir)
+{
+    switch(dir)
+    {
+        case NTG_DIR_N:
+            return insets.n;
+        case NTG_DIR_E:
+            return insets.e;
+        case NTG_DIR_S:
+            return insets.s;
+        case NTG_DIR_W:
+            return insets.w;
+    }
 }
 
 static inline bool
@@ -358,9 +570,9 @@ ntg_insets_are_eql(ntg_insets insets1, ntg_insets insets2)
 /* ------------------------------------------------------ */
 
 static inline enum ntg_orient
-ntg_side_get_orient(enum ntg_side side)
+ntg_side_get_orient(enum ntg_dir side)
 {
-    if((side == NTG_SIDE_N) || (side == NTG_SIDE_S))
+    if((side == NTG_DIR_N) || (side == NTG_DIR_S))
         return NTG_ORIENT_V;
     else
         return NTG_ORIENT_H;

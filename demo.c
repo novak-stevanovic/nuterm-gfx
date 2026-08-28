@@ -590,7 +590,7 @@ void init_ap()
 
     struct ntg_sidefloat_opts sflt_opts = {
         .align = NTG_ALIGN_2,
-        .side = NTG_SIDE_S,
+        .side = NTG_DIR_S,
         .side_shrink = {3, 3},
         .size_cap = NTG_SIDEFLOAT_SIZE_CAP_ANCHOR,
         .thresh = NTG_SIDEFLOAT_THRESH_MIN

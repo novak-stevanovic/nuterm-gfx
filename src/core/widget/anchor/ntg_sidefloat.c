@@ -135,22 +135,22 @@ static size_t sidefloat_constrain_fn(
 
     switch(sflt->ro.opts.side)
     {
-        case NTG_SIDE_N:
+        case NTG_DIR_N:
             available_space = (orient == NTG_ORIENT_H) ?
                     (capped ? ntg_sub2_size(base_size, side_shrink) : scene_size) :
                     base_pos;
             break;
-        case NTG_SIDE_E:
+        case NTG_DIR_E:
             available_space = (orient == NTG_ORIENT_V) ?
                     (capped ? ntg_sub2_size(base_size, side_shrink) : scene_size) :
                     ntg_sub2_size(scene_size, base_size + base_pos);
             break;
-        case NTG_SIDE_S:
+        case NTG_DIR_S:
             available_space = (orient == NTG_ORIENT_H) ?
                     (capped ? ntg_sub2_size(base_size, side_shrink) : scene_size) :
                     ntg_sub2_size(scene_size, base_size + base_pos);
             break;
-        case NTG_SIDE_W:
+        case NTG_DIR_W:
             available_space = (orient == NTG_ORIENT_V) ?
                     (capped ? ntg_sub2_size(base_size, side_shrink) : scene_size) :
                     base_pos;
@@ -199,7 +199,7 @@ static ntg_xy sidefloat_arrange_fn(
 
     switch(sflt->ro.opts.side)
     {
-        case NTG_SIDE_N:
+        case NTG_DIR_N:
             pos.x = (size_diff.x > 0) ?
                     ntg_sub2_size(ctx->base_pos.x, size_diff.x) :
                     ctx->base_pos.x + ntg_align_offset_ssize(
@@ -208,7 +208,7 @@ static ntg_xy sidefloat_arrange_fn(
                             sflt->ro.opts.align);
             pos.y = ntg_sub2_size(ctx->base_pos.y, ctx->size.y);
             break;
-        case NTG_SIDE_E:
+        case NTG_DIR_E:
             pos.x = ctx->base_pos.x + ctx->base_size.x;
             pos.y = (size_diff.y > 0) ?
                     ntg_sub2_size(ctx->base_pos.y, size_diff.y) :
@@ -217,7 +217,7 @@ static ntg_xy sidefloat_arrange_fn(
                             ctx->base_size.y,
                             sflt->ro.opts.align);
             break;
-        case NTG_SIDE_S:
+        case NTG_DIR_S:
             pos.x = (size_diff.x > 0) ?
                     ntg_sub2_size(ctx->base_pos.x, size_diff.x) :
                     ctx->base_pos.x + ntg_align_offset_ssize(
@@ -226,7 +226,7 @@ static ntg_xy sidefloat_arrange_fn(
                             sflt->ro.opts.align);
             pos.y = ctx->base_pos.y + ctx->base_size.y;
             break;
-        case NTG_SIDE_W:
+        case NTG_DIR_W:
             pos.x = ntg_sub2_size(ctx->base_pos.x, ctx->size.x);
             pos.y = (size_diff.y > 0) ?
                     ntg_sub2_size(ctx->base_pos.y, size_diff.y) :

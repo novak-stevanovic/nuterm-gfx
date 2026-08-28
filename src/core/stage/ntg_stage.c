@@ -400,7 +400,7 @@ static void draw_widget(ntg_stage* stage, ntg_widget* object)
     ntg_xy draw_size = object->ro.drawing.ro.size;
 
     // If size is equal, use the drawing, even if last draw failed.
-    if(ntg_xy_are_eql(ntg_xy_size(object->ro.size), ntg_xy_size(draw_size)))
+    if(ntg_xy_are_eql(ntg_xy_normalize(object->ro.size), ntg_xy_normalize(draw_size)))
     {
         ntg_widget_draw_place_(
                 &object->ro.drawing,
