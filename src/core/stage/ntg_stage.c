@@ -148,6 +148,7 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
     ntg_scene* old_scene = stage->ro.scene;
     ntg_stage* old_scene_stage = (old_scene ? old_scene->ro.stage : NULL);
     ntg_stage* old_stage = (scene ? scene->ro.stage : NULL);
+    struct ntg_stage_vtable* vtable = ntg_stg_vtbl(stage);
 
     if(old_scene)
     {
@@ -155,37 +156,45 @@ int ntg_stage_set_scene(ntg_stage* stage, ntg_scene* scene)
 
         /* Can only fail if size exceeds NTG_SIZE_MAX */
         ntg__scene_set_size(old_scene, ntg_xy_new(0, 0));
+
+        stage->ro.scene = NULL;
+        ntg_stage_mark_dirty(stage);
+
+        if(vtable->scene_rm_fn)
+            vtable->scene_rm_fn(stage, old_scene);
+
+        struct ntg_event_stage_scnrm_dt event_dt = { .scene = old_scene };
+        ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_SCNRM, &event_dt);
+
+        ntg__scene_stage_leave_notify(old_scene, old_scene_stage);
     }
 
     if(scene)
     {
         if(old_stage)
-        {
             ntg_stage_set_scene(old_stage, NULL);
-        }
 
         ntg__scene_set_stage(scene, stage);
 
         /* Can only fail if size exceeds NTG_SIZE_MAX */
         int status = ntg__scene_set_size(scene, stage->ro.size);
         if(status != 0)
+        {
+            ntg__scene_set_stage(scene, NULL);
             return status;
+        }
+
+        stage->ro.scene = scene;
         ntg_scene_mark_dirty(scene);
+
+        if(vtable->scene_set_fn)
+            vtable->scene_set_fn(stage, scene);
+
+        struct ntg_event_stage_scnset_dt event_dt = { .scene = scene };
+        ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_SCNSET, &event_dt);
+
+        ntg__scene_stage_enter_notify(scene, stage);
     }
-
-    stage->ro.scene = scene;
-
-    struct ntg_event_stage_scnchg_dt event_dt = {
-        .old_scene = old_scene,
-        .new_scene = scene
-    };
-    ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_SCNCHG, &event_dt);
-
-    if(old_scene)
-        ntg__scene_on_stage_leave(old_scene, old_scene_stage);
-
-    if(scene)
-        ntg__scene_on_stage_enter(scene, stage);
 
     return 0;
 }
@@ -339,6 +348,10 @@ int ntg__stage_set_size(ntg_stage* stage, ntg_xy size)
             return _status;
     }
 
+    struct ntg_stage_vtable* vtable = ntg_stg_vtbl(stage);
+    if(vtable->resize_fn)
+        vtable->resize_fn(stage, old_size, size);
+
     struct ntg_event_stage_szchg_dt event_dt = {
         .old_x = old_size.ro.x,
         .old_y = old_size.ro.y,
@@ -365,6 +378,10 @@ void ntg__stage_enter_loop(ntg_stage* stage)
     stage->ro.in_loop = true;
     ntg_stage_mark_dirty(stage);
 
+    struct ntg_stage_vtable* vtable = ntg_stg_vtbl(stage);
+    if(vtable->loop_enter_fn)
+        vtable->loop_enter_fn(stage);
+
     ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_ENTER, NULL);
 
 }
@@ -374,6 +391,10 @@ void ntg__stage_leave_loop(ntg_stage* stage)
     if(!stage) return;
 
     stage->ro.in_loop = false;
+
+    struct ntg_stage_vtable* vtable = ntg_stg_vtbl(stage);
+    if(vtable->loop_leave_fn)
+        vtable->loop_leave_fn(stage);
 
     ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_LEAVE, NULL);
 

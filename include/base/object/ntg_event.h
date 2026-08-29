@@ -346,11 +346,16 @@ struct ntg_event_stage_mouse_dt
     nt_mouse mouse;
 };
 
-#define NTG_EVENT_STAGE_SCNCHG 302
-struct ntg_event_stage_scnchg_dt
+#define NTG_EVENT_STAGE_SCNSET 302
+struct ntg_event_stage_scnset_dt
 {
-    ntg_scene* old_scene;
-    ntg_scene* new_scene;
+    ntg_scene* scene;
+};
+
+#define NTG_EVENT_STAGE_SCNRM 311
+struct ntg_event_stage_scnrm_dt
+{
+    ntg_scene* scene;
 };
 
 #define NTG_EVENT_STAGE_SZCHG 303

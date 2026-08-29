@@ -394,7 +394,7 @@ int ntg_widget_detach(ntg_widget* widget)
     ntg_object_event_raise(ntg_obj(parent), NTG_EVENT_WIDGET_CHLDRM, &chldrm_dt);
 
     if(scene)
-        ntg__scene_on_rm_widget_tree(scene, widget);
+        ntg__scene_rm_widget_tree_notify(scene, widget);
 
     return 0;
 }
@@ -451,7 +451,7 @@ int ntg_widget_anchor(ntg_widget* base, ntg_widget* root)
     ntg_object_event_raise(ntg_obj(root), NTG_EVENT_WIDGET_BSSET, &bsset_dt);
 
     if(scene)
-        ntg__scene_on_add_widget_tree(scene, root);
+        ntg__scene_add_widget_tree_notify(scene, root);
 
     return 0;
 }
@@ -485,7 +485,7 @@ int ntg_widget_unanchor(ntg_widget* root)
     ntg_object_event_raise(ntg_obj(root), NTG_EVENT_WIDGET_BSRM, &bsrm_dt);
 
     if(scene)
-        ntg__scene_on_rm_widget_tree(scene, root);
+        ntg__scene_rm_widget_tree_notify(scene, root);
 
     return 0;
 }
@@ -1043,7 +1043,7 @@ int ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
     ntg_object_event_raise(ntg_obj(child), NTG_EVENT_WIDGET_PRNTSET, &prntset_dt);
 
     if(scene)
-        ntg__scene_on_add_widget_tree(scene, child);
+        ntg__scene_add_widget_tree_notify(scene, child);
 
     ntg_widget_mark_dirty(parent, NTG_WIDGET_DIRTY_FULL);
     return 0;
@@ -1928,7 +1928,7 @@ void ntg__widget_scene_enter(ntg_widget* widget, ntg_scene* scene)
         ntg_wgt_vtbl(widget)->enter_scene_fn(widget, scene);
 }
 
-void ntg__widget_on_scene_enter(ntg_widget* widget, ntg_scene* scene)
+void ntg__widget_scene_enter_notify(ntg_widget* widget, ntg_scene* scene)
 {
     if(!widget) return;
 
@@ -1946,35 +1946,34 @@ void ntg__widget_scene_leave(ntg_widget* widget, ntg_scene* scene)
         ntg_wgt_vtbl(widget)->rm_scene_fn(widget, scene);
 }
 
-void ntg__widget_on_scene_leave(ntg_widget* widget, ntg_scene* scene)
+void ntg__widget_scene_leave_notify(ntg_widget* widget, ntg_scene* scene)
 {
     if(!widget) return;
 
     struct ntg_event_widget_scnrm_dt event_dt = { .scene = scene };
     ntg_object_event_raise(ntg_obj(widget), NTG_EVENT_WIDGET_SCNRM, &event_dt);
-
 }
 
 void ntg__widget_focus(ntg_widget* widget)
 {
-    if(!widget) return;
-
     if(ntg_wgt_vtbl(widget)->focus_fn)
         ntg_wgt_vtbl(widget)->focus_fn(widget);
+}
 
+void ntg__widget_focus_notify(ntg_widget* widget)
+{
     ntg_object_event_raise(ntg_obj(widget), NTG_EVENT_WIDGET_FCS, NULL);
-
 }
 
 void ntg__widget_unfocus(ntg_widget* widget)
 {
-    if(!widget) return;
-
     if(ntg_wgt_vtbl(widget)->unfocus_fn)
         ntg_wgt_vtbl(widget)->unfocus_fn(widget);
+}
 
+void ntg__widget_unfocus_notify(ntg_widget* widget)
+{
     ntg_object_event_raise(ntg_obj(widget), NTG_EVENT_WIDGET_UNFCS, NULL);
-
 }
 
 /* ========================================================================== */

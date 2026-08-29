@@ -216,9 +216,10 @@ int ntg_scene_add_root(ntg_scene* scene, ntg_widget* widget)
     }
 
     ntg__scene_add_widget_tree(scene, widget);
-    ntg__scene_on_add_widget_tree(scene, widget);
 
     ntg__widget_root_set_scene(widget, scene);
+
+    ntg__scene_add_widget_tree_notify(scene, widget);
 
     return 0;
 }
@@ -241,7 +242,7 @@ int ntg_scene_rm_root(ntg_scene* scene, ntg_widget* widget)
     }
 
     ntg__scene_rm_widget_tree(scene, widget);
-    ntg__scene_on_rm_widget_tree(scene, widget);
+    ntg__scene_rm_widget_tree_notify(scene, widget);
 
     ntg__widget_root_set_scene(widget, NULL);
 
@@ -394,6 +395,10 @@ int ntg__scene_set_size(ntg_scene* scene, ntg_xy size)
 
     scene->ro.size = size;
     ntg_scene_mark_dirty(scene);
+
+    struct ntg_scene_vtable* vtable = ntg_scn_vtbl(scene);
+    if(vtable->resize_fn)
+        vtable->resize_fn(scene, old_size, size);
     
     struct ntg_event_scene_szchg_dt event_dt = {
         .old_x = old_size.ro.x,
@@ -469,73 +474,42 @@ void ntg__scene_set_stage(ntg_scene* scene, ntg_stage* stage)
 
 }
 
-void ntg__scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage)
+void ntg__scene_stage_enter_notify(ntg_scene* scene, ntg_stage* stage)
 {
     if(!scene) return;
 
     struct ntg_event_scene_enter_dt event_dt = { .stage = stage };
     ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_ENTER, &event_dt);
-
 }
 
-void ntg__scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage)
+void ntg__scene_stage_leave_notify(ntg_scene* scene, ntg_stage* stage)
 {
     if(!scene) return;
 
     struct ntg_event_scene_leave_dt event_dt = { .stage = stage };
     ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_LEAVE, &event_dt);
-
-}
-
-void ntg__scene_add(ntg_scene* scene, ntg_widget* widget)
-{
-    if(!scene || !widget) return;
-
-    ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_FULL);
-    ntg_scene_mark_dirty(scene);
-
-    scene->ro.object_count++;
-    if(ntg_widget_is_tree_root(widget))
-        scene->ro.tree_count++;
-
-    ntg__widget_scene_enter(widget, scene);
-}
-
-void ntg__scene_rm(ntg_scene* scene, ntg_widget* widget)
-{
-    if(!scene || !widget) return;
-
-    ntg_scene_mark_dirty(scene);
-
-    scene->ro.object_count = ntg_sub2_size(scene->ro.object_count, 1);
-    if(ntg_widget_is_tree_root(widget))
-        scene->ro.tree_count = ntg_sub2_size(scene->ro.tree_count, 1);
-
-    ntg__fcs_manager_on_scene_widget_rm(scene->ro.fm, widget);
-    ntg__widget_scene_leave(widget, scene);
-}
-
-void ntg__scene_on_add_widget(ntg_scene* scene, ntg_widget* widget)
-{
-    if(!scene || !widget) return;
-
-    struct ntg_event_scene_wgtadd_dt object_event_dt = { .widget = widget };
-    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_WGTADD, &object_event_dt);
-}
-
-void ntg__scene_on_rm_widget(ntg_scene* scene, ntg_widget* widget)
-{
-    if(!scene || !widget) return;
-
-    struct ntg_event_scene_wgtrm_dt object_event_dt = { .widget = widget };
-    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_WGTRM, &object_event_dt);
 }
 
 void ntg__scene_add_widget_tree(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene || !root) return;
 
-    ntg__scene_add(scene, root);
+    /* Add widget */
+
+    ntg_widget_mark_dirty(root, NTG_WIDGET_DIRTY_FULL);
+    ntg_scene_mark_dirty(scene);
+
+    scene->ro.object_count++;
+    if(ntg_widget_is_tree_root(root))
+        scene->ro.tree_count++;
+
+    ntg__widget_scene_enter(root, scene);
+
+    struct ntg_scene_vtable* vtable = ntg_scn_vtbl(scene);
+    if(vtable->widget_add_fn)
+        vtable->widget_add_fn(scene, root);
+
+    /* Propagate */
 
     size_t i;
     for(i = 0; i < root->ro.children.size; i++)
@@ -556,7 +530,22 @@ void ntg__scene_rm_widget_tree(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene || !root) return;
 
-    ntg__scene_rm(scene, root);
+    /* Remove widget */
+
+    ntg_scene_mark_dirty(scene);
+
+    scene->ro.object_count = ntg_sub2_size(scene->ro.object_count, 1);
+    if(ntg_widget_is_tree_root(root))
+        scene->ro.tree_count = ntg_sub2_size(scene->ro.tree_count, 1);
+
+    ntg__fcs_manager_rm_wgt_from_scn(scene->ro.fm, root);
+    ntg__widget_scene_leave(root, scene);
+
+    struct ntg_scene_vtable* vtable = ntg_scn_vtbl(scene);
+    if(vtable->widget_rm_fn)
+        vtable->widget_rm_fn(scene, root);
+
+    /* Propagate */
 
     size_t i;
     for(i = 0; i < root->ro.children.size; i++)
@@ -573,46 +562,55 @@ void ntg__scene_rm_widget_tree(ntg_scene* scene, ntg_widget* root)
 
 }
 
-void ntg__scene_on_add_widget_tree(ntg_scene* scene, ntg_widget* root)
+void ntg__scene_add_widget_tree_notify(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene || !root) return;
 
-    ntg__scene_on_add_widget(scene, root);
+    struct ntg_event_scene_wgtadd_dt object_event_dt = { .widget = root };
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_WGTADD, &object_event_dt);
 
     size_t i;
     for(i = 0; i < root->ro.children.size; i++)
     {
         ntg_widget* child = root->ro.children.data[i];
-        ntg__scene_on_add_widget_tree(scene, child);
+        ntg__scene_add_widget_tree_notify(scene, child);
     }
 
     for(i = 0; i < root->ro.anchored.size; i++)
     {
         ntg_widget* layer = root->ro.anchored.data[i];
-        ntg__scene_on_add_widget_tree(scene, layer);
+        ntg__scene_add_widget_tree_notify(scene, layer);
     }
 
 }
 
-void ntg__scene_on_rm_widget_tree(ntg_scene* scene, ntg_widget* root)
+void ntg__scene_rm_widget_tree_notify(ntg_scene* scene, ntg_widget* root)
 {
     if(!scene || !root) return;
 
-    ntg__scene_on_rm_widget(scene, root);
+    struct ntg_event_scene_wgtrm_dt object_event_dt = { .widget = root };
+    ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_WGTRM, &object_event_dt);
 
     size_t i;
     for(i = 0; i < root->ro.children.size; i++)
     {
         ntg_widget* child = root->ro.children.data[i];
-        ntg__scene_on_rm_widget_tree(scene, child);
+        ntg__scene_rm_widget_tree_notify(scene, child);
     }
 
     for(i = 0; i < root->ro.anchored.size; i++)
     {
         ntg_widget* layer = root->ro.anchored.data[i];
-        ntg__scene_on_rm_widget_tree(scene, layer);
+        ntg__scene_rm_widget_tree_notify(scene, layer);
     }
 
+}
+
+void ntg__scene_change_focus(ntg_scene* scene, ntg_widget* old_fcs, ntg_widget* new_fcs)
+{
+    struct ntg_scene_vtable* vtable = ntg_scn_vtbl(scene);
+    if(vtable->focus_chg_fn)
+        vtable->focus_chg_fn(scene, old_fcs, new_fcs);
 }
 
 /* ========================================================================== */

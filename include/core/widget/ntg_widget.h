@@ -530,11 +530,16 @@ void ntg__widget_root_set_scene(ntg_widget* widget, ntg_scene* scene);
 
 /* Called by scene when adding widget tree in ntg__scene_add_widget_tree() */
 void ntg__widget_scene_enter(ntg_widget* widget, ntg_scene* scene);
+void ntg__widget_scene_enter_notify(ntg_widget* widget, ntg_scene* scene);
 
 /* Called by scene when removing widget tree in ntg__scene_rm_widget_tree() */
 void ntg__widget_scene_leave(ntg_widget* widget, ntg_scene* scene);
+void ntg__widget_scene_leave_notify(ntg_widget* widget, ntg_scene* scene);
 
 void ntg__widget_focus(ntg_widget* widget);
+void ntg__widget_focus_notify(ntg_widget* widget);
+
 void ntg__widget_unfocus(ntg_widget* widget);
+void ntg__widget_unfocus_notify(ntg_widget* widget);
 
 #endif // NTG_WIDGET_H

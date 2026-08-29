@@ -105,6 +105,14 @@ struct ntg_stage_vtable
 
     bool (*handle_key_fn)(ntg_stage* stage, nt_key key);
     bool (*handle_mouse_fn)(ntg_stage* stage, nt_mouse mouse);
+
+    void (*scene_set_fn)(ntg_stage* stage, ntg_scene* scene);
+    void (*scene_rm_fn)(ntg_stage* stage, ntg_scene* scene);
+
+    void (*resize_fn)(ntg_stage* stage, ntg_xy old_size, ntg_xy new_size);
+
+    void (*loop_enter_fn)(ntg_stage* stage);
+    void (*loop_leave_fn)(ntg_stage* stage);
 };
 
 /* ========================================================================== */

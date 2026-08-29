@@ -79,18 +79,26 @@ bool ntg_fcs_manager_request_focus(ntg_fcs_manager* fm, ntg_widget* widget)
     if(focusable)
     {
         fm->ro.focused = widget;
-
-        struct ntg_event_fcs_manager_fcschg_dt event_dt = {
-            .old_focused = old_focused,
-            .new_focused = widget
-        };
-        ntg_object_event_raise(ntg_obj(fm), NTG_EVENT_FCS_MANAGER_FCSCHG, &event_dt);
             
         if(old_focused)
             ntg__widget_unfocus(old_focused);
 
         if(widget)
             ntg__widget_focus(widget);
+
+        if(old_focused)
+            ntg__widget_unfocus_notify(old_focused);
+
+        if(widget)
+            ntg__widget_focus_notify(widget);
+
+        ntg__scene_change_focus(fm->ro.scene, old_focused, widget);
+
+        struct ntg_event_fcs_manager_fcschg_dt event_dt = {
+            .old_focused = old_focused,
+            .new_focused = widget
+        };
+        ntg_object_event_raise(ntg_obj(fm), NTG_EVENT_FCS_MANAGER_FCSCHG, &event_dt);
 
         return true;
     }
@@ -410,7 +418,7 @@ void ntg__fcs_manager_deinit(ntg_fcs_manager* fm)
 /* INVALIDATE */
 /* ------------------------------------------------------ */
 
-void ntg__fcs_manager_on_scene_widget_rm(ntg_fcs_manager* fm, ntg_widget* removed)
+void ntg__fcs_manager_rm_wgt_from_scn(ntg_fcs_manager* fm, ntg_widget* removed)
 {
     if(!fm) return;
 

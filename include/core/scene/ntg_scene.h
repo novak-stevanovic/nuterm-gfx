@@ -135,6 +135,15 @@ struct ntg_scene_vtable
 
     bool (*handle_key_fn)(ntg_scene* scene, nt_key key);
     bool (*handle_mouse_fn)(ntg_scene* scene, nt_mouse mouse);
+
+    void (*resize_fn)(ntg_scene* scene, ntg_xy old_size, ntg_xy new_size);
+
+    void (*focus_chg_fn)(ntg_scene* scene,
+            ntg_widget* old_focused,
+            ntg_widget* new_focused);
+
+    void (*widget_add_fn)(ntg_scene* scene, ntg_widget* widget);
+    void (*widget_rm_fn)(ntg_scene* scene, ntg_widget* widget);
 };
 
 NTG_API int
@@ -175,13 +184,16 @@ bool ntg__scene_layout(ntg_scene* scene, sarena* arena);
 void ntg__scene_clean(ntg_scene* scene);
 
 void ntg__scene_set_stage(ntg_scene* scene, ntg_stage* stage);
-void ntg__scene_on_stage_enter(ntg_scene* scene, ntg_stage* stage);
-void ntg__scene_on_stage_leave(ntg_scene* scene, ntg_stage* stage);
+void ntg__scene_stage_enter_notify(ntg_scene* scene, ntg_stage* stage);
+void ntg__scene_stage_leave_notify(ntg_scene* scene, ntg_stage* stage);
 
 void ntg__scene_add_widget_tree(ntg_scene* scene, ntg_widget* root);
 void ntg__scene_rm_widget_tree(ntg_scene* scene, ntg_widget* root);
 
-void ntg__scene_on_add_widget_tree(ntg_scene* scene, ntg_widget* root);
-void ntg__scene_on_rm_widget_tree(ntg_scene* scene, ntg_widget* root);
+void ntg__scene_add_widget_tree_notify(ntg_scene* scene, ntg_widget* root);
+void ntg__scene_rm_widget_tree_notify(ntg_scene* scene, ntg_widget* root);
+
+/* Called by focus manager. Raises virtual function from scene. */
+void ntg__scene_change_focus(ntg_scene* scene, ntg_widget* old_fcs, ntg_widget* new_fcs);
 
 #endif // NTG_SCENE_H

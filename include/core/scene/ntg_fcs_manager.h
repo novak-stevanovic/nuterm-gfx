@@ -92,6 +92,6 @@ int ntg__fcs_manager_init(
 
 void ntg__fcs_manager_deinit(ntg_fcs_manager* fm);
 
-void ntg__fcs_manager_on_scene_widget_rm(ntg_fcs_manager* fm, ntg_widget* removed);
+void ntg__fcs_manager_rm_wgt_from_scn(ntg_fcs_manager* fm, ntg_widget* removed);
 
 #endif // NTG_FCS_MANAGER_H
