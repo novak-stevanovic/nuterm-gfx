@@ -38,11 +38,7 @@ struct ntg_prog_bar
     struct
     {
         double prog;
-        struct
-        {
-            enum ntg_orient orient;
-            struct ntg_prog_bar_style style;
-        } opts;
+        struct ntg_prog_bar_opts opts;
     } ro;
 };
 

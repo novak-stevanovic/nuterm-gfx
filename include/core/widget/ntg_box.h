@@ -34,14 +34,7 @@ struct ntg_box
 
     struct
     {
-        struct
-        {
-            enum ntg_orient orient;
-            enum ntg_align prim_align;
-            enum ntg_align sec_align;
-            size_t spacing;
-            struct ntg_vcell bg;
-        } opts;
+        struct ntg_box_opts opts;
     } ro;
 };
 

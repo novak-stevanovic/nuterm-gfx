@@ -24,6 +24,11 @@ static const struct ntg_label_opts NTG_LABEL_OPTS_ZERO = {0};
 struct ntg_label
 {
     ntg_text _base;
+
+    struct
+    {
+        struct ntg_label_opts opts;
+    } ro;
 };
 
 /* ========================================================================== */

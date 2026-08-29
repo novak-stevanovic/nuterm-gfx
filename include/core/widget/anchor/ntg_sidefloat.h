@@ -44,14 +44,7 @@ struct ntg_sidefloat
 
     struct
     {
-        struct
-        {
-            enum ntg_align align;
-            enum ntg_dir side;
-            enum ntg_sidefloat_thresh thresh;
-            enum ntg_sidefloat_size_cap size_cap;
-            size_t side_shrink[2];
-        } opts;
+        struct ntg_sidefloat_opts opts;
     } ro;
 };
 

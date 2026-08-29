@@ -49,6 +49,7 @@ enum ntg_fcs_scope_mouse_flag
 /* Simulate mouse clicks by pressing keys */
 struct ntg_fcs_scope_keys
 {
+    bool set;
     /* NT_KEY_ZERO = unbound */
     nt_key left_click, right_click, middle_click,
            scroll_up, scroll_down, cancel;
@@ -56,8 +57,6 @@ struct ntg_fcs_scope_keys
 
 /* No keybinds */
 static const struct ntg_fcs_scope_keys NTG_FCS_SCOPE_KEYS_ZERO = {0};
-
-GENC_OPT_INLINE_DEF(ntg_fcs_scope_keys_opt, struct ntg_fcs_scope_keys)
 
 /* ------------------------------------------------------ */
 /* FCS SCOPE */
@@ -82,7 +81,7 @@ struct ntg_fcs_scope
     enum ntg_fcs_scope_block_mode block_mode;
 
     /* Optional. Default binds `cancel` to ESC and `left_click` to ENTER. */
-    ntg_fcs_scope_keys_opt keys;
+    struct ntg_fcs_scope_keys keys;
 
     /* Optional. Default allows left and right click to focus/unfocus
      * and middle click to unfocus. */

@@ -205,8 +205,8 @@ bool ntg__fcs_scope_handle_keybind(
 {
     if(nt_key_are_eql(key, NT_KEY_ZERO)) return false;
 
-    struct ntg_fcs_scope_keys keys_final;
-    keys_final = ntg_fcs_scope_keys_opt_get(scope->keys, KEYS_AUTO);
+    struct ntg_fcs_scope_keys keys_final = KEYS_AUTO;
+    if(scope->keys.set) keys_final = scope->keys;
 
     ntg_fcs_manager* fm = ctx->fm;
     ntg_widget* focused = fm->ro.focused;

@@ -104,7 +104,6 @@ int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
     }
 
     if(!nt_gfx_are_eql(text_obj->ro.opts.gfx, opts_final.gfx) ||
-       !nt_gfx_are_eql(text_obj->ro.opts.focused_gfx, opts_final.focused_gfx) ||
        (text_obj->ro.opts.prim_align != opts_final.prim_align) ||
        (text_obj->ro.opts.sec_align != opts_final.sec_align) ||
        (text_obj->ro.opts.bg_mode != opts_final.bg_mode))
@@ -116,22 +115,7 @@ int ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts)
 
     /* Set new values */
     
-    text_obj->ro.opts.orient = opts_final.orient;
-    text_obj->ro.opts.gfx = opts_final.gfx;
-    text_obj->ro.opts.focused_gfx = opts_final.focused_gfx;
-    text_obj->ro.opts.line_mode = opts_final.line_mode;
-    text_obj->ro.opts.prim_align = opts_final.prim_align;
-    text_obj->ro.opts.sec_align = opts_final.sec_align;
-    text_obj->ro.opts.bg_mode = opts_final.bg_mode;
-    text_obj->ro.opts.wrap = opts_final.wrap;
-    text_obj->ro.opts.indent = opts_final.indent;
-
-    struct nt_gfx gfx =
-        (ntg_widget_is_focused(ntg_wgt(text_obj)) ?
-        opts_final.focused_gfx :
-        opts_final.gfx);
-
-    text_obj->ro.gfx = gfx;
+    text_obj->ro.opts = opts_final;
 
     update_widget_bg(text_obj);
 
@@ -308,9 +292,9 @@ const struct ntg_text_vtable NTG_TEXT_VTABLE = {
             .deinit_fn = ntg_text_deinit_fn
         },
         .measure_fn = ntg_text_measure_fn,
-        .draw_fn = ntg_text_draw_fn,
         .focus_fn = ntg_text_focus_fn,
         .unfocus_fn = ntg_text_unfocus_fn,
+        .draw_fn = ntg_text_draw_fn,
         .layout_prepare_fn = ntg_text_layout_prepare_fn,
         .resize_cont_fn = ntg_text_cont_resize_fn
     }
@@ -613,14 +597,14 @@ int ntg_text_draw_fn(
                 it_cont = full_buff[full_size_adj.ro.x * src_xy.ro.y + src_xy.ro.x];
 
                 it_cell = (bg_mode == NTG_TEXT_BG_FULL) ?
-                    ntg_vcell_new_full(it_cont, text_obj->ro.gfx) :
-                    ntg_vcell_new_overlay(it_cont, text_obj->ro.gfx.fg, text_obj->ro.gfx.style);
+                    ntg_vcell_new_full(it_cont, text_obj->ro.opts.gfx) :
+                    ntg_vcell_new_overlay(it_cont, text_obj->ro.opts.gfx.fg, text_obj->ro.opts.gfx.style);
             }
             else
             {
                 it_cell = (bg_mode == NTG_TEXT_BG_FULL) ?
-                    ntg_vcell_new_full(0 , text_obj->ro.gfx) :
-                    ntg_vcell_new_overlay(0, text_obj->ro.gfx.fg, 0);
+                    ntg_vcell_new_full(0 , text_obj->ro.opts.gfx) :
+                    ntg_vcell_new_overlay(0, text_obj->ro.opts.gfx.fg, 0);
             }
 
             dst_xy = (orient == NTG_ORIENT_H) ? ntg_xy_new(j, i) : ntg_xy_new(i, j);
@@ -644,32 +628,15 @@ void ntg_text_cont_resize_fn(ntg_widget* widget, sarena* arena)
     text->ro.scroll = calculate_effective_scroll(text);
 }
 
-void ntg_text_focus_fn(ntg_widget* widget)
+void ntg_text_focus_fn(ntg_widget* _text_obj)
 {
-    if(!widget) return;
-
-    ntg_text* text = (ntg_text*)widget;
-
-    text->ro.gfx = text->ro.opts.focused_gfx;
-
-    update_widget_bg(text);
-
-    ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_DRAW);
+    (void)_text_obj;
 }
 
-void ntg_text_unfocus_fn(ntg_widget* widget)
+void ntg_text_unfocus_fn(ntg_widget* _text_obj)
 {
-    if(!widget) return;
-
-    ntg_text* text = (ntg_text*)widget;
-
-    text->ro.gfx = text->ro.opts.gfx;
-
-    update_widget_bg(text);
-
-    ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_DRAW);
+    (void)_text_obj;
 }
-
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -1076,8 +1043,8 @@ static void update_widget_bg(ntg_text* text_obj)
 
     struct ntg_vcell cell =
             (text_obj->ro.opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_new_full(0, text_obj->ro.gfx) :
-            ntg_vcell_new_overlay(0, text_obj->ro.gfx.fg, 0);
+            ntg_vcell_new_full(0, text_obj->ro.opts.gfx) :
+            ntg_vcell_new_overlay(0, text_obj->ro.opts.gfx.fg, 0);
 
     ntg_widget_set_base_bg(ntg_wgt(text_obj), cell);
 }

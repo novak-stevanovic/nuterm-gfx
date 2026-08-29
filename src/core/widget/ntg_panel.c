@@ -128,7 +128,7 @@ int ntg_panel_set_opts(
     if(ntg_vcell_are_eql(panel->ro.opts.bg, opts_final.bg))
         return 0;
 
-    panel->ro.opts.bg = opts_final.bg;
+    panel->ro.opts = opts_final;
 
     ntg_widget_set_base_bg(ntg_wgt(panel), opts_final.bg);
 

@@ -38,10 +38,7 @@ struct ntg_panel
 
     struct
     {
-        struct 
-        {
-            struct ntg_vcell bg;
-        } opts;
+        struct ntg_panel_opts opts;
         ntg_widget* children[5];
     } ro;
 };

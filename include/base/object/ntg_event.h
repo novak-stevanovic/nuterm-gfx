@@ -207,8 +207,6 @@ struct ntg_event_label_txtchg_dt
     struct ntg_str_view new_text;
 };
 
-// TODO: add gfx chng (not opts)
-
 /* ------------------------------------------------------ */
 /* ntg_button */
 /* ------------------------------------------------------ */
@@ -220,7 +218,8 @@ struct ntg_event_button_txtchg_dt
     struct ntg_str_view new_text;
 };
 
-// TODO: add gfx chng (not opts)
+#define NTG_EVENT_BUTTON_ENABLE 111
+#define NTG_EVENT_BUTTON_DISABLE 112
 
 /* ------------------------------------------------------ */
 /* ntg_box */

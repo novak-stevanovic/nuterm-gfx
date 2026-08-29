@@ -61,11 +61,11 @@ static int tmp_draw_init(
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-static struct ntg_widget_measure incorporate_user_measure(
+static struct ntg_widget_measure incorporate_lay_conf_measure(
         struct ntg_widget_measure measure,
-        size_t user_min_size,
-        size_t user_max_size,
-        size_t user_grow);
+        size_t conf_min_size,
+        size_t conf_max_size,
+        size_t conf_grow);
     
 static int get_dcr_size(
         enum ntg_widget_dcr_enable enable,
@@ -164,46 +164,45 @@ bool ntg_widget_feed_mouse(ntg_widget* widget, const struct ntg_widget_mouse* ev
 
 /* ------------------------------------------------------ */
 
-int ntg_widget_set_lay_opts(ntg_widget* widget, const struct ntg_lay_opts* opts)
+void ntg_lay_conf_init(struct ntg_lay_conf* conf)
+{
+    if(!conf) return;
+
+    (*conf) = (struct ntg_lay_conf) {
+        .cont_min_size = NTG_WIDGET_MINSZ_UNSET,
+        .cont_max_size = NTG_WIDGET_MAXSZ_UNSET,
+        .cont_grow = NTG_WIDGET_GROW_UNSET
+    };
+}
+
+int ntg_widget_set_lay_conf(
+        ntg_widget* widget,
+        const struct ntg_lay_conf* conf)
+{
+    if(!widget || !conf) return NTG_ERR_INV_ARG;
+
+    if(ntg_xy_are_eql(widget->ro.lay_conf.cont_min_size, conf->cont_min_size) &&
+       ntg_xy_are_eql(widget->ro.lay_conf.cont_max_size, conf->cont_max_size) &&
+       ntg_xy_are_eql(widget->ro.lay_conf.cont_grow, conf->cont_grow))
+    {
+        return 0;
+    }
+
+    widget->ro.lay_conf = (*conf);
+    ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_FULL);
+
+    return 0;
+}
+
+int ntg_widget_set_z_index(ntg_widget* widget, int z_index)
 {
     if(!widget) return NTG_ERR_INV_ARG;
 
-    struct ntg_lay_opts opts_final = (opts ? (*opts) : NTG_LAY_OPTS_ZERO);
+    if(widget->ro.z_index == z_index)
+        return 0;
 
-    /* Get actual values */
-
-    ntg_xy min = ntg_xy_opt_get(
-            opts_final.min_cont_size,
-            ntg_xy_new(NTG_WIDGET_MINSZ_UNSET, NTG_WIDGET_MINSZ_UNSET));
-    ntg_xy max = ntg_xy_opt_get(
-            opts_final.max_cont_size,
-            ntg_xy_new(NTG_WIDGET_MAXSZ_UNSET, NTG_WIDGET_MAXSZ_UNSET));
-    ntg_xy grow = ntg_xy_opt_get(
-            opts_final.grow,
-            ntg_xy_new(NTG_WIDGET_GROW_UNSET, NTG_WIDGET_GROW_UNSET));
-    int z = ntg_int_opt_get(opts_final.z_index, NTG_WIDGET_ZIDX_UNSET);
-
-    uint8_t dirty = 0;
-
-    if(!ntg_xy_are_eql(widget->ro.user_min_size, min) ||
-        !ntg_xy_are_eql(widget->ro.user_max_size, max) ||
-        !ntg_xy_are_eql(widget->ro.user_grow, grow))
-    {
-        dirty |= NTG_WIDGET_DIRTY_FULL;
-    }
-
-    if(widget->ro.z_index != z)
-    {
-        dirty |= NTG__WIDGET_DIRTY_RENDER;
-    }
-
-    if(!dirty) return 0;
-
-    widget->ro.user_min_size = min;
-    widget->ro.user_max_size = max;
-    widget->ro.user_grow = grow;
-
-    ntg_widget_mark_dirty(widget, dirty);
+    widget->ro.z_index = z_index;
+    ntg_widget_mark_dirty(widget, NTG__WIDGET_DIRTY_RENDER);
 
     return 0;
 }
@@ -216,18 +215,16 @@ int ntg_widget_set_bdr_opts(ntg_widget* widget, const struct ntg_bdr_opts* opts)
     if(!opts_final.style)
         opts_final.style = &NTG_BORDER_STYLE_DEFAULT;
 
-    bool enable_chg = widget->ro.bdr_enable != opts_final.enable;
+    bool enable_chg = widget->ro.bdr_opts.enable != opts_final.enable;
     bool pref_size_chg = !ntg_insets_are_eql(
-            widget->ro.bdr_pref_size,
+            widget->ro.bdr_opts.pref_size,
             opts_final.pref_size);
-    bool style_chg = widget->ro.bdr_style != opts_final.style;
+    bool style_chg = widget->ro.bdr_opts.style != opts_final.style;
 
     if(!enable_chg && !pref_size_chg && !style_chg)
         return 0;
 
-    widget->ro.bdr_enable = opts_final.enable;
-    widget->ro.bdr_pref_size = opts_final.pref_size;
-    widget->ro.bdr_style = opts_final.style;
+    widget->ro.bdr_opts = opts_final;
 
     ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_FULL);
 
@@ -249,16 +246,15 @@ int ntg_widget_set_pad_opts(ntg_widget* widget, const struct ntg_pad_opts* opts)
 
     struct ntg_pad_opts opts_final = (opts ? (*opts) : NTG_PAD_OPTS_ZERO);
 
-    bool enable_chg = widget->ro.pad_enable != opts_final.enable;
+    bool enable_chg = widget->ro.pad_opts.enable != opts_final.enable;
     bool pref_size_chg = !ntg_insets_are_eql(
-            widget->ro.pad_pref_size,
+            widget->ro.pad_opts.pref_size,
             opts_final.pref_size);
 
     if(!enable_chg && !pref_size_chg)
         return 0;
 
-    widget->ro.pad_enable = opts_final.enable;
-    widget->ro.pad_pref_size = opts_final.pref_size;
+    widget->ro.pad_opts = opts_final;
 
     ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_FULL);
 
@@ -920,20 +916,10 @@ static void init_default(ntg_widget* widget)
     ntg_object_zero(widget);
 
     widget->ro.anchor_policy = &NTG_ANCHOR_POLICY_ROOT;
-    widget->ro.bdr_style = &NTG_BORDER_STYLE_DEFAULT;
+    widget->ro.bdr_opts.style = &NTG_BORDER_STYLE_DEFAULT;
 
-    /* Layout opts */
-
-    widget->ro.user_min_size = ntg_xy_new(
-            NTG_WIDGET_MINSZ_UNSET,
-            NTG_WIDGET_MINSZ_UNSET);
-    widget->ro.user_max_size = ntg_xy_new(
-            NTG_WIDGET_MAXSZ_UNSET,
-            NTG_WIDGET_MAXSZ_UNSET);
-    widget->ro.user_grow = ntg_xy_new(
-            NTG_WIDGET_GROW_UNSET,
-            NTG_WIDGET_GROW_UNSET);
-    widget->ro.z_index = 0;
+    ntg_lay_conf_init(&widget->ro.lay_conf);
+    widget->ro.z_index = NTG_WIDGET_ZIDX_UNSET;
     widget->ro.pos = NTG_WIDGET_POS_NODRAW; // Not drawn
 }
 
@@ -1325,8 +1311,8 @@ ntg_xy ntg_widget_get_min_size_cont(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
-    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_opts.pref_size;
 
     ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(pref_border_size) + ntg_insets_hsum(pref_padding_size),
@@ -1340,8 +1326,8 @@ ntg_xy ntg_widget_get_nat_size_cont(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
-    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_opts.pref_size;
 
     ntg_xy sub = ntg_xy_new(
         ntg_insets_hsum(pref_border_size) + ntg_insets_hsum(pref_padding_size),
@@ -1355,8 +1341,8 @@ ntg_xy ntg_widget_get_max_size_cont(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
-    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_opts.pref_size;
 
     ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(pref_border_size) + ntg_insets_hsum(pref_padding_size),
@@ -1376,8 +1362,8 @@ ntg_widget_get_measure_cont(const ntg_widget* widget, enum ntg_orient orient)
 
     struct ntg_widget_measure m = ntg_widget_get_measure(widget, orient);
 
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
-    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_opts.pref_size;
 
     size_t sub = ntg_insets_sum(pref_border_size, orient) +
             ntg_insets_sum(pref_padding_size, orient);
@@ -1417,7 +1403,7 @@ ntg_xy ntg_widget_get_min_size_pad(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
 
     ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(pref_border_size),
@@ -1430,7 +1416,7 @@ ntg_xy ntg_widget_get_nat_size_pad(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
 
     ntg_xy sub = ntg_xy_new(
         ntg_insets_hsum(pref_border_size),
@@ -1443,7 +1429,7 @@ ntg_xy ntg_widget_get_max_size_pad(const ntg_widget* widget)
 {
     if(!widget) return ntg_xy_new(0, 0);
 
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
 
     ntg_xy sub = ntg_xy_new(
             ntg_insets_hsum(pref_border_size),
@@ -1462,7 +1448,7 @@ ntg_widget_get_measure_pad(const ntg_widget* widget, enum ntg_orient orient)
 
     struct ntg_widget_measure m = ntg_widget_get_measure(widget, orient);
 
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
 
     size_t sub = ntg_insets_sum(pref_border_size, orient);
 
@@ -1534,18 +1520,18 @@ int ntg__widget_hmeasure(ntg_widget* widget, sarena* arena, uint32_t* relayout)
             return _status;
         }
 
-        size_t extra = ntg_insets_hsum(widget->ro.pad_pref_size) +
-                       ntg_insets_hsum(widget->ro.bdr_pref_size);
+        size_t extra = ntg_insets_hsum(widget->ro.pad_opts.pref_size) +
+                       ntg_insets_hsum(widget->ro.bdr_opts.pref_size);
 
         measure.min_size += extra;
         measure.nat_size += extra;
         measure.max_size += extra;
 
-        measure = incorporate_user_measure(
+        measure = incorporate_lay_conf_measure(
                 measure,
-                widget->ro.user_min_size.ro.x + extra,
-                widget->ro.user_max_size.ro.x + extra,
-                widget->ro.user_grow.ro.x);
+                widget->ro.lay_conf.cont_min_size.ro.x + extra,
+                widget->ro.lay_conf.cont_max_size.ro.x + extra,
+                widget->ro.lay_conf.cont_grow.ro.x);
 
         if(measure.min_size == extra)
             measure.min_size = 0;
@@ -1673,18 +1659,18 @@ int ntg__widget_vmeasure(ntg_widget* widget, sarena* arena, uint32_t* relayout)
             return _status;
         }
 
-        size_t extra = ntg_insets_vsum(widget->ro.pad_pref_size) +
-                ntg_insets_vsum(widget->ro.bdr_pref_size);
+        size_t extra = ntg_insets_vsum(widget->ro.pad_opts.pref_size) +
+                ntg_insets_vsum(widget->ro.bdr_opts.pref_size);
 
         measure.min_size += extra;
         measure.nat_size += extra;
         measure.max_size += extra;
 
-        measure = incorporate_user_measure(
+        measure = incorporate_lay_conf_measure(
                 measure,
-                widget->ro.user_min_size.ro.y + extra,
-                widget->ro.user_max_size.ro.y + extra,
-                widget->ro.user_grow.ro.y);
+                widget->ro.lay_conf.cont_min_size.ro.y + extra,
+                widget->ro.lay_conf.cont_max_size.ro.y + extra,
+                widget->ro.lay_conf.cont_grow.ro.y);
 
         if(measure.min_size == extra)
             measure.min_size = 0;
@@ -2190,10 +2176,10 @@ static bool set_vsize_helper(ntg_widget* widget, size_t size)
         widget->ro.size = ntg_xy_set_y(widget->ro.size, size);
 
         bool hborder_missing = 
-            (ntg_insets_hsum(widget->ro.bdr_pref_size) > 0) &&
+            (ntg_insets_hsum(widget->ro.bdr_opts.pref_size) > 0) &&
             (ntg_insets_hsum(widget->ro.border_size) == 0);
         bool hpadding_missing = 
-            (ntg_insets_hsum(widget->ro.pad_pref_size) > 0) &&
+            (ntg_insets_hsum(widget->ro.pad_opts.pref_size) > 0) &&
             (ntg_insets_hsum(widget->ro.padding_size) == 0);
 
         if(hborder_missing || hpadding_missing)
@@ -2229,31 +2215,30 @@ static inline bool set_pos_helper(ntg_widget* widget, ntg_xy pos)
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-static struct ntg_widget_measure incorporate_user_measure(
+static struct ntg_widget_measure incorporate_lay_conf_measure(
         struct ntg_widget_measure measure,
-        size_t user_min_size,
-        size_t user_max_size,
-        size_t user_grow)
+        size_t conf_min_size,
+        size_t conf_max_size,
+        size_t conf_grow)
 {
-    user_min_size = ntg_min2_size(user_min_size, user_max_size);
+    conf_min_size = ntg_min2_size(conf_min_size, conf_max_size);
  
-    if(user_max_size < measure.min_size)
-        measure.min_size = user_max_size;
+    if(conf_max_size < measure.min_size)
+        measure.min_size = conf_max_size;
     else
-        measure.min_size = ntg_max2_size(measure.min_size, user_min_size);
+        measure.min_size = ntg_max2_size(measure.min_size, conf_min_size);
  
-    if(user_min_size > measure.max_size)
-        measure.max_size = user_min_size;
+    if(conf_min_size > measure.max_size)
+        measure.max_size = conf_min_size;
     else
-        measure.max_size = ntg_min2_size(measure.max_size, user_max_size);
+        measure.max_size = ntg_min2_size(measure.max_size, conf_max_size);
  
     measure.nat_size = ntg_clamp_size(
             measure.min_size,
             measure.nat_size,
             measure.max_size);
  
-    measure.grow = (user_grow != NTG_WIDGET_GROW_UNSET) ?
-            user_grow : measure.grow;
+    measure.grow = conf_grow;
 
     return measure;
 }
@@ -2284,12 +2269,12 @@ static int calculate_border_hsize(
         ntg_widget* widget, size_t* out_w, size_t* out_e)
 {
     size_t we_pref_size[2];
-    we_pref_size[0] = widget->ro.bdr_pref_size.ro.w;
-    we_pref_size[1] = widget->ro.bdr_pref_size.ro.e;
+    we_pref_size[0] = widget->ro.bdr_opts.pref_size.ro.w;
+    we_pref_size[1] = widget->ro.bdr_opts.pref_size.ro.e;
     size_t _sizes[2] = {0, 0};
 
     int status = get_dcr_size(
-            widget->ro.bdr_enable,
+            widget->ro.bdr_opts.enable,
             we_pref_size,
             widget->ro.size.ro.x,
             ntg_widget_get_measure_pad(widget, NTG_ORIENT_H),
@@ -2304,7 +2289,7 @@ static int calculate_border_hsize(
 
 static int vconstrain_border(ntg_widget* widget, bool* out_repeat)
 {
-    ntg_insets pref_border_size = widget->ro.bdr_pref_size;
+    ntg_insets pref_border_size = widget->ro.bdr_opts.pref_size;
 
     bool hborder_missing = 
             (ntg_insets_hsum(pref_border_size) > 0) &&
@@ -2375,7 +2360,7 @@ static int vconstrain_border(ntg_widget* widget, bool* out_repeat)
 
 static int vconstrain_padding(ntg_widget* widget, bool* out_repeat)
 {
-    ntg_insets pref_padding_size = widget->ro.pad_pref_size;
+    ntg_insets pref_padding_size = widget->ro.pad_opts.pref_size;
 
     bool hpadding_missing = 
             (ntg_insets_hsum(pref_padding_size) > 0) &&
@@ -2447,12 +2432,12 @@ static int vconstrain_padding(ntg_widget* widget, bool* out_repeat)
 static int calculate_border_vsize(ntg_widget* widget, size_t* out_n, size_t* out_s)
 {
     size_t ns_pref_size[2];
-    ns_pref_size[0] = widget->ro.bdr_pref_size.ro.n;
-    ns_pref_size[1] = widget->ro.bdr_pref_size.ro.s;
+    ns_pref_size[0] = widget->ro.bdr_opts.pref_size.ro.n;
+    ns_pref_size[1] = widget->ro.bdr_opts.pref_size.ro.s;
     size_t _sizes[2] = {0, 0};
 
     int status = get_dcr_size(
-            widget->ro.bdr_enable,
+            widget->ro.bdr_opts.enable,
             ns_pref_size, 
             widget->ro.size.ro.y,
             ntg_widget_get_measure_pad(widget, NTG_ORIENT_V),
@@ -2467,12 +2452,12 @@ static int calculate_border_vsize(ntg_widget* widget, size_t* out_n, size_t* out
 static int calculate_padding_hsize(ntg_widget* widget, size_t* out_w, size_t* out_e)
 {
     size_t we_pref_size[2];
-    we_pref_size[0] = widget->ro.pad_pref_size.ro.w;
-    we_pref_size[1] = widget->ro.pad_pref_size.ro.e;
+    we_pref_size[0] = widget->ro.pad_opts.pref_size.ro.w;
+    we_pref_size[1] = widget->ro.pad_opts.pref_size.ro.e;
     size_t _sizes[2] = {0, 0};
 
     int status = get_dcr_size(
-            widget->ro.pad_enable,
+            widget->ro.pad_opts.enable,
             we_pref_size,  
             ntg_widget_get_size_pad(widget).ro.x,
             ntg_widget_get_measure_cont(widget, NTG_ORIENT_H),
@@ -2487,13 +2472,13 @@ static int calculate_padding_hsize(ntg_widget* widget, size_t* out_w, size_t* ou
 static int calculate_padding_vsize(ntg_widget* widget, size_t* out_n, size_t* out_s)
 {
     size_t ns_pref_size[2];
-    ns_pref_size[0] = widget->ro.pad_pref_size.ro.n;
-    ns_pref_size[1] = widget->ro.pad_pref_size.ro.s;
+    ns_pref_size[0] = widget->ro.pad_opts.pref_size.ro.n;
+    ns_pref_size[1] = widget->ro.pad_opts.pref_size.ro.s;
 
     size_t _sizes[2] = {0, 0};
 
      int status = get_dcr_size(
-             widget->ro.pad_enable,
+             widget->ro.pad_opts.enable,
              ns_pref_size,  
              ntg_widget_get_size_pad(widget).ro.y,
              ntg_widget_get_measure_cont(widget, NTG_ORIENT_V),
@@ -2564,7 +2549,7 @@ draw_unoptimized(ntg_widget* widget, sarena* arena)
     struct ntg_vcell bg = widget->priv.base_bg;
     ntg_insets bsize = widget->ro.border_size;
     ntg_insets psize = widget->ro.padding_size;
-    const struct ntg_border_style* border_style = widget->ro.bdr_style;
+    const struct ntg_border_style* border_style = widget->ro.bdr_opts.style;
 
     struct ntg_widget_tmp_draw content_drawing;
     int _status = tmp_draw_init(&content_drawing, content_size, bg, arena);

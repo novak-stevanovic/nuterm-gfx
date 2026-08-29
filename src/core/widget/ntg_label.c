@@ -3,16 +3,6 @@
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
-/* STATIC */
-/* -------------------------------------------------------------------------- */
-/* ========================================================================== */
-
-/* ========================================================================== */
-/* FUNCTIONS */
-/* ========================================================================== */
-
-/* ========================================================================== */
-/* -------------------------------------------------------------------------- */
 /* PUBLIC */
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
@@ -62,7 +52,13 @@ int ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 
     struct ntg_label_opts opts_final = (opts ? (*opts) : NTG_LABEL_OPTS_ZERO);
 
-    return ntg_text_set_opts(ntg_txt(label), &opts_final.text_opts);
+    int status = ntg_text_set_opts(ntg_txt(label), &opts_final.text_opts);
+    if(status != 0)
+        return status;
+
+    label->ro.opts = opts_final;
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -114,9 +110,6 @@ int ntg_label_init_inherit(
 
     ntg_object_zero(label);
 
-    // TODO:
-    ntg_widget_set_focusable(ntg_wgt(label), NTG_WIDGET_FOCUSABLE);
-    ntg_widget_set_clickable(ntg_wgt(label), NTG_WIDGET_CLICKABLE_CONT_PAD);
     return 0;
 }
 
@@ -194,4 +187,3 @@ void ntg_label_post_draw_fn(
     (void)out_drawing;
     (void)arena;
 }
-

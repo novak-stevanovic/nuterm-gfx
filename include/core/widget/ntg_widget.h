@@ -37,7 +37,7 @@ struct ntg_bdr_opts
 {
     enum ntg_widget_dcr_enable enable;
     ntg_insets pref_size;
-    const struct ntg_border_style* style;
+    const ntg_border_style* style;
 };
 
 static const struct ntg_bdr_opts NTG_BDR_OPTS_ZERO = {0};
@@ -54,18 +54,19 @@ static const struct ntg_pad_opts NTG_PAD_OPTS_ZERO = {0};
 /* LAYOUT */
 /* ------------------------------------------------------ */
 
-#define NTG_WIDGET_MINSZ_UNSET 0
-#define NTG_WIDGET_MAXSZ_UNSET NTG_SIZE_MAX
-#define NTG_WIDGET_GROW_UNSET NTG_SIZE_MAX
+#define NTG_WIDGET_MINSZ_UNSET NTG_XY_ZERO
+#define NTG_WIDGET_MAXSZ_UNSET NTG_XY_MAX
+#define NTG_WIDGET_GROW_UNSET ntg_xy_new(1, 1)
 #define NTG_WIDGET_ZIDX_UNSET 0
 
-struct ntg_lay_opts
+/* NOT ZERO-INITIALIZABLE */
+struct ntg_lay_conf
 {
-    ntg_xy_opt min_cont_size, max_cont_size, grow;
-    ntg_int_opt z_index;
+    struct ntg_xy cont_min_size, cont_max_size, cont_grow;
 };
 
-static const struct ntg_lay_opts NTG_LAY_OPTS_ZERO = {0};
+NTG_API void
+ntg_lay_conf_init(struct ntg_lay_conf* conf);
 
 /* ------------------------------------------------------ */
 /* EVENT */
@@ -149,15 +150,11 @@ struct ntg_widget
         ntg_widget_draw drawing;
         uint32_t dirty;
 
-        ntg_xy user_min_size, user_max_size, user_grow;
+        struct ntg_lay_conf lay_conf;
         int z_index;
 
-        enum ntg_widget_dcr_enable bdr_enable;
-        ntg_insets bdr_pref_size;
-        const struct ntg_border_style* bdr_style;
-
-        enum ntg_widget_dcr_enable pad_enable;
-        ntg_insets pad_pref_size;
+        struct ntg_bdr_opts bdr_opts;
+        struct ntg_pad_opts pad_opts;
 
         enum ntg_widget_click_mode clickable;
         enum ntg_widget_focus_mode focusable;
@@ -190,9 +187,14 @@ NTG_API bool
 ntg_widget_feed_mouse(ntg_widget* widget, const struct ntg_widget_mouse* event);
 
 /* ------------------------------------------------------ */
+/* LAYOUT */
+/* ------------------------------------------------------ */
 
 NTG_API int
-ntg_widget_set_lay_opts(ntg_widget* widget, const struct ntg_lay_opts* opts);
+ntg_widget_set_lay_conf(ntg_widget* widget, const struct ntg_lay_conf* conf);
+
+NTG_API int
+ntg_widget_set_z_index(ntg_widget* widget, int z_index);
 
 NTG_API int
 ntg_widget_set_bdr_opts(ntg_widget* widget, const struct ntg_bdr_opts* opts);

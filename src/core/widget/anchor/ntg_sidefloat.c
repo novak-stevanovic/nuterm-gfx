@@ -85,12 +85,7 @@ int ntg_sidefloat_set_opts(
         return 0;
     }
 
-    sflt->ro.opts.align = opts_final.align;
-    sflt->ro.opts.side = opts_final.side;
-    sflt->ro.opts.thresh = opts_final.thresh;
-    sflt->ro.opts.size_cap = opts_final.size_cap;
-    sflt->ro.opts.side_shrink[0] = opts_final.side_shrink[0];
-    sflt->ro.opts.side_shrink[1] = opts_final.side_shrink[1];
+    sflt->ro.opts = opts_final;
 
     return 0;
 }

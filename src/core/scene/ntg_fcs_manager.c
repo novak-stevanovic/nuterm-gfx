@@ -338,7 +338,7 @@ bool ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse)
 int ntg__fcs_manager_init(
         ntg_fcs_manager* fm,
         ntg_scene* scene,
-        ntg_fcs_scope_keys_opt init_scope_keys)
+        struct ntg_fcs_scope_keys init_scope_keys)
 {
     if(!fm || !scene) return NTG_ERR_INV_ARG;
 

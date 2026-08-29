@@ -82,10 +82,7 @@ int ntg_float_set_opts(ntg_float* flt, const struct ntg_float_opts* opts)
         return 0;
     }
 
-    flt->ro.opts.enable = opts_final.enable;
-    flt->ro.opts.shrink = opts_final.shrink;
-    flt->ro.opts.prim_align = opts_final.prim_align;
-    flt->ro.opts.sec_align = opts_final.sec_align;
+    flt->ro.opts = opts_final;
 
     return 0;
 }

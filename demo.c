@@ -158,8 +158,7 @@ bool fs1_dispatch_key_fn(ntg_fcs_scope* scope, struct nt_key key)
     }
     else if(nt_key_utf32_match(key, 'w'))
     {
-        struct ntg_label_opts north_opts;
-        ntg_label_get_opts(&north, &north_opts);
+        struct ntg_label_opts north_opts = north.ro.opts;
 
         north_opts.text_opts.wrap = (north_opts.text_opts.wrap + 1) % 3;
         ntg_label_set_opts(&north, &north_opts);
@@ -336,10 +335,10 @@ void init_center()
     ntg_garbage_add_obj(garbage, &c_cb2);
     ntg_obj_set_name(&c_cb2, "c_cb2");
 
-    struct ntg_lay_opts center_lay_opts = {
-        .min_cont_size = ntg_xy_opt_new(ntg_xy_new(0, 15))
-    };
-    ntg_widget_set_lay_opts(ntg_wgt(&center), &center_lay_opts);
+    struct ntg_lay_conf center_lay_conf;
+    ntg_lay_conf_init(&center_lay_conf);
+    center_lay_conf.cont_min_size = ntg_xy_new(0, 15);
+    ntg_widget_set_lay_conf(ntg_wgt(&center), &center_lay_conf);
     
     // CONNECT
 
@@ -486,14 +485,12 @@ void init_flt_button()
     int status;
 
     struct ntg_button_opts opts = {
-        .text_opts = {
-            .wrap = NTG_TEXT_WRAP_WORD,
-            .bg_mode = NTG_TEXT_BG_FLT,
-            .focused_gfx = {
-                .fg = nt_color_new_auto(255, 165, 0),
-                .style = NT_STYLE_BOLD,
-                .bg = nt_color_new_auto(255, 255, 255)
-            }
+        .wrap = NTG_TEXT_WRAP_WORD,
+        .bg_mode = NTG_TEXT_BG_FLT,
+        .focused_gfx = {
+            .fg = nt_color_new_auto(255, 165, 0),
+            .style = NT_STYLE_BOLD,
+            .bg = nt_color_new_auto(255, 255, 255)
         }
     };
 
@@ -504,10 +501,7 @@ void init_flt_button()
 
     status = ntg_button_set_text_unsafe(&flt_button, "Floating button example");
 
-    struct ntg_lay_opts lay_opts = {
-        .z_index = ntg_int_opt_new(1)
-    };
-    ntg_widget_set_lay_opts(ntg_wgt(&flt_button), &lay_opts);
+    ntg_widget_set_z_index(ntg_wgt(&flt_button), 1);
 
     struct ntg_pad_opts pad_opts = {
         .pref_size = ntg_insets_new(2, 2, 2, 2)
@@ -550,10 +544,7 @@ void init_sflt_label()
             sflt_on_mouse_fn,
             &sflt_mouse_binding);
 
-    struct ntg_lay_opts lay_opts = {
-        .z_index = ntg_int_opt_new(2)
-    };
-    ntg_widget_set_lay_opts(ntg_wgt(&sflt_label), &lay_opts);
+    ntg_widget_set_z_index(ntg_wgt(&sflt_label), 2);
 
     status = ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat");
 

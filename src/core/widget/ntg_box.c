@@ -80,11 +80,7 @@ int ntg_box_set_opts(ntg_box* box, const struct ntg_box_opts* opts)
         return 0;
     }
 
-    box->ro.opts.orient = opts_final.orient;
-    box->ro.opts.prim_align = opts_final.prim_align;
-    box->ro.opts.sec_align = opts_final.sec_align;
-    box->ro.opts.spacing = opts_final.spacing;
-    box->ro.opts.bg = opts_final.bg;
+    box->ro.opts = opts_final;
 
     ntg_widget_set_base_bg(ntg_wgt(box), opts_final.bg);
     ntg_widget_mark_dirty(ntg_wgt(box), NTG_WIDGET_DIRTY_FULL);

@@ -41,7 +41,7 @@ enum ntg_text_bg_mode
 struct ntg_text_opts
 {
     enum ntg_orient orient;
-    struct nt_gfx gfx, focused_gfx;
+    struct nt_gfx gfx;
     enum ntg_text_wrap wrap;
     enum ntg_text_line_mode line_mode;
     enum ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
@@ -82,19 +82,8 @@ struct ntg_text
 
     struct
     {
-        struct 
-        {
-            enum ntg_orient orient;
-            struct nt_gfx gfx, focused_gfx;
-            enum ntg_text_wrap wrap;
-            enum ntg_text_line_mode line_mode;
-            enum ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
-            enum ntg_align sec_align;
-            enum ntg_text_bg_mode bg_mode;
-            size_t indent;
-        } opts;
+        struct ntg_text_opts opts;
 
-        struct nt_gfx gfx;
         ntg_xy scroll;
     } ro;
 };

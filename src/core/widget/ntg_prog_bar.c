@@ -84,8 +84,7 @@ int ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts
     
     if(!dirty) return 0;
 
-    prog_bar->ro.opts.orient = opts_final.orient;
-    prog_bar->ro.opts.style = opts_final.style;
+    prog_bar->ro.opts = opts_final;
 
     ntg_widget_mark_dirty((ntg_widget*)prog_bar, dirty);
 
