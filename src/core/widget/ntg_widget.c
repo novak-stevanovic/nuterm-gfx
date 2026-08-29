@@ -142,10 +142,10 @@ bool ntg_widget_feed_mouse(ntg_widget* widget, const struct ntg_widget_mouse* ev
 
     if(!event->from_keybind)
     {
-        bool cont_pad_clickable = NTG_WIDGET_CLICKABLE_CONT_PAD;
+        bool cont_clickable = NTG_WIDGET_CLKABLE_CONT;
         bool cont_pad_click = (res.part == NTG_WIDGET_HIT_CONT) ||
                               (res.part == NTG_WIDGET_HIT_PAD);
-        if(!(cont_pad_clickable && cont_pad_click))
+        if(!(cont_clickable && cont_pad_click))
             return false;
     }
 
@@ -1062,11 +1062,11 @@ int ntg_widget_set_base_bg(ntg_widget* widget, struct ntg_vcell base_bg)
     return 0;
 }
 
-int ntg_widget_set_focusable(ntg_widget* widget, enum ntg_widget_focus_mode mode)
+int ntg_widget_set_focusable(ntg_widget* widget, enum ntg_widget_fcs_mode mode)
 {
     if(!widget) return NTG_ERR_INV_ARG;
 
-    if(widget->ro.focusable == NTG_WIDGET_FOCUSABLE)
+    if(widget->ro.focusable == NTG_WIDGET_FCSABLE)
     {
         const ntg_scene* scene = ntg_widget_get_scene(widget);
         if(scene)
@@ -1082,7 +1082,7 @@ int ntg_widget_set_focusable(ntg_widget* widget, enum ntg_widget_focus_mode mode
     return 0;
 }
 
-int ntg_widget_set_clickable(ntg_widget* widget, enum ntg_widget_click_mode mode)
+int ntg_widget_set_clickable(ntg_widget* widget, enum ntg_widget_clk_mode mode)
 {
     if(!widget) return NTG_ERR_INV_ARG;
 

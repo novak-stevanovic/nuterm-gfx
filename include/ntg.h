@@ -20,7 +20,7 @@
 #include "core/widget/border/ntg_border_style.h"
 #include "core/widget/border/ntg_border_9x.h"
 #include "core/widget/ntg_prog_bar.h"
-#include "core/widget/ntg_text.h"
+#include "core/widget/ntg_text_wgt.h"
 #include "core/widget/ntg_label.h"
 #include "core/widget/ntg_button.h"
 #include "core/widget/ntg_clr_block.h"

@@ -33,8 +33,8 @@
 #define ntg_cb(cb_ptr) ((ntg_clr_block*)(cb_ptr))
 #define ntg_cb_vtbl(cb_ptr) ((struct ntg_clr_block_vtable*)((ntg_obj(cb_ptr))->ro.vtable))
 
-#define ntg_txt(txt_ptr) ((ntg_text*)(txt_ptr))
-#define ntg_txt_vtbl(txt_ptr) ((struct ntg_text_vtable*)((ntg_obj(txt_ptr))->ro.vtable))
+#define ntg_txt(txt_ptr) ((ntg_text_wgt*)(txt_ptr))
+#define ntg_txt_vtbl(txt_ptr) ((struct ntg_text_wgt_vtable*)((ntg_obj(txt_ptr))->ro.vtable))
 
 #define ntg_lbl(lbl_ptr) ((ntg_label*)(lbl_ptr))
 #define ntg_lbl_vtbl(lbl_ptr) ((struct ntg_label_vtable*)((ntg_obj(lbl_ptr))->ro.vtable))

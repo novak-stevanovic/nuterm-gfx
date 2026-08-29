@@ -124,7 +124,7 @@ static size_t sidefloat_constrain_fn(
     size_t base_size = ctx->base_size;
     if(base_size == 0) return 0;
 
-    bool capped = (sflt->ro.opts.size_cap == NTG_SIDEFLOAT_SIZE_CAP_ANCHOR);
+    bool capped = (sflt->ro.opts.size_cap == NTG_SIDEFLOAT_SZCAP_ANCH);
     size_t side_shrink = sflt->ro.opts.side_shrink[0] + sflt->ro.opts.side_shrink[1];
     size_t available_space;
 
@@ -163,7 +163,7 @@ static size_t sidefloat_constrain_fn(
         case NTG_SIDEFLOAT_THRESH_NAT:
             thresh_size = root_measure.nat_size;
             break;
-        case NTG_SIDEFLOAT_THRESH_ALWAYS:
+        case NTG_SIDEFLOAT_THRESH_ALW:
             thresh_size = 0;
             break;
         default:

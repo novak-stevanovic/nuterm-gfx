@@ -1,5 +1,5 @@
-#ifndef NTG_TEXT_H
-#define NTG_TEXT_H
+#ifndef NTG_TEXT_WGT_H
+#define NTG_TEXT_WGT_H
 
 #include "shared/ntg_shared.h"
 #include "core/widget/ntg_widget.h"
@@ -38,7 +38,7 @@ enum ntg_text_bg_mode
 
 /* ------------------------------------------------------ */
 
-struct ntg_text_opts
+struct ntg_text_wgt_opts
 {
     enum ntg_orient orient;
 
@@ -54,23 +54,23 @@ struct ntg_text_opts
     size_t indent;
 };
 
-static const struct ntg_text_opts NTG_TEXT_OPTS_ZERO = {0};
+static const struct ntg_text_wgt_opts NTG_TEXT_WGT_OPTS_ZERO = {0};
 
 /* ------------------------------------------------------ */
 
-struct ntg_text_vtable
+struct ntg_text_wgt_vtable
 {
     struct ntg_widget_vtable base;
 
     void (*post_draw_fn)(
-        const ntg_text* text,
+        const ntg_text_wgt* text_wgt,
         ntg_widget_tmp_draw* out_drawing,
         sarena* arena);
 };
 
 /* ------------------------------------------------------ */
 
-struct ntg_text
+struct ntg_text_wgt
 {
     ntg_widget _base;
 
@@ -85,7 +85,7 @@ struct ntg_text
 
     struct
     {
-        struct ntg_text_opts opts;
+        struct ntg_text_wgt_opts opts;
 
         ntg_xy scroll;
     } ro;
@@ -100,72 +100,72 @@ struct ntg_text
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_text_set_opts(ntg_text* text_obj, const struct ntg_text_opts* opts);
+ntg_text_wgt_set_opts(ntg_text_wgt* text_wgt, const struct ntg_text_wgt_opts* opts);
 
 /* ------------------------------------------------------ */
 /* TEXT */
 /* ------------------------------------------------------ */
 
 NTG_API struct ntg_str_view
-ntg_text_get_text(const ntg_text* text_obj);
+ntg_text_wgt_get_text(const ntg_text_wgt* text_wgt);
 
 NTG_API int
-ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len);
+ntg_text_wgt_set_text(ntg_text_wgt* text_wgt, const char* text, size_t len);
 
 NTG_API int
-ntg_text_set_text_cstr(ntg_text* text_obj, const char* text);
+ntg_text_wgt_set_text_cstr(ntg_text_wgt* text_wgt, const char* text);
 
 NTG_API int
-ntg_text_add_text(ntg_text* text_obj, const char* text, size_t len);
+ntg_text_wgt_add_text(ntg_text_wgt* text_wgt, const char* text, size_t len);
 
 NTG_API int
-ntg_text_add_text_cstr(ntg_text* text_obj, const char* text);
+ntg_text_wgt_add_text_cstr(ntg_text_wgt* text_wgt, const char* text);
 
 NTG_API int
-ntg_text_rm_text(ntg_text* text_obj, size_t count_utf32);
+ntg_text_wgt_rm_text(ntg_text_wgt* text_wgt, size_t count_utf32);
 
 /* ------------------------------------------------------ */
 /* SCROLL */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_text_set_scroll(ntg_text* text_obj, ntg_xy scroll);
+ntg_text_wgt_set_scroll(ntg_text_wgt* text_wgt, ntg_xy scroll);
 
 NTG_API int
-ntg_text_scroll(ntg_text* text_obj, ntg_dxy scroll_diff);
+ntg_text_wgt_scroll(ntg_text_wgt* text_wgt, ntg_dxy scroll_diff);
 
 /* ------------------------------------------------------ */
 /* INIT/DEINIT */
 /* ------------------------------------------------------ */
 
 NTG_API int
-ntg_text_init_inherit(
-        ntg_text* text_obj,
-        const struct ntg_text_vtable* vtable,
+ntg_text_wgt_init_inherit(
+        ntg_text_wgt* text_wgt,
+        const struct ntg_text_wgt_vtable* vtable,
         const ntg_type* type,
         struct ntg_widget_layout_dt* layout_dt);
 
 NTG_API int
-ntg_text_deinit(ntg_text* text_obj);
+ntg_text_wgt_deinit(ntg_text_wgt* text_wgt);
 
 /* ------------------------------------------------------ */
 /* IMPLEMENT */
 /* ------------------------------------------------------ */
 
-NTG_API extern const struct ntg_text_vtable NTG_TEXT_VTABLE;
+NTG_API extern const struct ntg_text_wgt_vtable NTG_TEXT_WGT_VTABLE;
 
 NTG_API void
-ntg_text_deinit_fn(ntg_object* _text_obj);
+ntg_text_wgt_deinit_fn(ntg_object* _text_wgt);
 
 NTG_API int
-ntg_text_layout_prepare_fn(
+ntg_text_wgt_layout_prepare_fn(
         ntg_widget* widget, 
         struct ntg_widget_layout_dt* layout_dt,
         sarena* arena);
 
 NTG_API int
-ntg_text_measure_fn(
-        const ntg_widget* _text_obj,
+ntg_text_wgt_measure_fn(
+        const ntg_widget* _text_wgt,
         struct ntg_widget_layout_dt* layout_dt,
         enum ntg_orient orient,
         sarena* arena,
@@ -173,19 +173,19 @@ ntg_text_measure_fn(
         struct ntg_widget_measure* out_measure);
 
 NTG_API int
-ntg_text_draw_fn(
-        const ntg_widget* _text_obj,
+ntg_text_wgt_draw_fn(
+        const ntg_widget* _text_wgt,
         struct ntg_widget_layout_dt* layout_dt,
         ntg_widget_tmp_draw* out_drawing,
         sarena* arena);
 
 NTG_API void
-ntg_text_cont_resize_fn(ntg_widget* widget, sarena* arena);
+ntg_text_wgt_cont_resize_fn(ntg_widget* widget, sarena* arena);
 
 NTG_API void
-ntg_text_focus_fn(ntg_widget* _text_obj);
+ntg_text_wgt_focus_fn(ntg_widget* _text_wgt);
 
 NTG_API void
-ntg_text_unfocus_fn(ntg_widget* _text_obj);
+ntg_text_wgt_unfocus_fn(ntg_widget* _text_wgt);
 
-#endif // NTG_TEXT_H
+#endif // NTG_TEXT_WGT_H

@@ -89,17 +89,17 @@ struct ntg_widget_mouse
 /* FOCUSABLE/CLICKABLE */
 /* ------------------------------------------------------ */
 
-enum ntg_widget_focus_mode
+enum ntg_widget_fcs_mode
 {
-    NTG_WIDGET_UNFOCUSABLE = 0,
-    NTG_WIDGET_FOCUSABLE
+    NTG_WIDGET_UNFCSABLE = 0,
+    NTG_WIDGET_FCSABLE
 };
 
-enum ntg_widget_click_mode
+enum ntg_widget_clk_mode
 {
-    NTG_WIDGET_UNCLICKABLE = 0,
-    NTG_WIDGET_CLICKABLE_CONT_PAD,
-    NTG_WIDGET_CLICKABLE_BDR
+    NTG_WIDGET_UNCLKABLE = 0,
+    NTG_WIDGET_CLKABLE_CONT,
+    NTG_WIDGET_CLKABLE_BDR
 };
 
 /* ------------------------------------------------------ */
@@ -156,8 +156,8 @@ struct ntg_widget
         struct ntg_bdr_opts bdr_opts;
         struct ntg_pad_opts pad_opts;
 
-        enum ntg_widget_click_mode clickable;
-        enum ntg_widget_focus_mode focusable;
+        enum ntg_widget_clk_mode clickable;
+        enum ntg_widget_fcs_mode focusable;
 
     } ro;
 
@@ -511,10 +511,10 @@ NTG_API int
 ntg_widget_set_base_bg(ntg_widget* widget, struct ntg_vcell base_bg);
 
 NTG_API int
-ntg_widget_set_focusable(ntg_widget* widget, enum ntg_widget_focus_mode mode);
+ntg_widget_set_focusable(ntg_widget* widget, enum ntg_widget_fcs_mode mode);
 
 NTG_API int
-ntg_widget_set_clickable(ntg_widget* widget, enum ntg_widget_click_mode mode);
+ntg_widget_set_clickable(ntg_widget* widget, enum ntg_widget_clk_mode mode);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

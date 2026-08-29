@@ -17,7 +17,7 @@ get_effective_gfx(const ntg_button* button)
 
 static void update_text_gfx(ntg_button* button)
 {
-    struct ntg_text_opts text_opts = {
+    struct ntg_text_wgt_opts text_opts = {
         .orient = ntg_txt(button)->ro.opts.orient,
         .gfx = get_effective_gfx(button),
         .wrap = ntg_txt(button)->ro.opts.wrap,
@@ -28,7 +28,7 @@ static void update_text_gfx(ntg_button* button)
         .indent = ntg_txt(button)->ro.opts.indent
     };
 
-    ntg_text_set_opts(ntg_txt(button), &text_opts);
+    ntg_text_wgt_set_opts(ntg_txt(button), &text_opts);
 }
 
 /* ========================================================================== */
@@ -70,7 +70,7 @@ int ntg_button_deinit(ntg_button* button)
     if(!button) return NTG_ERR_INV_ARG;
 
     ntg_object_zero(button);
-    ntg_text_deinit(ntg_txt(button));
+    ntg_text_wgt_deinit(ntg_txt(button));
 
     return 0;
 }
@@ -116,7 +116,7 @@ int ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
     button->ro.disabled_gfx = opts_final.disabled_gfx;
     button->ro.focused_gfx = opts_final.focused_gfx;
 
-    struct ntg_text_opts text_opts = {
+    struct ntg_text_wgt_opts text_opts = {
         .orient = opts_final.orient,
         .gfx = get_effective_gfx(button),
         .wrap = opts_final.wrap,
@@ -127,7 +127,7 @@ int ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
         .indent = opts_final.indent
     };
     
-    ntg_text_set_opts(ntg_txt(button), &text_opts);
+    ntg_text_wgt_set_opts(ntg_txt(button), &text_opts);
 
     return 0;
 }
@@ -151,8 +151,8 @@ int ntg_button_enable(ntg_button* button)
 
     if(button->ro.enabled) return 0;
 
-    ntg_widget_set_focusable(ntg_wgt(button), NTG_WIDGET_FOCUSABLE);
-    ntg_widget_set_clickable(ntg_wgt(button), NTG_WIDGET_CLICKABLE_CONT_PAD);
+    ntg_widget_set_focusable(ntg_wgt(button), NTG_WIDGET_FCSABLE);
+    ntg_widget_set_clickable(ntg_wgt(button), NTG_WIDGET_CLKABLE_CONT);
 
     button->ro.enabled = true;
 
@@ -173,8 +173,8 @@ int ntg_button_disable(ntg_button* button)
 
     if(!button->ro.enabled) return 0;
 
-    ntg_widget_set_focusable(ntg_wgt(button), NTG_WIDGET_UNFOCUSABLE);
-    ntg_widget_set_clickable(ntg_wgt(button), NTG_WIDGET_UNCLICKABLE);
+    ntg_widget_set_focusable(ntg_wgt(button), NTG_WIDGET_UNFCSABLE);
+    ntg_widget_set_clickable(ntg_wgt(button), NTG_WIDGET_UNCLKABLE);
 
     button->ro.enabled = false;
 
@@ -195,12 +195,12 @@ int ntg_button_disable(ntg_button* button)
 
 struct ntg_str_view ntg_button_get_text(const struct ntg_button* button)
 {
-    return ntg_text_get_text(ntg_txt(button));
+    return ntg_text_wgt_get_text(ntg_txt(button));
 }
 
 int ntg_button_set_text(ntg_button* button, const char* text, size_t len)
 {
-    return ntg_text_set_text(ntg_txt(button), text, len);
+    return ntg_text_wgt_set_text(ntg_txt(button), text, len);
 }
 
 int ntg_button_set_text_cstr(ntg_button* button, const char* text)
@@ -208,7 +208,7 @@ int ntg_button_set_text_cstr(ntg_button* button, const char* text)
     if(!button)
         return NTG_ERR_INV_ARG;
 
-    return ntg_text_set_text_cstr(ntg_txt(button), text);
+    return ntg_text_wgt_set_text_cstr(ntg_txt(button), text);
 }
 
 /* ========================================================================== */
@@ -233,7 +233,7 @@ int ntg_button_init_inherit(
     if(!ntg_type_instanceof(type, &NTG_TYPE_BUTTON))
         return NTG_ERR_BAD_TYPE;
 
-    int status = ntg_text_init_inherit(ntg_txt(button), &vtable->base, type, layout_dt);
+    int status = ntg_text_wgt_init_inherit(ntg_txt(button), &vtable->base, type, layout_dt);
     NTG_POST_INHERIT_CHECK_VTABLE(status);
 
     ntg_object_zero(button);
@@ -254,7 +254,7 @@ const struct ntg_button_vtable NTG_BUTTON_VTABLE = {
             .measure_fn = ntg_button_measure_fn,
             .draw_fn = ntg_button_draw_fn,
             .base.deinit_fn = ntg_button_deinit_fn,
-            .resize_cont_fn = ntg_text_cont_resize_fn,
+            .resize_cont_fn = ntg_text_wgt_cont_resize_fn,
             .handle_mouse_fn = ntg_button_process_mouse_fn,
             .focus_fn = ntg_button_focus_fn,
             .unfocus_fn = ntg_button_unfocus_fn
@@ -268,7 +268,7 @@ int ntg_button_layout_prepare_fn(
         struct ntg_widget_layout_dt* layout_dt,
         sarena* arena)
 {
-    return ntg_text_layout_prepare_fn(widget, layout_dt, arena);
+    return ntg_text_wgt_layout_prepare_fn(widget, layout_dt, arena);
 }
 
 int ntg_button_measure_fn(
@@ -279,7 +279,7 @@ int ntg_button_measure_fn(
         uint32_t* relayout,
         struct ntg_widget_measure* out_measure)
 {
-    return ntg_text_measure_fn(_button, layout_dt, orient,
+    return ntg_text_wgt_measure_fn(_button, layout_dt, orient,
                                arena, relayout, out_measure);
 }
 
@@ -291,7 +291,7 @@ int ntg_button_draw_fn(
 {
     if(ntg_xy_is_zero_any(ntg_widget_get_size_cont(_button))) return 0;
 
-    return ntg_text_draw_fn(_button, layout_dt, out_drawing, arena);
+    return ntg_text_wgt_draw_fn(_button, layout_dt, out_drawing, arena);
 }
 
 void ntg_button_deinit_fn(ntg_object* _button)
@@ -313,20 +313,20 @@ bool ntg_button_process_mouse_fn(ntg_widget* _button, const struct ntg_widget_mo
 
 void ntg_button_focus_fn(ntg_widget* _button)
 {
-    ntg_text_focus_fn(_button);
+    ntg_text_wgt_focus_fn(_button);
 
     update_text_gfx(ntg_btn(_button));
 }
 
 void ntg_button_unfocus_fn(ntg_widget* _button)
 {
-    ntg_text_unfocus_fn(_button);
+    ntg_text_wgt_unfocus_fn(_button);
 
     update_text_gfx(ntg_btn(_button));
 }
 
 void ntg_button_post_draw_fn(
-        const ntg_text* _button,
+        const ntg_text_wgt* _button,
         ntg_widget_tmp_draw* out_drawing,
         sarena* arena)
 {

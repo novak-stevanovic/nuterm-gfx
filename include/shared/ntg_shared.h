@@ -86,7 +86,7 @@ typedef struct ntg_widget_tmp_draw ntg_widget_tmp_draw;
 
 typedef struct ntg_widget_vec ntg_widget_vec;
 
-typedef struct ntg_text ntg_text;
+typedef struct ntg_text_wgt ntg_text_wgt;
 typedef struct ntg_label ntg_label;
 typedef struct ntg_button ntg_button;
 typedef struct ntg_clr_block ntg_clr_block;

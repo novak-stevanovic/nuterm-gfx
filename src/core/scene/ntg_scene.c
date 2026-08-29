@@ -325,7 +325,7 @@ int ntg_scene_init_inherit(
         return NTG_ERR_ALLOC_FAIL;
     }
 
-    status = ntg__fcs_manager_init(scene->ro.fm, scene, opts_final.init_scope_keys);
+    status = ntg__fcs_manager_init(scene->ro.fm, scene, opts_final.init_keys);
     if(status != 0)
     {
         free(scene->ro.fm);

@@ -88,7 +88,7 @@ ntg_fcs_manager_feed_mouse(ntg_fcs_manager* fm, nt_mouse mouse);
 int ntg__fcs_manager_init(
         ntg_fcs_manager* fm,
         ntg_scene* scene,
-        struct ntg_fcs_scope_keys init_scope_keys);
+        struct ntg_fcs_scope_keys init_keys);
 
 void ntg__fcs_manager_deinit(ntg_fcs_manager* fm);
 

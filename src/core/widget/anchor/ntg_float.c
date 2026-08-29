@@ -125,16 +125,16 @@ static size_t float_constrain_fn(
         case NTG_FLOAT_ENABLE_MIN:
             thresh = root_measure.min_size;
             break;
-        case NTG_FLOAT_ENABLE_BASE_MIN:
+        case NTG_FLOAT_ENABLE_MIN_BASE:
             thresh = ctx->base_min_size;
             break;
         case NTG_FLOAT_ENABLE_NAT:
             thresh = root_measure.nat_size;
             break;
-        case NTG_FLOAT_ENABLE_BASE_NAT:
+        case NTG_FLOAT_ENABLE_NAT_BASE:
             thresh = ctx->base_nat_size;
             break;
-        case NTG_FLOAT_ENABLE_ALWAYS:
+        case NTG_FLOAT_ENABLE_ALW:
             thresh = 0;
             break;
         default:

@@ -2,7 +2,7 @@
 #define NTG_LABEL_H
 
 #include "shared/ntg_shared.h"
-#include "core/widget/ntg_text.h"
+#include "core/widget/ntg_text_wgt.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -34,7 +34,7 @@ static const struct ntg_label_opts NTG_LABEL_OPTS_ZERO = {0};
 
 struct ntg_label
 {
-    ntg_text _base;
+    ntg_text_wgt _base;
 };
 
 /* ========================================================================== */
@@ -86,7 +86,7 @@ ntg_label_set_text_cstr(ntg_label* label, const char* text);
 
 struct ntg_label_vtable
 {
-    struct ntg_text_vtable base;
+    struct ntg_text_wgt_vtable base;
 };
 
 /* ========================================================================== */
@@ -133,7 +133,7 @@ ntg_label_deinit_fn(ntg_object* _label);
 
 NTG_API void
 ntg_label_post_draw_fn(
-        const ntg_text* _label,
+        const ntg_text_wgt* _label,
         ntg_widget_tmp_draw* out_drawing,
         sarena* arena);
 

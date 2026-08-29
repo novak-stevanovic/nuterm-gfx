@@ -2,7 +2,7 @@
 #define NTG_BUTTON_H
 
 #include "shared/ntg_shared.h"
-#include "core/widget/ntg_text.h"
+#include "core/widget/ntg_text_wgt.h"
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
@@ -37,7 +37,7 @@ static const struct ntg_button_opts NTG_BUTTON_OPTS_ZERO = {0};
 
 struct ntg_button
 {
-    ntg_text _base;
+    ntg_text_wgt _base;
 
     struct
     {
@@ -116,7 +116,7 @@ ntg_button_set_text_cstr(ntg_button* button, const char* text);
 
 struct ntg_button_vtable
 {
-    struct ntg_text_vtable base;
+    struct ntg_text_wgt_vtable base;
 
     void (*enable_fn)(ntg_button* button);
     void (*disable_fn)(ntg_button* button);
@@ -175,7 +175,7 @@ ntg_button_unfocus_fn(ntg_widget* _button);
 
 NTG_API void
 ntg_button_post_draw_fn(
-        const ntg_text* _button,
+        const ntg_text_wgt* _button,
         ntg_widget_tmp_draw* out_drawing,
         sarena* arena);
 

@@ -35,19 +35,19 @@ const ntg_type NTG_TYPE_PANEL = {
     .ro.parent = &NTG_TYPE_WIDGET
 };
 
-const ntg_type NTG_TYPE_TEXT = {
-    .ro.size = sizeof(ntg_text),
+const ntg_type NTG_TYPE_TEXT_WGT = {
+    .ro.size = sizeof(ntg_text_wgt),
     .ro.parent = &NTG_TYPE_WIDGET
 };
 
 const ntg_type NTG_TYPE_LABEL = {
     .ro.size = sizeof(ntg_label),
-    .ro.parent = &NTG_TYPE_TEXT
+    .ro.parent = &NTG_TYPE_TEXT_WGT
 };
 
 const ntg_type NTG_TYPE_BUTTON = {
     .ro.size = sizeof(ntg_button),
-    .ro.parent = &NTG_TYPE_TEXT
+    .ro.parent = &NTG_TYPE_TEXT_WGT
 };
 
 const ntg_type NTG_TYPE_CLR_BLOCK = {

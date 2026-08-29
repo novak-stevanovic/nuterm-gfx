@@ -152,22 +152,22 @@ bool fs1_dispatch_key_fn(ntg_fcs_scope* scope, struct nt_key key)
 {
     if(nt_key_esc_match(key, NT_ESC_KEY_ARR_UP))
     {
-        ntg_text_scroll(ntg_txt(&north), ntg_dxy(0, -1));
+        ntg_text_wgt_scroll(ntg_txt(&north), ntg_dxy(0, -1));
         return true;
     }
     else if(nt_key_esc_match(key, NT_ESC_KEY_ARR_RIGHT))
     {
-        ntg_text_scroll(ntg_txt(&north), ntg_dxy(1, 0));
+        ntg_text_wgt_scroll(ntg_txt(&north), ntg_dxy(1, 0));
         return true;
     }
     else if(nt_key_esc_match(key, NT_ESC_KEY_ARR_DOWN))
     {
-        ntg_text_scroll(ntg_txt(&north), ntg_dxy(0, 1));
+        ntg_text_wgt_scroll(ntg_txt(&north), ntg_dxy(0, 1));
         return true;
     }
     else if(nt_key_esc_match(key, NT_ESC_KEY_ARR_LEFT))
     {
-        ntg_text_scroll(ntg_txt(&north), ntg_dxy(-1, 0));
+        ntg_text_wgt_scroll(ntg_txt(&north), ntg_dxy(-1, 0));
         return true;
     }
     else if(nt_key_utf32_match(key, 'w'))
@@ -198,7 +198,7 @@ bool fs1_dispatch_mouse_fn(
     else if(mouse.type == NT_MOUSE_SCROLL_UP)
         curr_scroll = ntg_xy_sub_y(curr_scroll, 1);
 
-    ntg_text_set_scroll(ntg_txt(&north), curr_scroll);
+    ntg_text_wgt_set_scroll(ntg_txt(&north), curr_scroll);
 
     return true;
 }
@@ -559,7 +559,7 @@ void init_sflt_label()
 
     status = ntg_label_set_text_cstr(&sflt_label, "Floating label example - Sidefloat");
 
-    ntg_widget_set_clickable(ntg_wgt(&sflt_label), NTG_WIDGET_CLICKABLE_BDR);
+    ntg_widget_set_clickable(ntg_wgt(&sflt_label), NTG_WIDGET_CLKABLE_BDR);
 }
 
 void init_root()
@@ -596,7 +596,7 @@ void init_ap()
     struct ntg_float_opts flt_opts = {
         .prim_align = NTG_ALIGN_2,
         .sec_align = NTG_ALIGN_2,
-        .enable = NTG_FLOAT_ENABLE_ALWAYS
+        .enable = NTG_FLOAT_ENABLE_ALW
     };
 
     status = ntg_float_init(&flt_ap, &flt_opts);
@@ -607,7 +607,7 @@ void init_ap()
         .align = NTG_ALIGN_2,
         .side = NTG_DIR_S,
         .side_shrink = {3, 3},
-        .size_cap = NTG_SIDEFLOAT_SIZE_CAP_ANCHOR,
+        .size_cap = NTG_SIDEFLOAT_SZCAP_ANCH,
         .thresh = NTG_SIDEFLOAT_THRESH_MIN
     };
 

@@ -18,13 +18,13 @@ enum ntg_sidefloat_thresh
 {
     NTG_SIDEFLOAT_THRESH_MIN = 0,
     NTG_SIDEFLOAT_THRESH_NAT,
-    NTG_SIDEFLOAT_THRESH_ALWAYS,
+    NTG_SIDEFLOAT_THRESH_ALW,
 };
 
 enum ntg_sidefloat_size_cap
 {
-    NTG_SIDEFLOAT_SIZE_CAP_NONE = 0,
-    NTG_SIDEFLOAT_SIZE_CAP_ANCHOR
+    NTG_SIDEFLOAT_SZCAP_NONE = 0,
+    NTG_SIDEFLOAT_SZCAP_ANCH
 };
 
 struct ntg_sidefloat_opts

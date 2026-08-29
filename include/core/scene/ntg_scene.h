@@ -12,7 +12,7 @@
 
 struct ntg_scene_init_opts
 {
-    struct ntg_fcs_scope_keys init_scope_keys; /* 0 for auto */
+    struct ntg_fcs_scope_keys init_keys; /* 0 for auto */
 
     unsigned int max_it; /* 0 for auto */
 };
