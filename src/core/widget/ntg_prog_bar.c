@@ -59,13 +59,17 @@ int ntg_prog_bar_set_opts(ntg_prog_bar* prog_bar, const struct ntg_prog_bar_opts
 
     /* Set up final opts */
 
+    struct nt_gfx complete_gfx = nt_gfx_new(NT_COLOR_ZERO, nt_color_new_auto(0, 255, 0), 0);
+    struct nt_gfx uncomplete_gfx = nt_gfx_new(NT_COLOR_ZERO, nt_color_new_auto(255, 0, 0), 0);
+    struct nt_gfx threshold_gfx = nt_gfx_new(NT_COLOR_ZERO, nt_color_new_auto(0, 255, 0), 0);
+
     struct ntg_prog_bar_opts opts_final = (opts ? (*opts) : NTG_PROG_BAR_OPTS_ZERO);
     if(styles_are_eql(opts_final.style, NTG_PROG_BAR_STYLE_ZERO))
     {
         opts_final.style = (struct ntg_prog_bar_style) {
-            .complete = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0)),
-            .uncomplete = ntg_vcell_new_full_bg(nt_color_new_auto(255, 0, 0)),
-            .threshold = ntg_vcell_new_full_bg(nt_color_new_auto(0, 255, 0))
+            .complete = ntg_vcell_new_full(0, complete_gfx),
+            .uncomplete = ntg_vcell_new_full(0, uncomplete_gfx),
+            .threshold = ntg_vcell_new_full(0, threshold_gfx)
         };
     }
 

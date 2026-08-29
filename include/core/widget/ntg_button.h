@@ -14,12 +14,16 @@
 /* TYPES */
 /* ========================================================================== */
 
-/* If enabled_gfx, disabled_gfx & focused_gfx are all set to NT_GFX_ZERO,
- * `set_opts` will invert focused_gfx by default */
 struct ntg_button_opts
 {
     enum ntg_orient orient;
+
+    /* If enabled_gfx, disabled_gfx & focused_gfx are all set to NT_GFX_ZERO,
+     * `ntg_button_set_opts()` will set style to NT_STYLE_REVERSE */
+
+    /* If NTG_TEXT_BG_OVERLAY bg colors are ignored. */
     struct nt_gfx enabled_gfx, disabled_gfx, focused_gfx;
+
     enum ntg_text_wrap wrap;
     enum ntg_text_line_mode line_mode;
     enum ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
@@ -98,7 +102,7 @@ NTG_API int
 ntg_button_set_text(ntg_button* button, const char* text, size_t len);
 
 NTG_API int
-ntg_button_set_text_unsafe(ntg_button* button, const char* text);
+ntg_button_set_text_cstr(ntg_button* button, const char* text);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */

@@ -81,9 +81,6 @@ ntg_disable(void);
 
 /* TODO LIST
 
-FIX:
-add_text, rm_text optimization fns for ntg_text() for ntg_input
-
 IMPLEMENT:
 ntg_input
 ntg_list

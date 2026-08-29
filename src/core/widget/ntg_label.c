@@ -99,12 +99,12 @@ int ntg_label_set_text(ntg_label* label, const char* text, size_t len)
     return ntg_text_set_text(ntg_txt(label), text, len);
 }
 
-int ntg_label_set_text_unsafe(ntg_label* label, const char* text)
+int ntg_label_set_text_cstr(ntg_label* label, const char* text)
 {
     if(!label)
         return NTG_ERR_INV_ARG;
 
-    return ntg_text_set_text_unsafe(ntg_txt(label), text);
+    return ntg_text_set_text_cstr(ntg_txt(label), text);
 }
 
 /* ========================================================================== */

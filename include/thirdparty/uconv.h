@@ -76,10 +76,10 @@ enum uc_flag
 /* CONVENIENCE */
 /* ========================================================================== */
 
-/* Checks whether a UTF-32 code point is within the allowed Unicode range.
+/* Checks whether a UTF-32 codepoint is within the allowed Unicode range.
  *
  * POSSIBLE FLAGS:
- * 1) UC_ALLOW_SURROGATE - Treats surrogate code points as valid. */
+ * 1) UC_ALLOW_SURROGATE - Treats surrogate codepoints as valid. */
 
 bool uc_utf32_is_in_range(uint32_t utf32_codepoint, uint8_t flags);
 
@@ -94,21 +94,23 @@ size_t uc_utf8_unit_len(uint8_t utf8_sbyte);
 
 /* ------------------------------------------------------ */
 
-/* Decodes a single UTF-8 code point and stores it in `out_cp`.
+/* Decodes a single UTF-8 unit and stores it in `out_cp`. If
+ * `out_cp` is NULL, this function may be used to determine if a
+ * UTF-8 sequence is valid.
  *
  * POSSIBLE FLAGS:
- * 1) UC_ALLOW_SURROGATE - Allows surrogate code points.
+ * 1) UC_ALLOW_SURROGATE - Allows surrogate codepoints.
  * 2) UC_ALLOW_OVERLONG - Allows overlong UTF-8 encodings.
  *
  * RETURN VALUE: 0 on success, error code on failure.
  *
  * ERROR CODES:
- * 1) UC_ERR_INV_ARG - `utf8_seq` or `out_cp` is NULL.
- * 2) UC_ERR_NO_CAP - More input remains after one code point was decoded.
+ * 1) UC_ERR_INV_ARG - `utf8_seq` is NULL or `len` == 0 or `len` > 4.
+ * 2) UC_ERR_NO_CAP - More input remains after one codepoint was decoded.
  * 3) UC_ERR_INV_SIZE - The input ends before a complete UTF-8 unit is read.
  * 4) UC_ERR_OVERLONG - An overlong encoding was encountered.
- * 5) UC_ERR_SURROGATE - A surrogate code point was encountered.
- * 6) UC_ERR_INV_CP - The decoded code point is outside the Unicode range.
+ * 5) UC_ERR_SURROGATE - A surrogate codepoint was encountered.
+ * 6) UC_ERR_INV_CP - The decoded codepoint is outside the Unicode range.
  * 7) UC_ERR_INV_SB - An invalid UTF-8 start byte was encountered.
  * 8) UC_ERR_INV_CB - An invalid UTF-8 continuation byte was encountered. */
 
@@ -117,19 +119,19 @@ int uc_utf8_to_utf32_single(const uint8_t* utf8_seq, size_t len,
 
 /* ------------------------------------------------------ */
 
-/* Encodes a single UTF-32 code point as UTF-8.
+/* Encodes a single UTF-32 codepoint as UTF-8.
  *
  * If `out_utf8_seq` is NULL, the encoded length can still be returned through
  * `out_len`.
  *
  * POSSIBLE FLAGS:
- * 1) UC_ALLOW_SURROGATE - Allows surrogate code points.
+ * 1) UC_ALLOW_SURROGATE - Allows surrogate codepoints.
  *
  * RETURN VALUE: 0 on success, error code on failure.
  *
  * ERROR CODES:
- * 1) UC_ERR_SURROGATE - A surrogate code point was provided.
- * 2) UC_ERR_INV_CP - The code point is outside the Unicode range. */
+ * 1) UC_ERR_SURROGATE - A surrogate codepoint was provided.
+ * 2) UC_ERR_INV_CP - The codepoint is outside the Unicode range. */
 
 int uc_utf32_to_utf8_single(uint32_t utf32, uint8_t flags,
                             uint8_t* out_utf8_seq, size_t* out_len);
@@ -138,17 +140,17 @@ int uc_utf32_to_utf8_single(uint32_t utf32, uint8_t flags,
 /* UTF8 -> UTF32 */
 /* ========================================================================== */
 
-/* Decodes up to `len` bytes from `utf8_seq` into UTF-32 code points.
+/* Decodes up to `len` bytes from `utf8_seq` into UTF-32 codepoints.
  *
  * If `out_utf32_seq` is NULL, decoding is performed without storing the
  * result and `capacity` is ignored. This can be used to validate the input
  * and determine the required output width.
  *
- * If `out_width` is not NULL, it receives the number of code points decoded
+ * If `out_width` is not NULL, it receives the number of codepoints decoded
  * before the function returns, on both success and failure.
  *
  * POSSIBLE FLAGS:
- * 1) UC_ALLOW_SURROGATE - Allows surrogate code points.
+ * 1) UC_ALLOW_SURROGATE - Allows surrogate codepoints.
  * 2) UC_ALLOW_OVERLONG - Allows overlong UTF-8 encodings.
  *
  * RETURN VALUE: 0 on success, error code on failure.
@@ -158,8 +160,8 @@ int uc_utf32_to_utf8_single(uint32_t utf32, uint8_t flags,
  * 2) UC_ERR_NO_CAP - `out_utf32_seq` does not have enough capacity.
  * 3) UC_ERR_INV_SIZE - The input ends before a complete UTF-8 unit is read.
  * 4) UC_ERR_OVERLONG - An overlong encoding was encountered.
- * 5) UC_ERR_SURROGATE - A surrogate code point was encountered.
- * 6) UC_ERR_INV_CP - A decoded code point is outside the Unicode range.
+ * 5) UC_ERR_SURROGATE - A surrogate codepoint was encountered.
+ * 6) UC_ERR_INV_CP - A decoded codepoint is outside the Unicode range.
  * 7) UC_ERR_INV_SB - An invalid UTF-8 start byte was encountered.
  * 8) UC_ERR_INV_CB - An invalid UTF-8 continuation byte was encountered. */
 
@@ -171,26 +173,26 @@ int uc_utf8_to_utf32(const uint8_t* utf8_seq, size_t len,
 /* UTF32 -> UTF8 */
 /* ========================================================================== */
 
-/* Encodes `width` UTF-32 code points from `utf32_seq` as UTF-8.
+/* Encodes `width` UTF-32 codepoints from `utf32_seq` as UTF-8.
  *
  * If `out_utf8_seq` is NULL, encoding is performed without storing the result
  * and `capacity` is ignored. This can be used to validate the input and
  * determine the required output length.
  *
- * If provided, `out_width` receives the number of code points encoded and
+ * If provided, `out_width` receives the number of codepoints encoded and
  * `out_len` receives the number of UTF-8 bytes encoded before the function
  * returns, on both success and failure.
  *
  * POSSIBLE FLAGS:
- * 1) UC_ALLOW_SURROGATE - Allows surrogate code points.
+ * 1) UC_ALLOW_SURROGATE - Allows surrogate codepoints.
  *
  * RETURN VALUE: 0 on success, error code on failure.
  *
  * ERROR CODES:
  * 1) UC_ERR_INV_ARG - `utf32_seq` is NULL.
  * 2) UC_ERR_NO_CAP - `out_utf8_seq` does not have enough capacity.
- * 3) UC_ERR_SURROGATE - A surrogate code point was encountered.
- * 4) UC_ERR_INV_CP - A code point is outside the Unicode range. */
+ * 3) UC_ERR_SURROGATE - A surrogate codepoint was encountered.
+ * 4) UC_ERR_INV_CP - A codepoint is outside the Unicode range. */
 
 int uc_utf32_to_utf8(const uint32_t* utf32_seq, size_t width,
                      uint8_t* out_utf8_seq, size_t capacity, uint8_t flags,
@@ -277,16 +279,18 @@ size_t uc_utf8_unit_len(uint8_t utf8_sbyte)
 int uc_utf8_to_utf32_single(const uint8_t* utf8_seq, size_t len,
                             uint8_t flags, uint32_t* out_cp)
 {
-    if(out_cp == NULL)
+    if(!utf8_seq)
         return UC_ERR_INV_ARG;
 
-    uint32_t cp;
-    int status = uc_utf8_to_utf32(utf8_seq, len, &cp, 1, flags, NULL);
-    if(status != 0)
-        return status;
+    if(!len || (len > 4))
+        return UC_ERR_INV_SIZE;
 
-    *out_cp = cp;
-    return 0;
+    uint32_t dummy;
+
+    return uc_utf8_to_utf32(
+        utf8_seq, len,
+        out_cp ? out_cp : &dummy,
+        1, flags, NULL);
 }
 
 int uc_utf32_to_utf8_single(uint32_t utf32, uint8_t flags,

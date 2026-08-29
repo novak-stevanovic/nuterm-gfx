@@ -87,17 +87,17 @@ void task_loop_stop(void* _)
 
 void task_change_text_1(void* _)
 {
-    ntg_button_set_text_unsafe(&flt_button, "1");
+    ntg_button_set_text_cstr(&flt_button, "1");
 }
 
 void task_change_text_2a(void* _)
 {
-    ntg_button_set_text_unsafe(&flt_button, "2a");
+    ntg_button_set_text_cstr(&flt_button, "2a");
 }
 
 void task_change_text_2b(void* _)
 {
-    ntg_button_set_text_unsafe(&flt_button, "2b");
+    ntg_button_set_text_cstr(&flt_button, "2b");
 }
 
 bool flt_button_mouse_fn(ntg_button* button)
@@ -220,7 +220,7 @@ void sflt_on_mouse_fn(ntg_object* subscriber, struct ntg_event event)
         char buff[50];
         sprintf(buff, "Broj klikova: %d", sflt_counter);
 
-        ntg_label_set_text_unsafe(label, buff);
+        ntg_label_set_text_cstr(label, buff);
     }
 }
 
@@ -313,9 +313,10 @@ void init_north()
     struct nt_gfx label_gfx = {
         .fg = nt_color_new_auto(255, 255, 255),
         .bg = nt_color_new_auto(143, 0, 255),
-        .style = NT_STYLE_BOLD
-    };
+        .style = NT_STYLE_STRIKETHROUGH
+    }; 
     struct ntg_label_opts north_label_opts = {
+        .line_mode = NTG_TEXT_LINE_JUSTIFY,
         .gfx = label_gfx,
         .indent = 2
     };
@@ -324,7 +325,7 @@ void init_north()
     ntg_garbage_add_obj(garbage, &north);
     ntg_obj_set_name(&north, "north");
 
-    status = ntg_label_set_text_unsafe(&north, lorem);
+    status = ntg_label_set_text_cstr(&north, lorem);
     assert(!status);
 }
 
@@ -377,7 +378,10 @@ void init_south()
 
     struct ntg_box_opts south_box_opts = {
         .orient = NTG_ORIENT_V,
-        .bg = ntg_vcell_new_full_bg(nt_color_new_auto(255, 255, 255))
+        .bg = ntg_vcell_new_full_bg(
+                NT_COLOR_ZERO,
+                nt_color_new_auto(255, 255, 255),
+                0)
     };
 
     status = ntg_box_init(&south_box, &south_box_opts);
@@ -402,7 +406,7 @@ void init_south()
     ntg_garbage_add_obj(garbage, &sb_label1);
     ntg_obj_set_name(&sb_label1, "sb_label1");
 
-    status = ntg_label_set_text_unsafe(&sb_label1, "Test1");
+    status = ntg_label_set_text_cstr(&sb_label1, "Test1");
     assert(!status);
 
     ntg_widget_set_pad_opts(ntg_wgt(&sb_label1), &pad_opts);
@@ -420,7 +424,7 @@ void init_south()
     ntg_garbage_add_obj(garbage, &sb_label2);
     ntg_obj_set_name(&sb_label2, "sb_label2");
 
-    status = ntg_label_set_text_unsafe(&sb_label2, "Test2");
+    status = ntg_label_set_text_cstr(&sb_label2, "Test2");
     ntg_widget_set_pad_opts(ntg_wgt(&sb_label2), &pad_opts);
 
     // SOUTH BOX LABEL3
@@ -437,7 +441,7 @@ void init_south()
     ntg_garbage_add_obj(garbage, &sb_label3);
     ntg_obj_set_name(&sb_label3, "sb_label3");
 
-    status = ntg_label_set_text_unsafe(&sb_label3, lorem);
+    status = ntg_label_set_text_cstr(&sb_label3, lorem);
     ntg_widget_set_pad_opts(ntg_wgt(&sb_label3), &pad_opts);
     
     // CONNECT
@@ -461,7 +465,7 @@ void init_south()
 
     ntg_widget_set_pad_opts(ntg_wgt(&s_label), &pad_opts);
 
-    status = ntg_label_set_text_unsafe(&s_label, "ABCD");
+    status = ntg_label_set_text_cstr(&s_label, "ABCD");
     assert(!status);
 
     ntg_widget_set_bdr_opts(ntg_wgt(&s_label), &bdr_opts);
@@ -469,7 +473,10 @@ void init_south()
     // SOUTH
 
     struct ntg_box_opts south_opts = {
-        .bg = ntg_vcell_new_full_bg(nt_color_new_auto(255, 255, 0))
+        .bg = ntg_vcell_new_full_bg(
+                NT_COLOR_ZERO,
+                nt_color_new_auto(255, 255, 0),
+                0)
     };
 
     status = ntg_box_init(&south, &south_opts);
@@ -489,11 +496,14 @@ void init_flt_button()
 
     struct ntg_button_opts opts = {
         .wrap = NTG_TEXT_WRAP_WORD,
-        .bg_mode = NTG_TEXT_BG_FLT,
+        .bg_mode = NTG_TEXT_BG_OVERLAY,
         .focused_gfx = {
-            .fg = nt_color_new_auto(255, 165, 0),
-            .style = NT_STYLE_BOLD,
-            .bg = nt_color_new_auto(255, 255, 255)
+            .fg = NT_COLOR_ZERO,
+            .bg = nt_color_new_auto(0, 255, 0),
+            .style = NT_STYLE_BOLD | NT_STYLE_REVERSE
+        },
+        .disabled_gfx = {
+            .style = NT_STYLE_STRIKETHROUGH
         }
     };
 
@@ -502,7 +512,7 @@ void init_flt_button()
     ntg_garbage_add_obj(garbage, &flt_button);
     ntg_obj_set_name(&flt_button, "flt_button");
 
-    status = ntg_button_set_text_unsafe(&flt_button, "Floating button example");
+    status = ntg_button_set_text_cstr(&flt_button, "Floating button example");
 
     ntg_widget_set_z_index(ntg_wgt(&flt_button), 1);
 
@@ -547,7 +557,7 @@ void init_sflt_label()
 
     ntg_widget_set_z_index(ntg_wgt(&sflt_label), 2);
 
-    status = ntg_label_set_text_unsafe(&sflt_label, "Floating label example - Sidefloat");
+    status = ntg_label_set_text_cstr(&sflt_label, "Floating label example - Sidefloat");
 
     ntg_widget_set_clickable(ntg_wgt(&sflt_label), NTG_WIDGET_CLICKABLE_BDR);
 }

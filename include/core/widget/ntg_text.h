@@ -33,7 +33,7 @@ enum ntg_text_line_mode
 enum ntg_text_bg_mode
 {
     NTG_TEXT_BG_FULL = 0,
-    NTG_TEXT_BG_FLT
+    NTG_TEXT_BG_OVERLAY
 };
 
 /* ------------------------------------------------------ */
@@ -41,7 +41,10 @@ enum ntg_text_bg_mode
 struct ntg_text_opts
 {
     enum ntg_orient orient;
+
+    /* If NTG_TEXT_BG_OVERLAY bg color is ignored. */
     struct nt_gfx gfx;
+
     enum ntg_text_wrap wrap;
     enum ntg_text_line_mode line_mode;
     enum ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
@@ -110,7 +113,16 @@ NTG_API int
 ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len);
 
 NTG_API int
-ntg_text_set_text_unsafe(ntg_text* text_obj, const char* text);
+ntg_text_set_text_cstr(ntg_text* text_obj, const char* text);
+
+NTG_API int
+ntg_text_add_text(ntg_text* text_obj, const char* text, size_t len);
+
+NTG_API int
+ntg_text_add_text_cstr(ntg_text* text_obj, const char* text);
+
+NTG_API int
+ntg_text_rm_text(ntg_text* text_obj, size_t count_utf32);
 
 /* ------------------------------------------------------ */
 /* SCROLL */

@@ -75,7 +75,6 @@ int ntg_button_deinit(ntg_button* button)
     return 0;
 }
 
-
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
@@ -110,7 +109,7 @@ int ntg_button_set_opts(ntg_button* button, const struct ntg_button_opts* opts)
         nt_gfx_are_eql(opts_final.disabled_gfx, NT_GFX_ZERO) &&
         nt_gfx_are_eql(opts_final.focused_gfx, NT_GFX_ZERO))
     {
-        opts_final.focused_gfx = nt_gfx_invert(NT_GFX_ZERO);
+        opts_final.focused_gfx = nt_gfx_invert_style(NT_GFX_ZERO);
     }
 
     button->ro.enabled_gfx = opts_final.enabled_gfx;
@@ -204,12 +203,12 @@ int ntg_button_set_text(ntg_button* button, const char* text, size_t len)
     return ntg_text_set_text(ntg_txt(button), text, len);
 }
 
-int ntg_button_set_text_unsafe(ntg_button* button, const char* text)
+int ntg_button_set_text_cstr(ntg_button* button, const char* text)
 {
     if(!button)
         return NTG_ERR_INV_ARG;
 
-    return ntg_text_set_text_unsafe(ntg_txt(button), text);
+    return ntg_text_set_text_cstr(ntg_txt(button), text);
 }
 
 /* ========================================================================== */
@@ -280,8 +279,8 @@ int ntg_button_measure_fn(
         uint32_t* relayout,
         struct ntg_widget_measure* out_measure)
 {
-    return ntg_text_measure_fn(
-            _button, layout_dt, orient, arena, relayout, out_measure);
+    return ntg_text_measure_fn(_button, layout_dt, orient,
+                               arena, relayout, out_measure);
 }
 
 int ntg_button_draw_fn(

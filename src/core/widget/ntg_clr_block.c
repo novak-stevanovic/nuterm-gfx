@@ -155,6 +155,8 @@ int ntg_clr_block_draw_fn(
 
     if(ntg_xy_is_zero_any(size)) return 0;
 
+    struct nt_gfx gfx = nt_gfx_new(NT_COLOR_ZERO, clr_block->ro.color, 0);
+
     size_t i, j;
     for(i = 0; i < size.ro.y; i++)
     {
@@ -162,7 +164,7 @@ int ntg_clr_block_draw_fn(
         {
             ntg_widget_tmp_draw_set(
                     out_drawing,
-                    ntg_vcell_new_full_bg(clr_block->ro.color),
+                    ntg_vcell_new_full(0, gfx),
                     ntg_xy_new(j, i));
         }
     }

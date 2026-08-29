@@ -12,28 +12,16 @@
 /* ========================================================================== */
 
 static inline struct ntg_vcell
-determine_vcell_bg(const ntg_text* text_obj)
+determine_bg_vcell(const ntg_text* text_obj)
 {
-    const struct ntg_text_opts* opts = &text_obj->ro.opts;
-
-    return (opts->bg_mode == NTG_TEXT_BG_FULL) ?
-        ntg_vcell_new_full(0, opts->gfx) :
-            (nt_color_are_eql(opts->gfx.fg, NT_COLOR_INVERTED) ?
-             ntg_vcell_new_full(0, nt_gfx_invert(NT_GFX_ZERO)) :
-             ntg_vcell_new_overlay(0, opts->gfx.fg, 0));
+    struct nt_gfx gfx = text_obj->ro.opts.gfx;
+    enum ntg_text_bg_mode bg_mode = text_obj->ro.opts.bg_mode;
+    if(bg_mode == NTG_TEXT_BG_FULL)
+        return ntg_vcell_new_full_bg(gfx.fg, gfx.bg, gfx.style & NT_STYLE_REVERSE);
+    else
+        return ntg_vcell_new_overlay_bg(gfx.fg, gfx.style & NT_STYLE_REVERSE);
 }
 
-static inline struct ntg_vcell
-determine_vcell_text(const ntg_text* text_obj, uint32_t char_utf32)
-{
-    const struct ntg_text_opts* opts = &text_obj->ro.opts;
-
-    return (opts->bg_mode == NTG_TEXT_BG_FULL) ?
-        ntg_vcell_new_full(char_utf32, opts->gfx) :
-            (ntg_cell_cp_is_ws(char_utf32) ?
-            determine_vcell_bg(text_obj) :
-            ntg_vcell_new_overlay(char_utf32, opts->gfx.fg, opts->gfx.style));
-}
 
 /* ========================================================================== */
 /* FUNCTIONS */
@@ -166,28 +154,46 @@ int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
 {
     if(!text_obj) return NTG_ERR_INV_ARG;
     if(!text && len) return NTG_ERR_INV_ARG;
-    if(len > (NTG_SIZE_MAX * NTG_SIZE_MAX)) return NTG_ERR_INV_ARG;
+    if(len > (NTG_SIZE_MAX * NTG_SIZE_MAX)) return NTG_ERR_NO_CAP;
 
-    if(!text) text = "";  
-
-    len = ntg_min2_size(len, (NTG_SIZE_MAX * NTG_SIZE_MAX));
+    if(!text || !len)
+    {
+        text = "";
+        len = 0;
+    }
 
     int status;
 
-    struct ntg_charvec* pending_text = &text_obj->priv.utf8_text;
+    status = uc_utf8_to_utf32((const uint8_t*)text, len, NULL, SIZE_MAX, 0, NULL);
+    switch(status)
+    {
+        case 0:
+            break;
+        case UC_ERR_INV_SIZE:
+        case UC_ERR_OVERLONG:
+        case UC_ERR_SURROGATE:
+        case UC_ERR_INV_CP:
+        case UC_ERR_INV_SB:
+        case UC_ERR_INV_CB:
+            return NTG_ERR_BAD_UTF8;
+        default:
+            return NTG_ERR_UNEXPECTED;
+    }
+
+    struct ntg_charvec* text_vec = &text_obj->priv.utf8_text;
     struct ntg_str_view curr_text = ntg_text_get_text(text_obj);
 
     /* Assume it's worth comparing because if text is different the len is probably different */
-    if((pending_text->size > 0) && (curr_text.len == len) &&
+    if((text_vec->size > 0) && (curr_text.len == len) &&
         ((len == 0) || (memcmp(curr_text.data, text, len) == 0)))
     {
         return 0; /* Same text */
     }
 
     size_t req_cap = len + 1; /* include \0 */
-    if(req_cap > pending_text->cap)
+    if(req_cap > text_vec->cap)
     {
-        status = ntg_charvec_prealloc(pending_text, req_cap - pending_text->cap);
+        status = ntg_charvec_prealloc(text_vec, req_cap - text_vec->cap);
         switch(status)
         {
             case 0: break;
@@ -199,16 +205,16 @@ int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
     }
 
     /* Empty but don't shrink, O(1) */
-    ntg_charvec_empty(pending_text);
+    ntg_charvec_empty(text_vec);
 
     /* These must not fail because enough space was preallocated */
-    status = ntg_charvec_pushb_many(pending_text, text, len);
+    status = ntg_charvec_pushb_many(text_vec, text, len);
     if(status) assert(0);
-    status = ntg_charvec_pushb(pending_text, '\0');
+    status = ntg_charvec_pushb(text_vec, '\0');
     if(status) assert(0);
 
     /* Save space if needed */
-    ntg_charvec_shrink(pending_text);
+    ntg_charvec_shrink(text_vec);
 
     ntg_widget_mark_dirty(ntg_wgt(text_obj),
     NTG_WIDGET_DIRTY_PREPARE | NTG_WIDGET_DIRTY_FULL);
@@ -216,12 +222,144 @@ int ntg_text_set_text(ntg_text* text_obj, const char* text, size_t len)
     return 0;
 }
 
-int ntg_text_set_text_unsafe(ntg_text* text_obj, const char* text)
+int ntg_text_set_text_cstr(ntg_text* text_obj, const char* text)
 {
     if(!text_obj || !text)
         return NTG_ERR_INV_ARG;
 
     return ntg_text_set_text(text_obj, text, strlen(text));
+}
+
+int ntg_text_add_text(ntg_text* text_obj, const char* text, size_t len)
+{
+    if(!text_obj) return NTG_ERR_INV_ARG;
+    if(!text && len) return NTG_ERR_INV_ARG;
+
+    if(!text || !len) return 0;
+
+    struct ntg_charvec* text_vec = &text_obj->priv.utf8_text;
+    struct ntg_str_view curr_text = ntg_text_get_text(text_obj);
+
+    if((curr_text.len + len) > (NTG_SIZE_MAX * NTG_SIZE_MAX))
+        return NTG_ERR_NO_CAP;
+
+    int status;
+
+    status = uc_utf8_to_utf32((const uint8_t*)text, len, NULL, SIZE_MAX, 0, NULL);
+    switch(status)
+    {
+        case 0:
+            break;
+        case UC_ERR_INV_SIZE:
+        case UC_ERR_OVERLONG:
+        case UC_ERR_SURROGATE:
+        case UC_ERR_INV_CP:
+        case UC_ERR_INV_SB:
+        case UC_ERR_INV_CB:
+            return NTG_ERR_BAD_UTF8;
+        default:
+            return NTG_ERR_UNEXPECTED;
+    }
+
+    size_t req_cap = curr_text.len + len + 1;
+    if(req_cap > text_vec->cap)
+    {
+        status = ntg_charvec_prealloc(text_vec, req_cap - text_vec->cap);
+        switch(status)
+        {
+            case 0: break;
+            case GENC_ERR_ALLOC_FAIL:
+                return NTG_ERR_ALLOC_FAIL;
+            default:
+                return NTG_ERR_UNEXPECTED;
+        }
+    }
+
+    /* Pop \0 */
+    ntg_charvec_popb(&text_obj->priv.utf8_text);
+
+    /* Must not fail because of preallocation */
+    ntg_charvec_pushb_many(text_vec, text, len);
+    ntg_charvec_pushb(text_vec, '\0');
+
+    ntg_widget_mark_dirty(ntg_wgt(text_obj),
+    NTG_WIDGET_DIRTY_PREPARE | NTG_WIDGET_DIRTY_FULL);
+
+    return 0;
+
+}
+
+int ntg_text_add_text_cstr(ntg_text* text_obj, const char* text)
+{
+    if(!text_obj || !text)
+        return NTG_ERR_INV_ARG;
+
+    return ntg_text_add_text(text_obj, text, strlen(text));
+}
+
+int ntg_text_rm_text(ntg_text* text_obj, size_t count_utf32)
+{
+    if(!text_obj)
+        return NTG_ERR_INV_ARG;
+
+    if(count_utf32 == 0) return 0;
+
+    struct ntg_charvec* text_vec = &text_obj->priv.utf8_text;
+    struct ntg_str_view curr_text = ntg_text_get_text(text_obj);
+
+    /* Figure out how many UTF-8 units */
+
+    size_t count = 0;
+    int status;
+
+    size_t curr_count = 1;
+    while(true)
+    {
+        if(count_utf32 == 0) break;
+        if(count == curr_text.len) break; /* Remove all text */
+        if((count + curr_count) > curr_text.len) /* All text but still decoding so invalid UTF-8 */
+            return NTG_ERR_UNEXPECTED;
+
+        status = uc_utf8_to_utf32_single(
+                (const uint8_t*)((curr_text.data + curr_text.len) - count - curr_count),
+                curr_count,
+                0,
+                NULL);
+        switch(status)
+        {
+            case 0:
+                --count_utf32;
+                count += curr_count;
+                curr_count = 1;
+                break;
+            case UC_ERR_INV_SIZE:
+            case UC_ERR_OVERLONG:
+            case UC_ERR_SURROGATE:
+            case UC_ERR_INV_CP:
+            case UC_ERR_INV_SB:
+            case UC_ERR_INV_CB:
+                ++curr_count;
+                if(curr_count > 4)
+                    return NTG_ERR_UNEXPECTED;
+                break;
+            default:
+                return NTG_ERR_UNEXPECTED;
+        }
+    }
+
+    /* Pop \0 */
+    ntg_charvec_popb(&text_obj->priv.utf8_text);
+
+    ntg_charvec_popb_many(&text_obj->priv.utf8_text, count);
+
+    ntg_charvec_pushb(&text_obj->priv.utf8_text, '\0');
+
+    ntg_charvec_shrink(&text_obj->priv.utf8_text);
+
+    ntg_widget_mark_dirty(ntg_wgt(text_obj),
+    NTG_WIDGET_DIRTY_PREPARE | NTG_WIDGET_DIRTY_FULL);
+
+    return 0;
 }
 
 /* ------------------------------------------------------ */
@@ -279,7 +417,7 @@ int ntg_text_init_inherit(
 
     ntg_object_zero(text_obj);
 
-    status = ntg_text_set_text_unsafe(text_obj, "");
+    status = ntg_text_set_text_cstr(text_obj, "");
     if(status != 0)
     {
         ntg_widget_deinit((ntg_widget*)text_obj);
@@ -343,6 +481,7 @@ int ntg_text_layout_prepare_fn(
     if(curr_text.len == 0)
     {
         free(text_obj->priv.utf32_text.data);
+        free(text_obj->priv.utf32_rows);
         text_obj->priv.utf32_text = (struct ntg_str32) {0};
         text_obj->priv.utf32_row_count = 0;
         text_obj->priv.utf32_rows = NULL;
@@ -424,7 +563,7 @@ int ntg_text_measure_fn(
     size_t for_size = ntg_widget_get_for_size_cont(_text_obj, orient);
     size_t row_count = text_obj->priv.utf32_row_count;
     const struct ntg_str32_view* rows = text_obj->priv.utf32_rows;
-    if((row_count == 0) || (row_count == 0))
+    if((row_count == 0) || !rows)
         return 0;
 
     switch(text_obj->ro.opts.wrap)
@@ -462,6 +601,8 @@ int ntg_text_draw_fn(
     size_t indent = text_obj->ro.opts.indent;
     enum ntg_text_line_mode line_mode = text_obj->ro.opts.line_mode;
     enum ntg_align prim_align = text_obj->ro.opts.prim_align;
+    enum ntg_text_bg_mode bg_mode = text_obj->ro.opts.bg_mode;
+    struct nt_gfx gfx = text_obj->ro.opts.gfx;
 
     /* Determine full size */
 
@@ -491,7 +632,7 @@ int ntg_text_draw_fn(
         full_size :
         ntg_xy_transpose(full_size);
 
-    size_t i, j, k;
+    size_t i, j, k, m;
     size_t full_size_prod = full_size_adj.ro.x * full_size_adj.ro.y;
     uint32_t* full_buff = sarena_malloc(arena, sizeof(uint32_t) * full_size_prod);
     if(!full_buff)
@@ -554,7 +695,6 @@ int ntg_text_draw_fn(
             }
             else
                 it_row_align_indent = 0;
-
             
             it_row_effective_indent = (j == 0) ?
                 ntg_max2_size(capped_indent, it_row_align_indent) :
@@ -574,6 +714,11 @@ int ntg_text_draw_fn(
                         size_t space_justified_count = (it_wrow_extra_space / it_wrow_space_count) +
                             (it_wrow_space_counter < (it_wrow_extra_space % it_wrow_space_count));
 
+                        for(m = 0; m < space_justified_count; m++)
+                        {
+                            it_idx = (full_size_adj.ro.x * cont_i) + (cont_j + m);
+                            full_buff[it_idx] = ' ';
+                        }
                         cont_j += space_justified_count;
                     }
                     it_wrow_space_counter++;
@@ -619,12 +764,20 @@ int ntg_text_draw_fn(
             {
                 it_cont = full_buff[full_size_adj.ro.x * src_xy.ro.y + src_xy.ro.x];
 
-                it_cell = determine_vcell_text(text_obj, it_cont);
+                /* Determine vcell based on content, gfx, bg mode */
+
+                if(it_cont != 0)
+                {
+                    if(bg_mode == NTG_TEXT_BG_FULL)
+                        it_cell = ntg_vcell_new_full(it_cont, gfx);
+                    else
+                        it_cell = ntg_vcell_new_overlay(it_cont, gfx.fg, gfx.style);
+                }
+                else
+                    it_cell = determine_bg_vcell(text_obj);
             }
-            else
-            {
-                it_cell = determine_vcell_bg(text_obj);
-            }
+            else /* Viewport bigger than content area */
+                it_cell = determine_bg_vcell(text_obj);
 
             dst_xy = (orient == NTG_ORIENT_H) ? ntg_xy_new(j, i) : ntg_xy_new(i, j);
 
@@ -1060,5 +1213,5 @@ static void update_widget_bg(ntg_text* text_obj)
 {
     if(!text_obj) return;
 
-    ntg_widget_set_base_bg(ntg_wgt(text_obj), determine_vcell_bg(text_obj));
+    ntg_widget_set_base_bg(ntg_wgt(text_obj), determine_bg_vcell(text_obj));
 }

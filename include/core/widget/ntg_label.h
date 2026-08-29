@@ -17,7 +17,10 @@
 struct ntg_label_opts
 {
     enum ntg_orient orient;
+
+    /* If NTG_TEXT_BG_OVERLAY bg color is ignored. */
     struct nt_gfx gfx;
+
     enum ntg_text_wrap wrap;
     enum ntg_text_line_mode line_mode;
     enum ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
@@ -69,7 +72,7 @@ NTG_API int
 ntg_label_set_text(ntg_label* label, const char* text, size_t len);
 
 NTG_API int
-ntg_label_set_text_unsafe(ntg_label* label, const char* text);
+ntg_label_set_text_cstr(ntg_label* label, const char* text);
 
 /* ========================================================================== */
 /* -------------------------------------------------------------------------- */
