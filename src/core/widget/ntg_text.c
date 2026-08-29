@@ -11,6 +11,30 @@
 /* -------------------------------------------------------------------------- */
 /* ========================================================================== */
 
+static inline struct ntg_vcell
+determine_vcell_bg(const ntg_text* text_obj)
+{
+    const struct ntg_text_opts* opts = &text_obj->ro.opts;
+
+    return (opts->bg_mode == NTG_TEXT_BG_FULL) ?
+        ntg_vcell_new_full(0, opts->gfx) :
+            (nt_color_are_eql(opts->gfx.fg, NT_COLOR_INVERTED) ?
+             ntg_vcell_new_full(0, nt_gfx_invert(NT_GFX_ZERO)) :
+             ntg_vcell_new_overlay(0, opts->gfx.fg, 0));
+}
+
+static inline struct ntg_vcell
+determine_vcell_text(const ntg_text* text_obj, uint32_t char_utf32)
+{
+    const struct ntg_text_opts* opts = &text_obj->ro.opts;
+
+    return (opts->bg_mode == NTG_TEXT_BG_FULL) ?
+        ntg_vcell_new_full(char_utf32, opts->gfx) :
+            (ntg_cell_cp_is_ws(char_utf32) ?
+            determine_vcell_bg(text_obj) :
+            ntg_vcell_new_overlay(char_utf32, opts->gfx.fg, opts->gfx.style));
+}
+
 /* ========================================================================== */
 /* FUNCTIONS */
 /* ========================================================================== */
@@ -438,7 +462,6 @@ int ntg_text_draw_fn(
     size_t indent = text_obj->ro.opts.indent;
     enum ntg_text_line_mode line_mode = text_obj->ro.opts.line_mode;
     enum ntg_align prim_align = text_obj->ro.opts.prim_align;
-    enum ntg_text_bg_mode bg_mode = text_obj->ro.opts.bg_mode;
 
     /* Determine full size */
 
@@ -596,15 +619,11 @@ int ntg_text_draw_fn(
             {
                 it_cont = full_buff[full_size_adj.ro.x * src_xy.ro.y + src_xy.ro.x];
 
-                it_cell = (bg_mode == NTG_TEXT_BG_FULL) ?
-                    ntg_vcell_new_full(it_cont, text_obj->ro.opts.gfx) :
-                    ntg_vcell_new_overlay(it_cont, text_obj->ro.opts.gfx.fg, text_obj->ro.opts.gfx.style);
+                it_cell = determine_vcell_text(text_obj, it_cont);
             }
             else
             {
-                it_cell = (bg_mode == NTG_TEXT_BG_FULL) ?
-                    ntg_vcell_new_full(0 , text_obj->ro.opts.gfx) :
-                    ntg_vcell_new_overlay(0, text_obj->ro.opts.gfx.fg, 0);
+                it_cell = determine_vcell_bg(text_obj);
             }
 
             dst_xy = (orient == NTG_ORIENT_H) ? ntg_xy_new(j, i) : ntg_xy_new(i, j);
@@ -1041,10 +1060,5 @@ static void update_widget_bg(ntg_text* text_obj)
 {
     if(!text_obj) return;
 
-    struct ntg_vcell cell =
-            (text_obj->ro.opts.bg_mode == NTG_TEXT_BG_FULL) ?
-            ntg_vcell_new_full(0, text_obj->ro.opts.gfx) :
-            ntg_vcell_new_overlay(0, text_obj->ro.opts.gfx.fg, 0);
-
-    ntg_widget_set_base_bg(ntg_wgt(text_obj), cell);
+    ntg_widget_set_base_bg(ntg_wgt(text_obj), determine_vcell_bg(text_obj));
 }

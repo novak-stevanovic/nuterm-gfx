@@ -16,7 +16,15 @@
 
 struct ntg_label_opts
 {
-    struct ntg_text_opts text_opts;
+    enum ntg_orient orient;
+    struct nt_gfx gfx;
+    enum ntg_text_wrap wrap;
+    enum ntg_text_line_mode line_mode;
+    enum ntg_align prim_align; // active only if NTG_TEXT_LINE_ALIGN
+    enum ntg_align sec_align;
+    enum ntg_text_bg_mode bg_mode;
+
+    size_t indent;
 };
 
 static const struct ntg_label_opts NTG_LABEL_OPTS_ZERO = {0};
@@ -24,11 +32,6 @@ static const struct ntg_label_opts NTG_LABEL_OPTS_ZERO = {0};
 struct ntg_label
 {
     ntg_text _base;
-
-    struct
-    {
-        struct ntg_label_opts opts;
-    } ro;
 };
 
 /* ========================================================================== */
@@ -45,10 +48,12 @@ ntg_label_init(ntg_label* label, const struct ntg_label_opts* opts);
 NTG_API int
 ntg_label_deinit(ntg_label* label);
 
-
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
+
+NTG_API int
+ntg_label_get_opts(ntg_label* label, struct ntg_label_opts* out_opts);
 
 NTG_API int
 ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts);
@@ -122,12 +127,6 @@ ntg_label_draw_fn(
 
 NTG_API void
 ntg_label_deinit_fn(ntg_object* _label);
-
-NTG_API void
-ntg_label_focus_fn(ntg_widget* _label);
-
-NTG_API void
-ntg_label_unfocus_fn(ntg_widget* _label);
 
 NTG_API void
 ntg_label_post_draw_fn(

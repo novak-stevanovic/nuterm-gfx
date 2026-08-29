@@ -41,10 +41,27 @@ int ntg_label_deinit(ntg_label* label)
     return 0;
 }
 
-
 /* ------------------------------------------------------ */
 /* OPTS */
 /* ------------------------------------------------------ */
+
+int ntg_label_get_opts(ntg_label* label, struct ntg_label_opts* out_opts)
+{
+    if(!label || !out_opts) return NTG_ERR_INV_ARG;
+
+    (*out_opts) = (struct ntg_label_opts) {
+        .orient = ntg_txt(label)->ro.opts.orient,
+        .gfx = ntg_txt(label)->ro.opts.gfx,
+        .wrap = ntg_txt(label)->ro.opts.wrap,
+        .line_mode = ntg_txt(label)->ro.opts.line_mode,
+        .prim_align = ntg_txt(label)->ro.opts.prim_align,
+        .sec_align = ntg_txt(label)->ro.opts.sec_align,
+        .bg_mode = ntg_txt(label)->ro.opts.bg_mode,
+        .indent = ntg_txt(label)->ro.opts.indent
+    };
+
+    return 0;
+}
 
 int ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 {
@@ -52,11 +69,18 @@ int ntg_label_set_opts(ntg_label* label, const struct ntg_label_opts* opts)
 
     struct ntg_label_opts opts_final = (opts ? (*opts) : NTG_LABEL_OPTS_ZERO);
 
-    int status = ntg_text_set_opts(ntg_txt(label), &opts_final.text_opts);
-    if(status != 0)
-        return status;
+    struct ntg_text_opts text_opts = {
+        .orient = opts_final.orient,
+        .gfx = opts_final.gfx,
+        .wrap = opts_final.wrap,
+        .line_mode = opts_final.line_mode,
+        .prim_align = opts_final.prim_align,
+        .sec_align = opts_final.sec_align,
+        .bg_mode = opts_final.bg_mode,
+        .indent = opts_final.indent
+    };
 
-    label->ro.opts = opts_final;
+    ntg_text_set_opts(ntg_txt(label), &text_opts);
 
     return 0;
 }
@@ -125,8 +149,6 @@ const struct ntg_label_vtable NTG_LABEL_VTABLE = {
             .draw_fn = ntg_label_draw_fn,
             .base.deinit_fn = ntg_label_deinit_fn,
             .resize_cont_fn = ntg_text_cont_resize_fn,
-            .focus_fn = ntg_label_focus_fn,
-            .unfocus_fn = ntg_label_unfocus_fn
         },
         .post_draw_fn = ntg_label_post_draw_fn
     }

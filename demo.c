@@ -103,6 +103,7 @@ void task_change_text_2b(void* _)
 bool flt_button_mouse_fn(ntg_button* button)
 {
     int status;
+    /*
     status = ntg_loop_schedule(task_loop_stop, NULL, 5000);
     status = ntg_loop_schedule(task_change_text_1, NULL, 1000);
     status = ntg_loop_schedule(task_change_text_2a, NULL, 2000);
@@ -110,6 +111,9 @@ bool flt_button_mouse_fn(ntg_button* button)
     assert(!status);
 
     return true;
+    */
+
+    return false;
 }
 
 bool loop_on_event_fn(const struct nt_event* event)
@@ -123,9 +127,19 @@ bool loop_on_event_fn(const struct nt_event* event)
     {
         struct nt_key key;
         NT_EVENT_FILL_DATA((*event), &key);
-        if(nt_key_utf32_match_alt(key, 'q', false))
+        if(nt_key_utf32_match(key, 'q'))
         {
             ntg_loop_stop();
+            return true;
+        }
+        if(nt_key_utf32_match(key, 'd'))
+        {
+            ntg_button_disable(&flt_button);
+            return true;
+        }
+        if(nt_key_utf32_match(key, 'e'))
+        {
+            ntg_button_enable(&flt_button);
             return true;
         }
     }
@@ -257,7 +271,7 @@ int main(int argc, char *argv[])
 
     status = ntg_scene_add_root(&scene, ntg_wgt(&root));
     status = ntg_stage_set_scene(&stage, &scene);
-    status = ntg_widget_anchor(ntg_wgt(&north), ntg_wgt(&flt_button));
+    status = ntg_widget_anchor(ntg_wgt(&root), ntg_wgt(&flt_button));
     status = ntg_widget_anchor(ntg_wgt(&flt_button), ntg_wgt(&sflt_label));
 
     assert(!ntg_widget_set_anchor_policy(ntg_wgt(&flt_button), ntg_ap(&flt_ap)));
@@ -302,10 +316,8 @@ void init_north()
         .style = NT_STYLE_BOLD
     };
     struct ntg_label_opts north_label_opts = {
-        .text_opts = {
-            .gfx = label_gfx,
-            .indent = 2
-        }
+        .gfx = label_gfx,
+        .indent = 2
     };
     status = ntg_label_init(&north, &north_label_opts);
     assert(!status);
@@ -380,11 +392,9 @@ void init_south()
     // SOUTH BOX LABEL1
 
     struct ntg_label_opts sb_label1_opts = {
-        .text_opts = {
-            .gfx = {
-                .bg = nt_color_new_auto(250, 0, 0),
-                .fg = nt_color_new_auto(255, 255, 255)
-            }
+        .gfx = {
+            .bg = nt_color_new_auto(250, 0, 0),
+            .fg = nt_color_new_auto(255, 255, 255)
         }
     };
     status = ntg_label_init(&sb_label1, &sb_label1_opts);
@@ -400,11 +410,9 @@ void init_south()
     // SOUTH BOX LABEL2
 
     struct ntg_label_opts sb_label2_opts = {
-        .text_opts = {
-            .gfx = {
-                .bg = nt_color_new_auto(150, 0, 0),
-                .fg = nt_color_new_auto(255, 255, 255)
-            }
+        .gfx = {
+            .bg = nt_color_new_auto(150, 0, 0),
+            .fg = nt_color_new_auto(255, 255, 255)
         }
     };
     status = ntg_label_init(&sb_label2, &sb_label2_opts);
@@ -418,11 +426,9 @@ void init_south()
     // SOUTH BOX LABEL3
 
     struct ntg_label_opts sb_label3_opts = {
-        .text_opts = {
-            .gfx = {
-                .bg = nt_color_new_auto(100, 0, 0),
-                .fg = nt_color_new_auto(255, 255, 255)
-            }
+        .gfx = {
+            .bg = nt_color_new_auto(100, 0, 0),
+            .fg = nt_color_new_auto(255, 255, 255)
         }
     };
 
@@ -443,12 +449,9 @@ void init_south()
     // SOUTH LABEL
 
     struct ntg_label_opts s_label_opts = {
-        .text_opts = {
-            .gfx = {
-                .bg = nt_color_new_auto(50, 0, 0),
-                .fg = nt_color_new_auto(255, 255, 255),
-                .style = 0
-            }
+        .gfx = {
+            .bg = nt_color_new_auto(50, 0, 0),
+            .fg = nt_color_new_auto(255, 255, 255),
         }
     };
     status = ntg_label_init(&s_label, &s_label_opts);
@@ -522,15 +525,13 @@ void init_sflt_label()
     int status;
 
     struct ntg_label_opts opts = {
-        .text_opts = {
-            .wrap = NTG_TEXT_WRAP_WORD,
-            .line_mode = NTG_TEXT_LINE_ALIGN,
-            .sec_align = NTG_ALIGN_3,
-            .gfx = {
-                .bg = nt_color_new_auto(255, 255, 255),
-                .fg = nt_color_new_auto(0, 0, 0),
-                .style = NT_STYLE_ITALIC
-            }
+        .wrap = NTG_TEXT_WRAP_WORD,
+        .line_mode = NTG_TEXT_LINE_ALIGN,
+        .sec_align = NTG_ALIGN_3,
+        .gfx = {
+            .bg = nt_color_new_auto(255, 255, 255),
+            .fg = nt_color_new_auto(0, 0, 0),
+            .style = NT_STYLE_ITALIC
         }
     };
     status = ntg_label_init(&sflt_label, &opts);

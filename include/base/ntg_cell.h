@@ -142,7 +142,11 @@ ntg_vcell_new_overlay(uint32_t cp, nt_color fg, nt_style style)
 {
     return (struct ntg_vcell) {
         .type = NTG_VCELL_OVERLAY,
-        .data.overlay = { .cp = ntg_cell_cp_normalize(cp), .fg = fg, .style = style }
+        .data.overlay = {
+            .cp = ntg_cell_cp_normalize(cp),
+            .fg = fg,
+            .style = style
+        }
     };
 }
 

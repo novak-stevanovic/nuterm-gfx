@@ -82,7 +82,6 @@ ntg_disable(void);
 /* TODO LIST
 
 FIX:
-ntg_button: disable() or ntg_widget: disable()?
 add_text, rm_text optimization fns for ntg_text() for ntg_input
 
 IMPLEMENT:
@@ -94,7 +93,7 @@ ntg_popup
 FINISH:
 add some old useful comments that were deleted
 add comments with explanations: When adding them next time: inside return values never explain NTG_ERR_UNEXPECTED, fix spacing from old removed comments
-ntg_log()
+ntg_log: useful logging
 
 TEST:
 frame times
