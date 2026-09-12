@@ -395,6 +395,7 @@ int ntg__scene_set_size(ntg_scene* scene, ntg_xy size)
 
     scene->ro.size = size;
     ntg_scene_mark_dirty(scene);
+    scene->priv.full_relay = true;
 
     struct ntg_scene_vtable* vtable = ntg_scn_vtbl(scene);
     if(vtable->resize_fn)
@@ -449,6 +450,8 @@ bool ntg__scene_layout(ntg_scene* scene, sarena* arena)
             }
         }
     }
+
+    scene->priv.full_relay = false;
 
     ntg_object_event_raise(ntg_obj(scene), NTG_EVENT_SCENE_LAYPOST, NULL);
 
@@ -559,7 +562,6 @@ void ntg__scene_rm_widget_tree(ntg_scene* scene, ntg_widget* root)
         ntg_widget* layer = root->ro.anchored.data[i];
         ntg__scene_rm_widget_tree(scene, layer);
     }
-
 }
 
 void ntg__scene_add_widget_tree_notify(ntg_scene* scene, ntg_widget* root)
@@ -724,7 +726,12 @@ layout_layer(ntg_scene* scene, ntg_widget* root, sarena* arena)
     struct layout_data layout_data = {0};
     init_layout_data(scene, root, arena, &layout_data);
 
-    prepare_phase(root, &layout_data);
+    if(scene->priv.full_relay || (root->ro.dirty_tree & NTG_WIDGET_DIRTY_PREPARE))
+    {
+        prepare_phase(root, &layout_data);
+        if(!layout_data.stay_dirty)
+            ntg__widget_tree_clean(root, NTG_WIDGET_DIRTY_PREPARE);
+    }
 
     size_t it_counter = 0;
 
@@ -733,17 +740,52 @@ layout_layer(ntg_scene* scene, ntg_widget* root, sarena* arena)
         layout_data.stay_dirty = false;
         layout_data.new_it = false;
 
-        hmeasure_phase(root, &layout_data);
-        hconstrain_phase(root, &layout_data);
-        vmeasure_phase(root, &layout_data);
-        vconstrain_phase(root, &layout_data);
-        arrange_phase(root, &layout_data);
+        if(scene->priv.full_relay || (root->ro.dirty_tree & NTG_WIDGET_DIRTY_HMEASURE))
+        {
+            hmeasure_phase(root, &layout_data);
+            if(!layout_data.stay_dirty)
+                ntg__widget_tree_clean(root, NTG_WIDGET_DIRTY_HMEASURE);
+        }
+
+        if(scene->priv.full_relay || (root->ro.dirty_tree & NTG_WIDGET_DIRTY_HCONSTRAIN))
+        {
+            hconstrain_phase(root, &layout_data);
+            if(!layout_data.stay_dirty)
+                ntg__widget_tree_clean(root, NTG_WIDGET_DIRTY_HCONSTRAIN);
+        }
+
+        if(scene->priv.full_relay || (root->ro.dirty_tree & NTG_WIDGET_DIRTY_VMEASURE))
+        {
+            vmeasure_phase(root, &layout_data);
+            if(!layout_data.stay_dirty)
+                ntg__widget_tree_clean(root, NTG_WIDGET_DIRTY_VMEASURE);
+        }
+
+        if(scene->priv.full_relay || (root->ro.dirty_tree & NTG_WIDGET_DIRTY_VCONSTRAIN))
+        {
+            vconstrain_phase(root, &layout_data);
+            if(!layout_data.stay_dirty)
+                ntg__widget_tree_clean(root, NTG_WIDGET_DIRTY_VCONSTRAIN);
+        }
+
+        if(scene->priv.full_relay || (root->ro.dirty_tree & NTG_WIDGET_DIRTY_ARRANGE))
+        {
+            arrange_phase(root, &layout_data);
+            if(!layout_data.stay_dirty)
+                ntg__widget_tree_clean(root, NTG_WIDGET_DIRTY_ARRANGE);
+        }
 
         ++it_counter;
     }
     while((layout_data.new_it) && (it_counter < scene->priv.max_it));
 
-    draw_phase(root, &layout_data);
+    if(scene->priv.full_relay || (root->ro.dirty_tree & NTG_WIDGET_DIRTY_DRAW))
+    {
+        draw_phase(root, &layout_data);
+        if(!layout_data.stay_dirty)
+            ntg__widget_tree_clean(root, NTG_WIDGET_DIRTY_DRAW);
+    }
+
     finalize_phase(root, &layout_data);
 
     ntg_log_log("IT: %d", it_counter);

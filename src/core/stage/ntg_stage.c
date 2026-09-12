@@ -113,14 +113,25 @@ bool ntg_stage_compose(ntg_stage* stage, sarena* arena)
     ntg_scene_collect_layers_by_z(stage->ro.scene, layers, layer_count);
 
     size_t i;
+    bool layer_redraw, any_layer_redraw = false;
     for(i = 0; i < layer_count; i++)
     {
-        bool layer_redraw = draw_layer(stage, layers[i], arena);
+        layer_redraw = false;
+
+        if(any_layer_redraw ||
+        stage->priv.full_recomp ||
+        (layers[i]->ro.dirty_tree & NTG__WIDGET_DIRTY_RENDER))
+        {
+            layer_redraw = draw_layer(stage, layers[i], arena);
+            any_layer_redraw = any_layer_redraw || layer_redraw;
+        }
+
         rval = rval || layer_redraw;
     }
 
 done:
     ntg_object_event_raise(ntg_obj(stage), NTG_EVENT_STAGE_CMPSPOST, NULL);
+    stage->priv.full_recomp = rval;
 
     return rval;
 }
@@ -338,6 +349,7 @@ int ntg__stage_set_size(ntg_stage* stage, ntg_xy size)
 
     stage->ro.size = size;
     ntg_stage_mark_dirty(stage);
+    stage->priv.full_recomp = true;
 
     int _status;
 

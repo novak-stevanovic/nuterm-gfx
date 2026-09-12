@@ -95,9 +95,6 @@ ntg_log: useful logging
 TEST:
 frame times
 
-AFTER RELEASE:
-optimize layout_layer(): if scene is dirty all layer trees are traversed, even clean ones
-
 */
 
 #endif // NTG_H

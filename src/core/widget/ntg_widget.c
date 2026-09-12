@@ -76,14 +76,10 @@ static int get_dcr_size(
 
 static int vconstrain_border(ntg_widget* widget, bool* out_repeat);
 static int vconstrain_padding(ntg_widget* widget, bool* out_repeat);
-static int calculate_border_hsize(
-        ntg_widget* widget, size_t* out_w, size_t* out_e);
-static int calculate_border_vsize(
-        ntg_widget* widget, size_t* out_n, size_t* out_s);
-static int calculate_padding_hsize(
-        ntg_widget* widget, size_t* out_w, size_t* out_e);
-static int calculate_padding_vsize(
-        ntg_widget* widget, size_t* out_n, size_t* out_s);
+static int calculate_border_hsize(ntg_widget* widget, size_t* out_w, size_t* out_e);
+static int calculate_border_vsize(ntg_widget* widget, size_t* out_n, size_t* out_s);
+static int calculate_padding_hsize(ntg_widget* widget, size_t* out_w, size_t* out_e);
+static int calculate_padding_vsize(ntg_widget* widget, size_t* out_n, size_t* out_s);
 
 static int draw_optimized(ntg_widget* widget, sarena* arena);
 static int draw_unoptimized(ntg_widget* widget, sarena* arena);
@@ -380,6 +376,12 @@ int ntg_widget_detach(ntg_widget* widget)
 
     if(scene)
         ntg__scene_rm_widget_tree(scene, widget);
+
+    /* Transfer tree dirtiness from root. 
+     * Root tree dirtiness doesn't guarantee the same dirty flags inside
+     * the widget's tree. */
+    ntg_widget* root = ntg_widget_get_tree_root_(widget);
+    widget->ro.dirty_tree = root->ro.dirty_tree;
 
     ntg_widget_mark_dirty(parent, NTG_WIDGET_DIRTY_FULL);
 
@@ -1029,6 +1031,14 @@ int ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
 
     child->ro.parent = parent;
 
+    /* Transfer tree dirtiness */
+    ntg_widget* root = ntg_widget_get_tree_root_(child);
+    root->ro.dirty_tree |= child->ro.dirty_tree;
+    child->ro.dirty_tree = 0;
+
+    /* Mark parent dirty */
+    ntg_widget_mark_dirty(parent, NTG_WIDGET_DIRTY_FULL);
+
     if(scene)
         ntg__scene_add_widget_tree(scene, child);
 
@@ -1045,7 +1055,6 @@ int ntg_widget_attach(ntg_widget* parent, ntg_widget* child)
     if(scene)
         ntg__scene_add_widget_tree_notify(scene, child);
 
-    ntg_widget_mark_dirty(parent, NTG_WIDGET_DIRTY_FULL);
     return 0;
 }
 
@@ -1249,6 +1258,12 @@ int ntg_widget_mark_dirty(ntg_widget* widget, uint32_t dirty)
     if(!dirty) return 0;
 
     widget->ro.dirty |= dirty;
+
+    ntg_widget* root = ntg_widget_get_tree_root_(widget);
+    if(root)
+    {
+        root->ro.dirty_tree |= dirty;
+    }
 
     ntg_scene* scene = ntg_widget_get_scene_(widget);
     if(scene)
@@ -1830,6 +1845,18 @@ void ntg__widget_layout_finalize(ntg_widget* widget, sarena* arena)
             .new_size = &new_size
         };
 
+        size_t i;
+        ntg_widget* it_anchored;
+        for(i = 0; i < widget->ro.anchored.size; i++)
+        {
+            it_anchored = widget->ro.anchored.data[i];
+
+            /* Scene should call ntg__anchor_policy_measure()/arrange(). */
+            it_anchored->ro.dirty_tree |= NTG_WIDGET_DIRTY_HMEASURE |
+                                          NTG_WIDGET_DIRTY_VMEASURE |
+                                          NTG_WIDGET_DIRTY_ARRANGE;
+        }
+
         ntg_object_event_raise(ntg_obj(widget), NTG_EVENT_WIDGET_SZCHG, &event_dt);
     }
 
@@ -1859,6 +1886,18 @@ void ntg__widget_layout_finalize(ntg_widget* widget, sarena* arena)
             .old_pos = &old_pos,
             .new_pos = &new_pos
         };
+
+        size_t i;
+        ntg_widget* it_anchored;
+        for(i = 0; i < widget->ro.anchored.size; i++)
+        {
+            it_anchored = widget->ro.anchored.data[i];
+
+            /* Scene should call ntg__anchor_policy_measure()/arrange(). */
+            it_anchored->ro.dirty_tree |= NTG_WIDGET_DIRTY_HMEASURE |
+                                          NTG_WIDGET_DIRTY_VMEASURE |
+                                          NTG_WIDGET_DIRTY_ARRANGE;
+        }
 
         ntg_object_event_raise(ntg_obj(widget), NTG_EVENT_WIDGET_POSCHG, &event_dt);
     }
@@ -1917,12 +1956,20 @@ void ntg__widget_clean(ntg_widget* widget, uint32_t clean)
     widget->ro.dirty &= (~clean);
 }
 
+void ntg__widget_tree_clean(ntg_widget* widget, uint32_t clean)
+{
+    if(!widget || !ntg_widget_is_tree_root(widget)) return;
+
+    widget->ro.dirty_tree &= (~clean);
+}
+
 void ntg__widget_scene_enter(ntg_widget* widget, ntg_scene* scene)
 {
     if(!widget) return;
 
+    /* Don't reset dirtiness because of NTG_WIDGET_DIRTY_PREPARE */
     layout_reset(widget);
-    ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_FULL);
+    ntg_widget_mark_dirty(widget, NTG_WIDGET_DIRTY_FULL); /* sets tree dirtiness as well */
 
     if(ntg_wgt_vtbl(widget)->enter_scene_fn)
         ntg_wgt_vtbl(widget)->enter_scene_fn(widget, scene);
@@ -1940,6 +1987,7 @@ void ntg__widget_scene_leave(ntg_widget* widget, ntg_scene* scene)
 {
     if(!widget) return;
 
+    /* Don't reset dirtiness because of NTG_WIDGET_DIRTY_PREPARE */
     layout_reset(widget);
 
     if(ntg_wgt_vtbl(widget)->rm_scene_fn)
@@ -2084,7 +2132,6 @@ static void layout_reset(ntg_widget* widget)
     widget->ro.max_size = ntg_xy_new(0, 0);
     widget->ro.grow = ntg_xy_new(0, 0);
     widget->priv.skip_hborder = false;
-    ntg__widget_clean(widget, NTG_WIDGET_DIRTY_FULL | NTG__WIDGET_DIRTY_RENDER);
     widget->priv.skip_hpadding = false;
     widget->priv.special_repeat = false;
     widget->ro.size = ntg_xy_new(0, 0);

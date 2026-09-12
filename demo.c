@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
     int status;
     struct ntg_opts opts = {0};
     // opts.alt_screen_mode = NTG_ALT_SCREEN_DISABLE;
-    status = ntg_enable(&opts, "ntg_log.txt");
+    status = ntg_enable(&opts, NULL);
     // status = ntg_enable(&opts, NULL);
     assert(!status);
 

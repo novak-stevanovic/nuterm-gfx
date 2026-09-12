@@ -148,7 +148,7 @@ struct ntg_widget
         ntg_insets padding_size;
         ntg_xy pos;
         ntg_widget_draw drawing;
-        uint32_t dirty;
+        uint32_t dirty, dirty_tree;
 
         struct ntg_lay_conf lay_conf;
         int z_index;

@@ -44,6 +44,10 @@ struct ntg_stage
         bool dirty;
     } ro;
 
+    struct
+    {
+        bool full_recomp;
+    } priv;
 };
 
 /* ========================================================================== */

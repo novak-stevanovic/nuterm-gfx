@@ -249,5 +249,6 @@ void ntg__widget_root_set_vsize(ntg_widget* widget, size_t size);
 void ntg__widget_root_set_pos(ntg_widget* widget, ntg_xy pos);
 
 void ntg__widget_clean(ntg_widget* widget, uint32_t clean);
+void ntg__widget_tree_clean(ntg_widget* widget, uint32_t clean);
 
 #endif // NTG_WIDGET_LAYOUT_H

@@ -63,6 +63,7 @@ struct ntg_scene
     struct
     {
         unsigned int max_it;
+        bool full_relay; /* When resize occurs, all layers must perform a full relayout */
     } priv;
 };
 
